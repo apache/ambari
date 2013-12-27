@@ -26,7 +26,6 @@ App.MainController = Em.Controller.extend({
     var name = App.router.get('clusterController.clusterName');
     if (name) {
       name = name.length > 13 ? name.substr(0, 10) + "..." : name;
-      name = name.capitalize();
     } else {
       name = Em.I18n.t('common.loading');
     }
@@ -44,21 +43,32 @@ App.MainController = Em.Controller.extend({
    * run all processes and cluster's data loading
    */
   initialize: function(){
-    this.initAdmin();
     App.router.get('clusterController').loadClusterData();
-    this.startPolling();
   },
-  initAdmin: function(){
-    if(App.db && App.db.getUser() && App.db.getUser().admin) {
-      App.set('isAdmin', true);
-      console.log('Administrator logged in');
+
+  dataLoading: function () {
+    var self = this;
+    var dfd = $.Deferred();
+    if (App.router.get('clusterController.isLoaded')) {
+      dfd.resolve();
+    } else {
+      var interval = setInterval(function () {
+        if (self.get('isClusterDataLoaded')) {
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      }, 50);
     }
+    return dfd.promise();
   },
-  startPolling: function(){
-    App.router.get('updateController').set('isWorking', true);
-    App.router.get('backgroundOperationsController').set('isWorking', true);
-    App.router.get('clusterController').set('isWorking', true);
-  },
+
+  startPolling: function () {
+    if (App.router.get('clusterController.isLoaded')) {
+      App.router.get('updateController').set('isWorking', true);
+      App.router.get('backgroundOperationsController').set('isWorking', true);
+      App.router.get('clusterController').set('isWorking', true);
+    }
+  }.observes('App.router.clusterController.isLoaded'),
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
@@ -73,9 +83,11 @@ App.MainController = Em.Controller.extend({
 
     this.set('reloadTimeOut',
         setTimeout(function () {
-          location.reload()
+          if (App.clusterStatus.get('isInstalled')) {
+            location.reload();
+          }
         }, App.pageReloadTime)
     );
-  }.observes("App.router.location.lastSetURL")
+  }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled")
 
 })

@@ -30,8 +30,7 @@ App.ChartServiceMetricsHBASE_RegionServerQueueSize = App.ChartLinearTimeView.ext
   id: "service-metrics-hbase-regionserver-queuesize",
   title: Em.I18n.t('services.service.info.metrics.hbase.regionServerQueueSize'),
   renderer: 'line',
-  sourceUrl: "/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/flushQueueSize[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hbase/regionserver_queuesize.json",
+  ajaxIndex: 'service.metrics.hbase.regionserver_queuesize',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

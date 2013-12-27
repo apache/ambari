@@ -19,8 +19,6 @@
 package org.apache.ambari.server.controller.spi;
 
 
-import org.apache.ambari.server.api.util.TreeNode;
-
 import java.util.Map;
 
 /**
@@ -36,20 +34,12 @@ public interface Resource {
   public Type getType();
 
   /**
-   * Get the properties contained by this resource.
-   * Each category is contained in a sub-node.
-   *
-   * @return resource properties tree
-   */
-  public TreeNode<Map<String, Object>> getProperties();
-
-  /**
    * Obtain the properties contained by this group in a map structure.
    * The category/property hierarchy is flattened into a map where
    * each key is the absolute category name and the corresponding
    * value is a map of properties(name/value pairs) for that category.
    *
-   * @return  resource properties map
+   * @return resource properties map
    */
   public Map<String, Map<String, Object>> getPropertiesMap();
 
@@ -64,7 +54,7 @@ public interface Resource {
   /**
    * Add an empty category to this resource.
    *
-   * @param id    the category id
+   * @param id the category id
    */
   public void addCategory(String id);
 
@@ -86,8 +76,10 @@ public interface Resource {
     Component,
     HostComponent,
     Configuration,
+    ConfigGroup,
     Action,
     Request,
+    RequestSchedule,
     Task,
     User,
     Stack,
@@ -102,6 +94,9 @@ public interface Resource {
     DRInstance,
     Workflow,
     Job,
-    TaskAttempt
+    TaskAttempt,
+    RootService,
+    RootServiceComponent,
+    RootServiceHostComponent
   }
 }

@@ -17,23 +17,20 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/mapreduce'),
   serviceName: 'MAPREDUCE',
   jobTrackerWebUrl: function () {
-    return "http://" + this.get('service').get('jobTracker').get('publicHostName') + ":50030";
-  }.property('service.nameNode'),
+    return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('service').get('jobTracker').get('publicHostName')) + ":50030";
+  }.property('service.jobTracker'),
 
   Chart: App.ChartLinearView.extend({
     data: function () {
       return this.get('_parentView.data.chart');
     }.property('_parentView.data.chart')
   }),
-
-  version: function(){
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
 
   jobTrackerUptime: function () {
     var uptime = this.get('service').get('jobTrackerStartTime');
@@ -53,25 +50,46 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     var svc = this.get('service');
     var liveCount = svc.get('aliveTrackers').get('length');
     var allCount = svc.get('taskTrackers').get('length');
-    var runningCount = svc.get('mapsRunning') + svc.get('reducesRunning');
-    var waitingCount = svc.get('mapsWaiting') + svc.get('reducesWaiting');
+    var runningCount = svc.get('jobsRunning');
+    if (runningCount === null) {
+      runningCount = 'n/a';
+    }
     var template = this.t('dashboard.services.mapreduce.summary');
-    return template.format(liveCount, allCount, runningCount, waitingCount);
-  }.property('service.aliveTrackers', 'service.taskTrackers','service.mapsRunning', 'service.mapsWaiting', 'service.reducesRunning', 'service.reducesWaiting'),
+    return template.format(liveCount, allCount, runningCount);
+  }.property('service.aliveTrackers', 'service.taskTrackers', 'service.jobsRunning'),
+
+  trackersText: function () {
+    if (this.get('service').get('taskTrackers.length') == 0) {
+      return '';
+    } else if (this.get('service').get('taskTrackers.length') > 1){
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }else{
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service.taskTrackers.length"),
 
   trackersSummary: function () {
     var svc = this.get('service');
-    var liveCount = svc.get('aliveTrackers').get('length');
+    var liveCount = App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length;
     var totalCount = svc.get('taskTrackers').get('length');
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(liveCount, totalCount);
   }.property('service.aliveTrackers.length', 'service.taskTrackers.length'),
 
+  trackersLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").get("length");
+    }.property("service.hostComponents.@each", "service.aliveTrackers.length"),
+    totalComponents: function() {
+      return this.get("service.taskTrackers.length");
+    }.property('service.taskTrackers.length')
+  }),
+
   trackersHeapSummary: function () {
-    var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 0;
-    var heapMax = this.get('service').get('jobTrackerHeapMax') || 0;
+    var heapUsed = this.get('service').get('jobTrackerHeapUsed');
+    var heapMax = this.get('service').get('jobTrackerHeapMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
+    return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(numberUtils.bytesToSize(heapUsed, 1, "parseFloat"), numberUtils.bytesToSize(heapMax, 1, "parseFloat"), percent.toFixed(1));
   }.property('service.jobTrackerHeapUsed', 'service.jobTrackerHeapMax'),
 
   jobsSummary: function () {

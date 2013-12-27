@@ -23,6 +23,10 @@ App.InstallerView = Em.View.extend({
 
   templateName: require('templates/installer'),
 
+  isStep0Disabled: function () {
+    return this.get('controller.isStepDisabled').findProperty('step',0).get('value');
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
   isStep1Disabled: function () {
     return this.get('controller.isStepDisabled').findProperty('step',1).get('value');
   }.property('controller.isStepDisabled.@each.value').cacheable(),

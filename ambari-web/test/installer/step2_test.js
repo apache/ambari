@@ -20,6 +20,8 @@ var App = require('app');
 var Ember = require('ember');
 require('controllers/wizard/step2_controller');
 require('models/host');
+require('models/host_component');
+require('messages');
 
 describe('App.WizardStep2Controller', function () {
 
@@ -47,14 +49,25 @@ describe('App.WizardStep2Controller', function () {
     });
 
     it('should return true if all host names are valid', function(){
-      controller.set('hostNames', 'amache ambari');
+      controller.set('hostNames', 'amache.org ambari.com');
       expect(controller.isAllHostNamesValid()).to.equal(true);
     })
 
-    /*it('should return false if there is invalid host names', function(){
-      controller.set('hostNames', 'amache #@$ ambari');
-      expect(controller.isAllHostNamesValid()).to.equal(false);
-    })*/
+    var tests = [
+      'hostname',
+      '-hostname.com',
+      'hostname-.com',
+      'host_name.com',
+      '123.123.123.123',
+      'hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname',
+      'hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostname'
+    ];
+    tests.forEach(function (test) {
+      it('should return false for invalid host names ' + test + ' ', function () {
+        controller.set('hostNames', test);
+        expect(controller.isAllHostNamesValid()).to.equal(false);
+      });
+    });
   })
 
   describe('#checkHostError()', function () {
@@ -193,17 +206,18 @@ describe('App.WizardStep2Controller', function () {
 
     it('should parse hosts from pattern expression to hostNameArr', function () {
       var controller = App.WizardStep2Controller.create({
-        hostNames: 'hots[0-10]'
+        hostNameArr: ['host[001-011]']
       });
       controller.patternExpression();
       var result = true;
       var hosts = controller.get('hostNameArr');
-      for (var i = 0; i<11; i++) {
-        if (hosts[i] !== 'host'+i) {
+      for (var i = 1; i<12; i++) {
+        var extra = (i.toString().length == 1) ? 0 : '';
+        if (hosts[i-1] !== 'host0' + extra + i) {
           result = false;
         }
       }
-      expect(result).to.equal(false);
+      expect(result).to.equal(true);
     })
   })
 
@@ -211,12 +225,13 @@ describe('App.WizardStep2Controller', function () {
 
     it('should call manualInstallPopup if manualInstall is true', function (done) {
       var controller = App.WizardStep2Controller.create({
+        hostNames: '',
         manualInstall: true,
         manualInstallPopup: function () {
           done();
         }
       });
-      controller.proceedNext();
+      controller.proceedNext(true);
     })
   })
 
@@ -239,18 +254,19 @@ describe('App.WizardStep2Controller', function () {
     })
   })
 
-  describe('#saveHosts()', function () {
+  /*describe('#saveHosts()', function () {
+    var controller = App.WizardStep2Controller.create({
+      hostNameArr: ['ambari']
+    });
+    controller.set('content', Ember.Object.create({'hosts':Ember.Object.create({})}));
+
+    App.router = Ember.Object.create({
+      send:function() {}
+    });
 
     it('should set content.hosts', function () {
-      var controller = App.WizardStep2Controller.create({
-        hostNameArr: ['ambari'],
-        content:{'hosts':{}}
-      });
-      App.router = Ember.Object.create({
-        send:function() {}
-      });
       controller.saveHosts();
       expect(controller.get('content.hosts')).to.not.be.empty;
     })
-  })
+  })*/
 })

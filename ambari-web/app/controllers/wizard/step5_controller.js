@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 
 App.WizardStep5Controller = Em.Controller.extend({
 
@@ -30,13 +31,36 @@ App.WizardStep5Controller = Em.Controller.extend({
 
   isReassignWizard: function () {
     return this.get('content.controllerName') == 'reassignMasterController';
-  }.property(),
+  }.property('content.controllerName'),
+
+  isAddServiceWizard: function() {
+    return this.get('content.controllerName') == 'addServiceController';
+  }.property('content.controllerName'),
 
   isReassignHive: function () {
     return this.get('servicesMasters').objectAt(0) && this.get('servicesMasters').objectAt(0).component_name == 'HIVE_SERVER' && this.get('isReassignWizard');
   }.property('isReassignWizard', 'servicesMasters'),
 
+  /**
+   * Define state for submit button. Return true only for Reassign Master Wizard and if more than one master component was reassigned.
+   */
+  isSubmitDisabled: function () {
+    if (!this.get('isReassignWizard')) {
+      return false;
+    }
+    var reassigned = 0;
+    var arr1 = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('host.hostName');
+    var arr2 = this.get('servicesMasters').mapProperty('selectedHost');
+    arr1.forEach(function (host) {
+      if (!arr2.contains(host)) {
+        reassigned++;
+      }
+    }, this);
+    return reassigned !== 1;
+  }.property('servicesMasters.@each.selectedHost'),
+
   hosts:[],
+  isLazyLoading: false,
 
   servicesMasters:[],
   selectedServicesMasters:[],
@@ -56,7 +80,9 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.renderComponents(this.loadComponents());
 
     this.updateComponent('ZOOKEEPER_SERVER');
-    this.updateComponent('HBASE_MASTER');
+    if(App.supports.multipleHBaseMasters){
+      this.updateComponent('HBASE_MASTER');
+    }
 
     if (!this.get("selectedServicesMasters").filterProperty('isInstalled', false).length) {
       console.log('no master components to add');
@@ -69,15 +95,20 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   updateComponent: function(componentName){
     var component = this.last(componentName);
+
+    var services = this.get('content.services').filterProperty('isInstalled', true).mapProperty('serviceName');
+    var currentService = componentName.split('_')[0];
+    var showControl = !services.contains(currentService);
+
     if (component) {
-      if (this.get("selectedServicesMasters").filterProperty("component_name", componentName).length < this.get("hosts.length") && !this.get('isReassignWizard')) {
-        component.set('showAddControl', true);
-      } else {
-        component.set('showRemoveControl', false);
+      if(showControl){
+        if (this.get("selectedServicesMasters").filterProperty("component_name", componentName).length < this.get("hosts.length") && !this.get('isReassignWizard')) {
+          component.set('showAddControl', true);
+        } else {
+          component.set('showRemoveControl', false);
+        }
       }
-      if(componentName == 'ZOOKEEPER_SERVER' || componentName == 'HBASE_MASTER'){
-        this.rebalanceComponentHosts(componentName);
-      }
+      this.rebalanceComponentHosts(componentName);
     }
   },
 
@@ -98,11 +129,24 @@ App.WizardStep5Controller = Em.Controller.extend({
           cpu:_host.cpu,
           memory:_host.memory,
           disk_info:_host.disk_info,
-          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
+          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, numberUtils.bytesToSize(_host.memory, 1, 'parseFloat', 1024), _host.cpu)
         }));
       }
     }
     this.set("hosts", result);
+    this.sortHosts(this.get('hosts'));
+  },
+
+  sortHosts: function (hosts) {
+    hosts.sort(function (a, b) {
+      if (a.get('memory') == b.get('memory')) {
+        if (a.get('cpu') == b.get('cpu')) {
+          return a.get('host_name').localeCompare(b.get('host_name')); // hostname asc
+        }
+        return b.get('cpu') - a.get('cpu'); // cores desc
+      }
+      return b.get('memory') - a.get('memory'); // ram desc
+    });
   },
 
   /**
@@ -179,16 +223,31 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @param masterComponents
    */
   renderComponents:function (masterComponents) {
+    var self = this;
     var services = this.get('content.services')
       .filterProperty('isInstalled', true).mapProperty('serviceName'); //list of shown services
-
+    var hosts = this.get('hosts');
+    //The lazy loading for select elements supported only by Firefox and Chrome
+    var isBrowserSupported = $.browser.mozilla || ($.browser.safari && navigator.userAgent.indexOf('Chrome') !== -1);
+    var isLazyLoading = isBrowserSupported && hosts.length > 100;
     var showRemoveControlZk = !services.contains('ZOOKEEPER') && masterComponents.filterProperty('display_name', 'ZooKeeper').length > 1;
     var showRemoveControlHb = !services.contains('HBASE') && masterComponents.filterProperty('component_name', 'HBASE_MASTER').length > 1;
     var zid = 1;
     var hid = 1;
+    var nid = 1;
     var result = [];
 
+    this.set('isLazyLoading', isLazyLoading);
+
     masterComponents.forEach(function (item) {
+
+      if (item.component_name == 'SECONDARY_NAMENODE') {
+        if (self.get('isAddServiceWizard')) {
+          if (App.get('isHaEnabled')) {
+            return;
+          }
+        }
+      }
 
       var componentObj = Ember.Object.create(item);
       console.log("TRACE: render master component name is: " + item.component_name);
@@ -196,11 +255,22 @@ App.WizardStep5Controller = Em.Controller.extend({
       if (item.display_name === "ZooKeeper") {
         componentObj.set('zId', zid++);
         componentObj.set("showRemoveControl", showRemoveControlZk);
-      } else if(item.component_name === "HBASE_MASTER"){
+      } else if (App.supports.multipleHBaseMasters && item.component_name === "HBASE_MASTER") {
         componentObj.set('zId', hid++);
         componentObj.set("showRemoveControl", showRemoveControlHb);
+      }  else if (item.component_name === "NAMENODE") {
+        componentObj.set('zId', nid++);
       }
-      componentObj.set("availableHosts", this.get("hosts"));
+      if(isLazyLoading){
+        //select need at least 30 hosts to have scrollbar
+        var initialHosts = hosts.slice(0, 30);
+        if(!initialHosts.someProperty('host_name', item.selectedHost)){
+          initialHosts.push(hosts.findProperty('host_name', item.selectedHost));
+        }
+        componentObj.set("availableHosts", initialHosts);
+      } else {
+        componentObj.set("availableHosts", hosts);
+      }
       result.push(componentObj);
     }, this);
 
@@ -223,124 +293,37 @@ App.WizardStep5Controller = Em.Controller.extend({
     var hiveMetastore = this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE');
     var webHCatServer = this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER');
     if (hiveServer && hiveMetastore && webHCatServer) {
-      if (!this.get('isReassignHive') && this.get('servicesMasters').objectAt(0) && !this.get('servicesMasters').objectAt(0).component_name == 'HIVE_METASTORE') {
+      if (!this.get('isReassignHive') && this.get('servicesMasters').objectAt(0) && !(this.get('servicesMasters').objectAt(0).component_name == 'HIVE_METASTORE')) {
         this.get('selectedServicesMasters').findProperty('component_name', 'HIVE_METASTORE').set('selectedHost', hiveServer.get('selectedHost'))
       }
       this.get('selectedServicesMasters').findProperty('component_name', 'WEBHCAT_SERVER').set('selectedHost', hiveServer.get('selectedHost'));
     }
   }.observes('selectedServicesMasters.@each.selectedHost'),
 
-  getKerberosServer:function (noOfHosts) {
+  /**
+   * select and return host for component by scheme
+   * Scheme is an object that has keys which compared to number of hosts,
+   * if key more that number of hosts, then return value of that key.
+   * Value is index of host in hosts array.
+   *
+   * @param noOfHosts
+   * @param selectionScheme
+   * @return {*}
+   */
+  getHostForComponent: function(noOfHosts, selectionScheme){
     var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[3];
-    } else {
-      return hosts[5];
-    }
-  },
-
-  getNameNode:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    return hosts[0];
-  },
-
-  getSNameNode:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
+    if(hosts.length === 1 || $.isEmptyObject(selectionScheme)){
       return hosts[0];
     } else {
-      return hosts[1];
+      for(var i in selectionScheme){
+        if(window.isFinite(i)){
+          if(noOfHosts < window.parseInt(i)){
+            return hosts[selectionScheme[i]];
+          }
+        }
+      }
+      return hosts[selectionScheme['else']]
     }
-  },
-
-  getJobTracker:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[1];
-    } else {
-      return hosts[2];
-    }
-  },
-
-  getHBaseMaster:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[0];
-    } else if (noOfHosts <= 5) {
-      return hosts[0];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[3];
-    }
-  },
-
-  getOozieServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[3];
-    }
-  },
-
-  getHiveServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[4];
-    }
-  },
-
-  getHueServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    var hostnames = [];
-    var inc = 0;
-    hosts.forEach(function (_hostname) {
-      hostnames[inc] = _hostname.host_name;
-      inc++;
-    });
-    var hostExcAmbari = hostnames.without(location.hostname);
-    if (noOfHosts > 1) {
-      return hostExcAmbari[0];
-    } else {
-      return hostnames[0];
-    }
-  },
-
-  getHiveMetastore:function (noOfHosts) {
-    return this.getHiveServer(noOfHosts);
-  },
-
-  getWebHCatServer:function (noOfHosts) {
-    return this.getHiveServer(noOfHosts);
   },
 
   getZooKeeperServer:function (noOfHosts) {
@@ -353,38 +336,22 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   getGangliaServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    var hostnames = [];
-    var inc = 0;
-    hosts.forEach(function (_hostname) {
-      hostnames[inc] = _hostname.host_name;
-      inc++;
-    });
-    var hostExcAmbari = hostnames.without(location.hostname);
+    var hostNames = this.get('hosts').mapProperty('host_name');
+    var hostExcAmbari = hostNames.without(location.hostname);
     if (noOfHosts > 1) {
       return hostExcAmbari[0];
     } else {
-      return hostnames[0];
+      return hostNames[0];
     }
   },
 
   getNagiosServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    var hostnames = [];
-    var inc = 0;
-    hosts.forEach(function (_hostname) {
-      hostnames[inc] = _hostname.host_name;
-      inc++;
-    });
-    var hostExcAmbari = hostnames.without(location.hostname);
-    if (noOfHosts > 1) {
-      return hostExcAmbari[0];
-    } else {
-      return hostnames[0];
-    }
+    return this.getGangliaServer(noOfHosts);
   },
 
-
+  getHueServer:function (noOfHosts) {
+    return this.getGangliaServer(noOfHosts);
+  },
   /**
    * Return hostName of masterNode for specified service
    * @param componentName
@@ -394,23 +361,76 @@ App.WizardStep5Controller = Em.Controller.extend({
     var noOfHosts = this.get('hosts').length;
     switch (componentName) {
       case 'KERBEROS_SERVER':
-        return this.getKerberosServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 3,
+          "else" : 5
+        }).host_name;
       case 'NAMENODE':
-        return this.getNameNode(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "else" : 0
+        }).host_name;
       case 'SECONDARY_NAMENODE':
-        return this.getSNameNode(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "else" : 1
+        }).host_name;
       case 'JOBTRACKER':
-        return this.getJobTracker(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
+      case 'HISTORYSERVER':
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
+      case 'RESOURCEMANAGER':
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
       case 'HBASE_MASTER':
-        return [this.getHBaseMaster(noOfHosts).host_name];
+        return [this.getHostForComponent(noOfHosts, {
+          "3" : 0,
+          "6" : 0,
+          "31" : 2,
+          "else" : 3
+        }).host_name];
       case 'OOZIE_SERVER':
-        return this.getOozieServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 3
+        }).host_name;
       case 'HIVE_SERVER':
-        return this.getHiveServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 4
+        }).host_name;
       case 'HIVE_METASTORE':
-        return this.getHiveMetastore(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 4
+        }).host_name;
       case 'WEBHCAT_SERVER':
-        return this.getWebHCatServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 4
+        }).host_name;
       case 'ZOOKEEPER_SERVER':
         return this.getZooKeeperServer(noOfHosts);
       case 'GANGLIA_SERVER':
@@ -430,7 +450,6 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     mappedHosts.forEach(function (item) {
       hostObj = self.get("hosts").findProperty("host_name", item);
-      console.log("Name of the host is: " + hostObj.host_name);
 
       mappingObject = Ember.Object.create({
         host_name:item,
@@ -609,8 +628,15 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     currentComponents.forEach(function (item) {
       preparedAvailableHosts = availableComponentHosts.slice(0);
-      preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("selectedHost")))
-      preparedAvailableHosts.sort(this.sortHostsByConfig, this);
+      if (this.get('content.controllerName') != 'reassignMasterController') {
+        preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("selectedHost")));
+      } else {
+        if(item.get("host_name") != this.get('content.currentHostId')) {
+          preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("host_name")));
+        }
+        item.set("selectedHost", preparedAvailableHosts.objectAt(0).host_name);
+      }
+      preparedAvailableHosts.sort(this.sortHostsByName, this);
       item.set("availableHosts", preparedAvailableHosts);
     }, this);
   },
@@ -631,6 +657,12 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
     else {
       return -1;
+    }
+  },
+
+  submit: function () {
+    if (!this.get('isSubmitDisabled')){
+      App.router.send('next');
     }
   }
 });

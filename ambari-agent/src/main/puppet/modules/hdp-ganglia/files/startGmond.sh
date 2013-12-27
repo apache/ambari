@@ -34,14 +34,21 @@ function startGmondForCluster()
     if [ -z "${gmondRunningPid}" ]
     then
       gmondCoreConfFileName=`getGmondCoreConfFileName ${gmondClusterName}`;
-
+      removeGmondPidFileName ${gmondClusterName};
       if [ -e "${gmondCoreConfFileName}" ]
       then 
         gmondPidFileName=`getGmondPidFileName ${gmondClusterName}`;
 
         ${GMOND_BIN} --conf=${gmondCoreConfFileName} --pid-file=${gmondPidFileName};
-  
-        gmondRunningPid=`getGmondRunningPid ${gmondClusterName}`;
+
+        for i in `seq 0 5`; do
+          gmondRunningPid=`getGmondRunningPid ${gmondClusterName}`;
+          if [ -n "${gmondRunningPid}" ]
+          then
+            break;
+          fi
+          sleep 1;
+        done
   
         if [ -n "${gmondRunningPid}" ]
         then

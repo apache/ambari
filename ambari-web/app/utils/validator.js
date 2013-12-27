@@ -57,6 +57,21 @@ module.exports = {
   },
 
   /**
+   * validate directory doesn't start "home" or "homes"
+   * @param value
+   * @returns {boolean}
+   */
+  isAllowedDir: function(value) {
+    var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+    for(var i = 0; i < dirs.length; i++){
+      if(dirs[i].startsWith('/home') || dirs[i].startsWith('/homes')) {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
    * validate ip address with port
    * @param value
    * @return {Boolean}
@@ -72,10 +87,19 @@ module.exports = {
    * @return {Boolean}
    */
   isHostname: function(value) {
-    var regex = /^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/;
+    var regex = /(?=^.{3,254}$)(^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*(\.[a-zA-Z]{1,62})$)/;
     return regex.test(value);
   },
 
+  hasSpaces: function(value) {
+    var regex = /(\s+)/;
+    return regex.test(value);
+  },
+
+  isNotTrimmed: function(value) {
+    var regex = /(^\s+|\s+$)/;
+    return regex.test(value);
+  },
   /**
    * validate domain name with port
    * @param value
@@ -94,6 +118,16 @@ module.exports = {
   isValidUserName: function(value) {
     var usernameRegex = /^[a-z]([-a-z0-9]{0,30})$/;
     return usernameRegex.test(value);
+  },
+
+  /**
+   * validate key of configurations
+   * @param value
+   * @return {Boolean}
+   */
+  isValidConfigKey: function(value) {
+    var configKeyRegex = /^[0-9a-z_\-\.]+$/i;
+    return configKeyRegex.test(value);
   },
 
   empty:function (e) {

@@ -20,11 +20,49 @@ View Service Information
 
 [Back to Resources](index.md#resources)
 
-Refers to a specific service identified by ":serviceName" for a given cluster.
+**Summary**
 
-    GET /clusters/:name/services/:serviceName
+Gets the service information for the service identified by ":serviceName" for cluster identified by ":clusterName".
+
+    GET /clusters/:clusterName/services/:serviceName
 
 **Response**
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+**Example**
+
+Get the information for the "HDFS" service of the cluster named "c1".
+
+    GET /clusters/c1/services/HDFS
 
     200 OK
     {

@@ -1,0 +1,33 @@
+{
+  "name" : "GLUSTERFS",
+  "version" : "9.9.9.9-9",
+  "user" : "root",
+  "comment" : "This is comment for GLUSTERFS service",
+  "properties" : [ {
+    "name" : "dfs.replication.max",
+    "description" : "Maximal block replication.\n  ",
+    "filename" : "hdfs-site.xml"
+  }, {
+    "name" : "dfs.heartbeat.interval",
+    "description" : "Determines datanode heartbeat interval in seconds.",
+    "filename" : "hdfs-site.xml"
+  } ],
+  "components" : [ {
+    "name" : "DATANODE",
+    "category" : "SLAVE",
+    "client" : false,
+    "master" : false
+  }, {
+    "name" : "GLUSTERFS_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  } ],
+  "clientOnlyService" : false,
+  "clientComponent" : {
+    "name" : "GLUSTERFS_CLIENT",
+    "category" : "CLIENT",
+    "client" : true,
+    "master" : false
+  }
+}

@@ -53,8 +53,8 @@
 					  {{/each}}
 					</table>
 	        {{t common.maximum}}:
-	        <div>
-	          {{view Ember.TextField type="text" valueBinding="controller.selectedMetric.maximumValue" class="span6"}}
+	        <div id="inputMaximum" class="control-group">
+	          {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="span6"}}
 	          {{controller.selectedMetric.units}}
 	        </div>
         {{/if}}

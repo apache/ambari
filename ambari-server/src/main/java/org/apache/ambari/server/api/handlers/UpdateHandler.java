@@ -50,6 +50,8 @@ public class UpdateHandler extends BaseManagementHandler {
 
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
+    } catch (IllegalArgumentException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
     } catch (NoSuchParentResourceException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));
     } catch (NoSuchResourceException e) {

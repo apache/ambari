@@ -1,0 +1,58 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+<form class="form-horizontal" autocomplete="off">
+    <div class="each-row">
+        <div class="alert alert-info">
+          {{{view.configPropertyObj.hintInfo}}}
+        </div>
+    </div>
+
+    <div class="row-fluid" id= "min-height-limit">
+       {{#if view.configPropertyObj.isIE9}}
+         {{#if view.configPropertyObj.isGreenOrangeRed}}
+             <div class="progress span9">
+                 <div class="bar bar-success" style="width: 33%;"></div>
+                 <div class="bar bar-warning" style="width: 33%;"></div>
+                 <div class="bar bar-danger" style="width: 34%;"></div>
+             </div>
+         {{else}}
+             <div class="progress span9">
+                 <div class="bar bar-danger" style="width: 33%;"></div>
+                 <div class="bar bar-warning" style="width: 33%;"></div>
+                 <div class="bar bar-success" style="width: 34%;"></div>
+             </div>
+         {{/if}}
+       {{else}}
+         <div class="span9" id="slider-range"></div>
+       {{/if}}
+    </div>
+
+    <div class="row-fluid">
+        <div id="slider-value1" class="value-on-slider span2">0</div>
+        <div id="slider-value2" {{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :span4"}}>
+          {{view Ember.TextField valueBinding="view.configPropertyObj.thresh1"}}
+            <span class="help-inline">{{view.configPropertyObj.errorMessage1}}</span>
+        </div>
+        <div id="slider-value3" {{bindAttr class="view.configPropertyObj.isThresh2Error:slider-error :value-on-slider :span4"}}>
+          {{view Ember.TextField valueBinding="view.configPropertyObj.thresh2" }}
+            <span class="help-inline">{{view.configPropertyObj.errorMessage2}}</span>
+        </div>
+        <div id="slider-value4" class="value-on-slider span2">{{view.configPropertyObj.maxValue}}</div>
+    </div>
+
+</form>

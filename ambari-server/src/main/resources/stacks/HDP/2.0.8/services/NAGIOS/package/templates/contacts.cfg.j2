@@ -1,0 +1,91 @@
+###############################################################################
+# CONTACTS.CFG - SAMPLE CONTACT/CONTACTGROUP DEFINITIONS
+#
+# Last Modified: 05-31-2007
+#
+# NOTES: This config file provides you with some example contact and contact
+#        group definitions that you can reference in host and service
+#        definitions.
+#       
+#        You don't need to keep these definitions in a separate file from your
+#        other object definitions.  This has been done just to make things
+#        easier to understand.
+#
+###############################################################################
+
+#
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+#
+#
+
+
+###############################################################################
+###############################################################################
+#
+# CONTACTS
+#
+###############################################################################
+###############################################################################
+
+# Just one contact defined by default - the Nagios admin (that's you)
+# This contact definition inherits a lot of default values from the 'generic-contact' 
+# template which is defined elsewhere.
+
+define contact{
+        contact_name    {{nagios_web_login}}                                        ; Short name of user
+        use             generic-contact                                             ; Inherit default values from generic-contact template (defined above)
+        alias           Nagios Admin                                                ; Full name of user
+
+        email           {{nagios_contact}}	; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
+        }
+
+# Contact which writes all Nagios alerts to the system logger.
+define contact{
+        contact_name                    sys_logger         ; Short name of user
+        use                             generic-contact    ; Inherit default values from generic-contact template (defined above)
+        alias                           System Logger      ; Full name of user
+        host_notifications_enabled      1
+        service_notifications_enabled   1
+        service_notification_period     24x7
+        host_notification_period        24x7
+        service_notification_options    w,u,c,r,s
+        host_notification_options       d,u,r,s
+        can_submit_commands             1
+        retain_status_information       1
+        service_notification_commands   service_sys_logger
+        host_notification_commands      host_sys_logger
+        }
+
+###############################################################################
+###############################################################################
+#
+# CONTACT GROUPS
+#
+###############################################################################
+###############################################################################
+
+# We only have one contact in this simple configuration file, so there is
+# no need to create more than one contact group.
+
+define contactgroup {
+        contactgroup_name       admins
+        alias                   Nagios Administrators
+        members                 {{nagios_web_login}},sys_logger
+}

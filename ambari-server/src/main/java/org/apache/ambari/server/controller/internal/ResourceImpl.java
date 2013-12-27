@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.api.util.TreeNode;
-import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Simple resource implementation.
@@ -37,12 +37,9 @@ public class ResourceImpl implements Resource {
   private final Type type;
 
   /**
-   * Tree of categories/properties.
-   * Each category is a sub node and each node contains a map of properties(n/v pairs).
+   * The map of property maps keyed by property category.
    */
-  private final TreeNode<Map<String, Object>> m_treeProperties =
-      new TreeNodeImpl<Map<String, Object>>(null, new HashMap<String, Object>(), null);
-
+  private final Map<String, Map<String, Object>> propertiesMap = new TreeMap<String, Map<String, Object>>();
 
   // ----- Constructors ------------------------------------------------------
 
@@ -61,16 +58,30 @@ public class ResourceImpl implements Resource {
    * @param resource  the resource to copy
    */
   public ResourceImpl(Resource resource) {
+    this(resource, null);
+  }
+
+  /**
+   * Construct a resource from the given resource, setting only the properties
+   * that are found in the given set of property and category ids.
+   *
+   * @param resource     the resource to copy
+   * @param propertyIds  the set of requested property and category ids
+   */
+  public ResourceImpl(Resource resource, Set<String> propertyIds) {
     this.type = resource.getType();
 
-    for (Map.Entry<String, Map<String, Object>> categoryEntry : resource.getPropertiesMap().entrySet()) {
+    for (Map.Entry<String, Map<String, Object>> categoryEntry :
+        resource.getPropertiesMap().entrySet()) {
       String category = categoryEntry.getKey();
       Map<String, Object> propertyMap = categoryEntry.getValue();
       if (propertyMap != null) {
         for (Map.Entry<String, Object> propertyEntry : propertyMap.entrySet()) {
-          String propertyId    = (category == null ? "" : category + "/") + propertyEntry.getKey();
-          Object propertyValue = propertyEntry.getValue();
-          setProperty(propertyId, propertyValue);
+          String propertyId = PropertyHelper.getPropertyId(category, propertyEntry.getKey());
+          if (propertyIds == null || propertyIds.isEmpty() || PropertyHelper.containsProperty(propertyIds, propertyId)) {
+            Object propertyValue = propertyEntry.getValue();
+            setProperty(propertyId, propertyValue);
+          }
         }
       }
     }
@@ -85,67 +96,39 @@ public class ResourceImpl implements Resource {
   }
 
   @Override
-  public TreeNode<Map<String, Object>> getProperties() {
-    return m_treeProperties;
-  }
-
-  @Override
   public Map<String, Map<String, Object>> getPropertiesMap() {
-    Map<String, Map<String, Object>> mapProps = new HashMap<String, Map<String, Object>>();
-    addNodeToMap(m_treeProperties, mapProps, null);
-
-    return mapProps;
+    return propertiesMap;
   }
 
   @Override
   public void setProperty(String id, Object value) {
-    String category = PropertyHelper.getPropertyCategory(id);
-    TreeNode<Map<String, Object>> node;
-    if (category == null) {
-      node = m_treeProperties;
-    } else {
-      node = m_treeProperties.getChild(category);
-      if (node == null) {
-        String[] tokens = category.split("/");
-        node = m_treeProperties;
-        for (String t : tokens) {
-          TreeNode<Map<String, Object>> child = node.getChild(t);
-          if (child == null) {
-            child = node.addChild(new HashMap<String, Object>(), t);
-          }
-          node = child;
-        }
-      }
+    String categoryKey = getCategoryKey(PropertyHelper.getPropertyCategory(id));
+
+    Map<String, Object> properties = propertiesMap.get(categoryKey);
+    if (properties == null) {
+      properties = new TreeMap<String, Object>();
+      propertiesMap.put(categoryKey, properties);
     }
-    node.getObject().put(PropertyHelper.getPropertyName(id), value);
+    properties.put(PropertyHelper.getPropertyName(id), value);
   }
 
   @Override
   public void addCategory(String id) {
-    TreeNode<Map<String, Object>> node;
-    if (id != null) {
-      node = m_treeProperties.getChild(id);
-      if (node == null) {
-        String[] tokens = id.split("/");
-        node = m_treeProperties;
-        for (String t : tokens) {
-          TreeNode<Map<String, Object>> child = node.getChild(t);
-          if (child == null) {
-            child = node.addChild(new HashMap<String, Object>(), t);
-          }
-          node = child;
-        }
-      }
+    String categoryKey = getCategoryKey(id);
+
+    if (!propertiesMap.containsKey(categoryKey)) {
+      propertiesMap.put(categoryKey, new HashMap<String, Object>());
     }
   }
 
   @Override
   public Object getPropertyValue(String id) {
-    String category = PropertyHelper.getPropertyCategory(id);
-    TreeNode<Map<String, Object>> node = (category == null) ? m_treeProperties :
-        m_treeProperties.getChild(category);
+    String categoryKey = getCategoryKey(PropertyHelper.getPropertyCategory(id));
 
-    return node == null ? null : node.getObject().get(PropertyHelper.getPropertyName(id));
+    Map<String, Object> properties = propertiesMap.get(categoryKey);
+
+    return properties == null ?
+        null : properties.get(PropertyHelper.getPropertyName(id));
   }
 
 
@@ -157,52 +140,30 @@ public class ResourceImpl implements Resource {
 
     sb.append("Resource : ").append(type).append("\n");
     sb.append("Properties:\n");
-
-    printPropertyNode(m_treeProperties, sb, null, "  ");
+    sb.append(propertiesMap);
 
     return sb.toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-  // ----- class private methods ---------------------------------------------
+    ResourceImpl resource = (ResourceImpl) o;
 
-  /**
-   * Recursively prints the properties for a given node and it's children to a StringBuffer.
-   *
-   * @param node      the node to print properties for
-   * @param sb        the SringBuffer to print to
-   * @param category  the absolute category name
-   * @param indent    the indent to be used
-   */
-  private void printPropertyNode(TreeNode<Map<String, Object>> node, StringBuilder sb, String category, String indent) {
-    if (node.getParent() != null) {
-      category = category == null ? node.getName() : category + '/' + node.getName();
-      sb.append(indent).append("Category: ").append(category).append('\n');
-      indent += "  ";
-    }
-    for (Map.Entry<String, Object> entry : node.getObject().entrySet()) {
-      sb.append(indent).append(entry.getKey()).append('=').append(entry.getValue()).append('\n');
-    }
-
-    for (TreeNode<Map<String, Object>> n : node.getChildren()) {
-      printPropertyNode(n, sb, category, indent);
-    }
+    return type == resource.type &&
+        !(propertiesMap != null ? !propertiesMap.equals(resource.propertiesMap) : resource.propertiesMap != null);
   }
 
-  /**
-   * Add the node properties to the specified map.
-   * Makes recursive calls for each child node.
-   *
-   * @param node      the node whose properties are to be added
-   * @param mapProps  the map that the props are to be added to
-   * @param path      the current category hierarchy
-   */
-  private void addNodeToMap(TreeNode<Map<String, Object>> node, Map<String, Map<String, Object>> mapProps, String path) {
-    path = path == null ? node.getName() : path + "/" + node.getName();
-    mapProps.put(path, node.getObject());
+  @Override
+  public int hashCode() {
+    return 31 * type.hashCode() + (propertiesMap != null ? propertiesMap.hashCode() : 0);
+  }
 
-    for (TreeNode<Map<String, Object>> child : node.getChildren()) {
-      addNodeToMap(child, mapProps, path);
-    }
+  // ----- utility methods ---------------------------------------------------
+
+  private String getCategoryKey(String category) {
+    return category == null ? "" : category;
   }
 }

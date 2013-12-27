@@ -35,16 +35,6 @@
           {{t installer.step3.retryFailed}}
         </a>
         {{/unless}}
-        {{#if App.testMode}}
-            <a class="btn btn-info"
-               href="#" {{action mockBtn target="controller"}}>
-              {{t installer.mockData}}
-            </a>
-            <a class="btn btn-info"
-               href="#" {{action pollBtn target="controller"}}>
-                {{t installer.pollData}}
-            </a>
-        {{/if}}
 
         <div id="host-filter" class="pull-right">
           <ul class="clearfix">
@@ -81,8 +71,7 @@
         </thead>
 
         <tbody>
-        {{#if visibleHosts.length}}
-        {{#each host in visibleHosts}}
+        {{#each host in hosts}}
         {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
         <td>
           {{view Ember.Checkbox checkedBinding="host.isChecked"}}
@@ -108,11 +97,11 @@
         </td>
         {{/view}}
         {{/each}}
-        {{else}}
+        {{#unless visibleHosts.length}}
         <tr>
             <td colspan="5"><p>{{t installer.step3.hosts.noHosts}}</p></td>
         </tr>
-        {{/if}}
+        {{/unless}}
 
         </tbody>
 
@@ -124,21 +113,19 @@
       </div>
     </div>
   </div>
+    {{#if hasMoreRegisteredHosts}}
+        <div {{bindAttr class=":alert alert-warn"}}>
+          <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
+        </div>
+    {{/if}}
     {{#if isWarningsBoxVisible}}
-      {{#if isHostHaveWarnings}}
-      <div class="alert alert-warn">
-        {{t installer.step3.warnings.description}}<br>
-        <a href="javascript:void(0)" {{action hostWarningsPopup warnings target="controller"}}>{{t installer.step3.warnings.linkText}}</a>
+      <div {{bindAttr class=":alert view.status"}}>
+        {{view.message}}
+        <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
       </div>
-      {{else}}
-      <div class="alert alert-success">
-        {{t installer.step3.warnings.noWarnings}}
-        <a href="javascript:void(0)" {{action hostWarningsPopup warnings target="controller"}}>{{t installer.step3.noWarnings.linkText}}</a>
-      </div>
-      {{/if}}
     {{/if}}
   <div class="btn-area">
-    <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back controller}}>&larr; {{t common.back}}</a>
+    <a class="btn pull-left" {{bindAttr disabled="isRegistrationInProgress"}} {{action back target="controller"}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
   </div>
 </div>

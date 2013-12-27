@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.dataSetMapper = App.QuickDataMapper.create({
   model: App.Dataset,
   Jobs_model: App.DataSetJob,
@@ -60,6 +62,10 @@ App.dataSetMapper = App.QuickDataMapper.create({
   },
 
   loadSchedule: function (datasetItemFromJson) {
+    App.store.load(App.Dataset.Schedule, this.parseSchedule(datasetItemFromJson));
+  },
+
+  parseSchedule: function(datasetItemFromJson) {
     var schedule = {};
     schedule.id = datasetItemFromJson.id;
     var source_cluster = datasetItemFromJson.Feeds.clusters.cluster.findProperty("type", "source");
@@ -67,7 +73,6 @@ App.dataSetMapper = App.QuickDataMapper.create({
     var end_date = new Date(source_cluster.validity.end);
 
     var d = new Date();
-    console.debug(d.toString());
     var start_mm = start_date.getMonth() + 1; // In future may consider using getUTCMonth()
     var start_dd = start_date.getDay();
     var start_yyyy = start_date.getFullYear();
@@ -99,9 +104,9 @@ App.dataSetMapper = App.QuickDataMapper.create({
     schedule.frequency = datasetItemFromJson.Feeds.frequency;
     schedule.timezone = datasetItemFromJson.Feeds.timezone;
     schedule.dataset_id = datasetItemFromJson.id;
-
-    App.store.load(App.Dataset.Schedule, schedule);
+    return schedule;
   },
+
   map: function (json) {
     if (!this.get('model')) {
       return;
@@ -112,8 +117,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
 
         try {
           // TBC1
-          var re = new RegExp(" ", "g");
-          item.id = item.Feeds.name.replace(re, "_");
+          item.id = this.getId(item.Feeds.name);
 
           // TBC3
           item.dataset_jobs = [];
@@ -164,9 +168,8 @@ App.dataSetMapper = App.QuickDataMapper.create({
           // TBC2 - but shd be loaded after parsing
           var target_cluster_name = (item.Feeds.clusters.cluster.findProperty("type", "target")).name;
           var target_cluster_id = (item.Feeds.clusters.cluster.findProperty("type", "target")).name;
-          var re = new RegExp(" ","g");
 
-          newitem.target_cluster_id = target_cluster_id.replace(re,"_");
+          newitem.target_cluster_id = this.getId(target_cluster_id);
 
           newitem.schedule_id = newitem.id;
 
@@ -178,9 +181,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      console.debug('Before load: App.Dataset.find().content : ' + App.Dataset.find().content);
       App.store.loadMany(this.get('model'), dataset_results);
-      console.debug('After load: App.Dataset.find().content : ' + App.Dataset.find().content);
 
       try {
         // Child records
@@ -201,13 +202,17 @@ App.dataSetMapper = App.QuickDataMapper.create({
           }, this)
         }, this);
 
-        console.debug('Before load: App.DataSetJob.find().content : ' + App.DataSetJob.find().content);
         App.store.loadMany(this.get('Jobs_model'), dataset_job_results);
-        console.debug('After load: App.DataSetJob.find().content : ' + App.DataSetJob.find().content);
-      } catch (ex) {
+      }
+      catch (ex) {
         console.debug('Exception occured : ' + ex);
       }
     }
+  },
+
+  getId: function(n) {
+    var re = new RegExp(" ", "g");
+    return n.replace(re, "_");
   }
 
 });

@@ -18,6 +18,18 @@
 
 var App = require('app');
 
+/**
+ * initialize common cache container for mappers
+ * App.cache contains shared data, used for syncronizing incoming server data among mappers
+ */
+App.cache = {
+  'Hosts': {},
+  'previousHostStatuses': {},
+  'previousComponentStatuses': {},
+  'hostComponentsOnService': {},
+  'services': []
+};
+
 App.ServerDataMapper = Em.Object.extend({
   jsonKey: false,
   map: function (json) {
@@ -50,9 +62,8 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
 
       json.items.forEach(function (item) {
         result.push(this.parseIt(item, this.config));
-      }, this)
+      }, this);
 
-      //console.log(this.get('model'), result);
       App.store.loadMany(this.get('model'), result);
     }
   },
@@ -113,6 +124,42 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     return current;
   },
 
+  /**
+   * properly delete record from model
+   * @param item
+   */
+  deleteRecord: function (item) {
+    item.deleteRecord();
+    App.store.commit();
+    item.get('stateManager').transitionTo('loading');
+    console.log('Record with id:' + item.get('id') + ' was deleted from model');
+  },
+  /**
+   * check mutable fields whether they have been changed and if positive
+   * return host object only with properties, that contains new value
+   * @param current
+   * @param previous
+   * @param fields
+   * @return {*}
+   */
+  getDiscrepancies: function (current, previous, fields) {
+    var result = {};
+    if (previous) {
+      fields.forEach(function (field) {
+        if (Array.isArray(current[field])) {
+          if (JSON.stringify(current[field]) !== JSON.stringify(previous[field])) {
+            result[field] = current[field];
+            result.isLoadNeeded = true;
+          }
+        } else {
+          if (current[field] != previous[field]) result[field] = current[field];
+        }
+      });
+      return result;
+    }
+    return current;
+  },
+
   calculateState: function (json) {
 //    var stateEqual = (json.desired_status != json.work_status);
 //    if (stateEqual) {
@@ -125,3 +172,44 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     return json;
   }
 });
+
+App.QuickDataMapper.componentServiceMap = {
+  'NAMENODE': 'HDFS',
+  'SECONDARY_NAMENODE': 'HDFS',
+  'DATANODE': 'HDFS',
+  'HDFS_CLIENT': 'HDFS',
+  'JOURNALNODE': 'HDFS',
+  'ZKFC': 'HDFS',
+  'JOBTRACKER': 'MAPREDUCE',
+  'TASKTRACKER': 'MAPREDUCE',
+  'MAPREDUCE_CLIENT': 'MAPREDUCE',
+  'MAPREDUCE2_CLIENT': 'MAPREDUCE2',
+  'HISTORYSERVER': 'MAPREDUCE2',
+  'TEZ_CLIENT': 'TEZ',
+  'RESOURCEMANAGER': 'YARN',
+  'YARN_CLIENT': 'YARN',
+  'NODEMANAGER': 'YARN',
+  'ZOOKEEPER_SERVER': 'ZOOKEEPER',
+  'ZOOKEEPER_CLIENT': 'ZOOKEEPER',
+  'HBASE_MASTER': 'HBASE',
+  'HBASE_REGIONSERVER': 'HBASE',
+  'HBASE_CLIENT': 'HBASE',
+  'PIG': 'PIG',
+  'SQOOP': 'SQOOP',
+  'OOZIE_SERVER': 'OOZIE',
+  'OOZIE_CLIENT': 'OOZIE',
+  'HIVE_SERVER': 'HIVE',
+  'HIVE_METASTORE': 'HIVE',
+  'HIVE_CLIENT': 'HIVE',
+  'MYSQL_SERVER': 'HIVE',
+  'HCAT': 'HCATALOG',
+  'WEBHCAT_SERVER': 'WEBHCAT',
+  'NAGIOS_SERVER': 'NAGIOS',
+  'GANGLIA_SERVER': 'GANGLIA',
+  'GANGLIA_MONITOR': 'GANGLIA',
+  'KERBEROS_SERVER': 'KERBEROS',
+  'KERBEROS_ADMIN_CLIENT': 'KERBEROS',
+  'KERBEROS_CLIENT': 'KERBEROS',
+  'HUE_SERVER': 'HUE',
+  'GLUSTERFS_CLIENT': 'GLUSTERFS'
+};

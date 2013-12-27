@@ -97,8 +97,6 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
       TreeNode<Resource> parent = resultNode.getParent();
 
       if (parent.getName() != null) {
-        Schema schema = getClusterController().getSchema(r.getType());
-        Object id = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
         int i = href.indexOf("?");
         if (i != -1) {
@@ -108,7 +106,11 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
         if (!href.endsWith("/")) {
           href = href + '/';
         }
-        href = "true".equals(parent.getProperty("isCollection")) ?
+
+        Schema schema = getClusterController().getSchema(r.getType());
+        Object id     = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+
+        href = parent.getProperty("isCollection").equals("true") ?
             href + id : href + parent.getName() + '/' + id;
       }
       resultNode.setProperty("href", href);

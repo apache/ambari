@@ -17,14 +17,23 @@
  */
 package org.apache.ambari.server.metadata;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.ambari.server.AmbariException;
 
 /**
  * This class is used to establish the order between two roles. This class
@@ -32,7 +41,30 @@ import org.apache.ambari.server.stageplanner.RoleGraphNode;
  */
 public class RoleCommandOrder {
 
-  private static class RoleCommandPair {
+  @Inject Configuration configs;
+  @Inject AmbariMetaInfo ambariMetaInfo;
+
+  private final static Logger LOG =
+			LoggerFactory.getLogger(RoleCommandOrder.class);
+
+  private final static String GENERAL_DEPS_KEY = "general_deps";
+  private final static String GLUSTERFS_DEPS_KEY = "optional_glusterfs";
+  private final static String NO_GLUSTERFS_DEPS_KEY = "optional_no_glusterfs";
+  private final static String HA_DEPS_KEY = "optional_ha";
+  private final static String COMMENT_STR = "_comment";
+  private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
+
+  /**
+   * Commands that are independent, role order matters
+   */
+  private static final Set<RoleCommand> independentCommands =
+          new HashSet<RoleCommand>() {{
+            add(RoleCommand.START);
+            add(RoleCommand.EXECUTE);
+            add(RoleCommand.SERVICE_CHECK);
+          }};
+
+  static class RoleCommandPair {
     Role role;
     RoleCommand cmd;
 
@@ -58,12 +90,31 @@ public class RoleCommandOrder {
       }
       return false;
     }
+
+    Role getRole() {
+      return role;
+    }
+
+    RoleCommand getCmd() {
+      return cmd;
+    }
+
+    @Override
+    public String toString() {
+      return "RoleCommandPair{" +
+              "role=" + role +
+              ", cmd=" + cmd +
+              '}';
+    }
   }
 
   /**
    * key -> blocked role command value -> set of blocker role commands.
    */
-  private static Map<RoleCommandPair, Set<RoleCommandPair>> dependencies = new HashMap<RoleCommandPair, Set<RoleCommandPair>>();
+  private Map<RoleCommandPair, Set<RoleCommandPair>> dependencies =
+          new HashMap<RoleCommandPair, Set<RoleCommandPair>>();
+
+
 
   /**
    * Add a pair of tuples where the tuple defined by the first two parameters are blocked on
@@ -73,168 +124,114 @@ public class RoleCommandOrder {
    * @param blockerRole The role that is blocking
    * @param blockerCommand The command on the blocking role
    */
-  private static void addDependency(Role blockedRole,
+  private void addDependency(Role blockedRole,
        RoleCommand blockedCommand, Role blockerRole, RoleCommand blockerCommand) {
     RoleCommandPair rcp1 = new RoleCommandPair(blockedRole, blockedCommand);
     RoleCommandPair rcp2 = new RoleCommandPair(blockerRole, blockerCommand);
-    if (dependencies.get(rcp1) == null) {
-      dependencies.put(rcp1, new HashSet<RoleCommandPair>());
+    if (this.dependencies.get(rcp1) == null) {
+      this.dependencies.put(rcp1, new HashSet<RoleCommandPair>());
     }
-    dependencies.get(rcp1).add(rcp2);
+    this.dependencies.get(rcp1).add(rcp2);
   }
 
-  public static void initialize() {
-    addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
-        RoleCommand.START);
-    addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
-        RoleCommand.START);
-    addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.NAMENODE,
-        RoleCommand.START);
-    addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.DATANODE,
-        RoleCommand.START);
-    addDependency(Role.HBASE_REGIONSERVER, RoleCommand.START,
-        Role.HBASE_MASTER, RoleCommand.START);
-    addDependency(Role.JOBTRACKER, RoleCommand.START, Role.NAMENODE,
-        RoleCommand.START);
-    addDependency(Role.JOBTRACKER, RoleCommand.START, Role.DATANODE,
-        RoleCommand.START);
-    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.NAMENODE,
-        RoleCommand.START);
-    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.DATANODE,
-        RoleCommand.START);
-    addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.JOBTRACKER,
-        RoleCommand.START);
-    addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.TASKTRACKER,
-        RoleCommand.START);
-    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.TASKTRACKER,
-        RoleCommand.START);
-    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.DATANODE,
-        RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.TASKTRACKER,
-        RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.DATANODE,
-        RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.HIVE_SERVER,
-        RoleCommand.START);
-    addDependency(Role.HIVE_METASTORE, RoleCommand.START, Role.MYSQL_SERVER,
-        RoleCommand.START);
-    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
-        RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_SERVER,
-      RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HCAT,
-      RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
-      RoleCommand.START);
-
-    // Service checks
-    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,
-        RoleCommand.START);
-    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.DATANODE,
-        RoleCommand.START);
-    addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.JOBTRACKER, RoleCommand.START);
-    addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.TASKTRACKER, RoleCommand.START);
-    addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.OOZIE_SERVER, RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.WEBHCAT_SERVER, RoleCommand.START);
-    addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.HBASE_MASTER, RoleCommand.START);
-    addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.HBASE_REGIONSERVER, RoleCommand.START);
-    addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.HIVE_SERVER, RoleCommand.START);
-    addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.HIVE_METASTORE, RoleCommand.START);
-    addDependency(Role.HCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.HIVE_SERVER, RoleCommand.START);
-    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.JOBTRACKER, RoleCommand.START);
-    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.TASKTRACKER, RoleCommand.START);
-    addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.JOBTRACKER, RoleCommand.START);
-    addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.TASKTRACKER, RoleCommand.START);
-    addDependency(Role.ZOOKEEPER_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.ZOOKEEPER_SERVER, RoleCommand.START);
-    addDependency(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.ZOOKEEPER_SERVER, RoleCommand.START);
-    
-    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
-        Role.HBASE_MASTER, RoleCommand.STOP);
-    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
-        Role.HBASE_REGIONSERVER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
-        Role.HBASE_MASTER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
-        Role.HBASE_MASTER, RoleCommand.STOP);
-    addDependency(Role.HBASE_MASTER, RoleCommand.STOP,
-        Role.HBASE_REGIONSERVER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
-        Role.JOBTRACKER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
-        Role.TASKTRACKER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
-        Role.JOBTRACKER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
-        Role.TASKTRACKER, RoleCommand.STOP);
-
-    addDependency(Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE,
-        Role.NAMENODE, RoleCommand.UPGRADE);
-    addDependency(Role.DATANODE, RoleCommand.UPGRADE,
-        Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE);
-    addDependency(Role.HDFS_CLIENT, RoleCommand.UPGRADE,
-        Role.DATANODE, RoleCommand.UPGRADE);
-    addDependency(Role.JOBTRACKER, RoleCommand.UPGRADE,
-        Role.HDFS_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.TASKTRACKER, RoleCommand.UPGRADE,
-        Role.JOBTRACKER, RoleCommand.UPGRADE);
-    addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
-        Role.TASKTRACKER, RoleCommand.UPGRADE);
-    addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
-        Role.TASKTRACKER, RoleCommand.UPGRADE);
-    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE,
-        Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE,
-        Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.HBASE_MASTER, RoleCommand.UPGRADE,
-        Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE,
-        Role.HBASE_MASTER, RoleCommand.UPGRADE);
-    addDependency(Role.HBASE_CLIENT, RoleCommand.UPGRADE,
-        Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE);
-    addDependency(Role.HIVE_SERVER, RoleCommand.UPGRADE,
-        Role.HBASE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.HIVE_METASTORE, RoleCommand.UPGRADE,
-        Role.HIVE_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.MYSQL_SERVER, RoleCommand.UPGRADE,
-        Role.HIVE_METASTORE, RoleCommand.UPGRADE);
-    addDependency(Role.HIVE_CLIENT, RoleCommand.UPGRADE,
-        Role.MYSQL_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.HCAT, RoleCommand.UPGRADE,
-        Role.HIVE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.OOZIE_SERVER, RoleCommand.UPGRADE,
-        Role.HCAT, RoleCommand.UPGRADE);
-    addDependency(Role.OOZIE_CLIENT, RoleCommand.UPGRADE,
-        Role.OOZIE_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.UPGRADE,
-        Role.OOZIE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.PIG, RoleCommand.UPGRADE,
-        Role.WEBHCAT_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.SQOOP, RoleCommand.UPGRADE,
-        Role.PIG, RoleCommand.UPGRADE);
-    addDependency(Role.NAGIOS_SERVER, RoleCommand.UPGRADE,
-        Role.SQOOP, RoleCommand.UPGRADE);
-    addDependency(Role.GANGLIA_SERVER, RoleCommand.UPGRADE,
-        Role.NAGIOS_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.GANGLIA_MONITOR, RoleCommand.UPGRADE,
-        Role.GANGLIA_SERVER, RoleCommand.UPGRADE);
-
-    extendTransitiveDependency();
+  private File getRCOFile(String stackName, String stackVersion) {
+    StackInfo stackInfo;
+    String rcoFileLocation = null;
+    try {
+      stackInfo = ambariMetaInfo.getStackInfo(stackName, stackVersion);
+      rcoFileLocation = stackInfo.getRcoFileLocation();
+    } catch (AmbariException e) {
+      LOG.warn("Error getting stack info for :" + stackName + "-" + stackVersion);
     }
+
+    return rcoFileLocation == null ? null : new File(rcoFileLocation);
+  }
+
+  void addDependencies(Map<String, Object> jsonSection) {
+    for (Object blockedObj : jsonSection.keySet()) {
+      String blocked = (String) blockedObj;
+      if (COMMENT_STR.equals(blocked)) {
+        continue; // Skip comments
+      }
+      ArrayList<String> blockers = (ArrayList<String>) jsonSection.get(blocked);
+      for (String blocker : blockers) {
+        String [] blockedTuple = blocked.split("-");
+        String blockedRole = blockedTuple[0];
+        String blockedCommand = blockedTuple[1];
+
+        String [] blockerTuple = blocker.split("-");
+        String blockerRole = blockerTuple[0];
+        String blockerCommand = blockerTuple[1];
+
+        addDependency(
+                Role.valueOf(blockedRole), RoleCommand.valueOf(blockedCommand),
+                Role.valueOf(blockerRole), RoleCommand.valueOf(blockerCommand));
+      }
+    }
+  }
+
+  public void initialize(Cluster cluster) {
+    Boolean hasGLUSTERFS = false;
+    Boolean isHAEnabled = false;
+
+    try {
+      if (cluster != null && cluster.getService("GLUSTERFS") != null) {
+    	  hasGLUSTERFS = true;
+      } 
+    } catch (AmbariException e) {
+    }
+
+    try {
+      if (cluster != null &&
+              cluster.getService("HDFS") != null &&
+              cluster.getService("HDFS").getServiceComponent("JOURNALNODE") != null) {
+        isHAEnabled = true;
+      }
+    } catch (AmbariException e) {
+    }
+
+    // Read data from JSON
+    ObjectMapper mapper = new ObjectMapper();
+    StackId currentStackVersion = cluster.getCurrentStackVersion();
+    String stackName = currentStackVersion.getStackName();
+    String stackVersion = currentStackVersion.getStackVersion();
+    File rcoFile = getRCOFile(stackName, stackVersion);
+    Map<String,Object> userData = null;
+    
+    try {
+      
+      TypeReference<Map<String,Object>> rcoElementTypeReference = new TypeReference<Map<String,Object>>() {};
+      
+      if (rcoFile != null) {
+        userData = mapper.readValue(rcoFile, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from file: " + rcoFile.getAbsolutePath());
+      } else {
+        InputStream rcoInputStream = ClassLoader.getSystemResourceAsStream(ROLE_COMMAND_ORDER_FILE);
+        userData = mapper.readValue(rcoInputStream, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from classpath: " +
+          ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
+      }
+
+    } catch (IOException e) {
+      LOG.error("Can not read role command order info", e);
+      return;
+    }
+
+    Map<String,Object> generalSection = (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
+    addDependencies(generalSection);
+    if (hasGLUSTERFS) {
+      Map<String,Object> glusterfsSection = (Map<String, Object>) userData.get(GLUSTERFS_DEPS_KEY);
+      addDependencies(glusterfsSection);
+    } else {
+      Map<String,Object> noGlusterFSSection = (Map<String, Object>) userData.get(NO_GLUSTERFS_DEPS_KEY);
+      addDependencies(noGlusterFSSection);
+    }
+    if (isHAEnabled) {
+      Map<String,Object> isHASection = (Map<String, Object>) userData.get(HA_DEPS_KEY);
+      addDependencies(isHASection);
+    }
+    extendTransitiveDependency();
+  }
 
   /**
    * Returns the dependency order. -1 => rgn1 before rgn2, 0 => they can be
@@ -248,11 +245,11 @@ public class RoleCommandOrder {
         rgn1.getCommand());
     RoleCommandPair rcp2 = new RoleCommandPair(rgn2.getRole(),
         rgn2.getCommand());
-    if ((dependencies.get(rcp1) != null)
-        && (dependencies.get(rcp1).contains(rcp2))) {
+    if ((this.dependencies.get(rcp1) != null)
+        && (this.dependencies.get(rcp1).contains(rcp2))) {
       return 1;
-    } else if ((dependencies.get(rcp2) != null)
-        && (dependencies.get(rcp2).contains(rcp1))) {
+    } else if ((this.dependencies.get(rcp2) != null)
+        && (this.dependencies.get(rcp2).contains(rcp1))) {
       return -1;
     } else if (!rgn2.getCommand().equals(rgn1.getCommand())) {
       return compareCommands(rgn1, rgn2);
@@ -264,24 +261,24 @@ public class RoleCommandOrder {
    * Adds transitive dependencies to each node.
    * A => B and B => C implies A => B,C and B => C
    */
-  private static void extendTransitiveDependency() {
-    for (RoleCommandPair rcp : dependencies.keySet()) {
+  private void extendTransitiveDependency() {
+    for (RoleCommandPair rcp : this.dependencies.keySet()) {
       HashSet<RoleCommandPair> visited = new HashSet<RoleCommandPair>();
       HashSet<RoleCommandPair> transitiveDependencies = new HashSet<RoleCommandPair>();
-      for (RoleCommandPair directlyBlockedOn : dependencies.get(rcp)) {
+      for (RoleCommandPair directlyBlockedOn : this.dependencies.get(rcp)) {
         visited.add(directlyBlockedOn);
         identifyTransitiveDependencies(directlyBlockedOn, visited, transitiveDependencies);
       }
       if (transitiveDependencies.size() > 0) {
-        dependencies.get(rcp).addAll(transitiveDependencies);
+        this.dependencies.get(rcp).addAll(transitiveDependencies);
       }
     }
   }
 
-  private static void identifyTransitiveDependencies(RoleCommandPair rcp, HashSet<RoleCommandPair> visited,
+  private void identifyTransitiveDependencies(RoleCommandPair rcp, HashSet<RoleCommandPair> visited,
                                                      HashSet<RoleCommandPair> transitiveDependencies) {
-    if (dependencies.get(rcp) != null) {
-      for (RoleCommandPair blockedOn : dependencies.get(rcp)) {
+    if (this.dependencies.get(rcp) != null) {
+      for (RoleCommandPair blockedOn : this.dependencies.get(rcp)) {
         if (!visited.contains(blockedOn)) {
           visited.add(blockedOn);
           transitiveDependencies.add(blockedOn);
@@ -292,16 +289,16 @@ public class RoleCommandOrder {
   }
 
   private int compareCommands(RoleGraphNode rgn1, RoleGraphNode rgn2) {
+    // TODO: add proper order comparison support for RoleCommand.ACTIONEXECUTE
+
     RoleCommand rc1 = rgn1.getCommand();
     RoleCommand rc2 = rgn2.getCommand();
     if (rc1.equals(rc2)) {
       //If its coming here means roles have no dependencies.
       return 0;
     }
-   
-    if ((rc1.equals(RoleCommand.START) && rc2.equals(RoleCommand.EXECUTE)) ||
-        (rc2.equals(RoleCommand.START) && rc1.equals(RoleCommand.EXECUTE))) {
-      //START and execute are independent, role order matters
+
+    if (independentCommands.contains(rc1) && independentCommands.contains(rc2)) {
       return 0;
     }
     
@@ -309,9 +306,11 @@ public class RoleCommandOrder {
       return -1;
     } else if (rc2.equals(RoleCommand.INSTALL)) {
       return 1;
-    } else if (rc1.equals(RoleCommand.START) || rc1.equals(RoleCommand.EXECUTE)) {
+    } else if (rc1.equals(RoleCommand.START) || rc1.equals(RoleCommand.EXECUTE)
+            || rc1.equals(RoleCommand.SERVICE_CHECK)) {
       return -1;
-    } else if (rc2.equals(RoleCommand.START) || rc2.equals(RoleCommand.EXECUTE)) {
+    } else if (rc2.equals(RoleCommand.START) || rc2.equals(RoleCommand.EXECUTE)
+            || rc2.equals(RoleCommand.SERVICE_CHECK)) {
       return 1;
     } else if (rc1.equals(RoleCommand.STOP)) {
       return -1;
@@ -319,5 +318,41 @@ public class RoleCommandOrder {
       return 1;
     }
     return 0;
+  }
+
+  public int compareDeps(RoleCommandOrder rco) {
+    Set<RoleCommandPair> v1 = null, v2 = null;
+    if (this == rco) {
+      return 0;
+    }
+
+    // Check for key set match
+    if (!this.dependencies.keySet().equals(rco.dependencies.keySet())){
+      LOG.debug("dependency keysets differ");
+      return 1;
+    }
+    LOG.debug("dependency keysets match");
+
+    // So far so good.  Since the keysets match, let's check the
+    // actual entries against each other
+    for (RoleCommandPair key: this.dependencies.keySet()) {
+      v1 = this.dependencies.get(key);
+      v2 = rco.dependencies.get(key);
+      if (!v1.equals(v2)) {
+        LOG.debug("different entry found for key (" + key.role.toString() + ", "
+                                                    + key.cmd.toString() + ")" );
+        return 1;
+      }
+    }
+    LOG.debug("dependency entries match");
+    return 0;
+  }
+
+
+  /**
+   * For test purposes
+   */
+  Map<RoleCommandPair, Set<RoleCommandPair>> getDependencies() {
+    return dependencies;
   }
 }

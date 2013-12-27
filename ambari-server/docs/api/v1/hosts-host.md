@@ -20,11 +20,48 @@ View Host Information
 
 [Back to Resources](index.md#resources)
 
-Returns information about a single host in a given cluster.
+**Summary**
 
-    GET /clusters/:name/hosts/:hostName
+Returns information about a single host in the cluster identified by ":clusterName".
+
+    GET /clusters/:clusterName/hosts/:hostName
 
 **Response**
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+**Example**
+
+Returns information about the host name "host1" in the cluster named "c1".
 
     200 OK
     {

@@ -21,19 +21,18 @@ package org.apache.ambari.server.orm;
 import com.google.inject.AbstractModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
-
 import java.util.Properties;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
+  Properties properties = new Properties();
+
   @Override
   protected void configure() {
-    Properties properties = new Properties();
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-//    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "local");
     properties.setProperty(Configuration.METADETA_DIR_PATH,
         "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE,
-            "../version");
+            "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
     try {
@@ -41,5 +40,9 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public Properties getProperties() {
+    return properties;
   }
 }

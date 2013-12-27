@@ -44,15 +44,6 @@
           {{t common.retry}}
         </a>
         {{/if}}
-        {{#if App.testMode}}
-        <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
-          {{t installer.mockData}}
-        </a>
-        <a class="btn btn-primary"
-           href="#" {{action pollBtn target="controller"}}><i class="icon-repeat icon-white"></i>
-          {{t installer.pollData}}
-        </a>
-        {{/if}}
       </div>
       <!-- filter by host level -->
       <div id="host-filter" class="pull-right">
@@ -86,28 +77,32 @@
         </thead>
 
         <tbody>
-        {{#each host in controller.visibleHosts}}
-        {{#view App.HostStatusView objBinding="host"}}
-        <td>
-          {{host.name}}
-        </td>
-        <td>
-          <div class="progress-bar pull-left">
-            <div {{bindAttr class="view.isHostCompleted::progress-striped view.isHostCompleted::active view.barColor :progress"}}>
-              <div class="bar" {{bindAttr style="view.barWidth"}}>
-              </div>
-            </div>
-          </div>
-          <div class="progress-percentage pull-left">{{host.progress}}%</div>
-        </td>
-        <td>
-          <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
-            href="javascript:void(null)"
-            data-toggle="modal" {{action hostLogPopup host target="view"}}>{{host.message}}</a>
-        </td>
-
-        {{/view}}
-        {{/each}}
+        {{#if controller.visibleHosts.length}}
+          {{#each host in controller.visibleHosts}}
+            {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
+              <td>
+                {{host.name}}
+              </td>
+              <td>
+                <div class="progress-bar pull-left">
+                  <div {{bindAttr class="view.isHostCompleted::progress-striped view.isHostCompleted::active view.barColor :progress"}}>
+                    <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+                  </div>
+                </div>
+                <div class="progress-percentage pull-left">{{host.progress}}%</div>
+              </td>
+              <td>
+                <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
+                  href="javascript:void(null)"
+                  data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>
+              </td>
+            {{/view}}
+          {{/each}}
+        {{else}}
+          <tr>
+            <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
+          </tr>
+        {{/if}}
 
         </tbody>
       </table>

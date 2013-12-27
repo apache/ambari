@@ -38,8 +38,9 @@ define hdp::java::package(
   }
   $java_exec = "${java_home}/bin/java"
   $java_dir = regsubst($java_home,'/[^/]+$','')
-   
-  $curl_cmd = "mkdir -p ${artifact_dir} ; curl -f --retry 10 ${jdk_location}/${jdk_bin} -o ${jdk_curl_target}"
+
+  # curl -k - ignoring unverified server ssl sertificate,
+  $curl_cmd = "mkdir -p ${artifact_dir} ; curl -kf --retry 10 ${jdk_location}/${jdk_bin} -o ${jdk_curl_target}"
   exec{ "${curl_cmd} ${name}":
     command => $curl_cmd,
     creates => $jdk_curl_target,

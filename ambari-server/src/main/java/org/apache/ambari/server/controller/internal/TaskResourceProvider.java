@@ -29,11 +29,10 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +56,9 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected static final String TASK_EXIT_CODE_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "exit_code");
   protected static final String TASK_STDERR_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "stderr");
   protected static final String TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("Tasks", "stdout");
+  protected static final String TASK_STRUCT_OUT_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "structured_out");
   protected static final String TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "start_time");
+  protected static final String TASK_END_TIME_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "end_time");
   protected static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
 
 
@@ -92,46 +93,62 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    final Map<String, Object> predicateProperties = PredicateHelper.getProperties(predicate);
 
-    String clusterName = (String) predicateProperties.get(TASK_CLUSTER_NAME_PROPERTY_ID);
-    Long   request_id  = new Long((String) predicateProperties.get(TASK_REQUEST_ID_PROPERTY_ID));
+    Map<String, Set<TaskStatusRequest>> requestsMap = new HashMap<String, Set<TaskStatusRequest>>();
 
-    // TODO : handle multiple requests
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      String clusterName = (String) propertyMap.get(TASK_CLUSTER_NAME_PROPERTY_ID);
 
-    Set<TaskStatusResponse> responses = getResources(new Command<Set<TaskStatusResponse>>() {
-      @Override
-      public Set<TaskStatusResponse> invoke() throws AmbariException {
-        return getManagementController().getTaskStatus(Collections.singleton(getRequest(predicateProperties)));
+      Set<TaskStatusRequest> requests = requestsMap.get(clusterName);
+      if (requests == null) {
+        requests = new HashSet<TaskStatusRequest>();
+        requestsMap.put(clusterName, requests);
       }
-    });
-    
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Printing size of responses " + responses.size());
-      for (TaskStatusResponse response : responses) {
-        LOG.debug("Printing response from management controller "
-            + response.toString());
-      }
+      requests.add(getRequest(propertyMap));
     }
 
-    Set<Resource> resources = new HashSet<Resource>();
-    for (TaskStatusResponse response : responses) {
-      Resource resource = new ResourceImpl(Resource.Type.Task);
+    Set<Resource> resources = null;
 
-      setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
-      setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, request_id, requestedIds);
-      setResourceProperty(resource, TASK_ID_PROPERTY_ID, response.getTaskId(), requestedIds);
-      setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, response.getStageId(), requestedIds);
-      setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, response.getHostName(), requestedIds);
-      setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, response.getRole(), requestedIds);
-      setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, response.getCommand(), requestedIds);
-      setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, response.getStatus(), requestedIds);
-      setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
-      setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
-      setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
-      setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
-      setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
-      resources.add(resource);
+    for (Map.Entry<String, Set<TaskStatusRequest>> entry : requestsMap.entrySet()) {
+
+      final Set<TaskStatusRequest> requests = entry.getValue();
+
+      Set<TaskStatusResponse> responses = getResources(new Command<Set<TaskStatusResponse>>() {
+        @Override
+        public Set<TaskStatusResponse> invoke() throws AmbariException {
+          return getManagementController().getTaskStatus(requests);
+        }
+      });
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Printing size of responses " + responses.size());
+        for (TaskStatusResponse response : responses) {
+          LOG.debug("Printing response from management controller "
+              + response.toString());
+        }
+      }
+
+      resources = new HashSet<Resource>();
+      for (TaskStatusResponse response : responses) {
+        Resource resource = new ResourceImpl(Resource.Type.Task);
+
+        setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, entry.getKey(), requestedIds);
+        setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
+        setResourceProperty(resource, TASK_ID_PROPERTY_ID, response.getTaskId(), requestedIds);
+        setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, response.getStageId(), requestedIds);
+        setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, response.getHostName(), requestedIds);
+        setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, response.getRole(), requestedIds);
+        setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, response.getCommand(), requestedIds);
+        setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, response.getStatus(), requestedIds);
+        setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
+        setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
+        setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
+        setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, response.getStructuredOut(), requestedIds);
+        setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
+        setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, response.getEndTime(), requestedIds);
+        setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
+        resources.add(resource);
+      }
     }
     return resources;
   }

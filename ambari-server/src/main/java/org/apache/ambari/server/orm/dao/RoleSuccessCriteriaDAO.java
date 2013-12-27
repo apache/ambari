@@ -20,12 +20,14 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntityPK;
 
 import javax.persistence.EntityManager;
 
+@Singleton
 public class RoleSuccessCriteriaDAO {
 
   @Inject

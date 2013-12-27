@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,18 +41,21 @@ public class GangliaHostPropertyProvider extends GangliaPropertyProvider{
     GANGLIA_CLUSTER_NAMES.add("HDPNameNode");
     GANGLIA_CLUSTER_NAMES.add("HDPSlaves");
     GANGLIA_CLUSTER_NAMES.add("HDPJobTracker");
+    GANGLIA_CLUSTER_NAMES.add("HDPResourceManager");
     GANGLIA_CLUSTER_NAMES.add("HDPHBaseMaster");
+    GANGLIA_CLUSTER_NAMES.add("HDPHistoryServer");
   }
 
   // ----- Constructors ------------------------------------------------------
 
   public GangliaHostPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                      StreamProvider streamProvider,
+                                     ComponentSSLConfiguration configuration,
                                      GangliaHostProvider hostProvider,
                                      String clusterNamePropertyId,
                                      String hostNamePropertyId) {
 
-    super(componentPropertyInfoMap, streamProvider, hostProvider,
+    super(componentPropertyInfoMap, streamProvider, configuration, hostProvider,
         clusterNamePropertyId, hostNamePropertyId, null);
   }
 

@@ -17,34 +17,60 @@
 }}
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
+  <div class="span3 quick-links-wrapper">
+    {{#if view.service.quickLinks.length}}
+      {{#view App.QuickViewLinks contentBinding="view.service"}}
+        <ul class="nav nav-pills move">
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              {{#each view.quickLinks}}
+                {{#if disabled}}
+                  <li><a class="disabled-hdfs-quick-link">{{label}}</a></li>
+                {{else}}
+                  <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                {{/if}}
+              {{/each}}
+            </ul>
+          </li>
+        </ul>
+      {{/view}}
+    {{/if}}
+  </div>
+
 {{#if App.isAdmin}}
 <div class="service-button">
-  {{#if view.hasMaintenanceControl}}
-  <div class="btn-group display-inline-block">
-    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-      {{t services.service.actions.maintenance}}
-      <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu">
-      <!-- dropdown menu links -->
-      {{#each option in view.maintenance}}
-      <li {{bindAttr class="controller.content.isStopDisabled:disabled"}}>
-        <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
-      </li>
-      {{/each}}
-    </ul>
-  </div>
+  {{#if view.isMaintenanceActive}}
+    <div class="btn-group display-inline-block">
+      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+        {{t services.service.actions.serviceActions}}
+        <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu">
+        <!-- dropdown menu links -->
+        {{#each option in view.maintenance}}
+        <li {{bindAttr class="option.disabled:disabled"}}>
+          <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
   {{/if}}
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStartDisabled:disabled:btn-success" }}
-     data-toggle="modal" {{action "startService" target="controller"}}>
-    <i class="icon-play"></i>
-    {{t services.service.start}}
-  </a>
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStopDisabled:disabled:btn-danger" }}
-     data-toggle="modal" {{action "stopService" target="controller"}}>
-    <i class="icon-stop icon-white"></i>
-    {{t services.service.stop}}
-  </a>
+  {{#if controller.isServiceRestartable}}
+	  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartDisabled:disabled:btn-success" }}
+	     data-toggle="modal" {{action "startService" target="controller"}}>
+	    <i class="icon-play"></i>
+	    {{t services.service.start}}
+	  </a>
+	  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopDisabled:disabled:btn-danger" }}
+	     data-toggle="modal" {{action "stopService" target="controller"}}>
+	    <i class="icon-stop icon-white"></i>
+	    {{t services.service.stop}}
+	  </a>
+	{{else}}
+	  <span>&nbsp;</span>
+	{{/if}}
+  </span>
 </div>
 {{/if}}
 {{outlet}}

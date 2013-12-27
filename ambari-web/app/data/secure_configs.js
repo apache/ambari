@@ -16,21 +16,22 @@
  * limitations under the License.
  */
 var App = require('app');
+require('models/service_config');
 App.SecureConfigProperties = Ember.ArrayProxy.extend({
   content: require('data/secure_properties').configProperties
 });
-require('models/service_config');
 
 var configProperties = App.SecureConfigProperties.create();
 
 module.exports = [
   {
     serviceName: 'GENERAL',
-    displayName: 'Kerberos',
-    filename: 'hdfs-site',
+    displayName: 'General',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'General'})
+      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'Kerberos'}),
+      App.ServiceConfigCategory.create({ name: 'AMBARI', displayName: 'Ambari'})
     ],
+    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {
@@ -40,10 +41,10 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
       App.ServiceConfigCategory.create({ name: 'NameNode', displayName: 'NameNode'}),
-      App.ServiceConfigCategory.create({ name: 'SNameNode',displayName: 'SNameNode'}),
+      App.ServiceConfigCategory.create({ name: 'SNameNode', displayName: 'Secondary NameNode'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
-    sites: ['global', 'core-site', 'hdfs-site'],
+    sites: ['core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
 
@@ -52,7 +53,7 @@ module.exports = [
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker'}),
+      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker and Job History Server'}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName: 'TaskTracker'})
     ],
     sites: ['mapred-site'],
@@ -61,26 +62,24 @@ module.exports = [
 
   {
     serviceName: 'HIVE',
-    displayName: 'Hive/HCat',
+    displayName: 'Hive',
     filename: 'hive-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore'})
+      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore and Hive Server 2'})
     ],
     sites: ['hive-site'],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
-
   {
     serviceName: 'WEBHCAT',
     displayName: 'WebHCat',
     filename: 'webhcat-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'WebHCat', displayName: 'WebHCat'})
+      App.ServiceConfigCategory.create({ name: 'WebHCat Server', displayName : 'WebHCat Server'})
     ],
     sites: ['webhcat-site'],
     configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
-
   {
     serviceName: 'HBASE',
     displayName: 'HBase',
@@ -96,7 +95,7 @@ module.exports = [
     serviceName: 'ZOOKEEPER',
     displayName: 'ZooKeeper',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server'})
+      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName: 'ZooKeeper Server'})
     ],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
 
@@ -106,10 +105,18 @@ module.exports = [
     displayName: 'Oozie',
     filename: 'oozie-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Oozie Server'})
+      App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName:  'Oozie Server'})
     ],
     sites: ['oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
+  },
+  {
+    serviceName: 'NAGIOS',
+    displayName: 'Nagios',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Nagios Server', displayName:  'Nagios Server'})
+    ],
+    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
   }
 
 ];

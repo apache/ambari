@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainAdminUserEditController = Em.Controller.extend({
+App.MainAdminUserEditController = App.MainAdminUserController.extend({
   name:'mainAdminUserEditController',
   content:false
 })

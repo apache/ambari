@@ -18,22 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.ActionRequest;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.HostRequest;
-import org.apache.ambari.server.controller.RequestStatusRequest;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
-import org.apache.ambari.server.controller.ServiceComponentRequest;
-import org.apache.ambari.server.controller.ServiceRequest;
-import org.apache.ambari.server.controller.TaskStatusRequest;
-import org.apache.ambari.server.controller.UserRequest;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.easymock.EasyMock;
-import org.easymock.IArgumentMatcher;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.easymock.EasyMock.createMock;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,7 +26,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.createMock;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.StackConfigurationRequest;
+import org.apache.ambari.server.controller.TaskStatusRequest;
+import org.apache.ambari.server.controller.UserRequest;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.easymock.EasyMock;
+import org.easymock.IArgumentMatcher;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Resource provider tests.
@@ -114,6 +113,50 @@ public class AbstractResourceProviderTest {
     Assert.assertTrue(supportedPropertyIds.containsAll(propertyIds));
   }
 
+  @Test
+  public void testGetRequestStatus() {
+    Set<String> propertyIds = new HashSet<String>();
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    AbstractResourceProvider provider =
+        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
+            Resource.Type.Service,
+            propertyIds,
+            keyPropertyIds,
+            managementController);
+
+    RequestStatus status = provider.getRequestStatus(null);
+
+    Assert.assertNull(status.getRequestResource());
+    Assert.assertEquals(Collections.emptySet(), status.getAssociatedResources());
+
+    RequestStatusResponse response = new RequestStatusResponse(99L);
+
+    status = provider.getRequestStatus(response);
+    Resource resource = status.getRequestResource();
+
+    Assert.assertEquals(99L, resource.getPropertyValue("Requests/id"));
+    Assert.assertEquals(Collections.emptySet(), status.getAssociatedResources());
+
+
+    status = provider.getRequestStatus(response, null);
+    resource = status.getRequestResource();
+
+    Assert.assertEquals(99L, resource.getPropertyValue("Requests/id"));
+    Assert.assertEquals(Collections.emptySet(), status.getAssociatedResources());
+
+
+    Resource associatedResource = new ResourceImpl(Resource.Type.Service);
+
+    Set<Resource> associatedResources = Collections.singleton(associatedResource);
+    status = provider.getRequestStatus(response, associatedResources);
+    resource = status.getRequestResource();
+
+    Assert.assertEquals(99L, resource.getPropertyValue("Requests/id"));
+    Assert.assertEquals(associatedResources, status.getAssociatedResources());
+  }
+
 
   // ----- helper methods ----------------------------------------------------
 
@@ -144,32 +187,17 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
+    public static Set<ClusterRequest> getClusterRequestSet(
+        Long clusterId, String clusterName, String stackVersion, Set<String> hostNames)
+    {
+      EasyMock.reportMatcher(new ClusterRequestSetMatcher(clusterId, clusterName, stackVersion, hostNames));
+      return null;
+    }
+
     public static ConfigurationRequest getConfigurationRequest(
         String clusterName, String type, String tag, Map<String, String> configs)
     {
       EasyMock.reportMatcher(new ConfigurationRequestMatcher(clusterName, type, tag, configs));
-      return null;
-    }
-
-    public static RequestStatusRequest getRequestRequest(Long requestId)
-    {
-      EasyMock.reportMatcher(new RequestRequestMatcher(requestId));
-      return null;
-    }
-
-    public static Set<ActionRequest> getActionRequestSet(String clusterName, String serviceName, String actionName)
-    {
-      EasyMock.reportMatcher(new ActionRequestSetMatcher(clusterName, serviceName, actionName));
-      return null;
-    }
-
-    public static Set<ServiceComponentRequest> getComponentRequestSet(String clusterName, String serviceName,
-                                                                      String componentName,
-                                                                      Map<String, String> configVersions,
-                                                                      String desiredState)
-    {
-      EasyMock.reportMatcher(new ComponentRequestSetMatcher(clusterName, serviceName, componentName,
-          configVersions, desiredState));
       return null;
     }
 
@@ -189,13 +217,6 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
-    public static Set<ServiceRequest> getServiceRequestSet(String clusterName, String serviceName,
-                                                           Map<String, String> configVersions, String desiredState)
-    {
-      EasyMock.reportMatcher(new ServiceRequestSetMatcher(clusterName, serviceName, configVersions, desiredState));
-      return null;
-    }
-
     public static Set<TaskStatusRequest> getTaskRequestSet(Long requestId, Long taskId)
     {
       EasyMock.reportMatcher(new TaskRequestSetMatcher(requestId, taskId));
@@ -205,6 +226,13 @@ public class AbstractResourceProviderTest {
     public static Set<UserRequest> getUserRequestSet(String name)
     {
       EasyMock.reportMatcher(new UserRequestSetMatcher(name));
+      return null;
+    }
+    
+    public static Set<StackConfigurationRequest> getStackConfigurationRequestSet(String stackName, String stackVersion,
+        String serviceName, String propertyName)
+    {
+      EasyMock.reportMatcher(new StackConfigurationRequestSetMatcher(stackName, stackVersion, serviceName, propertyName));
       return null;
     }
   }
@@ -234,6 +262,41 @@ public class AbstractResourceProviderTest {
   }
 
   /**
+   * Matcher for a ClusterRequest set.
+   */
+  public static class ClusterRequestSetMatcher extends ClusterRequest implements IArgumentMatcher {
+
+    public ClusterRequestSetMatcher(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames) {
+      super(clusterId, clusterName, stackVersion, hostNames);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return eq(((ClusterRequest) request).getClusterId(), getClusterId()) &&
+          eq(((ClusterRequest) request).getClusterName(), getClusterName()) &&
+          eq(((ClusterRequest) request).getStackVersion(), getStackVersion()) &&
+          eq(((ClusterRequest) request).getHostNames(), getHostNames());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("ClusterRequestSetMatcher(").append(super.toString()).append(")");
+    }
+  }
+
+  /**
    * Matcher for a ConfigurationRequest.
    */
   public static class ConfigurationRequestMatcher extends ConfigurationRequest implements IArgumentMatcher {
@@ -258,108 +321,6 @@ public class AbstractResourceProviderTest {
     }
   }
 
-  /**
-   * Matcher for a RequestStatusRequest.
-   */
-  public static class RequestRequestMatcher extends RequestStatusRequest implements IArgumentMatcher {
-
-    public RequestRequestMatcher(Long requestId) {
-      super(requestId, "");
-    }
-
-    @Override
-    public boolean matches(Object o) {
-
-      return o instanceof RequestStatusRequest &&
-          eq(((RequestStatusRequest) o).getRequestId(), getRequestId());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("RequestRequestMatcher(").append(super.toString()).append(")");
-    }
-  }
-
-  /**
-   * Matcher for a ActionRequest set containing a single request.
-   */
-  public static class ActionRequestSetMatcher extends HashSet<ActionRequest> implements IArgumentMatcher {
-
-    private final ActionRequest actionRequest;
-
-    public ActionRequestSetMatcher(String clusterName, String serviceName, String actionName) {
-      this.actionRequest = new ActionRequest(clusterName, serviceName, actionName, null);
-      add(this.actionRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof ActionRequest &&
-          eq(((ActionRequest) request).getClusterName(), actionRequest.getClusterName()) &&
-          eq(((ActionRequest) request).getServiceName(), actionRequest.getServiceName()) &&
-          eq(((ActionRequest) request).getActionName(), actionRequest.getActionName());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ActionRequestSetMatcher(").append(actionRequest).append(")");
-    }
-  }
-
-  /**
-   * Matcher for a ServiceComponentRequest set containing a single request.
-   */
-  public static class ComponentRequestSetMatcher extends HashSet<ServiceComponentRequest> implements IArgumentMatcher {
-
-    private final ServiceComponentRequest serviceComponentRequest;
-
-    public ComponentRequestSetMatcher(String clusterName, String serviceName, String componentName,
-                                   Map<String, String> configVersions, String desiredState) {
-      this.serviceComponentRequest =
-          new ServiceComponentRequest(clusterName, serviceName, componentName, configVersions, desiredState);
-      add(this.serviceComponentRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof ServiceComponentRequest &&
-          eq(((ServiceComponentRequest) request).getClusterName(), serviceComponentRequest.getClusterName()) &&
-          eq(((ServiceComponentRequest) request).getServiceName(), serviceComponentRequest.getServiceName()) &&
-          eq(((ServiceComponentRequest) request).getComponentName(), serviceComponentRequest.getComponentName()) &&
-          eq(((ServiceComponentRequest) request).getConfigVersions(), serviceComponentRequest.getConfigVersions()) &&
-          eq(((ServiceComponentRequest) request).getDesiredState(), serviceComponentRequest.getDesiredState());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ComponentRequestSetMatcher(").append(serviceComponentRequest).append(")");
-    }
-  }
 
   /**
    * Matcher for a HostRequest set containing a single request.
@@ -411,7 +372,7 @@ public class AbstractResourceProviderTest {
                                       Map<String, String> configVersions, String desiredState) {
       this.hostComponentRequest =
           new ServiceComponentHostRequest(clusterName, serviceName, componentName,
-              hostName, configVersions, desiredState);
+              hostName, desiredState);
       add(this.hostComponentRequest);
     }
 
@@ -435,53 +396,12 @@ public class AbstractResourceProviderTest {
           eq(((ServiceComponentHostRequest) request).getServiceName(), hostComponentRequest.getServiceName()) &&
           eq(((ServiceComponentHostRequest) request).getComponentName(), hostComponentRequest.getComponentName()) &&
           eq(((ServiceComponentHostRequest) request).getHostname(), hostComponentRequest.getHostname()) &&
-          eq(((ServiceComponentHostRequest) request).getConfigVersions(), hostComponentRequest.getConfigVersions()) &&
           eq(((ServiceComponentHostRequest) request).getDesiredState(), hostComponentRequest.getDesiredState());
     }
 
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("HostComponentRequestSetMatcher(").append(hostComponentRequest).append(")");
-    }
-  }
-
-  /**
-   * Matcher for a ServiceRequest set containing a single request.
-   */
-  public static class ServiceRequestSetMatcher extends HashSet<ServiceRequest> implements IArgumentMatcher {
-
-    private final ServiceRequest serviceRequest;
-
-    public ServiceRequestSetMatcher(
-        String clusterName, String serviceName, Map<String, String> configVersions, String desiredState) {
-      this.serviceRequest = new ServiceRequest(clusterName, serviceName, configVersions, desiredState);
-      add(this.serviceRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof ServiceRequest &&
-          eq(((ServiceRequest) request).getClusterName(), serviceRequest.getClusterName()) &&
-          eq(((ServiceRequest) request).getServiceName(), serviceRequest.getServiceName()) &&
-          eq(((ServiceRequest) request).getConfigVersions(), serviceRequest.getConfigVersions()) &&
-          eq(((ServiceRequest) request).getDesiredState(), serviceRequest.getDesiredState());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ServiceRequestSetMatcher(").append(serviceRequest).append(")");
     }
   }
 
@@ -556,6 +476,48 @@ public class AbstractResourceProviderTest {
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("UserRequestSetMatcher(").append(userRequest).append(")");
+    }
+  }
+  
+
+  /**
+   * Matcher for a Stack set containing a single request.
+   */
+  public static class StackConfigurationRequestSetMatcher extends HashSet<StackConfigurationRequest> implements IArgumentMatcher {
+
+    private final StackConfigurationRequest stackConfigurationRequest;
+
+    public StackConfigurationRequestSetMatcher(String stackName, String stackVersion,
+        String serviceName, String propertyName) {
+      this.stackConfigurationRequest = new StackConfigurationRequest(stackName, stackVersion, serviceName, propertyName);
+      add(this.stackConfigurationRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof StackConfigurationRequest &&
+          eq(((StackConfigurationRequest) request).getPropertyName(), stackConfigurationRequest.getPropertyName()) &&
+          eq(((StackConfigurationRequest) request).getServiceName(), stackConfigurationRequest.getServiceName()) &&
+          eq(((StackConfigurationRequest) request).getStackName(), stackConfigurationRequest.getStackName()) &&
+          eq(((StackConfigurationRequest) request).getStackVersion(), stackConfigurationRequest.getStackVersion());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("StackConfigurationRequestSetMatcher(").append(stackConfigurationRequest).append(")");
     }
   }
 

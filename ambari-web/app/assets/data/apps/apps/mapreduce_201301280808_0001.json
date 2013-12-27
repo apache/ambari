@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "appId": "application_201301280808_0001",
+      "appName": "word count",
+      "appType": "MAPREDUCE",
+      "status": "FINISHED",
+      "userName": "ambari_qa",
+      "submitTime": 1359378637135,
+      "finishTime": 1359378667350,
+      "stages": [1,1],
+      "workflowId": "mapreduce_201301280808_0001",
+      "workflowEntityName": "1"
+    }
+  ]
+}

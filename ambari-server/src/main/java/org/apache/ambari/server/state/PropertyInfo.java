@@ -21,12 +21,11 @@ package org.apache.ambari.server.state;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 
 public class PropertyInfo {
-  
-
   private String name;
   private String value;
   private String description;
   private String filename;
+  private boolean deleted;
 
   public String getName() {
     return name;
@@ -60,11 +59,18 @@ public class PropertyInfo {
     this.filename = filename;
   }
   
-  public StackConfigurationResponse convertToResponse()
-  {
+  public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(), getDescription() , getFilename());
   }
-  
+
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;

@@ -20,6 +20,16 @@ String.prototype.trim = function () {
   return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 };
 
+String.prototype.endsWith = function(suffix) {
+  return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+String.prototype.startsWith = function (prefix){
+  return this.indexOf(prefix) == 0;
+};
+String.prototype.contains = function(substring) {
+  return this.indexOf(substring) != -1;
+};
+
 /**
  * convert ip address string to long int
  * @return {*}
@@ -92,6 +102,7 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
 
   return new Em.Handlebars.SafeString(property);
 })
+
 /**
  * Replace {i} with argument. where i is number of argument to replace with
  * @return {String}
@@ -119,30 +130,9 @@ String.prototype.highlight = function (words, highlightTemplate) {
   return self;
 };
 
-/**
- * Convert byte size to other metrics.
- * @param {Number} precision  Number to adjust precision of return value. Default is 0.
- * @param {String} parseType  JS method name for parse string to number. Default is "parseInt".
- * @remarks The parseType argument can be "parseInt" or "parseFloat".
- * @return {String) Returns converted value with abbreviation.
- */
-Number.prototype.bytesToSize = function (precision, parseType/* = 'parseInt' */) {
-  if (arguments[1] === undefined) {
-    parseType = 'parseInt';
-  }
-
-  var value = this;
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  var posttxt = 0;
-  if (this == 0) return 'n/a';
-  while (value >= 1024) {
-    posttxt++;
-    value = value / 1024;
-  }
-  var parsedValue = window[parseType](value);
-
-  return parsedValue.toFixed(precision) + " " + sizes[posttxt];
-}
+Array.prototype.move = function(from, to) {
+  this.splice(to, 0, this.splice(from, 1)[0]);
+};
 
 Number.prototype.toDaysHoursMinutes = function () {
   var formatted = {},
@@ -199,6 +189,8 @@ Number.prototype.long2ip = function () {
  * @param {String} testUrl  URL to be used if app is not in test mode (!App.testMode)
  * @return {String} Formatted URL
  */
+App = require('app');
+
 App.formatUrl = function (urlTemplate, substitutes, testUrl) {
   var formatted = urlTemplate;
   if (urlTemplate) {
@@ -243,11 +235,13 @@ App.format = {
       case 'NAMENODE':
         return 'NameNode';
       case 'NAMENODE_SERVICE_CHECK':
-        return 'NameNode Check';
+        return 'NameNode Service Check';
       case 'DATANODE':
         return 'DataNode';
+      case 'JOURNALNODE':
+        return 'JournalNode';
       case 'HDFS_SERVICE_CHECK':
-        return 'HDFS Check';
+        return 'HDFS Service Check';
       case 'SECONDARY_NAMENODE':
         return 'SNameNode';
       case 'HDFS_CLIENT':
@@ -264,6 +258,18 @@ App.format = {
         return 'TaskTracker';
       case 'MAPREDUCE_CLIENT':
         return 'MapReduce Client';
+      case 'HISTORYSERVER':
+        return 'History Server';
+      case 'NODEMANAGER':
+        return 'NodeManager';
+      case 'RESOURCEMANAGER':
+        return 'ResourceManager';
+      case 'TEZ_CLIENT':
+        return 'Tez Client';
+      case 'MAPREDUCE2_CLIENT':
+        return 'MapReduce2 Client';
+      case 'YARN_CLIENT':
+        return 'YARN Client';
       case 'JAVA_JCE':
         return 'Java JCE';
       case 'KERBEROS_SERVER':
@@ -275,15 +281,15 @@ App.format = {
       case 'HADOOP_CLIENT':
         return 'Hadoop Client';
       case 'JOBTRACKER_SERVICE_CHECK':
-        return 'JobTracker Check';
+        return 'JobTracker Service Check';
       case 'MAPREDUCE_SERVICE_CHECK':
-        return 'MapReduce Check';
+        return 'MapReduce Service Check';
       case 'ZOOKEEPER_SERVICE_CHECK':
-        return 'ZooKeeper Check';
+        return 'ZooKeeper Service Check';
       case 'ZOOKEEPER_QUORUM_SERVICE_CHECK':
-        return 'ZK Quorum Check';
+        return 'ZK Quorum Service Check';
       case  'HBASE_SERVICE_CHECK':
-        return 'HBase Check';
+        return 'HBase Service Check';
       case 'MYSQL_SERVER':
         return 'MySQL Server';
       case 'HIVE_SERVER':
@@ -293,29 +299,33 @@ App.format = {
       case 'HIVE_CLIENT':
         return 'Hive Client';
       case 'HIVE_SERVICE_CHECK':
-        return 'Hive Check';
+        return 'Hive Service Check';
       case 'HCAT':
         return 'HCat';
       case 'HCAT_SERVICE_CHECK':
-        return 'HCat Check';
+        return 'HCat Service Check';
       case 'OOZIE_CLIENT':
         return 'Oozie Client';
       case 'OOZIE_SERVER':
         return 'Oozie Server';
       case 'OOZIE_SERVICE_CHECK':
-        return 'Oozie Check';
+        return 'Oozie Service Check';
       case 'PIG':
         return 'Pig';
       case 'PIG_SERVICE_CHECK':
-        return 'Pig Check';
+        return 'Pig Service Check';
+      case 'MAPREDUCE2_SERVICE_CHECK':
+        return 'MapReduce2 Service Check';
+      case 'YARN_SERVICE_CHECK':
+        return 'YARN Service Check';
       case 'SQOOP':
         return 'Sqoop';
       case 'SQOOP_SERVICE_CHECK':
-        return 'Sqoop Check';
+        return 'Sqoop Service Check';
       case 'WEBHCAT_SERVER':
         return 'WebHCat Server';
       case 'WEBHCAT_SERVICE_CHECK':
-        return 'WebHCat Check';
+        return 'WebHCat Service Check';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':
@@ -323,13 +333,21 @@ App.format = {
       case 'GANGLIA_MONITOR':
         return 'Ganglia Monitor';
       case 'GMOND_SERVICE_CHECK':
-        return 'Gmond Check';
+        return 'Gmond Service Check';
       case 'GMETAD_SERVICE_CHECK':
-        return 'Gmetad Check';
+        return 'Gmetad Service Check';
       case 'DECOMMISSION_DATANODE':
-        return 'Decommission DataNode';
+        return 'Update Exclude File';
       case 'HUE_SERVER':
         return 'Hue Server';
+      case 'GLUSTERFS_CLIENT':
+        return 'GLUSTERFS Client';
+      case 'GLUSTERFS_SERVICE_CHECK':
+        return 'GLUSTERFS Service Check';
+      case 'FLUME_SERVER':
+        return 'Flume Agent';
+      case 'ZKFC':
+        return 'ZKFailoverController';
     }
   },
 
@@ -347,10 +365,85 @@ App.format = {
   }
 };
 
-Array.prototype.removeAll = function(array){
-  var temp = array;
-  for(var i = 0 ; i < array.length ; i++ ){
-    temp = temp.without(array[i]);
+/**
+ * wrapper to bootstrap popover
+ * fix issue when popover stuck on view routing
+ * @param self
+ * @param options
+ */
+App.popover = function(self, options) {
+  self.popover(options);
+  self.on("remove", function () {
+    $(this).trigger('mouseleave');
+  });
+}
+
+/**
+ * wrapper to bootstrap tooltip
+ * fix issue when tooltip stuck on view routing
+ * @param self - DOM element
+ * @param options
+ */
+App.tooltip = function(self, options) {
+  self.tooltip(options);
+  self.on("remove", function () {
+    $(this).trigger('mouseleave');
+  });
+}
+
+/*
+ * Helper function for bound property helper registration
+ * @params name {String} - name of helper
+ * @params view {Em.View} - view
+ */
+App.registerBoundHelper = function(name, view) {
+  Em.Handlebars.registerHelper(name, function(property, options) {
+    options.hash.contentBinding = property;
+    return Em.Handlebars.helpers.view.call(this, view, options);
+  });
+}
+
+/*
+ * Return singular or plural word based on Em.I18n property key.
+ *
+ *  Example: {{pluralize hostsCount singular="t:host" plural="t:hosts"}}
+ */
+App.registerBoundHelper('pluralize', Em.View.extend({
+  tagName: 'span',
+  template: Em.Handlebars.compile('{{view.wordOut}}'),
+
+  wordOut: function() {
+    var count, singular, plural;
+    count = this.get('content');
+    singular = this.get('singular');
+    plural = this.get('plural');
+    return this.getWord(count, singular, plural);
+  }.property('content'),
+
+  getWord: function(count, singular, plural) {
+    singular = this.tDetect(singular);
+    plural = this.tDetect(plural);
+    if (singular && plural) {
+      if (count > 1) {
+        return plural;
+      } else {
+        return singular;
+      }
+    }
+  },
+
+  /*
+   * Detect for Em.I18n.t reference call
+   * @params word {String}
+   * return {String}
+  */
+  tDetect: function(word) {
+    var splitted = word.split(':');
+    if (splitted.length > 1 && splitted[0] == 't') {
+      return Em.I18n.t(splitted[1]);
+    } else {
+      return splitted[0];
+    }
   }
-  return temp;
-};
+  })
+)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -18,17 +18,16 @@
 
 import httplib
 import urllib2
-from urllib2 import Request
 import socket
-import hostname
 import ssl
 import os
 import logging
-from subprocess import Popen, PIPE
-import AmbariConfig
+import subprocess
 import json
 import pprint
 import traceback
+import hostname
+
 logger = logging.getLogger()
 
 GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(hostname)s.key\
@@ -38,12 +37,53 @@ GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(ho
 
 class VerifiedHTTPSConnection(httplib.HTTPSConnection):
   """ Connecting using ssl wrapped sockets """
-  def __init__(self, host, port=None, key_file=None, cert_file=None,
-                     strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+  def __init__(self, host, port=None, config=None):
     httplib.HTTPSConnection.__init__(self, host, port=port)
-    pass
-     
+    self.config=config
+    self.two_way_ssl_required=False
+
   def connect(self):
+
+    if not self.two_way_ssl_required:
+      try:
+        sock=self.create_connection()
+        self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
+        logger.info('SSL connection established. Two-way SSL authentication is '
+                    'turned off on the server.')
+      except (ssl.SSLError, AttributeError):
+        self.two_way_ssl_required=True
+        logger.info('Insecure connection to https://' + self.host + ':' + self.port +
+                    '/ failed. Reconnecting using two-way SSL authentication..')
+
+    if self.two_way_ssl_required:
+      self.certMan=CertificateManager(self.config)
+      self.certMan.initSecurity()
+      agent_key = self.certMan.getAgentKeyName()
+      agent_crt = self.certMan.getAgentCrtName()
+      server_crt = self.certMan.getSrvrCrtName()
+
+      sock=self.create_connection()
+
+      try:
+        self.sock = ssl.wrap_socket(sock,
+                                keyfile=agent_key,
+                                certfile=agent_crt,
+                                cert_reqs=ssl.CERT_REQUIRED,
+                                ca_certs=server_crt)
+        logger.info('SSL connection established. Two-way SSL authentication '
+                    'completed successfully.')
+      except ssl.SSLError as err:
+        logger.error('Two-way SSL authentication failed. Ensure that '
+                    'server and agent certificates were signed by the same CA '
+                    'and restart the agent. '
+                    '\nIn order to receive a new agent certificate, remove '
+                    'existing certificate file from keys directory. As a '
+                    'workaround you can turn off two-way SSL authentication in '
+                    'server configuration(ambari.properties) '
+                    '\nExiting..')
+        raise err
+
+  def create_connection(self):
     if self.sock:
       self.sock.close()
     logger.info("SSL Connect being called.. connecting to the server")
@@ -52,19 +92,8 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
     if self._tunnel_host:
       self.sock = sock
       self._tunnel()
-    agent_key = AmbariConfig.config.get('security', 'keysdir') + os.sep + \
-     hostname.hostname() + ".key"
-    agent_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
-    + hostname.hostname() + ".crt" 
-    server_crt = AmbariConfig.config.get('security', 'keysdir') + os.sep \
-    + "ca.crt"
-    
-    self.sock = ssl.wrap_socket(sock,
-                                keyfile=agent_key,
-                                certfile=agent_crt,
-                                cert_reqs=ssl.CERT_REQUIRED,
-                                ca_certs=server_crt)
 
+    return sock
 
 class CachedHTTPSConnection:
   """ Caches a ssl socket and uses a single https connection to the server. """
@@ -77,15 +106,16 @@ class CachedHTTPSConnection:
     self.connect()
   
   def connect(self):
-      if  not self.connected:
-        self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
-        self.httpsconn.connect()
-        self.connected = True
-      # possible exceptions are catched and processed in Controller
+    if  not self.connected:
+      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port, self.config)
+      self.httpsconn.connect()
+      self.connected = True
+    # possible exceptions are caught and processed in Controller
+
 
   
   def forceClear(self):
-    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
+    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port, self.config)
     self.connect()
     
   def request(self, req): 
@@ -96,9 +126,10 @@ class CachedHTTPSConnection:
       response = self.httpsconn.getresponse()
       readResponse = response.read()
     except Exception as ex:
-      # This exception is catched later in Controller
+      # This exception is caught later in Controller
       logger.debug("Error in sending/receving data from the server " +
                    traceback.format_exc())
+      logger.info("Encountered communication error. Details: " + repr(ex))
       self.connected = False
       raise IOError("Error occured during connecting to the server: " + str(ex))
     return readResponse
@@ -114,12 +145,15 @@ class CertificateManager():
   def getAgentKeyName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + hostname.hostname() + ".key"
+
   def getAgentCrtName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + hostname.hostname() + ".crt"
+
   def getAgentCrtReqName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + hostname.hostname() + ".csr"
+
   def getSrvrCrtName(self):
     keysdir = self.config.get('security', 'keysdir')
     return keysdir + os.sep + "ca.crt"
@@ -147,10 +181,10 @@ class CertificateManager():
     agent_crt_exists = os.path.exists(self.getAgentCrtName())
     
     if not agent_crt_exists:
-        logger.info("Agent certificate not exists, sending sign request")
-        self.reqSignCrt()
+      logger.info("Agent certificate not exists, sending sign request")
+      self.reqSignCrt()
     else:
-        logger.info("Agent certificate exists, ok")
+      logger.info("Agent certificate exists, ok")
             
   def loadSrvrCrt(self):
     get_ca_url = self.server_url + '/cert/ca/'
@@ -182,14 +216,21 @@ class CertificateManager():
       agentCrtF = open(self.getAgentCrtName(), "w")
       agentCrtF.write(agentCrtContent)
     else:
-      logger.error("Certificate signing failed")
+      # Possible exception is catched higher at Controller
+      logger.error('Certificate signing failed.'
+                   '\nIn order to receive a new agent'
+                   ' certificate, remove existing certificate file from keys '
+                   'directory. As a workaround you can turn off two-way SSL '
+                   'authentication in server configuration(ambari.properties) '
+                   '\nExiting..')
+      raise ssl.SSLError
 
   def genAgentCrtReq(self):
     generate_script = GEN_AGENT_KEY % {'hostname': hostname.hostname(),
                                      'keysdir' : self.config.get('security', 'keysdir')}
     logger.info(generate_script)
-    p = Popen([generate_script], shell=True, stdout=PIPE)
-    p.wait()
+    p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
+    p.communicate()
       
   def initSecurity(self):
     self.checkCertExists()

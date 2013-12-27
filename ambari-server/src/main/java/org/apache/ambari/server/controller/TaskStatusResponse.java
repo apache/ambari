@@ -25,7 +25,9 @@ public class TaskStatusResponse extends ShortTaskStatus {
   private int exitCode;
   private String stderr;
   private String stdout;
+  private String structuredOut;
   private long startTime;
+  private Long endTime;
   private short attemptCount;
 
   public TaskStatusResponse() {
@@ -51,6 +53,8 @@ public class TaskStatusResponse extends ShortTaskStatus {
     this.stdout = hostRoleCommand.getStdout();
     this.startTime = hostRoleCommand.getStartTime();
     this.attemptCount = hostRoleCommand.getAttemptCount();
+    this.structuredOut = hostRoleCommand.getStructuredOut();
+    this.endTime = hostRoleCommand.getEndTime();
   }
 
   public long getRequestId() {
@@ -100,7 +104,23 @@ public class TaskStatusResponse extends ShortTaskStatus {
   public void setAttemptCount(short attemptCount) {
     this.attemptCount = attemptCount;
   }
-  
+
+  public String getStructuredOut() {
+    return structuredOut;
+  }
+
+  public void setStructuredOut(String structuredOut) {
+    this.structuredOut = structuredOut;
+  }
+
+  public Long getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(Long endTime) {
+    this.endTime = endTime;
+  }
+
   @Override
   public String toString() {
       return super.toString();

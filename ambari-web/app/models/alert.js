@@ -21,30 +21,26 @@ var App = require('app');
 App.AlertStatus = {
   negative: 'corrupt',
   positive: 'ok'
-}
+};
 
 /**
  * Defines structure for App.Alert class. Keys mentioned here are for JSON data
  * which comes back from NAGIOS server.
  */
 App.Alert = DS.Model.extend({
-  alertId: DS.attr('string'),
-  primaryKey: 'alertId',
   title: DS.attr('string'),//service_description in ajax response
   serviceType: DS.attr('string'),
-  date: DS.attr('date'),
   status: DS.attr('string'),//current_state in ajax response
   message: DS.attr('string'),//plugin_output in ajax response
   hostName: DS.attr('string'),
   currentAttempt: DS.attr('string'),
-  lastHardStateChange: DS.attr('number'),
-  lastHardState: DS.attr('number'),
-  lastTimeOk: DS.attr('number'),
-  lastTimeWarning: DS.attr('number'),
-  lastTimeUnknown: DS.attr('number'),
-  lastTimeCritical: DS.attr('number'),
   isFlapping: DS.attr('number'),
   lastCheck: DS.attr('number'),
+  lastTime: DS.attr('number'),
+
+  date: function () {
+    return DS.attr.transforms.date.from(this.get('lastTime'));
+  }.property('lastTime'),
 
   /**
    * Used to show correct icon in UI
@@ -61,10 +57,17 @@ App.Alert = DS.Model.extend({
   }.property('status'),
 
   /**
+   * Used to show correct icon in UI
+   */
+  isCritical: function() {
+    return this.get('status') == '2';
+  }.property('status'),
+
+  /**
    * Used to show only required alerts at the service level
    */
   ignoredForServices: function() {
-    return ['TaskTracker process down', 'RegionServer process down', 'DataNode process down', 'DataNode storage full', 'ZooKeeper Server process down'].contains(this.get('title'));
+    return ['NodeManager health', 'NodeManager process', 'TaskTracker process', 'RegionServer process', 'DataNode process', 'DataNode space', 'ZooKeeper Server process'].contains(this.get('title'));
   }.property('title'),
 
   /**
@@ -89,6 +92,9 @@ App.Alert = DS.Model.extend({
           break;
         case "2":
           prefix = this.t('services.alerts.CRIT.timePrefix');
+          break;
+        case "3":
+          prefix = this.t('services.alerts.UNKNOWN.timePrefix');
           break;
       }
       var prevSuffix = $.timeago.settings.strings.suffixAgo;
@@ -182,6 +188,20 @@ App.Alert = DS.Model.extend({
   }.property('serviceType')
 
 });
+
+App.Alert.sort = function (array) {
+  return array.sort(function (left, right) {
+    var statusDiff = right.get('status') - left.get('status');
+    if (statusDiff == 0) { // same error severity - sort by time
+      var rightTime = right.get('date');
+      var leftTime = left.get('date');
+      rightTime = rightTime ? rightTime.getTime() : 0;
+      leftTime = leftTime ? leftTime.getTime() : 0;
+      statusDiff = rightTime - leftTime;
+    }
+    return statusDiff;
+  });
+};
 
 App.Alert.FIXTURES = [
 ];

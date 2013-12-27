@@ -66,7 +66,9 @@ public abstract class BaseService {
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo,
                                    Request.Type requestType, ResourceInstance resource) {
 
-    Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
+    Result  result  = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
+    boolean minimal = false;
+
     try {
       Set<RequestBody> requestBodySet = getBodyParser().parse(body);
 
@@ -77,14 +79,15 @@ public abstract class BaseService {
         Request request = getRequestFactory().createRequest(
             headers, requestBody, uriInfo, requestType, resource);
 
-        result = request.process();
+        minimal = request.isMinimal();
+        result  = request.process();
       }
     } catch (BodyParseException e) {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }
 
     return Response.status(result.getStatus().getStatusCode()).entity(
-        getResultSerializer().serialize(result)).build();
+        getResultSerializer().serialize(result, minimal)).build();
   }
 
   /**

@@ -45,6 +45,9 @@ public class ReadHandler implements RequestHandler {
   public Result handleRequest(Request request) {
     Query query = request.getResource().getQuery();
 
+    query.setPageRequest(request.getPageRequest());
+    query.setMinimal(request.isMinimal());
+
     try {
       addFieldsToQuery(request, query);
     } catch (IllegalArgumentException e) {
@@ -77,6 +80,7 @@ public class ReadHandler implements RequestHandler {
     } catch (IllegalArgumentException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
           "Invalid Request: " + e.getMessage()));
+      LOG.error("Bad request: ", e);
     }  catch (RuntimeException e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Caught a runtime exception executing a query", e);
@@ -98,8 +102,7 @@ public class ReadHandler implements RequestHandler {
     for (Map.Entry<String, TemporalInfo> entry : request.getFields().entrySet()) {
       // Iterate over map and add props/temporalInfo
       String propertyId = entry.getKey();
-      query.addProperty(PropertyHelper.getPropertyCategory(propertyId),
-          PropertyHelper.getPropertyName(propertyId), entry.getValue());
+      query.addProperty(propertyId, entry.getValue());
     }
   }
 }

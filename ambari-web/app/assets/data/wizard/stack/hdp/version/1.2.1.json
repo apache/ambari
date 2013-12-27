@@ -1,0 +1,137 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices?fields=StackServices",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "comments" : "This is comment for WEBHCAT service",
+        "service_version" : "0.5.0"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/GANGLIA",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "GANGLIA",
+        "stack_name" : "HDP",
+        "comments" : "Ganglia Metrics Collection system",
+        "service_version" : "3.2.0"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/NAGIOS",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "NAGIOS",
+        "stack_name" : "HDP",
+        "comments" : "Nagios Monitoring and Alerting system",
+        "service_version" : "3.2.3"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE",
+      "StackServices" : {
+        "user_name" : "mapred",
+        "stack_version" : "1.2.1",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "comments" : "Non-relational distributed database and centralized service for configuration management & synchronization",
+        "service_version" : "0.94.5"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/SQOOP",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "SQOOP",
+        "stack_name" : "HDP",
+        "comments" : "Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases",
+        "service_version" : "1.4.2"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "comments" : "Apache Hadoop Distributed File System",
+        "service_version" : "1.1.2"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/MAPREDUCE",
+      "StackServices" : {
+        "user_name" : "mapred",
+        "stack_version" : "1.2.1",
+        "service_name" : "MAPREDUCE",
+        "stack_name" : "HDP",
+        "comments" : "Apache Hadoop Distributed Processing Framework",
+        "service_version" : "1.1.2"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/PIG",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "PIG",
+        "stack_name" : "HDP",
+        "comments" : "Scripting platform for analyzing large datasets",
+        "service_version" : "0.10.1"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/ZOOKEEPER",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "ZOOKEEPER",
+        "stack_name" : "HDP",
+        "comments" : "This is comment for ZOOKEEPER service",
+        "service_version" : "3.4.5"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/OOZIE",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP",
+        "comments" : "System for workflow coordination and execution of Apache Hadoop jobs",
+        "service_version" : "3.2.0"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HCATALOG",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "HCATALOG",
+        "stack_name" : "HDP",
+        "comments" : "This is comment for HCATALOG service",
+        "service_version" : "0.5.0"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "1.2.1",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
+        "service_version" : "0.10.0"
+      }
+    }
+  ]
+}

@@ -17,16 +17,35 @@
  */
 package org.apache.ambari.server.agent;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -42,11 +61,10 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 
 /**
@@ -67,13 +85,11 @@ public class HeartBeatHandler {
   AmbariMetaInfo ambariMetaInfo;
   @Inject
   ActionMetadata actionMetadata;
-  @Inject
-  HBaseMasterPortScanner scanner;
   private HeartbeatMonitor heartbeatMonitor;
   @Inject
   private Gson gson;
-  private Map<String, Long> hostResponseIds = new HashMap<String, Long>();
-  private Map<String, HeartBeatResponse> hostResponses = new HashMap<String, HeartBeatResponse>();
+  private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
+  private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<String, HeartBeatResponse>();
 
   @Inject
   public HeartBeatHandler(Clusters fsm, ActionQueue aq, ActionManager am,
@@ -81,8 +97,7 @@ public class HeartBeatHandler {
     this.clusterFsm = fsm;
     this.actionQueue = aq;
     this.actionManager = am;
-    this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000);
-    this.heartbeatMonitor.setScanner(scanner);
+    this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000, injector);
     injector.injectMembers(this);
   }
 
@@ -96,21 +111,22 @@ public class HeartBeatHandler {
 
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat)
       throws AmbariException {
+    long now = System.currentTimeMillis();
+    if(heartbeat.getAgentEnv() != null && heartbeat.getAgentEnv().getHostHealth() != null) {
+      heartbeat.getAgentEnv().getHostHealth().setServerTimeStampAtReporting(now);
+    }
     String hostname = heartbeat.getHostname();
     Long currentResponseId = hostResponseIds.get(hostname);
     HeartBeatResponse response;
     if (currentResponseId == null) {
       //Server restarted, or unknown host.
-      LOG.error("CurrentResponseId unknown - send register command");
+      LOG.error("CurrentResponseId unknown for " + hostname + " - send register command");
       return createRegisterCommand();
     }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received heartbeat from host"
-          + ", hostname=" + hostname
-          + ", currentResponseId=" + currentResponseId
-          + ", receivedResponseId=" + heartbeat.getResponseId());
-    }
+    LOG.debug("Received heartbeat from host"
+        + ", hostname=" + hostname
+        + ", currentResponseId=" + currentResponseId
+        + ", receivedResponseId=" + heartbeat.getResponseId());
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
       LOG.warn("Old responseId received - response was lost - returning cached response");
@@ -134,7 +150,6 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, currentResponseId);
     hostResponses.put(hostname, response);
 
-    long now = System.currentTimeMillis();
     HostState hostState = hostObject.getState();
     // If the host is waiting for component status updates, notify it
     if (heartbeat.componentStatus.size() > 0
@@ -150,12 +165,11 @@ public class HeartBeatHandler {
     try {
       if (heartbeat.getNodeStatus().getStatus().equals(HostStatus.Status.HEALTHY)) {
         hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now,
-            heartbeat.getAgentEnv()));
+            heartbeat.getAgentEnv(), heartbeat.getMounts()));
       } else {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
             null));
       }
-      if (hostState != hostObject.getState()) scanner.updateHBaseMaster(hostObject);
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to reregister due to " + ex.getMessage(), ex);
       hostObject.setState(HostState.INIT);
@@ -167,33 +181,117 @@ public class HeartBeatHandler {
 
     // Examine heartbeart for component live status reports
     processStatusReports(heartbeat, hostname, clusterFsm);
+    
+    //Calculate host status
+    processHostStatus(heartbeat, hostname);
 
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
       sendCommands(hostname, response);
-    }
+      annotateResponse(hostname, response);
+    }    
     return response;
   }
 
-  protected void processCommandReports(HeartBeat heartbeat,
-                                       String hostname,
-                                       Clusters clusterFsm, long now)
+  protected void processHostStatus(HeartBeat heartbeat, String hostname) throws AmbariException {
+
+    Host host = clusterFsm.getHost(hostname);
+
+    
+    HealthStatus healthStatus = host.getHealthStatus().getHealthStatus();
+    
+    if (!healthStatus.equals(HostHealthStatus.HealthStatus.UNKNOWN)) {
+
+      List<ComponentStatus> componentStatuses = heartbeat.getComponentStatus();
+      //Host status info could be calculated only if agent returned statuses in heartbeat
+      if (componentStatuses.size() > 0) {
+
+        int masterCount = 0;
+        int mastersRunning = 0;
+        int slaveCount = 0;
+        int slavesRunning = 0;
+
+        Map<String, StackId> stackIdsByClusters =
+            new HashMap<String, StackId>();
+
+        for (ComponentStatus componentStatus : componentStatuses) {
+
+          String clusterName = componentStatus.getClusterName();
+
+          StackId stackId;
+          if (stackIdsByClusters.containsKey(clusterName)) {
+            stackId = stackIdsByClusters.get(clusterName);
+
+          } else {
+            Cluster cluster = clusterFsm.getCluster(clusterName);
+            stackId = cluster.getDesiredStackVersion();
+            stackIdsByClusters.put(clusterName, stackId);
+          }
+
+          ComponentInfo componentInfo =
+              ambariMetaInfo.getComponent(stackId.getStackName(),
+                  stackId.getStackVersion(), componentStatus.getServiceName(),
+                  componentStatus.getComponentName());
+
+          String status = componentStatus.getStatus();
+
+          String category = componentInfo.getCategory();
+
+          if (category.equals("MASTER")) {
+            ++masterCount;
+            if (status.equals("STARTED")) {
+              ++mastersRunning;
+            }
+          } else if (category.equals("SLAVE")) {
+            ++slaveCount;
+            if (status.equals("STARTED")) {
+              ++slavesRunning;
+            }
+          }
+        }
+        
+        if (masterCount == mastersRunning && slaveCount == slavesRunning) {
+          healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+        } else if (masterCount > 0 && mastersRunning < masterCount) {
+          healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
+        } else {
+          healthStatus = HostHealthStatus.HealthStatus.ALERT;
+        }
+        
+        host.setStatus(healthStatus.name());
+        host.persist();
+      }
+      
+      //If host doesn't belongs to any cluster
+      if ((clusterFsm.getClustersForHost(host.getHostName())).size() == 0) {
+        healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+        host.setStatus(healthStatus.name());
+        host.persist();
+      } 
+      
+    }
+  }
+
+  protected void processCommandReports(
+      HeartBeat heartbeat, String hostname, Clusters clusterFsm, long now)
       throws AmbariException {
     List<CommandReport> reports = heartbeat.getReports();
     for (CommandReport report : reports) {
+      LOG.debug("Received command report: " + report);
+      if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
+        RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand())) {
+        continue;
+      }
+
       Cluster cl = clusterFsm.getCluster(report.getClusterName());
       String service = report.getServiceName();
-      if (service == null || "".equals(service)) {
+      if (service == null || service.isEmpty()) {
         throw new AmbariException("Invalid command report, service: " + service);
       }
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-        LOG.info(report.getRole() + " is an action - skip component lookup");
+        LOG.debug(report.getRole() + " is an action - skip component lookup");
       } else {
         try {
-          if (null != report.getConfigurationTags() && !report.getConfigurationTags().isEmpty()) {
-            cl.updateActualConfigs(hostname, report.getConfigurationTags());
-          }
-
           Service svc = cl.getService(service);
           ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
@@ -205,9 +303,10 @@ public class HeartBeatHandler {
             if (scHost.getState().equals(State.UPGRADING)) {
               scHost.setStackVersion(scHost.getDesiredStackVersion());
             } else if (report.getRoleCommand().equals(RoleCommand.START.toString())
-                && null != report.getConfigurationTags()) {
+                && null != report.getConfigurationTags()
+                && !report.getConfigurationTags().isEmpty()) {
               LOG.info("Updating applied config on service " + scHost.getServiceName() +
-              ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
+                  ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
               scHost.updateActualConfigs(report.getConfigurationTags());
             }
 
@@ -222,14 +321,13 @@ public class HeartBeatHandler {
                   hostname, now));
             }
           } else if (report.getStatus().equals("FAILED")) {
+            LOG.warn("Operation failed - may be retried. Service component host: "
+                + schName + ", host: " + hostname);
             scHost.handleEvent(new ServiceComponentHostOpFailedEvent(schName,
                 hostname, now));
           } else if (report.getStatus().equals("IN_PROGRESS")) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
                 hostname, now));
-          }
-          if (state != scHost.getState() && schName.equals(Role.HBASE_MASTER.toString())) {
-            scanner.updateHBaseMaster(cl);
           }
         } catch (ServiceComponentNotFoundException scnex) {
           LOG.warn("Service component not found ", scnex);
@@ -263,7 +361,8 @@ public class HeartBeatHandler {
               if (prevState.equals(State.INSTALLED)
                   || prevState.equals(State.STARTED)
                   || prevState.equals(State.STARTING)
-                  || prevState.equals(State.STOPPING)) {
+                  || prevState.equals(State.STOPPING)
+                  || prevState.equals(State.UNKNOWN)) {
                 scHost.setState(liveState);
                 if (!prevState.equals(liveState)) {
                   LOG.info("State of service component " + componentName
@@ -271,9 +370,6 @@ public class HeartBeatHandler {
                       + " of cluster " + status.getClusterName()
                       + " has changed from " + prevState + " to " + liveState
                       + " at host " + hostname);
-                  if (scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
-                    scanner.updateHBaseMaster(scHost);
-                  }
                 }
               }
 
@@ -283,7 +379,6 @@ public class HeartBeatHandler {
 
               if (null != status.getConfigTags()) {
                 scHost.updateActualConfigs(status.getConfigTags());
-                cl.updateActualConfigs(hostname, status.getConfigTags());
               }
 
             } else {
@@ -392,11 +487,12 @@ public class HeartBeatHandler {
   public RegistrationResponse handleRegistration(Register register)
       throws InvalidStateTransitionException, AmbariException {
     String hostname = register.getHostname();
+    int currentPingPort = register.getCurrentPingPort();
     long now = System.currentTimeMillis();
 
     String agentVersion = register.getAgentVersion();
     String serverVersion = ambariMetaInfo.getServerVersion();
-    if (!VersionUtils.areVersionsCompatible(serverVersion, agentVersion)) {
+    if (!VersionUtils.areVersionsEqual(serverVersion, agentVersion, true)) {
       LOG.warn("Received registration request from host with non compatible"
           + " agent version"
           + ", hostname=" + hostname
@@ -411,15 +507,14 @@ public class HeartBeatHandler {
 
     String agentOsType = getOsType(register.getHardwareProfile().getOS(),
         register.getHardwareProfile().getOSRelease());
-    if (!ambariMetaInfo.areOsTypesCompatible(
-        config.getServerOsType().toLowerCase(), agentOsType)) {
-      LOG.warn("Received registration request from host with non matching"
+    if (!ambariMetaInfo.isOsSupported(agentOsType)) {
+      LOG.warn("Received registration request from host with not supported"
           + " os type"
           + ", hostname=" + hostname
           + ", serverOsType=" + config.getServerOsType()
           + ", agentOstype=" + agentOsType);
-      throw new AmbariException("Cannot register host as it does not match"
-          + " server's os type"
+      throw new AmbariException("Cannot register host with not supported"
+          + " os type"
           + ", hostname=" + hostname
           + ", serverOsType=" + config.getServerOsType()
           + ", agentOstype=" + agentOsType);
@@ -434,6 +529,9 @@ public class HeartBeatHandler {
     }
     // Resetting host state
     hostObject.setState(HostState.INIT);
+
+    // Set ping port for agent
+    hostObject.setCurrentPingPort(currentPingPort);
 
     // Get status of service components
     List<StatusCommand> cmds = heartbeatMonitor.generateStatusCommands(hostname);
@@ -456,5 +554,22 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, requestId);
     response.setResponseId(requestId);
     return response;
+  }
+
+  /**
+   * Annotate the response with some housekeeping details.
+   * hasMappedComponents - indicates if any components are mapped to the host
+   * @param hostname
+   * @param response
+   * @throws AmbariException
+   */
+  private void annotateResponse(String hostname, HeartBeatResponse response) throws AmbariException {
+    for (Cluster cl : this.clusterFsm.getClustersForHost(hostname)) {
+      List<ServiceComponentHost> scHosts = cl.getServiceComponentHosts(hostname);
+      if (scHosts != null && scHosts.size() > 0) {
+        response.setHasMappedComponents(true);
+        break;
+      }
+    }
   }
 }

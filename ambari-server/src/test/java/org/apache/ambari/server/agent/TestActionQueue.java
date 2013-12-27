@@ -19,6 +19,7 @@ package org.apache.ambari.server.agent;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -133,10 +134,14 @@ public class TestActionQueue {
     ActionQueueOperation[] dequeOperators = new ActionQueueOperation[threadCount];
     ActionQueueOperation[] dequeAllOperators = new ActionQueueOperation[threadCount];
 
+    List<Thread> producers = new ArrayList<Thread>();
+    List<Thread> consumers = new ArrayList<Thread>();
+
     for (int i = 0; i < threadCount; i++) {
       dequeOperators[i] = new ActionQueueOperation(aq, hosts,
           ActionQueueOperation.OpType.DEQUEUE);
       Thread t = new Thread(dequeOperators[i]);
+      consumers.add(t);
       t.start();
     }
 
@@ -144,6 +149,7 @@ public class TestActionQueue {
       enqueOperators[i] = new ActionQueueOperation(aq, hosts,
           ActionQueueOperation.OpType.ENQUEUE);
       Thread t = new Thread(enqueOperators[i]);
+      producers.add(t);
       t.start();
     }
 
@@ -151,6 +157,7 @@ public class TestActionQueue {
       dequeAllOperators[i] = new ActionQueueOperation(aq, hosts,
           ActionQueueOperation.OpType.DEQUEUEALL);
       Thread t = new Thread(dequeAllOperators[i]);
+      consumers.add(t);
       t.start();
     }
 
@@ -160,6 +167,10 @@ public class TestActionQueue {
     // Stop the enqueue
     for (int i = 0; i < threadCount; i++) {
       enqueOperators[i].stop();
+    }
+
+    for (Thread producer : producers) {
+      producer.join();
     }
 
     // Give time to get everything dequeued
@@ -179,6 +190,10 @@ public class TestActionQueue {
     for (int i = 0; i < threadCount; i++) {
       dequeOperators[i].stop();
       dequeAllOperators[i].stop();
+    }
+
+    for (Thread consumer : consumers) {
+      consumer.join();
     }
     
     for (int h = 0; h<hosts.length; h++) {

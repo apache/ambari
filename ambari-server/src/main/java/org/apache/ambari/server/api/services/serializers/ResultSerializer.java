@@ -29,11 +29,12 @@ public interface ResultSerializer {
   /**
    * Serialize the given result to a format expected by client.
    *
-   *
    * @param result  internal result
+   * @param minimal flag to indicate minimal results
+   *
    * @return the serialized result
    */
-  Object serialize(Result result);
+  Object serialize(Result result, boolean minimal);
 
   /**
    * Serialize an error result to the format expected by the client.

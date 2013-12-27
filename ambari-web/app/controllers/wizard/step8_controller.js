@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.WizardStep8Controller = Em.Controller.extend({
   name: 'wizardStep8Controller',
@@ -27,17 +28,25 @@ App.WizardStep8Controller = Em.Controller.extend({
   configs: [],
   globals: [],
   ajaxQueue: [],
-  configMapping: require('data/config_mapping').all(),
+  configMapping: function(){
+    return App.config.get('configMapping').all(true);
+  }.property('App.config.configMapping'),
+
   slaveComponentConfig: null,
   isSubmitDisabled: false,
+  isBackBtnDisabled: false,
   hasErrorOccurred: false,
   servicesInstalled: false,
+  serviceConfigTags: [],
+  securityEnabled: function() {
+    return App.router.get('mainAdminSecurityController.securityEnabled');
+  }.property('App.router.mainAdminSecurityController.securityEnabled'),
   /**
    * During page save time, we set the host overrides to the server.
-   * The new host -> site:tag map is stored below. This will be 
+   * The new host -> site:tag map is stored below. This will be
    * useful during save, to update the host's host components. Also,
    * it will be useful in deletion of overrides.
-   * 
+   *
    * Example:
    * {
    *  'hostname1': {
@@ -49,10 +58,12 @@ App.WizardStep8Controller = Em.Controller.extend({
    *    }
    *  }
    * }
-   * 
+   *
    * @see loadedHostToOverrideSiteToTagMap
    */
   savedHostToOverrideSiteToTagMap: {},
+  selectedConfigGroup: null,
+  configGroups: [],
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
@@ -63,17 +74,31 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('configs').clear();
     this.get('globals').clear();
     this.get('clusterInfo').clear();
+    this.get('serviceConfigTags').clear();
     this.set('servicesInstalled', false);
   },
 
   loadStep: function () {
     console.log("TRACE: Loading step8: Review Page");
+    if (this.get('content.controllerName') != 'installerController') {
+      App.router.get('mainAdminSecurityController').setSecurityStatus();
+    }
     this.clearStep();
+    this.formatProperties();
     this.loadGlobals();
     this.loadConfigs();
     this.loadClusterInfo();
     this.loadServices();
     this.set('isSubmitDisabled', false);
+    this.set('isBackBtnDisabled', false);
+  },
+  /**
+   * replace whitespace character with coma between directories
+   */
+  formatProperties: function(){
+    this.get('content.serviceConfigProperties').forEach(function(_configProperty){
+        _configProperty.value = App.config.trimProperty(_configProperty,false);
+    });
   },
 
   loadGlobals: function () {
@@ -85,7 +110,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
       if (hiveDb.value === 'New MySQL Database') {
         if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_hostname';
+          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
           hiveDbType.value = 'mysql';
           hiveJdbcDriver.value = 'com.mysql.jdbc.Driver';
         }
@@ -94,15 +119,15 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
       } else if (hiveDb.value === 'Existing MySQL Database'){
-        globals.findProperty('name', 'hive_existing_mysql_host').name = 'hive_hostname';
+        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
         hiveDbType.value = 'mysql';
         hiveJdbcDriver.value = 'com.mysql.jdbc.Driver';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-      } else{ //existing oracle database
-        globals.findProperty('name', 'hive_existing_oracle_host').name = 'hive_hostname';
+      } else { //existing oracle database
+        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
         hiveDbType.value = 'oracle';
         hiveJdbcDriver.value = 'oracle.jdbc.driver.OracleDriver';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
@@ -118,46 +143,30 @@ App.WizardStep8Controller = Em.Controller.extend({
       var oozieDb = globals.findProperty('name', 'oozie_database');
       var oozieDbType = {name:'oozie_database_type'};
       var oozieJdbcDriver = {name: 'oozie_jdbc_driver'};
-      var oozieJPAServcieURL = {name: 'oozie_JPAService_url'};
 
-      if (oozieDb.value === 'New Derby Database'){
+      if (oozieDb.value === 'New Derby Database') {
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
         oozieDbType.value = 'derby';
         oozieJdbcDriver.value = 'org.apache.derby.jdbc.EmbeddedDriver';
-        oozieJPAServcieURL.value = '${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';  ///////
-
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-      }else if (oozieDb.value === 'New MySQL Database') {
-        if (globals.someProperty('name', 'oozie_ambari_host')) {
-          globals.findProperty('name', 'oozie_ambari_host').name = 'oozie_hostname';
-          oozieDbType.value = 'mysql';
-          oozieJdbcDriver.value = 'com.mysql.jdbc.Driver';
-          oozieJPAServcieURL.value = '//'+ globals.findProperty('name','oozie_hostname').value +'/' + globals.findProperty('name','oozie_database_name').value +'?createDatabaseIfNotExist=true';
-        }
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } else if (oozieDb.value === 'Existing MySQL Database'){
-        globals.findProperty('name', 'oozie_existing_mysql_host').name = 'oozie_hostname';
+      } else if (oozieDb.value === 'Existing MySQL Database') {
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
         oozieDbType.value = 'mysql';
         oozieJdbcDriver.value = 'com.mysql.jdbc.Driver';
-        oozieJPAServcieURL.value = '//'+ globals.findProperty('name','oozie_hostname').value +'/' + globals.findProperty('name','oozie_database_name').value +'?createDatabaseIfNotExist=true';
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } else{ //existing oracle database
-        globals.findProperty('name', 'oozie_existing_oracle_host').name = 'oozie_hostname';
+      } else { // existing oracle database
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
         oozieDbType.value = 'oracle';
         oozieJdbcDriver.value = 'oracle.jdbc.driver.OracleDriver';
-        oozieJPAServcieURL.value = '//'+ globals.findProperty('name','oozie_hostname').value +'/'+ globals.findProperty('name','oozie_database_name').value +'?createDatabaseIfNotExist=true';
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
@@ -166,7 +175,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
       globals.push(oozieDbType);
       globals.push(oozieJdbcDriver);
-      globals.push(oozieJPAServcieURL);
     }
 
     this.set('globals', globals);
@@ -186,26 +194,41 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadUiSideConfigs: function () {
     var uiConfig = [];
     var configs = this.get('configMapping').filterProperty('foreignKey', null);
+    this.addDynamicProperties(configs);
     configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
+      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
       uiConfig.pushObject({
         "id": "site property",
         "name": _config.name,
-        "value": value,
-        "filename": _config.filename
+        "value": valueWithOverrides.value,
+        "filename": _config.filename,
+        "overrides": valueWithOverrides.overrides
       });
     }, this);
-    var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
+    var dependentConfig = $.extend(true, [], this.get('configMapping').filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
-      this.setConfigValue(uiConfig, _config);
+      App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config, this.get('globals'));
       uiConfig.pushObject({
         "id": "site property",
-        "name": _config.name,
+        "name": _config._name || _config.name,
         "value": _config.value,
         "filename": _config.filename
       });
     }, this);
     return uiConfig;
+  },
+
+  addDynamicProperties: function(configs) {
+    var templetonHiveProperty =  this.get('content.serviceConfigProperties').someProperty('name', 'templeton.hive.properties');
+    if (!templetonHiveProperty) {
+      configs.pushObject({
+        "name": "templeton.hive.properties",
+        "templateName": ["hivemetastore_host"],
+        "foreignKey": null,
+        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
+        "filename": "webhcat-site.xml"
+      });
+    }
   },
 
   getRegisteredHosts: function () {
@@ -222,36 +245,47 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Set all site property that are derived from other puppet-variable
+   * @return {
+   *   value: '...',
+   *   overrides: {
+   *    'value1': [h1, h2],
+   *    'value2': [h3]
+   *   }
+   * }
    */
 
-  getGlobConfigValue: function (templateName, expression, name) {
+  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
-      return expression;
+      return { value : expression, overrides: []};      // if site property do not map any global property then return the value
     }
+    var overrideHostToValue = {};
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       if (this.get('globals').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.get('globals').findProperty('name', templateName[index]).value;
+        var globalObj = this.get('globals').findProperty('name', templateName[index]);
+        var globValue = globalObj.value;
         // Hack for templeton.zookeeper.hosts
+        var preReplaceValue = null;
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
-            // globValue is an array of ZooKeeper Server hosts
-            var zooKeeperPort = '2181';
-            if (name === "templeton.zookeeper.hosts") {
-              var zooKeeperServers = globValue.map(function (item) {
-                return item + ':' + zooKeeperPort;
-              }).join(',');
-              value = value.replace(_express, zooKeeperServers);
-            } else {
-              value = value.replace(_express, globValue.join(','));
-            }
-          } else {
-            value = value.replace(_express, globValue);
-          }
+          preReplaceValue = value;
+          value = this._replaceConfigValues(name, _express, value, globValue);
+        }
+        if(globalObj.overrides!=null){
+          globalObj.overrides.forEach(function(override){
+            var ov = override.value;
+            var hostsArray = override.hosts;
+            hostsArray.forEach(function(host){
+              if(!(host in overrideHostToValue)){
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
+              }else{
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
+              }
+            }, this);
+          }, this);
         }
       } else {
         /*
@@ -263,94 +297,32 @@ App.WizardStep8Controller = Em.Controller.extend({
         value = null;
       }
     }, this);
-    return value;
-  },
-  /**
-   * Set all site property that are derived from other site-properties
-   */
-  setConfigValue: function (uiConfig, config) {
-    if (config.value == null) {
-      return;
-    }
-    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
-    if (fkValue) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.value = config.value.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.value = config.value.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    if (fkValue = config.name.match(/<(foreignKey.*?)>/g)) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.name = config.name.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    //For properties in the configMapping file having foreignKey and templateName properties.
 
-    var templateValue = config.value.match(/<(templateName.*?)>/g);
-    if (templateValue) {
-      templateValue.forEach(function (_value) {
-        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (this.get('globals').someProperty('name', config.templateName[index])) {
-          var globalValue = this.get('globals').findProperty('name', config.templateName[index]).value;
-          config.value = config.value.replace(_value, globalValue);
-        } else {
-          config.value = null;
+    var valueWithOverrides = {
+        value: value,
+        overrides: []
+    };
+    var overrideValueToHostMap = {};
+    if(!jQuery.isEmptyObject(overrideHostToValue)){
+      for(var host in overrideHostToValue){
+        var hostVal = overrideHostToValue[host];
+        if(!(hostVal in overrideValueToHostMap)){
+          overrideValueToHostMap[hostVal] = [];
         }
-      }, this);
+        overrideValueToHostMap[hostVal].push(host);
+      }
     }
+    for(var val in overrideValueToHostMap){
+      valueWithOverrides.overrides.push({
+        value: val,
+        hosts: overrideValueToHostMap[val]
+      });
+    }
+    return valueWithOverrides;
   },
 
-  getServiceInfo: function (componentName) {
-    var serviceConfig;
-    switch (componentName) {
-      case 'DATANODE':
-        serviceConfig = {
-          name: 'HDFS',
-          siteName: 'hdfs-site',
-          domain: 'datanode-global'
-        };
-        break;
-      case 'TASKTRACKER':
-        serviceConfig = {
-          name: 'MAPREDUCE',
-          siteName: 'mapred-site',
-          domain: 'tasktracker-global'
-        };
-        break;
-      case 'HBASE_REGIONSERVER':
-        serviceConfig = {
-          name: 'HBASE',
-          siteName: 'hbase-site',
-          domain: 'regionserver-global'
-        };
-        break;
-      default:
-        serviceConfig = {};
-    }
-    return serviceConfig;
+  _replaceConfigValues: function (name, express, value, globValue) {
+    return value.replace(express, globValue);
   },
 
   /**
@@ -392,16 +364,102 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
 
     //repo
-    var repoOption = this.get('content.installOption.localRepo');
-    var repoObj = this.rawContent.findProperty('config_name', 'Repo');
-    if (repoOption) {
-      repoObj.config_value = 'Yes';
-    } else {
-      repoObj.config_value = 'No';
+    if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
+      this.loadRepoInfo();
+    } else { // from install wizard
+      var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+      var allRepos = [];
+      if (selectedStack && selectedStack.operatingSystems) {
+        selectedStack.operatingSystems.forEach (function(os){
+          if (os.selected) {
+            switch (os.osType) {
+              case 'redhat6':
+                var repo = Em.Object.create({
+                  base_url: os.baseUrl,
+                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat6")
+                });
+                allRepos.push(repo);
+                break;
+              case 'redhat5':
+                var repo = Em.Object.create({
+                  base_url: os.baseUrl,
+                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat5")
+                });
+                allRepos.push(repo);
+                break;
+              case 'sles11':
+                var repo = Em.Object.create({
+                  base_url: os.baseUrl,
+                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.sles11")
+                });
+                allRepos.push(repo);
+                break;
+            }
+          }
+        }, this);
+      }
+      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+      this.get('clusterInfo').set('repoInfo', allRepos);
     }
-    this.get('clusterInfo').pushObject(Ember.Object.create(repoObj));
   },
 
+  /**
+   * get the repositories info of HDP from server. Used only in addHost controller.
+   */
+  loadRepoInfo: function(){
+    var nameVersionCombo = App.get('currentStackVersion');
+    var stackName = nameVersionCombo.split('-')[0];
+    var stackVersion = nameVersionCombo.split('-')[1];
+    App.ajax.send({
+      name: 'cluster.load_repositories',
+      sender: this,
+      data: {
+        stackName: stackName,
+        stackVersion: stackVersion
+      },
+      success: 'loadRepoInfoSuccessCallback',
+      error: 'loadRepositoriesErrorCallback'
+    });
+  },
+
+  loadRepoInfoSuccessCallback: function (data) {
+    var allRepos = [];
+    data.items.forEach(function(item) {
+      var os = item.repositories[0].Repositories;
+        switch (os.os_type) {
+          case 'redhat6':
+            var repo = Em.Object.create({
+              base_url: os.base_url,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat6")
+            });
+            allRepos.push(repo);
+            break;
+          case 'redhat5':
+            var repo = Em.Object.create({
+              base_url: os.base_url,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat5")
+            });
+            allRepos.push(repo);
+            break;
+          case 'sles11':
+            var repo = Em.Object.create({
+              base_url: os.base_url,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType.sles11")
+            });
+            allRepos.push(repo);
+            break;
+        }
+    }, this);
+    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+    this.get('clusterInfo').set('repoInfo', allRepos);
+  },
+
+  loadRepoInfoErrorCallback: function(request, ajaxOptions, error) {
+    console.log('Error message is: ' + request.responseText);
+    var allRepos = [];
+    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+    this.get('clusterInfo').set('repoInfo', allRepos);
+  },
 
   /**
    * Load all info about services to <code>services</code> variable
@@ -420,8 +478,17 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'HDFS':
             this.loadHDFS(serviceObj);
             break;
+          case 'GLUSTERFS':
+            this.loadGLUSTERFS(serviceObj);
+            break;
           case 'MAPREDUCE':
             this.loadMapReduce(serviceObj);
+            break;
+          case 'MAPREDUCE2':
+            this.loadMapReduce2(serviceObj);
+            break;
+          case 'YARN':
+            this.loadYARN(serviceObj);
             break;
           case 'HIVE':
             this.loadHive(serviceObj);
@@ -444,7 +511,9 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'HUE':
             this.loadHue(serviceObj);
             break;
-          /* case 'PIG':
+          /* case 'TEZ':
+           break;
+           case 'PIG':
            this.loadPig(serviceObj);
            break;
            case 'SQOOP':
@@ -480,6 +549,28 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     //var
     this.get('services').pushObject(hdfsObj);
+  },
+  
+  /**
+   * load all info about GLUSTERFS service
+   * @param glusterfsObj
+   */
+  loadGLUSTERFS: function (glusterfsObj) {
+    glusterfsObj.get('service_components').forEach(function (_component) {
+      switch (_component.get('display_name')) {
+        case 'GLUSTERFS Client':
+          this.loadGLUSTERFSClientValue(_component);
+          break;
+        default:
+      }
+    }, this);
+    this.get('services').pushObject(glusterfsObj);
+  },
+  
+  loadGLUSTERFSClientValue: function (glusterfsComponent) {
+    var glusterfsClientHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'Client');
+    var totalGLUSTERFSHosts = glusterfsClientHosts.hosts.length;
+    glusterfsComponent.set('component_value', totalGLUSTERFSHosts + ' hosts');  
   },
 
   loadNnValue: function (nnComponent) {
@@ -526,6 +617,39 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('services').pushObject(mrObj);
   },
 
+  loadMapReduce2: function(mrObj){
+    mrObj.get('service_components').forEach(function (_component) {
+      switch (_component.get('display_name')) {
+        case 'History Server':
+          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'HISTORYSERVER').hostName);
+          break;
+      }
+    }, this);
+    this.get('services').pushObject(mrObj);
+  },
+
+  loadYARN: function(mrObj){
+    mrObj.get('service_components').forEach(function (_component) {
+      switch (_component.get('display_name')) {
+        case 'NodeManager':
+          this.loadNMValue(_component);
+          break;
+        case 'ResourceManager':
+          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'RESOURCEMANAGER').hostName);
+          break;
+        case 'History Server':
+          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'HISTORYSERVER').hostName);
+          break;
+      }
+    }, this);
+    this.get('services').pushObject(mrObj);
+  },
+
+  loadNMValue: function (nmComponent) {
+    var nmHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'NODEMANAGER');
+    nmComponent.set('component_value', nmHosts.hosts.length + Em.I18n.t('installer.step8.hosts'));
+  },
+
   loadJtValue: function (jtComponent) {
     var jtHostName = this.get('content.masterComponentHosts').findProperty('display_name', jtComponent.display_name);
     jtComponent.set('component_value', jtHostName.hostName);
@@ -534,14 +658,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadTtValue: function (ttComponent) {
     var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
     var totalTtHosts = ttHosts.hosts.length;
-    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
-     var groupLabel;
-     if (totalGroups == 1) {
-     groupLabel = 'group';
-     } else {
-     groupLabel = 'groups';
-     }
-     */
     ttComponent.set('component_value', totalTtHosts + Em.I18n.t('installer.step8.hosts'));
   },
 
@@ -571,14 +687,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadHiveDbValue: function (dbComponent) {
-    var hiveDb = App.db.getServiceConfigProperties().findProperty('name', 'hive_database');
+    var hiveDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
     } else if(hiveDb.value === 'Existing MySQL Database'){
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_mysql_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
     } else { // existing oracle database
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_oracle_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_oracle_database');
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
     }
   },
@@ -698,17 +814,17 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadOozieDbValue: function (dbComponent) {
-    var oozieDb = App.db.getServiceConfigProperties().findProperty('name', 'oozie_database');
+    var oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
     if (oozieDb.value === 'New Derby Database'){
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_derby_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_derby_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
-    } else if (oozieDb.value === 'New MySQL Database') {
+    }/* else if (oozieDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
-    } else if(oozieDb.value === 'Existing MySQL Database'){
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_mysql_database');
+    } */else if(oozieDb.value === 'Existing MySQL Database'){
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     } else { // existing oracle database
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_oracle_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     }
 
@@ -763,7 +879,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadGangliaServerValue: function (gangliaServer) {
-    var gangliaServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Ganglia Collector');
+    var gangliaServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Ganglia Server');
     gangliaServer.set('component_value', gangliaServerName.hostName);
   },
 
@@ -779,12 +895,26 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Onclick handler for <code>next</code> button
    */
   submit: function () {
-
     if (this.get('isSubmitDisabled')) {
       return;
     }
+    if ((this.get('content.controllerName') == 'addHostController') && this.get('securityEnabled')) {
+      var self = this;
+      App.showConfirmationPopup(function() {
+        self.submitProceed();
+      }, Em.I18n.t('installer.step8.securityConfirmationPopupBody'));
+    }
+    else {
+      this.submitProceed();
+    }
+  },
 
+  submitProceed: function() {
     this.set('isSubmitDisabled', true);
+    this.set('isBackBtnDisabled', true);
+    if (this.get('content.controllerName') == 'addHostController') {
+      App.router.get('addHostController').setLowerStepsDisable(4);
+    }
 
     // checkpoint the cluster status on the server so that the user can resume from where they left off
     switch (this.get('content.controllerName')) {
@@ -815,20 +945,22 @@ App.WizardStep8Controller = Em.Controller.extend({
       default:
         break;
     }
-
     // delete any existing clusters to start from a clean slate
     // before creating a new cluster in install wizard
     // TODO: modify for multi-cluster support
-    if (this.get('content.controllerName') == 'installerController') {
+    if (this.get('content.controllerName') == 'installerController' && (!App.testMode)) {
       var clusterNames = this.getExistingClusterNames();
       this.deleteClusters(clusterNames);
     }
-
+    this.setLocalRepositories();
     this.createCluster();
     this.createSelectedServices();
     this.createConfigurations();
     this.createComponents();
     this.registerHostsToCluster();
+    if (App.supports.hostOverridesInstaller) {
+      this.createConfigurationGroups();
+    }
     this.createAllHostComponents();
     this.createHostOverrideConfigurations();
 
@@ -837,7 +969,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       App.router.send('next');
     };
     this.doNextAjaxCall();
-
   },
 
   /**
@@ -878,48 +1009,88 @@ App.WizardStep8Controller = Em.Controller.extend({
     return this.get('content.cluster.name');
   }.property('content.cluster.name'),
 
+  clusterNames: [],
+
   // returns an array of existing cluster names.
   // returns an empty array if there are no existing clusters.
   getExistingClusterNames: function () {
     var url = App.apiPrefix + '/clusters';
 
-    var clusterNames = [];
-
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: false,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        clusterNames = jsonData.items.mapProperty('Clusters.cluster_name');
-        console.log("Got existing cluster names: " + clusterNames);
-      },
-      error: function () {
-        console.log("Failed to get existing cluster names");
-      }
+    App.ajax.send({
+      name: 'wizard.step8.existing_cluster_names',
+      sender: this,
+      success: 'getExistingClusterNamesSuccessCallBack',
+      error: 'getExistingClusterNamesErrorCallback'
     });
 
-    return clusterNames;
+    return this.get('clusterNames');
+  },
+
+  getExistingClusterNamesSuccessCallBack: function (data) {
+    var clusterNames = data.items.mapProperty('Clusters.cluster_name');
+    console.log("Got existing cluster names: " + clusterNames);
+    this.set('clusterNames', clusterNames);
+  },
+
+  getExistingClusterNamesErrorCallback: function () {
+    console.log("Failed to get existing cluster names");
+    this.set('clusterNames', []);
   },
 
   deleteClusters: function (clusterNames) {
     clusterNames.forEach(function (clusterName) {
-
-      var url = App.apiPrefix + '/clusters/' + clusterName;
-
-      $.ajax({
-        type: 'DELETE',
-        url: url,
-        async: false,
-        success: function () {
-          console.log('DELETE cluster ' + clusterName + ' succeeded');
+      App.ajax.send({
+        name: 'wizard.step8.delete_cluster',
+        sender: this,
+        data: {
+          name: clusterName
         },
-        error: function () {
-          console.log('DELETE cluster ' + clusterName + ' failed');
+        success: 'deleteClustersSuccessCallback',
+        error: 'deleteClustersErrorCallback'
+      });
+    }, this);
+  },
+
+  deleteClustersSuccessCallback: function(data, opt, params) {
+    console.log('DELETE cluster ' + params.name + ' succeeded');
+  },
+  deleteClustersErrorCallback: function(request, ajaxOptions, error, opt) {
+    console.log('DELETE cluster failed');
+  },
+  
+
+  /**
+   * Updates local repositories for the Ambari server.
+   */
+  setLocalRepositories: function () {
+    if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) {
+      return false;
+    }
+    var self = this;
+    var apiUrl = App.get('stack2VersionURL');
+    var stacks = this.get('content.stacks');
+    stacks.forEach(function (stack) {
+      stack.operatingSystems.forEach(function (os) {
+        if (os.baseUrl !== os.originalBaseUrl) {
+          console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
+          var url = App.apiPrefix + apiUrl + "/operatingSystems/" + os.osType + "/repositories/" + stack.name;
+          self.ajax({
+            type: 'PUT',
+            url: url,
+            data: JSON.stringify({
+              "Repositories": {
+                "base_url": os.baseUrl
+              }
+            }),
+            beforeSend: function () {
+              console.log("BeforeSend: setLocalRepositories PUT to ", url);
+            }
+          });
         }
       });
     });
   },
+
 
   /**
    *  The following create* functions are called upon submitting Step 8.
@@ -934,7 +1105,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterName');
     var url = App.apiPrefix + '/clusters/' + clusterName;
 
-    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.defaultLocalStackVersion : App.defaultStackVersion;
+    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
 
     this.ajax({
       type: 'POST',
@@ -1059,7 +1230,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           var hostNames = _slave.hosts.mapProperty('hostName');
           switch (_client.component_name) {
             case 'HDFS_CLIENT':
-              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, and WEBHCAT_SERVER hosts
+              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, WEBHCAT_SERVER, HISTORYSERVER and OOZIE_SERVER hosts
               masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
@@ -1067,6 +1238,12 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'HISTORYSERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
@@ -1097,7 +1274,6 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
-
             case 'HIVE_CLIENT':
               //install HIVE client on NAGIOS_SERVER host
               masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
@@ -1107,10 +1283,24 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
-
             case 'HCAT':
               // install HCAT (client) on NAGIOS_SERVER host
               masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+            case 'YARN_CLIENT':
+              // install YARN_CLIENT on NAGIOS_SERVER,HIVE_SERVER,OOZIE_SERVER,WEBHCAT_SERVER host
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
@@ -1147,7 +1337,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     // add MySQL Server if Hive is selected
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
+      var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
+        if(hiveDb.value == "New MySQL Database") {
       this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
+        }
     }
   },
 
@@ -1156,7 +1349,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (hostNames.length == 0) {
       return;
     }
-    console.log('registering ' + componentName + ' to ' + JSON.stringify(hostNames));
 
     // currently we are specifying the predicate as a query string.
     // this can hit a ~4000-character limit in Jetty server.
@@ -1195,10 +1387,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.ajax({
         type: 'POST',
         url: url,
-        data: JSON.stringify(data),
-        beforeSend: function () {
-          console.log('BeforeSend: registerHostsToComponent for ' + queryStr + ' and component ' + componentName);
-        }
+        data: JSON.stringify(data)
       });
     }, this);
   },
@@ -1206,71 +1395,158 @@ App.WizardStep8Controller = Em.Controller.extend({
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
     if (this.get('content.controllerName') == 'installerController') {
-      this.applyConfigurationToSite(this.createGlobalSiteObj());
-      this.applyConfigurationToSite(this.createCoreSiteObj());
-      this.applyConfigurationToSite(this.createHdfsSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createCoreSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createHdfsSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HDFS'));
     }
+    var globalSiteObj = this.createGlobalSiteObj();
+    if (this.get('content.controllerName') == 'addServiceController') {
+      globalSiteObj.tag = 'version' + (new Date).getTime();
+    }
+    this.get('serviceConfigTags').pushObject(globalSiteObj);
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
-      this.applyConfigurationToSite(this.createMrSiteObj());
-      this.applyConfigurationToSite(this.createCapacityScheduler());
-      this.applyConfigurationToSite(this.createMapredQueueAcls());
+      this.get('serviceConfigTags').pushObject(this.createMrSiteObj());
+      if (App.supports.capacitySchedulerUi) {
+        this.get('serviceConfigTags').pushObject(this.createCapacityScheduler());
+        this.get('serviceConfigTags').pushObject(this.createMapredQueueAcls());
+      }
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('MAPREDUCE'));
+    }
+    if (selectedServices.someProperty('serviceName', 'MAPREDUCE2')) {
+      this.get('serviceConfigTags').pushObject(this.createMrSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('MAPREDUCE2'));
+    }
+    if (selectedServices.someProperty('serviceName', 'YARN')) {
+      this.get('serviceConfigTags').pushObject(this.createYarnSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createCapacityScheduler());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('YARN'));
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
-      this.applyConfigurationToSite(this.createHbaseSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createHbaseSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HBASE'));
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
-      this.applyConfigurationToSite(this.createOozieSiteObj('OOZIE'));
+      this.get('serviceConfigTags').pushObject(this.createOozieSiteObj('OOZIE'));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('OOZIE'));
     }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
-      this.applyConfigurationToSite(this.createHiveSiteObj('HIVE'));
+      this.get('serviceConfigTags').pushObject(this.createHiveSiteObj('HIVE'));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE'));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE-EXEC'));
     }
     if (selectedServices.someProperty('serviceName', 'WEBHCAT')) {
-      this.applyConfigurationToSite(this.createWebHCatSiteObj('WEBHCAT'));
+      this.get('serviceConfigTags').pushObject(this.createWebHCatSiteObj('WEBHCAT'));
     }
     if (selectedServices.someProperty('serviceName', 'HUE')) {
-      this.applyConfigurationToSite(this.createHueSiteObj('HUE'));
+      this.get('serviceConfigTags').pushObject(this.createHueSiteObj('HUE'));
     }
+    if (selectedServices.someProperty('serviceName', 'PIG')) {
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
+    }
+    if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('ZOOKEEPER'));
+    }
+
+    this.applyConfigurationsToCluster();
   },
 
-  applyConfigurationToSite: function (data) {
-    console.log("Inside applyConfigurationToSite");
+  applyConfigurationsToCluster: function() {
     var clusterUrl = App.apiPrefix + '/clusters/' + this.get('clusterName');
-    var clusterData = {
-      Clusters: {
-        desired_configs: data
-      }
+    var configData = [];
+    this.get('serviceConfigTags').forEach(function (_serviceConfig) {
+      var Clusters = {
+        Clusters: {
+          desired_config: {
+            type: _serviceConfig.type,
+            tag: _serviceConfig.tag,
+            properties: _serviceConfig.properties
+          }
+        }
+      };
+      configData.pushObject(JSON.stringify(Clusters));
+    }, this);
+
+    var data = {
+      configData: '[' + configData.toString() + ']'
     };
-    console.debug("applyConfigurationToSite(Step8): Applying to URL", clusterUrl, " Data:", clusterData);
+
+    console.debug("applyConfigurationsToCluster(Step8): Applying to URL", clusterUrl, " Data:", data.configData);
     this.ajax({
       type: 'PUT',
       url: clusterUrl,
-      data: JSON.stringify(clusterData),
+      data: data.configData,
       beforeSend: function () {
-        console.log("BeforeSend: Updating cluster config for " + clusterData.type);
+        console.log("BeforeSend: Updating cluster config");
       }
+    });
+  },
+
+  createConfigurationGroups: function () {
+    var configGroups = this.get('content.configGroups').filterProperty('isDefault', false);
+    var clusterName = this.get('clusterName');
+    var sendData = [];
+    var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
+    configGroups.forEach(function (configGroup) {
+      var groupConfigs = [];
+      var groupData = {
+        "cluster_name": clusterName,
+        "group_name": configGroup.name,
+        "tag": configGroup.service.id,
+        "description": configGroup.description,
+        "hosts": [],
+        "desired_configs": []
+      };
+      configGroup.hosts.forEach(function (hostName) {
+        groupData.hosts.push({"host_name": hostName});
+      });
+      //wrap properties into Em.Object to make them compatible with buildGroupDesiredConfigs method
+      configGroup.properties.forEach(function (property) {
+        groupConfigs.push(Em.Object.create(property));
+      });
+      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs);
+      sendData.push({"ConfigGroup": groupData});
+    }, this);
+    if (sendData.length > 0) {
+      this.applyConfigurationGroups(sendData);
+    }
+  },
+
+  applyConfigurationGroups: function (sendData) {
+    var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/config_groups';
+    this.ajax({
+      type: 'POST',
+      url: url,
+      data: JSON.stringify(sendData)
     });
   },
 
   createGlobalSiteObj: function () {
     var globalSiteProperties = {};
-    //this.get('globals').filterProperty('domain', 'global').forEach(function (_globalSiteObj) {
-    this.get('globals').forEach(function (_globalSiteObj) {
+    var globalSiteObj = this.get('globals');
+    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
+    
+    // screen out the GLUSTERFS-specific global config entries when they are not required
+    if (!isGLUSTERFSSelected) {
+      globalSiteObj = globalSiteObj.filter(function(_config) {
+        return _config.name.indexOf("fs_glusterfs") < 0;
+      });
+    }
+    
+    globalSiteObj.forEach(function (_globalSiteObj) {
+      var heapsizeException =  ['hadoop_heapsize','yarn_heapsize','nodemanager_heapsize','resourcemanager_heapsize'];
       // do not pass any globals whose name ends with _host or _hosts
-      if (!/_hosts?$/.test(_globalSiteObj.name)) {
+      if (_globalSiteObj.isRequiredByAgent !== false) {
         // append "m" to JVM memory options except for hadoop_heapsize
-        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && _globalSiteObj.name !== 'hadoop_heapsize') {
+        if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value + "m";
         } else {
-          globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
+          globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
         }
-        console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
-        console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
-      }
-      if (_globalSiteObj.name == 'java64_home') {
-        globalSiteProperties['java64_home'] = this.get('content.installOptions.javaHome');
       }
       this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);
     }, this);
+    // we don't expose gmond_user to the user; it needs to be the same as gmetad_user
+    globalSiteProperties['gmond_user'] = globalSiteProperties['gmetad_user'];
     return {"type": "global", "tag": "version1", "properties": globalSiteProperties};
   },
 
@@ -1284,10 +1560,21 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null;
     var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
     var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
+    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
+    
+    // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
+    if (!isGLUSTERFSSelected) {
+       coreSiteObj = coreSiteObj.filter(function(_config) {
+         return _config.name.indexOf("fs.glusterfs") < 0;
+      });
+    }
     coreSiteObj.forEach(function (_coreSiteObj) {
       if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
-        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+        coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
         this._recordHostOverrideFromObj(_coreSiteObj, 'core-site', 'version1', this);
+      }
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
+        coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
       console.log("STEP8: value of the property is: " + _coreSiteObj.value);
@@ -1299,7 +1586,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hdfsSiteObj = this.get('configs').filterProperty('filename', 'hdfs-site.xml');
     var hdfsProperties = {};
     hdfsSiteObj.forEach(function (_configProperty) {
-      hdfsProperties[_configProperty.name] = _configProperty.value;
+      hdfsProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'hdfs-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
@@ -1307,11 +1594,24 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
+  createLog4jObj: function (fileName) {
+    fileName = fileName.toLowerCase();
+    var Log4jObj = this.get('configs').filterProperty('filename', fileName + '-log4j.xml');
+    var Log4jProperties = {};
+    Log4jObj.forEach(function (_configProperty) {
+      Log4jProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, fileName + '-log4j', 'version1', this);
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
+    }, this);
+    return {"type": fileName + "-log4j", "tag": "version1", "properties": Log4jProperties };
+  },
+
   createHueSiteObj: function () {
     var hueSiteObj = this.get('configs').filterProperty('filename', 'hue-site.xml');
     var hueProperties = {};
     hueSiteObj.forEach(function (_configProperty) {
-      hueProperties[_configProperty.name] = _configProperty.value;
+      hueProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'hue-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
@@ -1323,7 +1623,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'mapred-site.xml');
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
-      mrProperties[_configProperty.name] = _configProperty.value;
+      mrProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'mapred-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
@@ -1331,11 +1631,23 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 
+  createYarnSiteObj: function () {
+    var configs = this.get('configs').filterProperty('filename', 'yarn-site.xml');
+    var mrProperties = {};
+    configs.forEach(function (_configProperty) {
+      mrProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, 'yarn-site', 'version1', this);
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
+    }, this);
+    return {type: 'yarn-site', tag: 'version1', properties: mrProperties};
+  },
+
   createCapacityScheduler: function () {
     var configs = this.get('configs').filterProperty('filename', 'capacity-scheduler.xml');
     var csProperties = {};
     configs.forEach(function (_configProperty) {
-      csProperties[_configProperty.name] = _configProperty.value;
+      csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'capacity-scheduler', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
@@ -1347,7 +1659,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'mapred-queue-acls.xml');
     var mqProperties = {};
     configs.forEach(function (_configProperty) {
-     mqProperties[_configProperty.name] = _configProperty.value;
+     mqProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
      this._recordHostOverrideFromObj(_configProperty, 'mapred-queue-acls', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
@@ -1359,7 +1671,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'hbase-site.xml');
     var hbaseProperties = {};
     configs.forEach(function (_configProperty) {
-      hbaseProperties[_configProperty.name] = _configProperty.value;
+      hbaseProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'hbase-site', 'version1', this);
     }, this);
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
@@ -1369,10 +1681,23 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
     var oozieProperties = {};
     configs.forEach(function (_configProperty) {
-      oozieProperties[_configProperty.name] = _configProperty.value;
+      oozieProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'oozie-site', 'version1', this);
     }, this);
-
+    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
+    if (globals.someProperty('name', 'oozie_database')) {
+      var oozieDb = globals.findProperty('name', 'oozie_database');
+      if (oozieDb.value === 'New Derby Database') {
+        // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "org.apache.derby.jdbc.EmbeddedDriver";
+      } else if (oozieDb.value === 'Existing MySQL Database') {
+        // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
+      } else { //existing oracle database
+        // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
+        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "oracle.jdbc.driver.OracleDriver";
+      }
+    }
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
@@ -1380,10 +1705,20 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'hive-site.xml');
     var hiveProperties = {};
     configs.forEach(function (_configProperty) {
-      hiveProperties[_configProperty.name] = _configProperty.value;
+      hiveProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'hive-site', 'version1', this);
     }, this);
-
+    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
+    if (globals.someProperty('name', 'hive_database')) {
+      var hiveDb = globals.findProperty('name', 'hive_database');
+      if (hiveDb.value === 'New MySQL Database') {
+        hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
+      } else if (hiveDb.value === 'Existing MySQL Database'){
+        hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
+      } else { //existing oracle database
+        hiveProperties["javax.jdo.option.ConnectionDriverName"] = "oracle.jdbc.driver.OracleDriver";
+      }
+    }
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 
@@ -1391,33 +1726,11 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'webhcat-site.xml');
     var webHCatProperties = {};
     configs.forEach(function (_configProperty) {
-      webHCatProperties[_configProperty.name] = _configProperty.value;
+      webHCatProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, 'webhcat-site', 'version1', this);
     }, this);
     return {type: 'webhcat-site', tag: 'version1', properties: webHCatProperties};
   },
-
-  getConfigForService: function (serviceName) {
-    switch (serviceName) {
-      case 'HDFS':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
-      case 'MAPREDUCE':
-        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'capacity-scheduler': 'version1', 'mapred-queue-acls': 'version1'}};
-      case 'HBASE':
-        return {config: {'global': 'version1', 'hbase-site': 'version1'}};
-      case 'OOZIE':
-        return {config: {'global': 'version1', 'oozie-site': 'version1'}};
-      case 'HIVE':
-        return {config: {'global': 'version1', 'hive-site': 'version1'}};
-      case 'WEBHCAT':
-        return {config: {'global': 'version1', 'webhcat-site': 'version1'}};
-      case 'HUE':
-        return {config: {'global': 'version1', 'hue-site': 'version1'}};
-      default:
-        return {config: {'global': 'version1'}};
-    }
-  },
-
 
   ajaxQueueFinished: function () {
     //do something
@@ -1440,7 +1753,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.set('ajaxQueueLeft', this.get('ajaxQueue').length);
 
     this.set('ajaxBusy', true);
-    console.log('AJAX send ' + first.url);
     $.ajax(first);
 
   },
@@ -1471,7 +1783,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Creates host level overrides for service configuration.
-   * 
+   *
    */
   createHostOverrideConfigurations: function () {
     var singlePUTHostData = [];
@@ -1516,7 +1828,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * We need to do a lot of ajax calls async in special order. To do this,
    * generate array of ajax objects and then send requests step by step. All
    * ajax objects are stored in <code>ajaxQueue</code>
-   * 
+   *
    * @param params
    */
 
@@ -1534,10 +1846,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         // console.log('Step8: Error message is: ' + request.responseText);
       },
       success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function");
-        console.log("TRACE: STep8 -> value of the url is: " + params.url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
       }
     }, params);
 
@@ -1560,6 +1869,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       self.set('hasErrorOccurred', true);
       // an error will break the ajax call chain and allow submission again
       self.set('isSubmitDisabled', false);
+      self.set('isBackBtnDisabled', false);
+      App.router.get(self.get('content.controllerName')).setStepsEnable();
       self.get('ajaxQueue').clear();
       self.set('ajaxBusy', false);
     }

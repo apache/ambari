@@ -36,12 +36,8 @@ class hdp-zookeeper::params() inherits hdp::params
   $clientPort = hdp_default("clientPort","2181")
 
   $zk_primary_name = hdp_default("zookeeper_primary_name", "zookeeper")
-
-  if ($use_hostname_in_principal) {
-    $zk_principal = "${zk_primary_name}/${hostname}@${kerberos_domain}"
-  } else {
-    $zk_principal = "${zk_primary_name}@${kerberos_domain}"
-  }
+  $zk_principal_name = hdp_default("zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  $zk_principal = regsubst($zk_principal_name, '_HOST', $hostname)
 
   $zk_keytab_path = hdp_default("zookeeper_keytab_path", "${keytab_path}/zk.service.keytab")
   $zk_server_jaas_file = hdp_default("zk_server_jaas_conf_file", "${conf_dir}/zookeeper_jaas.conf")

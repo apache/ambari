@@ -21,33 +21,7 @@ var App = require('app');
 App.ModalPopup = Ember.View.extend({
 
   viewName: 'modalPopup',
-
-  template: Ember.Handlebars.compile([
-    '<div class="modal-backdrop"></div><div class="modal" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
-    '<div class="modal-header">',
-    '{{#if showCloseButton}}<a class="close" {{action onClose target="view"}}>x</a>{{/if}}',
-    '<h3 id="modal-label">',
-    '{{#if headerClass}}{{view headerClass}}',
-    '{{else}}{{header}}{{/if}}',
-    '</h3>',
-    '</div>',
-    '<div class="modal-body">',
-    '{{#if bodyClass}}{{view bodyClass}}',
-    '{{else}}{{#if encodeBody}}{{body}}{{else}}{{{body}}}{{/if}}{{/if}}',
-    '</div>',
-    '{{#if showFooter}}',
-    '{{#if footerClass}}{{view footerClass}}',
-    '{{else}}',
-    '<div class="modal-footer">',
-    '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
-    '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
-    '</div>',
-    '{{/if}}',
-    '{{/if}}',
-
-    '</div>'
-  ].join('\n')),
-
+  templateName: require('templates/common/modal_popup'),
   header: '&nbsp;',
   body: '&nbsp;',
   encodeBody: true,
@@ -55,20 +29,20 @@ App.ModalPopup = Ember.View.extend({
   primary: Em.I18n.t('ok'),
   secondary: Em.I18n.t('common.cancel'),
   autoHeight: true,
-
-  onPrimary: function() {
+  enablePrimary: true,
+  onPrimary: function () {
     this.hide();
   },
 
-  onSecondary: function() {
+  onSecondary: function () {
     this.hide();
   },
 
-  onClose: function() {
+  onClose: function () {
     this.hide();
   },
 
-  hide: function() {
+  hide: function () {
     this.destroy();
   },
 
@@ -79,48 +53,60 @@ App.ModalPopup = Ember.View.extend({
    */
   showCloseButton: true,
 
-  didInsertElement: function(){
-    if(this.autoHeight){
+  didInsertElement: function () {
+    if (this.autoHeight) {
       var block = this.$().find('#modal > .modal-body').first();
       block.css('max-height', $(window).height() - block.offset().top - 300 + $(window).scrollTop()); // fix popup height
     }
+    // If popup is opened from another popup it should be displayed above
+    var existedPopups = $(document).find('.modal-backdrop');
+    if (existedPopups) {
+      var maxZindex = 1;
+      existedPopups.each(function(index, popup) {
+        if ($(popup).css('z-index') > maxZindex) {
+          maxZindex = $(popup).css('z-index');
+        }
+      });
+      this.$().find('.modal-backdrop').css('z-index', maxZindex * 2);
+      this.$().find('.modal').css('z-index', maxZindex * 2 + 1);
+    }
   },
 
-  fitHeight: function(){
+  fitHeight: function () {
     var popup = this.$().find('#modal');
     var block = this.$().find('#modal > .modal-body');
     var wh = $(window).height();
 
     var top = wh * .05;
     popup.css({
-      'top' : top + 'px',
-      'marginTop' : 0
+      'top': top + 'px',
+      'marginTop': 0
     });
 
-    block.css('max-height', $(window).height()- top * 2 - 100);
+    block.css('max-height', $(window).height() - top * 2 - (popup.height() - block.height()));
   }
 });
 
 App.ModalPopup.reopenClass({
 
-  show: function(options) {
+  show: function (options) {
     var popup = this.create(options);
     popup.appendTo('#wrapper');
     return popup;
   }
 
-})
+});
 
-App.showReloadPopup = function(){
+App.showReloadPopup = function () {
   return App.ModalPopup.show({
     primary: null,
     secondary: null,
     showFooter: false,
     header: this.t('app.reloadPopup.header'),
-    body: "<div class='alert alert-info'><div class='spinner'>" + this.t('app.reloadPopup.text') + "</div></div><div><a href='#' onclick='location.reload();'>" + this.t('app.reloadPopup.link') + "</a></div>",
+    body: "<div class='alert alert-info'><div class='spinner'><span>" + this.t('app.reloadPopup.text') + "</span></div></div><div><a href='#' onclick='location.reload();'>" + this.t('app.reloadPopup.link') + "</a></div>",
     encodeBody: false
   });
-}
+};
 
 /**
  * Show confirmation popup
@@ -129,40 +115,48 @@ App.showReloadPopup = function(){
  * @param {String} body - additional text constant. Will be placed in the popup-body
  * @return {*}
  */
-App.showConfirmationPopup = function(primary, body) {
+App.showConfirmationPopup = function (primary, body, secondary) {
   if (!primary) {
     return false;
   }
   return App.ModalPopup.show({
-    primary: Em.I18n.t('yes'),
-    secondary: Em.I18n.t('no'),
+    primary: Em.I18n.t('ok'),
+    encodeBody: false,
+    secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.confirmation.commonHeader'),
-    body: Em.I18n.t('question.sure').format(body || ''),
-    onPrimary: function() {
-      primary();
+    body: body || Em.I18n.t('question.sure'),
+    onPrimary: function () {
       this.hide();
+      primary();
+    },
+    onSecondary: function () {
+      this.hide();
+      if (secondary) {
+        secondary();
+      }
     }
   });
-}
+};
+
 /**
- * Show confirmation popup - hide the popup first then run the function
+ * Show alert popup
  *
- * @param {Function} primary - "OK" button click handler
- * @param {String} body - additional text constant. Will be placed in the popup-body
+ * @param {String} header - header of the popup
+ * @param {String} body - body of the popup
+ * @param {Function} primary - function to call upon clicking the OK button
  * @return {*}
  */
-App.showConfirmationPopup2 = function(primary, body) {
-  if (!primary) {
-    return false;
-  }
+App.showAlertPopup = function (header, body, primary) {
   return App.ModalPopup.show({
-    primary: Em.I18n.t('yes'),
-    secondary: Em.I18n.t('no'),
-    header: Em.I18n.t('popup.confirmation.commonHeader'),
-    body: Em.I18n.t('question.sure').format(body || ''),
-    onPrimary: function() {
+    primary: Em.I18n.t('ok'),
+    secondary: null,
+    header: header,
+    body: body,
+    onPrimary: function () {
       this.hide();
-      primary();
+      if (primary) {
+        primary();
+      }
     }
   });
-}
+};

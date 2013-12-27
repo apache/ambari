@@ -21,11 +21,50 @@ List Clusters
 
 [Back to Resources](index.md#resources)
 
+**Summary**
+
 Returns a collection of the currently configured clusters.
 
     GET /clusters
 
 **Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+**Example**
+
+Get the collection of all currently configured clusters.
+
+    GET /clusters
 
     200 OK
     {
@@ -37,6 +76,6 @@ Returns a collection of the currently configured clusters.
           			"cluster_name" : "c1",
           			"version" : "HDP-1.2.0"
         		}
-      		} 	
+      		} 	      		
     	]
 	}

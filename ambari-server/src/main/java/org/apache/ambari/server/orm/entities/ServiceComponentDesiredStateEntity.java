@@ -55,14 +55,11 @@ public class ServiceComponentDesiredStateEntity {
   @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
   private ClusterServiceEntity clusterServiceEntity;
 
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.PERSIST)
   private Collection<HostComponentStateEntity> hostComponentStateEntities;
 
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
-
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.ALL)
-  private Collection<ComponentConfigMappingEntity> configMappingEntities;
 
   public Long getClusterId() {
     return clusterId;
@@ -155,11 +152,4 @@ public class ServiceComponentDesiredStateEntity {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
 
-  public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
-    return configMappingEntities;
-  }
-  
-  public void setComponentConfigMappingEntities(Collection<ComponentConfigMappingEntity> entities) {
-    configMappingEntities = entities;
-  }
 }

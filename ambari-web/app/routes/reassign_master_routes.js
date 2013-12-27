@@ -17,48 +17,71 @@
  */
 
 module.exports = Em.Route.extend({
-  route: '/services/reassign',
+  route: '/reassign',
 
   enter: function (router) {
     console.log('in /service/reassign:enter');
-      Em.run.next(function () {
-        var reassignMasterController = router.get('reassignMasterController');
-        App.router.get('updateController').set('isWorking', false);
-        App.ModalPopup.show({
-          classNames: ['full-width-modal'],
-          header:Em.I18n.t('services.reassign.header'),
-          bodyClass:  App.ReassignMasterView.extend({
-            controller: reassignMasterController
-          }),
-          primary:Em.I18n.t('form.cancel'),
-          showFooter: false,
-          secondary: null,
+    Em.run.next(function () {
+      var reassignMasterController = router.get('reassignMasterController');
+      App.router.get('updateController').set('isWorking', false);
+      var popup = App.ModalPopup.show({
+        classNames: ['full-width-modal'],
+        header: Em.I18n.t('services.reassign.header'),
+        bodyClass: App.ReassignMasterView.extend({
+          controller: reassignMasterController
+        }),
+        primary: Em.I18n.t('form.cancel'),
+        showFooter: false,
+        secondary: null,
 
-          onPrimary:function () {
+        onPrimary: function () {
+          this.hide();
+          App.router.get('updateController').set('isWorking', true);
+          App.router.transitionTo('main.services.index');
+        },
+        onClose: function () {
+          var reassignMasterController = router.get('reassignMasterController');
+          var currStep = reassignMasterController.get('currentStep');
+
+          if (parseInt(currStep) > 3) {
+            var self = this;
+            App.showConfirmationPopup(function(){
+              self.hide();
+              reassignMasterController.setCurrentStep('1');
+              router.get('reassignMasterWizardStep' + currStep + 'Controller').removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
+              App.clusterStatus.setClusterStatus({
+                clusterName: router.get('reassignMasterController.content.cluster.name'),
+                clusterState: 'DEFAULT',
+                wizardControllerName: 'reassignMasterController',
+                localdb: App.db.data
+              });
+              router.get('updateController').set('isWorking', true);
+              router.transitionTo('main.services.index')
+            }, Em.I18n.t('services.reassign.closePopup').format(reassignMasterController.get('content.reassign.display_name')));
+          } else {
             this.hide();
-            App.router.get('updateController').set('isWorking', true);
-            App.router.transitionTo('main.services');
-          },
-          onClose: function() {
-            this.hide();
-            App.router.get('updateController').set('isWorking', true);
-            App.router.transitionTo('main.services')
-          },
-          didInsertElement: function(){
-            this.fitHeight();
+            reassignMasterController.setCurrentStep('1');
+            router.get('updateController').set('isWorking', true);
+            router.transitionTo('main.services.index')
           }
-        });
-
-        App.clusterStatus.updateFromServer();
-        var currentClusterStatus = App.clusterStatus.get('value');
-        if (currentClusterStatus && currentClusterStatus.clusterState == 'REASSIGN_MASTER_INSTALLING') {
-          reassignMasterController.setCurrentStep('5');
-          App.db.data = currentClusterStatus.localdb;
-        } else {
-          reassignMasterController.setCurrentStep('1');
+        },
+        didInsertElement: function () {
+          this.fitHeight();
         }
-        router.transitionTo('step' + reassignMasterController.get('currentStep'));
       });
+      reassignMasterController.set('popup', popup);
+      reassignMasterController.loadSecurityEnabled();
+      reassignMasterController.loadComponentToReassign();
+      var currentClusterStatus = App.clusterStatus.get('value');
+      if (currentClusterStatus) {
+        switch (currentClusterStatus.clusterState) {
+          case 'REASSIGN_MASTER_INSTALLING' :
+            reassignMasterController.setCurrentStep(currentClusterStatus.localdb.ReassignMaster.currentStep);
+            break;
+        }
+      }
+      router.transitionTo('step' + reassignMasterController.get('currentStep'));
+    });
   },
 
   step1: Em.Route.extend({
@@ -69,12 +92,16 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('1');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep11');
+        controller.connectOutlet('reassignMasterWizardStep1', controller.get('content'));
       })
     },
     next: function (router) {
       App.db.setMasterComponentHosts(undefined);
       router.transitionTo('step2');
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -86,16 +113,35 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep5', controller.get('content'));
+        controller.connectOutlet('reassignMasterWizardStep2', controller.get('content'));
       })
 
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
       var controller = router.get('reassignMasterController');
-      var wizardStep5Controller = router.get('wizardStep5Controller');
-      controller.saveMasterComponentHosts(wizardStep5Controller);
+      var reassignMasterWizardStep2 = router.get('reassignMasterWizardStep2Controller');
+      controller.saveMasterComponentHosts(reassignMasterWizardStep2);
+      var reassignHosts = {};
+      var componentName = reassignMasterWizardStep2.get('content.reassign.component_name');
+      var masterAssignmentsHosts = reassignMasterWizardStep2.get('selectedServicesMasters').filterProperty('component_name', componentName).mapProperty('selectedHost');
+      var currentMasterHosts = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('host.hostName');
+      masterAssignmentsHosts.forEach(function (host) {
+        if (!currentMasterHosts.contains(host)) {
+          reassignHosts.target = host;
+        }
+      }, this);
+      currentMasterHosts.forEach(function (host) {
+        if (!masterAssignmentsHosts.contains(host)) {
+          reassignHosts.source = host;
+        }
+      }, this);
+      controller.saveReassignHosts(reassignHosts);
       router.transitionTo('step3');
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -104,24 +150,27 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in reassignMaster.step3:connectOutlets');
       var controller = router.get('reassignMasterController');
-      if (controller.get('skipStep3')) {
-        router.transitionTo('step4');
-      } else {
-        controller.setCurrentStep('3');
-        controller.dataLoading().done(function () {
-          controller.loadAllPriorSteps();
-          controller.set('content.serviceName', controller.get('content.reassign.service_id'));
-          controller.connectOutlet('wizardStep12', controller.get('content'));
-        })
-      }
+      controller.setCurrentStep('3');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('reassignMasterWizardStep3', controller.get('content'));
+      })
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
-      var controller = router.get('reassignMasterController');
-      var wizardStep12Controller = router.get('wizardStep12Controller');
-      controller.set('content.modifiedConfigs', wizardStep12Controller.get('modifiedConfigs'));
-      controller.saveServiceConfigProperties(wizardStep12Controller);
+      App.db.setReassignTasksStatuses(undefined);
+      App.db.setReassignMasterWizardLogs(undefined);
+      App.clusterStatus.setClusterStatus({
+        clusterName: router.get('reassignMasterController.content.cluster.name'),
+        clusterState: 'REASSIGN_MASTER_INSTALLING',
+        wizardControllerName: 'reassignMasterController',
+        localdb: App.db.data
+      });
       router.transitionTo('step4');
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -133,12 +182,12 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep13', controller.get('content'));
+        controller.setLowerStepsDisable(4);
+        controller.connectOutlet('reassignMasterWizardStep4', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step3'),
     next: function (router) {
-      App.db.setReassignTasksStatuses(['INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE']);
+      router.get('reassignMasterController').setCurrentStep('5');
       App.clusterStatus.setClusterStatus({
         clusterName: router.get('reassignMasterController.content.cluster.name'),
         clusterState: 'REASSIGN_MASTER_INSTALLING',
@@ -146,6 +195,27 @@ module.exports = Em.Route.extend({
         localdb: App.db.data
       });
       router.transitionTo('step5');
+    },
+
+    complete: function (router) {
+      var controller = router.get('reassignMasterController');
+      var reassignMasterWizardStep4 = router.get('reassignMasterWizardStep4Controller');
+      if (!reassignMasterWizardStep4.get('isSubmitDisabled')) {
+        controller.finish();
+        controller.get('popup').hide();
+        App.clusterStatus.setClusterStatus({
+          clusterName: router.get('reassignMasterController.content.cluster.name'),
+          clusterState: 'DEFAULT',
+          wizardControllerName: 'reassignMasterController',
+          localdb: App.db.data
+        });
+        router.transitionTo('main.index');
+        location.reload();
+      }
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -157,24 +227,59 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep14', controller.get('content'));
+        controller.setLowerStepsDisable(5);
+        if ((controller.get('content.reassign.component_name') === 'NAMENODE') || controller.get('content.reassign.component_name') === 'SECONDARY_NAMENODE') {
+          controller.usersLoading().done(function () {
+            controller.connectOutlet('reassignMasterWizardStep5', controller.get('content'));
+          })
+        } else {
+          controller.connectOutlet('reassignMasterWizardStep5', controller.get('content'));
+        }
       })
     },
-    back: Em.Router.transitionTo('step3'),
-    complete: function (router, context) {
+    next: function (router) {
+      App.showConfirmationPopup(function () {
+        router.transitionTo('step6');
+      }, Em.I18n.t('services.reassign.step5.confirmPopup.body'));
+    },
+
+    unroutePath: function () {
+      return false;
+    }
+  }),
+
+  step6: Em.Route.extend({
+    route: '/step6',
+    connectOutlets: function (router) {
+      console.log('in reassignMaster.step6:connectOutlets');
       var controller = router.get('reassignMasterController');
-      var wizardStep14Controller = router.get('wizardStep14Controller');
-      if (!wizardStep14Controller.get('isSubmitDisabled')) {
+      controller.setCurrentStep('6');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.setLowerStepsDisable(6);
+        controller.connectOutlet('reassignMasterWizardStep6', controller.get('content'));
+      })
+    },
+
+    next: function (router) {
+      var controller = router.get('reassignMasterController');
+      var reassignMasterWizardStep6 = router.get('reassignMasterWizardStep6Controller');
+      if (!reassignMasterWizardStep6.get('isSubmitDisabled')) {
         controller.finish();
-        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+        controller.get('popup').hide();
         App.clusterStatus.setClusterStatus({
           clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'REASSIGN_MASTER_COMPLETED',
+          clusterState: 'DEFAULT',
           wizardControllerName: 'reassignMasterController',
           localdb: App.db.data
         });
         router.transitionTo('main.index');
+        location.reload();
       }
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 

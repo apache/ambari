@@ -24,7 +24,5 @@
       {{view.alertsCount}}
     </span>
   {{/if}}
-  {{#if view.content.isRestartRequired}}
-    <i class="icon-refresh restart-required-service" rel="tooltip" {{bindAttr title="view.content.restartRequiredMessage"}}></i>
-  {{/if}}
+  <i rel="tooltip" {{bindAttr class=":icon-refresh :restart-required-service view.content.isRestartRequired::hide" data-original-title="view.restartRequiredMessage"}}></i>
 </a>

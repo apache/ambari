@@ -15,14 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="btn-group" >
-  <button class="btn targetClusterDD">{{view.selected.title}}</button>
-  <button class="btn dropdown-toggle" data-toggle="dropdown" {{!action "dropdownToggle" target="view" on="click"}}>
-    <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu">
-    {{#each view.listOfOptions}}
-      <li {{!bindAttr class="view.isActive:active"   use this to hide the selected one in the drop down }}><a href="#" {{action "select" this target="view" on="click"}}>{{title}}</a></li>
-    {{/each}}
-   </ul>
+<div class="btn-group">
+    <a class="btn dropdown-toggle targetClusterDD" data-toggle="dropdown" href="#">
+      {{view.selected.title}}
+        <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+      {{#each view.listOfOptions}}
+          <li {{!bindAttr class="view.isActive:active"   use this to hide the selected one in the drop down }}><a
+                  href="#" {{action "select" this target="view" on="click"}}>{{title}}</a></li>
+      {{/each}}
+    </ul>
 </div>

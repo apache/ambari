@@ -53,7 +53,7 @@
   <div class="filter_info">
 
     <div class="span4" id="filter_buttons">{{t common.show}}:
-      <a class="all selected" {{action "clickViewType" target="view"}} data-view-type="all">{{t apps.filters.all}}
+      <a class="all" {{action "clickViewType" target="view"}} data-view-type="all">{{t apps.filters.all}}
         ({{controller.paginationObject.iTotalRecords}})</a> &#124;
       <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">{{t apps.filters.filtered}}
         ({{controller.filterObject.filteredDisplayRecords}})</a>
@@ -90,7 +90,7 @@
     <tbody>
        {{#if  view.emptyData}}
          <tr>
-           <td class="no-data" colspan="9">{{t apps.filters.nothingToShow}}</td>
+           <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t apps.filters.nothingToShow}}</td>
          </tr>
        {{else}}
          {{#each run in content}}

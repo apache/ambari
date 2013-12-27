@@ -27,6 +27,7 @@ public class TestStreamProvider implements StreamProvider {
 
   private final String fileName;
   private String lastSpec;
+  private boolean isLastSpecUpdated;
 
   public TestStreamProvider(String fileName) {
     this.fileName = fileName;
@@ -34,11 +35,22 @@ public class TestStreamProvider implements StreamProvider {
 
   @Override
   public InputStream readFrom(String spec) throws IOException {
-    lastSpec = spec;
+    if (!isLastSpecUpdated)
+      lastSpec = spec;
+    
+    isLastSpecUpdated = false;
+    
     return ClassLoader.getSystemResourceAsStream(fileName);
   }
 
   public String getLastSpec() {
     return lastSpec;
+  }
+
+  @Override
+  public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
+    lastSpec = spec + "?" + params;
+    isLastSpecUpdated = true;
+    return readFrom(spec);
   }
 }

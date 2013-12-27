@@ -51,17 +51,8 @@ public class ClusterConfigEntity {
   private ClusterEntity clusterEntity;
 
   @OneToMany(mappedBy = "clusterConfigEntity")
-  private Collection<HostComponentConfigMappingEntity> hostComponentConfigMappingEntities;
+  private Collection<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities;
 
-  @OneToMany(mappedBy = "clusterConfigEntity")
-  private Collection<ServiceConfigMappingEntity> serviceConfigMappingEntities;
-
-  @OneToMany(mappedBy = "clusterConfigEntity")
-  private Collection<HostComponentDesiredConfigMappingEntity> hostComponentDesiredConfigMappingEntities;
-
-  @OneToMany(mappedBy = "clusterConfigEntity")
-  private Collection<ComponentConfigMappingEntity> componentConfigMappingEntities;
-  
   public Long getClusterId() {
     return clusterId;
   }
@@ -131,35 +122,11 @@ public class ClusterConfigEntity {
     this.clusterEntity = clusterEntity;
   }
 
-  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
-    return hostComponentConfigMappingEntities;
+  public Collection<ConfigGroupConfigMappingEntity> getConfigGroupConfigMappingEntities() {
+    return configGroupConfigMappingEntities;
   }
 
-  public void setHostComponentConfigMappingEntities(Collection<HostComponentConfigMappingEntity> hostComponentConfigMappingEntities) {
-    this.hostComponentConfigMappingEntities = hostComponentConfigMappingEntities;
-  }
-
-  public Collection<ServiceConfigMappingEntity> getServiceConfigMappingEntities() {
-    return serviceConfigMappingEntities;
-  }
-
-  public void setServiceConfigMappingEntities(Collection<ServiceConfigMappingEntity> serviceConfigMappingEntities) {
-    this.serviceConfigMappingEntities = serviceConfigMappingEntities;
-  }
-
-  public Collection<HostComponentDesiredConfigMappingEntity> getHostComponentDesiredConfigMappingEntities() {
-    return hostComponentDesiredConfigMappingEntities;
-  }
-
-  public void setHostComponentDesiredConfigMappingEntities(Collection<HostComponentDesiredConfigMappingEntity> hostComponentDesiredConfigMappingEntities) {
-    this.hostComponentDesiredConfigMappingEntities = hostComponentDesiredConfigMappingEntities;
-  }
-
-  public Collection<ComponentConfigMappingEntity> getComponentConfigMappingEntities() {
-    return componentConfigMappingEntities;
-  }
-
-  public void setComponentConfigMappingEntities(Collection<ComponentConfigMappingEntity> componentConfigMappingEntities) {
-    this.componentConfigMappingEntities = componentConfigMappingEntities;
+  public void setConfigGroupConfigMappingEntities(Collection<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities) {
+    this.configGroupConfigMappingEntities = configGroupConfigMappingEntities;
   }
 }

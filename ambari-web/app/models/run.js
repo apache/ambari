@@ -23,7 +23,6 @@ var misc = require('utils/misc');
 
 App.Run = DS.Model.extend({
   appName: DS.attr('string'),
-  type: DS.attr('string'),
   userName:DS.attr('string'),
   numJobsTotal: DS.attr('number'),
   numJobsCompleted: DS.attr('number'),

@@ -20,7 +20,6 @@ var App = require('app');
 
 App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   templateName: require('templates/common/configs/overriddenProperty'),
-  controllerBinding: 'App.router.mainServiceInfoConfigsController',
   serviceConfigProperty: null, // is passed dynamically at runtime where ever
   // we are declaring this from configs.hbs ( we are initializing this from UI )
   categoryConfigs: null, // just declared as viewClass need it
@@ -34,37 +33,13 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
     // arg 1 SCP means ServiceConfigProperty
     var scpToBeRemoved = event.contexts[0];
     var overrides = this.get('serviceConfigProperty.overrides');
+    // remove override property from selectedService on installer 7-th step
+    if (this.get('controller.name') == 'wizardStep7Controller') {
+      var controller = this.get('controller');
+      var group = controller.get('selectedService.configGroups').findProperty('name', controller.get('selectedConfigGroup.name'));
+      group.get('properties').removeObject(scpToBeRemoved);
+    }
     overrides = overrides.without(scpToBeRemoved);
     this.set('serviceConfigProperty.overrides', overrides);
-  },
-  
-  hostsCountView: Em.View.extend({
-    classNames: ['overridden-hosts-view'],
-    template: Ember.Handlebars.compile("<a class=\"action overriden-hosts-link\" href=\"#\" {{action showOverrideWindow overriddenSCP controller target=\"view.parentView\" }} rel=\"tooltip\" {{bindAttr data-original-title=\"view.hostsList\"}} >{{view.overriddenSCP.selectedHostOptions.length}} hosts </a>"),
-    overriddenSCP: null,
-    didInsertElement: function () {
-      var links = $(".overriden-hosts-link");
-      console.log(links);
-      links.tooltip({html:true, placement:"right"});
-    },
-    /**
-     * New line separated list of hosts
-     * @type String
-     */
-    hostsList: function () {
-      var tooltip = "<ul>";
-      var hosts = this.get('overriddenSCP.selectedHostOptions');
-      if (hosts != null) {
-        hosts.forEach(function (host) {
-          var hostObj = App.Host.find(host);
-          if (hostObj != null) {
-            host = hostObj.get('publicHostName');
-          }
-          tooltip += ("<li>" + host + "</li>");
-        });
-      }
-      tooltip += "</ul>";
-      return tooltip;
-    }.property('overriddenSCP', 'overriddenSCP.selectedHostOptions')
-  })
+  }
 });

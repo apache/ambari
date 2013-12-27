@@ -24,6 +24,9 @@ import java.sql.SQLException;
 
 import org.apache.ambari.log4j.common.LogStore;
 import org.apache.ambari.log4j.common.LogStoreUpdateProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.log4j.spi.LoggingEvent;
 
 public class DatabaseStore implements LogStore {
@@ -31,14 +34,19 @@ public class DatabaseStore implements LogStore {
   final private String database;
   final private String user;
   final private String password;
-  
-  final private Connection connection;
   final private LogStoreUpdateProvider updateProvider;
-  
-  public DatabaseStore(String driver, 
-      String database, String user, String password, 
-      LogStoreUpdateProvider updateProvider) 
+  final private String driver;
+  private Connection connection;
+  private boolean initialized;
+
+  private static final Log LOG = LogFactory.getLog(DatabaseStore.class);
+
+  public DatabaseStore(String driver,
+                       String database, String user, String password,
+                       LogStoreUpdateProvider updateProvider)
       throws IOException {
+    this.initialized = false;
+    this.driver = driver;
     try {
       Class.forName(driver);
     } catch (ClassNotFoundException e) {
@@ -48,30 +56,52 @@ public class DatabaseStore implements LogStore {
     this.database = database;
     this.user = (user == null) ? "" : user;
     this.password = (password == null) ? "" : password;
-    try {
-      this.connection = 
-          DriverManager.getConnection(this.database, this.user, this.password);
-    } catch (SQLException sqle) {
-      throw new IOException("Can't connect to database " + this.database, sqle);
-    }
     this.updateProvider = updateProvider;
-    
-    this.updateProvider.init(this.connection);
   }
-  
+
   @Override
   public void persist(LoggingEvent originalEvent, Object parsedEvent)
       throws IOException {
+    if (!this.initialized) {
+      synchronized (DatabaseStore.class) {
+        if (!this.initialized) {
+          try {
+            this.connection =
+                DriverManager.getConnection(this.database, this.user, this.password);
+          } catch (SQLException sqle) {
+            LOG.debug("Failed to connect to db " + this.database, sqle);
+            System.err.println("Failed to connect to db " + this.database +
+                " as user " + this.user + " password " + this.password +
+                " and driver " + this.driver + " with " +
+                StringUtils.stringifyException(sqle));
+            throw new IOException("Can't connect to database " + this.database, sqle);
+          } catch (Exception e) {
+            LOG.debug("Failed to connect to db " + this.database, e);
+            System.err.println("Failed to connect to db " + this.database +
+                " as user " + this.user + " password " + this.password +
+                " and driver " + this.driver + " with " +
+                StringUtils.stringifyException(e));
+            throw new RuntimeException(
+                "Failed to create database store for " + this.database, e);
+          }
+          this.updateProvider.init(this.connection);
+          this.initialized = true;
+        }
+      }
+    }
+
     updateProvider.update(originalEvent, parsedEvent);
   }
 
   @Override
   public void close() throws IOException {
     try {
-      connection.close();
+      if (this.initialized && this.connection != null) {
+        connection.close();
+      }
     } catch (SQLException sqle) {
       throw new IOException(
-          "Failed to close connectionto database " + this.database, sqle);
+          "Failed to close connection to database " + this.database, sqle);
     }
   }
 }

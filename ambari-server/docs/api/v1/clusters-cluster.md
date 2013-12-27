@@ -1,4 +1,4 @@
-	<!---
+<!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
 this work for additional information regarding copyright ownership.
@@ -20,12 +20,50 @@ View Cluster Information
 
 [Back to Resources](index.md#resources)
 
+**Summary**
+
 Returns information for the specified cluster identified by ":name"
 
     GET /clusters/:name
 
 **Response**
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
 
+**Example**
+
+Get information for the cluster "c1".
+
+    GET /clusters/c1
+    
     200 OK
     {
     	"href" : "http://your.ambari.server/api/v1/clusters/c1",
@@ -106,20 +144,21 @@ Returns information for the specified cluster identified by ":name"
           		}
         	} 
     	],
-    	"hosts" : [
-      		{
-      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1",
-      			"Hosts" : {
-        			"cluster_name" : "c1",
-        			"host_name" : "some.cluster.host"
-        		}
-      		},
-      		{
-      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host2",
-      		"Hosts" : {
-        		"cluster_name" : "c1",
-        		"host_name" : "another.cluster.host"
-        	}
-        ]
+      "hosts" : [
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/some.host",
+          "Hosts" : {
+              "cluster_name" : "c1",
+              "host_name" : "some.host"
+          }
+        },
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/another.host",
+          "Hosts" : {
+              "cluster_name" : "c1",
+              "host_name" : "another.host"
+          }
+        }
+      ]
     }
 

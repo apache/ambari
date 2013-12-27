@@ -28,8 +28,8 @@ class hdp-templeton::templeton::service_check()
   } else {
     $security = "false"
   }
-  $kinit_path_local = $hdp::params::kinit_path_local
-  $smoke_user_keytab = "${hdp-templeton::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $kinit_path = $hdp::params::kinit_path_local
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
 
   $templeton_host = $hdp::params::webhcat_server_host
 
@@ -44,14 +44,23 @@ class hdp-templeton::templeton::service_check()
 
 define hdp-templeton::smoke_shell_file()
 {
+  $smoke_test_user = $hdp::params::smokeuser
+    
+  $security = $hdp-templeton::templeton::service_check::security
+
+  $kinit_path = $hdp::params::kinit_path_local
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
+
+  $templeton_host = $hdp::params::webhcat_server_host
+
   file { '/tmp/templetonSmoke.sh':
     ensure => present,
     source => "puppet:///modules/hdp-templeton/templetonSmoke.sh",
     mode => '0755'
   }
-
+  
   exec { '/tmp/templetonSmoke.sh':
-    command   => "sh /tmp/templetonSmoke.sh ${templeton_host} ${smoke_test_user} ${smoke_user_keytab} ${security} ${kinit_path_local}",
+    command   => "sh /tmp/templetonSmoke.sh ${templeton_host} ${smoke_test_user} ${smoke_user_keytab} ${security} ${kinit_path}",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/templetonSmoke.sh'],

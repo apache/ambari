@@ -15,12 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +32,7 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
@@ -42,15 +41,18 @@ import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -87,10 +89,13 @@ public class HostImpl implements Host {
   private ClusterDAO clusterDAO;
   private Clusters clusters;
   private HostConfigMappingDAO hostConfigMappingDAO;
+  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
+  private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
   private boolean persisted = false;
+  private Integer currentPingPort = null;
 
   private static final String HARDWAREISA = "hardware_isa";
   private static final String HARDWAREMODEL = "hardware_model";
@@ -109,6 +114,10 @@ public class HostImpl implements Host {
   private static final String SWAPSIZE = "swap_size";
   private static final String SWAPFREE = "swap_free";
   private static final String TIMEZONE = "timezone";
+  
+  
+  //In-memory status, based on host components states
+  private String status;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -214,6 +223,8 @@ public class HostImpl implements Host {
     this.clusterDAO = injector.getInstance(ClusterDAO.class);
     this.clusters = injector.getInstance(Clusters.class);
     this.hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
+    this.configGroupHostMappingDAO = injector.getInstance
+      (ConfigGroupHostMappingDAO.class);
 
     hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
@@ -260,9 +271,9 @@ public class HostImpl implements Host {
         agentVersion = e.agentVersion.getVersion();
       }
       LOG.info("Received host registration, host="
-          + e.hostInfo.toString()
-          + ", registrationTime=" + e.registrationTime
-          + ", agentVersion=" + agentVersion);
+        + e.hostInfo.toString()
+        + ", registrationTime=" + e.registrationTime
+        + ", agentVersion=" + agentVersion);
       host.persist();
     }
   }
@@ -278,7 +289,7 @@ public class HostImpl implements Host {
           + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getTimestamp());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
-          host.getHealthStatus().getHealthReport()));
+        host.getHealthStatus().getHealthReport()));
     }
   }
 
@@ -292,8 +303,12 @@ public class HostImpl implements Host {
         case HOST_HEARTBEAT_HEALTHY:
           HostHealthyHeartbeatEvent hhevent = (HostHealthyHeartbeatEvent) event;
           heartbeatTime = hhevent.getHeartbeatTime();
-          if (null != hhevent.getAgentEnv())
+          if (null != hhevent.getAgentEnv()) {
             host.setLastAgentEnv(hhevent.getAgentEnv());
+          }
+          if (null != hhevent.getMounts() && !hhevent.getMounts().isEmpty()) {
+            host.setDisksInfo(hhevent.getMounts());
+          }
           break;
         case HOST_HEARTBEAT_UNHEALTHY:
           heartbeatTime =
@@ -356,6 +371,9 @@ public class HostImpl implements Host {
     }
   }
 
+  /**
+   * @param hostInfo
+   */
   @Override
   public void importHostInfo(HostInfo hostInfo) {
     try {
@@ -458,17 +476,26 @@ public class HostImpl implements Host {
     }
   }
 
-  /**
-   * @param hostInfo
-   */
   @Override
   public void setLastAgentEnv(AgentEnv env) {
-    lastAgentEnv = env;
+    writeLock.lock();
+    try {
+      lastAgentEnv = env;
+    } finally {
+      writeLock.unlock();
+    }
+
   }
   
   @Override
   public AgentEnv getLastAgentEnv() {
-    return lastAgentEnv;
+    readLock.lock();
+    try {
+      return lastAgentEnv;
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   @Override
@@ -556,6 +583,28 @@ public class HostImpl implements Host {
     }
   }
   
+  @Override
+  public Integer getCurrentPingPort() {
+    try {
+      readLock.lock();
+      return currentPingPort;
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
+
+  @Override
+  public void setCurrentPingPort(Integer currentPingPort) {
+    try {
+      writeLock.lock();
+      this.currentPingPort = currentPingPort;
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }
+
   @Override
   public void setPublicHostName(String hostName) {
     try {
@@ -775,8 +824,7 @@ public class HostImpl implements Host {
   public List<DiskInfo> getDisksInfo() {
     try {
       readLock.lock();
-      return gson.<List<DiskInfo>>fromJson(
-                hostEntity.getDisksInfo(), diskInfoType);
+      return this.disksInfo;
     } finally {
       readLock.unlock();
     }
@@ -786,8 +834,7 @@ public class HostImpl implements Host {
   public void setDisksInfo(List<DiskInfo> disksInfo) {
     try {
       writeLock.lock();
-      hostEntity.setDisksInfo(gson.toJson(disksInfo, diskInfoType));
-      saveIfPersisted();
+      this.disksInfo = disksInfo;
     } finally {
       writeLock.unlock();
     }
@@ -809,6 +856,10 @@ public class HostImpl implements Host {
     try {
       writeLock.lock();
       hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
+      
+      if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN))
+        setStatus(HealthStatus.UNKNOWN.name());
+      
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -948,6 +999,23 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
+  
+  
+  @Override
+  public String getStatus() {
+    return status;
+  }
+
+  @Override
+  public void setStatus(String status) {
+    try {
+      writeLock.lock();
+      this.status = status;
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }
 
   @Override
   public HostResponse convertToResponse() {
@@ -974,6 +1042,7 @@ public class HostImpl implements Host {
       r.setTotalMemBytes(getTotalMemBytes());
       r.setPublicHostName(getPublicHostName());
       r.setHostState(getState().toString());
+      r.setStatus(getStatus());
 
       return r;
     }
@@ -1062,7 +1131,9 @@ public class HostImpl implements Host {
   
   @Override
   @Transactional
-  public void addDesiredConfig(long clusterId, boolean selected, Config config) {
+  public boolean addDesiredConfig(long clusterId, boolean selected, String user, Config config) {
+    if (null == user)
+      throw new NullPointerException("User must be specified.");
     
     HostConfigMappingEntity exist = getDesiredConfigEntity(clusterId, config.getType());
     if (null != exist && exist.getVersion().equals(config.getVersionTag())) {
@@ -1070,10 +1141,10 @@ public class HostImpl implements Host {
         exist.setSelected(0);
         hostConfigMappingDAO.merge(exist);
       }
-      return;
+      return false;
     }
     
-    writeLock.lock();      
+    writeLock.lock();
     
     try {
       // set all old mappings for this type to empty
@@ -1085,9 +1156,10 @@ public class HostImpl implements Host {
       
       HostConfigMappingEntity entity = new HostConfigMappingEntity();
       entity.setClusterId(Long.valueOf(clusterId));
-      entity.setCreateTimestamp(Long.valueOf(new Date().getTime()));
+      entity.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
       entity.setHostName(hostEntity.getHostName());
       entity.setSelected(1);
+      entity.setUser(user);
       entity.setType(config.getType());
       entity.setVersion(config.getVersionTag());
       
@@ -1098,28 +1170,71 @@ public class HostImpl implements Host {
     }
     
     hostDAO.merge(hostEntity);
+    
+    return true;
   }
   
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId) {
     Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
-    
+
     for (HostConfigMappingEntity e : hostConfigMappingDAO.findSelected(
         clusterId, hostEntity.getHostName())) {
       
       DesiredConfig dc = new DesiredConfig();
       dc.setVersion(e.getVersion());
       dc.setServiceName(e.getServiceName());
-      
+      dc.setUser(e.getUser());
       map.put(e.getType(), dc);
       
     }
     return map;
   }
-  
+
+  /**
+   * Get a map of configType with all applicable config tags.
+   *
+   * @param cluster
+   * @return Map of configType -> HostConfig
+   */
+  @Override
+  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException {
+    Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry :
+        cluster.getDesiredConfigs().entrySet()) {
+      HostConfig hostConfig = new HostConfig();
+      hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getVersion());
+      hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
+    }
+
+    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname
+      (this.getHostName());
+
+    if (configGroups != null && !configGroups.isEmpty()) {
+      for (ConfigGroup configGroup : configGroups.values()) {
+        for (Map.Entry<String, Config> configEntry : configGroup
+            .getConfigurations().entrySet()) {
+
+          String configType = configEntry.getKey();
+          // HostConfig config holds configType -> versionTag, per config group
+          HostConfig hostConfig = hostConfigMap.get(configType);
+          if (hostConfig == null) {
+            hostConfig = new HostConfig();
+            hostConfigMap.put(configType, hostConfig);
+            hostConfig.setDefaultVersionTag(cluster.getDesiredConfigByType
+              (configType).getVersionTag());
+          }
+          Config config = configEntry.getValue();
+          hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
+            config.getVersionTag());
+        }
+      }
+    }
+    return hostConfigMap;
+  }
+
   private HostConfigMappingEntity getDesiredConfigEntity(long clusterId, String type) {
     return hostConfigMappingDAO.findSelectedByType(clusterId,
         hostEntity.getHostName(), type);
   }
-      
 }

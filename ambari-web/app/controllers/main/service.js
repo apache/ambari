@@ -25,7 +25,7 @@ App.MainServiceController = Em.ArrayController.extend({
       return [];
     }
     return App.Service.find();
-  }.property('App.router.clusterController.isLoaded'),
+  }.property('App.router.clusterController.isLoaded').volatile(),
 
   cluster: function () {
     if (!App.router.get('clusterController.isLoaded')) {
@@ -34,13 +34,39 @@ App.MainServiceController = Em.ArrayController.extend({
     return App.Cluster.find().objectAt(0);
   }.property('App.router.clusterController.isLoaded'),
 
-  hdfsService: function () {
-    var hdfsSvcs = App.HDFSService.find();
-    if (hdfsSvcs && hdfsSvcs.get('length') > 0) {
-      return hdfsSvcs.objectAt(0);
+  isAllServicesInstalled: function() {
+    if (!this.get('content.content')) return false;
+    var availableServices = App.db.getServices();
+    if (!availableServices) {
+      this.loadAvailableServices();
+      availableServices = App.db.getServices();
     }
-    return null;
-  }.property('App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
+    return this.get('content.content').length == availableServices.length;
+  }.property('content.content.@each', 'content.content.length'),
+
+  loadAvailableServices: function() {
+    App.ajax.send({
+      name: 'wizard.service_components',
+      sender: this,
+      data: {
+        stackUrl: App.get('stack2VersionURL'),
+        stackVersion: App.get('currentStackVersionNumber')
+      },
+      success: 'loadAvailableServicesSuccessCallback'
+    });
+  },
+
+  loadAvailableServicesSuccessCallback: function(jsonData) {
+    var data = [];
+    var displayOrderConfig = require('data/services');
+    for (var i = 0; i < displayOrderConfig.length; i++) {
+      var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
+      if (entry) {
+        data.push(entry.StackServices.service_name);
+      }
+    }
+    App.db.setServices(data);
+  },
 
   isStartAllDisabled: function(){
     if(this.get('isStartStopAllClicked') == true) {
@@ -59,7 +85,7 @@ App.MainServiceController = Em.ArrayController.extend({
       if(!['HCATALOG', 'PIG', 'SQOOP'].contains(item.get('serviceName'))){
         flag = false;
       }
-    })
+    });
     return flag;
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
   isStartStopAllClicked: function(){
@@ -74,8 +100,8 @@ App.MainServiceController = Em.ArrayController.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup2(function() {
-      self.startAllServicesCall('startAllService');
+    App.showConfirmationPopup(function() {
+      self.allServicesCall('startAllService');
     });
   },
 
@@ -87,51 +113,53 @@ App.MainServiceController = Em.ArrayController.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup2(function() {
-      self.startAllServicesCall('stopAllService');
+    App.showConfirmationPopup(function() {
+      self.allServicesCall('stopAllService');
     });
   },
 
-  startAllServicesCall: function(state){
-    var clusterName = App.router.get('applicationController').get('clusterName');
-    var method = 'PUT';
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo';
+  allServicesCall: function(state) {
     var data;
-    if(state == 'stopAllService'){
-      data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.stopAllServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    }else{
-      data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.startAllServices') +'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
+    if (state == 'stopAllService') {
+      data = '{"RequestInfo": {"context" :"_PARSE_.STOP.ALL_SERVICES"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+    } else {
+      data = '{"RequestInfo": {"context" :"_PARSE_.START.ALL_SERVICES"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     }
 
-    if (App.testMode) {
-      url = this.get('mockDataPrefix') + '/poll_6.json';
-      method = 'GET';
-      this.numPolls = 6;
-    }
-
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Start/Stop all service -> In success function for the start/stop all Service call");
-        console.log("TRACE: Start/Stop all service -> value of the url is: " + url);
-        console.log("TRACE: Start/Stop all service -> value of the received data is: " + jsonData);
-        var requestId = jsonData.Requests.id;
-        console.log('requestId is: ' + requestId);
-
-        App.router.get('backgroundOperationsController').showPopup();
+    App.ajax.send({
+      name: 'service.start_stop',
+      sender: this,
+      data: {
+        data: data
       },
-      error: function () {
-        console.log("ERROR");
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'allServicesCallSuccessCallback',
+      error: 'allServicesCallErrorCallback'
     });
+  },
 
+  allServicesCallSuccessCallback: function(data) {
+    console.log("TRACE: Start/Stop all service -> In success function for the start/stop all Service call");
+    console.log("TRACE: Start/Stop all service -> value of the received data is: " + data);
+    var requestId = data.Requests.id;
+    console.log('requestId is: ' + requestId);
+
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+  allServicesCallErrorCallback: function() {
+    console.log("ERROR");
+  },
+
+  gotoAddService: function() {
+    if (this.get('isAllServicesInstalled')) {
+      return;
+    }
+    App.db.mergeStorage();
+    App.router.transitionTo('main.serviceAdd');
   }
-})
+
+});

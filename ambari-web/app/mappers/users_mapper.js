@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
 App.usersMapper = App.QuickDataMapper.create({
   model : App.User,
@@ -29,17 +30,15 @@ App.usersMapper = App.QuickDataMapper.create({
   map: function (json) {
     var self = this;
     json.items.forEach(function (item) {
-      var result= [] ;
-      if(!App.User.find().someProperty("userName", item.Users.user_name))
-      {
-        if(item.Users.roles.indexOf("admin") >= 0){
-          item.Users.admin = true;
-        }else{
-          item.Users.admin = false;
-        }
+      var result= [];
+      if(!App.User.find().someProperty("userName", item.Users.user_name)) {
+        item.Users.admin = self.isAdmin(item.Users.roles);
         result.push(self.parseIt(item, self.config));
         App.store.loadMany(self.get('model'), result);
       }
     });
+  },
+  isAdmin: function(roles) {
+    return (roles.indexOf("admin") >= 0);
   }
 });

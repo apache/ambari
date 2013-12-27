@@ -1,0 +1,54 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="has-hidden-info">
+  <li class="thumbnail row" >
+    <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}><i class="icon-remove-sign icon-large"></i></a>
+    <div class="caption span10 slots-caption"> {{view.title}}</div>
+
+    <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass"}}>
+      <table align="center">
+        {{#each line in view.hiddenInfo}}
+          <tr><td>{{line}}</td></tr>{{/each}}
+      </table>
+    </div>
+
+    {{#if view.isViewExist}}
+      <div class="widget-content row-fluid" id="map-reduce-slots-text" >
+        <ul class="span12">
+          <div class="span3"> {{t dashboard.widgets.mapSlots}}</div>
+          <div class="progress span5" id="map-reduce-slots-bar1">
+            <div class="bar bar-success" {{bindAttr style="view.map_occupied"}}></div>
+            <div class="bar bar-warning" {{bindAttr style="view.map_reserved"}}></div>
+            </div>
+          <div class="span3" id="map-reduce-slots-num1"> {{view.map_display_text}}</div>
+        </ul>
+        <ul class="span12">
+          <div class="span3"> {{t dashboard.widgets.reduceSlots}}</div>
+          <div class="progress span5" id="map-reduce-slots-bar2">
+            <div class="bar bar-success" {{bindAttr style="view.reduce_occupied"}}></div>
+            <div class="bar bar-warning" {{bindAttr style="view.reduce_reserved"}}></div>
+            </div>
+          <div class="span3" id="map-reduce-slots-num2"> {{view.reduce_display_text}}</div>
+        </ul>
+      </div>
+    {{else}}
+      <div class="widget-content-isNA slots-content-isNA" >{{t services.service.summary.notAvailable}}</div>
+    {{/if}}
+  </li>
+</div>

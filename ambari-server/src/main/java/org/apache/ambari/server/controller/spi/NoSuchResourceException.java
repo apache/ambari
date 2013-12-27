@@ -32,4 +32,13 @@ public class NoSuchResourceException extends Exception {
   public NoSuchResourceException(String msg, Throwable throwable) {
     super(msg, throwable);
   }
+
+  /**
+   * Constructor.
+   *
+   * @param msg        message
+   */
+  public NoSuchResourceException(String msg) {
+    super(msg);
+  }
 }

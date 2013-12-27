@@ -26,10 +26,9 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Base provider implementation for both property and resource providers.
@@ -52,6 +51,11 @@ public abstract class BaseProvider {
   private final Set<String> combinedIds;
 
   /**
+   * Pre-compiled patterns for metric names that contain regular expressions.
+   */
+  private final Map<String, Pattern> patterns;
+
+  /**
    * The logger.
    */
   protected final static Logger LOG =
@@ -70,6 +74,13 @@ public abstract class BaseProvider {
     this.categoryIds = PropertyHelper.getCategories(propertyIds);
     this.combinedIds = new HashSet<String>(propertyIds);
     this.combinedIds.addAll(this.categoryIds);
+    this.patterns = new HashMap<String, Pattern>();
+    for (String id : this.combinedIds) {
+      if (containsArguments(id)) {
+        String pattern = id.replaceAll("\\$\\d+(\\.\\S+\\(\\S+\\))*", "(\\\\S+)");
+        patterns.put(id, Pattern.compile(pattern));
+      }
+    }
   }
 
 
@@ -106,12 +117,8 @@ public abstract class BaseProvider {
       // we want to treat property as a category and the entries as individual properties.
       Set<String> categoryProperties = new HashSet<String>();
       for (String unsupportedPropertyId : unsupportedPropertyIds) {
-        String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
-        while (category != null) {
-          if (this.propertyIds.contains(category)) {
-            categoryProperties.add(unsupportedPropertyId);
-          }
-          category = PropertyHelper.getPropertyCategory(category);
+        if (checkCategory(unsupportedPropertyId) || checkRegExp(unsupportedPropertyId)) {
+          categoryProperties.add(unsupportedPropertyId);
         }
       }
       unsupportedPropertyIds.removeAll(categoryProperties);
@@ -148,22 +155,94 @@ public abstract class BaseProvider {
       Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
       unsupportedPropertyIds.removeAll(this.combinedIds);
 
-      // Add the categories to account for map properties where the entries will not be
-      // in the provider property list ids but the map (category) might be.
       for (String unsupportedPropertyId : unsupportedPropertyIds) {
-        String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
-        while (category != null) {
-          if (this.propertyIds.contains(category)) {
-            keepers.add(unsupportedPropertyId);
-            break;
-          }
-          category = PropertyHelper.getPropertyCategory(category);
+        if (checkCategory(unsupportedPropertyId) || checkRegExp(unsupportedPropertyId)) {
+          keepers.add(unsupportedPropertyId);
         }
       }
       propertyIds.retainAll(this.combinedIds);
       propertyIds.addAll(keepers);
     }
     return propertyIds;
+  }
+
+  /**
+   * Check the categories to account for map properties where the entries will not be
+   * in the provider property list ids but the map (category) might be.
+   */
+  private boolean checkCategory(String unsupportedPropertyId) {
+    String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
+    while (category != null) {
+      if( this.propertyIds.contains(category)) {
+        return true;
+      }
+      category = PropertyHelper.getPropertyCategory(category);
+    }
+    return false;
+  }
+
+  private boolean checkRegExp(String unsupportedPropertyId) {
+    for (Pattern pattern : patterns.values()) {
+      Matcher matcher = pattern.matcher(unsupportedPropertyId);
+      if (matcher.matches()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected String getRegExpKey(String id) {
+    String regExpKey = null;
+    for (Map.Entry<String, Pattern> entry : patterns.entrySet()) {
+      Pattern pattern = entry.getValue();
+      Matcher matcher = pattern.matcher(id);
+
+      if (matcher.matches()) {
+        String key = entry.getKey();
+        if (regExpKey == null || key.startsWith(regExpKey)) {
+          regExpKey = entry.getKey();
+        }
+      }
+    }
+    return regExpKey;
+  }
+
+  /**
+   * Extracts set of matcher.group() from id
+   * @param regExpKey
+   * @param id
+   * @return extracted regex groups from id
+   */
+  protected List<String> getRegexGroups(String regExpKey, String id) {
+    Pattern pattern = patterns.get(regExpKey);
+    List<String> regexGroups = new ArrayList<String>();
+
+    if (pattern != null) {
+      Matcher matcher = pattern.matcher(id);
+
+      if (matcher.matches()) {
+        for (int i=0; i<matcher.groupCount(); i++){
+          regexGroups.add(matcher.group(i + 1));
+        }
+      }
+    }
+
+    return regexGroups;
+  }
+
+  protected boolean isPatternKey(String id) {
+    return patterns.containsKey(id);
+  }
+
+  /**
+   * Check to see if the given property id contains replacement arguments (e.g. $1)
+   *
+   * @param propertyId  the property id to check
+   *
+   * @return true if the given property id contains any replacement arguments
+   */
+  protected boolean containsArguments(String propertyId) {
+    return PropertyHelper.containsArguments(propertyId);
   }
 
   /**

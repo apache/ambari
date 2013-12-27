@@ -52,19 +52,47 @@ class hdp-ganglia::server(
     service_state       => $service_state 
   }
 
-  if ($hdp::params::hbase_master_hosts) {
-    hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
+  if ($hdp::params::has_namenodes) {
+    hdp-ganglia::config::generate_daemon { 'HDPNameNode':
       ganglia_service => 'gmond',
       role => 'server'
     }
   }
   
-  hdp-ganglia::config::generate_server { ['HDPJobTracker','HDPNameNode','HDPSlaves']:
+  if ($hdp::params::has_jobtracker) {
+    hdp-ganglia::config::generate_daemon { 'HDPJobTracker':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+  
+  if ($hdp::params::has_hbase_masters) {
+    hdp-ganglia::config::generate_daemon { 'HDPHBaseMaster':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+
+  if ($hdp::params::has_resourcemanager) {
+    hdp-ganglia::config::generate_daemon { 'HDPResourceManager':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+  
+  if ($hdp::params::has_histroryserver) {
+    hdp-ganglia::config::generate_daemon { 'HDPHistoryServer':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+
+  hdp-ganglia::config::generate_daemon { 'HDPSlaves':
     ganglia_service => 'gmond',
     role => 'server'
   }
 
-  hdp-ganglia::config::generate_server { 'gmetad':
+  hdp-ganglia::config::generate_daemon { 'gmetad':
     ganglia_service => 'gmetad',
     role => 'server'
   }
@@ -72,7 +100,7 @@ class hdp-ganglia::server(
   class { 'hdp-ganglia::server::gmetad': ensure => $service_state}
 
   class { 'hdp-ganglia::service::change_permission': ensure => $service_state }
-  
+
   if ($service_state == 'installed_and_configured') {
     $webserver_state = 'restart'
   } elsif ($service_state == 'running') {
@@ -84,9 +112,9 @@ class hdp-ganglia::server(
 
   class { 'hdp-monitor-webserver': service_state => $webserver_state}
 
-   class { 'hdp-ganglia::server::files':
-      ensure => 'present'
-   }
+  class { 'hdp-ganglia::server::files':
+     ensure => 'present'
+  }
 
   file { "${hdp-ganglia::params::ganglia_dir}/gmetad.conf":
     owner => 'root',
@@ -95,8 +123,9 @@ class hdp-ganglia::server(
 
   #top level does not need anchors
   Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] ->
- Hdp-ganglia::Config::Generate_server<||> ->
- Class['hdp-ganglia::server::gmetad'] -> File["${hdp-ganglia::params::ganglia_dir}/gmetad.conf"] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::server::files'] -> Class['hdp-monitor-webserver']
+    Hdp-ganglia::Config::Generate_daemon<||> ->
+    File["${hdp-ganglia::params::ganglia_dir}/gmetad.conf"] -> Class['hdp-ganglia::service::change_permission'] ->
+    Class['hdp-ganglia::server::files'] -> Class['hdp-ganglia::server::gmetad'] -> Class['hdp-monitor-webserver']
  }
 }
 
@@ -105,7 +134,7 @@ class hdp-ganglia::server::packages(
   $service_state = 'installed_and_configured'
 )
 {
-  hdp::package { ['ganglia-server','ganglia-gweb','ganglia-hdp-gweb-addons']: 
+  hdp::package { ['libganglia','ganglia-devel','ganglia-server','ganglia-web']: 
     ensure      => $ensure,
     java_needed => false,
     require => Hdp::Package ['rrdtool-python']
@@ -176,6 +205,18 @@ class hdp-ganglia::server::files(
 
     File[$rrd_py_file_path] -> Hdp::Directory_recursive_create[$rrd_files_dir] -> File[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
   }
+  elsif ($rrd_file_owner != $hdp::params::NOBODY_USER) {
+    #owner of rrdcached_default_file_dir is 'nobody' by default 
+    #need to change owner to gmetad_user for proper gmetad service start
+    
+    hdp::directory { $rrdcached_default_file_dir:
+      owner => $rrd_file_owner,
+      group => $rrd_file_owner,
+      override_owner => true
+    }
+    
+    File[$rrd_py_file_path] -> Hdp::Directory[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
+  }
 }
 
 
@@ -185,8 +226,9 @@ class hdp-ganglia::service::change_permission(
 {
   if ($ensure == 'running' or $ensure == 'installed_and_configured') {
     hdp::directory_recursive_create { '/var/lib/ganglia/dwoo' :
-      mode => '0777'
-      }
+      mode => '0777',
+      owner => $hdp-ganglia::params::gmetad_user
+    }
   }
 }
 
@@ -195,6 +237,7 @@ class hdp-ganglia::server::gmetad(
 )
 {
   if ($ensure == 'running') {
+    class { 'hdp-ganglia::server::delete_default_gmetad_process': }
     $command = "service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
    } elsif  ($ensure == 'stopped') {
     $command = "service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
@@ -204,5 +247,13 @@ class hdp-ganglia::server::gmetad(
       command => "$command",
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
+  }
+}
+
+class hdp-ganglia::server::delete_default_gmetad_process() {
+  hdp::exec { "delete_default_gmetad_process" :
+    command => "chkconfig gmetad off",
+    path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    require => Class['hdp-ganglia::server::gmetad']
   }
 }

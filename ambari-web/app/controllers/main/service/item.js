@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var service_components = require('data/service_components');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
@@ -75,7 +76,12 @@ App.MainServiceItemController = Em.Controller.extend({
     else {
       App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
     }
-    App.router.get('backgroundOperationsController').showPopup();
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
   },
   /**
    * Confirmation popup for start/stop services
@@ -88,16 +94,17 @@ App.MainServiceItemController = Em.Controller.extend({
     }
     var self = this;
     App.showConfirmationPopup(function() {
+      self.set('isPending', true);
       self.startStopPopupPrimary(serviceHealth);
     });
   },
 
-  startStopPopupPrimary: function(serviceHealth) {
+  startStopPopupPrimary: function (serviceHealth) {
     var requestInfo = "";
-    if(serviceHealth == "STARTED"){
-      requestInfo = 'Start service ' + this.get('content.serviceName').toUpperCase() ;
-    }else{
-      requestInfo = 'Stop service ' + this.get('content.serviceName').toUpperCase() ;
+    if (serviceHealth == "STARTED") {
+      requestInfo = '_PARSE_.START.' + this.get('content.serviceName');
+    } else {
+      requestInfo = '_PARSE_.STOP.' + this.get('content.serviceName');
     }
 
     App.ajax.send({
@@ -105,13 +112,13 @@ App.MainServiceItemController = Em.Controller.extend({
       'sender': this,
       'success': 'ajaxSuccess',
       'data': {
-        'requestInfo':requestInfo,
+        'requestInfo': requestInfo,
         'serviceName': this.get('content.serviceName').toUpperCase(),
         'state': serviceHealth
       }
     });
-    this.set('content.isStopDisabled',true);
-    this.set('content.isStartDisabled',true);
+    this.set('isStopDisabled', true);
+    this.set('isStartDisabled', true);
   },
 
   /**
@@ -138,7 +145,12 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       self.content.set('runRebalancer', true);
-      App.router.get('backgroundOperationsController').showPopup();
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
 
@@ -150,7 +162,12 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       self.content.set('runCompaction', true);
-      App.router.get('backgroundOperationsController').showPopup();
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
 
@@ -160,6 +177,10 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   runSmokeTest: function (event) {
     var self = this;
+    if (this.get('content.serviceName') === 'MAPREDUCE2' && !App.Service.find('YARN').get('isStarted')) {
+      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('services.mapreduce2.smokeTest.requirement'));
+      return;
+    }
     App.showConfirmationPopup(function() {
       self.runSmokeTestPrimary();
     });
@@ -171,14 +192,21 @@ App.MainServiceItemController = Em.Controller.extend({
       'sender': this,
       'success':'runSmokeTestSuccessCallBack',
       'data': {
-        'serviceName': this.get('content.serviceName').toUpperCase()
+        'serviceName': this.get('content.serviceName'),
+        'displayName': this.get('content.displayName'),
+        'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK'
       }
     });
   },
 
   runSmokeTestSuccessCallBack: function(data) {
     if (data.Requests.id) {
-      App.router.get('backgroundOperationsController').showPopup();
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     }
     else {
       console.warn('error during runSmokeTestSuccessCallBack');
@@ -190,9 +218,14 @@ App.MainServiceItemController = Em.Controller.extend({
    * @param hostComponent
    */
   reassignMaster: function (hostComponent) {
+    var component = App.HostComponent.find().findProperty('componentName', hostComponent);
     console.log('In Reassign Master', hostComponent);
-    App.router.get('reassignMasterController').saveComponentToReassign(hostComponent);
-    App.router.transitionTo('reassignMaster');
+    App.db.mergeStorage();
+    var reassignMasterController = App.router.get('reassignMasterController');
+    reassignMasterController.saveComponentToReassign(component);
+    reassignMasterController.getSecurityStatus();
+    reassignMasterController.setCurrentStep('1');
+    App.router.transitionTo('reassign');
   },
 
   /**
@@ -209,5 +242,43 @@ App.MainServiceItemController = Em.Controller.extend({
     if (methodName) {
       this[methodName](context);
     }
-  }
-})
+  },
+
+  setStartStopState: function () {
+    var serviceName = this.get('content.serviceName');
+    var backgroundOperations = App.router.get('backgroundOperationsController.services');
+    if (backgroundOperations.length > 0) {
+      for (var i = 0; i < backgroundOperations.length; i++) {
+        if (backgroundOperations[i].isRunning &&
+            (backgroundOperations[i].dependentService === "ALL_SERVICES" ||
+             backgroundOperations[i].dependentService === serviceName)) {
+          this.set('isPending', true);
+          return;
+        }
+      }
+      this.set('isPending', false);
+    } else {
+      this.set('isPending', true);
+    }
+  }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
+
+  isServiceRestartable: function() {
+    return this.get('content.serviceName') !== "FLUME";
+  }.property('content.serviceName'),
+
+  isStartDisabled: function () {
+    if(this.get('isPending')) return true;
+    return !(this.get('content.healthStatus') == 'red');
+  }.property('content.healthStatus','isPending'),
+
+  isStopDisabled: function () {
+    if(this.get('isPending')) return true;
+    if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      return false;
+    }
+    return (this.get('content.healthStatus') != 'green');
+  }.property('content.healthStatus','isPending'),
+
+  isPending:true
+
+});

@@ -25,7 +25,7 @@ class hdp-hadoop::tasktracker(
 {
   $hdp::params::service_exists['hdp-hadoop::tasktracker'] = true
 
-  Hdp-hadoop::Common<||>{service_states +> $service_state}
+  Hdp-hadoop::Common<||>{service_state => $service_state}
 
   if ($hdp::params::use_32_bits_on_slaves == true) {
     Hdp-hadoop::Package<||>{include_32_bit => true}
@@ -52,8 +52,8 @@ class hdp-hadoop::tasktracker(
         owner => $hdp-hadoop::params::mapred_user
       }
     }
-  
-    hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir: 
+
+    hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir:
       service_state => $service_state
     }
     
@@ -73,8 +73,8 @@ class hdp-hadoop::tasktracker(
     }
   
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['tasktracker']
-    Hdp-hadoop::Tasktracker::Create_local_dirs<||> -> Hdp-hadoop::Service['tasktracker']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Tasktracker::Create_local_dirs<||> -> Hdp-hadoop::Service['tasktracker'] ->
+    Anchor['hdp-hadoop::end']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

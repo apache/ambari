@@ -19,11 +19,6 @@
 var App = require('app');
 var validator = require('utils/validator');
 
-App.UserModel = Em.Object.extend({
-  userName:null,
-  id:0
-});
-
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
   id:function(){
@@ -51,6 +46,7 @@ App.EditUserForm = App.Form.extend({
     { name:"userName", displayName:"Username" },
     { name:"old_password", displayName:"Current Password", displayType:"password", isRequired: false },
     { name:"new_password", displayName:"New Password", displayType:"password",  isRequired: false },
+    { name:"new_passwordRetype", displayName:"Retype New Password", displayType:"password", isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
     { name:"roles", displayName:"Role", isRequired:false, isHidden:true },
     { name:"isLdap", displayName:"Type", isRequired:false, isHidden:true }
@@ -62,7 +58,7 @@ App.EditUserForm = App.Form.extend({
   disableAdminCheckbox:function () {
     var object = this.get('object');
     if (object) {
-      if((object.get('userName') == App.get('router').getLoginName()) || object.get("isLdap")){
+      if ((object.get('userName') == App.get('router').getLoginName()) || App.supports.ldapGroupMapping && object.get("isLdap")) {
         this.getField("admin").set("disabled", true);
       } else {
         this.getField("admin").set("disabled", false);
@@ -73,14 +69,21 @@ App.EditUserForm = App.Form.extend({
   isValid:function () {
 
     var isValid = this._super();
-    thisForm = this;
+    var thisForm = this;
 
     var newPass = this.get('field.new_password');
     var oldPass = this.get('field.old_password');
+    var passRetype = this.get('field.new_passwordRetype');
 
-    if (!validator.empty(newPass.get('value')) && validator.empty(oldPass.get('value'))) {
+    if (!validator.empty(newPass.get('value'))) {
+      if(validator.empty(oldPass.get('value'))){
         oldPass.set('errorMessage', this.t('admin.users.editError.requiredField'));
         isValid = false;
+      }
+      if (newPass.get('value') != passRetype.get('value')) {
+        passRetype.set('errorMessage', this.t('admin.users.createError.passwordValidation'));
+        isValid = false;
+      }
     }
 
     return isValid;
@@ -155,17 +158,16 @@ App.CreateUserForm = App.Form.extend({
     var object = this.get('object');
     var formValues = {};
     $.each(this.get('fields'), function () {
-      formValues[this.get('name')] = this.get('value');
+      formValues[Ember.String.decamelize(this.get('name'))] = this.get('value');
     });
 
     if (this.get('className')) {
-      App.store.createRecord(this.get('className'), formValues);
+      App.store.load(this.get('className'), (new Date()).getTime(), formValues);
     }
     else {
       console.log("Please define class name for your form " + this.constructor);
     }
 
-    //App.store.commit();
     this.set('result', 1);
 
     return true;

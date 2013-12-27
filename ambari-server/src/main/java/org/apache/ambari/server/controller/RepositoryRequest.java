@@ -20,21 +20,55 @@ package org.apache.ambari.server.controller;
 
 public class RepositoryRequest extends OperatingSystemRequest{
 
+  private String repoId;
+  private String baseUrl;
+  private boolean verify = true;
+  
   public RepositoryRequest(String stackName, String stackVersion, String osType, String repoId) {
     super(stackName, stackVersion, osType);
     setRepoId(repoId);
   }
 
-  
   public String getRepoId() {
     return repoId;
   }
 
-
   public void setRepoId(String repoId) {
     this.repoId = repoId;
   }
-
-  private String repoId;
+  
+  /**
+   * Gets the base URL for the repo.
+   * 
+   * @return the url
+   */
+  public String getBaseUrl() {
+    return baseUrl;
+  }
+  
+  /**
+   * Sets the base URL for the repo.
+   * 
+   * @param url the base URL.
+   */
+  public void setBaseUrl(String url) {
+    baseUrl = url;
+  }
+  
+  /**
+   * @return <code>true</code> if the base url should be verified.  Default is <code>true</code>.
+   */
+  public boolean isVerifyBaseUrl() {
+    return verify;
+  }
+  
+  /**
+   * @param verifyUrl <code>true</code> to verify  the base url
+   */
+  public void setVerifyBaseUrl(boolean verifyUrl) {
+    verify = verifyUrl;
+  }
+  
+  
 
 }

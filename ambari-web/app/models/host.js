@@ -20,16 +20,6 @@
 var App = require('app');
 var misc = require('utils/misc');
 
-DS.attr.transforms.object = {
-  from: function(serialized) {
-    return Ember.none(serialized) ? null : Object(serialized);
-  },
-
-  to: function(deserialized) {
-    return Ember.none(deserialized) ? null : Object(deserialized);
-  }
-};
-
 App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
   publicHostName: DS.attr('string'),
@@ -43,22 +33,46 @@ App.Host = DS.Model.extend({
   ip: DS.attr('string'),
   rack: DS.attr('string'),
   healthStatus: DS.attr('string'),
-  cpuUsage: DS.attr('number'),
-  memoryUsage: DS.attr('number'),
   lastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),
   loadOne:DS.attr('number'),
   loadFive:DS.attr('number'),
   loadFifteen:DS.attr('number'),
+  memTotal:DS.attr('number'),
+  memFree:DS.attr('number'),
+  cpuSystem:DS.attr('number'),
+  cpuUser:DS.attr('number'),
+
+  cpuUsage: function () {
+    if (this.get('cpuSystem') && this.get('cpu_user')) {
+      return this.get('cpuSystem') + this.get('cpu_user');
+    }
+  }.property('cpuSystem', 'cpuUser'),
+
+  memoryUsage: function () {
+    if (this.get('memFree') && this.get('memTotal')) {
+      var memUsed = this.get('memTotal') - this.get('memFree');
+      return (100 * memUsed) / this.get('memTotal');
+    }
+  }.property('memTotal', 'memFree'),
 
   criticalAlertsCount: function () {
-    return App.router.get('clusterController.alerts').filterProperty('hostName', this.get('hostName')).filterProperty('isOk', false).filterProperty('ignoredForHosts', false).length;
+    return App.router.get('clusterController.alertsHostMap')[this.get('hostName')];
   }.property('App.router.clusterController.alerts.length'),
 
+  componentsWithStaleConfigsCount: function() {
+    return this.get('hostComponents').filterProperty('staleConfigs', true).length;
+  }.property('hostComponents.@each.staleConfigs'),
+
   publicHostNameFormatted: function() {
-    return this.get('publicHostName').substr(0, 20) + ' ...';
+    return this.get('publicHostName').length < 43 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 40) + '...';
   }.property('publicHostName'),
+
+  disksMounted: function() {
+    return this.get('diskInfo.length');
+  }.property('diskInfo.length'),
+
   /**
    * API return diskTotal and diskFree. Need to save their different
    */
@@ -101,7 +115,8 @@ App.Host = DS.Model.extend({
     if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
       return this.get('diskUsageFormatted');
     }
-    return this.get('diskUsedFormatted') + '/' + this.get('diskTotalFormatted') + ' (' + this.get('diskUsageFormatted') + ' used)';
+    return this.get('diskUsedFormatted') + '/' + this.get('diskTotalFormatted') + ' (' + this.get('diskUsageFormatted')
+      + ' ' + Em.I18n.t('services.service.summary.diskInfoBar.used') + ')';
   }.property('diskUsedFormatted', 'diskTotalFormatted'),
   /**
    * formatted bytes to appropriate value
@@ -110,9 +125,9 @@ App.Host = DS.Model.extend({
     return misc.formatBandwidth(this.get('memory') * 1024);
   }.property('memory'),
   /**
-   * Return true if host not heartbeating last 180 seconds
+   * Return true if the host has not sent heartbeat within the last 180 seconds
    */
-  isNotHeartBeating : function(){
+  isNotHeartBeating : function() {
     return (App.testMode) ? false : ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
   }.property('lastHeartBeatTime'),
 
@@ -122,45 +137,15 @@ App.Host = DS.Model.extend({
     if (this.get('loadFifteen') != null) return this.get('loadFifteen').toFixed(2);
   }.property('loadOne', 'loadFive', 'loadFifteen'),
 
-  // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
-  // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
-  // only once after the run loop.  This is because Ember invokes the computed property every time
-  // a property that it depends on changes.  For example, App.statusMapper's map function would invoke
-  // the computed property too many times and freezes the UI without this hack.
-  // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
-  healthClass: '',
-
-  _updateHealthClass: function(){
-    Ember.run.once(this, 'updateHealthClass');
-  }.observes('healthStatus', 'hostComponents.@each.workStatus'),
-
-  updateHealthClass: function(){
-    var healthStatus = this.get('healthStatus');
-    /**
-     * Do nothing until load
-     */
-    if (!this.get('isLoaded') || this.get('isSaving')) {
-    } else {
-      var status;
-      var masterComponents = this.get('hostComponents').filterProperty('isMaster');
-      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponentStatus.started);
-      var slaveComponents = this.get('hostComponents').filterProperty('isSlave');
-      var slaveComponentsRunning = slaveComponents.everyProperty('workStatus', App.HostComponentStatus.started);
-      if (this.get('isNotHeartBeating')) {
-        status = 'DEAD-YELLOW';
-      } else if (masterComponentsRunning && slaveComponentsRunning) {
-        status = 'LIVE';
-      } else if (masterComponents.length > 0 && !masterComponentsRunning) {
-        status = 'DEAD-RED';
-      } else {
-        status = 'DEAD-ORANGE';
-      }
-      if (status) {
-        healthStatus = status;
-      }
-    }
-    this.set('healthClass', 'health-status-' + healthStatus);
-  },
+  healthClass: function(){
+    var statusMap = {
+      'UNKNOWN': 'health-status-DEAD-YELLOW',
+      'HEALTHY': 'health-status-LIVE',
+      'UNHEALTHY': 'health-status-DEAD-RED',
+      'ALERT': 'health-status-DEAD-ORANGE'
+    };
+    return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
+  }.property('healthStatus'),
 
   healthToolTip: function(){
     var hostComponents = this.get('hostComponents').filter(function(item){
@@ -192,7 +177,7 @@ App.Host = DS.Model.extend({
         break;
     }
     return output;
-  }.property('healthClass')
+  }.property('hostComponents.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];

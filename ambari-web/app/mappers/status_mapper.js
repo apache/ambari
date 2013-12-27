@@ -15,63 +15,106 @@
  * the License.
  */
 
+var App = require('app');
+
 App.statusMapper = App.QuickDataMapper.create({
-
-  config:{
-    id:'ServiceInfo.service_name',
-    work_status:'ServiceInfo.state'
-  },
-
-  config3:{
-    id:'id',
-    work_status:'HostRoles.state',
-    desired_status: 'HostRoles.desired_state'
-  },
-
-  map:function (json) {
-    var start = new Date().getTime();
-    console.log('in status mapper');
-
+  model: App.HostComponent,
+  map: function (json) {
+    console.time('App.statusMapper execution time');
     if (json.items) {
-      var result = {};
-      json.items.forEach(function (item) {
-        item = this.parseIt(item, this.config);
-        result[item.id] = item;
-      }, this);
+      var hostsCache = App.cache['Hosts'];
+      var hostStatuses = {};
+      var hostComponentStatuses = {};
+      var addedHostComponents = [];
+      var componentServiceMap = App.QuickDataMapper.componentServiceMap;
+      var currentComponentStatuses = {};
+      var currentHostStatuses = {};
+      var previousHostStatuses = App.cache['previousHostStatuses'];
+      var previousComponentStatuses = App.cache['previousComponentStatuses'];
+      var hostComponentsOnService = {};
 
-      var services = App.Service.find();
-      services.forEach(function(service) {
-        var item = result[service.get('id')];
-        if (item) {
-          service.set('workStatus', item.work_status);
+      json.items.forEach(function (host) {
+        var hostName = host.Hosts.host_name;
+        //update hosts, which have status changed
+        if (previousHostStatuses[hostName] !== host.Hosts.host_status) {
+          hostStatuses[hostName] = host.Hosts.host_status;
         }
-      });
+        currentHostStatuses[hostName] = host.Hosts.host_status;
+        var hostComponentsOnHost = [];
+        host.host_components.forEach(function (host_component) {
+          host_component.id = host_component.HostRoles.component_name + "_" + hostName;
+          var existedComponent = previousComponentStatuses[host_component.id];
+          var service = componentServiceMap[host_component.HostRoles.component_name];
 
-      //host_components
-      result = {};
-      json.items.forEach(function (item) {
-        item.components.forEach(function (component) {
-          component.host_components.forEach(function (host_component) {
-            host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-            result[host_component.id] = this.parseIt(host_component, this.config3);
-          }, this)
-        }, this)
+          if (existedComponent) {
+            //update host-components, which have status changed
+            if (existedComponent !== host_component.HostRoles.state) {
+              hostComponentStatuses[host_component.id] = host_component.HostRoles.state;
+            }
+          } else {
+            addedHostComponents.push({
+              id: host_component.id,
+              component_name: host_component.HostRoles.component_name,
+              work_status: host_component.HostRoles.state,
+              host_id: hostName,
+              service_id: service
+            });
+            //update host-components only on adding due to Ember Data features
+            if (hostsCache[hostName]) hostsCache[hostName].is_modified = true;
+          }
+          currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
+
+          //host-components to host relations
+          hostComponentsOnHost.push(host_component.id);
+          //host-component to service relations
+          if (!hostComponentsOnService[service]) {
+            hostComponentsOnService[service] = {
+              host_components: []
+            };
+          }
+          hostComponentsOnService[service].host_components.push(host_component.id);
+        }, this);
+        /**
+         * updating relation between Host and his host-components
+         */
+        if (hostsCache[hostName]) {
+          hostsCache[hostName].host_components = hostComponentsOnHost;
+        }
       }, this);
-
-      // console.profile("App.statusMapper.map() profile");
 
       var hostComponents = App.HostComponent.find();
+      var hosts = App.Host.find();
 
-      hostComponents.forEach(function(hostComponent) {
-        var item = result[hostComponent.get('id')];
-        if (item) {
-         hostComponent.set('workStatus', item.work_status);
+      hostComponents.forEach(function (hostComponent) {
+        if (hostComponent) {
+          var status = currentComponentStatuses[hostComponent.get('id')];
+          //check whether component present in current response
+          if (status) {
+            //check whether component has status changed
+            if (hostComponentStatuses[hostComponent.get('id')]) {
+              hostComponent.set('workStatus', status);
+            }
+          } else {
+            this.deleteRecord(hostComponent);
+          }
+        }
+      }, this);
+
+      if (addedHostComponents.length) {
+        App.store.loadMany(this.get('model'), addedHostComponents);
+      }
+
+      App.cache['previousHostStatuses'] = currentHostStatuses;
+      App.cache['previousComponentStatuses'] = currentComponentStatuses;
+      App.cache['hostComponentsOnService'] = hostComponentsOnService;
+
+      hosts.forEach(function (host) {
+        var status = hostStatuses[host.get('id')];
+        if (status) {
+          host.set('healthStatus', status);
         }
       });
-
-      // console.profileEnd();
-
-      console.log('out status mapper.  Took ' + (new Date().getTime() - start) + 'ms');
     }
+    console.timeEnd('App.statusMapper execution time');
   }
 });

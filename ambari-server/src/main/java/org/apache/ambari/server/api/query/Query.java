@@ -33,11 +33,10 @@ public interface Query {
    * Add a property to the query.
    * This is the select portion of the query.
    *
-   * @param group         the group name that contains the property
-   * @param property      the property name
+   * @param propertyId    the property id
    * @param temporalInfo  temporal information for the property
    */
-  public void addProperty(String group, String property, TemporalInfo temporalInfo);
+  public void addProperty(String propertyId, TemporalInfo temporalInfo);
 
   /**
    * Add a local (not sub-resource) property to the query.
@@ -85,4 +84,18 @@ public interface Query {
    * @param predicate  the user provided predicate
    */
   public void setUserPredicate(Predicate predicate);
+
+  /**
+   * Set the page request information for this query.
+   *
+   * @param pageRequest  the page request information
+   */
+  public void setPageRequest(PageRequest pageRequest);
+
+  /**
+   * Set a flag to indicate whether or not the response should be minimal.
+   *
+   * @param minimal  minimal flag; true indicates that the response should be minimal
+   */
+  public void setMinimal(boolean minimal);
 }

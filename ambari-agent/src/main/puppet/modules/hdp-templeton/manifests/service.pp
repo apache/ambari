@@ -34,7 +34,7 @@ class hdp-templeton::service(
     $daemon_cmd = "su - ${user} -c  '${cmd} start'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
-    $daemon_cmd = "su - ${user} -c  '${cmd} stop'"
+    $daemon_cmd = "su - ${user} -c  '${cmd} stop' && rm -f ${pid_file}"
     $no_op_test = undef
   } else {
     $daemon_cmd = undef
@@ -60,7 +60,7 @@ define hdp-templeton::service::directory()
   hdp::directory_recursive_create { $name: 
     owner => $hdp-templeton::params::webhcat_user,
     mode => '0755',
-    service_state => $ensure,
+    service_state => $hdp-templeton::service::ensure,
     force => true
   }
 }

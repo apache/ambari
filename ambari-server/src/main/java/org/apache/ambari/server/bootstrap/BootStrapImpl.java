@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.logging.Log;
@@ -31,9 +32,11 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.ambari.server.controller.AmbariServer;
 
 @Singleton
 public class BootStrapImpl {
+  public static final String DEV_VERSION = "${ambariVersion}";
   private File bootStrapDir;
   private String bootScript;
   private String bootSetupAgentScript;
@@ -47,10 +50,12 @@ public class BootStrapImpl {
   /* Monotonically increasing requestid for the bootstrap api to query on */
   int requestId = 0;
   private FifoLinkedHashMap<Long, BootStrapStatus> bsStatus;
-
+  private final String clusterOsType;
+  private String projectVersion;
+  private int serverPort;
 
   @Inject
-  public BootStrapImpl(Configuration conf) throws IOException {
+  public BootStrapImpl(Configuration conf, AmbariMetaInfo ambariMetaInfo) throws IOException {
     this.bootStrapDir = conf.getBootStrapDir();
     this.bootScript = conf.getBootStrapScript();
     this.bootSetupAgentScript = conf.getBootSetupAgentScript();
@@ -58,6 +63,10 @@ public class BootStrapImpl {
     this.bsStatus = new FifoLinkedHashMap<Long, BootStrapStatus>();
     this.masterHostname = conf.getMasterHostname(
         InetAddress.getLocalHost().getCanonicalHostName());
+    this.clusterOsType = conf.getServerOsType();
+    this.projectVersion = ambariMetaInfo.getServerVersion();
+    this.projectVersion = (this.projectVersion.equals(DEV_VERSION)) ? DEV_VERSION.replace("$", "") : this.projectVersion;
+    this.serverPort = (conf.getApiSSLAuthentication())? conf.getClientSSLApiPort() : conf.getClientApiPort();
   }
 
   /**
@@ -105,7 +114,7 @@ public class BootStrapImpl {
 
     bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
         bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-        this.masterHostname, info.isVerbose());
+        this.masterHostname, info.isVerbose(), this.clusterOsType, this.projectVersion, this.serverPort);
     bsRunner.start();
     response.setStatus(BSRunStat.OK);
     response.setLog("Running Bootstrap now.");

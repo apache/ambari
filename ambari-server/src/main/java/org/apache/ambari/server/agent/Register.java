@@ -29,6 +29,7 @@ public class Register {
   private int responseId = -1;
   private long timestamp;
   private String hostname;
+  private int currentPingPort;
   private HostInfo hardwareProfile;
   private String publicHostname;
   private AgentEnv agentEnv;
@@ -92,11 +93,20 @@ public class Register {
     this.agentVersion = agentVersion;
   }
 
+  public int getCurrentPingPort() {
+    return currentPingPort;
+  }
+
+  public void setCurrentPingPort(int currentPingPort) {
+    this.currentPingPort = currentPingPort;
+  }
+
   @Override
   public String toString() {
     String ret = "responseId=" + responseId + "\n" +
              "timestamp=" + timestamp + "\n" +
-             "hostname="  + hostname + "\n";
+             "hostname="  + hostname + "\n" +
+             "currentPingPort=" + currentPingPort + "\n";
 
     if (hardwareProfile != null)
       ret = ret + "hardwareprofile=" + this.hardwareProfile.toString();

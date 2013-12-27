@@ -20,8 +20,11 @@ package org.apache.ambari.server.actionmanager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.google.inject.persist.UnitOfWork;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.state.Clusters;
@@ -31,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,23 +44,25 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Singleton
 public class ActionManager {
+  private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
-  private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final AtomicLong requestCounter;
+  private final CustomActionDBAccessor cdb;
 
   @Inject
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
-      @Named("actionTimeout") long actionTimeout,
-      ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
-      ServerActionManager serverActionManager) {
+                       @Named("actionTimeout") long actionTimeout,
+                       ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
+                       ServerActionManager serverActionManager, UnitOfWork unitOfWork, CustomActionDBAccessor cdb) {
     this.actionQueue = aq;
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
-        actionQueue, fsm, 2, hostsMap, serverActionManager);
+        actionQueue, fsm, 2, hostsMap, serverActionManager, unitOfWork);
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
+    this.cdb = cdb;
   }
 
   public void start() {
@@ -68,11 +74,15 @@ public class ActionManager {
     scheduler.stop();
   }
 
-  public void sendActions(List<Stage> stages) {
-    
-    for (Stage s: stages) {
-      if (LOG.isDebugEnabled()) {
+  public void sendActions(List<Stage> stages, ExecuteActionRequest request) {
+
+    if (LOG.isDebugEnabled()) {
+      for (Stage s : stages) {
         LOG.debug("Persisting stage into db: " + s.toString());
+      }
+
+      if (request != null) {
+        LOG.debug("In response to request: " + request.toString());
       }
     }
     db.persistActions(stages);
@@ -86,14 +96,14 @@ public class ActionManager {
   }
 
   public Stage getAction(long requestId, long stageId) {
-    return db.getAction(StageUtils.getActionId(requestId, stageId));
+    return db.getStage(StageUtils.getActionId(requestId, stageId));
   }
 
   /**
    * Get all actions(stages) for a request.
    *
-   * @param requestId  the request id
-   * @return  list of all stages associated with the given request id
+   * @param requestId the request id
+   * @return list of all stages associated with the given request id
    */
   public List<Stage> getActions(long requestId) {
     return db.getAllStages(requestId);
@@ -112,7 +122,7 @@ public class ActionManager {
         LOG.debug("Processing command report : " + report.toString());
       }
       String actionId = report.getActionId();
-      long [] requestStageIds = StageUtils.getRequestStage(actionId);
+      long[] requestStageIds = StageUtils.getRequestStage(actionId);
       long requestId = requestStageIds[0];
       long stageId = requestStageIds[1];
       HostRoleCommand command = db.getTask(report.getTaskId());
@@ -165,6 +175,7 @@ public class ActionManager {
 
   /**
    * Returns last 20 requests
+   *
    * @return
    */
   public List<Long> getRequests() {
@@ -173,10 +184,49 @@ public class ActionManager {
 
   /**
    * Returns last 20 requests
+   *
    * @return
    */
   public List<Long> getRequestsByStatus(RequestStatus status) {
     return db.getRequestsByStatus(status);
   }
 
+  public Map<Long, String> getRequestContext(List<Long> requestIds) {
+    return db.getRequestContext(requestIds);
+  }
+
+  public String getRequestContext(long requestId) {
+    return db.getRequestContext(requestId);
+  }
+
+  /** CRUD operations of Action resources **/
+
+  public ActionDefinition getActionDefinition(String actionName)
+      throws AmbariException {
+    return cdb.getActionDefinition(actionName);
+  }
+
+  public List<ActionDefinition> getAllActionDefinition()
+      throws AmbariException {
+    return cdb.getActionDefinitions();
+  }
+
+  public void deleteActionDefinition(String actionName)
+      throws AmbariException {
+    cdb.deleteActionDefinition(actionName);
+  }
+
+  public void updateActionDefinition(String actionName, ActionType actionType, String description,
+                                     TargetHostType targetType, Short defaultTimeout)
+      throws AmbariException {
+    cdb.updateActionDefinition(actionName, actionType, description, targetType, defaultTimeout);
+  }
+
+  public void createActionDefinition(String actionName, ActionType actionType, String inputs, String description,
+                                     String serviceType, String componentType, TargetHostType targetType,
+                                     Short defaultTimeout)
+      throws AmbariException {
+    cdb.createActionDefinition(actionName, actionType, inputs, description, targetType, serviceType,
+        componentType, defaultTimeout);
+  }
 }

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -45,7 +46,7 @@ public class StacksService extends BaseService {
   public Response getStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createStackResource(null));
+      createStackResource(null));
   }
 
   @GET
@@ -104,6 +105,20 @@ public class StacksService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.GET,
         createRepositoryResource(stackName, stackVersion, osType, repoId));
   }
+  
+  @PUT
+  @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}")
+  @Produces("text/plain")
+  public Response updateRepository(String body, @Context HttpHeaders headers,
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("osType") String osType,
+      @PathParam("repoId") String repoId) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createRepositoryResource(stackName, stackVersion, osType, repoId));
+  }
+  
 
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices")

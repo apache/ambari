@@ -75,6 +75,54 @@ module.exports = new Ember.Set([
     description: 'Client component for MapReduce'
   },
   {
+    service_name: 'MAPREDUCE2',
+    component_name: 'MAPREDUCE2_CLIENT',
+    display_name: 'MapReduce 2 Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
+  },
+  {
+    service_name: 'MAPREDUCE2',
+    component_name: 'HISTORYSERVER',
+    display_name: 'History Server',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  },
+  {
+    service_name: 'TEZ',
+    component_name: 'TEZ_CLIENT',
+    display_name: 'TEZ Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
+  },
+  {
+    service_name: 'YARN',
+    component_name: 'RESOURCEMANAGER',
+    display_name: 'ResourceManager',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  },
+  {
+    service_name: 'YARN',
+    component_name: 'YARN_CLIENT',
+    display_name: 'YARN Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
+  },
+  {
+    service_name: 'YARN',
+    component_name: 'NODEMANAGER',
+    display_name: 'NodeManager',
+    isMaster: false,
+    isClient: false,
+    description: ''
+  },
+  {
     service_name: 'ZOOKEEPER',
     component_name: 'ZOOKEEPER_SERVER',
     display_name: 'ZooKeeper',
@@ -213,7 +261,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'GANGLIA',
     component_name: 'GANGLIA_SERVER',
-    display_name: 'Ganglia Collector',
+    display_name: 'Ganglia Server',
     isMaster: true,
     isClient: false,
     description: ''
@@ -265,5 +313,13 @@ module.exports = new Ember.Set([
     isMaster: true,
     isClient: false,
     description: ''
+  },
+  { 
+    service_name: 'GLUSTERFS',
+    component_name: 'GLUSTERFS_CLIENT',
+    display_name: 'GLUSTERFS Client', 
+    isMaster: false, 
+    isClient: true, 
+    description: 'Client component for GLUSTERFS'
   }
 ]);

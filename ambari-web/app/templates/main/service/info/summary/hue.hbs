@@ -15,15 +15,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{#each component in view.components}}
-  {{#if component.isMaster}}
-      <tr>
-          <td class="summary-label">{{component.displayName}}</td>
-          <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-      </tr>
-  {{/if}}
-{{/each}}
-<tr>
-    <td class="summary-label">{{t services.hue.webUi}}</td>
-    <td><a target=_blank href="http://{{unbound view.hueServer}}/hue">{{view.hueServer}}/hue</a></td>
-</tr>
+
+
+{{view view.sumMasterComponentView}}

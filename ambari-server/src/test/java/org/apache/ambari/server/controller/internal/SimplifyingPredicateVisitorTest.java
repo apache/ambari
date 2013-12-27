@@ -19,11 +19,12 @@ package org.apache.ambari.server.controller.internal;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.Capture;
 import org.junit.Test;
@@ -50,22 +51,22 @@ public class SimplifyingPredicateVisitorTest {
   private static final String PROPERTY_C = PropertyHelper.getPropertyId("category", "C");
   private static final String PROPERTY_D = PropertyHelper.getPropertyId("category", "D");
 
-  private static final BasePredicate PREDICATE_1 = new PredicateBuilder().property(PROPERTY_A).equals("Monkey").toPredicate();
-  private static final BasePredicate PREDICATE_2 = new PredicateBuilder().property(PROPERTY_B).equals("Runner").toPredicate();
-  private static final BasePredicate PREDICATE_3 = new AndPredicate(PREDICATE_1, PREDICATE_2);
-  private static final BasePredicate PREDICATE_4 = new OrPredicate(PREDICATE_1, PREDICATE_2);
-  private static final BasePredicate PREDICATE_5 = new PredicateBuilder().property(PROPERTY_C).equals("Racer").toPredicate();
-  private static final BasePredicate PREDICATE_6 = new OrPredicate(PREDICATE_5, PREDICATE_4);
-  private static final BasePredicate PREDICATE_7 = new PredicateBuilder().property(PROPERTY_C).equals("Power").toPredicate();
-  private static final BasePredicate PREDICATE_8 = new OrPredicate(PREDICATE_6, PREDICATE_7);
-  private static final BasePredicate PREDICATE_9 = new AndPredicate(PREDICATE_1, PREDICATE_8);
-  private static final BasePredicate PREDICATE_10 = new OrPredicate(PREDICATE_3, PREDICATE_5);
-  private static final BasePredicate PREDICATE_11 = new AndPredicate(PREDICATE_4, PREDICATE_10);
-  private static final BasePredicate PREDICATE_12 = new PredicateBuilder().property(PROPERTY_D).equals("Installer").toPredicate();
-  private static final BasePredicate PREDICATE_13 = new AndPredicate(PREDICATE_1, PREDICATE_12);
-  private static final BasePredicate PREDICATE_14 = new PredicateBuilder().property(PROPERTY_D).greaterThan(12).toPredicate();
-  private static final BasePredicate PREDICATE_15 = new AndPredicate(PREDICATE_1, PREDICATE_14);
-  private static final BasePredicate PREDICATE_16 = new CategoryIsEmptyPredicate("cat1");
+  private static final Predicate PREDICATE_1 = new PredicateBuilder().property(PROPERTY_A).equals("Monkey").toPredicate();
+  private static final Predicate PREDICATE_2 = new PredicateBuilder().property(PROPERTY_B).equals("Runner").toPredicate();
+  private static final Predicate PREDICATE_3 = new AndPredicate(PREDICATE_1, PREDICATE_2);
+  private static final Predicate PREDICATE_4 = new OrPredicate(PREDICATE_1, PREDICATE_2);
+  private static final Predicate PREDICATE_5 = new PredicateBuilder().property(PROPERTY_C).equals("Racer").toPredicate();
+  private static final Predicate PREDICATE_6 = new OrPredicate(PREDICATE_5, PREDICATE_4);
+  private static final Predicate PREDICATE_7 = new PredicateBuilder().property(PROPERTY_C).equals("Power").toPredicate();
+  private static final Predicate PREDICATE_8 = new OrPredicate(PREDICATE_6, PREDICATE_7);
+  private static final Predicate PREDICATE_9 = new AndPredicate(PREDICATE_1, PREDICATE_8);
+  private static final Predicate PREDICATE_10 = new OrPredicate(PREDICATE_3, PREDICATE_5);
+  private static final Predicate PREDICATE_11 = new AndPredicate(PREDICATE_4, PREDICATE_10);
+  private static final Predicate PREDICATE_12 = new PredicateBuilder().property(PROPERTY_D).equals("Installer").toPredicate();
+  private static final Predicate PREDICATE_13 = new AndPredicate(PREDICATE_1, PREDICATE_12);
+  private static final Predicate PREDICATE_14 = new PredicateBuilder().property(PROPERTY_D).greaterThan(12).toPredicate();
+  private static final Predicate PREDICATE_15 = new AndPredicate(PREDICATE_1, PREDICATE_14);
+  private static final Predicate PREDICATE_16 = new CategoryIsEmptyPredicate("cat1");
 
   @Test
   public void testVisit() {
@@ -81,9 +82,9 @@ public class SimplifyingPredicateVisitorTest {
 
     replay(provider);
 
-    PREDICATE_1.accept(visitor);
+    PredicateHelper.visit(PREDICATE_1, visitor);
 
-    List<BasePredicate> simplifiedPredicates = visitor.getSimplifiedPredicates();
+    List<Predicate> simplifiedPredicates = visitor.getSimplifiedPredicates();
 
     Assert.assertEquals(1, simplifiedPredicates.size());
     Assert.assertEquals(PREDICATE_1, simplifiedPredicates.get(0));
@@ -91,7 +92,7 @@ public class SimplifyingPredicateVisitorTest {
     assertEquals(1, setProps.size());
     assertEquals(PROPERTY_A, setProps.iterator().next());
     // ---
-    PREDICATE_3.accept(visitor);
+    PredicateHelper.visit(PREDICATE_3, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -99,7 +100,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_3, simplifiedPredicates.get(0));
 
     // ---
-    PREDICATE_4.accept(visitor);
+    PredicateHelper.visit(PREDICATE_4, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -108,7 +109,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_2, simplifiedPredicates.get(1));
 
     // ---
-    PREDICATE_6.accept(visitor);
+    PredicateHelper.visit(PREDICATE_6, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -118,7 +119,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_2, simplifiedPredicates.get(2));
 
     // ---
-    PREDICATE_8.accept(visitor);
+    PredicateHelper.visit(PREDICATE_8, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -129,7 +130,7 @@ public class SimplifyingPredicateVisitorTest {
     Assert.assertEquals(PREDICATE_7, simplifiedPredicates.get(3));
 
     // ---
-    PREDICATE_9.accept(visitor);
+    PredicateHelper.visit(PREDICATE_9, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -137,7 +138,7 @@ public class SimplifyingPredicateVisitorTest {
 //    Assert.assertEquals(???, simplifiedPredicates.get(0));
 
     // ---
-    PREDICATE_11.accept(visitor);
+    PredicateHelper.visit(PREDICATE_11, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -145,7 +146,7 @@ public class SimplifyingPredicateVisitorTest {
 //    Assert.assertEquals(???, simplifiedPredicates.get(0));
 
     // ---
-    PREDICATE_16.accept(visitor);
+    PredicateHelper.visit(PREDICATE_16, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -160,7 +161,7 @@ public class SimplifyingPredicateVisitorTest {
     replay(provider);
 
     // ---
-    PREDICATE_13.accept(visitor);
+    PredicateHelper.visit(PREDICATE_13, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 
@@ -173,7 +174,7 @@ public class SimplifyingPredicateVisitorTest {
     replay(provider);
 
     // ---
-    PREDICATE_15.accept(visitor);
+    PredicateHelper.visit(PREDICATE_15, visitor);
 
     simplifiedPredicates = visitor.getSimplifiedPredicates();
 

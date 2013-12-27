@@ -39,7 +39,9 @@
     <skipTests>false</skipTests>
     <facter.tar>http://downloads.puppetlabs.com/facter/facter-1.6.10.tar.gz</facter.tar>
     <puppet.tar>http://downloads.puppetlabs.com/puppet/puppet-2.7.9.tar.gz</puppet.tar>
-    <install.dir>/usr/lib/python2.6/site-packages/ambari_agent</install.dir>
+    <agent.install.dir>/usr/lib/python2.6/site-packages/ambari_agent</agent.install.dir>
+    <resmgmt.install.dir>/usr/lib/python2.6/site-packages/resource_management</resmgmt.install.dir>
+    <jinja.install.dir>/usr/lib64/python2.6/site-packages/jinja2</jinja.install.dir>
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
@@ -60,6 +62,33 @@
   </profiles>
   <build>
     <plugins>
+      <plugin>
+         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+              <value>${project.version}</value>
+              <regex>-SNAPSHOT</regex>
+              <replacement></replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
@@ -95,7 +124,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/src/main/python:${project.basedir}/../ambari-agent/src/main/puppet/modules/hdp-hadoop/files:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
@@ -165,10 +194,18 @@
           <autoRequires>false</autoRequires>
           <mappings>
             <mapping>
-              <directory>${install.dir}</directory>
+              <directory>${agent.install.dir}</directory>
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${resmgmt.install.dir}</directory>
+              <sources>
+                <source>
+                  <location>${project.build.directory}/${project.artifactId}-${project.version}/resource_management</location>
                 </source>
               </sources>
             </mapping>
@@ -180,6 +217,17 @@
               <sources>
                 <source>
                   <location>${project.build.directory}/lib</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${jinja.install.dir}</directory>
+              <sources>
+                <source>
+                  <location>${project.basedir}/../ambari-common/src/main/python/jinja2/jinja2</location>
+                  <excludes>
+                    <exclude>${project.basedir}/../ambari-common/src/main/python/jinja2/jinja2/testsuite</exclude>
+                  </excludes>
                 </source>
               </sources>
             </mapping>
@@ -206,17 +254,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/${project.artifactId}/upgrade_stack</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>src/main/upgrade_stack</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/etc/ambari-agent/conf</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -232,9 +269,11 @@
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded>
               <sources>
                 <source>
                   <location>conf/unix/ambari-agent</location>
+                  <filter>true</filter>
                 </source>
               </sources>
             </mapping>
@@ -274,12 +313,6 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/var/ambari-agent</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
               <directory>/etc/rc.d/init.d</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -298,10 +331,31 @@
               <sources>
                 <source>
                   <location>../version</location>
+                  <filter>true</filter>
                 </source>
               </sources>
             </mapping>
-            <!-- -->
+            <mapping>
+              <!-- TODO: Remove when we introduce metadata downloading by agent-->
+              <directory>/var/lib/ambari-agent/cache/stacks</directory>
+              <sources>
+                <source>
+                  <location>../ambari-server/src/main/resources/stacks</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <!-- custom actions root-->
+              <directory>/var/lib/ambari-agent/resources</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>../ambari-server/src/main/resources/custom_actions</location>
+                </source>
+              </sources>
+            </mapping>
           </mappings>
         </configuration>
       </plugin>
@@ -352,6 +406,22 @@
           </excludes>
         </configuration>
       </plugin>
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>${buildnumber-maven-plugin-version}</version>
+          <configuration>
+              <urlScm>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-ambari.git</urlScm>
+          </configuration>    
+          <executions>
+              <execution>
+                  <phase>validate</phase>
+                  <goals>
+                      <goal>create</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>      
     </plugins>
     <extensions>
       <extension>

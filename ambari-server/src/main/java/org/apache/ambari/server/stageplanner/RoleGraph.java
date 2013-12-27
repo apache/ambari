@@ -133,7 +133,7 @@ public class RoleGraph {
 
     Stage newStage = new Stage(origStage.getRequestId(),
         origStage.getLogDir(), origStage.getClusterName(),
-        origStage.getRequestContext());
+        origStage.getRequestContext(), origStage.getClusterHostInfo());
     newStage.setSuccessFactors(origStage.getSuccessFactors());
     for (RoleGraphNode rgn : stageGraphNodes) {
       for (String host : rgn.getHosts()) {

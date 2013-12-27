@@ -49,4 +49,9 @@ public class LessPredicate<T> extends ComparisonPredicate<T> {
   public String getOperator() {
     return "<";
   }
+
+  @Override
+  public ComparisonPredicate<T> copy(String propertyId) {
+    return new LessPredicate<T>(propertyId, getValue());
+  }
 }

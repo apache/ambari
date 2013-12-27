@@ -18,10 +18,9 @@
 package org.apache.ambari.server.agent;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
@@ -40,21 +39,24 @@ public class ExecutionCommand extends AgentCommand {
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
+
+
   private String clusterName;
   private long taskId;
   private String commandId;
   private String hostname;
-  private Role role;
+  private String role;
   private Map<String, String> hostLevelParams = new HashMap<String, String>();
   private Map<String, String> roleParams = null;
   private RoleCommand roleCommand;
-  private Map<String, List<String>> clusterHostInfo = 
-      new HashMap<String, List<String>>();
+  private Map<String, Set<String>> clusterHostInfo = 
+      new HashMap<String, Set<String>>();
   private Map<String, Map<String, String>> configurations;
   private Map<String, Map<String, String>> configurationTags;
   private Map<String, String> commandParams;
   private String serviceName;
-  
+  private String componentName;
+
   @JsonProperty("commandId")
   public String getCommandId() {
     return this.commandId;
@@ -103,12 +105,12 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   @JsonProperty("role")
-  public Role getRole() {
+  public String getRole() {
     return role;
   }
 
   @JsonProperty("role")
-  public void setRole(Role role) {
+  public void setRole(String role) {
     this.role = role;
   }
 
@@ -163,12 +165,12 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   @JsonProperty("clusterHostInfo")
-  public Map<String, List<String>> getClusterHostInfo() {
+  public Map<String, Set<String>> getClusterHostInfo() {
     return clusterHostInfo;
   }
 
   @JsonProperty("clusterHostInfo")
-  public void setClusterHostInfo(Map<String, List<String>> clusterHostInfo) {
+  public void setClusterHostInfo(Map<String, Set<String>> clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo;
   }
   
@@ -202,6 +204,16 @@ public class ExecutionCommand extends AgentCommand {
     this.serviceName = serviceName;
   }
 
+  @JsonProperty("componentName")
+  public String getComponentName() {
+    return componentName;
+  }
+
+  @JsonProperty("componentName")
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
+  }
+
   /**
    * @param configTags the config tag map
    */
@@ -214,6 +226,40 @@ public class ExecutionCommand extends AgentCommand {
    */
   public Map<String, Map<String, String>> getConfigurationTags() {
     return configurationTags;
+  }
+
+
+  /**
+   * Contains key name strings. These strings are used inside maps
+   * incapsulated inside command.
+   */
+  public static interface KeyNames {
+
+    String SCHEMA_VERSION = "schema_version";
+    String COMMAND_TIMEOUT = "command_timeout";
+    String SCRIPT = "script";
+    String SCRIPT_TYPE = "script_type";
+    String SERVICE_METADATA_FOLDER = "service_metadata_folder";
+    String STACK_NAME = "stack_name";
+    String STACK_VERSION = "stack_version";
+    String SERVICE_REPO_INFO = "service_repo_info";
+    String PACKAGE_LIST = "package_list";
+    String JDK_LOCATION = "jdk_location";
+    String MYSQL_JDBC_URL = "mysql_jdbc_url";
+    String ORACLE_JDBC_URL = "oracle_jdbc_url";
+    String DB_DRIVER_FILENAME = "db_driver_filename";
+    String REPO_INFO = "repo_info";
+    String DB_NAME = "db_name";
+    String GLOBAL = "global";
+    String AMBARI_DB_RCA_URL = "ambari_db_rca_url";
+    String AMBARI_DB_RCA_DRIVER = "ambari_db_rca_driver";
+    String AMBARI_DB_RCA_USERNAME = "ambari_db_rca_username";
+    String AMBARI_DB_RCA_PASSWORD = "ambari_db_rca_password";
+    String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
+
+    String COMMAND_TIMEOUT_DEFAULT = "600"; // TODO: Will be replaced by proper initialization in another jira
+    String CUSTOM_COMMAND = "custom_command";
+
   }
 
 }

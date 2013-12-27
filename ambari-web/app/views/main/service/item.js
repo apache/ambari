@@ -23,44 +23,63 @@ App.MainServiceItemView = Em.View.extend({
   maintenance: function(){
     var options = [];
     var service = this.get('controller.content');
-    switch(service.get('serviceName')) {
-//      case 'HDFS':
-//        options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
-//        break;
-//      case 'HBASE':
-//        options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
-//        break;
+    var hosts = App.Host.find().content.length;
+    var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
+    var disabled = this.get('controller.isStopDisabled');
+    switch (service.get('serviceName')) {
       case 'GANGLIA':
       case 'NAGIOS':
-        this.get('controller.content.hostComponents').filterProperty('isMaster').forEach (function (hostComponent){
-          options.push({action: 'reassignMaster', context: hostComponent, 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent.get('displayName'))});
-        })
         break;
-      case 'HIVE':
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-        options.push({action: 'reassignMaster', context: App.HostComponent.find().findProperty('componentName', 'HIVE_METASTORE'), 'label': Em.I18n.t('services.service.actions.reassign.master').format(App.HostComponent.find().findProperty('componentName', 'HIVE_METASTORE').get('displayName'))});
-        options.push({action: 'reassignMaster', context: App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER'), 'label': Em.I18n.t('services.service.actions.reassign.master.hive')});
-        break;
-      case 'WEBHCAT':
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-        options.push({action: 'reassignMaster', context: App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER'), 'label': Em.I18n.t('services.service.actions.reassign.master.hive')});
-        break;
-      case 'HUE':
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-        break;
+      case 'YARN':
+      case 'HDFS':
+      case 'MAPREDUCE':
+        if (App.supports.reassignMaster && hosts > 1) {
+          allMasters.forEach(function (hostComponent) {
+            if (App.reassignableComponents.contains(hostComponent)) {
+              options.push({action: 'reassignMaster', context: hostComponent,
+                'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
+            }
+          })
+        }
       default:
-        var components = this.get('controller.content.hostComponents');
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-        components.filterProperty('isMaster').mapProperty('displayName').uniq().forEach (function (hostComponent){
-          options.push({action: 'reassignMaster', context: components.findProperty('displayName', hostComponent), 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent)});
-        })
+        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke').format(service.get('serviceName')), disabled:disabled});
     }
     return options;
-  }.property('controller.content'),
-  hasMaintenanceControl: function(){
-    return this.get("controller.content.isMaintained");
-  }.property('controller.content.isMaintained'),
+  }.property('controller.content', 'controller.isStopDisabled'),
+  isMaintenanceActive: function() {
+    return this.get('maintenance').length !== 0;
+  }.property('maintenance'),
   hasConfigTab: function(){
     return this.get("controller.content.isConfigurable");
-  }.property('controller.content.isConfigurable')
+  }.property('controller.content.isConfigurable'),
+
+  didInsertElement: function () {
+    this.get('controller').setStartStopState();
+  },
+  service:function () {
+    var svc = this.get('controller.content');
+    var svcName = svc.get('serviceName');
+    if (svcName) {
+      switch (svcName.toLowerCase()) {
+        case 'hdfs':
+          svc = App.HDFSService.find().objectAt(0);
+          break;
+        case 'yarn':
+          svc = App.YARNService.find().objectAt(0);
+          break;
+        case 'mapreduce':
+          svc = App.MapReduceService.find().objectAt(0);
+          break;
+        case 'hbase':
+          svc = App.HBaseService.find().objectAt(0);
+          break;
+        case 'flume':
+          svc = App.FlumeService.find().objectAt(0);
+          break;
+        default:
+          break;
+      }
+    }
+    return svc;
+  }.property('controller.content.serviceName').volatile()
 });

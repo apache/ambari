@@ -25,67 +25,66 @@ class hdp-hbase::params() inherits hdp::params
   $hbase_user = $hdp::params::hbase_user
   
   ### hbase-env
-  $hadoop_conf_dir = hdp_default("hadoop/hbase-env/hadoop_conf_dir")
+  $hadoop_conf_dir = hdp_default("hadoop_conf_dir")
   $conf_dir = $hdp::params::hbase_conf_dir
 
-  $hbase_log_dir = hdp_default("hadoop/hbase-env/hbase_log_dir","/var/log/hbase")
+  $hbase_log_dir = hdp_default("hbase_log_dir","/var/log/hbase")
 
-  $hbase_master_heapsize = hdp_default("hadoop/hbase-env/hbase_master_heapsize","1000m")
+  $hbase_master_heapsize = hdp_default("hbase_master_heapsize","1000m")
 
-  $hbase_pid_dir = hdp_default("hadoop/hbase-env/hbase_pid_dir","/var/run/hbase")
+  $hbase_pid_dir = hdp_default("hbase_pid_dir","/var/run/hbase")
 
-  $hbase_regionserver_heapsize = hdp_default("hadoop/hbase-env/hbase_regionserver_heapsize","1000m")
+  $hbase_regionserver_heapsize = hdp_default("hbase_regionserver_heapsize","1000m")
 
   $hbase_regionserver_xmn_size = hdp_calc_xmn_from_xms("$hbase_regionserver_heapsize","0.2","512")
 
   ### hbase-site.xml
-  $hbase_hdfs_root_dir = hdp_default("hadoop/hbase-site/hbase_hdfs_root_dir","/apps/hbase/data")
-
-  $hbase_tmp_dir = hdp_default("hadoop/hbase-site/hbase_tmp_dir","$hbase_log_dir")
+  $hbase_tmp_dir = hdp_default("hbase-site/hbase.tmp.dir","$hbase_log_dir")
 
 
   #TODO: check if any of these 'hdfs' vars need to be euated with vars in hdp-hadoop
-  $hdfs_enable_shortcircuit_read = hdp_default("hadoop/hbase-site/hdfs_enable_shortcircuit_read",true)
+  $hdfs_enable_shortcircuit_read = hdp_default("hbase-site/hdfs.enable.shortcircuit.read",true)
 
-  $hdfs_enable_shortcircuit_skipchecksum = hdp_default("hadoop/hbase-site/hdfs_enable_shortcircuit_skipchecksum",false)
+  $hdfs_enable_shortcircuit_skipchecksum = hdp_default("hbase-site/hdfs.enable.shortcircuit.skipchecksum",false)
 
-  $hdfs_support_append = hdp_default("hadoop/hbase-site/hdfs_support_append",true)
+  $hdfs_support_append = hdp_default("hbase-site/hdfs.support.append",true)
 
-  $hfile_blockcache_size = hdp_default("hadoop/hbase-site/hfile_blockcache_size","0.25")
+  $hfile_blockcache_size = hdp_default("hbase-site/hfile.blockcache.size","0.25")
 
-  $hfile_max_keyvalue_size = hdp_default("hadoop/hbase-site/hfile_max_keyvalue_size",10485760)
+  $hfile_max_keyvalue_size = hdp_default("hbase-site/hfile.max.keyvalue.size",10485760)
 
-  $zookeeper_sessiontimeout = hdp_default("hadoop/hbase-site/zookeeper_sessiontimeout",60000)
+  $zookeeper_sessiontimeout = hdp_default("hbase-site/zookeeper.sessiontimeout",60000)
 
-  $client_scannercaching = hdp_default("hadoop/hbase-site/client_scannercaching",100)
+  $client_scannercaching = hdp_default("hbase-site/client.scannercaching",100)
 
-  $hstore_blockingstorefiles = hdp_default("hadoop/hbase-site/hstore_blockingstorefiles",7)
+  $hstore_blockingstorefiles = hdp_default("hbase-site/hstore.blockingstorefiles",7)
 
-  $hstore_compactionthreshold = hdp_default("hadoop/hbase-site/hstore_compactionthreshold",3)
+  $hstore_compactionthreshold = hdp_default("hbase-site/hstore.compactionthreshold",3)
 
-  $hstorefile_maxsize = hdp_default("hadoop/hbase-site/hstorefile_maxsize",1073741824)
+  $hstorefile_maxsize = hdp_default("hbase-site/hstorefile.maxsize",1073741824)
 
-  $hregion_blockmultiplier = hdp_default("hadoop/hbase-site/hregion_blockmultiplier",2)
+  $hregion_blockmultiplier = hdp_default("hbase-site/hregion.blockmultiplier",2)
 
-  $hregion_memstoreflushsize = hdp_default("hadoop/hbase-site/hregion_memstoreflushsize",134217728)
+  $hregion_memstoreflushsize = hdp_default("hbase-site/hregion.memstoreflushsize",134217728)
 
-  $regionserver_handlers = hdp_default("hadoop/hbase-site/regionserver_handlers", 30)
+  $regionserver_handlers = hdp_default("hbase-site/regionserver.handlers", 30)
 
-  $hregion_majorcompaction = hdp_default("hadoop/hbase-site/hregion_majorcompaction", 86400000)
+  $hregion_majorcompaction = hdp_default("hbase-site/hregion.majorcompaction", 86400000)
 
-  $preloaded_mastercoprocessor_classes = hdp_default("hadoop/hbase-site/preloaded_mastercoprocessor_classes")
+  $preloaded_mastercoprocessor_classes = hdp_default("hbase-site/preloaded.mastercoprocessor.classes")
 
-  $preloaded_regioncoprocessor_classes = hdp_default("hadoop/hbase-site/preloaded_regioncoprocessor_classes")
+  $preloaded_regioncoprocessor_classes = hdp_default("hbase-site/preloaded.regioncoprocessor.classes")
 
-  $regionserver_memstore_lab = hdp_default("hadoop/hbase-site/regionserver_memstore_lab",true)
+  $regionserver_memstore_lab = hdp_default("hbase-site/regionserver.memstore.lab",true)
 
-  $regionserver_memstore_lowerlimit = hdp_default("hadoop/hbase-site/regionserver_memstore_lowerlimit","0.35")
+  $regionserver_memstore_lowerlimit = hdp_default("hbase-site/regionserver.memstore.lowerlimit","0.35")
 
-  $regionserver_memstore_upperlimit = hdp_default("hadoop/hbase-site/regionserver_memstore_upperlimit","0.4")
+  $regionserver_memstore_upperlimit = hdp_default("hbase-site/regionserver.memstore.upperlimit","0.4")
 
-  $hbase_client_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_client_jaas_config_file", "${conf_dir}/hbase_client_jaas.conf")
-  $hbase_master_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_master_jaas_config_file", "${conf_dir}/hbase_master_jaas.conf")
-  $hbase_regionserver_jaas_config_file = hdp_default("hadoop/hbase-site/hbase_regionserver_jaas_config_file", "${conf_dir}/hbase_regionserver_jaas.conf")
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
+  $hbase_client_jaas_config_file = hdp_default("hbase_client_jaas_config_file", "${conf_dir}/hbase_client_jaas.conf")
+  $hbase_master_jaas_config_file = hdp_default("hbase_master_jaas_config_file", "${conf_dir}/hbase_master_jaas.conf")
+  $hbase_regionserver_jaas_config_file = hdp_default("hbase_regionserver_jaas_config_file", "${conf_dir}/hbase_regionserver_jaas.conf")
 
   $hbase_master_keytab_path = hdp_default("hbase-site/hbase.master.keytab.file", "${keytab_path}/hbase.service.keytab")
   $hbase_master_principal = hdp_default("hbase-site/hbase.master.kerberos.principal", "hbase/_HOST@${kerberos_domain}")
@@ -95,8 +94,17 @@ class hdp-hbase::params() inherits hdp::params
   $hbase_primary_name = hdp_default("hbase_primary_name", "hbase")
   $hostname = $hdp::params::hostname
   if ($use_hostname_in_principal) {
-    $hbase_jaas_princ = "${hbase_primary_name}/${hostname}@${kerberos_domain}"
+    $hbase_master_jaas_princ = "${hbase_master_primary_name}/${hostname}@${kerberos_domain}"
+    $hbase_regionserver_jaas_princ = "${hbase_regionserver_primary_name}/${hostname}@${kerberos_domain}"
   } else {
-    $hbase_jaas_princ = "${hbase_primary_name}@${kerberos_domain}"
+    $hbase_master_jaas_princ = "${hbase_master_principal_name}@${kerberos_domain}"
+    $hbase_regionserver_jaas_princ = "${hbase_regionserver_primary_name}@${kerberos_domain}"
   }
+
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    $metric-prop-file-name = "hadoop-metrics2-hbase.properties"
+  } else {
+    $metric-prop-file-name = "hadoop-metrics.properties"
+  }
+  $smokeuser_permissions = hdp_default("smokeuser_permissions", "RWXCA")
 }

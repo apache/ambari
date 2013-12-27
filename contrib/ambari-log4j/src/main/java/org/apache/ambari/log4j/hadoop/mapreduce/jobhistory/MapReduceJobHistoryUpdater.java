@@ -162,9 +162,7 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
                 "workflowContext = ?, " +
                 "numJobsTotal = ?, " +
                 "lastUpdateTime = ?, " +
-                "duration = ? - (SELECT startTime FROM " +
-                WORKFLOW_TABLE +
-                " WHERE workflowId = ?) " +
+                "duration = ? - startTime " +
                 "WHERE workflowId = ?"
             );
     
@@ -174,20 +172,31 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
                 WORKFLOW_TABLE +
                 " SET " +
                 "lastUpdateTime = ?, " +
-                "duration = ? - (SELECT startTime FROM " +
-                WORKFLOW_TABLE +
-                " WHERE workflowId = selectid), " +
-                "numJobsCompleted = rows, " +
-                "inputBytes = input, " +
-                "outputBytes = output " +
-            "FROM (SELECT count(*) as rows, sum(inputBytes) as input, " +
-                "sum(outputBytes) as output, workflowId as selectid FROM " +
-                JOB_TABLE +
+                "duration = ? - startTime, " +
+                "numJobsCompleted = (" +
+                  "SELECT count(*)" +
+                  " FROM " +
+                  JOB_TABLE +
+                  " WHERE " +
+                  "workflowId = " + WORKFLOW_TABLE + ".workflowId" +
+                  " AND status = 'SUCCESS'), " +
+                "inputBytes = (" +
+                  "SELECT sum(inputBytes)" +
+                  " FROM " +
+                  JOB_TABLE +
+                  " WHERE " +
+                  "workflowId = " + WORKFLOW_TABLE + ".workflowId" +
+                  " AND status = 'SUCCESS'), " +
+                "outputBytes = (" +
+                  "SELECT sum(outputBytes)" +
+                  " FROM " +
+                  JOB_TABLE +
+                  " WHERE " +
+                  "workflowId = " + WORKFLOW_TABLE + ".workflowId" +
+                  " AND status = 'SUCCESS') " +
                 " WHERE workflowId = (SELECT workflowId FROM " +
                 JOB_TABLE +
-                " WHERE jobId = ?) AND status = 'SUCCESS' " +
-                "GROUP BY workflowId) as jobsummary " +
-            "WHERE workflowId = selectid"
+                " WHERE jobId = ?)"
             );
     
     // JobFinishedEvent
@@ -726,7 +735,6 @@ public class MapReduceJobHistoryUpdater implements LogStoreUpdateProvider {
         workflowUpdateTimePS.setLong(3, historyEvent.getSubmitTime());
         workflowUpdateTimePS.setLong(4, historyEvent.getSubmitTime());
         workflowUpdateTimePS.setString(5, workflowContext.getWorkflowId());
-        workflowUpdateTimePS.setString(6, workflowContext.getWorkflowId());
         workflowUpdateTimePS.executeUpdate();
         LOG.debug("Successfully updated workflowId = " + 
             workflowContext.getWorkflowId());

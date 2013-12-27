@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
@@ -36,11 +37,12 @@ public class GangliaComponentPropertyProvider extends GangliaPropertyProvider {
 
   public GangliaComponentPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
                                           StreamProvider streamProvider,
+                                          ComponentSSLConfiguration configuration,
                                           GangliaHostProvider hostProvider,
                                           String clusterNamePropertyId,
                                           String componentNamePropertyId) {
 
-    super(componentMetrics, streamProvider, hostProvider,
+    super(componentMetrics, streamProvider, configuration, hostProvider,
         clusterNamePropertyId, null, componentNamePropertyId);
   }
 

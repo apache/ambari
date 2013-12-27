@@ -20,11 +20,51 @@ View Component Information
 
 [Back to Resources](index.md#resources)
 
-Refers to a specific component identified by ":componentName" for a given service.
+**Summary**
+
+Return the component identified by ":componentName" for for the service identifired by ":serviceName".
 
     GET /clusters/:name/services/:serviceName/components/:componentName
 
 **Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+
+**Example**
+
+
+    GET /clusters/c1/services/HDFS/components/DATANODE
 
     200 OK
     {

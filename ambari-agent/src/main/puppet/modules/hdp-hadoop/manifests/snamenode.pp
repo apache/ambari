@@ -25,7 +25,7 @@ class hdp-hadoop::snamenode(
 {
   $hdp::params::service_exists['hdp-hadoop::snamenode'] = true
 
-  Hdp-hadoop::Common<||>{service_states +> $service_state}
+  Hdp-hadoop::Common<||>{service_state => $service_state}
   Hdp-hadoop::Package<||>{include_64_bit => true}
   Hdp-hadoop::Configfile<||>{sizes +> 64}
 
@@ -52,7 +52,7 @@ class hdp-hadoop::snamenode(
           keytabfile => 'spnego.service.keytab', 
           owner => $hdp-hadoop::params::hdfs_user,
           mode => '0440',
-          group => 'hadoop'
+          group => $hdp::params::user_group
         }
       }
     }
@@ -79,8 +79,8 @@ class hdp-hadoop::snamenode(
     }
   
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['secondarynamenode']
-    Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['secondarynamenode']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> ->
+      Hdp-hadoop::Service['secondarynamenode'] -> Anchor['hdp-hadoop::end']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

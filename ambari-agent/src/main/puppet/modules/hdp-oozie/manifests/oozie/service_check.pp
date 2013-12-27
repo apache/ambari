@@ -23,40 +23,50 @@ class hdp-oozie::oozie::service_check()
   include hdp-oozie::params
 
   $smoke_shell_files = ['oozieSmoke.sh']
+
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    $smoke_test_file_name = 'oozieSmoke2.sh'
+  } else {
+    $smoke_test_file_name = 'oozieSmoke.sh'
+  }
+
   anchor { 'hdp-oozie::oozie::service_check::begin':}
 
-  hdp-oozie::smoke_shell_file { $smoke_shell_files: }
+  hdp-oozie::smoke_shell_file { $smoke_shell_files:
+    smoke_shell_file_name => $smoke_test_file_name
+  }
 
   anchor{ 'hdp-oozie::oozie::service_check::end':}
 }
 
-define hdp-oozie::smoke_shell_file()
+define hdp-oozie::smoke_shell_file(
+  $smoke_shell_file_name
+)
 {
   $smoke_test_user = $hdp::params::smokeuser
   $conf_dir = $hdp::params::oozie_conf_dir
   $hadoopconf_dir = $hdp::params::hadoop_conf_dir 
   $security_enabled=$hdp::params::security_enabled
-  $jt_host=$hdp::params::jtnode_host
-  $nn_host=$hdp::params::namenode_host
+  $kinit_path_local = $hdp::params::kinit_path_local
   if ($security_enabled == true) {
     $security = "true"
   } else {
     $security = "false"
   }
-  $smoke_user_keytab = "${hdp-oozie::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $realm=$hdp::params::kerberos_domain
 
-  file { '/tmp/oozieSmoke.sh':
+  file { "/tmp/${smoke_shell_file_name}":
     ensure => present,
-    source => "puppet:///modules/hdp-oozie/oozieSmoke.sh",
+    source => "puppet:///modules/hdp-oozie/${smoke_shell_file_name}",
     mode => '0755'
   }
 
-  exec { '/tmp/oozieSmoke.sh':
-    command   => "sh /tmp/oozieSmoke.sh ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_host $nn_host",
+  exec { "/tmp/${smoke_shell_file_name}":
+    command   => "sh /tmp/${smoke_shell_file_name} ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${kinit_path_local}",
     tries     => 3,
     try_sleep => 5,
-    require   => File['/tmp/oozieSmoke.sh'],
+    require   => File["/tmp/${smoke_shell_file_name}"],
     path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
     logoutput => "true"
   }

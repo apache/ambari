@@ -179,17 +179,6 @@ public class ServiceService extends BaseService {
 
     return new ComponentService(m_clusterName, serviceName);
   }
-  
-  /**
-   * Get the components sub-resource.
-   *
-   * @param serviceName service id
-   * @return the action service
-   */
-  @Path("{serviceName}/actions")
-  public ActionService getActionHandler(@PathParam("serviceName") String serviceName) {
-    return new ActionService(m_clusterName, serviceName);
-  }
 
   /**
    * Create a service resource instance.

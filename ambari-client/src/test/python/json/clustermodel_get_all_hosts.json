@@ -1,0 +1,375 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1/hosts?fields=*",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/dev05.hortonworks.com",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "cpu_count" : 4,
+        "disk_info" : [
+          {
+            "available" : "43515968",
+            "used" : "7566036",
+            "percent" : "15%",
+            "size" : "51606140",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "5517988",
+            "used" : "260",
+            "percent" : "1%",
+            "size" : "5518248",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "432210",
+            "used" : "38034",
+            "percent" : "9%",
+            "size" : "495844",
+            "type" : "ext4",
+            "mountpoint" : "/boot"
+          },
+          {
+            "available" : "44459872",
+            "used" : "184220",
+            "percent" : "1%",
+            "size" : "47033288",
+            "type" : "ext4",
+            "mountpoint" : "/home"
+          },
+          {
+            "available" : "57923596",
+            "used" : "918733808",
+            "percent" : "95%",
+            "size" : "976657404",
+            "type" : "vboxsf",
+            "mountpoint" : "/media/sf_share"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "dev05.hortonworks.com",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "10.0.2.15",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [
+            {
+              "name" : "/etc/hadoop",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/hbase",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/hcatalog",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/hive",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/ganglia",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/nagios",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/oozie",
+              "type" : "directory"
+            },
+            {
+              "name" : "/etc/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hive",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hadoop-hdfs",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hadoop-yarn",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/run/hadoop-mapreduce",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hbase",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hive",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/oozie",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hadoop-hdfs",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hadoop-yarn",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/log/hadoop-mapreduce",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/hadoop",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/hbase",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/hive",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/nagios",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/oozie",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/zookeeper",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/hadoop-hdfs",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/hadoop-yarn",
+              "type" : "directory"
+            },
+            {
+              "name" : "/usr/lib/hadoop-mapreduce",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/lib/ganglia",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/lib/oozie",
+              "type" : "directory"
+            },
+            {
+              "name" : "/var/lib/zookeeper",
+              "type" : "directory"
+            }
+          ],
+          "rpms" : [ ],
+          "alternatives" : [
+            {
+              "name" : "hcatalog-conf",
+              "target" : "/etc/hcatalog/conf.dist"
+            },
+            {
+              "name" : "zookeeper-conf",
+              "target" : "/etc/zookeeper/conf.dist"
+            },
+            {
+              "name" : "hadoop-conf",
+              "target" : "/etc/hadoop/conf.empty"
+            },
+            {
+              "name" : "hbase-conf",
+              "target" : "/etc/hbase/conf.dist"
+            },
+            {
+              "name" : "hive-conf",
+              "target" : "/etc/hive/conf.dist"
+            },
+            {
+              "name" : "oozie-conf",
+              "target" : "/etc/oozie/conf.dist"
+            }
+          ],
+          "existingUsers" : [
+            {
+              "userName" : "rrdcached",
+              "userHomeDir" : "/var/rrdtool/rrdcached",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "zookeeper",
+              "userHomeDir" : "/var/run/zookeeper",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "hdfs",
+              "userHomeDir" : "/var/lib/hadoop-hdfs",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "hbase",
+              "userHomeDir" : "/var/run/hbase",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "yarn",
+              "userHomeDir" : "/var/lib/hadoop-yarn",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "mapred",
+              "userHomeDir" : "/var/lib/hadoop-mapreduce",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "hive",
+              "userHomeDir" : "/var/lib/hive",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "hcat",
+              "userHomeDir" : "/usr/lib/hcatalog",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "oozie",
+              "userHomeDir" : "/var/run/oozie",
+              "userStatus" : "Available"
+            },
+            {
+              "userName" : "nagios",
+              "userHomeDir" : "/var/log/nagios",
+              "userStatus" : "Available"
+            }
+          ],
+          "existingRepos" : [
+            "HDP-2.0.5"
+          ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [
+              {
+                "user" : "root",
+                "pid" : 2716,
+                "command" : "/usr/bin/java -Dosgi.requiredJavaVersion=1.6 -XX:MaxPermSize=256m -Xms40m -Xmx512m -jar /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher_1.3.0.v20130327-1440.jar -os linux -ws gtk -arch x86_64 -showsplash /usr/lib/eclipse//plugins/org.eclipse.platform_4.3.0.v20130605-2000/splash.bmp -launcher /usr/lib/eclipse/eclipse -name Eclipse --launcher.library /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher.gtk.linux.x86_64_1.1.200.v20130521-0416/eclipse_1506.so -startup /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher_1.3.0.v20130327-1440.jar --launcher.appendVmargs -exitdata 8000d -product org.eclipse.epp.package.jee.product -vm /usr/bin/java -vmargs -Dosgi.requiredJavaVersion=1.6 -XX:MaxPermSize=256m -Xms40m -Xmx512m -jar /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher_1.3.0.v20130327-1440.jar",
+                "hadoop" : false
+              }
+            ],
+            "agentTimeStampAtReporting" : 1379683509805,
+            "serverTimeStampAtReporting" : 1379683509851,
+            "liveServices" : [
+              {
+                "name" : "ntpd",
+                "desc" : "",
+                "status" : "Healthy"
+              }
+            ],
+            "diskStatus" : [
+              {
+                "available" : "43516404",
+                "used" : "7565600",
+                "percent" : "15%",
+                "size" : "51606140",
+                "type" : "ext4",
+                "mountpoint" : "/"
+              }
+            ]
+          },
+          "umask" : 18
+        },
+        "last_heartbeat_time" : 1379683560126,
+        "last_registration_time" : 1379683395402,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "dev05.hortonworks.com",
+        "rack_info" : "/default-rack",
+        "total_mem" : 11041505,
+        "desired_configs" : { }
+      },
+      "host_components" : [ ]
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/dev06.hortonworks.com",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "cpu_count" : 4,
+        "disk_info" : [
+          {
+            "available" : "45333752",
+            "used" : "5748252",
+            "percent" : "12%",
+            "size" : "51606140",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "5517976",
+            "used" : "272",
+            "percent" : "1%",
+            "size" : "5518248",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "432210",
+            "used" : "38034",
+            "percent" : "9%",
+            "size" : "495844",
+            "type" : "ext4",
+            "mountpoint" : "/boot"
+          },
+          {
+            "available" : "44459840",
+            "used" : "184252",
+            "percent" : "1%",
+            "size" : "47033288",
+            "type" : "ext4",
+            "mountpoint" : "/home"
+          },
+          {
+            "available" : "136400692",
+            "used" : "840256712",
+            "percent" : "87%",
+            "size" : "976657404",
+            "type" : "vboxsf",
+            "mountpoint" : "/media/sf_share"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "dev06.hortonworks.com",
+        "host_state" : "HEARTBEAT_LOST",
+        "host_status" : "UNKNOWN",
+        "ip" : "10.0.2.15",
+        "last_agent_env" : null,
+        "last_heartbeat_time" : 0,
+        "last_registration_time" : 1378228232506,
+        "os_arch" : "x86_64",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "dev06.hortonworks.com",
+        "rack_info" : "/default-rack",
+        "total_mem" : 11041505,
+        "desired_configs" : { }
+      },
+      "host_components" : [ ]
+    }
+  ]
+}

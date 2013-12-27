@@ -15,30 +15,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.actionmanager.ActionDefinition;
 
+/**
+ * Used to respond to GET requests for actions
+ */
 public class ActionResponse {
-  private String clusterName; 
-
-  private String serviceName;
   
   private String actionName;
+  private String actionType;
+  private String inputs;
+  private String targetService;
+  private String targetComponent;
+  private String description;
+  private String targetType;
+  private String defaultTimeout;
 
-  public String getClusterName() {
-    return clusterName;
+  public ActionResponse(String actionName, String actionType, String inputs,
+      String targetService, String targetComponent, String description, String targetType,
+      String defaultTimeout) {
+    setActionName(actionName);
+    setActionType(actionType);
+    setInputs(inputs);
+    setTargetService(targetService);
+    setTargetComponent(targetComponent);
+    setDescription(description);
+    setTargetType(targetType);
+    setDefaultTimeout(defaultTimeout);
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public ActionResponse(ActionDefinition ad) {
+    this(ad.getActionName(), ad.getActionType().toString(), ad.getInputs(),
+        null == ad.getTargetService() ? "" : ad.getTargetService().toString(),
+        null == ad.getTargetComponent() ? "" : ad.getTargetComponent().toString(),
+        ad.getDescription(),
+        null == ad.getTargetType() ? "" : ad.getTargetType().toString(),
+        ad.getDefaultTimeout().toString());
   }
 
   public String getActionName() {
@@ -47,5 +62,125 @@ public class ActionResponse {
 
   public void setActionName(String actionName) {
     this.actionName = actionName;
+  }
+
+  public String getActionType() {
+    return actionType;
+  }
+
+  public void setActionType(String actionType) {
+    this.actionType = actionType;
+  }
+
+  public String getInputs() {
+    return inputs;
+  }
+
+  public void setInputs(String inputs) {
+    this.inputs = inputs;
+  }
+
+  public String getTargetService() {
+    return targetService;
+  }
+
+  public void setTargetService(String targetService) {
+    this.targetService = targetService;
+  }
+
+  public String getTargetComponent() {
+    return targetComponent;
+  }
+
+  public void setTargetComponent(String targetComponent) {
+    this.targetComponent = targetComponent;
+  }
+  
+  public String getDescription() {
+    return description;
+  }
+  
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getTargetType() {
+    return targetType;
+  }
+
+  public void setTargetType(String targetType) {
+    this.targetType = targetType;
+  }
+
+  public String getDefaultTimeout() {
+    return defaultTimeout;
+  }
+
+  public void setDefaultTimeout(String defaultTimeout) {
+    this.defaultTimeout = defaultTimeout;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ActionResponse that = (ActionResponse) o;
+
+    if (actionName != null ?
+        !actionName.equals(that.actionName) : that.actionName != null) {
+      return false;
+    }
+
+    if (actionType != null ?
+        !actionType.equals(that.actionType) : that.actionType != null) {
+      return false;
+    }
+
+    if (description != null ?
+        !description.equals(that.description) : that.description != null) {
+      return false;
+    }
+
+    if (inputs != null ?
+        !inputs.equals(that.inputs) : that.inputs != null) {
+      return false;
+    }
+
+    if (targetService != null ?
+        !targetService.equals(that.targetService) : that.targetService != null) {
+      return false;
+    }
+
+    if (targetComponent != null ?
+        !targetComponent.equals(that.targetComponent) : that.targetComponent != null) {
+      return false;
+    }
+
+    if (targetType != null ?
+        !targetType.equals(that.targetType) : that.targetType != null) {
+      return false;
+    }
+
+    if (defaultTimeout != null ?
+        !defaultTimeout.equals(that.defaultTimeout) : that.defaultTimeout != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 1;
+    result = 31 + (actionName != null ? actionName.hashCode() : 0);
+    result = result + (actionType != null ? actionType.hashCode() : 0);
+    result = result + (inputs != null ? inputs.hashCode() : 0);
+    result = result + (description != null ? description.hashCode() : 0);
+    result = result + (targetService != null ? targetService.hashCode() : 0);
+    result = result + (targetComponent != null ? targetComponent.hashCode() : 0);
+    result = result + (targetType != null ? targetType.hashCode() : 0);
+    result = result + (defaultTimeout != null ? defaultTimeout.hashCode() : 0);
+    return result;
   }
 }

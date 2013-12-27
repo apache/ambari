@@ -18,10 +18,11 @@
 
 
 var App = require('app');
-
 App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
+
+  serviceConfigs:require('data/service_configs'),
 
   totalSteps: 7,
 
@@ -50,8 +51,17 @@ App.AddServiceController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addServiceController'
+    controllerName: 'addServiceController',
+    configGroups: []
   }),
+
+  setCurrentStep: function (currentStep, completed) {
+    this._super(currentStep, completed);
+    App.clusterStatus.setClusterStatus({
+      wizardControllerName: this.get('name'),
+      localdb: App.db.data
+    });
+  },
 
   /**
    * return new object extended from clusterStatusTemplate
@@ -66,7 +76,7 @@ App.AddServiceController = App.WizardController.extend({
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function(){
-    var hosts = App.db.getHosts();
+    var hosts = this.getDBProperty('hosts');
     if(!hosts){
       var hosts = {};
 
@@ -80,7 +90,7 @@ App.AddServiceController = App.WizardController.extend({
           isInstalled: true
         };
       });
-      App.db.setHosts(hosts);
+      this.setDBProperty('hosts', hosts);
     }
 
     this.set('content.hosts', hosts);
@@ -91,7 +101,7 @@ App.AddServiceController = App.WizardController.extend({
    * Load services data from server.
    */
   loadServicesFromServer: function() {
-    if(App.db.getService()){
+    if(this.getDBProperty('service')){
       return;
     }
     var displayOrderConfig = require('data/services');
@@ -104,14 +114,14 @@ App.AddServiceController = App.WizardController.extend({
       apiService[index].isInstalled = apiService[index].isSelected;
     });
     this.set('content.services', apiService);
-    App.db.setService(apiService);
+    this.setDBProperty('service', apiService);
   },
 
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = App.db.getService();
+    var servicesInfo = this.getDBProperty('service');
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
     });
@@ -122,6 +132,9 @@ App.AddServiceController = App.WizardController.extend({
     console.log('selected services ', serviceNames);
 
     this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    if (this.get('content.skipSlavesStep')) {
+      this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
+    }
   },
 
   /**
@@ -129,16 +142,19 @@ App.AddServiceController = App.WizardController.extend({
    * @param stepController App.WizardStep4Controller
    */
   saveServices: function (stepController) {var serviceNames = [];
-    App.db.setService(stepController.get('content'));
+    this.setDBProperty('service', stepController.get('content'));
     console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
     stepController.filterProperty('isSelected', true).filterProperty('isInstalled', false).forEach(function (item) {
       serviceNames.push(item.serviceName);
     });
     this.set('content.selectedServiceNames', serviceNames);
-    App.db.setSelectedServiceNames(serviceNames);
+    this.setDBProperty('selectedServiceNames',serviceNames);
     console.log('AddServiceController.selectedServiceNames:', serviceNames);
 
     this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    if (this.get('content.skipSlavesStep')) {
+      this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
+    }
   },
 
   /**
@@ -161,17 +177,18 @@ App.AddServiceController = App.WizardController.extend({
     });
 
     console.log("AddServiceController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
-    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
 
     this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
   },
 
   /**
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts();
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
     if(!masterComponentHosts){
       masterComponentHosts = [];
       App.HostComponent.find().filterProperty('isMaster', true).forEach(function(item){
@@ -187,6 +204,48 @@ App.AddServiceController = App.WizardController.extend({
     console.log("AddServiceController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
 
     this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
+  },
+
+  /**
+   * Does service have any configs
+   * @param {string} serviceName
+   * @returns {boolean}
+   */
+  isServiceConfigurable: function(serviceName) {
+    return this.get('serviceConfigs').mapProperty('serviceName').contains(serviceName);
+  },
+
+  /**
+   * Should Config Step be skipped (based on selected services list)
+   * @returns {boolean}
+   */
+  skipConfigStep: function() {
+    var skipConfigStep = true;
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
+    selectedServices.map(function(serviceName) {
+      skipConfigStep = skipConfigStep && !this.isServiceConfigurable(serviceName);
+    }, this);
+    return skipConfigStep;
+  },
+
+  loadServiceConfigProperties: function() {
+    this._super();
+    if (!this.get('content.services')) {
+      this.loadServices();
+    }
+    if (this.get('currentStep') > 1 && this.get('currentStep') < 6) {
+      this.set('content.skipConfigStep', this.skipConfigStep());
+      this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
+    }
+  },
+
+  saveServiceConfigProperties: function(stepController) {
+    this._super(stepController);
+    if (this.get('currentStep') > 1 && this.get('currentStep') < 6) {
+      this.set('content.skipConfigStep', this.skipConfigStep());
+      this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
+    }
   },
 
   /**
@@ -201,10 +260,18 @@ App.AddServiceController = App.WizardController.extend({
     {
       name: 'TASKTRACKER',
       service: 'MAPREDUCE'
-    },{
+    },
+    {
       name: 'HBASE_REGIONSERVER',
       service: 'HBASE'
     }];
+
+    if (App.get('isHadoop2Stack')) {
+      components.push({
+        name: 'NODEMANAGER',
+        service: 'YARN'
+      });
+    }
 
     var result = [];
     var services = App.Service.find();
@@ -260,7 +327,7 @@ App.AddServiceController = App.WizardController.extend({
       componentName: 'CLIENT',
       displayName: 'client',
       hosts: hosts
-    })
+    });
 
     return result;
   },
@@ -269,7 +336,7 @@ App.AddServiceController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = App.db.getSlaveComponentHosts();
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts');
     if(!slaveComponentHosts){
       slaveComponentHosts = this.getSlaveComponentHosts();
     }
@@ -281,7 +348,7 @@ App.AddServiceController = App.WizardController.extend({
    * Load information about hosts with clients components
    */
   loadClients: function(){
-    var clients = App.db.getClientsForSelectedServices();
+    var clients = this.getDBProperty('clientInfo');
     this.set('content.clients', clients);
     console.log("AddServiceController.loadClients: loaded list ", clients);
   },
@@ -306,7 +373,7 @@ App.AddServiceController = App.WizardController.extend({
       }
     }, this);
 
-    App.db.setClientsForSelectedServices(clients);
+    this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("AddServiceController.saveClients: saved list ", clients);
   },
@@ -322,6 +389,7 @@ App.AddServiceController = App.WizardController.extend({
       case '5':
         this.load('cluster');
       case '4':
+        this.loadServiceConfigGroups();
         this.loadServiceConfigProperties();
       case '3':
         this.loadServices();
@@ -353,6 +421,78 @@ App.AddServiceController = App.WizardController.extend({
     this.clearAllSteps();
     this.clearStorageData();
     App.router.get('updateController').updateAll();
+  },
+
+  installServices: function (isRetry) {
+    this.set('content.cluster.oldRequestsId', []);
+    var clusterName = this.get('content.cluster.name');
+    var data;
+    var name;
+    if (isRetry) {
+      this.getFailedHostComponents();
+      console.log('failedHostComponents', this.get('failedHostComponents'));
+      name = 'wizard.install_services.installer_controller.is_retry';
+      data = {
+        "RequestInfo": {
+          "context" : Em.I18n.t('requestInfo.installComponents'),
+          "query": "HostRoles/component_name.in(" + this.get('failedHostComponents').join(',') + ")"
+        },
+        "Body": {
+          "HostRoles": {
+            "state": "INSTALLED"
+          }
+        }
+      };
+      data = JSON.stringify(data);
+    }
+    else {
+      name = 'wizard.install_services.installer_controller.not_is_retry';
+      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+    }
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: clusterName
+      },
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
+    });
+  },
+
+  /**
+   * List of failed to install HostComponents while adding Service
+   */
+  failedHostComponents: [],
+
+  getFailedHostComponents: function() {
+    App.ajax.send({
+      name: 'wizard.install_services.add_service_controller.get_failed_host_components',
+      sender: this,
+      success: 'getFailedHostComponentsSuccessCallback',
+      error: 'getFailedHostComponentsErrorCallback'
+    });
+  },
+
+  /**
+   * Parse all failed components and filter out installed earlier components (based on selected to install services)
+   * @param {Object} json
+   */
+  getFailedHostComponentsSuccessCallback: function(json) {
+    var allFailed = json.items.filterProperty('HostRoles.state', 'INSTALL_FAILED');
+    var currentFailed = [];
+    var selectedServices = this.getDBProperty('service').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
+    allFailed.forEach(function(failed) {
+      if (selectedServices.contains(failed.component[0].ServiceComponentInfo.service_name)) {
+        currentFailed.push(failed.HostRoles.component_name);
+      }
+    });
+    this.set('failedHostComponents', currentFailed);
+  },
+
+  getFailedHostComponentsErrorCallback: function(request, ajaxOptions, error) {
+    console.warn(error);
   }
 
 });

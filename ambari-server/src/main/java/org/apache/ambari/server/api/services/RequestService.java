@@ -23,6 +23,7 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -95,6 +96,22 @@ public class RequestService extends BaseService {
   @Path("{requestId}/tasks")
   public TaskService getTaskHandler(@PathParam("requestId") String requestId) {
     return new TaskService(m_clusterName, requestId);
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterId}/requests
+   * Create multiple services.
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created services
+   */
+  @POST
+  @Produces("text/plain")
+  public Response createRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST, createRequestResource(m_clusterName, null));
   }
 
   /**

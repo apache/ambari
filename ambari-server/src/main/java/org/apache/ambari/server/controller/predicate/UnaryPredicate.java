@@ -17,26 +17,29 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+
 import java.util.Set;
 
 /**
  * Predicate that operates on one other predicate.
  */
 public abstract class UnaryPredicate implements BasePredicate {
-  private final BasePredicate predicate;
+  private final Predicate predicate;
 
-  public UnaryPredicate(BasePredicate predicate) {
+  public UnaryPredicate(Predicate predicate) {
     assert(predicate != null);
     this.predicate = predicate;
   }
 
-  public BasePredicate getPredicate() {
+  public Predicate getPredicate() {
     return predicate;
   }
 
   @Override
   public Set<String> getPropertyIds() {
-    return predicate.getPropertyIds();
+    return PredicateHelper.getPropertyIds(predicate);
   }
 
   @Override
@@ -60,4 +63,12 @@ public abstract class UnaryPredicate implements BasePredicate {
   }
 
   public abstract String getOperator();
+
+
+  // ----- Object overrides --------------------------------------------------
+
+  @Override
+  public String toString() {
+    return getOperator() + "(" + getPredicate() + ")";
+  }
 }

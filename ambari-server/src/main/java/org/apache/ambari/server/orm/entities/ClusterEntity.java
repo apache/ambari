@@ -73,7 +73,7 @@ public class ClusterEntity {
   @ManyToMany(mappedBy = "clusterEntities")
   private Collection<HostEntity> hostEntities;
 
-  @OneToMany(mappedBy = "cluster", cascade = CascadeType.REMOVE)
+  @OneToMany(mappedBy = "cluster", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
   private Collection<StageEntity> stages;
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
@@ -81,6 +81,12 @@ public class ClusterEntity {
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<ClusterConfigMappingEntity> configMappingEntities;
+
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  private Collection<ConfigGroupEntity> configGroupEntities;
+
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  private Collection<RequestScheduleEntity> requestScheduleEntities;
 
   public Long getClusterId() {
     return clusterId;
@@ -197,6 +203,20 @@ public class ClusterEntity {
   public void setConfigMappingEntities(Collection<ClusterConfigMappingEntity> entities) {
     configMappingEntities = entities;
   }
-  
 
+  public Collection<ConfigGroupEntity> getConfigGroupEntities() {
+    return configGroupEntities;
+  }
+
+  public void setConfigGroupEntities(Collection<ConfigGroupEntity> configGroupEntities) {
+    this.configGroupEntities = configGroupEntities;
+  }
+
+  public Collection<RequestScheduleEntity> getRequestScheduleEntities() {
+    return requestScheduleEntities;
+  }
+
+  public void setRequestScheduleEntities(Collection<RequestScheduleEntity> requestScheduleEntities) {
+    this.requestScheduleEntities = requestScheduleEntities;
+  }
 }

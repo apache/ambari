@@ -1,0 +1,123 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#unless view.showOnlyRows}}
+<div class="clearfix like_pointer" {{action toggleInfoView target="view"}}>
+  <div class="name span2">
+    {{#if view.isCollapsed}}
+    <i class="icon-caret-down pull-left"></i>
+    {{else}}
+    <i class="icon-caret-right pull-left"></i>
+    {{/if}}
+    {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
+    <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
+    {{#if view.criticalAlertsCount}}
+      <a href="#" class="label label-important" {{action "showAlertsPopup" view.service target="view.parentView"}}>
+        {{view.criticalAlertsCount}}
+      </a>
+    {{/if}}
+  </div>
+  <div class="summary span">
+    {{view.summaryHeader}}
+  </div>
+</div>
+<div class="service-body">
+  <div class="span4">
+    <table class="table no-borders">
+      <tbody>
+    {{/unless}}
+
+    {{view view.dashboardMasterComponentView}}
+
+      <!-- NodeManagers -->
+      <tr>
+        <td><a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
+        <td>
+          <span>
+            {{#view view.nodeManagersLiveTextView}}
+              {{view.liveComponents}}/{{view.totalComponents}}
+            {{/view}}
+          </span>{{t services.service.summary.nodeManagersLive}}
+        </td>
+      </tr>
+      <!-- YARN Clients -->
+      <tr>
+        <td class="summary-label"><a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">{{t dashboard.services.yarn.clients}}</a></td>
+        <td>
+          <span class="green-live">{{view.service.yarnClientNodes.length}} </span>
+          {{t dashboard.services.yarn.client}}{{#if view.hasManyYarnClients}}s{{/if}} {{t common.installed}}
+        </td>
+      </tr>
+      <!-- ResourceManager Uptime -->
+      <tr>
+        <td>{{t dashboard.services.yarn.resourceManager.uptime}}</td>
+        <td>{{view.nodeUptime}}</td>
+      </tr>
+      <!-- ResourceManager Heap -->
+      <tr>
+        <td>{{t dashboard.services.resourceManager.nodes.heap}}</td>
+        <td>{{view.nodeHeap}}</td>
+      </tr>
+      <!-- NodeManagers status -->
+      <tr>
+        <td>{{t dashboard.services.yarn.nodeManagers.status}}</td>
+        <td>{{view.nodeManagersStatus}}</td>
+      </tr>
+      <!-- Containers -->
+      <tr>
+        <td>{{t dashboard.services.yarn.containers}}</td>
+        <td>{{view.containers}}</td>
+      </tr>
+      <!-- Applications -->
+      <tr>
+        <td>{{t dashboard.services.yarn.apps}}</td>
+        <td>{{view.apps}}</td>
+      </tr>
+      <!-- Memory -->
+      <tr>
+          <td>{{t dashboard.services.yarn.memory}}</td>
+          <td>{{view.memory}}</td>
+      </tr>
+      <!-- Queues -->
+      <tr>
+          <td>{{t dashboard.services.yarn.queues}}</td>
+          <td><span rel="queue-tooltip" class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>{{view.queues}}</span></td>
+      </tr>
+    {{#unless view.showOnlyRows}}
+      </tbody>
+    </table>
+    <div class="dashboard-mini-chart span2">
+      {{#if view.service.quickLinks.length}}
+      {{#view App.QuickViewLinks contentBinding="view.service"}}
+        <div class="btn-group">
+          <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
+            {{t common.quickLinks}}
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            {{#each view.quickLinks}}
+              <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/view}}
+      {{/if}}
+    </div>
+</div>
+</div>
+{{/unless}}

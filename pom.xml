@@ -25,6 +25,8 @@
   <description>Ambari</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <clover.license>${user.home}/clover.license</clover.license>
+    <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
   </properties>
   <pluginRepositories>
     <pluginRepository>
@@ -33,6 +35,12 @@
       <url>http://download.java.net/maven/2/</url>
       <layout>default</layout>
     </pluginRepository>
+    <pluginRepository>
+       <id>maven2-repository.atlassian</id>
+       <name>Atlassian Maven Repository</name>
+       <url>https://maven.atlassian.com/repository/public</url>
+       <layout>default</layout>
+     </pluginRepository>
     <pluginRepository>
       <id>maven2-glassfish-repository.dev.java.net</id>
       <name>Java.net Repository for Maven</name>
@@ -44,6 +52,7 @@
     <module>ambari-project</module>
     <module>ambari-server</module>
     <module>ambari-agent</module>
+    <module>ambari-client</module>
   </modules>
   <build>
     <pluginManagement>
@@ -122,6 +131,7 @@
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+            <exclude>version</exclude>
 
             <!--IDE and GIT files-->
             <exclude>.idea/</exclude>
@@ -143,10 +153,61 @@
 
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
-
+	    <!--Jinja2 library (BSD license)-->
+	    <exclude>ambari-common/src/main/python/jinja2/**</exclude>
           </excludes>
         </configuration>
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>clover</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>clover</name>
+        </property>
+      </activation>
+      <properties>
+        <maven.clover.licenseLocation>${clover.license}</maven.clover.licenseLocation>
+        <clover.version>3.1.11</clover.version>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.atlassian.maven.plugins</groupId>
+            <artifactId>maven-clover2-plugin</artifactId>
+            <version>${clover.version}</version>
+            <configuration>
+              <includesAllSourceRoots>true</includesAllSourceRoots>
+              <includesTestSourceRoots>true</includesTestSourceRoots>
+              <targetPercentage>50%</targetPercentage>
+              <generateHtml>true</generateHtml>
+              <generateXml>true</generateXml>
+              <excludes>
+                <exclude>**/generated/**</exclude>
+              </excludes>
+            </configuration>
+            <executions>
+              <execution>
+                <id>clover-setup</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>setup</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>clover</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>clover</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

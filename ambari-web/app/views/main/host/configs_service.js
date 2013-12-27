@@ -23,6 +23,7 @@ App.MainHostServiceConfigsView = Em.View.extend({
     var controller = this.get('controller');
     controller.loadStep();
   },
+  isConfigsEditable: false,
   content: function () {
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content')

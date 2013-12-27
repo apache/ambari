@@ -65,12 +65,18 @@ App.WizardStep9View = Em.View.extend({
 });
 
 App.HostStatusView = Em.View.extend({
-  tagName:'tr',
-  obj:'null',
-  barColor:'',
+  tagName: 'tr',
+  /**
+   * Current host
+   */
+  obj: null,
+  /**
+   * wizardStep9Controller
+   */
+  controller: null,
+  barColor: '',
 
   didInsertElement:function () {
-    var controller = this.get('controller');
     this.onStatus();
   },
 
@@ -92,101 +98,64 @@ App.HostStatusView = Em.View.extend({
       if (this.get('obj.progress') === '100') {
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
       }
-    } else if (this.get('obj.status') === 'success') {
-      this.set('barColor', 'progress-success');
-      if (this.get('obj.progress') === '100') {
+    } else {
+      if (this.get('obj.status') === 'success' && this.get('isHostCompleted') && parseInt(this.get('controller.progress')) > 34) {
+        this.set('barColor', 'progress-success');
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
       }
     }
-  }.observes('obj.status', 'obj.progress'),
+  }.observes('obj.status', 'obj.progress', 'controller.progress'),
 
   isFailed:function () {
-    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed') {
-      return true;
-    } else {
-      return false;
-    }
-  }.property('controller.isStepCompleted', 'controller.status'),
+    return (this.get('isHostCompleted') && this.get('obj.status') === 'failed');
+  }.property('obj.status', 'isHostCompleted'),
 
   isSuccess:function () {
-    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'success') {
-      return true;
-    } else {
-      return false;
-    }
-  }.property('controller.isStepCompleted', 'controller.status'),
+    return (this.get('isHostCompleted') && this.get('obj.status') === 'success');
+  }.property('obj.status', 'isHostCompleted'),
 
   isWarning:function () {
-    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'warning') {
-      return true;
-    } else {
-      return false;
-    }
-  }.property('controller.isStepCompleted', 'controller.status'),
+    return(this.get('isHostCompleted') && this.get('obj.status') === 'warning');
+  }.property('obj.status', 'isHostCompleted'),
 
   isHostCompleted:function () {
-    return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
-  }.property('controller.isStepCompleted', 'obj.progress'),
+    return this.get('obj.progress') == 100;
+  }.property('obj.progress'),
 
   hostLogPopup:function (event, context) {
-    var self = this;
-    var host = event.context;
+    var controller = this.get('controller');
+    var host = this.get('obj');
+
     App.ModalPopup.show({
-      header: event.context.get('name'),
+      header: host.get('name'),
       classNames: ['sixty-percent-width-modal'],
       autoHeight: false,
-      onPrimary:function () {
+      secondary:null,
+      /**
+       * Current host
+       */
+      host: host,
+      /**
+       * wizardStep9Controller
+       */
+      c: controller,
+
+      onClose: function() {
+        this.set('c.currentOpenTaskId', 0);
         this.hide();
       },
-      secondary:null,
 
       bodyClass:Ember.View.extend({
         templateName:require('templates/wizard/step9HostTasksLogPopup'),
+
         isLogWrapHidden: true,
+
         showTextArea: false,
-        isEmptyList:true,
-        controllerBinding:context,
-        hostObj:function () {
-          return this.get('parentView.obj');
-        }.property('parentView.obj'),
 
-        task: null, // set in showTaskLog; contains task info including stdout and stderr
-        /**
-         * sort task array by Id
-         * @param tasks
-         * @return {Array}
-         */
-
-        sortTasksById: function(tasks){
-          var result = [];
-          var id = 1;
-          for(var i = 0; i < tasks.length; i++){
-            id = (tasks[i].Tasks.id > id) ? tasks[i].Tasks.id : id;
-          }
-          while(id >= 1){
-            for(var j = 0; j < tasks.length; j++){
-              if(id == tasks[j].Tasks.id){
-                result.push(tasks[j]);
-              }
-            }
-            id--;
-          }
-          result.reverse();
-          return result;
-        },
-
-        groupTasksByRole: function (tasks) {
-          var sortedTasks = [];
-          var taskRoles = tasks.mapProperty('Tasks.role').uniq();
-          for (var i = 0; i < taskRoles.length; i++) {
-            sortedTasks = sortedTasks.concat(tasks.filterProperty('Tasks.role', taskRoles[i]))
-          }
-          return sortedTasks;
-        },
+        isEmptyList: true,
 
         visibleTasks: function () {
-          var self = this;
-          self.set("isEmptyList", true);
+          this.set("isEmptyList", true);
           if (this.get('category.value')) {
             var filter = this.get('category.value');
             var tasks = this.get('tasks');
@@ -216,7 +185,7 @@ App.HostStatusView = Em.View.extend({
             }
 
             if (tasks.filterProperty("isVisible", true).length > 0) {
-              self.set("isEmptyList", false);
+              this.set("isEmptyList", false);
             }
           }
         }.observes('category', 'tasks'),
@@ -235,14 +204,17 @@ App.HostStatusView = Em.View.extend({
 
         tasks: function () {
           var tasksArr = [];
+          var host = this.get('parentView.host');
           var tasks = this.getStartedTasks(host);
-          tasks = this.sortTasksById(tasks);
-          tasks = this.groupTasksByRole(tasks);
+          tasks = tasks.sort(function(a,b){
+            return a.Tasks.id - b.Tasks.id;
+          });
           if (tasks.length) {
             tasks.forEach(function (_task) {
               var taskInfo = Ember.Object.create({});
               taskInfo.set('id', _task.Tasks.id);
-              taskInfo.set('command', _task.Tasks.command.toLowerCase());
+              taskInfo.set('requestId', _task.Tasks.request_id);
+              taskInfo.set('command', _task.Tasks.command.toLowerCase() === 'service_check' ? '' : _task.Tasks.command.toLowerCase());
               taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
               taskInfo.set('role', App.format.role(_task.Tasks.role));
               taskInfo.set('stderr', _task.Tasks.stderr);
@@ -266,7 +238,7 @@ App.HostStatusView = Em.View.extend({
             }, this);
           }
           return tasksArr;
-        }.property('App.router.wizardStep9Controller.logTasksChangesCounter'),
+        }.property('parentView.c.logTasksChangesCounter'),
 
         backToTaskList: function(event, context) {
           this.destroyClipBoard();
@@ -276,7 +248,6 @@ App.HostStatusView = Em.View.extend({
         getStartedTasks:function (host) {
           var startedTasks = host.logTasks.filter(function (task) {
             return task.Tasks.status;
-            //return task.Tasks.status != 'PENDING' && task.Tasks.status != 'QUEUED';
           });
           return startedTasks;
         },
@@ -288,47 +259,59 @@ App.HostStatusView = Em.View.extend({
           newdocument.close();
         },
 
-        openedTaskId: 0,
-
-        openedTask: function () {
-          if (!this.get('openedTaskId')) {
-            return Ember.Object.create();
+        openedTask: null,
+        /**
+         * Set logs (stderr, stdout) to the current opened task
+         */
+        currentOpenTaskLogObserver: function() {
+          if (!this.get('parentView.c.currentOpenTaskId')) {
+            this.set('openedTask', Ember.Object.create());
           }
-          return this.get('tasks').findProperty('id', this.get('openedTaskId'));
-        }.property('tasks', 'openedTaskId'),
+          this.set('openedTask', this.get('tasks').findProperty('id', this.get('parentView.c.currentOpenTaskId')));
+          if (this.get('openedTask.stdout') == '') {
+            this.set('openedTask.stdout', this.get('parentView.c.currentOpenTaskLog').stdout);
+            this.set('openedTask.stderr', this.get('parentView.c.currentOpenTaskLog').stderr);
+          }
+        }.observes('tasks.@each', 'parentView.c.currentOpenTaskLog.stderr', 'parentView.c.currentOpenTaskLog.stdout'),
 
         toggleTaskLog: function (event, context) {
-          if (this.isLogWrapHidden) {
+          if (this.get('isLogWrapHidden')) {
             var taskInfo = event.context;
             this.set("isLogWrapHidden", false);
-            this.set('openedTaskId', taskInfo.id);
+            this.set('parentView.c.currentOpenTaskId', taskInfo.id);
+            this.set('parentView.c.currentOpenTaskRequestId', taskInfo.requestId);
+            this.get('parentView.c').loadCurrentTaskLog();
             $(".modal").scrollTop(0);
             $(".modal-body").scrollTop(0);
-          } else {
+          }
+          else {
             this.set("isLogWrapHidden", true);
-            this.set('openedTaskId', 0);
+            this.set('parentView.c.currentOpenTaskId', 0);
+            this.set('parentView.c.currentOpenTaskRequestId', 0);
           }
         },
 
         textTrigger:function (event) {
-          if($(".task-detail-log-clipboard").length > 0)
-          {
+          if($(".task-detail-log-clipboard").length > 0) {
             this.destroyClipBoard();
-          }else
-          {
+          }
+          else {
             this.createClipBoard();
-          };
+          }
         },
-        createClipBoard:function(){
+
+        createClipBoard:function() {
+          var log = $(".task-detail-log-maintext");
           $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
           $(".task-detail-log-clipboard")
               .html("stderr: \n"+$(".stderr").html()+"\n stdout:\n"+$(".stdout").html())
               .css("display","block")
-              .width($(".task-detail-log-maintext").width())
-              .height($(".task-detail-log-maintext").height())
+              .width(log.width())
+              .height(log.height())
               .select();
-          $(".task-detail-log-maintext").css("display","none")
+          log.css("display","none")
         },
+
         destroyClipBoard:function(){
           $(".task-detail-log-clipboard").remove();
           $(".task-detail-log-maintext").css("display","block");

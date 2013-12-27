@@ -19,6 +19,7 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,30 @@ public class ActionQueue {
         return null;
       } else {
         return q.remove();
+      }
+    }
+  }
+
+  public AgentCommand dequeue(String hostname, String commandId) {
+    Queue<AgentCommand> q = getQueue(hostname);
+    if (q == null) {
+      return null;
+    }
+    synchronized (q) {
+      if (q.isEmpty()) {
+        return null;
+      } else {
+        AgentCommand c = null;
+        for (Iterator it = q.iterator(); it.hasNext();) {
+          AgentCommand ac = (AgentCommand) it.next();
+          if (ac instanceof ExecutionCommand && ((ExecutionCommand) ac)
+            .getCommandId().equals(commandId)) {
+            c = ac;
+            it.remove();
+            break;
+          }
+        }
+        return c;
       }
     }
   }

@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -16,6 +16,13 @@
  */
 
 var App = require('app');
+
+var stringUtils = require('utils/string_utils');
+/**
+ * previousResponse contains only mutable properties of host
+ * unlike App.cache.Hosts, which contains immutable properties
+ */
+var previousResponse = {};
 
 App.hostsMapper = App.QuickDataMapper.create({
 
@@ -40,48 +47,140 @@ App.hostsMapper = App.QuickDataMapper.create({
     load_one: 'metrics.load.load_one',
     load_five: 'metrics.load.load_five',
     load_fifteen: 'metrics.load.load_fifteen',
-    cpu_usage: 'cpu_usage',
-    memory_usage: 'memory_usage',
+    cpu_system: 'metrics.cpu.cpu_system',
+    cpu_user: 'metrics.cpu.cpu_user',
+    mem_total: 'metrics.memory.mem_total',
+    mem_free: 'metrics.memory.mem_free',
     last_heart_beat_time: "Hosts.last_heartbeat_time",
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
     ip: 'Hosts.ip'
   },
   map: function (json) {
-
+    console.time('App.hostsMapper execution time');
     if (json.items) {
+      var hostsWithFullInfo = [];
+      var modifiedHosts = [];
+      var hostIds = {};
+      var cacheData = App.cache['Hosts'];
+      var currentHostStatuses = {};
+      var hostsData = {};
+      var isModelLoaded = false;
 
-      var result = [];
       json.items.forEach(function (item) {
-
-        // Disk Usage
-        if (item.metrics && item.metrics.disk && item.metrics.disk.disk_total && item.metrics.disk.disk_free) {
-          var diskUsed = item.metrics.disk.disk_total - item.metrics.disk.disk_free;
-          var diskUsedPercent = (100 * diskUsed) / item.metrics.disk.disk_total;
-          item.disk_usage = diskUsedPercent.toFixed(1);
-        }
-        // CPU Usage
-        if (item.metrics && item.metrics.cpu && item.metrics.cpu.cpu_system && item.metrics.cpu.cpu_user) {
-          var cpuUsedPercent = item.metrics.cpu.cpu_system + item.metrics.cpu.cpu_user;
-          item.cpu_usage = cpuUsedPercent.toFixed(1);
-        }
-        // Memory Usage
-        if (item.metrics && item.metrics.memory && item.metrics.memory.mem_free && item.metrics.memory.mem_total) {
-          var memUsed = item.metrics.memory.mem_total - item.metrics.memory.mem_free;
-          var memUsedPercent = (100 * memUsed) / item.metrics.memory.mem_total;
-          item.memory_usage = memUsedPercent.toFixed(1);
-        }
-
+        var hostName = item.Hosts.host_name;
+        //receive host_components when hosts were added
+        item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          host_component.id = host_component.HostRoles.component_name + "_" + hostName;
         }, this);
-        result.push(this.parseIt(item, this.config));
 
+        hostIds[hostName] = true;
+        currentHostStatuses[hostName] = item.Hosts.host_status;
+
+        var parsedItem = this.parseIt(item, this.config);
+        var hostCache = cacheData[hostName];
+
+        hostsWithFullInfo.push(parsedItem);
+        if (hostCache) {
+          if (hostCache.is_modified) {
+            modifiedHosts.push(parsedItem);
+            delete hostCache.is_modified;
+          } else {
+            hostsData[hostName] = this.getDiscrepancies(parsedItem, previousResponse[hostName]);
+          }
+        }
+        previousResponse[hostName] = parsedItem;
       }, this);
-      result = this.sortByPublicHostName(result);
-      App.store.loadMany(this.get('model'), result);
+
+      App.cache['previousHostStatuses'] = currentHostStatuses;
+      hostsWithFullInfo = this.sortByPublicHostName(hostsWithFullInfo);
+
+      var clientHosts = App.Host.find();
+
+      if (clientHosts) {
+        // hosts were added
+        if (clientHosts.get('length') < hostsWithFullInfo.length) {
+          hostsWithFullInfo.forEach(function (host) {
+            cacheData[host.id] = {
+              ip: host.ip,
+              os_arch: host.os_arch,
+              os_type: host.os_type,
+              public_host_name: host.public_host_name,
+              memory: host.memory,
+              cpu: host.cpu,
+              host_components: host.host_components
+            };
+          });
+          App.store.loadMany(this.get('model'), hostsWithFullInfo);
+          isModelLoaded = true;
+        } else {
+          //restore properties from cache instead of asking them from server
+          modifiedHosts.forEach(function (host) {
+            var cacheHost = cacheData[host.id];
+            if (cacheHost) {
+              host.ip = cacheHost.ip;
+              host.os_arch = cacheHost.os_arch;
+              host.os_type = cacheHost.os_type;
+              host.public_host_name = cacheHost.public_host_name;
+              host.memory = cacheHost.memory;
+              host.cpu = cacheHost.cpu;
+              host.host_components = cacheHost.host_components;
+            }
+          });
+          App.store.loadMany(this.get('model'), modifiedHosts);
+        }
+        // hosts were deleted
+        if (clientHosts.get('length') > hostsWithFullInfo.length) {
+          clientHosts.forEach(function (host) {
+            if (host && !hostIds[host.get('hostName')]) {
+              // Delete old ones as new ones will be
+              // loaded by loadMany().
+              this.deleteRecord(host);
+              delete cacheData[host.get('id')];
+            }
+          }, this);
+        }
+      }
+      if (!isModelLoaded) {
+        App.Host.find().forEach(function (_host) {
+          var hostData = hostsData[_host.get('id')];
+          if (hostData) {
+            for (var i in hostData) {
+              _host.set(stringUtils.underScoreToCamelCase(i), hostData[i]);
+            }
+          }
+        });
+      }
     }
+    console.timeEnd('App.hostsMapper execution time');
   },
+  /**
+   * check mutable fields whether they have been changed and if positive
+   * return host object only with properties, that contains new value
+   * @param current
+   * @param previous
+   * @return {*}
+   */
+  getDiscrepancies: function (current, previous) {
+    var result = {};
+    var fields = ['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free'];
+    if (previous) {
+      fields.forEach(function (field) {
+        if (current[field] != previous[field]) result[field] = current[field];
+      });
+      if (JSON.stringify(current.disk_info) !== JSON.stringify(previous.disk_info)) {
+        result.disk_info = current.disk_info;
+      }
+      if (JSON.stringify(current.host_components) !== JSON.stringify(previous.host_components)) {
+        result.host_components = current.host_components;
+      }
+      result.last_heart_beat_time = current.last_heart_beat_time;
+      return result;
+    }
+    return current;
+  },
+
   /**
    * Default data sorting by public_host_name field
    * @param data

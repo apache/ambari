@@ -18,6 +18,8 @@
 var App = require('app');
 var date = require('utils/date');
 
+var heatmap = require('utils/heatmap');
+
 /**
  * Base class for any heatmap metric.
  * 
@@ -30,7 +32,7 @@ var date = require('utils/date');
  * </ul>
  * 
  */
-App.MainChartHeatmapMetric = Em.Object.extend({
+App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
   /**
    * Name of this metric
    */
@@ -114,7 +116,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
    */
   slotDefinitions: function () {
     var min = this.get('minimumValue');
-    var max = this.get('maximumValue');
+    var max = parseFloat(this.get('maximumValue'));
     var slotCount = this.get('numberOfSlots');
     var labelSuffix = this.get('slotDefinitionLabelSuffix');
     var delta = (max - min) / slotCount;
@@ -126,7 +128,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       var from = this.formatLegendNumber(c * delta);
       var to = this.formatLegendNumber((c + 1) * delta);
       if ($.trim(labelSuffix) == 'ms') {
-      	var label = date.timingFormat(from) + " - " + date.timingFormat(to);
+      	var label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
       } else {
 	      var label = from + labelSuffix + " - " + to + labelSuffix;
       }
@@ -142,7 +144,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     to = this.formatLegendNumber(max);
 
     if ($.trim(labelSuffix) == 'ms') {
-      var label = date.timingFormat(from) + " - " + date.timingFormat(to);
+      var label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
     } else {
       var label = from + labelSuffix + " - " + to + labelSuffix;
     }
@@ -296,7 +298,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
         this.set('loading', false);
       }, this)
     });
-  }.observes('slotDefinitions'),
+  },
 
   /**
    * Turns numbers into displayable values. For example 24.345432425 into 24.3
@@ -307,7 +309,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
   formatLegendNumber: function (num) {
     var fraction = num % 1;
     if (fraction > 0) {
-      return num.toFixed(1);
+      return parseFloat(num.toFixed(1));
     }
     return num;
   }

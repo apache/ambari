@@ -27,7 +27,7 @@ describe('MainChartHeatmapMetric', function () {
       {m:'undefined to undefined',i:undefined,e:undefined},
       {m:'0 to 0',i:0,e:0},
       {m:'1 to 1',i:1,e:1},
-      {m:'1.23 to 1.2',i:1.23,e:'1.2'}
+      {m:'1.23 to 1.2',i:1.23,e:1.2}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {

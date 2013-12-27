@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -17,63 +17,59 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import Queue
 
 import logging
 import traceback
-import logging.handlers
-import Queue
 import threading
-import AmbariConfig
-from LiveStatus import LiveStatus
-from shell import shellRunner
-from FileUtil import writeFile, createStructure, deleteStructure, getFilePath, appendToFile
-import json
 import pprint
 import os
-import time
-import subprocess
-import copy
+
+from LiveStatus import LiveStatus
+from shell import shellRunner
 import PuppetExecutor
-import UpgradeExecutor
 import PythonExecutor
-import tempfile
-from Grep import Grep
 from ActualConfigHandler import ActualConfigHandler
+from CommandStatusDict import CommandStatusDict
+from CustomServiceOrchestrator import CustomServiceOrchestrator
+
 
 logger = logging.getLogger()
 installScriptHash = -1
 
 class ActionQueue(threading.Thread):
   """ Action Queue for the agent. We pick one command at a time from the queue
-  and execute that """
+  and execute it
+  Note: Action and command terms in this and related classes are used interchangeably
+  """
 
-  commandQueue = Queue.Queue()
-  resultQueue = Queue.Queue()
+  # How many actions can be performed in parallel. Feel free to change
+  MAX_CONCURRENT_ACTIONS = 5
 
   STATUS_COMMAND = 'STATUS_COMMAND'
   EXECUTION_COMMAND = 'EXECUTION_COMMAND'
-  UPGRADE_STATUS = 'UPGRADE'
+  ROLE_COMMAND_INSTALL = 'INSTALL'
+  ROLE_COMMAND_START = 'START'
+  ROLE_COMMAND_STOP = 'STOP'
 
-  IDLE_SLEEP_TIME = 5
+  IN_PROGRESS_STATUS = 'IN_PROGRESS'
+  COMPLETED_STATUS = 'COMPLETED'
+  FAILED_STATUS = 'FAILED'
 
-  def __init__(self, config):
+  COMMAND_FORMAT_V1 = "1.0"
+  COMMAND_FORMAT_V2 = "2.0"
+
+  def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
+    self.commandQueue = Queue.Queue()
+    self.commandStatuses = CommandStatusDict(callback_action =
+      self.status_update_callback)
     self.config = config
+    self.controller = controller
     self.sh = shellRunner()
     self._stop = threading.Event()
-    self.maxRetries = config.getint('command', 'maxretries')
-    self.sleepInterval = config.getint('command', 'sleepBetweenRetries')
-    self.puppetExecutor = PuppetExecutor.PuppetExecutor(
-      config.get('puppet', 'puppetmodules'),
-      config.get('puppet', 'puppet_home'),
-      config.get('puppet', 'facter_home'),
-      config.get('agent', 'prefix'), config)
-    self.pythonExecutor = PythonExecutor.PythonExecutor(
-      config.get('agent', 'prefix'), config)
-    self.upgradeExecutor = UpgradeExecutor.UpgradeExecutor(self.pythonExecutor,
-      self.puppetExecutor, config)
     self.tmpdir = config.get('agent', 'prefix')
-    self.commandInProgress = None
+    self.customServiceOrchestrator = CustomServiceOrchestrator(config)
 
   def stop(self):
     self._stop.set()
@@ -81,176 +77,173 @@ class ActionQueue(threading.Thread):
   def stopped(self):
     return self._stop.isSet()
 
-  def put(self, command):
-    logger.info("Adding " + command['commandType'] + " for service " +\
-                command['serviceName'] + " of cluster " +\
-                command['clusterName'] + " to the queue.")
-    logger.debug(pprint.pformat(command))
-    self.commandQueue.put(command)
-    pass
+  def put(self, commands):
+    for command in commands:
+      logger.info("Adding " + command['commandType'] + " for service " + \
+                  command['serviceName'] + " of cluster " + \
+                  command['clusterName'] + " to the queue.")
+      logger.debug(pprint.pformat(command))
+      self.commandQueue.put(command)
+
+  def empty(self):
+    return self.commandQueue.empty()
+
 
   def run(self):
-    result = []
     while not self.stopped():
-      while not self.commandQueue.empty():
-        command = self.commandQueue.get()
-        logger.debug("Took an element of Queue: " + pprint.pformat(command))
-        if command['commandType'] == self.EXECUTION_COMMAND:
-          try:
-            #pass a copy of action since we don't want anything to change in the
-            #action dict
-            result = self.executeCommand(command)
+      command = self.commandQueue.get() # Will block if queue is empty
+      self.process_command(command)
 
-          except Exception, err:
-            traceback.print_exc()
-            logger.warn(err)
-            pass
 
-          for entry in result:
-            self.resultQueue.put((command['commandType'], entry))
+  def process_command(self, command):
+    logger.debug("Took an element of Queue: " + pprint.pformat(command))
+    # make sure we log failures
+    try:
+      if command['commandType'] == self.EXECUTION_COMMAND:
+        self.execute_command(command)
+      elif command['commandType'] == self.STATUS_COMMAND:
+        self.execute_status_command(command)
+      else:
+        logger.error("Unrecognized command " + pprint.pformat(command))
+    except Exception, err:
+      # Should not happen
+      traceback.print_exc()
+      logger.warn(err)
 
-        elif command['commandType'] == self.STATUS_COMMAND:
-          try:
-            cluster = command['clusterName']
-            service = command['serviceName']
-            component = command['componentName']
-            configurations = command['configurations']
-            if configurations.has_key('global'):
-              globalConfig = configurations['global']
-            else:
-              globalConfig = {}
-            livestatus = LiveStatus(cluster, service, component,
-              globalConfig, self.config)
-            result = livestatus.build()
-            logger.debug("Got live status for component " + component +\
-                         " of service " + str(service) +\
-                         " of cluster " + str(cluster))
-            logger.debug(pprint.pformat(result))
-            if result is not None:
-              self.resultQueue.put((ActionQueue.STATUS_COMMAND, result))
 
-          except Exception, err:
-            traceback.print_exc()
-            logger.warn(err)
-          pass
-        else:
-          logger.warn("Unrecognized command " + pprint.pformat(command))
-      if not self.stopped():
-        time.sleep(self.IDLE_SLEEP_TIME)
+  def determine_command_format_version(self, command):
+    """
+    Returns either COMMAND_FORMAT_V1 or COMMAND_FORMAT_V2
+    """
+    try:
+      if command['commandParams']['schema_version'] == self.COMMAND_FORMAT_V2:
+        return self.COMMAND_FORMAT_V2
+      else:
+        return  self.COMMAND_FORMAT_V1
+    except KeyError:
+      pass # ignore
+    return self.COMMAND_FORMAT_V1 # Fallback
 
-  # Store action result to agent response queue
-  def result(self):
-    resultReports = []
-    resultComponentStatus = []
-    while not self.resultQueue.empty():
-      res = self.resultQueue.get()
-      if res[0] == self.EXECUTION_COMMAND:
-        resultReports.append(res[1])
-      elif res[0] == ActionQueue.STATUS_COMMAND:
-        resultComponentStatus.append(res[1])
 
-    # Building report for command in progress
-    if self.commandInProgress is not None:
-      try:
-        tmpout = open(self.commandInProgress['tmpout'], 'r').read()
-        tmperr = open(self.commandInProgress['tmperr'], 'r').read()
-      except Exception, err:
-        logger.warn(err)
-        tmpout = '...'
-        tmperr = '...'
-      grep = Grep()
-      output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
-      inprogress = {
-        'role': self.commandInProgress['role'],
-        'actionId': self.commandInProgress['actionId'],
-        'taskId': self.commandInProgress['taskId'],
-        'stdout': grep.filterMarkup(output),
-        'clusterName': self.commandInProgress['clusterName'],
-        'stderr': tmperr,
-        'exitCode': 777,
-        'serviceName': self.commandInProgress['serviceName'],
-        'status': 'IN_PROGRESS',
-        'roleCommand': self.commandInProgress['roleCommand']
-      }
-      resultReports.append(inprogress)
-    result = {
-      'reports': resultReports,
-      'componentStatus': resultComponentStatus
-    }
-    return result
-
-  def executeCommand(self, command):
+  def execute_command(self, command):
+    '''
+    Executes commands of type  EXECUTION_COMMAND
+    '''
     clusterName = command['clusterName']
     commandId = command['commandId']
-    hostname = command['hostname']
-    params = command['hostLevelParams']
-    clusterHostInfo = command['clusterHostInfo']
-    roleCommand = command['roleCommand']
-    serviceName = command['serviceName']
-    configurations = command['configurations']
-    result = []
+    command_format = self.determine_command_format_version(command)
 
-    logger.info("Executing command with id = " + str(commandId) +\
-                " for role = " + command['role'] + " of " +\
-                "cluster " + clusterName)
+    message = "Executing command with id = {commandId} for role = {role} of " \
+              "cluster {cluster}. Command format={command_format}".format(
+              commandId = str(commandId), role=command['role'],
+              cluster=clusterName, command_format=command_format)
+    logger.info(message)
     logger.debug(pprint.pformat(command))
 
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report
-    self.commandInProgress = {
-      'role': command['role'],
-      'actionId': commandId,
-      'taskId': taskId,
-      'clusterName': clusterName,
-      'serviceName': serviceName,
+    in_progress_status = self.commandStatuses.generate_report_template(command)
+    in_progress_status.update({
       'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
       'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt',
-      'roleCommand': roleCommand
-    }
+      'structuredOut' : self.tmpdir + os.sep + 'structured-out-' + str(taskId) + '.json',
+      'status': self.IN_PROGRESS_STATUS
+    })
+    self.commandStatuses.put_command_status(command, in_progress_status)
     # running command
-    if command['commandType'] == ActionQueue.EXECUTION_COMMAND:
-      if command['roleCommand'] == ActionQueue.UPGRADE_STATUS:
-        commandresult = self.upgradeExecutor.perform_stack_upgrade(command, self.commandInProgress['tmpout'],
-          self.commandInProgress['tmperr'])
-      else:
-        commandresult = self.puppetExecutor.runCommand(command, self.commandInProgress['tmpout'],
-          self.commandInProgress['tmperr'])
-      # dumping results
-    self.commandInProgress = None
-    status = "COMPLETED"
+    if command_format == self.COMMAND_FORMAT_V1:
+      # Create a new instance of executor for the current thread
+      puppetExecutor = PuppetExecutor.PuppetExecutor(
+        self.config.get('puppet', 'puppetmodules'),
+        self.config.get('puppet', 'puppet_home'),
+        self.config.get('puppet', 'facter_home'),
+        self.config.get('agent', 'prefix'), self.config)
+      commandresult = puppetExecutor.runCommand(command, in_progress_status['tmpout'],
+        in_progress_status['tmperr'])
+    else:
+      commandresult = self.customServiceOrchestrator.runCommand(command,
+        in_progress_status['tmpout'], in_progress_status['tmperr'])
+    # dumping results
+    status = self.COMPLETED_STATUS
     if commandresult['exitcode'] != 0:
-      status = "FAILED"
-
+      status = self.FAILED_STATUS
+    roleResult = self.commandStatuses.generate_report_template(command)
     # assume some puppet plumbing to run these commands
-    roleResult = {'role': command['role'],
-                  'actionId': commandId,
-                  'taskId': command['taskId'],
-                  'stdout': commandresult['stdout'],
-                  'clusterName': clusterName,
-                  'stderr': commandresult['stderr'],
-                  'exitCode': commandresult['exitcode'],
-                  'serviceName': serviceName,
-                  'status': status,
-                  'roleCommand': roleCommand}
+    roleResult.update({
+      'stdout': commandresult['stdout'],
+      'stderr': commandresult['stderr'],
+      'exitCode': commandresult['exitcode'],
+      'status': status,
+    })
     if roleResult['stdout'] == '':
       roleResult['stdout'] = 'None'
     if roleResult['stderr'] == '':
       roleResult['stderr'] = 'None'
 
+    if 'structuredOut' in commandresult:
+      roleResult['structuredOut'] = str(commandresult['structuredOut'])
+    else:
+      roleResult['structuredOut'] = ''
     # let ambari know that configuration tags were applied
-    if status == 'COMPLETED':
+    if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config)
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
-
-      if command.has_key('roleCommand') and command['roleCommand'] == 'START':
+      component = {'serviceName':command['serviceName'],'componentName':command['role']}
+      if command.has_key('roleCommand') and \
+        (command['roleCommand'] == self.ROLE_COMMAND_START or \
+        (command['roleCommand'] == self.ROLE_COMMAND_INSTALL \
+        and component in LiveStatus.CLIENT_COMPONENTS)):
         configHandler.copy_to_component(command['role'])
         roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
-
-    result.append(roleResult)
-    return result
+    self.commandStatuses.put_command_status(command, roleResult)
 
 
-  def isIdle(self):
-    return self.commandQueue.empty()
+  def execute_status_command(self, command):
+    '''
+    Executes commands of type STATUS_COMMAND
+    '''
+    try:
+      cluster = command['clusterName']
+      service = command['serviceName']
+      component = command['componentName']
+      configurations = command['configurations']
+      if configurations.has_key('global'):
+        globalConfig = configurations['global']
+      else:
+        globalConfig = {}
+
+      command_format = self.determine_command_format_version(command)
+
+      livestatus = LiveStatus(cluster, service, component,
+                              globalConfig, self.config)
+      component_status = None
+      if command_format == self.COMMAND_FORMAT_V2:
+        # For custom services, responsibility to determine service status is
+        # delegated to python scripts
+        component_status = self.customServiceOrchestrator.requestComponentStatus(command)
+
+      result = livestatus.build(forsed_component_status= component_status)
+      logger.debug("Got live status for component " + component + \
+                   " of service " + str(service) + \
+                   " of cluster " + str(cluster))
+      logger.debug(pprint.pformat(result))
+      if result is not None:
+        self.commandStatuses.put_command_status(command, result)
+    except Exception, err:
+      traceback.print_exc()
+      logger.warn(err)
+    pass
+
+
+  # Store action result to agent response queue
+  def result(self):
+    return self.commandStatuses.generate_report()
+
+
+  def status_update_callback(self):
+    """
+    Actions that are executed every time when command status changes
+    """
+    self.controller.heartbeat_wait_event.set()

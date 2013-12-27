@@ -1,0 +1,40 @@
+{
+  "apps": [
+    {
+      "appId": "application_201301280808_0002",
+      "appName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "appType": "MAPREDUCE",
+      "status": "FINISHED",
+      "userName": "ambari_qa",
+      "submitTime": 1359378922503,
+      "finishTime": 1359378949583,
+      "stages": [1,1],
+      "workflowId": "mapreduce_201301280808_0002",
+      "workflowEntityName": "2"
+    },
+    {
+      "appId": "application_201301280808_0004",
+      "appName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "appType": "MAPREDUCE",
+      "status": "FINISHED",
+      "userName": "ambari_qa",
+      "submitTime": 1359378922503,
+      "finishTime": 1359378949583,
+      "stages": [1,1],
+      "workflowId": "mapreduce_201301280808_0004",
+      "workflowEntityName": "4"
+    },
+    {
+      "appId": "application_201301280808_0003",
+      "appName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "appType": "MAPREDUCE",
+      "status": "FINISHED",
+      "userName": "ambari_qa",
+      "submitTime": 1359378922503,
+      "finishTime": 1359378949583,
+      "stages": [1,1],
+      "workflowId": "mapreduce_201301280808_0003",
+      "workflowEntityName": "3"
+    }
+  ]
+}

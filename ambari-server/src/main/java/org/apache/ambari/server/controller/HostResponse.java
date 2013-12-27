@@ -27,6 +27,7 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
 
 public class HostResponse {
@@ -133,13 +134,23 @@ public class HostResponse {
 
   private Map<String, DesiredConfig> desiredConfigs;
 
+  /**
+   * Configs derived from Config groups
+   */
+  private Map<String, HostConfig> desiredHostConfigs;
+
+  /**
+   * Host status, calculated on host components statuses
+   */
+  private String status;
+
   public HostResponse(String hostname, String clusterName,
                       String ipv4, String ipv6, int cpuCount, int phCpuCount, String osArch, String osType,
                       String osInfo, long availableMemBytes, long totalMemBytes,
                       List<DiskInfo> disksInfo, long lastHeartbeatTime,
                       long lastRegistrationTime, String rackInfo,
                       Map<String, String> hostAttributes, AgentVersion agentVersion,
-                      HostHealthStatus healthStatus, String hostState) {
+                      HostHealthStatus healthStatus, String hostState, String status) {
     super();
     this.hostname = hostname;
     this.clusterName = clusterName;
@@ -160,6 +171,7 @@ public class HostResponse {
     this.agentVersion = agentVersion;
     this.healthStatus = healthStatus;
     this.setHostState(hostState);
+    this.status = status;
   }
 
   //todo: why are we passing in empty strings for host/cluster name instead of null?
@@ -169,7 +181,7 @@ public class HostResponse {
         "", 0, 0, new ArrayList<DiskInfo>(),
         0, 0, "",
         new HashMap<String, String>(),
-        null, null, null);
+        null, null, null, null);
   }
 
   /**
@@ -492,4 +504,19 @@ public class HostResponse {
     return desiredConfigs;
   }
 
+  public Map<String, HostConfig> getDesiredHostConfigs() {
+    return desiredHostConfigs;
+  }
+
+  public void setDesiredHostConfigs(Map<String, HostConfig> desiredHostConfigs) {
+    this.desiredHostConfigs = desiredHostConfigs;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
 }

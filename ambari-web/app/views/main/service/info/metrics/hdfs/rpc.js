@@ -30,8 +30,8 @@ App.ChartServiceMetricsHDFS_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-rpc",
   title: Em.I18n.t('services.service.info.metrics.hdfs.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hdfs/rpc.json",
+
+  ajaxIndex: 'service.metrics.hdfs.rpc',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

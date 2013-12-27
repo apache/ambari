@@ -19,56 +19,5 @@
 var App = require('app');
 
 App.WizardStep1Controller = Em.Controller.extend({
-  name: 'wizardStep1Controller',
-
-  hasSubmitted : false,
-
-  loadStep: function () {
-    this.set('hasSubmitted',false);
-  },
-  /**
-   * validate cluster name
-   * set clusterNameError if validation fails
-   */
-  invalidClusterName : function(){
-    if(!this.get('hasSubmitted')){
-      this.set('clusterNameError', '');
-      return false;
-    }
-
-    var clusterName = this.get('content.cluster.name');
-    if (clusterName == '') {
-      this.set('clusterNameError', Em.I18n.t('installer.step1.clusterName.error.required'));
-      return true;
-    } else if (/\s/.test(clusterName)) {
-      this.set('clusterNameError', Em.I18n.t('installer.step1.clusterName.error.whitespaces'));
-      return true;
-    } else if (/[^\w\s]/gi.test(clusterName)) {
-      this.set('clusterNameError', Em.I18n.t('installer.step1.clusterName.error.specialChar'));
-      return true;
-    } else {
-      this.set('clusterNameError', '');
-      return false;
-    }
-  }.property('hasSubmitted', 'content.cluster.name').cacheable(),
-
-  /**
-   * calculates by <code>invalidClusterName</code> property
-   */
-  //todo: mix this and previous variables in one
-  clusterNameError: '',
-
-  /**
-   * Onclick handler for <code>next</code> button
-   */
-  submit: function () {
-    this.set('hasSubmitted', true);
-    if (!this.get('invalidClusterName')) {
-      App.clusterStatus.set('clusterName', this.get('content.cluster.name'));
-      this.set('content.cluster.status', 'PENDING');
-      this.set('content.cluster.isCompleted', false);
-      App.router.send('next');
-    }
-  }
-
+  name: 'wizardStep1Controller'
 });

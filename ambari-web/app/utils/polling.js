@@ -18,12 +18,13 @@
 
 var App = require('app');
 App.Poll = Em.Object.extend({
+  name: '',
   stage: '',
   label: '',
   isStarted: false,
   isPolling: true,
   clusterName: null,
-  requestId: null,
+  requestId: undefined,
   temp: false,
   progress: 0,
   url: null,
@@ -45,20 +46,28 @@ App.Poll = Em.Object.extend({
     return (this.get('isError') || this.get('isSuccess'));
   }.property('isError', 'isSuccess'),
 
+  showLink: function () {
+    return (this.get('isPolling') === true && this.get('isStarted') === true);
+  }.property('isPolling', 'isStarted'),
+
   start: function () {
-    if (App.testMode) {
+    if (this.get('requestId') === undefined) {
+      this.setRequestId();
+    } else {
       this.startPolling();
+    }
+  },
+
+  setRequestId: function () {
+    if (App.testMode) {
+      this.set('requestId', '1');
+      this.doPolling();
       return;
     }
     var self = this;
     var url = this.get('url');
-    var method;
+    var method = 'PUT';
     var data = this.get('data');
-    if (App.testMode) {
-      method = 'GET';
-    } else {
-      method = 'PUT';
-    }
 
     $.ajax({
       type: method,
@@ -74,9 +83,12 @@ App.Poll = Em.Object.extend({
         console.log("TRACE: Polling-> value of the received data is: " + jsonData);
         if (jsonData === null) {
           self.set('isSuccess', true);
+          self.set('isError', false);
+          self.set('requestId',undefined);
         } else {
           var requestId = jsonData.Requests.id;
           self.set('requestId', requestId);
+          self.doPolling();
           console.log('requestId is: ' + requestId);
         }
       },
@@ -84,6 +96,7 @@ App.Poll = Em.Object.extend({
       error: function () {
         console.log("ERROR");
         self.set('isError', true);
+        self.set('isSuccess', false);
       },
 
       statusCode: require('data/statusCodes')
@@ -94,9 +107,12 @@ App.Poll = Em.Object.extend({
     if (this.get('requestId')) {
       this.startPolling();
     }
-  }.observes('requestId'),
+  },
 
   startPolling: function () {
+    if (!this.get('requestId')) {
+      return;
+    }
     var self = this;
     var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/' + this.get('requestId') + '?fields=tasks/*';
     if (App.testMode) {
@@ -119,6 +135,8 @@ App.Poll = Em.Object.extend({
           window.setTimeout(function () {
             self.startPolling();
           }, self.POLL_INTERVAL);
+        } else {
+          self.set('requestId', undefined);
         }
       },
 
@@ -126,7 +144,9 @@ App.Poll = Em.Object.extend({
         console.log("TRACE: In error function for the GET data");
         console.log("TRACE: value of the url is: " + url);
         console.log("TRACE: error code status is: " + request.status);
-        self.set('isError', true);
+        if (!self.get('isSuccess')) {
+          self.set('isError', true);
+        }
       },
 
       statusCode: require('data/statusCodes')
@@ -148,21 +168,28 @@ App.Poll = Em.Object.extend({
   },
 
 
-  getExecutedTasks: function (tasksData) {
-    var succededTasks = tasksData.filterProperty('Tasks.status', 'COMPLETED');
-    var failedTasks = tasksData.filterProperty('Tasks.status', 'FAILED');
-    var abortedTasks = tasksData.filterProperty('Tasks.status', 'ABORTED');
-    var timedoutTasks = tasksData.filterProperty('Tasks.status', 'TIMEDOUT');
-    var inProgressTasks = tasksData.filterProperty('Tasks.status', 'IN_PROGRESS');
-    return (succededTasks.length + failedTasks.length + abortedTasks.length + timedoutTasks.length + inProgressTasks.length);
+  calculateProgressByTasks: function (tasksData) {
+    var queuedTasks = tasksData.filterProperty('Tasks.status', 'QUEUED').length;
+    var completedTasks = tasksData.filter(function (task) {
+      return ['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status);
+    }).length;
+    var inProgressTasks = tasksData.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+    return Math.ceil(((queuedTasks * 0.09) + (inProgressTasks * 0.35) + completedTasks ) / tasksData.length * 100)
   },
 
   isPollingFinished: function (polledData) {
-    if (polledData.everyProperty('Tasks.status', 'COMPLETED')) {
-      this.set('isSuccess', true);
-      return true;
-    } else if (polledData.someProperty('Tasks.status', 'FAILED') || polledData.someProperty('Tasks.status', 'TIMEDOUT') || polledData.someProperty('Tasks.status', 'ABORTED')) {
-      this.set('isError', true);
+    var runningTasks;
+    runningTasks = polledData.filterProperty('Tasks.status', 'QUEUED').length;
+    runningTasks += polledData.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+    runningTasks += polledData.filterProperty('Tasks.status', 'PENDING').length;
+    if (runningTasks === 0) {
+      if (polledData.everyProperty('Tasks.status', 'COMPLETED')) {
+        this.set('isSuccess', true);
+        this.set('isError', false);
+      } else if (polledData.someProperty('Tasks.status', 'FAILED') || polledData.someProperty('Tasks.status', 'TIMEDOUT') || polledData.someProperty('Tasks.status', 'ABORTED')) {
+        this.set('isSuccess', false);
+        this.set('isError', true);
+      }
       return true;
     } else {
       return false;
@@ -180,7 +207,7 @@ App.Poll = Em.Object.extend({
       console.log("ERROR: NO tasks available to process");
     }
     var requestId = this.get('requestId');
-    if (!App.testMode && polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
+    if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
       // We dont want to use non-current requestId's tasks data to
       // determine the current install status.
       // Also, we dont want to keep polling if it is not the
@@ -188,22 +215,7 @@ App.Poll = Em.Object.extend({
       return false;
     }
     this.replacePolledData(tasksData);
-    /* this.hosts.forEach(function (_host) {
-     var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
-     if (actionsPerHost.length === 0) {
-     _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
-     console.log("INFO: No task is hosted on the host");
-     }
-     if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
-     this.setLogTasksStatePerHost(actionsPerHost, _host);
-     this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
-     this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
-     this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
-     totalProgress += self.progressPerHost(actionsPerHost, _host);
-     }
-     }, this); */
-    var executedTasks = this.getExecutedTasks(tasksData);
-    totalProgress = Math.floor((executedTasks / tasksData.length) * 100);
+    var totalProgress = this.calculateProgressByTasks(tasksData);
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
     return this.isPollingFinished(tasksData);

@@ -1,0 +1,42 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/host_components?fields=HostRoles/component_name&HostRoles/stale_configs=true",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/hosts/dev01.hortonworks.com/host_components/HBASE_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "cl",
+        "component_name" : "HBASE_CLIENT",
+        "host_name" : "dev01.hortonworks.com",
+        "stale_configs" : true
+      },
+      "host" : {
+        "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/hosts/dev01.hortonworks.com"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/hosts/dev01.hortonworks.com/host_components/HBASE_MASTER",
+      "HostRoles" : {
+        "cluster_name" : "cl",
+        "component_name" : "HBASE_MASTER",
+        "ha_status" : "passive",
+        "host_name" : "dev01.hortonworks.com",
+        "stale_configs" : true
+      },
+      "host" : {
+        "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/hosts/dev01.hortonworks.com"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/hosts/dev01.hortonworks.com/host_components/HBASE_REGIONSERVER",
+      "HostRoles" : {
+        "cluster_name" : "cl",
+        "component_name" : "HBASE_REGIONSERVER",
+        "host_name" : "dev01.hortonworks.com",
+        "stale_configs" : true
+      },
+      "host" : {
+        "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/hosts/dev01.hortonworks.com"
+      }
+    }
+  ]
+}

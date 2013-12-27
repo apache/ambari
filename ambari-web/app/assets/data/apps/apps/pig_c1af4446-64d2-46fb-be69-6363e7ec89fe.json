@@ -1,0 +1,89 @@
+{
+    "apps": [
+        {
+            "appId": "application_1371140159837_0004",
+            "appName": "PigLatin:script1-hadoop.pig",
+            "appType": "MAPREDUCE",
+            "status": "FINISHED",
+            "userName": "ambari-qa",
+            "queue": "default",
+            "submitTime": 1371141211530,
+            "launchTime": 1371141211530,
+            "finishTime": 1371141316943,
+            "stages": [
+                1,
+                1
+            ],
+            "workflowId": "pig_c1af4446-64d2-46fb-be69-6363e7ec89fe",
+            "workflowEntityName": "scope-72"
+        },
+        {
+            "appId": "application_1371140159837_0005",
+            "appName": "PigLatin:script1-hadoop.pig",
+            "appType": "MAPREDUCE",
+            "status": "FINISHED",
+            "userName": "ambari-qa",
+            "queue": "default",
+            "submitTime": 1371141327050,
+            "launchTime": 1371141327050,
+            "finishTime": 1371141364567,
+            "stages": [
+                1,
+                1
+            ],
+            "workflowId": "pig_c1af4446-64d2-46fb-be69-6363e7ec89fe",
+            "workflowEntityName": "scope-80"
+        },
+        {
+            "appId": "application_1371140159837_0006",
+            "appName": "PigLatin:script1-hadoop.pig",
+            "appType": "MAPREDUCE",
+            "status": "FINISHED",
+            "userName": "ambari-qa",
+            "queue": "default",
+            "submitTime": 1371141370351,
+            "launchTime": 1371141370351,
+            "finishTime": 1371141412252,
+            "stages": [
+                1,
+                1
+            ],
+            "workflowId": "pig_c1af4446-64d2-46fb-be69-6363e7ec89fe",
+            "workflowEntityName": "scope-83"
+        },
+        {
+            "appId": "application_1371140159837_0007",
+            "appName": "PigLatin:script1-hadoop.pig",
+            "appType": "MAPREDUCE",
+            "status": "FINISHED",
+            "userName": "ambari-qa",
+            "queue": "default",
+            "submitTime": 1371141419373,
+            "launchTime": 1371141419373,
+            "finishTime": 1371141448848,
+            "stages": [
+                1,
+                1
+            ],
+            "workflowId": "pig_c1af4446-64d2-46fb-be69-6363e7ec89fe",
+            "workflowEntityName": "scope-86"
+        },
+        {
+            "appId": "application_1371140159837_0008",
+            "appName": "PigLatin:script1-hadoop.pig",
+            "appType": "MAPREDUCE",
+            "status": "FINISHED",
+            "userName": "ambari-qa",
+            "queue": "default",
+            "submitTime": 1371141452275,
+            "launchTime": 1371141452275,
+            "finishTime": 1371141483744,
+            "stages": [
+                1,
+                1
+            ],
+            "workflowId": "pig_c1af4446-64d2-46fb-be69-6363e7ec89fe",
+            "workflowEntityName": "scope-103"
+        }
+    ]
+}

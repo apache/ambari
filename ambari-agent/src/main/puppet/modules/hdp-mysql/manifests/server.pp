@@ -27,7 +27,7 @@ class hdp-mysql::server(
    } elsif ($service_state in ['running','stopped','installed_and_configured']) {
    
     $db_user = $hdp-mysql::params::db_user
-    $db_pw = $hdp-mysql::params::db_pw
+    $db_pw = hdp_escape_spec_characters($hdp-mysql::params::db_pw)
     $db_name = $hdp-mysql::params::db_name
     $host = $hdp::params::hive_mysql_host 
 
@@ -43,7 +43,9 @@ class hdp-mysql::server(
       # On Suse, creating symlink from default mysqld pid file to expected /var/run location
 	  
       hdp::directory_recursive_create {'/var/run/mysqld/':
-        require => Hdp::Package['mysql']
+        require => Hdp::Package['mysql'],
+        owner => $mysql_user,
+        group => $mysql_group
       }
 	  
       file { '/var/run/mysqld/mysqld.pid':
@@ -76,6 +78,7 @@ class hdp-mysql::server(
 
     $mysqld_state = $service_state ? {
      'running' => 'running',
+     'installed_and_configured' => 'running',
       default =>  'stopped',
     }
 
@@ -113,7 +116,7 @@ class hdp-mysql::server(
       }
       # We start the DB and add a user
       exec { '/tmp/addMysqlUser.sh':
-        command   => "sh /tmp/addMysqlUser.sh ${service_name} ${db_user} ${db_pw} ${host}",
+        command   => "bash -x /tmp/addMysqlUser.sh ${service_name} ${db_user} \"${db_pw}\" ${host}",
         tries     => 3,
         try_sleep => 5,
         require   => File['/tmp/addMysqlUser.sh'],

@@ -22,16 +22,32 @@ class hdp-ganglia(
   $service_state
 )
 {
-  if (($service_state != 'no_op') or ($service_state != 'uninstalled')) {
+  if ! ($service_state in ['no_op', 'uninstalled']) {
     include hdp-ganglia::params
     $gmetad_user = $hdp-ganglia::params::gmetad_user
     $gmond_user = $hdp-ganglia::params::gmond_user
-  
-    user { $gmond_user : shell => '/bin/bash'} #provision for nobody user
-    if ( $gmetad_user != $gmond_user) {
-      user { $gmetad_user : shell => '/bin/bash'} #provision for nobody user
+
+    hdp::group { 'gmetad_group' :
+      group_name => $gmetad_user,
     }
-    anchor{'hdp-ganglia::begin':} -> User<|title == $gmond_user or title == $gmetad_user|> ->  anchor{'hdp-ganglia::end':}
+
+    hdp::group { 'gmond_group':
+      group_name => $gmond_user,
+    }
+
+    hdp::user { 'gmond_user': 
+      user_name =>  $gmond_user,
+      gid    => $gmond_user,
+      groups => ["$gmond_user"]
+    }
+  
+    hdp::user { 'gmetad_user':
+      user_name => $gmetad_user,
+      gid    => $gmetad_user,
+      groups => ["$gmetad_user"]
+    }
+
+    anchor{'hdp-ganglia::begin':} -> Hdp::Group<|title == 'gmond_group' or title == 'gmetad_group'|> -> Hdp::User['gmond_user'] -> Hdp::User['gmetad_user'] ->  anchor{'hdp-ganglia::end':}
   }
 }
 

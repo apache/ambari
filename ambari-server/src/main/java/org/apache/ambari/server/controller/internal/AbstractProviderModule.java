@@ -18,7 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostPropertyProvider;
@@ -31,7 +38,11 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import com.google.inject.Inject;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +52,9 @@ import java.util.*;
  * An abstract provider module implementation.
  */
 public abstract class AbstractProviderModule implements ProviderModule, ResourceProviderObserver, JMXHostProvider, GangliaHostProvider {
+
+  private static final int PROPERTY_REQUEST_CONNECT_TIMEOUT = 5000;
+  private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
 
   private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
@@ -55,12 +69,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     HashMap<Service.Type, Map<String, String>>();
   private static final Map<String, Service.Type> componentServiceMap = new
     HashMap<String, Service.Type>();
-
+  
+  private static final Map<String, Map<String, String>> jmxDesiredProperties = new HashMap<String, Map<String,String>>();
+  private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
+  private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
+  
   static {
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
     serviceConfigTypes.put(Service.Type.MAPREDUCE, "mapred-site");
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
-
+ 
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
     componentServiceMap.put("JOBTRACKER", Service.Type.MAPREDUCE);
@@ -78,6 +96,10 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     initPropMap = new HashMap<String, String>();
     initPropMap.put("HBASE_MASTER", "hbase.master.info.port");
     serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
+    
+    initPropMap = new HashMap<String, String>();
+    initPropMap.put("NAMENODE", "hadoop.ssl.enabled");
+    jmxDesiredProperties.put("NAMENODE", initPropMap);
   }
 
   /**
@@ -106,7 +128,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   /**
    * JMX ports read from the configs
    */
-  private Map<String, Map<String, String>> jmxPortMap = Collections
+  private final Map<String, Map<String, String>> jmxPortMap = Collections
     .synchronizedMap(new HashMap<String, Map<String, String>>());
 
   private volatile boolean initialized = false;
@@ -175,6 +197,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Map<String,String> clusterJmxPorts = jmxPortMap.get(clusterName);
     if (clusterJmxPorts == null) {
       synchronized (jmxPortMap) {
+        clusterJmxPorts = jmxPortMap.get(clusterName);
         if (clusterJmxPorts == null) {
           clusterJmxPorts = new HashMap<String, String>();
           jmxPortMap.put(clusterName, clusterJmxPorts);
@@ -184,7 +207,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Service.Type service = componentServiceMap.get(componentName);
     if (service != null) {
       try {
-        String currVersion = getDesiredConfigVersion(clusterName, service.name(),
+        String currVersion = getDesiredConfigVersion(clusterName,
           serviceConfigTypes.get(service));
 
         String oldVersion = serviceConfigVersions.get(service);
@@ -214,6 +237,63 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     checkInit();
     return clusterGangliaCollectorMap.get(clusterName);
   }
+  
+  @Override
+  public boolean isGangliaCollectorHostLive(String clusterName) throws SystemException {
+
+    if (clusterName == null) {
+      return false;
+    }
+
+    HostResponse gangliaCollectorHost;
+
+    try {
+
+      final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
+
+      HostRequest hostRequest = new HostRequest(gangliaCollectorHostName, clusterName, Collections.<String, String>emptyMap());
+      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
+
+      gangliaCollectorHost = hosts.size() == 1 ? hosts.iterator().next() : null;
+    } catch (AmbariException e) {
+      LOG.debug("Error checking of Ganglia server host live status: ", e);
+      return false;
+    }
+    
+    //Cluster without Ganglia
+    return gangliaCollectorHost != null &&
+        !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
+  }
+  
+  @Override
+  public boolean isGangliaCollectorComponentLive(String clusterName) throws SystemException {
+    if (clusterName == null) {
+      return false;
+    }
+
+    ServiceComponentHostResponse gangliaCollectorHostComponent;
+
+    try {
+      final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
+
+      ServiceComponentHostRequest componentRequest = new ServiceComponentHostRequest(clusterName, "GANGLIA",
+                                                                                     Role.GANGLIA_SERVER.name(),
+                                                                                     gangliaCollectorHostName,
+                                                                                     null);
+      
+      Set<ServiceComponentHostResponse> hostComponents =
+          managementController.getHostComponents(Collections.singleton(componentRequest));
+
+      gangliaCollectorHostComponent = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
+    } catch (AmbariException e) {
+      LOG.debug("Error checking of Ganglia server host component state: ", e);
+      return false;
+    }
+    
+    //Cluster without Ganglia
+    return gangliaCollectorHostComponent != null &&
+        gangliaCollectorHostComponent.getLiveState().equals(State.STARTED.name());
+  }
 
 
   // ----- utility methods ---------------------------------------------------
@@ -231,7 +311,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   }
 
   protected void putResourceProvider(Resource.Type type, ResourceProvider resourceProvider) {
-    resourceProviders.put( type , resourceProvider);
+    resourceProviders.put(type, resourceProvider);
   }
 
   protected void putPropertyProviders(Resource.Type type, List<PropertyProvider> providers) {
@@ -242,58 +322,96 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
-    URLStreamProvider streamProvider = new URLStreamProvider();
+    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+    URLStreamProvider streamProvider = new URLStreamProvider(
+        PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT,
+        configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
 
     switch (type){
       case Cluster :
-        providers.add(new GangliaReportPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type),
+        providers.add(createGangliaReportPropertyProvider(
+            type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("Clusters", "cluster_name")));
         break;
       case Host :
-        providers.add(new GangliaHostPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type),
+        providers.add(createGangliaHostPropertyProvider(
+            type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("Hosts", "cluster_name"),
             PropertyHelper.getPropertyId("Hosts", "host_name")
         ));
         break;
-      case Component :
-        providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type),
+      case Component : {
+        // TODO as we fill out stack metric definitions, these can be phased out
+        PropertyProvider jpp = createJMXPropertyProvider(
+            type,
             streamProvider,
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
             null,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+            Collections.singleton("STARTED"));
 
-        providers.add(new GangliaComponentPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type),
+        PropertyProvider gpp = createGangliaComponentPropertyProvider(
+            type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
-        break;
-      case HostComponent:
-        providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type),
-            streamProvider,
-            this,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name")));
-
-        providers.add(new GangliaHostComponentPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type),
-            streamProvider,
-            this,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name")));
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
         
+        providers.add(new StackDefinedPropertyProvider(
+            type,
+            this,
+            this,
+            streamProvider,
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+            null,
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+            jpp,
+            gpp));
+        }
+        break;
+      case HostComponent: {
+        // TODO as we fill out stack metric definitions, these can be phased out
+        PropertyProvider jpp = createJMXPropertyProvider(
+            type,
+            streamProvider,
+            this,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"),
+            PropertyHelper.getPropertyId("HostRoles", "state"),
+            Collections.singleton("STARTED"));
+
+        PropertyProvider gpp = createGangliaHostComponentPropertyProvider(
+            type,
+            streamProvider,
+            ComponentSSLConfiguration.instance(),
+            this,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"));
+        
+        providers.add(new StackDefinedPropertyProvider(
+            type,
+            this,
+            this,
+            streamProvider,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"),
+            PropertyHelper.getPropertyId("HostRoles", "state"),
+            jpp,
+            gpp));
+        }
         break;
       default :
         break;
@@ -320,12 +438,12 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
   }
 
-  private void initProviderMaps() throws SystemException{
+  private void initProviderMaps() throws SystemException {
     ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
     Request          request  = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID);
 
     try {
-      jmxPortMap = new HashMap<String, Map<String, String>>();
+      jmxPortMap.clear();
       Set<Resource> clusters = provider.getResources(request, null);
 
       clusterHostComponentMap    = new HashMap<String, Map<String, String>>();
@@ -388,33 +506,37 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   }
 
   private String getDesiredConfigVersion(String clusterName,
-      String serviceName, String configType) throws
+                                         String configType) throws
       NoSuchParentResourceException, UnsupportedPropertyException,
       SystemException {
 
     // Get config version tag
-    ResourceProvider serviceResourceProvider = getResourceProvider(Resource.Type.Service);
+    ResourceProvider clusterResourceProvider = getResourceProvider(Resource
+      .Type.Cluster);
     Predicate basePredicate = new PredicateBuilder().property
-      (ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-      .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
+      (ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals(clusterName)
+      .toPredicate();
 
-    Set<Resource> serviceResource = null;
+    Set<Resource> clusterResource = null;
     try {
-      serviceResource = serviceResourceProvider.getResources(
-        PropertyHelper.getReadRequest(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID,
-          ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID,
-          ServiceResourceProvider.SERVICE_DESIRED_CONFIGS_PROPERTY_ID), basePredicate);
+      clusterResource = clusterResourceProvider.getResources(
+        PropertyHelper.getReadRequest(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID,
+          ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID), basePredicate);
     } catch (NoSuchResourceException e) {
       LOG.error("Resource for the desired config not found. " + e);
     }
 
     String versionTag = "version1";
-    if (serviceResource != null) {
-      for (Resource res : serviceResource) {
-        Map<String, String> configs = (Map<String,
-          String>) res.getPropertyValue(ServiceResourceProvider.SERVICE_DESIRED_CONFIGS_PROPERTY_ID);
+    if (clusterResource != null) {
+      for (Resource resource : clusterResource) {
+        Map<String, Object> configs =
+        resource.getPropertiesMap().get(ClusterResourceProvider
+          .CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
         if (configs != null) {
-          versionTag = configs.get(configType);
+          DesiredConfig config = (DesiredConfig) configs.get(configType);
+          if (config != null) {
+            versionTag = config.getVersion();
+          }
         }
       }
     }
@@ -431,7 +553,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       (ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
       .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID).equals(configType).and()
       .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals(versionTag).toPredicate();
-    Set<Resource> configResources = null;
+    Set<Resource> configResources;
     try {
       configResources = configResourceProvider.getResources
         (PropertyHelper.getReadRequest(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
@@ -439,7 +561,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID), configPredicate);
     } catch (NoSuchResourceException e) {
       LOG.info("Resource for the desired config not found. " + e);
-      return Collections.EMPTY_MAP;
+      return Collections.emptyMap();
     }
     Map<String, String> mConfigs = new HashMap<String, String>();
     if (configResources != null) {
@@ -456,4 +578,116 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
     return mConfigs;
   }
+
+  /**
+   * Create the JMX property provider for the given type.
+   */
+  private PropertyProvider createJMXPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+                                                     JMXHostProvider jmxHostProvider,
+                                                     String clusterNamePropertyId,
+                                                     String hostNamePropertyId,
+                                                     String componentNamePropertyId,
+                                                     String statePropertyId,
+                                                     Set<String> healthyStates) {
+    
+    return new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type), streamProvider,
+          jmxHostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId, healthyStates);
+  }
+
+  /**
+   * Create the Ganglia report property provider for the given type.
+   */
+  private PropertyProvider createGangliaReportPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                                ComponentSSLConfiguration configuration,
+                                                                GangliaHostProvider hostProvider,
+                                                                String clusterNamePropertyId) {
+    
+    return new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
+          configuration, hostProvider, clusterNamePropertyId);
+  }
+
+  /**
+   * Create the Ganglia host property provider for the given type.
+   */
+  private PropertyProvider createGangliaHostPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                              ComponentSSLConfiguration configuration,
+                                                              GangliaHostProvider hostProvider,
+                                                              String clusterNamePropertyId,
+                                                              String hostNamePropertyId) {
+    return new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
+          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId);
+  }
+
+  /**
+   * Create the Ganglia component property provider for the given type.
+   */
+  private PropertyProvider createGangliaComponentPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                                   ComponentSSLConfiguration configuration,
+                                                                   GangliaHostProvider hostProvider,
+                                                                   String clusterNamePropertyId,
+                                                                   String componentNamePropertyId) {
+    return new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type),
+              streamProvider, configuration, hostProvider, clusterNamePropertyId, componentNamePropertyId);
+  }
+
+
+  /**
+   * Create the Ganglia host component property provider for the given type.
+   */
+  private PropertyProvider createGangliaHostComponentPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                                       ComponentSSLConfiguration configuration,
+                                                                       GangliaHostProvider hostProvider,
+                                                                       String clusterNamePropertyId,
+                                                                       String hostNamePropertyId,
+                                                                       String componentNamePropertyId) {
+
+    return new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
+          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
+  }
+  
+  @Override
+  public String getJMXProtocol(String clusterName, String componentName) {
+    String jmxProtocolString = clusterJmxProtocolMap.get(clusterName);
+    try {
+      String newCoreSiteConfigVersion = getDesiredConfigVersion(clusterName, "core-site");
+      String cachedCoreSiteConfigVersion = clusterCoreSiteConfigVersionMap.get(clusterName);
+      if (!newCoreSiteConfigVersion.equals(cachedCoreSiteConfigVersion)) {
+        clusterCoreSiteConfigVersionMap.put(clusterName, newCoreSiteConfigVersion);
+        
+        // Getting protocolMap for NAMENODE as it is the same property hadoop.ssl.enabled for all components
+        Map<String, String> protocolMap = getDesiredConfigMap(
+            clusterName,
+            newCoreSiteConfigVersion, "core-site",
+            jmxDesiredProperties.get("NAMENODE")); 
+        jmxProtocolString = getJMXProtocolString(protocolMap.get("NAMENODE"));
+        clusterJmxProtocolMap.put(clusterName, jmxProtocolString);
+      }
+
+    } catch (Exception e) {
+      LOG.error("Exception while detecting JMX protocol for clusterName = " + clusterName +
+          ", componentName = " + componentName,  e);
+      LOG.error("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
+          ", componentName = " + componentName +
+          componentName);
+      jmxProtocolString = "http";
+    }
+    if (jmxProtocolString == null) {
+      LOG.error("Detected JMX protocol is null for clusterName = " + clusterName +
+          ", componentName = " + componentName);
+      LOG.error("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
+          ", componentName = " + componentName +
+          componentName);
+      jmxProtocolString = "http";
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("JMXProtocol = " + jmxProtocolString + ", for clusterName=" + clusterName +
+          ", componentName = " + componentName);
+    }
+    return jmxProtocolString;
+  }
+
+  private String getJMXProtocolString(String value) {
+    return Boolean.valueOf(value) ? "https" : "http";
+  }
+  
 }

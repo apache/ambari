@@ -21,9 +21,12 @@ package org.apache.ambari.server.state;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.scheduler.RequestExecution;
 
 public interface Cluster {
 
@@ -68,6 +71,13 @@ public interface Cluster {
    */
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
+  /**
+   * Remove ServiceComponentHost from cluster
+   * @param ServiceComponentHost
+   */  
+  public void removeServiceComponentHost(ServiceComponentHost svcCompHost) throws AmbariException;
+  
+  
   /**
    * Get desired stack version
    * @return
@@ -126,9 +136,12 @@ public interface Cluster {
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
+   * @param user the user making the change for audit purposes
    * @param config  the {@link Config} object to set as desired
+   * @return <code>true</code> if the config was added, or <code>false</code>
+   * if the config is already set as the current
    */
-  public void addDesiredConfig(Config config);
+  public boolean addDesiredConfig(String user, Config config);
 
   /**
    * Gets the desired (and selected) config by type.
@@ -197,16 +210,70 @@ public interface Cluster {
   Service addService(String serviceName) throws AmbariException;
 
   /**
-   * Gets the mapping of actual configurations as reported by a host.
-   * @return the map of actual configs
+   * Get lock to control access to cluster structure
+   * @return cluster-global lock
    */
-  public Map<String, DesiredConfig> getActualConfigs();
+  ReadWriteLock getClusterGlobalLock();
 
   /**
-   * Updates the actual configs as reported by the host
-   * @param hostName the host that reported a successful configuration change
-   * @param configTags the tags from the host as applied to the cluster
+   * Fetch desired configs for list of hosts in cluster
+   * @param hostnames
+   * @return
    */
-  public void updateActualConfigs(String hostName, Map<String, Map<String,String>> configTags);
+  Map<String, Map<String, DesiredConfig>> getHostsDesiredConfigs(Collection<String> hostnames);
 
+  /**
+   * Fetch desired configs for all hosts in cluster
+   * @return
+   */
+  Map<String, Map<String, DesiredConfig>> getAllHostsDesiredConfigs();
+
+  /**
+   * Add a new config group to the set of Config groups associated with this
+   * cluster
+   * @param configGroup
+   * @throws AmbariException
+   */
+  public void addConfigGroup(ConfigGroup configGroup) throws AmbariException;
+
+  /**
+   * Get all config groups associated with this cluster
+   * @return
+   * @throws AmbariException
+   */
+  public Map<Long, ConfigGroup> getConfigGroups() throws AmbariException;
+
+  /**
+   * Delete this config group identified by the config group id
+   * @param id
+   * @throws AmbariException
+   */
+  public void deleteConfigGroup(Long id) throws AmbariException;
+
+  /**
+   * Find all config groups associated with the give hostname
+   * @param hostname
+   * @return Map of config group id to config group
+   */
+  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname) throws AmbariException;
+
+  /**
+   * Add a @RequestExecution to the cluster
+   * @param requestExecution
+   * @throws AmbariException
+   */
+  public void addRequestExecution(RequestExecution requestExecution) throws AmbariException;
+
+  /**
+   * Get all @RequestExecution objects associated with the cluster
+   * @return
+   */
+  public Map<Long, RequestExecution> getAllRequestExecutions();
+
+  /**
+   * Delete a @RequestExecution associated with the cluster
+   * @param id
+   * @throws AmbariException
+   */
+  public void deleteRequestExecution(Long id) throws AmbariException;
 }

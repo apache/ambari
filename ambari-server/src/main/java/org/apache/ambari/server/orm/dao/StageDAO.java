@@ -20,17 +20,20 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.utils.StageUtils;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 
+@Singleton
 public class StageDAO {
 
   @Inject
@@ -74,10 +77,6 @@ public class StageDAO {
 
   @Transactional
   public List<StageEntity> findByCommandStatuses(Collection<HostRoleStatus> statuses) {
-//    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
-//        "FROM StageEntity stage JOIN stage.hostRoleCommands command " +
-//        "WHERE command.status IN ?1 " +
-//        "ORDER BY stage.requestId, stage.stageId", StageEntity.class);
     TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
           "FROM StageEntity stage WHERE stage.stageId IN (SELECT hrce.stageId FROM " +
           "HostRoleCommandEntity hrce WHERE stage.requestId = hrce.requestId and hrce.status IN ?1 ) " +
@@ -105,4 +104,33 @@ public class StageDAO {
     remove(findByPK(stageEntityPK));
   }
 
+  @Transactional
+  public Map<Long, String> findRequestContext(List<Long> requestIds) {
+    Map<Long, String> resultMap = new HashMap<Long, String>();
+    if (requestIds != null && !requestIds.isEmpty()) {
+      TypedQuery<StageEntity> query = entityManagerProvider.get()
+        .createQuery("SELECT stage FROM StageEntity stage WHERE " +
+          "stage.requestId IN (SELECT DISTINCT s.requestId FROM StageEntity s " +
+          "WHERE s.requestId IN ?1)", StageEntity.class);
+      List<StageEntity> result = daoUtils.selectList(query, requestIds);
+      if (result != null && !result.isEmpty()) {
+        for (StageEntity entity : result) {
+          resultMap.put(entity.getRequestId(), entity.getRequestContext());
+        }
+      }
+    }
+    return resultMap;
+  }
+
+  @Transactional
+  public String findRequestContext(long requestId) {
+    TypedQuery<String> query = entityManagerProvider.get().createQuery(
+      "SELECT stage.requestContext " + "FROM StageEntity stage " +
+        "WHERE stage.requestId=?1", String.class);
+    String result =  daoUtils.selectOne(query, requestId);
+    if (result != null)
+      return result;
+    else
+      return ""; // Since it is defined as empty string in the StageEntity
+  }
 }

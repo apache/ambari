@@ -1,0 +1,8 @@
+Client {
+com.sun.security.auth.module.Krb5LoginModule required
+useKeyTab=true
+storeKey=true
+useTicketCache=false
+keyTab="<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_regionserver_keytab_path")%>"
+principal="<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_regionserver_jaas_princ")%>";
+};

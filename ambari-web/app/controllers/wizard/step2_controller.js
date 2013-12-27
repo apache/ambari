@@ -26,6 +26,11 @@ App.WizardStep2Controller = Em.Controller.extend({
   bootRequestId:  null,
   hasSubmitted: false,
   inputtedAgainHostNames: [],
+
+  isInstaller: function () {
+    return this.get('content.controllerName') == 'installerController';
+  }.property('content.controllerName'),
+
   hostNames: function () {
     return this.get('content.installOptions.hostNames');
   }.property('content.installOptions.hostNames'),
@@ -38,15 +43,16 @@ App.WizardStep2Controller = Em.Controller.extend({
     return this.get('content.installOptions.sshKey');
   }.property('content.installOptions.sshKey'),
 
+  sshUser: function () {
+    return this.get('content.installOptions.sshUser');
+  }.property('content.installOptions.sshUser'),
+
   installType: function () {
     return this.get('manualInstall') ? 'manualDriven' : 'ambariDriven';
   }.property('manualInstall'),
 
   isHostNameValid: function (hostname) {
-    // disabling hostname validation as we don't want to be too restrictive and disallow
-    // user's hostnames
-    // return validator.isHostname(hostname) && (!(/^\-/.test(hostname) || /\-$/.test(hostname)));
-    return true;
+    return validator.isHostname(hostname);
   },
   /**
    * set not installed hosts to the hostNameArr
@@ -66,20 +72,23 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
     this.set('hostNameArr', tempArr);
   },
+
+  invalidHostNames: [],
+
   /**
    * validate host names
    * @return {Boolean}
    */
   isAllHostNamesValid: function () {
-    var self = this;
     var result = true;
     this.updateHostNameArr();
-
+    this.get('invalidHostNames').clear();
     this.hostNameArr.forEach(function(hostName){
-      if (!self.isHostNameValid(hostName)) {
+      if (!this.isHostNameValid(hostName)) {
+        this.get('invalidHostNames').push(hostName);
         result = false;
       }
-    });
+    }, this);
 
     return result;
   },
@@ -93,12 +102,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.required'));
     }
     else {
-      if (this.isAllHostNamesValid() === false) {
-        this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.invalid'));
-      }
-      else {
-        this.set('hostsError', null);
-      }
+      this.set('hostsError', null);
     }
   },
 
@@ -114,6 +118,13 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
     return null;
   }.property('sshKey', 'manualInstall', 'hasSubmitted'),
+
+  sshUserError: function(){
+    if (this.get('manualInstall') === false && this.get('sshUser').trim() === '') {
+      return Em.I18n.t('installer.step2.sshUser.required');
+    }
+    return null;
+  }.property('sshUser', 'hasSubmitted', 'manualInstall'),
 
   /**
    * Get host info, which will be saved in parent controller
@@ -156,11 +167,7 @@ App.WizardStep2Controller = Em.Controller.extend({
     this.set('hasSubmitted', true);
 
     this.checkHostError();
-    if (this.get('hostsError')) {
-      return false;
-    }
-
-    if (this.get('sshKeyError')) {
+    if (this.get('hostsError') || this.get('sshUserError') || this.get('sshKeyError')) {
       return false;
     }
 
@@ -199,15 +206,15 @@ App.WizardStep2Controller = Em.Controller.extend({
         start=start[0].substr(1);
         end=end[0].substr(1);
 
-        if(parseInt(start) <= parseInt(end) && parseInt(start) >= 0){
+        if(parseInt(start) <= parseInt(end, 10) && parseInt(start, 10) >= 0){
           self.isPattern = true;
 
           if(start[0] == "0" && start.length > 1) {
             extra = start.match(/0*/);
           }
 
-          for (var i = parseInt(start); i < parseInt(end) + 1; i++) {
-            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(1,1+extra[0].length-i.toString().length)+i))
+          for (var i = parseInt(start, 10); i < parseInt(end, 10) + 1; i++) {
+            hostNames.push(a.replace(/\[\d*\-\d*\]/,extra[0].substring(0,start.length-i.toString().length)+i))
           }
 
         }else{
@@ -224,13 +231,18 @@ App.WizardStep2Controller = Em.Controller.extend({
    * and save already registered hosts
    * @return {Boolean}
    */
-  proceedNext: function(){
+  proceedNext: function(warningConfirmed){
+    if (this.isAllHostNamesValid() !== true && !warningConfirmed) {
+      this.warningPopup();
+      return false;
+    }
+
     if (this.get('manualInstall') === true) {
       this.manualInstallPopup();
       return false;
     }
 
-    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), hosts: this.get('hostNameArr')});
+    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), 'hosts': this.get('hostNameArr'), 'user': this.get('sshUser')});
 
     if (App.skipBootstrap) {
       this.saveHosts();
@@ -248,6 +260,23 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   /**
+   * show warning for host names without dots or IP addresses
+   */
+  warningPopup: function () {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      onPrimary: function () {
+        this.hide();
+        self.proceedNext(true);
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('installer.step2.warning.popup.body').format(self.get('invalidHostNames').join(', ')))
+      })
+    });
+  },
+
+  /**
    * show popup with the list of hosts that are already part of the cluster
    */
   installedHostsPopup: function () {
@@ -259,7 +288,10 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>These hosts are already installed on the cluster and will be ignored:</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>Do you want to continue?</p>')
+        inputtedAgainHostNames: function() {
+          return self.get('inputtedAgainHostNames').join(', ');
+        }.property(),
+        templateName: require('templates/wizard/step2_installed_hosts_popup')
       })
     });
   },
@@ -277,7 +309,7 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['{{#each host in view.hostNames}}<p>{{host}}</p>{{/each}}'].join('\n')),
+        templateName: require('templates/wizard/step2_host_name_pattern_popup'),
         hostNames: hostNames
       })
     });
@@ -299,13 +331,46 @@ App.WizardStep2Controller = Em.Controller.extend({
       })
     });
   },
+  /**
+   * warn to manually install ambari-agent on each host
+   */
+  manualInstallWarningPopup: function(){
+    if(!this.get('content.installOptions.useSsh')){
+      App.ModalPopup.show({
+        header: Em.I18n.t('common.warning'),
+        body: Em.I18n.t('installer.step2.manualInstall.info'),
+        encodeBody: false,
+        secondary: null
+      });
+    }
+    this.set('content.installOptions.manualInstall', !this.get('content.installOptions.useSsh'));
+  }.observes('content.installOptions.useSsh'),
 
   isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError'));
-  }.property('hostsError', 'sshKeyError'),
+    return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError'))  ;
+  }.property('hostsError', 'sshKeyError', 'sshUserError'),
+
+  setAmbariJavaHome: function(){
+    App.ajax.send({
+      name: 'ambari.service',
+      sender: this,
+      success: 'onGetAmbariJavaHomeSuccess',
+      error: 'onGetAmbariJavaHomeError'
+    });
+  },
+
+  onGetAmbariJavaHomeSuccess: function(data) {
+    this.set('content.installOptions.javaHome',data.RootServiceComponents.properties['java.home']);
+  },
+
+  onGetAmbariJavaHomeError: function() {
+    console.warn('can\'t get java.home value from server');
+    this.set('content.installOptions.javaHome',App.defaultJavaHome);
+  },
 
   saveHosts: function(){
     this.set('content.hosts', this.getHostInfo());
+    this.setAmbariJavaHome();
     App.router.send('next');
   }
 

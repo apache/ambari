@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var lazyloading = require('utils/lazy_loading');
 
 App.WizardStep5View = Em.View.extend({
 
@@ -25,7 +26,9 @@ App.WizardStep5View = Em.View.extend({
 
   didInsertElement:function () {
     this.get('controller').loadStep();
-  }
+  },
+
+  body: Em.I18n.t('installer.step5.body')
 
 });
 
@@ -35,44 +38,32 @@ App.SelectHostView = Em.Select.extend({
   selectedHost:null,
   componentName:null,
   attributeBindings:['disabled'],
-
-  filterContent:function () {
-    this.get('content').sort(function (a, b) {
-      if (a.get('memory') == b.get('memory')) {
-        if (a.get('cpu') == b.get('cpu')) {
-
-//          try to compare as ipaddresses
-          if (a.get('host_name').ip2long() && b.get('host_name').ip2long()) {
-            return a.get('host_name').ip2long() - b.get('host_name').ip2long(); // hostname asc
-          }
-
-//          try to compare as strings
-          if (a.get('host_name') > b.get('host_name')) {
-            return 1;
-          }
-
-          if (b.get('host_name') > a.get('host_name')) {
-            return -1;
-          }
-
-          return 0;
-        }
-        return b.get('cpu') - a.get('cpu'); // cores desc
-      }
-
-      return b.get('memory') - a.get('memory'); // ram desc
-    });
-
-  }.observes('content'),
+  isLoaded: false,
 
   change:function () {
     this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
   },
+  click: function () {
+    var source = [];
+    var selectedHost = this.get('selectedHost');
+    var content = this.get('content');
+    if (!this.get('isLoaded') && this.get('controller.isLazyLoading')) {
+      //filter out hosts, which already pushed in select
+      source = this.get('controller.hosts').filter(function(_host){
+        return !content.someProperty('host_name', _host.host_name);
+      }, this);
+      lazyloading.run({
+        destination: this.get('content'),
+        source: source,
+        context: this,
+        initSize: 30,
+        chunkSize: 200,
+        delay: 50
+      });
+    }
+  },
 
   didInsertElement:function () {
-    if (!this.get('controller.isReassignWizard')) {
-      this.filterContent();
-    }
     this.set("value", this.get("selectedHost"));
   }
 });

@@ -15,87 +15,93 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="pull-left dataset-form">
-  <form class="form-horizontal">
-    <div class="add-data-set">
-      <table>
-        <tr>
-          <td class="percent25" colspan="1">
-            {{t mirroring.dataset.name}}
-          </td>
-          <td colspan="2" style="text-align: left">
-            {{view Ember.TextField valueBinding="model.newDataSet.name" class="span4"}}
-          </td>
-        </tr>
-        <tr>
-          <td class="spacer" colspan="3"></td>
-        </tr>
-        <tr>
-          <td colspan="1">
-            {{t mirroring.dataset.sourceDir}}
-          </td>
-          <td colspan="2" style="text-align: left">
-            {{view Ember.TextField valueBinding="model.newDataSet.sourceDir" class="span4"}}
-          </td>
-        </tr>
-        <tr>
-          <td class="spacer" colspan="3"></td>
-        </tr>
-        <tr>
-          <td colspan="1">
-            {{t mirroring.dataset.target}}
-          </td>
-          <td colspan="2" style="text-align: left">
-            {{view view.targetClusterSelect }}
-          </td>
-        </tr>
-        <tr>
-          <td class="spacer" colspan="3"></td>
-        </tr>
-        <tr>
-          <td class="spacer" colspan="1">
-            {{t mirroring.dataset.targetDir}}
-          </td>
-          <td colspan="2" style="text-align: left">
-            {{view Ember.TextField valueBinding="model.newDataSet.targetDir" class="span4"}}
-          </td>
-        </tr>
-        <tr>
-          <td class="spacer" colspan="3"></td>
-        </tr>
-        <tr>
-          <td colspan="1"> {{t mirroring.dataset.schedule}} </td>
-          <td colspan="2" style="text-align: left">
-            <div>
-              {{view Ember.TextField valueBinding="model.newDataSet.schedule.startDate" class="input-small datepicker"}}
-              {{view Ember.Select contentBinding="view.hourOptions.content" selectionBinding="view.hourOptions.selectedForStart" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
-              {{view Ember.Select contentBinding="view.minuteOptions.content" selectionBinding="view.minuteOptions.selectedForStart" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
-              {{view Ember.Select contentBinding="view.dayOrNightOptions.content" selectionBinding="view.dayOrNightOptions.selectedForStart" class="input-mini" optionLabelPath="content.name" optionValuePath="content.name"}}
-            </div>
-            <div>
-              {{t mirroring.dataset.schedule.to}}
-            </div>
-            <div>
-              {{view Ember.TextField valueBinding="model.newDataSet.schedule.endDate" class="input-small datepicker"}}
-              {{view Ember.Select contentBinding="view.hourOptions.content" selectionBinding="view.hourOptions.selectedForEnd" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
-              {{view Ember.Select contentBinding="view.minuteOptions.content" selectionBinding="view.minuteOptions.selectedForEnd" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
-              {{view Ember.Select contentBinding="view.dayOrNightOptions.content" selectionBinding="view.dayOrNightOptions.selectedForEnd" class="input-mini" optionLabelPath="content.name" optionValuePath="content.name"}}
+<div class="pull-left dataset-form" autocomplete="off">
+    <form class="form-horizontal">
+        <div class="add-data-set">
+            <table>
+                <tr {{bindAttr class="model.isNameError:error"}}>
+                    <td class="percent25" colspan="1">
+                      {{t mirroring.dataset.name}}
+                    </td>
+                    <td colspan="2" style="text-align: left">
+                      {{view Ember.TextField valueBinding="model.newDataSet.name" class="span4"}}
+                        <span class="help-inline">{{nameErrorMessage}}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="spacer" colspan="3"></td>
+                </tr>
+                <tr {{bindAttr class="model.isSourceDirError:error"}}>
+                    <td colspan="1">
+                      {{t mirroring.dataset.sourceDir}}
+                    </td>
+                    <td colspan="2" style="text-align: left">
+                      {{view Ember.TextField valueBinding="model.newDataSet.sourceDir" class="span4"}}
+                        <span class="help-inline">{{sourceDirErrorMessage}}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="spacer" colspan="3"></td>
+                </tr>
+                <tr {{bindAttr class="model.isTargetClusterError:error"}}>
+                    <td colspan="1">
+                      {{t mirroring.dataset.target}}
+                    </td>
+                    <td colspan="2" style="text-align: left">
+                      {{view view.targetClusterSelect }}
+                        <span class="help-inline">{{targetClusterErrorMessage}}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="spacer" colspan="3"></td>
+                </tr>
+                <tr {{bindAttr class="model.isTargetDirError:error"}}>
+                    <td class="spacer" colspan="1">
+                      {{t mirroring.dataset.targetDir}}
+                    </td>
+                    <td colspan="2" style="text-align: left">
+                      {{view Ember.TextField valueBinding="model.newDataSet.targetDir" class="span4"}}
+                        <span class="help-inline">{{targetDirErrorMessage}}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="spacer" colspan="3"></td>
+                </tr>
+                <tr>
+                    <td colspan="1"> {{t mirroring.dataset.schedule}} </td>
+                    <td colspan="2" style="text-align: left">
+                        <div {{bindAttr class="model.isStartDateError:error"}}>
+                          {{view Ember.TextField valueBinding="model.newDataSet.schedule.startDate" class="input-small datepicker"}}
+                          {{view Ember.Select contentBinding="view.hourOptions.content" selectionBinding="view.hourOptions.selectedForStart" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
+                          {{view Ember.Select contentBinding="view.minuteOptions.content" selectionBinding="view.minuteOptions.selectedForStart" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
+                          {{view Ember.Select contentBinding="view.dayOrNightOptions.content" selectionBinding="view.dayOrNightOptions.selectedForStart" class="input-mini" optionLabelPath="content.name" optionValuePath="content.name"}}
+                            <span class="help-inline">{{startDateErrorMessage}}</span>
+                        </div>
+                        <div>
+                          {{t mirroring.dataset.schedule.to}}
+                        </div>
+                        <div {{bindAttr class="model.isEndDateError:error"}}>
+                          {{view Ember.TextField valueBinding="model.newDataSet.schedule.endDate" class="input-small datepicker"}}
+                          {{view Ember.Select contentBinding="view.hourOptions.content" selectionBinding="view.hourOptions.selectedForEnd" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
+                          {{view Ember.Select contentBinding="view.minuteOptions.content" selectionBinding="view.minuteOptions.selectedForEnd" class="input-mini" optionLabelPath="content.value" optionValuePath="content.value"}}
+                          {{view Ember.Select contentBinding="view.dayOrNightOptions.content" selectionBinding="view.dayOrNightOptions.selectedForEnd" class="input-mini" optionLabelPath="content.name" optionValuePath="content.name"}}
+                            <span class="help-inline">{{endDateErrorMessage}}</span>
+                        </div>
 
-            </div>
-
-            <div class="each-row">
-              {{t mirroring.dataset.schedule.repeatEvery}}
-              {{view Ember.TextField valueBinding="view.repeatNumberSelected" class="input-mini"}}
-              {{view Ember.Select contentBinding="view.repeatOptions.content" selectionBinding="view.repeatOptions.repeatOptionSelected" class="input-small" optionLabelPath="content.value" optionValuePath="content.value"}}
-            </div>
-          </td>
-        </tr>
-      </table>
-    </div>
-  </form>
+                        <div {{bindAttr class=" :each-row model.isFrequencyError:error"}}>
+                          {{t mirroring.dataset.schedule.repeatEvery}}
+                          {{view Ember.TextField valueBinding="view.repeatNumberSelected" class="input-mini"}}
+                          {{view Ember.Select contentBinding="view.repeatOptions.content" selectionBinding="view.repeatOptions.repeatOptionSelected" class="input-small" optionLabelPath="content.value" optionValuePath="content.value"}}
+                            <span class="help-inline">{{frequencyErrorMessage}}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
 </div>
 {{#if isPopupForEdit}}
-  <div class="pull-right dataset-delete">
-    <a {{action deleteDatasetClick target="controller"}} class="btn btn-danger">{{t common.delete}}</a>
-  </div>
+    <div class="pull-right dataset-delete">
+        <a {{action deleteDatasetClick target="controller"}} class="btn btn-danger">{{t common.delete}}</a>
+    </div>
 {{/if}}

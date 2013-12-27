@@ -17,122 +17,91 @@
  */
 
 
+var previousAlertsResponse = [];
+var stringUtils = require('utils/string_utils');
+
+/**
+ * Fields, which are not displayed and used only to compute date property, listed below:
+ * last_hard_state_change
+ * last_hard_state
+ * last_time_ok
+ * last_time_warning
+ * last_time_unknown
+ * last_time_critical
+ */
 App.alertsMapper = App.QuickDataMapper.create({
   model: App.Alert,
-  config:{
-    $alert_id:'' ,
+  config: {
+    id: 'id',
     title: "service_description",
     service_type: "service_type",
-    date: "last_hard_state_change",
+    last_time: "last_time",
     status: "current_state",
     message: "plugin_output",
     host_name: "host_name",
     current_attempt: "current_attempt",
-    last_hard_state_change: "last_hard_state_change",
-    last_hard_state: "last_hard_state",
-    last_time_ok: "last_time_ok",
-    last_time_warning: "last_time_warning",
-    last_time_unknown: "last_time_unknown",
-    last_time_critical: "last_time_critical",
     is_flapping: "is_flapping",
     last_check: "last_check"
   },
   map: function (json) {
-    if (!this.get('model')) {
-      return;
-    }
-    if (json && json.items && json.items.length>0 && json.items[0].HostRoles && json.items[0].HostRoles.nagios_alerts) {
-      var alertsString = json.items[0].HostRoles.nagios_alerts;
-      var alerts = jQuery.parseJSON(alertsString).alerts;
-      if (App.Alert.find().content.length > 0) {
-        this.update(alerts);
-      } else {
-        var result = [];
-        alerts.forEach(function(item){
-          var applyConfig = jQuery.extend({}, this.config);
-          if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
-            switch (item.current_state) {
-              case "0":
-                applyConfig['date'] = 'last_time_ok';
-                break;
-              case "1":
-                applyConfig['date'] = 'last_time_warning';
-                break;
-              case "2":
-                applyConfig['date'] = 'last_time_critical';
-                break;
+    console.time('App.alertsMapper execution time');
+    if (json && json.items && json.items.length > 0 && json.items[0].HostRoles && json.items[0].HostRoles.nagios_alerts) {
+      if (json.items[0].HostRoles.nagios_alerts.alerts.length === 0) {
+        //Clear Alerts model when NAGIOS stopped or doesn't have alerts anymore
+        App.Alert.find().clear();
+        console.log("NAGIOS stopped: all alerts deleted");
+        return;
+      }
+      var alerts = json.items[0].HostRoles.nagios_alerts.alerts;
+      var alertsMap = {};
+      var addAlerts = [];
+      var mutableFields = ['last_time', 'status', 'message', 'current_attempt', 'is_flapping', 'last_check'];
+
+      alerts.forEach(function (item) {
+        //id consists of combination of serviceType, title and hostName
+        item.id = item.service_type + item.service_description + item.host_name;
+        item.last_time = this.computeLastTime(item);
+        var parsedItem = this.parseIt(item, this.config);
+        alertsMap[item.id] = parsedItem;
+        if (!previousAlertsResponse[item.id]) {
+          addAlerts.push(parsedItem);
+        }
+      }, this);
+
+      this.get('model').find().forEach(function (alertRecord) {
+        if (alertRecord) {
+          var existAlert = alertsMap[alertRecord.get('id')];
+          if (existAlert) {
+            existAlert = this.getDiscrepancies(existAlert, previousAlertsResponse[alertRecord.get('id')], mutableFields);
+            if (existAlert) {
+              for (var i in existAlert) {
+                alertRecord.set(stringUtils.underScoreToCamelCase(i), existAlert[i]);
+              }
             }
+          } else {
+            this.deleteRecord(alertRecord);
           }
-          result.push(this.parseIt(item, applyConfig));
-        }, this);
-        App.store.loadMany(this.get('model'), result);
+        }
+      }, this);
+
+      if (addAlerts.length > 0) {
+        App.store.loadMany(this.get('model'), addAlerts);
       }
+      previousAlertsResponse = alertsMap;
     }
+    console.timeEnd('App.alertsMapper execution time');
   },
-  update: function(alerts){
-    var alertsList = App.Alert.find();
-    var titleToAlertMap = {};
-    alertsList.forEach(function(alert){
-      titleToAlertMap[alert.get('serviceType') + alert.get('title') + alert.get('hostName')] = alert;
-    });
-    var newRecords = [];
-    alerts.forEach(function(item){
-      var existAlert = titleToAlertMap[item.service_type + item.service_description + item.host_name];
-      if (existAlert == null) {
-        var applyConfig = jQuery.extend({}, this.config);
-        if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
-          switch (item.current_state) {
-            case "0":
-              applyConfig['date'] = 'last_time_ok';
-              break;
-            case "1":
-              applyConfig['date'] = 'last_time_warning';
-              break;
-            case "2":
-              applyConfig['date'] = 'last_time_critical';
-              break;
-          }
-        }
-        newRecords.push(this.parseIt(item, applyConfig));
-      } else {
-        // update record
-        existAlert.set('serviceType', item.service_type);
-        if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
-          switch (item.current_state) {
-            case "0":
-              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_ok));
-              break;
-            case "1":
-              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_warning));
-              break;
-            case "2":
-              existAlert.set('date', DS.attr.transforms.date.from(item.last_time_critical));
-              break;
-            default:
-              existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
-              break;
-          }
-        }else{
-          existAlert.set('date', DS.attr.transforms.date.from(item.last_hard_state_change));
-        }
-        existAlert.set('status', item.current_state);
-        existAlert.set('message', item.plugin_output);
-        existAlert.set('lastHardStateChange', item.last_hard_state_change);
-        existAlert.set('lastHardState', item.last_hard_state);
-        existAlert.set('lastTimeOk', item.last_time_ok);
-        existAlert.set('lastTimeWarning', item.last_time_warning);
-        existAlert.set('lastTimeUnknown', item.last_time_unknown);
-        existAlert.set('lastTimeCritical', item.last_time_critical);
-        existAlert.set('lastCheck', item.last_check);
-        existAlert.set('isFlapping', item.is_flapping);
-        delete titleToAlertMap[item.service_type + item.service_description + item.host_name];
-      }
-    }, this);
-    for ( var e in titleToAlertMap) {
-      titleToAlertMap[e].deleteRecord();
-    }
-    if (newRecords.length > 0) {
-      App.store.loadMany(this.get('model'), newRecords); // Add new records
+  computeLastTime: function (item) {
+    var dateMap = {
+      '0': 'last_time_ok',
+      '1': 'last_time_warning',
+      '2': 'last_time_critical',
+      '3': 'last_time_unknown'
+    };
+    if (item.current_state && item.last_hard_state && item.current_state != item.last_hard_state) {
+      return item[dateMap[item.current_state]] || item['last_hard_state_change'];
+    } else {
+      return item['last_hard_state_change'];
     }
   }
 });

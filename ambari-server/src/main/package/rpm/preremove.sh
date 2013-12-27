@@ -19,7 +19,22 @@
 
 if [ "$1" -eq 0 ]; # Action is uninstall
 then
+    /usr/sbin/ambari-server stop > /dev/null 2>&1
+    if [ -d "/etc/ambari-server/conf.save" ]
+    then
+        mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+    fi
+
+    if [ -e "/etc/init.d/ambari-server" ];
+    then
+        # Remove link created during install
+        rm /etc/init.d/ambari-server
+    fi
+
     mv /etc/ambari-server/conf /etc/ambari-server/conf.save
+
+    chkconfig --del ambari-server
+
 fi
 
 exit 0

@@ -21,7 +21,7 @@
 class hdp-monitor-webserver( 
   $service_state = $hdp::params::cluster_service_state,
   $opts = {}
-) inherits hdp::params 
+) inherits hdp::params
 {
 
   
@@ -45,6 +45,27 @@ class hdp-monitor-webserver(
       $service_name = $service_name_by_os[$hdp::params::hdp_os_type]
     }
 
+    if hdp_is_empty($hdp::params::pathes[httpd_conf_dir]) {
+      hdp_fail("There is no config dir path for service httpd")
+    }
+    else {
+      $path_by_os = $hdp::params::pathes[httpd_conf_dir]
+    }
+
+    if hdp_is_empty($path_by_os[$hdp::params::hdp_os_type]) {
+      
+      if hdp_is_empty($path_by_os['ALL']) {
+        hdp_fail("There is no config dir path for service httpd")
+      }
+      else {
+        $httpd_conf_dir = $path_by_os['ALL']
+      }
+    }
+    else {
+      $httpd_conf_dir = $path_by_os[$hdp::params::hdp_os_type]
+    }
+
+
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['running','stopped','installed_and_configured', 'restart']) {
 
@@ -54,13 +75,19 @@ class hdp-monitor-webserver(
       hdp::exec { 'monitor webserver start':
         command => "/etc/init.d/$service_name start",
         unless => "/etc/init.d/$service_name status",
-        require => Hdp::Package['httpd']
-        
+        require => Hdp::Exec['enabling keepalive for httpd']
+
       } 
 
       hdp::package { 'httpd' :
         size   => 64
       }
+    hdp::exec {'enabling keepalive for httpd':
+      command     => "grep -E 'KeepAlive (On|Off)' ${httpd_conf_dir}/httpd.conf && sed -i 's/KeepAlive Off/KeepAlive On/' ${httpd_conf_dir}/httpd.conf || echo 'KeepAlive On' >> ${httpd_conf_dir}/httpd.conf",
+      require => Hdp::Package['httpd']
+
+    }
+
     } elsif ($service_state == 'stopped') {
       # stop should never fail if process already stopped
       hdp::exec { 'monitor webserver stop':
@@ -69,15 +96,26 @@ class hdp-monitor-webserver(
     } elsif ($service_state == 'restart') {
       hdp::exec { 'monitor webserver restart':
         command => "/etc/init.d/$service_name restart",
-        require => Hdp::Package['httpd']
+        require => Hdp::Exec['enabling keepalive for httpd']
       }
       hdp::package { 'httpd' :
         size   => 64
       }
+
+    hdp::exec {'enabling keepalive for httpd':
+      command     => "grep -E 'KeepAlive (On|Off)' ${httpd_conf_dir}/httpd.conf && sed -i 's/KeepAlive Off/KeepAlive On/' ${httpd_conf_dir}/httpd.conf || echo 'KeepAlive On' >> ${httpd_conf_dir}/httpd.conf",
+      require => Hdp::Package['httpd']
+    }
+
     } elsif ($service_state == 'installed_and_configured') {
       hdp::package { 'httpd' :
         size   => 64
       }
+
+    hdp::exec {'enabling keepalive for httpd':
+      command     => "grep -E 'KeepAlive (On|Off)' ${httpd_conf_dir}/httpd.conf && sed -i 's/KeepAlive Off/KeepAlive On/' ${httpd_conf_dir}/httpd.conf || echo 'KeepAlive On' >> ${httpd_conf_dir}/httpd.conf",
+      require => Hdp::Package['httpd']
+    }
     }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")

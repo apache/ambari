@@ -31,6 +31,8 @@ public interface DummyHeartbeatConstants {
   String DummyOsType = "centos5";
   String DummyOSRelease = "5.8";
 
+  Integer DummyCurrentPingPort = 33555;
+
   String DummyHostStatus = "I am ok";
 
   String DummyStackId = "HDP-0.1";

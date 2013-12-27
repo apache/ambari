@@ -25,6 +25,7 @@ require('messages');
 require('utils/base64');
 require('utils/db');
 require('utils/helper');
+require('utils/config');
 require('models');
 require('controllers');
 require('templates');
@@ -33,7 +34,6 @@ require('router');
 
 require('utils/ajax');
 require('utils/updater');
-require('utils/config');
 
 require('mappers/server_data_mapper');
 require('mappers/status_mapper');
@@ -45,8 +45,10 @@ require('mappers/racks_mapper');
 require('mappers/alerts_mapper');
 require('mappers/users_mapper');
 require('mappers/service_mapper');
+require('mappers/service_metrics_mapper');
 require('mappers/target_cluster_mapper');
 require('mappers/dataset_mapper');
+require('mappers/component_config_mapper');
 require('utils/http_client');
 require('utils/host_progress_popup');
 

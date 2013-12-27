@@ -1,0 +1,48 @@
+#/*
+# * Licensed to the Apache Software Foundation (ASF) under one
+# * or more contributor license agreements.  See the NOTICE file
+# * distributed with this work for additional information
+# * regarding copyright ownership.  The ASF licenses this file
+# * to you under the Apache License, Version 2.0 (the
+# * "License"); you may not use this file except in compliance
+# * with the License.  You may obtain a copy of the License at
+# *
+# *     http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# */
+
+com2sec notConfigUser  {{snmp_source}}   {{snmp_community}}
+group   notConfigGroup v1           notConfigUser
+group   notConfigGroup v2c           notConfigUser
+view    systemview    included   .1
+access  notConfigGroup ""      any       noauth    exact  systemview none none
+
+syslocation Hadoop 
+syscontact HadoopMaster 
+dontLogTCPWrappersConnects yes
+
+###############################################################################
+# disk checks
+
+disk / 10000
+
+
+###############################################################################
+# load average checks
+#
+
+# load [1MAX=12.0] [5MAX=12.0] [15MAX=12.0]
+#
+# 1MAX:   If the 1 minute load average is above this limit at query
+#         time, the errorFlag will be set.
+# 5MAX:   Similar, but for 5 min average.
+# 15MAX:  Similar, but for 15 min average.
+
+# Check for loads:
+#load 12 14 14
+

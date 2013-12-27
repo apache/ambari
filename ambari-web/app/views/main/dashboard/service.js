@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var uiEffects = require('utils/ui_effects');
 
 require('models/alert');
 
@@ -25,7 +26,14 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   //template: Em.Handlebars.compile(""),
   blink: false,
   tagName: 'span',
-  
+  attributeBindings:['rel', 'title','data-original-title'],
+  rel: 'HealthTooltip',
+  'data-original-title': '',
+
+  updateToolTip: function () {
+    this.set('data-original-title', this.get('service.toolTipContent'));
+  }.observes('service.toolTipContent'),
+
   /**
    * When set to true, extending classes should
    * show only tabular rows as they will be 
@@ -38,10 +46,10 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   },
 
   doBlink: function () {
+    var self = this;
     if (this.get('blink') && (this.get("state") == "inDOM")) {
-      this.$().effect("pulsate", { times: 1 }, "slow", function () {
-        var view = Em.View.views[$(this).attr('id')];
-        view.doBlink();
+      uiEffects.pulsate(self.$(), 1000, function(){
+        self.doBlink();
       });
     }
   }.observes('blink'),
@@ -65,6 +73,9 @@ App.MainDashboardServiceHealthView = Em.View.extend({
         status = App.Service.Health.dead;
         this.startBlink();
         break;
+      case 'yellow':
+        status = App.Service.Health.unknown;
+        break;
       default:
         status = App.Service.Health.dead;
         this.stopBlink();
@@ -75,8 +86,22 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   }.property('service.healthStatus'),
 
   didInsertElement: function () {
+    this.updateToolTip();
+    App.tooltip($("[rel='HealthTooltip']"));
     this.doBlink(); // check for blink availability
   }
+});
+
+App.ComponentLiveTextView =  Em.View.extend({
+  classNameBindings: ['color:service-summary-component-red-dead:service-summary-component-green-live'],
+  service: function() { return this.get("parentView").get("service")}.property("parentView.service"),
+  liveComponents: function() {
+  }.property(),
+  totalComponents: function() {
+  }.property(),
+  color: function() {
+    return this.get("liveComponents") == 0;
+  }.property("liveComponents")
 });
 
 App.MainDashboardServiceView = Em.View.extend({
@@ -86,13 +111,19 @@ App.MainDashboardServiceView = Em.View.extend({
     return this.get('controller.data.' + this.get('serviceName'));
   }.property('controller.data'),
 
+  dashboardMasterComponentView : Em.View.extend({
+    templateName: require('templates/main/service/info/summary/master_components'),
+    mastersComp : function(){
+     return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
+    }.property("service")
+  }),
+
   formatUnavailable: function(value){
     return (value || value == 0) ? value : this.t('services.service.summary.notAvailable');
   },
 
   criticalAlertsCount: function () {
-    var alerts = App.router.get('clusterController.alerts');
-    return alerts.filterProperty('serviceType', this.get('service.id')).filterProperty('isOk', false).filterProperty('ignoredForServices', false).length;
+    return App.router.get('clusterController.alertsServiceMap')[this.get('service.id')];
   }.property('App.router.clusterController.alerts'),
 
   isCollapsed: false,

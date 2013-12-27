@@ -179,7 +179,7 @@
 
   <property>
     <name>mapred.map.output.compression.codec</name>
-    <value></value>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
     <description>If the map outputs are compressed, how should they be
       compressed
     </description>
@@ -196,7 +196,7 @@
 
   <property>
     <name>mapred.jobtracker.completeuserjobs.maximum</name>
-    <value>0</value>
+    <value>5</value>
   </property>
 
   <property>
@@ -256,7 +256,7 @@
 
   <property>
     <name>mapred.task.tracker.task-controller</name>
-    <value></value>
+    <value>org.apache.hadoop.mapred.DefaultTaskController</value>
    <description>
      TaskController which is used to launch and manage task execution.
   </description>
@@ -276,32 +276,32 @@
 
   <property>
     <name>mapred.cluster.map.memory.mb</name>
-    <value></value>
+    <value>1536</value>
   </property>
 
   <property>
     <name>mapred.cluster.reduce.memory.mb</name>
-    <value></value>
+    <value>2048</value>
   </property>
 
   <property>
     <name>mapred.job.map.memory.mb</name>
-    <value></value>
+    <value>1536</value>
   </property>
 
   <property>
     <name>mapred.job.reduce.memory.mb</name>
-    <value></value>
+    <value>2048</value>
   </property>
 
   <property>
     <name>mapred.cluster.max.map.memory.mb</name>
-    <value></value>
+    <value>6144</value>
   </property>
 
   <property>
     <name>mapred.cluster.max.reduce.memory.mb</name>
-    <value></value>
+    <value>4096</value>
   </property>
 
 <property>
@@ -371,7 +371,7 @@
 
 <property>
   <name>mapred.jobtracker.retirejob.interval</name>
-  <value>0</value>
+  <value>21600000</value>
 </property>
 
 <property>

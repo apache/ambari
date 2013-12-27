@@ -29,130 +29,189 @@ public class AgentEnv {
   /**
    * Various directories, configurable in <code>ambari-agent.ini</code>
    */
-  private Directory[] paths = new Directory[0];
-
-  /**
-   * Java processes running on the system.  Default empty array.
-   */
-  private JavaProc[] javaProcs = new JavaProc[0];
-  
-  /**
-   * Various RPM package versions.
-   */
-  private Rpm[] rpms = new Rpm[0];
-  
-  /**
-   * Number of pid files found in <code>/var/run/hadoop</code>
-   */
-  private int varRunHadoopPidCount = 0;
-  
-  /**
-   * Number of log files found in <code>/var/log/hadoop</code>
-   */
-  private int varLogHadoopLogCount = 0;
+  private Directory[] stackFoldersAndFiles = new Directory[0];
 
   /**
    * Directories that match name <code>/etc/alternatives/*conf</code>
    */
-  private Alternative[] etcAlternativesConf = new Alternative[0];
+  private Alternative[] alternatives = new Alternative[0];
 
   /**
-   * Output for repo listing.  Command to do this varies, but for RHEL it is
-   * <code>yum -C repolist</code>
+   * List of existing users
    */
-  private String repoInfo;
-  
+  private ExistingUser[] existingUsers = new ExistingUser[0];
 
-  public Directory[] getPaths() {
-      return paths;
-  }
-  
-  public void setPaths(Directory[] dirs) {
-    paths = dirs;
-  }
-  
-  public void setVarRunHadoopPidCount(int count) {
-    varRunHadoopPidCount = count;
-  }
-  
-  public int getVarRunHadoopPidCount() {
-    return varRunHadoopPidCount;
-  }
-  
-  public void setVarLogHadoopLogCount(int count) {
-    varLogHadoopLogCount = count;
-  }
-  
-  public int getVarLogHadoopLogCount() {
-    return varLogHadoopLogCount;
-  }
-  
-  public void setJavaProcs(JavaProc[] procs) {
-    javaProcs = procs;
-  }
-  
-  public JavaProc[] getJavaProcs() {
-    return javaProcs;
-  }
-  
-  public void setRpms(Rpm[] rpm) {
-    rpms = rpm;
-  }
-  
-  public Rpm[] getRpms() {
-    return rpms;
-  }
-  
-  public void setEtcAlternativesConf(Alternative[] dirs) {
-    etcAlternativesConf = dirs;
-  }
-  
-  public Alternative[] getEtcAlternativesConf() {
-    return etcAlternativesConf;
-  }
-  
-  public void setRepoInfo(String info) {
-    repoInfo = info;
-  }
-  
-  public String getRepoInfo() {
-    return repoInfo;
-  }
-  
   /**
-   * Represents information about rpm-installed packages
+   * List of repos
    */
-  public static class Rpm {
+  private String[] existingRepos = new String[0];
+
+  /**
+   * List of packages
+   */
+  private PackageDetail[] installedPackages = new PackageDetail[0];
+
+  /**
+   * The host health report
+   */
+  private HostHealth hostHealth = new HostHealth();
+  
+  private Integer umask;
+
+  private Boolean iptablesIsRunning;
+
+  public Integer getUmask() {
+    return umask;
+  }
+
+  public void setUmask(Integer umask) {
+    this.umask = umask;
+  }
+
+  public Directory[] getStackFoldersAndFiles() {
+      return stackFoldersAndFiles;
+  }
+  
+  public void setStackFoldersAndFiles(Directory[] dirs) {
+    stackFoldersAndFiles = dirs;
+  }
+  
+  public void setExistingUsers(ExistingUser[] users) {
+    existingUsers = users;
+  }
+
+  public ExistingUser[] getExistingUsers() {
+    return existingUsers;
+  }
+
+  public void setAlternatives(Alternative[] dirs) {
+    alternatives = dirs;
+  }
+
+  public Alternative[] getAlternatives() {
+    return alternatives;
+  }
+
+  public void setExistingRepos(String[] repos) {
+    existingRepos = repos;
+  }
+
+  public String[] getExistingRepos() {
+    return existingRepos;
+  }
+
+  public void setInstalledPackages(PackageDetail[] packages) {
+    installedPackages = packages;
+  }
+
+  public PackageDetail[] getInstalledPackages() {
+    return installedPackages;
+  }
+
+  public void setHostHealth(HostHealth healthReport) {
+    hostHealth = healthReport;
+  }
+
+  public HostHealth getHostHealth() {
+    return hostHealth;
+  }
+
+  public Boolean getIptablesIsRunning() {
+    return iptablesIsRunning;
+  }
+
+  public void setIptablesIsRunning(Boolean iptablesIsRunning) {
+    this.iptablesIsRunning = iptablesIsRunning;
+  }
+
+  public static class HostHealth {
+    /**
+     * Java processes running on the system.  Default empty array.
+     */
+    @SerializedName("activeJavaProcs")
+    private JavaProc[] activeJavaProcs = new JavaProc[0];
+
+    /**
+     * The current time when agent send the host check report
+     */
+    @SerializedName("agentTimeStampAtReporting")
+    private long agentTimeStampAtReporting = 0;
+
+    /**
+     * The current time when host check report was received
+     */
+    @SerializedName("serverTimeStampAtReporting")
+    private long serverTimeStampAtReporting = 0;
+
+    /**
+     * Live services running on the agent
+     */
+    @SerializedName("liveServices")
+    private LiveService[] liveServices = new LiveService[0];
+
+    public void setAgentTimeStampAtReporting(long currentTime) {
+      agentTimeStampAtReporting = currentTime;
+    }
+
+    public long getAgentTimeStampAtReporting() {
+      return agentTimeStampAtReporting;
+    }
+
+    public void setServerTimeStampAtReporting(long currentTime) {
+      serverTimeStampAtReporting = currentTime;
+    }
+
+    public long getServerTimeStampAtReporting() {
+      return serverTimeStampAtReporting;
+    }
+
+    public void setActiveJavaProcs(JavaProc[] procs) {
+      activeJavaProcs = procs;
+    }
+
+    public JavaProc[] getActiveJavaProcs() {
+      return activeJavaProcs;
+    }
+
+    public void setLiveServices(LiveService[] services) {
+      liveServices = services;
+    }
+
+    public LiveService[] getLiveServices() {
+      return liveServices;
+    }
+  }
+
+  public static class PackageDetail {
     @SerializedName("name")
-    private String rpmName;
-    @SerializedName("installed")
-    private boolean rpmInstalled = false;
+    private String pkgName;
     @SerializedName("version")
-    private String rpmVersion;
-    
+    private String pkgVersion;
+    @SerializedName("repoName")
+    private String pkgRepoName;
+
     public void setName(String name) {
-      rpmName = name;
+      pkgName = name;
     }
-    
+
     public String getName() {
-      return rpmName;
+      return pkgName;
     }
-    
-    public void setInstalled(boolean installed) {
-      rpmInstalled = installed;
-    }
-    
-    public boolean isInstalled() {
-      return rpmInstalled;
-    }
-    
+
     public void setVersion(String version) {
-      rpmVersion = version;
+      pkgVersion = version;
     }
-    
-    @JsonSerialize(include=Inclusion.NON_NULL)
+
     public String getVersion() {
-      return rpmVersion;
+      return pkgVersion;
+    }
+
+    public void setRepoName(String repoName) {
+      pkgRepoName = repoName;
+    }
+
+    public String getRepoName() {
+      return pkgRepoName;
     }
   }
   
@@ -250,5 +309,70 @@ public class AgentEnv {
       return altTarget;
     }
   }
-  
+
+  public static class LiveService {
+    @SerializedName("name")
+    private String svcName;
+    @SerializedName("status")
+    private String svcStatus;
+    @SerializedName("desc")
+    private String svcDesc;
+
+    public void setName(String name) {
+      svcName = name;
+    }
+
+    public String getName() {
+      return svcName;
+    }
+
+    public void setStatus(String status) {
+      svcStatus = status;
+    }
+
+    public String getStatus() {
+      return svcStatus;
+    }
+
+    public void setDesc(String desc) {
+      svcDesc = desc;
+    }
+
+    public String getDesc() {
+      return svcDesc;
+    }
+  }
+
+  public static class ExistingUser {
+    @SerializedName("name")
+    private String name;
+    @SerializedName("homeDir")
+    private String homeDir;
+    @SerializedName("status")
+    private String status;
+
+    public void setUserName(String userName) {
+      name = userName;
+    }
+
+    public String getUserName() {
+      return name;
+    }
+
+    public void setUserHomeDir(String userHomeDir) {
+      homeDir = userHomeDir;
+    }
+
+    public String getUserHomeDir() {
+      return homeDir;
+    }
+
+    public void setUserStatus(String userStatus) {
+      status = userStatus;
+    }
+
+    public String getUserStatus() {
+      return status;
+    }
+  }
 }

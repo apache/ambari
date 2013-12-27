@@ -14,45 +14,40 @@
 ~~ limitations under the License.
 ~~
 
-What's New in Ambari 1.2.2?
+What's New with Ambari?
 
-  There’s a lot of activity occurring in trunk. We’ve had a great response from the
-  community and received a lot of input into the direction. Here are some highlights for 1.2.2:
+ * The current Ambari 1.4.1 features:
 
-  * Major performance enhancements for the REST APIs as well as Ambari Web UI
+   * Ability to deploy and manage the Hadoop 2.0 stack using Ambari
 
-  * Stability and robustness for the server and agent
+   * A wizard to enable Namenode HA
 
-  * More intuitive Job Analytics (swim-lane display for representing Pig/Hive DAGs)
+   * Added support for enabling Kerberos based security for Hadoop 2.0 services
 
-  * Host-level alerts (in addition to Service-level alerts)
+   * Support to work with SSL enabled Hadoop daemons 
 
-  * Support for Active Directory integration
+   * Support to work with web authentication enabled for Hadoop daemons
 
-  * Paging control for zoomed-in metric graphs
+   * Added support for JDK 7 
 
 
 Getting Ambari Source
 
-  The source can be checked out anonymously from SVN with the following command:
-
-+--
-$ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
-+--
+  See {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Development} Ambari Development guide}} on how to check out the source and build it.
 
 JIRA
 
   You can follow all the work going on by watching the Ambari JIRA project. You can see the
-  JIRA details for Ambari 1.2.2 here:
+  JIRA details for Ambari here:
 
-  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.2%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.2%22%20AND%20project%20%3D%20AMBARI}}
+  {{{https://issues.apache.org/jira/issues/?jql=project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=project%20%3D%20AMBARI}}
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.2/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.2 RC}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.1+bits} how to install a Hadoop cluster using Ambari 1.4.1}}.
 
 Stay Tuned
 
-  {{{http://incubator.apache.org/ambari/mail-lists.html} Subscribe to the Ambari mailing lists}} and check back here often to learn about our
+  {{{http://ambari.apache.org/mail-lists.html} Subscribe to the Ambari mailing lists}} and check back here often to learn about our
   upcoming releases.
 

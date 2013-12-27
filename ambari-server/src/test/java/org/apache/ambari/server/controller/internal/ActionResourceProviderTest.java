@@ -16,8 +16,19 @@
  * limitations under the License.
  */
 
+
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionDefinition;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ActionType;
+import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.controller.ActionResponse;
+import org.apache.ambari.server.controller.ActionRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -26,80 +37,79 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.easymock.EasyMock.eq;
 
-/**
- * ActionResourceProvider tests.
- */
 public class ActionResourceProviderTest {
-  @Test
-  public void testCreateResources() throws Exception {
-    Resource.Type type = Resource.Type.Action;
 
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-    
-    Map<String, String> requestProperties = new HashMap<String, String>();
-    requestProperties.put("context", "Called from a test");
+  private Injector injector;
 
-    expect(managementController.createActions(AbstractResourceProviderTest.Matcher.getActionRequestSet(
-        "Cluster100", "Service100", "Action100"), eq(requestProperties))).andReturn(response);
+  @Before
+  public void setup() throws Exception {
+    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
+    injector = Guice.createInjector(module);
+    injector.getInstance(GuiceJpaInitializer.class);
+  }
 
-    // replay
-    replay(managementController, response);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
-    // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-
-    // Service 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    // add properties to the request map
-    properties.put(ActionResourceProvider.ACTION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
-    properties.put(ActionResourceProvider.ACTION_SERVICE_NAME_PROPERTY_ID, "Service100");
-    properties.put(ActionResourceProvider.ACTION_ACTION_NAME_PROPERTY_ID, "Action100");
-
-    propertySet.add(properties);
-
-    // create the request
-    Request request = PropertyHelper.getCreateRequest(propertySet, requestProperties);
-
-    provider.createResources(request);
-
-    // verify
-    verify(managementController, response);
+  @After
+  public void teardown() {
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Action;
+    ActionManager am = createNiceMock(ActionManager.class);
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    expect(managementController.getActionManager()).andReturn(am).anyTimes();
 
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    List<ActionDefinition> allDefinition = new ArrayList<ActionDefinition>();
+    allDefinition.add(new ActionDefinition(
+        "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        Short.valueOf("100")));
+    allDefinition.add(new ActionDefinition(
+        "a2", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        Short.valueOf("100")));
+    allDefinition.add(new ActionDefinition(
+        "a3", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        Short.valueOf("100")));
 
-    // replay
-    replay(managementController);
+    Set<ActionResponse> allResponse = new HashSet<ActionResponse>();
+    for (ActionDefinition definition : allDefinition) {
+      allResponse.add(new ActionResponse(definition));
+    }
+
+    ActionDefinition namedDefinition = new ActionDefinition(
+        "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
+        Short.valueOf("100"));
+
+    Set<ActionResponse> nameResponse = new HashSet<ActionResponse>();
+    nameResponse.add(new ActionResponse(namedDefinition));
+
+    expect(am.getAllActionDefinition()).andReturn(allDefinition).once();
+    expect(am.getActionDefinition("a1")).andReturn(namedDefinition).once();
+
+    replay(managementController, am);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -109,133 +119,222 @@ public class ActionResourceProviderTest {
 
     Set<String> propertyIds = new HashSet<String>();
 
-    propertyIds.add(ActionResourceProvider.ACTION_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ActionResourceProvider.ACTION_SERVICE_NAME_PROPERTY_ID);
-    propertyIds.add(ActionResourceProvider.ACTION_ACTION_NAME_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.ACTION_NAME_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.ACTION_TYPE_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.DEFAULT_TIMEOUT_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.DESCRIPTION_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.INPUTS_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.TARGET_COMPONENT_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.TARGET_HOST_PROPERTY_ID);
+    propertyIds.add(ActionResourceProvider.TARGET_SERVICE_PROPERTY_ID);
+
 
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // get all ... no predicate
-    try {
-      provider.getResources(request, null);
-      Assert.fail("Expected an UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
+    Set<Resource> resources = provider.getResources(request, null);
+
+    Assert.assertEquals(allResponse.size(), resources.size());
+    for (Resource resource : resources) {
+      String actionName = (String) resource.getPropertyValue(ActionResourceProvider.ACTION_NAME_PROPERTY_ID);
+      String actionType = (String) resource.getPropertyValue(ActionResourceProvider.ACTION_TYPE_PROPERTY_ID);
+      String defaultTimeout = (String) resource.getPropertyValue(ActionResourceProvider.DEFAULT_TIMEOUT_PROPERTY_ID);
+      String description = (String) resource.getPropertyValue(ActionResourceProvider.DESCRIPTION_PROPERTY_ID);
+      String inputs = (String) resource.getPropertyValue(ActionResourceProvider.INPUTS_PROPERTY_ID);
+      String comp = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_COMPONENT_PROPERTY_ID);
+      String svc = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_SERVICE_PROPERTY_ID);
+      String host = (String) resource.getPropertyValue(ActionResourceProvider.TARGET_HOST_PROPERTY_ID);
+      Assert.assertTrue(allResponse.contains(new ActionResponse(actionName, actionType,
+          inputs, svc, comp, description, host, defaultTimeout)));
     }
+
+    // get actions named a1
+    Predicate predicate =
+        new PredicateBuilder().property(ActionResourceProvider.ACTION_NAME_PROPERTY_ID).
+            equals("a1").toPredicate();
+    resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    Assert.assertEquals("a1", resources.iterator().next().
+        getPropertyValue(ActionResourceProvider.ACTION_NAME_PROPERTY_ID));
+
 
     // verify
     verify(managementController);
   }
 
+  @Test
+  public void testCreateResources() throws Exception {
+    Resource.Type type = Resource.Type.Action;
+
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    ActionManager am = createMock(ActionManager.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    expect(managementController.getActionManager()).andReturn(am).anyTimes();
+
+    am.createActionDefinition(eq("a1"), eq(ActionType.SYSTEM), eq("fileName"), eq("desc"), eq((String)null),
+        eq((String)null), eq(TargetHostType.ANY), eq(Short.valueOf("60")));
+    // replay
+    replay(managementController, am, response);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+    ((ActionResourceProvider) provider).setEnableExperimental(true);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider) provider).addObserver(observer);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    // Cluster 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ActionResourceProvider.ACTION_NAME_PROPERTY_ID, "a1");
+    properties.put(ActionResourceProvider.ACTION_TYPE_PROPERTY_ID, "SYSTEM");
+    properties.put(ActionResourceProvider.TARGET_HOST_PROPERTY_ID, "ANY");
+    properties.put(ActionResourceProvider.DESCRIPTION_PROPERTY_ID, "desc");
+    properties.put(ActionResourceProvider.INPUTS_PROPERTY_ID, "fileName");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Action, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    Assert.assertEquals(request, lastEvent.getRequest());
+    Assert.assertNull(lastEvent.getPredicate());
+
+    // verify
+    verify(managementController, response);
+  }
 
   @Test
   public void testUpdateResources() throws Exception {
     Resource.Type type = Resource.Type.Action;
 
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    ActionManager am = createMock(ActionManager.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    expect(managementController.getActionManager()).andReturn(am).anyTimes();
+    am.updateActionDefinition(eq("a2"), eq((ActionType) null), eq("Updated description"),
+        eq((TargetHostType) null), eq((Short)null));
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
 
     // replay
-    replay(managementController, response);
+    replay(managementController, response, am);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
+    ((ActionResourceProvider) provider).setEnableExperimental(true);
 
-    // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
-    // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties, null);
+    properties.put(ActionResourceProvider.DESCRIPTION_PROPERTY_ID, "Updated description");
 
-    Predicate predicate =
-        new PredicateBuilder().property(ActionResourceProvider.ACTION_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
-        and().property(ActionResourceProvider.ACTION_SERVICE_NAME_PROPERTY_ID).equals("Service102").
-        and().property(ActionResourceProvider.ACTION_ACTION_NAME_PROPERTY_ID).equals("Action100").toPredicate();
-    try {
-      provider.updateResources(request, predicate);
-      Assert.fail("Expected an UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    // update the action named a2
+    Predicate predicate = new PredicateBuilder().property(
+        ActionResourceProvider.ACTION_NAME_PROPERTY_ID).equals("a2").toPredicate();
+    provider.updateResources(request, predicate);
 
     // verify
-    verify(managementController, response);
+    verify(managementController, response, am);
   }
 
   @Test
-  public void testDeleteResources() throws Exception {
+  public void testEnsureLockedOperations() throws Exception {
     Resource.Type type = Resource.Type.Action;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    // replay
-    replay(managementController, response);
-
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Predicate  predicate =
-        new PredicateBuilder().property(ActionResourceProvider.ACTION_ACTION_NAME_PROPERTY_ID).equals("Action100").
-            toPredicate();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    Predicate predicate = new PredicateBuilder().property(
+        ActionResourceProvider.ACTION_NAME_PROPERTY_ID).equals("a2").toPredicate();
     try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected an UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
+      provider.updateResources(request, predicate);
+      Assert.fail("Update call must fail.");
+    } catch (UnsupportedOperationException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Not currently supported"));
     }
 
-    // verify
-    verify(managementController, response);
+    try {
+      provider.createResources(request);
+      Assert.fail("Create call must fail.");
+    } catch (UnsupportedOperationException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Not currently supported"));
+    }
+
+    try {
+      provider.deleteResources(predicate);
+      Assert.fail("Delete call must fail.");
+    } catch (UnsupportedOperationException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Not currently supported"));
+    }
   }
 
-  @Test
-  public void testCheckPropertyIds() throws Exception {
-    Set<String> propertyIds = new HashSet<String>();
-    propertyIds.add("foo");
-    propertyIds.add("cat1/foo");
-    propertyIds.add("cat2/bar");
-    propertyIds.add("cat2/baz");
-    propertyIds.add("cat3/sub1/bam");
-    propertyIds.add("cat4/sub2/sub3/bat");
-    propertyIds.add("cat5/subcat5/map");
+  public static ActionResourceProvider getActionDefinitionResourceProvider(
+      AmbariManagementController managementController) {
+    Resource.Type type = Resource.Type.Action;
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+    return (ActionResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+  }
 
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+  public static void createAction(AmbariManagementController controller, ActionRequest request)
+      throws AmbariException {
+    ActionResourceProvider provider = getActionDefinitionResourceProvider(controller);
+    provider.createActionDefinition(request);
+  }
 
-    AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Action,
-            propertyIds,
-            keyPropertyIds,
-            managementController);
+  public static Set<ActionResponse> getActions(AmbariManagementController controller,
+                                                         Set<ActionRequest> requests)
+      throws AmbariException {
+    ActionResourceProvider provider = getActionDefinitionResourceProvider(controller);
+    return provider.getActionDefinitions(requests);
+  }
 
-    Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
-    Assert.assertTrue(unsupported.isEmpty());
+  public static RequestStatusResponse updateAction(AmbariManagementController controller,
+                                                   Set<ActionRequest> requests,
+                                                   Map<String, String> requestProperties)
+      throws AmbariException {
+    ActionResourceProvider provider = getActionDefinitionResourceProvider(controller);
+    return provider.updateActionDefinitions(requests, requestProperties);
+  }
 
-    // note that key is not in the set of known property ids.  We allow it if its parent is a known property.
-    // this allows for Map type properties where we want to treat the entries as individual properties
-    Assert.assertTrue(provider.checkPropertyIds(Collections.singleton("cat5/subcat5/map/key")).isEmpty());
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("bar"));
-    Assert.assertEquals(1, unsupported.size());
-    Assert.assertTrue(unsupported.contains("bar"));
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("cat1/foo"));
-    Assert.assertTrue(unsupported.isEmpty());
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("cat1"));
-    Assert.assertTrue(unsupported.isEmpty());
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("parameters/unknown_property"));
-    Assert.assertTrue(unsupported.isEmpty());
+  public static void deleteAction(AmbariManagementController controller, ActionRequest request)
+      throws AmbariException {
+    ActionResourceProvider provider = getActionDefinitionResourceProvider(controller);
+    provider.deleteActionDefinition(request);
   }
 }

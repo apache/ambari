@@ -39,7 +39,17 @@ class hdp-nagios::server::packages(
     java_needed => false
   }
 
+  hdp::package { 'nagios-plugins': 
+    ensure      => present,
+    java_needed => false
+  }
+  
   hdp::package { 'nagios-server':
+    ensure      => present,
+    java_needed => false
+  }
+
+  hdp::package { 'nagios-devel': 
     ensure      => present,
     java_needed => false
   }
@@ -53,11 +63,6 @@ class hdp-nagios::server::packages(
     ensure      => present,
     java_needed => false
   }
-	
-  hdp::package { 'nagios-plugins': 
-    ensure      => present,
-    java_needed => false
-  }
   
   hdp::package { 'nagios-php-pecl-json': 
     ensure      => present,
@@ -67,7 +72,7 @@ class hdp-nagios::server::packages(
   
 debug("## state: $service_state")
   if ($service_state == 'installed_and_configured') {
-
+    
     hdp::package::remove_pkg { 'hdp_mon_nagios_addons':
       package_type => 'hdp_mon_nagios_addons'
     }
@@ -76,17 +81,17 @@ debug("## state: $service_state")
       package_type => 'nagios-plugins'
     }
 
-    hdp::package::remove_pkg { 'nagios':
-      package_type => 'nagios'
+    exec { "remove_package nagios":
+      path    => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      command => "rpm -e --allmatches --nopostun nagios ; true"
     }
 
     debug("##Adding removing dep")
     # Removing conflicting packages. Names of packages being removed are hardcoded and not resolved via hdp::params
-    Hdp::Package::Remove_pkg['hdp_mon_nagios_addons'] -> Hdp::Package::Remove_pkg['nagios-plugins'] -> Hdp::Package::Remove_pkg['nagios'] -> Hdp::Package['nagios-plugins']
+    Hdp::Package::Remove_pkg['hdp_mon_nagios_addons'] -> Hdp::Package::Remove_pkg['nagios-plugins'] -> Exec['remove_package nagios'] -> Hdp::Package['nagios-plugins']
   }
 
-  Hdp::Package['nagios-plugins'] -> Hdp::Package['nagios-server'] -> Hdp::Package['nagios-fping'] -> Hdp::Package['nagios-addons'] -> Hdp::Package['nagios-php-pecl-json']
-
+  Hdp::Package['nagios-plugins'] -> Hdp::Package['nagios-server'] -> Hdp::Package['nagios-devel'] -> Hdp::Package['nagios-fping'] -> Hdp::Package['nagios-addons'] -> Hdp::Package['nagios-php-pecl-json']
     
 
 } 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,8 +20,12 @@ limitations under the License.
 
 import socket
 import subprocess
-import AmbariConfig
 import urllib2
+import AmbariConfig
+import logging
+import traceback
+
+logger = logging.getLogger()
 
 def hostname():
   config = AmbariConfig.config
@@ -40,6 +44,23 @@ def hostname():
     return socket.getfqdn()
 
 def public_hostname():
+  config = AmbariConfig.config
+  out = ''
+  err = ''
+  try:
+    if config.has_option('agent', 'public_hostname_script'):
+      scriptname = config.get('agent', 'public_hostname_script')
+      output = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      out, err = output.communicate()
+      if (0 == output.returncode and 0 != len(out.strip())):
+        return out.strip()
+  except:
+    #ignore for now. 
+    trace_info = traceback.format_exc()
+    logger.info("Error using the scriptname:" +  trace_info 
+                + " :out " + out + " :err " + err)
+    logger.info("Defaulting to fqdn.")
+    
   # future - do an agent entry for this too
   try:
     handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)

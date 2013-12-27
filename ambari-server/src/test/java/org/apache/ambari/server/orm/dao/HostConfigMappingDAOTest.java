@@ -58,11 +58,12 @@ public class HostConfigMappingDAOTest {
   private HostConfigMappingEntity createEntity(long clusterId, String host, String type, String version) throws Exception {
     HostConfigMappingEntity entity = new HostConfigMappingEntity();
     entity.setClusterId(Long.valueOf(clusterId));
-    entity.setCreateTimestamp(Long.valueOf(new Date().getTime()));
+    entity.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
     entity.setHostName(host);
     entity.setSelected(1);
     entity.setType(type);
     entity.setVersion(version);
+    entity.setUser("_test");
     
     hostConfigMappingDAO.create(entity);
     
@@ -105,7 +106,7 @@ public class HostConfigMappingDAOTest {
 
     Assert.assertEquals("Expected one result", 1, target.size());
     Assert.assertEquals("Expected version 'v1'", source.getVersion(), target.get(0).getVersion());
-    Assert.assertEquals("Expected selected flag 0", 0, target.get(0).isSelected());    
+    Assert.assertEquals("Expected selected flag 0", 0, target.get(0).isSelected());
   }
   
   @Test
@@ -144,7 +145,7 @@ public class HostConfigMappingDAOTest {
     target = hostConfigMappingDAO.findSelectedByType(1L, "h1", "global");
     Assert.assertNotNull("Expected non-null entity for type 'global'", target);
     
-    Assert.assertEquals("Expected version to be '" + entity2.getVersion() + "'", entity2.getVersion(), target.getVersion());    
+    Assert.assertEquals("Expected version to be '" + entity2.getVersion() + "'", entity2.getVersion(), target.getVersion());
     
     Assert.assertEquals("Expected instance equality", entity2, target);
   }

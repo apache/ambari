@@ -19,24 +19,58 @@ var App = require('app');
 
 App.clusterStatus = Ember.Object.create({
   clusterName: '',
-  validStates: ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'SERVICE_STARTING_3', 'CLUSTER_INSTALLED_4',  'CLUSTER_STARTED_5',
-    'ADD_HOSTS_DEPLOY_PREP_2', 'ADD_HOSTS_INSTALLING_3', 'ADD_HOSTS_INSTALLED_4', 'ADD_HOSTS_COMPLETED_5',
-    'ADD_SERVICES_DEPLOY_PREP_2', 'ADD_SERVICES_INSTALLING_3', 'ADD_SERVICES_INSTALLED_4', 'ADD_SERVICES_COMPLETED_5',
-    'STOPPING_SERVICES', 'STACK_UPGRADING', 'STACK_UPGRADE_FAILED', 'STACK_UPGRADED', 'STACK_UPGRADE_COMPLETED'],
+  validStates: [
+    'DEFAULT',
+    'CLUSTER_NOT_CREATED_1',
+    'CLUSTER_DEPLOY_PREP_2',
+    'CLUSTER_INSTALLING_3',
+    'SERVICE_STARTING_3',
+    'CLUSTER_INSTALLED_4',
+    'ADD_HOSTS_DEPLOY_PREP_2',
+    'ADD_HOSTS_INSTALLING_3',
+    'ADD_HOSTS_INSTALLED_4',
+    'ADD_SERVICES_DEPLOY_PREP_2',
+    'ADD_SERVICES_INSTALLING_3',
+    'ADD_SERVICES_INSTALLED_4',
+    'STOPPING_SERVICES',
+    'STACK_UPGRADING',
+    'STACK_UPGRADE_FAILED',
+    'STACK_UPGRADED',
+    'ADD_SECURITY_STEP_1',
+    'ADD_SECURITY_STEP_2',
+    'ADD_SECURITY_STEP_3',
+    'ADD_SECURITY_STEP_4',
+    'DISABLE_SECURITY',
+    'HIGH_AVAILABILITY_DEPLOY',
+    'ROLLBACK_HIGH_AVAILABILITY'],
   clusterState: 'CLUSTER_NOT_CREATED_1',
   wizardControllerName: null,
   localdb: null,
   key: 'CLUSTER_CURRENT_STATUS',
+  isInstalled: function(){
+    var notInstalledStates = ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'SERVICE_STARTING_3'];
+    return !notInstalledStates.contains(this.get('clusterState'));
+  }.property('clusterState'),
   /**
    * get cluster data from server and update cluster status
+   * @param isAsync: set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
+   * @return promise object for the get call
    */
-  updateFromServer: function(){
+  updateFromServer: function(isAsync, overrideLocaldb) {
+    // if isAsync is undefined, set it to false
+    isAsync = isAsync || false;
+    // if overrideLocaldb is undefined, set it to true
+    if(typeof overrideLocaldb == "undefined"){
+      overrideLocaldb =  true;
+    }
+    var user = App.db.getUser();
+    var login = App.db.getLoginName();
     var url = App.apiPrefix + '/persist/' + this.get('key');
-    jQuery.ajax(
+    return jQuery.ajax(
       {
         url: url,
         context: this,
-        async: false,
+        async: isAsync,
         success: function (response) {
           if (response) {
             var newValue = jQuery.parseJSON(response);
@@ -51,6 +85,12 @@ App.clusterStatus = Ember.Object.create({
             }
             if (newValue.localdb) {
               this.set('localdb', newValue.localdb);
+              if (overrideLocaldb) {
+                App.db.data = newValue.localdb;
+                App.db.setLocalStorage();
+                App.db.setUser(user);
+                App.db.setLoginName(login);
+              }
             }
           } else {
             // default status already set
@@ -60,7 +100,15 @@ App.clusterStatus = Ember.Object.create({
           if (xhr.status == 404) {
             // default status already set
             console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+            return;
           }
+          App.ModalPopup.show({
+            header: Em.I18n.t('common.error'),
+            secondary: false,
+            bodyClass: Ember.View.extend({
+              template: Ember.Handlebars.compile('<p>{{t common.update.error}}</p>')
+            })
+          });
         },
         statusCode: require('data/statusCodes')
       }
@@ -72,45 +120,78 @@ App.clusterStatus = Ember.Object.create({
    * @return {*}
    */
   setClusterStatus: function(newValue){
+    if(App.testMode) return false;
+    var user = App.db.getUser();
+    var login = App.db.getLoginName();
+    var val = {clusterName: this.get('clusterName')};
     if (newValue) {
       //setter
-      if (newValue.clusterState) {
-        this.set('clusterState', newValue.clusterState);
-      }
       if (newValue.clusterName) {
         this.set('clusterName', newValue.clusterName);
+        val.clusterName =  newValue.clusterName;
+      }
+
+      if (newValue.clusterState) {
+        this.set('clusterState', newValue.clusterState);
+        val.clusterState = newValue.clusterState;
       }
       if (newValue.wizardControllerName) {
         this.set('wizardControllerName', newValue.wizardControllerName);
+        val.wizardControllerName = newValue.wizardControllerName;
       }
       if (newValue.localdb) {
+        if (newValue.localdb.app && newValue.localdb.app.user)
+          delete newValue.localdb.app.user;
+        if (newValue.localdb.app && newValue.localdb.app.loginName)
+          delete newValue.localdb.app.loginName;
         this.set('localdb', newValue.localdb);
+        val.localdb = newValue.localdb;
+      } else {
+        delete App.db.data.app.user;
+        delete App.db.data.app.loginName;
+          val.localdb = App.db.data;
+        App.db.setUser(user);
+        App.db.setLoginName(login);
       }
 
-      var url = App.apiPrefix + '/persist/';
       var keyValuePair = {};
-      var val = {
-        clusterName: this.get('clusterName'),
-        clusterState: this.get('clusterState'),
-        wizardControllerName: this.get('wizardControllerName'),
-        localdb: this.get('localdb')
-      };
+
       keyValuePair[this.get('key')] = JSON.stringify(val);
 
-
-      jQuery.ajax({
-        async: false,
-        context: this,
-        type: "POST",
-        url: url,
-        data: JSON.stringify(keyValuePair),
-        beforeSend: function () {
-          console.log('BeforeSend: persistKeyValues', keyValuePair);
-        }
+      App.ajax.send({
+        name: 'cluster.state',
+        sender: this,
+        data: {
+          keyValuePair: keyValuePair
+        },
+        beforeSend: 'clusterStatusBeforeSend',
+        error: 'clusterStatusErrorCallBack'
       });
       return newValue;
     }
   },
+  clusterStatusBeforeSend: function (keyValuePair) {
+    console.log('BeforeSend: persistKeyValues', keyValuePair);
+  },
+  clusterStatusErrorCallBack: function(request, ajaxOptions, error, opt) {
+    console.log("ERROR");
+    if(opt.newValue.errorCallBack) {
+      opt.newValue.errorCallBack();
+    } else {
+      var doc = $.parseXML(request.responseText);
+      var msg = 'Error ' + (request.status) + ' ';
+      msg += $(doc).find("body p").text();
+    }
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      response: msg,
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
+      })
+    });
+  },
+
   /**
    * general info about cluster
    */

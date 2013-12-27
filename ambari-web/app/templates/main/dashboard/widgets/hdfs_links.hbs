@@ -1,0 +1,101 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="links">
+  <li class="thumbnail row">
+    <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
+      <i class="icon-remove-sign icon-large"></i>
+    </a>
+    <div class="caption span10"> {{view.title}}</div>
+
+    <div class="widget-content" >
+      {{#if view.isHAEnabled }}
+        <table>
+          <!--Active NameNode-->
+          <tr>
+            {{#if view.isActiveNNValid}}
+              <td><a href="#" {{action showDetails view.model.activeNameNode}}>{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
+            {{else}}
+              <td><a class="disabled-hdfs-link">{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
+            {{/if}}
+          </tr>
+          <!--Standby NameNodes-->
+          <tr>
+            {{#if view.isStandbyNNValid}}
+              {{#if view.isTwoStandbyNN}}
+                <!--Two Standby NameNodes-->
+                <td><a href="#" {{action filterHosts view.twoStandbyComponent}}>{{t dashboard.widgets.HDFSLinks.standbyNameNodes}}</a></td>
+              {{else}}
+                <!--One Standby NameNode-->
+                <td><a href="#" {{action showDetails view.model.standbyNameNode}}>{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
+              {{/if}}
+            {{else}}
+              <td><a class="disabled-hdfs-link">{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
+            {{/if}}
+          </tr>
+          <!--Data Nodes-->
+          <tr>
+            <td>
+              <a href="#" {{action filterHosts view.component}}>{{view.model.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
+            </td>
+          </tr>
+        </table>
+      {{else}}
+        <table>
+          <!--NameNode-->
+          <tr>
+            <td><a href="#" {{action showDetails view.model.nameNode}}>{{t dashboard.services.hdfs.nanmenode}}</a></td>
+          </tr>
+          <!--SecondaryNameNode-->
+          <tr>
+            <td><a href="#" {{action showDetails view.model.snameNode}}>{{t dashboard.services.hdfs.snanmenode}}</a></td>
+          </tr>
+          <!--Data Nodes-->
+          <tr>
+            <td>
+              <a href="#" {{action filterHosts view.component}}>{{view.model.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
+            </td>
+          </tr>
+        </table>
+      {{/if}}
+
+    </div>
+
+    <div class="link-button">
+      {{#if view.model.quickLinks.length}}
+        {{#view App.QuickViewLinks contentBinding="view.model"}}
+          <div class="btn-group">
+            <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
+              {{t common.more}}
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              {{#each view.quickLinks}}
+                {{#if disabled}}
+                  <li><a class="disabled-hdfs-quick-link">{{label}}</a></li>
+                {{else}}
+                  <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                {{/if}}
+              {{/each}}
+            </ul>
+          </div>
+        {{/view}}
+      {{/if}}
+    </div>
+  </li>
+</div>

@@ -30,6 +30,9 @@ module Puppet::Parser::Functions
       qualified_var = "#{module_name}::params::#{args[0]}"
     end
     val = lookupvar(qualified_var)
+    if function_hdp_is_empty(val) == false and val.class == String
+      val = val.strip
+    end  
     (val.nil? or val == :undefined) ? "" : val 
   end
 end

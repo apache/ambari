@@ -47,9 +47,9 @@ public class HostHealthStatus {
   }
 
   public static enum HealthStatus {
-    UNKNOWN,
-    HEALTHY,
-    UNHEALTHY
+    UNKNOWN,      // lost heartbeat
+    HEALTHY,      // all masters and slaves are live
+    UNHEALTHY,    // at least one master is dead
+    ALERT         // at least one slave is dead
   }
-
 }

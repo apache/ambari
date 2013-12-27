@@ -24,7 +24,7 @@ class hdp-hadoop::jobtracker(
 ) inherits hdp-hadoop::params
 {
   $hdp::params::service_exists['hdp-hadoop::jobtracker'] = true
-  Hdp-hadoop::Common<||>{service_states +> $service_state}
+  Hdp-hadoop::Common<||>{service_state => $service_state}
   Hdp-hadoop::Package<||>{include_64_bit => true}
   Hdp-hadoop::Configfile<||>{sizes +> 64}
 
@@ -75,8 +75,10 @@ class hdp-hadoop::jobtracker(
     }
 
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['jobtracker'] -> Hdp-hadoop::Service['historyserver']
-    Hdp-hadoop::Jobtracker::Create_local_dirs<||> -> Hdp-hadoop::Service['jobtracker']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Service['jobtracker'] -> Hdp-hadoop::Service['historyserver'] 
+    -> Anchor['hdp-hadoop::end']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Jobtracker::Create_local_dirs<||> -> Hdp-hadoop::Service['jobtracker'] 
+    -> Anchor['hdp-hadoop::end']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

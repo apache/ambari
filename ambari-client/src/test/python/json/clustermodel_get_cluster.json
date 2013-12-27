@@ -1,0 +1,103 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1",
+  "Clusters" : {
+    "cluster_name" : "test1",
+    "cluster_id" : 1,
+    "version" : "HDP-1.2.1"
+  },
+  "requests" : [ ],
+  "services" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/services/GANGLIA",
+      "ServiceInfo" : {
+        "cluster_name" : "test1",
+        "service_name" : "GANGLIA"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/services/MAPREDUCE",
+      "ServiceInfo" : {
+        "cluster_name" : "test1",
+        "service_name" : "MAPREDUCE"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/services/HDFS",
+      "ServiceInfo" : {
+        "cluster_name" : "test1",
+        "service_name" : "HDFS"
+      }
+    }
+  ],
+  "hosts" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/r01mgt",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "host_name" : "r01mgt"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/r01hn01",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "host_name" : "r01hn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/r01wn03",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "host_name" : "r01wn03"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/r01wn02",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "host_name" : "r01wn02"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/r01wn01",
+      "Hosts" : {
+        "cluster_name" : "test1",
+        "host_name" : "r01wn01"
+      }
+    }
+  ],
+  "configurations" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=mapred-site&tag=version1",
+      "tag" : "version1",
+      "type" : "mapred-site",
+      "Config" : {
+        "cluster_name" : "test1"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=global&tag=version1",
+      "tag" : "version1",
+      "type" : "global",
+      "Config" : {
+        "cluster_name" : "test1"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=hdfs-site&tag=version1",
+      "tag" : "version1",
+      "type" : "hdfs-site",
+      "Config" : {
+        "cluster_name" : "test1"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=core-site&tag=version1",
+      "tag" : "version1",
+      "type" : "core-site",
+      "Config" : {
+        "cluster_name" : "test1"
+      }
+    }
+  ]
+}

@@ -19,12 +19,15 @@
 <div class="screensaver chart-container" {{bindAttr class="view.isReady:hide"}} >
   <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
 </div>
-<div  id="{{unbound view.id}}-container" class="chart-container hide" {{bindAttr class="view.isReady:show"}}  {{action showGraphInPopup target="view"}} title="Click to zoom">
-  <div id="{{unbound view.id}}-yaxis" class="chart-y-axis"></div>
-  <div id="{{unbound view.id}}-xaxis" class="chart-x-axis"></div>
+<div  id="{{unbound view.id}}-container" class="chart-container hide" {{bindAttr class="view.isReady:show"}}  rel="ZoomInTooltip" title="Click to zoom">
+  <div id="{{unbound view.id}}-yaxis" class="chart-y-axis" {{action showGraphInPopup target="view"}}></div>
+  <div id="{{unbound view.id}}-xaxis" class="chart-x-axis" {{action showGraphInPopup target="view"}}></div>
   <div id="{{unbound view.id}}-legend" class="chart-legend"></div>
-  <div id="{{unbound view.id}}-chart" class="chart"></div>
-  <div id="{{unbound view.id}}-timeline" class="timeline"></div>
+  <div id="{{unbound view.id}}-chart" class="chart"  {{action showGraphInPopup target="view"}}></div>
+  <div id="{{unbound view.id}}-timeline" class="timeline" {{action showGraphInPopup target="view"}}></div>
+  {{#unless view.noTitleUnderGraph}}
+    <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
+  {{/unless}}
 
-  <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
 </div>
+

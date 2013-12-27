@@ -32,20 +32,20 @@ import java.util.List;
  */
 public class AndPredicate extends ArrayPredicate {
 
-  public AndPredicate(BasePredicate... predicates) {
+  public AndPredicate(Predicate... predicates) {
     super(predicates);
   }
 
   @Override
-  public BasePredicate create(BasePredicate... predicates) {
+  public Predicate create(Predicate... predicates) {
     return instance(predicates);
   }
 
-  public static BasePredicate instance(BasePredicate... predicates) {
-    List<BasePredicate> predicateList = new LinkedList<BasePredicate>();
+  public static Predicate instance(Predicate... predicates) {
+    List<Predicate> predicateList = new LinkedList<Predicate>();
 
     // Simplify the predicate array
-    for (BasePredicate predicate : predicates) {
+    for (Predicate predicate : predicates) {
       if (!(predicate instanceof AlwaysPredicate)) {
         if (predicate instanceof AndPredicate) {
           predicateList.addAll(Arrays.asList(((AndPredicate) predicate).getPredicates()));
@@ -58,7 +58,7 @@ public class AndPredicate extends ArrayPredicate {
 
     return predicateList.size() == 1 ?
         predicateList.get(0) :
-        new AndPredicate(predicateList.toArray(new BasePredicate[predicateList.size()]));
+        new AndPredicate(predicateList.toArray(new Predicate[predicateList.size()]));
   }
 
   @Override

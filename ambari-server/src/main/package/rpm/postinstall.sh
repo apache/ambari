@@ -13,4 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+if [ -e "/etc/init.d/ambari-server" ];
+then # Check is needed for upgrade
+    # Remove link created by previous package version
+    rm /etc/init.d/ambari-server
+fi
+
+ln -s /usr/sbin/ambari-server /etc/init.d/ambari-server
+
+if [ "$1" -eq 1 ]; # Action is install
+then
+  chkconfig --add ambari-server
+fi
+
 exit 0

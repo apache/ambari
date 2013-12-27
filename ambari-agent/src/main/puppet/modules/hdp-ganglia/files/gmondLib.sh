@@ -85,6 +85,17 @@ function getGmondPidFileName()
     fi
 }
 
+function removeGmondPidFileName()
+{
+    clusterName=${1};
+    gmondPidFileName=`getGmondPidFileName ${clusterName}`;
+    if [ -e "${gmondPidFileName}" ]; 
+     then
+      rm -rf ${gmondPidFileName};          
+    fi 
+}
+
+
 function getGmondLoggedPid()
 {
     gmondPidFile=`getGmondPidFileName ${1}`;
@@ -455,6 +466,11 @@ collection_group {
     title = "Total Disk Space"
   }
 }
+
+udp_recv_channel {
+    port = 0
+}
+
 
 include ("${GANGLIA_CONF_DIR}/${gmondClusterName}/conf.d/*.conf")
 END_OF_GMOND_CORE_CONF

@@ -21,11 +21,21 @@ var App = require('app');
 App.MainHostMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
-  content:[
-    { label:'Summary', routing:'summary'},
-    { label:'Configs', routing:'configs'}
-    /*{ label:'Audit', routing:'audit'}*/
-  ],
+  content: function () {
+    var array = [ {
+      label: 'Summary',
+      routing: 'summary'
+    }
+    /* { label:'Audit', routing:'audit'} */
+    ];
+    if (App.supports.hostOverridesHost) {
+      array.push({
+        label: 'Configs',
+        routing: 'configs'
+      });
+    }
+    return array;
+  }.property(''),
 
   init: function(){ this._super(); this.activateView(); },
 

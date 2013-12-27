@@ -75,6 +75,9 @@
                   <arg value="-rf"/>
                   <arg value="public"/>
                 </exec>
+                <exec dir="${basedir}" executable="mkdir" failonerror="false">
+                  <arg value="public"/>
+                </exec>
               </target>
             </configuration>
           </execution>
@@ -92,6 +95,16 @@
                 </exec>
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
                   <arg value="build"/>
+                </exec>
+                <!-- sets default stack and version to use for install -->
+                <exec dir="${basedir}" executable="sh" failonerror="false">
+                  <arg value="${basedir}/set-default-stack-version.sh"/>
+                  <arg value="${defaultStackVersion}"/>
+                </exec>
+                <!-- enables experimental features if enableExperimental is set to true -->
+                <exec dir="${basedir}" executable="sh" failonerror="false">
+                  <arg value="${basedir}/toggle-experimental.sh"/>
+                  <arg value="${enableExperimental}"/>
                 </exec>
                 <exec dir="${basedir}" executable="gzip" failonerror="false">
                   <arg value="public/javascripts/app.js"/>
@@ -140,6 +153,7 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
+            <exclude>.idea/**</exclude>
             <exclude>package.json</exclude>
             <exclude>public/**</exclude>
             <exclude>app/assets/**</exclude>

@@ -31,7 +31,6 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -150,11 +149,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
     SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(this);
     PredicateHelper.visit(givenPredicate, visitor);
-    List<BasePredicate> predicates = visitor.getSimplifiedPredicates();
+    List<Predicate> predicates = visitor.getSimplifiedPredicates();
 
     Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
 
-    for (BasePredicate predicate : predicates) {
+    for (Predicate predicate : predicates) {
       propertyMaps.add(PredicateHelper.getProperties(predicate));
     }
     return propertyMaps;
@@ -199,14 +198,23 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    *
    * @return the request status
    */
-  protected RequestStatus getRequestStatus(RequestStatusResponse response) {
+  protected RequestStatus getRequestStatus(RequestStatusResponse response, Set<Resource> associatedResources) {
     if (response != null){
       Resource requestResource = new ResourceImpl(Resource.Type.Request);
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "id"), response.getRequestId());
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "InProgress");
-      return new RequestStatusImpl(requestResource);
+      return new RequestStatusImpl(requestResource, associatedResources);
     }
-    return new RequestStatusImpl(null);
+    return new RequestStatusImpl(null, associatedResources);
+  }
+
+  /**
+   * Get a request status
+   *
+   * @return the request status
+   */
+  protected RequestStatus getRequestStatus(RequestStatusResponse response) {
+    return getRequestStatus(response, null) ;
   }
 
   /**
@@ -331,7 +339,6 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
     return config;
   }
-
 
   // ----- Inner interface ---------------------------------------------------
 

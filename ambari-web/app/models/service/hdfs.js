@@ -21,10 +21,15 @@ App.HDFSService = App.Service.extend({
   version: DS.attr('string'),
   nameNode: DS.belongsTo('App.Host'),
   snameNode: DS.belongsTo('App.Host'),
-  dataNodes: DS.hasMany('App.Host'),
+  activeNameNode: DS.belongsTo('App.Host'),
+  standbyNameNode: DS.belongsTo('App.Host'),
+  standbyNameNode2: DS.belongsTo('App.Host'),
+  dataNodes: function(){
+    return this.get('hostComponents').filterProperty('componentName', 'DATANODE').mapProperty('host');
+  }.property('hostComponents.length'),
   nameNodeStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
-  jvmMemoryHeapCommitted: DS.attr('number'),
+  jvmMemoryHeapMax: DS.attr('number'),
   liveDataNodes: DS.hasMany('App.Host'),
   deadDataNodes: DS.hasMany('App.Host'),
   decommissionDataNodes: DS.hasMany('App.Host'),
@@ -37,7 +42,9 @@ App.HDFSService = App.Service.extend({
   dfsUnderReplicatedBlocks: DS.attr('number'),
   dfsTotalFiles: DS.attr('number'),
   upgradeStatus: DS.attr('boolean'),
-  safeModeStatus: DS.attr('string')
+  safeModeStatus: DS.attr('string'),
+  nameNodeCpu: DS.attr('number'),
+  nameNodeRpc: DS.attr('number')
 });
 
 App.HDFSService.FIXTURES = [];

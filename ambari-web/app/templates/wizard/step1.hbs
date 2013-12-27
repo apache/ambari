@@ -15,28 +15,108 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<h2>{{t installer.step1.body.header}}</h2>
+<h2>{{t installer.step1.header}}</h2>
 <p class="alert alert-info">
   {{t installer.step1.body}}
 </p>
-<div {{bindAttr class="view.onError:error :control-group"}}>
-  <label class="control-label" for="cluster-name">{{t installer.step1.clusterName}}
-    <a href="javascript:void(null)"
-       rel="popover"
-      {{translateAttr title="installer.step1.clusterName.tooltip.title"
-       data-content="installer.step1.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
-  </label>
+<p><b>{{t common.stacks}}</b></p>
+<form autocomplete="off">
+  {{#each stack in view.stacks}}
+    <label class="radio">{{view view.stackRadioButton contentBinding="stack"}} {{stack.name}}</label>
+  {{/each}}
+</form>
 
-  <div class="controls">
-    {{view App.WizardStep1ViewClusterNameInput valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
-    <p class="help-inline">{{clusterNameError}}</p>
+{{#if App.supports.localRepositories}}
+<div class="accordion" id="advancedRepoAccordion">
+  <div class="accordion-group">
+    <div class="accordion-heading" {{action "onToggleBlock" target="view"}}>
+      <i {{bindAttr class=":pull-left :accordion-toggle view.isRLCollapsed:icon-caret-right:icon-caret-down"}}></i>
+      <a class="accordion-toggle">
+        {{t installer.step1.advancedRepo.title}}
+        {{#if view.isSubmitDisabled}}
+          <span class="badge badge-important">{{view.totalErrorCnt}}</span>
+        {{/if}}
+      </a>
+
+    </div>
+      <div  class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
+          <div class="alert alert-warning">{{t installer.step1.advancedRepo.importantMassage}}</div>
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th></th>
+              <th class="os">{{t common.os}}</th>
+              <th class="validations"></th>
+              <th class="url">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
+              <th class="actions"></th>
+            </tr>
+            </thead>
+            <tbody>
+              {{#each repoGroup in view.allRepositoriesGroup}}
+                <tr>
+                  <td class="group-checkbox">{{view Ember.Checkbox checkedBinding="repoGroup.checked"}}</td>
+                  <td class="os-td">
+                    <table {{bindAttr class="repoGroup.checked::disabled-label"}}>
+                      <tbody>
+                      {{#each repo in repoGroup}}
+                        <tr>
+                          <td  {{bindAttr class=":os repo.empty-error:label-error repo.invalid-error:label-error "}}>{{repo.osType}}</td>
+                        </tr>
+                      {{/each}}
+                      </tbody>
+                    </table>
+                  </td>
+                  <td class="validation-results">
+                    {{#if repoGroup.validation}}
+                      {{view view.popoverView repoGroupBinding="repoGroup"}}
+                    {{/if}}
+                  </td>
+                  <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
+                    {{view Ember.TextField valueBinding="repoGroup.baseUrl"}}
+                  </td>
+                  <td class="clearAll-icon">
+                    {{#if repoGroup.clearAll}}
+                      <a {{action "clearGroupLocalRepository" repoGroup target="view" }}>
+                        <i class="icon-remove-sign"></i>
+                      </a>
+                    {{/if}}
+                  </td>
+                  <td class="action-results">
+                    {{#if repoGroup.undo}}
+                      <a {{action "undoGroupLocalRepository" repoGroup target="view" }}>
+                        <i class="icon-undo"></i>{{t common.undo}}
+                      </a>
+                    {{/if}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+          <div id="skip-validation">
+            <label>{{view Ember.Checkbox checkedBinding="view.skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
+              <i class="icon-question-sign" rel="skip-validation-tooltip" data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
+          </div>
+          {{#if view.emptyRepoExist}}
+            <div class="alert">{{t installer.step1.attentionNeeded}}</div>
+          {{/if}}
+          {{#if view.invalidUrlExist}}
+            <div class="alert">{{t installer.step1.invalidURLAttention}}</div>
+          {{/if}}
+          {{#if view.allRepoUnchecked}}
+            <div class="alert">{{t installer.step1.checkAtLeastOneAttention}}</div>
+          {{/if}}
+        </div>
+      </div>
   </div>
 </div>
+{{/if}}
 
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="invalidClusterName"}} {{action "submit" target="controller"}}>{{t common.next}} &rarr;</a>
-</div>
-
-
-
+<a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
+{{#if view.isSubmitDisabled}}
+   <a class="btn btn-success pull-right" disabled="disabled">{{t common.next}} &rarr;</a>
+{{else}}
+   <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+{{/if}}

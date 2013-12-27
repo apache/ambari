@@ -18,32 +18,62 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
-import com.google.gson.Gson;
-import com.google.inject.Scopes;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.persist.jpa.JpaPersistModule;
-import org.apache.ambari.server.actionmanager.*;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.CustomActionDBAccessor;
+import org.apache.ambari.server.actionmanager.CustomActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceComponentImpl;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
-import com.google.inject.name.Names;
+import org.apache.ambari.server.state.scheduler.RequestExecution;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
-import java.util.Properties;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
+import com.google.inject.persist.jpa.JpaPersistModule;
 
 /**
  * Used for injection purposes.
@@ -51,18 +81,15 @@ import java.util.Properties;
 public class ControllerModule extends AbstractModule {
 
   private final Configuration configuration;
-  private final AmbariMetaInfo ambariMetaInfo;
   private final HostsMap hostsMap;
 
   public ControllerModule() throws Exception {
     configuration = new Configuration();
-    ambariMetaInfo = new AmbariMetaInfo(configuration);
     hostsMap = new HostsMap(configuration);
   }
 
   public ControllerModule(Properties properties) throws Exception {
     configuration = new Configuration(properties);
-    ambariMetaInfo = new AmbariMetaInfo(configuration);
     hostsMap = new HostsMap(configuration);
   }
 
@@ -71,7 +98,6 @@ public class ControllerModule extends AbstractModule {
     installFactories();
 
     bind(Configuration.class).toInstance(configuration);
-    bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
 
@@ -79,13 +105,24 @@ public class ControllerModule extends AbstractModule {
 
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);
+    bind(AmbariCustomCommandExecutionHelper.class).to(AmbariCustomCommandExecutionHelperImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
+    bind(CustomActionDBAccessor.class).to(CustomActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
-    bindConstant().annotatedWith(Names.named("actionTimeout")).to(300000L);
+    bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+
+    //ExecutionCommands cache size
+
+    bindConstant().annotatedWith(Names.named("executionCommandCacheSize")).
+        to(configuration.getExecutionCommandsCacheSize());
+
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
-    bind(HBaseMasterPortScanner.class).in(Singleton.class);
+    bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
+    bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
+
+    requestStaticInjection(ExecutionCommandWrapper.class);
   }
 
   private JpaPersistModule buildJpaPersistModule() {
@@ -93,6 +130,16 @@ public class ControllerModule extends AbstractModule {
     JpaPersistModule jpaPersistModule = new JpaPersistModule(Configuration.JDBC_UNIT_NAME);
 
     Properties properties = new Properties();
+
+    // custom jdbc properties
+    Map<String, String> custom = configuration.getDatabaseCustomProperties();
+    
+    if (0 != custom.size()) {
+      for (Entry<String, String> entry : custom.entrySet()) {
+        properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
+           entry.getValue());
+      }
+    }    
 
     switch (persistenceType) {
       case IN_MEMORY:
@@ -107,7 +154,7 @@ public class ControllerModule extends AbstractModule {
         properties.put("javax.persistence.jdbc.driver", configuration.getDatabaseDriver());
         break;
       case LOCAL:
-        properties.put("javax.persistence.jdbc.url", Configuration.JDBC_LOCAL_URL);
+        properties.put("javax.persistence.jdbc.url", configuration.getLocalDatabaseUrl());
         properties.put("javax.persistence.jdbc.driver", Configuration.JDBC_LOCAL_DRIVER);
         break;
     }
@@ -121,6 +168,8 @@ public class ControllerModule extends AbstractModule {
         break;
       case DROP_AND_CREATE:
         properties.setProperty("eclipselink.ddl-generation", "drop-and-create-tables");
+        break;
+      default:
         break;
     }
     properties.setProperty("eclipselink.ddl-generation.output-mode", "both");
@@ -139,6 +188,14 @@ public class ControllerModule extends AbstractModule {
         Host.class, HostImpl.class).build(HostFactory.class));
     install(new FactoryModuleBuilder().implement(
         Service.class, ServiceImpl.class).build(ServiceFactory.class));
+   
+    
+    install(new FactoryModuleBuilder()
+        .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
+        .build(ResourceProviderFactory.class)); 
+
+    
     install(new FactoryModuleBuilder().implement(
         ServiceComponent.class, ServiceComponentImpl.class).build(
         ServiceComponentFactory.class));
@@ -147,8 +204,12 @@ public class ControllerModule extends AbstractModule {
         ServiceComponentHostFactory.class));
     install(new FactoryModuleBuilder().implement(
         Config.class, ConfigImpl.class).build(ConfigFactory.class));
+    install(new FactoryModuleBuilder().implement(
+      ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
+    install(new FactoryModuleBuilder().implement(RequestExecution.class,
+      RequestExecutionImpl.class).build(RequestExecutionFactory.class));
     install(new FactoryModuleBuilder().build(StageFactory.class));
-    install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
+    bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
   }
 
 }

@@ -61,10 +61,10 @@ App.MainAppsController = Em.ArrayController.extend({
   //Pagination Object
 
   paginationObject:{
-    iTotalDisplayRecords :null,
-    iTotalRecords:null,
-    startIndex:null,
-    endIndex:null
+    iTotalDisplayRecords :0,
+    iTotalRecords:0,
+    startIndex:0,
+    endIndex:0
   },
 
   /*
@@ -326,21 +326,23 @@ App.MainAppsController = Em.ArrayController.extend({
         "iSortCol_0", "sSortDir_0"
       ];
 
+      var notFilterFields = ["iDisplayLength", "iDisplayStart", "iSortCol_0", "sSortDir_0"];
+
+      var filtersUsed = false;
+
       for (var n=0; n<arr.length;n++) {
         if(this.get(arr[n])){
           link += arr[n] + "=" + this.get(arr[n]) + "&";
+          if (!notFilterFields.contains(arr[n])) {
+            filtersUsed = true;
+          }
         }
       };
 
       link = link.slice(0,link.length-1);
 
-      var valueInString=link.match(/&/g);
-
-      if(!this.get("viewTypeClickEvent"))
-      if(valueInString != null){
-        this.set("viewType","filtered");
-      }else{
-        this.set("viewType","all");
+      if(!this.get("viewTypeClickEvent")) {
+        this.set('viewType', filtersUsed?'filtered':'all');
       }
 
       return link;
@@ -353,6 +355,7 @@ App.MainAppsController = Em.ArrayController.extend({
    */
   clearFilters: function () {
     var obj=this.get("filterObject");
+    obj.set("sSearch","");
     obj.set("sSearch_0","");
     obj.set("sSearch_1","");
     obj.set("sSearch_2","");
@@ -370,12 +373,16 @@ App.MainAppsController = Em.ArrayController.extend({
   runTimeout : null,
 
   valueObserver: function(){
+    if(this.get('filterObject.iDisplayLength') > this.get('content.length')) {
+      this.set('filterObject.iDisplayStart', 0);
+    }
     var link = this.get('filterObject').createAppLink();
 
     if(this.get("filterObject.viewType") == "filtered"){
       this.set("runUrl", link);
     }else{
-      this.set("runUrl",  "/jobhistory/datatable?iDisplayLength="+this.get('filterObject.iDisplayLength'));
+      this.set("runUrl", "/jobhistory/datatable?iDisplayStart=" + this.get('filterObject.iDisplayStart') + "&iDisplayLength=" + this.get('filterObject.iDisplayLength') +
+         '&iSortCol_0=' + this.get('filterObject.iSortCol_0') + '&sSortDir_0=' + this.get('filterObject.sSortDir_0'));
     }
 
     var timeout = this.get('runTimeout');

@@ -22,24 +22,12 @@
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
-    <repo>
-      <baseurl></baseurl>
-      <repoid>HDP-epel</repoid>
-      <reponame>HDP-epel</reponame>
-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch]]></mirrorslist>
-    </repo>
   </os>
   <os type="centos5">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1</baseurl>
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl></baseurl>
-      <repoid>HDP-epel</repoid>
-      <reponame>HDP-epel</reponame>
-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch]]></mirrorslist>
     </repo>
   </os>
   <os type="redhat6">
@@ -48,24 +36,12 @@
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
-    <repo>
-      <baseurl></baseurl>
-      <repoid>HDP-epel</repoid>
-      <reponame>HDP-epel</reponame>
-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch]]></mirrorslist>
-    </repo>
   </os>
   <os type="redhat5">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1</baseurl>
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl></baseurl>
-      <repoid>HDP-epel</repoid>
-      <reponame>HDP-epel</reponame>
-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch]]></mirrorslist>
     </repo>
   </os>
   <os type="oraclelinux6">
@@ -74,24 +50,12 @@
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
-    <repo>
-      <baseurl></baseurl>
-      <repoid>HDP-epel</repoid>
-      <reponame>HDP-epel</reponame>
-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch]]></mirrorslist>
-    </repo>
   </os>
   <os type="oraclelinux5">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1</baseurl>
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl></baseurl>
-      <repoid>HDP-epel</repoid>
-      <reponame>HDP-epel</reponame>
-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch]]></mirrorslist>
     </repo>
   </os>
   <os type="suse11">
@@ -100,24 +64,12 @@
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
-      <repoid>HDP-UTILS-1.1.0.15</repoid>
-      <reponame>HDP-UTILS</reponame>
-      <mirrorslist></mirrorslist>
-    </repo>
   </os>
-    <os type="sles11">
+  <os type="sles11">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.2.1</baseurl>
       <repoid>HDP-1.2.1</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
-      <repoid>HDP-UTILS-1.1.0.15</repoid>
-      <reponame>HDP-UTILS</reponame>
-      <mirrorslist></mirrorslist>
     </repo>
   </os>
 </reposinfo>

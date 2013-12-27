@@ -1,0 +1,1005 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions?fields=Versions,operatingSystems/repositories/Repositories",
+  "items" : [
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0",
+      "Versions" : {
+        "active" : false,
+        "min_upgrade_version" : null,
+        "stack_name" : "HDP",
+        "stack_version" : "1.2.0"
+      },
+      "operatingSystems" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/centos5",
+          "OperatingSystems" : {
+            "os_type" : "centos5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/centos5/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos5",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/centos5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "centos5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/centos6",
+          "OperatingSystems" : {
+            "os_type" : "centos6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/centos6/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos6",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/centos6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "centos6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/oraclelinux5",
+          "OperatingSystems" : {
+            "os_type" : "oraclelinux5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/oraclelinux5/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "oraclelinux5",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/oraclelinux5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "oraclelinux5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/oraclelinux6",
+          "OperatingSystems" : {
+            "os_type" : "oraclelinux6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/oraclelinux6/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "oraclelinux6",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/oraclelinux6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "oraclelinux6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat5",
+          "OperatingSystems" : {
+            "os_type" : "redhat5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat5/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat6",
+          "OperatingSystems" : {
+            "os_type" : "redhat6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat6/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/sles11",
+          "OperatingSystems" : {
+            "os_type" : "sles11",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/sles11/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/suse11",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "sles11",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/sles11/repositories/HDP-UTILS-1.1.0.15",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "sles11",
+                "repo_id" : "HDP-UTILS-1.1.0.15",
+                "repo_name" : "HDP-UTILS",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/suse11",
+          "OperatingSystems" : {
+            "os_type" : "suse11",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/suse11/repositories/HDP-1.2.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/suse11",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "suse11",
+                "repo_id" : "HDP-1.2.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/suse11/repositories/HDP-UTILS-1.1.0.15",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "suse11",
+                "repo_id" : "HDP-UTILS-1.1.0.15",
+                "repo_name" : "HDP-UTILS",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1",
+      "Versions" : {
+        "active" : true,
+        "min_upgrade_version" : null,
+        "stack_name" : "HDP",
+        "stack_version" : "1.2.1"
+      },
+      "operatingSystems" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/centos5",
+          "OperatingSystems" : {
+            "os_type" : "centos5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/centos5/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos5",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/centos5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "centos5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/centos6",
+          "OperatingSystems" : {
+            "os_type" : "centos6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/centos6/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos6",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/centos6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "centos6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/oraclelinux5",
+          "OperatingSystems" : {
+            "os_type" : "oraclelinux5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/oraclelinux5/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "oraclelinux5",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/oraclelinux5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "oraclelinux5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/oraclelinux6",
+          "OperatingSystems" : {
+            "os_type" : "oraclelinux6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/oraclelinux6/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "oraclelinux6",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/oraclelinux6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "oraclelinux6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat5",
+          "OperatingSystems" : {
+            "os_type" : "redhat5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat5/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat6",
+          "OperatingSystems" : {
+            "os_type" : "redhat6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat6/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/sles11",
+          "OperatingSystems" : {
+            "os_type" : "sles11",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/sles11/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "sles11",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/suse11",
+          "OperatingSystems" : {
+            "os_type" : "suse11",
+            "stack_name" : "HDP",
+            "stack_version" : "1.2.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/suse11/repositories/HDP-1.2.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.2.1",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "suse11",
+                "repo_id" : "HDP-1.2.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.2.1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0",
+      "Versions" : {
+        "active" : true,
+        "min_upgrade_version" : "1.2.0",
+        "stack_name" : "HDP",
+        "stack_version" : "1.3.0"
+      },
+      "operatingSystems" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/centos5",
+          "OperatingSystems" : {
+            "os_type" : "centos5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/centos5/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/GA/1.3.0.0",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos5",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/centos5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "centos5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/centos6",
+          "OperatingSystems" : {
+            "os_type" : "centos6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/centos6/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/GA/1.3.0.0",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos6",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/centos6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "centos6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/oraclelinux5",
+          "OperatingSystems" : {
+            "os_type" : "oraclelinux5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/oraclelinux5/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://cnn.com",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/GA/1.3.0.0",
+                "mirrors_list" : null,
+                "os_type" : "oraclelinux5",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/oraclelinux5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "oraclelinux5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/oraclelinux6",
+          "OperatingSystems" : {
+            "os_type" : "oraclelinux6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/oraclelinux6/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://www.twitter.com",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/GA/1.3.0.0",
+                "mirrors_list" : null,
+                "os_type" : "oraclelinux6",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/oraclelinux6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "oraclelinux6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat5",
+          "OperatingSystems" : {
+            "os_type" : "redhat5",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat5/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/GA/1.3.0.0",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat6",
+          "OperatingSystems" : {
+            "os_type" : "redhat6",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat6/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/GA/1.3.0.0",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/sles11",
+          "OperatingSystems" : {
+            "os_type" : "sles11",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/sles11/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/GA/1.3.0.0",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "sles11",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/suse11",
+          "OperatingSystems" : {
+            "os_type" : "suse11",
+            "stack_name" : "HDP",
+            "stack_version" : "1.3.0"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/suse11/repositories/HDP-1.3.0",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/GA/1.3.0.0",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "suse11",
+                "repo_id" : "HDP-1.3.0",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "1.3.0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1",
+      "Versions" : {
+        "active" : true,
+        "min_upgrade_version" : null,
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.1"
+      },
+      "operatingSystems" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/centos5",
+          "OperatingSystems" : {
+            "os_type" : "centos5",
+            "stack_name" : "HDP",
+            "stack_version" : "2.0.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/centos5/repositories/HDP-2.0.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos5",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos5",
+                "repo_id" : "HDP-2.0.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/centos5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "centos5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/centos6",
+          "OperatingSystems" : {
+            "os_type" : "centos6",
+            "stack_name" : "HDP",
+            "stack_version" : "2.0.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/centos6/repositories/HDP-2.0.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos6",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "centos6",
+                "repo_id" : "HDP-2.0.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/centos6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "centos6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/redhat5",
+          "OperatingSystems" : {
+            "os_type" : "redhat5",
+            "stack_name" : "HDP",
+            "stack_version" : "2.0.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/redhat5/repositories/HDP-2.0.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos5",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-2.0.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/redhat5/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch",
+                "os_type" : "redhat5",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/redhat6",
+          "OperatingSystems" : {
+            "os_type" : "redhat6",
+            "stack_name" : "HDP",
+            "stack_version" : "2.0.1"
+          },
+          "repositories" : [
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/redhat6/repositories/HDP-2.0.1",
+              "Repositories" : {
+                "base_url" : "http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos6",
+                "default_base_url" : null,
+                "mirrors_list" : null,
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-2.0.1",
+                "repo_name" : "HDP",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            },
+            {
+              "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1/operatingSystems/redhat6/repositories/HDP-epel",
+              "Repositories" : {
+                "base_url" : null,
+                "default_base_url" : null,
+                "mirrors_list" : "http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch",
+                "os_type" : "redhat6",
+                "repo_id" : "HDP-epel",
+                "repo_name" : "HDP-epel",
+                "stack_name" : "HDP",
+                "stack_version" : "2.0.1"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

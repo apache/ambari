@@ -19,7 +19,6 @@
 package org.apache.ambari.server.api.predicate.operators;
 
 import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 
 /**
@@ -54,7 +53,7 @@ public class AndOperator extends AbstractOperator implements LogicalOperator {
   @Override
   public Predicate toPredicate(Predicate left, Predicate right) {
     //todo: refactor to not need down casts
-    return new AndPredicate((BasePredicate) left, (BasePredicate) right);
+    return new AndPredicate(left, right);
   }
 
   @Override

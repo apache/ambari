@@ -36,7 +36,7 @@ clientPort=<%=scope.function_hdp_template_var("clientPort")%>
 server.<%=(i+1).to_s%>=<%=host%>:2888:3888
 <% end -%>
 
-<% if scope.function_hdp_template_var("security_enabled") == true %>
+<% if scope.function_hdp_template_var("::hdp::params::security_enabled") == true %>
 authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
 jaasLoginRenew=3600000
 kerberos.removeHostFromPrincipal=true

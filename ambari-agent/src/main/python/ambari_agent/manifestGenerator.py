@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,13 +21,14 @@ limitations under the License.
 import json
 import os.path
 import logging
-from uuid import getnode as get_mac
-from shell import shellRunner
 from datetime import datetime
-import AmbariConfig
 import pprint
+import AmbariConfig
 import hostname
-import stat
+from ambari_agent import AgentException
+
+HOSTS_LIST_KEY = "all_hosts"
+PING_PORTS_KEY = "all_ping_ports"
 
 logger = logging.getLogger()
 
@@ -36,7 +37,99 @@ non_global_configuration_types = ["hdfs-site", "core-site",
                              "hadoop-policy", "mapred-site", 
                              "capacity-scheduler", "hbase-site",
                              "hbase-policy", "hive-site", "oozie-site", 
-                             "webhcat-site", "hdfs-exclude-file", "hue-site"]
+                             "webhcat-site", "hdfs-exclude-file", "hue-site",
+                             "yarn-site"]
+
+# Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8] 
+def convertRangeToList(list):
+  
+  resultList = []
+
+  for i in list:
+      
+    ranges = i.split(',')
+    
+    for r in ranges:
+      rangeBounds = r.split('-')
+      if len(rangeBounds) == 2:
+        
+        if not rangeBounds[0] or not rangeBounds[1]:
+          raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
+            
+        
+        resultList.extend(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1))
+      elif len(rangeBounds) == 1:
+        resultList.append((int(rangeBounds[0])))
+      else:
+        raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
+    
+  return resultList
+
+#Converts from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
+def convertMappedRangeToList(list):
+    
+  resultDict = {}
+  
+  for i in list:
+    valueToRanges = i.split(":")
+    if len(valueToRanges) <> 2:
+      raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
+    value = valueToRanges[0]
+    rangesToken = valueToRanges[1]
+    
+    for r in rangesToken.split(','):
+        
+      rangeIndexes = r.split('-')
+    
+      if len(rangeIndexes) == 2:
+          
+        if not rangeIndexes[0] or not rangeIndexes[1]:
+          raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(r))
+
+        start = int(rangeIndexes[0])
+        end = int(rangeIndexes[1])
+        
+        for k in range(start, end + 1):
+          resultDict[k] = int(value)
+        
+        
+      elif len(rangeIndexes) == 1:
+        index = int(rangeIndexes[0])
+        
+        resultDict[index] = int(value)
+       
+
+  resultList = dict(sorted(resultDict.items())).values()
+      
+  return resultList
+
+def decompressClusterHostInfo(clusterHostInfo):
+  info = clusterHostInfo.copy()
+  #Pop info not related to host roles  
+  hostsList = info.pop(HOSTS_LIST_KEY)
+  pingPorts = info.pop(PING_PORTS_KEY)
+
+  decompressedMap = {}
+
+  for k,v in info.items():
+    # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8] 
+    indexes = convertRangeToList(v)
+    # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
+    decompressedMap[k] = [hostsList[i] for i in indexes]
+  
+  #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
+  pingPorts = convertMappedRangeToList(pingPorts)
+  
+  #Convert all elements to str
+  pingPorts = map(str, pingPorts)
+
+  #Add ping ports to result
+  decompressedMap[PING_PORTS_KEY] = pingPorts
+  #Add hosts list to result
+  decompressedMap[HOSTS_LIST_KEY] = hostsList
+  
+  return decompressedMap
+
 
 #read static imports from file and write them to manifest
 def writeImports(outputFile, modulesdir, importsList):
@@ -56,7 +149,7 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   clusterHostInfo = {} 
   if 'clusterHostInfo' in parsedJson:
     if parsedJson['clusterHostInfo']:
-      clusterHostInfo = parsedJson['clusterHostInfo']
+      clusterHostInfo = decompressClusterHostInfo(parsedJson['clusterHostInfo'])
   params = {}
   if 'hostLevelParams' in parsedJson: 
     if parsedJson['hostLevelParams']:
@@ -74,46 +167,64 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   roles = [{'role' : parsedJson['role'],
             'cmd' : parsedJson['roleCommand'],
             'roleParams' : roleParams}]
-  #writing manifest
-  manifest = open(fileName, 'w')
-  #Change mode to make site.pp files readable to owner and group only
-  os.chmod(fileName, stat.S_IRWXU)
+  errMsg = ''
+  try:
+    #writing manifest
+    manifest = open(fileName, 'w')
+    #Change mode to make site.pp files readable to owner and group only
+    os.chmod(fileName, 0660)
 
-  #Check for Ambari Config and make sure you pick the right imports file
-    
-  #writing imports from external static file
-  writeImports(outputFile=manifest, modulesdir=modulesdir, importsList=AmbariConfig.imports)
-  
-  #writing nodes
-  writeNodes(manifest, clusterHostInfo)
-  
-  #writing params from map
-  writeParams(manifest, params, modulesdir)
+    #Check for Ambari Config and make sure you pick the right imports file
 
-  nonGlobalConfigurations = {}
-  flatConfigurations = {}
+    #writing imports from external static file
+    writeImports(outputFile=manifest, modulesdir=modulesdir, importsList=AmbariConfig.imports)
 
-  if configurations: 
-    for configKey in configurations.iterkeys():
-      if configKey in nonGlobalConfigurationsKeys:
-        nonGlobalConfigurations[configKey] = configurations[configKey]
-      else:
-        flatConfigurations[configKey] = configurations[configKey]
-      
-  #writing config maps
-  if (nonGlobalConfigurations):
-    writeNonGlobalConfigurations(manifest, nonGlobalConfigurations)
-  if (flatConfigurations):
-    writeFlatConfigurations(manifest, flatConfigurations)
+    #writing hostname
+    writeHostnames(manifest)
 
-  #writing host attributes
-  #writeHostAttributes(manifest, hostAttributes)
+    #writing nodes
+    writeNodes(manifest, clusterHostInfo)
 
-  #writing task definitions 
-  writeTasks(manifest, roles, ambariconfig, clusterHostInfo, hostname)
-     
-  manifest.close()
-    
+    #writing params from map
+    writeParams(manifest, params, modulesdir)
+
+    nonGlobalConfigurations = {}
+    flatConfigurations = {}
+
+    if configurations:
+      for configKey in configurations.iterkeys():
+        if configKey in nonGlobalConfigurationsKeys:
+          nonGlobalConfigurations[configKey] = configurations[configKey]
+        else:
+          flatConfigurations[configKey] = configurations[configKey]
+
+    #writing config maps
+    if (nonGlobalConfigurations):
+      writeNonGlobalConfigurations(manifest, nonGlobalConfigurations)
+    if (flatConfigurations):
+      writeFlatConfigurations(manifest, flatConfigurations)
+
+    #writing host attributes
+    #writeHostAttributes(manifest, hostAttributes)
+
+    #writing task definitions
+    writeTasks(manifest, roles, ambariconfig, clusterHostInfo, hostname)
+
+
+  except TypeError:
+    errMsg = 'Manifest can\'t be generated from the JSON \n' + \
+                    json.dumps(parsedJson, sort_keys=True, indent=4)
+    logger.error(errMsg)
+  finally:
+    manifest.close()
+
+  return errMsg
+
+def writeHostnames(outputFile):
+  fqdn = hostname.hostname()
+  public_fqdn = hostname.public_hostname()
+  outputFile.write('$myhostname' + " = '" + fqdn + "'" + os.linesep)
+  outputFile.write('$public_hostname' + " = '" + public_fqdn + "'" + os.linesep)
 
   #write nodes
 def writeNodes(outputFile, clusterHostInfo):
@@ -152,7 +263,7 @@ def writeParams(outputFile, params, modulesdir):
       outputFile.write('\n}\n')
     else:
       outputFile.write('$' +  paramName + '="' + param + '"\n')
-    
+
 
 #write host attributes
 def writeHostAttributes(outputFile, hostAttributes):
@@ -168,16 +279,12 @@ def writeHostAttributes(outputFile, hostAttributes):
 #write flat configurations
 def writeFlatConfigurations(outputFile, flatConfigs):
   flatDict = {}
-  fqdn = hostname.hostname()
-  public_fqdn = hostname.public_hostname()
   logger.debug("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
   for flatConfigName in flatConfigs.iterkeys():
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
   for gconfigKey in flatDict.iterkeys():
-    outputFile.write('$' + gconfigKey + ' = "' + flatDict[gconfigKey] + '"' + os.linesep)
-  outputFile.write('$myhostname' + " = '" + fqdn + "'" + os.linesep)
-  outputFile.write('$public_hostname' + " = '" + public_fqdn + "'" + os.linesep)
+    outputFile.write('$' + gconfigKey + " = '" + escape(flatDict[gconfigKey]) + "'" + os.linesep)
 
 #write xml configurations
 def writeNonGlobalConfigurations(outputFile, xmlConfigs):
@@ -189,7 +296,7 @@ def writeNonGlobalConfigurations(outputFile, xmlConfigs):
     outputFile.write(configName + '=> {\n')
     coma = ''
     for configParam in config.iterkeys():
-      outputFile.write(coma + '"' + configParam + '" => \'' + config[configParam] + '\'')
+      outputFile.write(coma + '"' + configParam + '" => \'' + escape(config[configParam]) + '\'')
       coma = ',\n'
 
     outputFile.write('\n},\n')
@@ -263,7 +370,9 @@ def writeStages(outputFile, numStages):
   
   outputFile.write('\n')
 
-
+#Escape special characters
+def escape(param):
+    return param.replace('\\', '\\\\').replace('\'', '\\\'')
   
 def main():
   logging.basicConfig(level=logging.DEBUG)    
@@ -276,6 +385,7 @@ def main():
   inputJsonStr = jsonStr
   parsedJson = json.loads(inputJsonStr)
   generateManifest(parsedJson, 'site.pp', modulesdir)
+  
 
 if __name__ == '__main__':
   main()

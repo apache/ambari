@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,6 +23,7 @@ import doctest
 from os.path import dirname, split, isdir
 import logging.handlers
 import logging
+from random import shuffle
 
 LOG_FILE_NAME='tests.log'
 SELECTED_PREFIX = "_"
@@ -50,7 +51,11 @@ def all_tests_suite():
 
 
   src_dir = os.getcwd()
-  files_list=os.listdir(src_dir)
+  files_list = []
+  for directory in os.listdir(src_dir):
+    if os.path.isdir(directory):
+      files_list += os.listdir(src_dir + os.sep + directory)
+  shuffle(files_list)
   tests_list = []
 
   logger.info('------------------------TESTS LIST:-------------------------------------')

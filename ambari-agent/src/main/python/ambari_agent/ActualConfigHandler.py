@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -56,9 +56,18 @@ class ActualConfigHandler:
     runDir = self.findRunDir()
     fullname = os.path.join(runDir, filename)
     if os.path.isfile(fullname):
+      res = None
       conf_file = open(os.path.join(runDir, filename), 'r')
-      res = json.load(conf_file)
+      try:
+        res = json.load(conf_file)
+        if (0 == len(res)):
+          res = None
+      except Exception, e:
+        logger.error("Error parsing " + filename + ": " + repr(e))
+        res = None
+        pass
       conf_file.close()
+
       return res
     return None
 

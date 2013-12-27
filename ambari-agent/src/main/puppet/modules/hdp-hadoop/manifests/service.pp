@@ -32,6 +32,8 @@ define hdp-hadoop::service(
   #NOTE does not work if namenode and datanode are on same host 
   $pid_dir = "${hdp-hadoop::params::hadoop_pid_dir_prefix}/${user}"
   
+  $hadoop_libexec_dir = $hdp-hadoop::params::hadoop_libexec_dir
+  
   if (($security_enabled == true) and ($name == 'datanode')) {
     $run_as_root = true
   } else {       
@@ -46,21 +48,23 @@ define hdp-hadoop::service(
   } 
 
   $log_dir = "${hdp-hadoop::params::hdfs_log_dir_prefix}/${user}"
-  $hadoop_daemon = "${hdp::params::hadoop_bin}/hadoop-daemon.sh"
+  $hadoop_daemon = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${hdp::params::hadoop_bin}/hadoop-daemon.sh"
    
   $cmd = "${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"
   if ($ensure == 'running') {
     if ($run_as_root == true) {
-      $daemon_cmd = "${cmd} start ${name}"
+      $daemon_cmd = "su - root -c  '${cmd} start ${name}'"
     } else {
       $daemon_cmd = "su - ${user} -c  '${cmd} start ${name}'"
     }
+    # Here we check if pid file exists and if yes, then we run 'ps pid' command
+    # that returns 1 if process is not running
     $service_is_up = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     if ($run_as_root == true) {
-      $daemon_cmd = "${cmd} stop ${name}"
+      $daemon_cmd = "su - root -c  '${cmd} stop ${name}' && rm -f ${pid_file}"
     } else {
-      $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}'"
+      $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}' && rm -f ${pid_file}"
     }
     $service_is_up = undef
   } else {
@@ -71,7 +75,7 @@ define hdp-hadoop::service(
     hdp::directory_recursive_create { $pid_dir: 
       owner       => $user,
       context_tag => 'hadoop_service',
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true
     }
   }
@@ -80,11 +84,18 @@ define hdp-hadoop::service(
     hdp::directory_recursive_create { $log_dir: 
       owner       => $user,
       context_tag => 'hadoop_service',
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true
     }
   }
-  if ($daemon_cmd != undef) {  
+  if ($daemon_cmd != undef) {
+    if ($name == 'datanode' and $ensure == 'running') {
+      exec { 'delete_pid_before_datanode_start':
+        command  => "rm -f ${pid_file}",
+        unless       => $service_is_up,
+        path => $hdp::params::exec_path
+      }
+    }
     hdp::exec { $daemon_cmd:
       command      => $daemon_cmd,
       unless       => $service_is_up,
@@ -102,6 +113,9 @@ define hdp-hadoop::service(
     }
      if ($create_log_dir == true) {
       Anchor["hdp-hadoop::service::${name}::begin"] -> Hdp::Directory_recursive_create[$log_dir] -> Hdp::Exec[$daemon_cmd] 
+    }
+    if ($name == 'datanode' and $ensure == 'running') {
+      Anchor["hdp-hadoop::service::${name}::begin"] -> Exec['delete_pid_before_datanode_start'] -> Hdp::Exec[$daemon_cmd]
     }
   }
   if ($ensure == 'running') {

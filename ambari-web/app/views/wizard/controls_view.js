@@ -29,18 +29,26 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
    */
   serviceConfig: null,
   placeholderBinding: 'serviceConfig.defaultValue',
+  attributeBindings:['readOnly'],
   isPopoverEnabled: true,
 
   didInsertElement: function () {
     if (this.get('isPopoverEnabled') !== 'false') {
-      this.$().popover({
-        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(this.get('serviceConfig.displayName'), this.get('serviceConfig.name')),
+      App.popover(this.$(), {
+        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
+          this.get('serviceConfig.displayName'),
+          (this.get('serviceConfig.displayName') == this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
+        ),
         content: this.get('serviceConfig.description'),
         placement: 'right',
         trigger: 'hover'
       });
     }
-  }
+  },
+
+  readOnly: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 });
 
 /**
@@ -53,26 +61,31 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   classNameBindings: 'textFieldClassName',
   placeholderBinding: 'serviceConfig.defaultValue',
 
-  keyPress: function(event) {
+  keyPress: function (event) {
     if (event.keyCode == 13) {
       return false;
     }
   },
+  //Set editDone true for last edited config text field parameter
+  focusOut: function (event) {
+    this.get('serviceConfig').set("editDone", true);
+  },
+  //Set editDone false for all current category config text field parameter
+  focusIn: function (event) {
+    if (!this.get('serviceConfig.isOverridden')) {
+      this.get("parentView.categoryConfigsAll").setEach("editDone", false);
+    }
+  },
 
   textFieldClassName: function () {
-    // sets the width of the field depending on display type
-    if (['directory', 'url', 'email', 'user', 'host'].contains(this.get('serviceConfig.displayType'))) {
-      return ['span6'];
-    } else if (this.get('serviceConfig.displayType') === 'advanced') {
-      return ['span6'];
-    } else {
+    if (this.get('serviceConfig.unit')) {
       return ['input-small'];
+    } else if (this.get('serviceConfig.displayType') === 'principal') {
+      return ['span12'];
+    } else {
+      return ['span9'];
     }
-  }.property('serviceConfig.displayType'),
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  }.property('serviceConfig.displayType', 'serviceConfig.unit')
 
 });
 
@@ -82,15 +95,10 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
  */
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, {
   valueBinding: 'serviceConfig.value',
-  classNames: [ 'input-append' ],
+  classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
-  template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
+  templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
 
 /**
@@ -101,13 +109,14 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
 
   serviceConfig: null,
   type: 'password',
+  attributeBindings:['readOnly'],
   valueBinding: 'serviceConfig.value',
-  classNames: [ 'span3' ],
+  classNames: [ 'span4' ],
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
   template: Ember.Handlebars.compile('{{view view.retypePasswordView}}'),
 
-  keyPress: function(event) {
+  keyPress: function (event) {
     if (event.keyCode == 13) {
       return false;
     }
@@ -115,15 +124,23 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
 
   retypePasswordView: Ember.TextField.extend({
     placeholder: Em.I18n.t('form.passwordRetype'),
+    attributeBindings:['readOnly'],
     type: 'password',
-    classNames: [ 'span3', 'retyped-password' ],
-    keyPress: function(event) {
+    classNames: [ 'span4', 'retyped-password' ],
+    keyPress: function (event) {
       if (event.keyCode == 13) {
         return false;
       }
     },
-    valueBinding: 'parentView.serviceConfig.retypedPassword'
-  })
+    valueBinding: 'parentView.serviceConfig.retypedPassword',
+    readOnly: function () {
+      return !this.get('parentView.serviceConfig.isEditable');
+    }.property('parentView.serviceConfig.isEditable')
+  }),
+
+  readOnly: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 
 });
 
@@ -135,13 +152,8 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span6', 'directories'],
-  placeholderBinding: 'serviceConfig.defaultValue',
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
+  classNames: ['span9', 'directories'],
+  placeholderBinding: 'serviceConfig.defaultValue'
 });
 
 /**
@@ -163,26 +175,125 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
   disabled: function () {
     return !this.get('serviceConfig.isEditable');
   }.property('serviceConfig.isEditable')
-
 });
 
 App.ServiceConfigRadioButtons = Ember.View.extend({
-  template: Ember.Handlebars.compile([
-    '{{#each option in view.options}}',
-    '<label class="radio">',
-    '{{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}',
-    '{{/view}}',
-    '{{option.displayName}} &nbsp;',
-    '</label>',
-    '{{/each}}'
-  ].join('\n')),
+  templateName: require('templates/wizard/controls_service_config_radio_buttons'),
+
+  didInsertElement: function () {
+    // on page render, automatically populate JDBC URLs only for default database settings
+    // so as to not lose the user's customizations on these fields
+    if (['addServiceController', 'installerController'].contains(App.clusterStatus.wizardControllerName) && ['New MySQL Database', 'New Derby Database'].contains(this.get('serviceConfig.value'))) {
+      this.onOptionsChange();
+    }
+  },
+
+  configs: function () {
+    return this.get('categoryConfigsAll').filterProperty('isObserved', true);
+  }.property('categoryConfigsAll'),
+
   serviceConfig: null,
   categoryConfigsAll: null,
+
+  onOptionsChange: function () {
+    // The following if condition will be satisfied only for installer wizard flow
+    if (this.get('configs').length) {
+      var connectionUrl = this.get('connectionUrl');
+      if (connectionUrl) {
+        if (this.get('serviceConfig.serviceName') === 'HIVE') {
+          switch (this.get('serviceConfig.value')) {
+            case 'New MySQL Database':
+            case 'Existing MySQL Database':
+              connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
+              break;
+            case 'Existing Oracle Database':
+              connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
+              break;
+          }
+        } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
+          switch (this.get('serviceConfig.value')) {
+            case 'New Derby Database':
+              connectionUrl.set('value', "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true");
+              break;
+            case 'Existing MySQL Database':
+              connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName'));
+              break;
+            case 'Existing Oracle Database':
+              connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
+              break;
+          }
+        }
+        connectionUrl.set('defaultValue', connectionUrl.get('value'));
+      }
+    }
+  }.observes('databaseName', 'hostName', 'connectionUrl'),
+
   nameBinding: 'serviceConfig.radioName',
-  optionsBinding: 'serviceConfig.options',
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+
+  databaseName: function () {
+    switch (this.get('serviceConfig.serviceName')) {
+      case 'HIVE':
+        return this.get('categoryConfigsAll').findProperty('name', 'ambari.hive.db.schema.name').get('value');
+      case 'OOZIE':
+        return this.get('categoryConfigsAll').findProperty('name', 'oozie.db.schema.name').get('value');
+      default:
+        return null;
+    }
+  }.property('configs.@each.value', 'serviceConfig.serviceName'),
+
+
+  hostName: function () {
+    var value = this.get('serviceConfig.value');
+    var returnValue;
+    var hostname;
+    if (this.get('serviceConfig.serviceName') === 'HIVE') {
+      switch (value) {
+        case 'New MySQL Database':
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_ambari_host');
+          break;
+        case 'Existing MySQL Database':
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mysql_host');
+          break;
+        case 'Existing Oracle Database':
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_oracle_host');
+          break;
+      }
+      if (hostname) {
+        returnValue = hostname.get('value');
+      } else {
+        returnValue = this.get('categoryConfigsAll').findProperty('name', 'hive_hostname').get('value');
+      }
+
+    } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
+      switch (value) {
+        case 'New Derby Database':
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_ambari_host');
+          break;
+        case 'Existing MySQL Database':
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mysql_host');
+          break;
+        case 'Existing Oracle Database':
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_oracle_host');
+          break;
+      }
+      if (hostname) {
+        returnValue = hostname.get('value');
+      } else {
+        returnValue = this.get('categoryConfigsAll').findProperty('name', 'oozie_hostname').get('value');
+      }
+    }
+    return returnValue;
+  }.property('serviceConfig.serviceName', 'serviceConfig.value', 'configs.@each.value'),
+
+  connectionUrl: function () {
+    if (this.get('serviceConfig.serviceName') === 'HIVE') {
+      return this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionURL');
+    } else {
+      return this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.url');
+    }
+  }.property('serviceConfig.serviceName'),
+
+  optionsBinding: 'serviceConfig.options'
 });
 
 App.ServiceConfigRadioButton = Ember.Checkbox.extend({
@@ -194,34 +305,45 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
   value: null,
 
   didInsertElement: function () {
+    console.debug('App.ServiceConfigRadioButton.didInsertElement');
     if (this.get('parentView.serviceConfig.value') === this.get('value')) {
+      console.debug(this.get('name') + ":" + this.get('value') + ' is checked');
       this.set('checked', true);
     }
   },
 
   click: function () {
     this.set('checked', true);
+    console.debug('App.ServiceConfigRadioButton.click');
     this.onChecked();
   },
 
   onChecked: function () {
-    this.set('parentView.serviceConfig.value', this.get('value'));
-    var components = this.get('parentView.serviceConfig.options');
-    components.forEach(function (_component) {
-      if(_component.foreignKeys){
-        _component.foreignKeys.forEach(function (_componentName) {
-          if (this.get('parentView.categoryConfigsAll').someProperty('name', _componentName)) {
-            var component = this.get('parentView.categoryConfigsAll').findProperty('name', _componentName);
-            if (_component.displayName === this.get('value')) {
-              component.set('isVisible', true);
-            } else {
-              component.set('isVisible', false);
-            }
+    // Wrapping the call with Ember.run.next prevents a problem where setting isVisible on component
+    // causes JS error due to re-rendering.  For example, this occurs when switching the Config Group
+    // in Service Config page
+    Ember.run.next(this, function() {
+      console.debug('App.ServiceConfigRadioButton.onChecked');
+      this.set('parentView.serviceConfig.value', this.get('value'));
+      var components = this.get('parentView.serviceConfig.options');
+      components
+        .forEach(function (_component) {
+          if (_component.foreignKeys) {
+            _component.foreignKeys.forEach(function (_componentName) {
+              if (this.get('parentView.categoryConfigsAll').someProperty('name', _componentName)) {
+                var component = this.get('parentView.categoryConfigsAll').findProperty('name', _componentName);
+                if (_component.displayName === this.get('value')) {
+                  console.debug('setting isVisible on ' + component.get('name'));
+                  component.set('isVisible', true);
+                } else {
+                  component.set('isVisible', false);
+                }
+              }
+            }, this);
           }
         }, this);
-      }
-    }, this);
-  }.observes('checked') ,
+    });
+  }.observes('checked'),
 
   disabled: function () {
     return !this.get('parentView.serviceConfig.isEditable');
@@ -231,10 +353,7 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
 App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
-  classNames: [ 'span3' ],
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  classNames: [ 'span3' ]
 });
 
 
@@ -249,7 +368,7 @@ App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
   serviceConfig: null,
 
   didInsertElement: function () {
-    this.$().popover({
+    App.popover(this.$(), {
       title: this.get('serviceConfig.displayName'),
       content: this.get('serviceConfig.description'),
       placement: 'right',
@@ -282,7 +401,6 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     console.log('view', this.get('viewName')); //to know which View cause errors
     console.log('controller', this.get('controller').name); //should be slaveComponentGroupsController
     if (!this.get('value')) {
-      // debugger;
       return true;
     }
     return this.get('value').length === 0;
@@ -305,7 +423,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     }
   }.property('value')
 
-})
+});
 
 
 /**
@@ -332,9 +450,6 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
         serviceConfig: serviceConfig,
         templateName: require('templates/wizard/master_hosts_popup')
       }),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: null
     });
   }
@@ -365,7 +480,7 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
       return this.get('content.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     }.property('content.properties.@each.isValid', 'content.properties.@each.isVisible'),
 
-    template: Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}{{#if view.errorCount}}<span class="badge badge-important">{{view.errorCount}}</span>{{/if}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')
+    templateName: require('templates/wizard/controls_slave_component_groups_menu')
   })
 });
 
@@ -379,7 +494,7 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
   slaveComponentName: null,
 
   didInsertElement: function () {
-    this.$().popover({
+    App.popover(this.$(), {
       title: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.title').format(this.get('slaveComponentName')),
       content: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.content').format(this.get('slaveComponentName'), this.get('slaveComponentName'), this.get('slaveComponentName')),
       placement: 'right',
@@ -414,9 +529,6 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
         serviceConfig: serviceConfig,
         templateName: require('templates/wizard/master_hosts_popup')
       }),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: null
     });
   }

@@ -1,0 +1,4 @@
+{
+  "status" : 400,
+  "message" : "Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05"
+}

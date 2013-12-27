@@ -61,6 +61,16 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
+        service_name: 'GLUSTERFS',
+        display_name: 'GLUSTERFS',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'GLUSTERFS Client',
+            component_value: ''
+          })
+        ]
+      }),
+      Ember.Object.create({
         service_name: 'MAPREDUCE',
         display_name: 'MapReduce',
         service_components: [
@@ -70,6 +80,24 @@ module.exports = [
           }),
           Ember.Object.create({
             display_name: 'TaskTrackers',
+            component_value: ''
+          })
+        ]
+      }),
+      Ember.Object.create({
+        service_name: 'YARN',
+        display_name: 'YARN + MapReduce2',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'NodeManager',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'ResourceManager',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'History Server',
             component_value: ''
           })
         ]
@@ -150,6 +178,11 @@ module.exports = [
             component_value: ''
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'TEZ',
+        display_name: 'TEZ',
+        service_components: []
       }),
       Ember.Object.create({
         service_name: 'PIG',

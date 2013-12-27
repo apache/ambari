@@ -1,0 +1,60 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components?ServiceComponentInfo",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components/GANGLIA_MONITOR",
+      "HostRoles" : {
+        "cluster_name" : "test6",
+        "component_name" : "GANGLIA_MONITOR",
+        "host_name" : "r01wn01"
+      },
+      "host" : {
+        "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components/GANGLIA_SERVER",
+      "HostRoles" : {
+        "cluster_name" : "test6",
+        "component_name" : "GANGLIA_SERVER",
+        "host_name" : "r01wn01"
+      },
+      "host" : {
+        "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components/MAPREDUCE_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "test6",
+        "component_name" : "MAPREDUCE_CLIENT",
+        "host_name" : "r01wn01"
+      },
+      "host" : {
+        "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components/NAGIOS_SERVER",
+      "HostRoles" : {
+        "cluster_name" : "test6",
+        "component_name" : "NAGIOS_SERVER",
+        "host_name" : "r01wn01"
+      },
+      "host" : {
+        "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components/NAMENODE",
+      "HostRoles" : {
+        "cluster_name" : "test6",
+        "component_name" : "NAMENODE",
+        "host_name" : "r01wn01"
+      },
+      "host" : {
+        "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01"
+      }
+    }
+  ]
+}

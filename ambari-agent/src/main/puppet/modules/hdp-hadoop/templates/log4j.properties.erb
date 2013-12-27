@@ -82,6 +82,8 @@ log4j.appender.TLA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
 #Security audit appender
 #
 hadoop.security.logger=INFO,console
+hadoop.security.log.maxfilesize=256MB
+hadoop.security.log.maxbackupindex=20
 log4j.category.SecurityLogger=${hadoop.security.logger}
 hadoop.security.log.file=SecurityAuth.audit
 log4j.appender.DRFAS=org.apache.log4j.DailyRollingFileAppender 
@@ -89,6 +91,13 @@ log4j.appender.DRFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
 log4j.appender.DRFAS.layout=org.apache.log4j.PatternLayout
 log4j.appender.DRFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
 log4j.appender.DRFAS.DatePattern=.yyyy-MM-dd
+
+log4j.appender.RFAS=org.apache.log4j.RollingFileAppender 
+log4j.appender.RFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
+log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout
+log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
+log4j.appender.RFAS.MaxFileSize=${hadoop.security.log.maxfilesize}
+log4j.appender.RFAS.MaxBackupIndex=${hadoop.security.log.maxbackupindex}
 
 #
 # hdfs audit logging
@@ -118,16 +127,16 @@ log4j.appender.MRAUDIT.DatePattern=.yyyy-MM-dd
 # Rolling File Appender
 #
 
-#log4j.appender.RFA=org.apache.log4j.RollingFileAppender
-#log4j.appender.RFA.File=${hadoop.log.dir}/${hadoop.log.file}
+log4j.appender.RFA=org.apache.log4j.RollingFileAppender
+log4j.appender.RFA.File=${hadoop.log.dir}/${hadoop.log.file}
 
 # Logfile size and and 30-day backups
-#log4j.appender.RFA.MaxFileSize=1MB
-#log4j.appender.RFA.MaxBackupIndex=30
+log4j.appender.RFA.MaxFileSize=256MB
+log4j.appender.RFA.MaxBackupIndex=10
 
-#log4j.appender.RFA.layout=org.apache.log4j.PatternLayout
-#log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} - %m%n
-#log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
+log4j.appender.RFA.layout=org.apache.log4j.PatternLayout
+log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} - %m%n
+log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
 
 
 # Custom Logging levels
@@ -153,6 +162,7 @@ log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender
 #
 log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
 
+<% if (scope.function_hdp_template_var("::hdp::params::is_jtnode_master") || scope.function_hdp_template_var("::hdp::params::is_rmnode_master"))%>
 #
 # Job Summary Appender 
 #
@@ -163,13 +173,43 @@ log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
 hadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}
 hadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log
 log4j.appender.JSA=org.apache.log4j.DailyRollingFileAppender
-log4j.appender.JSA.File=${hadoop.log.dir}/${hadoop.mapreduce.jobsummary.log.file}
+<% if (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2)%>
+# Set the ResourceManager summary log filename
+yarn.server.resourcemanager.appsummary.log.file=hadoop-mapreduce.jobsummary.log
+# Set the ResourceManager summary log level and appender
+yarn.server.resourcemanager.appsummary.logger=${hadoop.root.logger}
+#yarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY
+
+# To enable AppSummaryLogging for the RM,
+# set yarn.server.resourcemanager.appsummary.logger to
+# <LEVEL>,RMSUMMARY in hadoop-env.sh
+
+# Appender for ResourceManager Application Summary Log
+# Requires the following properties to be set
+#    - hadoop.log.dir (Hadoop Log directory)
+#    - yarn.server.resourcemanager.appsummary.log.file (resource manager app summary log filename)
+#    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)
+log4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
+log4j.appender.RMSUMMARY.File=<%=scope.function_hdp_template_var("yarn_log_dir_prefix")%>/<%=scope.function_hdp_template_var("yarn_user")%>/${yarn.server.resourcemanager.appsummary.log.file}
+log4j.appender.RMSUMMARY.MaxFileSize=256MB
+log4j.appender.RMSUMMARY.MaxBackupIndex=20
+log4j.appender.RMSUMMARY.layout=org.apache.log4j.PatternLayout
+log4j.appender.RMSUMMARY.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
+<% else %>
+log4j.appender.JSA.File=<%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/<%=scope.function_hdp_template_var("mapred_user")%>/${hadoop.mapreduce.jobsummary.log.file}
+<%end-%>
 log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
 log4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
 log4j.appender.JSA.DatePattern=.yyyy-MM-dd
+log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+<% if (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2)%>
+log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=${yarn.server.resourcemanager.appsummary.logger}
+log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false
+<% else %>
 log4j.logger.org.apache.hadoop.mapred.JobInProgress$JobSummary=${hadoop.mapreduce.jobsummary.logger}
 log4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary=false
-
+<%end-%>
+<%end-%>
 
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.database=<%=scope.function_hdp_host("ambari_db_rca_url")%>
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.driver=<%=scope.function_hdp_host("ambari_db_rca_driver")%>

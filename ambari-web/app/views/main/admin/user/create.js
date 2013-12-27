@@ -21,6 +21,8 @@ var App = require('app');
 App.MainAdminUserCreateView = Em.View.extend({
   templateName: require('templates/main/admin/user/create'),
   userId: false,
+  isPasswordDirty: false,
+
   create: function(event){
     var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
@@ -60,6 +62,9 @@ App.MainAdminUserCreateView = Em.View.extend({
             this.hide();
           }
         });
+        var persists = App.router.get('applicationController').persistKey(form.getField("userName").get('value'));
+        App.router.get('applicationController').postUserPref(persists,true);
+
         form.save();
 
         App.router.transitionTo("allUsers");
@@ -68,6 +73,23 @@ App.MainAdminUserCreateView = Em.View.extend({
   },
 
   userForm: App.CreateUserForm.create({}),
+
+  keyPress: function(event) {
+    if (event.keyCode === 13) {
+      this.create();
+      return false;
+    }
+  },
+
+  passwordValidation: function() {
+    var passwordValue = this.get('userForm').getField('password').get('value');
+    if (passwordValue && !this.get('isPasswordDirty')) {
+      this.set('isPasswordDirty', true);
+    }
+    if (this.get('isPasswordDirty')) {
+      this.get('userForm').isValid();
+    }
+  }.observes('userForm.fields.@each.value'),
 
   didInsertElement: function(){
     this.get('userForm').propertyDidChange('object');

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.predicate.operators;
 
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 
@@ -54,7 +53,7 @@ public class OrOperator extends AbstractOperator implements LogicalOperator {
   @Override
   public Predicate toPredicate(Predicate left, Predicate right) {
     //todo: refactor to remove down casts
-    return new OrPredicate((BasePredicate) left, (BasePredicate) right);
+    return new OrPredicate(left, right);
   }
 
   @Override

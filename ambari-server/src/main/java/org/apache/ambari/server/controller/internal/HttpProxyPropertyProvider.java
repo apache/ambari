@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.JsonSyntaxException;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -49,13 +51,15 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
 
   private static final Map<String, String> URL_TEMPLATES = new HashMap<String, String>();
   private static final Map<String, String> MAPPINGS = new HashMap<String, String>();
-  
+
   static {
     URL_TEMPLATES.put("NAGIOS_SERVER", "http://%s/ambarinagios/nagios/nagios_alerts.php?q1=alerts&alert_type=all");
     
     MAPPINGS.put("NAGIOS_SERVER", PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
   }
-  
+
+  private final ComponentSSLConfiguration configuration;
+
   private StreamProvider streamProvider = null;
   // !!! not yet used, but make consistent
   private String clusterNamePropertyId = null;
@@ -64,12 +68,14 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   
   public HttpProxyPropertyProvider(
       StreamProvider stream,
+      ComponentSSLConfiguration configuration,
       String clusterNamePropertyId,
       String hostNamePropertyId,
       String componentNamePropertyId) {
 
     super(new HashSet<String>(MAPPINGS.values()));
     this.streamProvider = stream;
+    this.configuration = configuration;
     this.clusterNamePropertyId = clusterNamePropertyId;
     this.hostNamePropertyId = hostNamePropertyId;
     this.componentNamePropertyId = componentNamePropertyId;
@@ -97,7 +103,7 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
           MAPPINGS.containsKey(componentName.toString()) &&
           URL_TEMPLATES.containsKey(componentName.toString())) {
         
-        String template = URL_TEMPLATES.get(componentName.toString());
+        String template = getTemplate(componentName.toString());
         String propertyId = MAPPINGS.get(componentName.toString());
         String url = String.format(template, hostName);
         
@@ -108,8 +114,19 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     return resources;
   }
 
+  private String getTemplate(String key) {
+
+    String template = URL_TEMPLATES.get(key);
+
+    if (key.equals("NAGIOS_SERVER")) {
+      if (configuration.isNagiosSSL()) {
+        template = template.replace("http", "https");
+      }
+    }
+    return template;
+  }
+
   private void getHttpResponse(Resource r, String url, String propertyIdToSet) throws SystemException {
-    
     InputStream in = null;
     try {
       in = streamProvider.readFrom(url);
@@ -119,14 +136,17 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     }
     catch (IOException ioe) {
       LOG.error("Error reading HTTP response from " + url);
-      throw new SystemException("Unable to get property " + propertyIdToSet + "from URL " + url, ioe);
+      r.setProperty(propertyIdToSet, null);
+    } catch (JsonSyntaxException jse) {
+      LOG.error("Error parsing HTTP response from " + url);
+      r.setProperty(propertyIdToSet, null);
     } finally {
       if (in != null) {
         try {
           in.close();
         }
         catch (IOException ioe) {
-          throw new SystemException("Unable to close input stream", ioe);
+          LOG.error("Error closing HTTP response stream " + url);
         }
       }
     }

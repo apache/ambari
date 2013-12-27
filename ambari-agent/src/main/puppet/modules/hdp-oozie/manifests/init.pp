@@ -39,13 +39,13 @@ class hdp-oozie(
       configuration => $configuration['oozie-site'],
       owner => $oozie_user,
       group => $hdp::params::user_group,
-      mode => '0660'
+      mode => '0664'
     }
   } else {
     file { "${oozie_config_dir}/oozie-site.xml":
       owner => $oozie_user,
       group => $hdp::params::user_group,
-      mode => '0660'
+      mode => '0664'
     }
   }
 
@@ -75,7 +75,7 @@ class hdp-oozie(
       class { 'hdp-oozie::download-ext-zip': }
     }
 
-     hdp::user{ $oozie_user:}
+     
 
      hdp::directory { $oozie_config_dir: 
        service_state => $service_state,
@@ -85,14 +85,25 @@ class hdp-oozie(
        override_owner => true
      }
 
-     hdp-oozie::configfile { ['oozie-env.sh','oozie-log4j.properties']: }
+     hdp-oozie::configfile { 'oozie-env.sh': }
+
+     if ($service_state == 'installed_and_configured') {
+       hdp-oozie::configfile { 'oozie-log4j.properties': }
+
+       if ($hdp::params::oozie_jdbc_driver == "com.mysql.jdbc.Driver" or $hdp::params::oozie_jdbc_driver == "oracle.jdbc.driver.OracleDriver") {
+         hdp::exec { "download DBConnectorVerification.jar" :
+           command => "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 ${hdp::params::jdk_location}${hdp::params::check_db_connection_jar_name} -o ${hdp::params::check_db_connection_jar_name}'",
+           unless  => "[ -f ${check_db_connection_jar} ]"
+         }
+       }
+     }
 
      hdp-oozie::ownership { 'ownership': }
 
-    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> Hdp-oozie::Ownership['ownership'] -> anchor { 'hdp-oozie::end': }
+    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> Hdp-oozie::Ownership['ownership'] -> anchor { 'hdp-oozie::end': }
 
      if ($server == true ) { 
-       Hdp::Package['oozie-server'] -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] ->   Class['hdp-oozie::download-ext-zip'] ->  Anchor['hdp-oozie::end']
+       Hdp::Package['oozie-server'] -> Hdp::Package['oozie-client'] -> Class['hdp-oozie::download-ext-zip'] ->  Anchor['hdp-oozie::end']
      }
  }
 }

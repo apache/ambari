@@ -18,11 +18,10 @@
 
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.AmbariException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.ambari.server.AmbariException;
 
 /**
  * Single entity that tracks all clusters and hosts that are managed
@@ -158,4 +157,20 @@ public interface Clusters {
   public void updateHostWithClusterAndAttributes(
       Map<String, Set<String>> hostsClusters, Map<String, Map<String, String>> hostAttributes)
       throws AmbariException;
+
+  /**
+   * Removes a host from a cluster.  Inverts {@link #mapHostToCluster(String, String)
+   * @param hostname
+   * @param clusterName
+   */
+  public void unmapHostFromCluster(String hostname, String clusterName)
+      throws AmbariException;
+
+  /**
+   * Removes a host.  Inverts {@link #addHost(String)}
+   * @param hostname
+   */
+  public void deleteHost(String hostname)
+      throws AmbariException;
+
 }

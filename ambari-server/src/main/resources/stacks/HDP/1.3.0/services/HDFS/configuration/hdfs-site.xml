@@ -143,6 +143,14 @@
   </property>
 
   <property>
+    <name>dfs.https.port</name>
+    <value>50070</value>
+    <description>
+      This property is used by HftpFileSystem.
+    </description>
+  </property>
+
+  <property>
     <name>dfs.datanode.address</name>
     <value></value>
   </property>
@@ -411,5 +419,36 @@ don't exist, they will be created with this permission.</description>
   <value>0</value>
   <description>Number of failed disks datanode would tolerate</description>
 </property>
+
+  <property>
+    <name>dfs.namenode.avoid.read.stale.datanode</name>
+    <value>true</value>
+    <description>
+      Indicate whether or not to avoid reading from stale datanodes whose
+      heartbeat messages have not been received by the namenode for more than a
+      specified time interval.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.avoid.write.stale.datanode</name>
+    <value>true</value>
+    <description>
+      Indicate whether or not to avoid writing to stale datanodes whose
+      heartbeat messages have not been received by the namenode for more than a
+      specified time interval.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.write.stale.datanode.ratio</name>
+    <value>1.0f</value>
+    <description>When the ratio of number stale datanodes to total datanodes marked is greater
+      than this ratio, stop avoiding writing to stale nodes so as to prevent causing hotspots.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.stale.datanode.interval</name>
+    <value>30000</value>
+    <description>Datanode is stale after not getting a heartbeat in this interval in ms</description>
+  </property>
 
 </configuration>

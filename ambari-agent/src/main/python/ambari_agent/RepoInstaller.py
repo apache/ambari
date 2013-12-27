@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -21,13 +21,12 @@ limitations under the License.
 import logging
 import os
 import json
+from pprint import pformat
+import ast
 from shell import shellRunner
 from manifestGenerator import writeImports
-from pprint import pprint, pformat
-import ast
 import AmbariConfig
-import urlparse, urllib
-import re
+
 
 PUPPET_EXT=".pp"
 

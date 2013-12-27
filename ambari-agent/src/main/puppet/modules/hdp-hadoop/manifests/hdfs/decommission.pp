@@ -25,6 +25,19 @@ class hdp-hadoop::hdfs::decommission(
     hdp_fail("There is no path to exclude file in configuration!")
   }
 
+  $kinit_path = $hdp::params::kinit_path_local
+  $keytab_path = $hdp::params::hdfs_user_keytab
+  $hdfs_user = $hdp::params::hdfs_user
+  $kinit_cmd = "su - ${hdfs_user} -c '${kinit_path} -kt ${keytab_path} ${hdfs_user}'"
+
+  if ($hdp::params::security_enabled == true) {
+    exec { 'kinit_before_decommission' :
+      command => $kinit_cmd,
+      path => ['/bin'],
+      before => Hdp-Hadoop::Hdfs::Generate_Exclude_File['exclude_file']
+    }
+  }
+
   hdp-hadoop::hdfs::generate_exclude_file{'exclude_file':}
 
   hdp::exec{"hadoop dfsadmin -refreshNodes":

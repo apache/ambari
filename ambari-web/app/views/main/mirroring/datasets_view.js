@@ -40,10 +40,7 @@ App.MainDatasetsView = App.TableView.extend({
       header: Em.I18n.t('mirroring.sidebar.popup.clusters.header'),
       bodyClass: Em.View.extend({
         template: Em.Handlebars.compile("{{t mirroring.sidebar.popup.clusters.body}}")
-      }),
-      onPrimary: function () {
-        this.hide();
-      }
+      })
     });
   },
 
@@ -83,45 +80,51 @@ App.MainDatasetsView = App.TableView.extend({
    */
   nameFilterView: filters.createTextView({
     fieldType: 'input-small',
+    column: 1,
     onChangeValue: function () {
-      this.get('parentView').updateFilter(1, this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
   datasetSourceFilterView: filters.createTextView({
     fieldType: 'input-small',
+    column: 2,
     onChangeValue: function () {
-      this.get('parentView').updateFilter(2, this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
   lastSuccessFilterView: filters.createSelectView({
     fieldType: 'input-medium',
+    column: 3,
     content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     onChangeValue: function () {
-      this.get('parentView').updateFilter(3, this.get('value'), 'date');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     }
   }),
 
   lastFailFilterView: filters.createSelectView({
     fieldType: 'input-medium',
+    column: 4,
     content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     onChangeValue: function () {
-      this.get('parentView').updateFilter(4, this.get('value'), 'date');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     }
   }),
 
   lastDurationFilterView: filters.createTextView({
     fieldType: 'input-small',
+    column: 5,
     onChangeValue: function () {
-      this.get('parentView').updateFilter(5, this.get('value'), 'duration');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'duration');
     }
   }),
 
   avgDataFilterView: filters.createTextView({
     fieldType: 'input-small',
+    column: 6,
     onChangeValue: function () {
-      this.get('parentView').updateFilter(6, this.get('value'), 'ambari-bandwidth');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'ambari-bandwidth');
     }
   }),
 

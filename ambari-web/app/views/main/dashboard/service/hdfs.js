@@ -17,6 +17,7 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hdfs'),
@@ -36,9 +37,58 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
-  version: function(){
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
+  dashboardMasterComponentView: Em.View.extend({
+    templateName: require('templates/main/service/info/summary/master_components'),
+    mastersComp : function() {
+      var masters = this.get('parentView.service.hostComponents').filter(function(comp){
+        return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
+      });
+      return masters;
+    }.property('service')
+  }),
+
+  dataNodesLive: function(){
+    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED");
+  }.property('service.hostComponents.@each'),
+  dataNodesDead: function(){
+    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED");
+  }.property('service.hostComponents.@each'),
+
+  dataNodeHostText: function () {
+    if (this.get("service.dataNodes").length == 0) {
+      return '';
+    } else if (this.get("service.dataNodes").length > 1) {
+      return Em.I18n.t('services.service.summary.viewHosts');
+    } else {
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service"),
+
+  showJournalNodes: function () {
+    return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length') > 0;
+  }.property('service.hostComponents.@each'),
+
+  dataNodesLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").get("length");
+    }.property("service.hostComponents.@each"),
+    totalComponents: function() {
+      return this.get("service.dataNodes.length");
+    }.property("service.dataNodes.length")
+  }),
+
+  journalNodesLiveTextView: App.ComponentLiveTextView.extend({
+    allJournalNodes: function () {
+      return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE')
+    }.property('service.hostComponents.@each'),
+    liveComponents: function() {
+      return this.get('allJournalNodes').filterProperty("workStatus","STARTED").get("length");
+    }.property("allJournalNodes"),
+    totalComponents: function() {
+      return this.get('allJournalNodes').get("length");
+    }.property("allJournalNodes")
+  }),
+
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
   }.property('service.dfsTotalBlocks'),
@@ -73,16 +123,18 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property("service.nameNodeStartTime"),
 
   nodeWebUrl: function () {
-    return "http://" + this.get('service').get('nameNode').get('publicHostName') + ":50070";
+    return "http://" + (App.singleNodeInstall ? App.singleNodeAlias :  this.get('service').get('nameNode').get('publicHostName')) + ":50070";
   }.property('service.nameNode'),
 
   nodeHeap: function () {
-    var memUsed = this.get('service').get('jvmMemoryHeapUsed') * 1000000;
-    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted') * 1000000;
-    var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
-    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(memUsed.bytesToSize(1, 'parseFloat'), memCommitted.bytesToSize(1, 'parseFloat'), percent.toFixed(1));
-
-  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
+    var memUsed = this.get('service').get('jvmMemoryHeapUsed');
+    var memMax = this.get('service').get('jvmMemoryHeapMax');
+    var percent = memMax > 0 ? ((100 * memUsed) / memMax) : 0;
+    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
+      numberUtils.bytesToSize(memUsed, 1, 'parseFloat'),
+      numberUtils.bytesToSize(memMax, 1, 'parseFloat'),
+      percent.toFixed(1));
+  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
 
   summaryHeader: function () {
     var text = this.t("dashboard.services.hdfs.summary");
@@ -101,28 +153,43 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   capacity: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
-    var total = this.get('service.capacityTotal') + 0;
-    var remaining = this.get('service.capacityRemaining') + 0;
-    var used = total - remaining;
+    var total = this.get('service.capacityTotal');
+    var remaining = this.get('service.capacityRemaining');
+    var used = total !== null && remaining !== null ? total - remaining : null;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
     if (percent == "NaN" || percent < 0) {
       percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    if (used < 0) {
-      used = 0;
-    }
-    if (total < 0) {
-      total = 0;
-    }
-    return text.format(used.bytesToSize(1, 'parseFloat'), total.bytesToSize(1, 'parseFloat'), percent);
+    return text.format(numberUtils.bytesToSize(used, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
   }.property('service.capacityUsed', 'service.capacityTotal'),
 
   dataNodeComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'DATANODE');
   }.property(),
 
-  isSafeMode: function () {
+  journalNodeComponent: function () {
+    return App.HostComponent.find().findProperty('componentName', 'JOURNALNODE');
+  }.property(),
+
+  safeModeStatus: function () {
     var safeMode = this.get('service.safeModeStatus');
-    return safeMode != null && safeMode.length > 0;
-  }.property('service.safeModeStatus')
+    if (safeMode == null) {
+      return Em.I18n.t("services.service.summary.notAvailable");
+    } else if (safeMode.length == 0) {
+      return Em.I18n.t("services.service.summary.safeModeStatus.notInSafeMode");
+    } else {
+      return Em.I18n.t("services.service.summary.safeModeStatus.inSafeMode");
+    }
+  }.property('service.safeModeStatus'),
+  upgradeStatus: function () {
+    var upgradeStatus = this.get('service.upgradeStatus');
+    var healthStatus = this.get('service.healthStatus');
+    if (upgradeStatus) {
+      return Em.I18n.t('services.service.summary.pendingUpgradeStatus.notPending');
+    } else if (healthStatus == 'green') {
+      return Em.I18n.t('services.service.summary.pendingUpgradeStatus.pending');
+    } else {
+      return Em.I18n.t("services.service.summary.notAvailable");
+    }
+  }.property('service.upgradeStatus', 'service.healthStatus')
 });

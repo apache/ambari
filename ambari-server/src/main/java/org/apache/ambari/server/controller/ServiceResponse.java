@@ -32,18 +32,13 @@ public class ServiceResponse {
 
   private String desiredState;
 
-  // Config type -> version mapping
-  private Map<String, String> configVersions;
-
   public ServiceResponse(Long clusterId, String clusterName,
                          String serviceName,
-                         Map<String, String> configVersions,
                          String desiredStackVersion, String desiredState) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.configVersions = configVersions;
     this.setDesiredStackVersion(desiredStackVersion);
     this.setDesiredState(desiredState);
   }
@@ -60,20 +55,6 @@ public class ServiceResponse {
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
-  }
-
-  /**
-   * @return the configVersions
-   */
-  public Map<String, String> getConfigVersions() {
-    return configVersions;
-  }
-
-  /**
-   * @param configVersions the configVersions to set
-   */
-  public void setConfigVersions(Map<String, String> configVersions) {
-    this.configVersions = configVersions;
   }
 
   /**

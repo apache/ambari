@@ -1,0 +1,461 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.container-monitor.interval-ms",
+      "StackConfigurations" : {
+        "property_description" : "The interval, in milliseconds, for which the node manager\n    waits  between two cycles of monitoring its containers' memory usage. \n    ",
+        "property_value" : "3000",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.container-monitor.interval-ms",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.resourcemanager.scheduler.class",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.resourcemanager.scheduler.class",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.resourcemanager.admin.address",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "TODO-RMNODE-HOSTNAME:8141",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.resourcemanager.admin.address",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.queues",
+      "StackConfigurations" : {
+        "property_description" : "\n      The queues at the this level (root is the root queue).\n    ",
+        "property_value" : "default",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.queues",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.capacity",
+      "StackConfigurations" : {
+        "property_description" : "\n      The total capacity as a percentage out of 100 for this queue.\n      If it has child queues then this includes their capacity as well.\n      The child queues capacity should add up to their parent queue's capacity\n      or less.\n    ",
+        "property_value" : "100",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.capacity",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.default.acl_submit_jobs",
+      "StackConfigurations" : {
+        "property_description" : "\n      The ACL of who can submit jobs to the default queue.\n    ",
+        "property_value" : "*",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.default.acl_submit_jobs",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.log-aggregation.compression-type",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "gz",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.log-aggregation.compression-type",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.delete.debug-delay-sec",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "36000",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.delete.debug-delay-sec",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.address",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "0.0.0.0:45454",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.address",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.resource.memory-mb",
+      "StackConfigurations" : {
+        "property_description" : "Amount of physical memory, in MB, that can be allocated\n      for containers.",
+        "property_value" : "8192",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.resource.memory-mb",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.default.maximum-capacity",
+      "StackConfigurations" : {
+        "property_description" : "\n      The maximum capacity of the default queue. \n    ",
+        "property_value" : "100",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.default.maximum-capacity",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.resourcemanager.resource-tracker.address",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "TODO-RMNODE-HOSTNAME:8025",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.resourcemanager.resource-tracker.address",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.vmem-pmem-ratio",
+      "StackConfigurations" : {
+        "property_description" : "Ratio between virtual memory to physical memory when\n    setting memory limits for containers. Container allocations are\n    expressed in terms of physical memory, and virtual memory usage\n    is allowed to exceed this allocation by this ratio.\n    ",
+        "property_value" : "2.1",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.vmem-pmem-ratio",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.remote-app-log-dir-suffix",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "logs",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.remote-app-log-dir-suffix",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.health-checker.script.timeout-ms",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "60000",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.health-checker.script.timeout-ms",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.local-dirs",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "TODO-YARN-LOCAL-DIR",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.local-dirs",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.default.user-limit-factor",
+      "StackConfigurations" : {
+        "property_description" : "\n      Default queue user limit a percentage from 0.0 to 1.0.\n    ",
+        "property_value" : "1",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.default.user-limit-factor",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.maximum-am-resource-percent",
+      "StackConfigurations" : {
+        "property_description" : "\n      Maximum percent of resources in the cluster which can be used to run \n      application masters i.e. controls number of concurrent running\n      applications.\n    ",
+        "property_value" : "0.1",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.maximum-am-resource-percent",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.default.state",
+      "StackConfigurations" : {
+        "property_description" : "\n      The state of the default queue. State can be one of RUNNING or STOPPED.\n    ",
+        "property_value" : "RUNNING",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.default.state",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.acl_administer_queues",
+      "StackConfigurations" : {
+        "property_description" : "\n      The ACL for who can administer this queue i.e. change sub-queue \n      allocations.\n    ",
+        "property_value" : "*",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.acl_administer_queues",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.log.retain-second",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "604800",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.log.retain-second",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.default.acl_administer_jobs",
+      "StackConfigurations" : {
+        "property_description" : "\n      The ACL of who can administer jobs on the default queue.\n    ",
+        "property_value" : "*",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.default.acl_administer_jobs",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.application.classpath",
+      "StackConfigurations" : {
+        "property_description" : "Classpath for typical applications.",
+        "property_value" : "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.application.classpath",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.resourcemanager.address",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "TODO-RMNODE-HOSTNAME:8050",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.resourcemanager.address",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.log-dirs",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "TODO-YARN-LOG-DIR",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.log-dirs",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.maximum-allocation-mb",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "8192",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.maximum-allocation-mb",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.container-executor.class",
+      "StackConfigurations" : {
+        "property_description" : "ContainerExecutor for launching containers",
+        "property_value" : "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.container-executor.class",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.remote-app-log-dir",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "/app-logs",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.remote-app-log-dir",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.unfunded.capacity",
+      "StackConfigurations" : {
+        "property_description" : "\n      No description\n    ",
+        "property_value" : "50",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.unfunded.capacity",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.health-checker.interval-ms",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "135000",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.health-checker.interval-ms",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.minimum-allocation-mb",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "1024",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.minimum-allocation-mb",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.maximum-applications",
+      "StackConfigurations" : {
+        "property_description" : "\n      Maximum number of applications that can be pending and running.\n    ",
+        "property_value" : "10000",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.maximum-applications",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.aux-services",
+      "StackConfigurations" : {
+        "property_description" : "Auxilliary services of NodeManager",
+        "property_value" : "mapreduce_shuffle",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.aux-services",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.health-checker.script.path",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "/etc/hadoop/conf/health_check",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.health-checker.script.path",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.log-aggregation-enable",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "true",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.log-aggregation-enable",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.aux-services.class",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "org.apache.hadoop.mapred.ShuffleHandler",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.nodemanager.aux-services.class",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.resourcemanager.scheduler.address",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "TODO-RMNODE-HOSTNAME:8030",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.resourcemanager.scheduler.address",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "yarn-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.scheduler.capacity.root.default.capacity",
+      "StackConfigurations" : {
+        "property_description" : "Default queue target capacity.",
+        "property_value" : "100",
+        "stack_version" : "2.0.1",
+        "property_name" : "yarn.scheduler.capacity.root.default.capacity",
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "type" : "capacity-scheduler.xml"
+      }
+    }
+  ]
+}

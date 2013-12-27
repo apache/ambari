@@ -38,24 +38,6 @@ module.exports = {
     return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
   },
   /**
-   * Convert date-string 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES' to timestamp
-   * @param date_string
-   * @return {String}
-   */
-  dateUnformat: function(date_string) {
-    var date = date_string.substring(4);
-    var month = date.substring(1, 4);
-    var day = date.substring(5, 7);
-    var year = date.substring(9, 13);
-    var hours = date.substring(14, 16);
-    var minutes = date.substring(17, 19);
-
-    var months = this.dateMonths;
-    month = months.indexOf(month) + 1;
-    if (month < 10) month = '0' + month;
-    return year + month + day + hours + minutes;
-  },
-  /**
    * Convert timestamp to date-string 'DAY_OF_THE_WEEK MONTH DAY YEAR'
    * @param timestamp
    * @return {*}
@@ -71,60 +53,6 @@ module.exports = {
     return date.toDateString();
   },
   /**
-   * Convert date-string 'DAY_OF_THE_WEEK MONTH DAY YEAR' to the timestamp
-   * @param date_string
-   * @return {Number}
-   */
-  dateUnformatShort: function(date_string) {
-    var date = new Date(date_string);
-    return date.getTime();
-  },
-  /**
-   * Convert time in mseconds to 'HOURS:MINUTES:SECONDS'
-   * @param ms_interval
-   * @return string formatted date
-   */
-  dateFormatInterval:function (ms_interval) {
-    if (!validator.isValidInt(ms_interval)) return ms_interval;
-    var hours = Math.floor(ms_interval / (60 * 60000));
-    var divisor_for_minutes = ms_interval % (60 * 60000);
-    var minutes = Math.floor(divisor_for_minutes / 60000);
-    var divisor_for_seconds = divisor_for_minutes % 60000;
-    var seconds = (divisor_for_seconds / 1000).toFixed(2);
-
-    return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-  },
-  /**
-   * Convert 'HOURS:MINUTES:SECONDS' to time in mseconds
-   * @param formattedDate date string
-   * @return time in mseconds
-   */
-  dateUnformatInterval: function(formattedDate) {
-    var formattedDateArray = formattedDate.split(' ');
-
-    if (Object.prototype.toString.call( formattedDateArray ) === '[object Array]' && formattedDateArray.length == 2) {
-      var oneMinMs = 60000;
-      var oneHourMs = 3600000;
-      var oneDayMs = 86400000;
-
-      if (formattedDateArray['1'] == 'ms') {
-        return formattedDateArray['0'];
-      } else if (formattedDateArray['1'] == 'secs') {
-        return formattedDateArray['0'] * 1000;
-      } else if (formattedDateArray['1'] == 'mins') {
-        return formattedDateArray['0'] * oneMinMs;
-      } else if (formattedDateArray['1'] == 'hours') {
-        return formattedDateArray['0'] * oneHourMs;
-      } else if (formattedDateArray['1'] == 'days') {
-        return formattedDateArray['0'] * oneDayMs;
-      } else {
-        console.warn('function dateUnformatInterval: Undefined format');
-      }
-    } else {
-      console.warn('function dateUnformatInterval: formattedDateArray');
-    }
-  },
-  /**
    * Convert time in mseconds to
    * 30 ms = 30 ms
    * 300 ms = 300 ms
@@ -137,10 +65,13 @@ module.exports = {
    * 1000000 ms = 16.66 mins
    * 3500000 secs = 58.33 mins
    * @param time
+   * @param zeroValid, for the case to show 0 when time is 0, not null
    * @return string formatted date
    */
-  timingFormat:function (time) {
+  timingFormat:function (time, /* optional */ zeroValid) {
     var intTime  = parseInt(time);
+    if (zeroValid && intTime == 0) return 0 + '';
+    if (!intTime) return null;
     var timeStr = intTime.toString();
     var lengthOfNumber = timeStr.length;
     var oneMinMs = 60000;

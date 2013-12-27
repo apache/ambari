@@ -19,7 +19,25 @@
 #########################################################
 ### ClusterName           GmondMasterHost   GmondPort ###
 #########################################################
-    HDPSlaves       		<%=scope.function_hdp_host("ganglia_server_host")%>  8660
+
+    HDPSlaves       	<%=scope.function_hdp_host("ganglia_server_host")%>  8660
+
+<% if (scope.function_hdp_default('namenode_host') != '')%>
     HDPNameNode         <%=scope.function_hdp_host("ganglia_server_host")%>  8661
+<%end-%>
+<% if (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) < 2)%>
+    <% if (scope.function_hdp_default('jtnode_host') != '')%>
     HDPJobTracker     	<%=scope.function_hdp_host("ganglia_server_host")%>  8662
+    <%end-%>
+<%end-%>
+<% if (scope.function_hdp_default('hbase_master_hosts') != '')%>
     HDPHBaseMaster      <%=scope.function_hdp_host("ganglia_server_host")%>  8663
+<%end-%>
+<% if (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2)%>
+    <% if (scope.function_hdp_default('rm_host') != '')%>
+    HDPResourceManager  <%=scope.function_hdp_host("ganglia_server_host")%>  8664
+    <%end-%>
+    <% if (scope.function_hdp_default('hs_host') != '')%>
+    HDPHistoryServer    <%=scope.function_hdp_host("ganglia_server_host")%>  8666
+    <%end-%>
+<%end-%>

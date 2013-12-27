@@ -1,0 +1,250 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/myhost",
+  "Hosts" : {
+    "cluster_name" : "test1",
+    "cpu_count" : 24,
+    "disk_info" : [
+      {
+        "available" : "25938900",
+        "used" : "5743652",
+        "percent" : "19%",
+        "size" : "33378088",
+        "type" : "ext4",
+        "mountpoint" : "/"
+      },
+      {
+        "available" : "49525536",
+        "used" : "0",
+        "percent" : "0%",
+        "size" : "49525536",
+        "type" : "tmpfs",
+        "mountpoint" : "/dev/shm"
+      },
+      {
+        "available" : "433221",
+        "used" : "37023",
+        "percent" : "8%",
+        "size" : "495844",
+        "type" : "ext4",
+        "mountpoint" : "/boot"
+      },
+      {
+        "available" : "3020752",
+        "used" : "71284",
+        "percent" : "3%",
+        "size" : "3257512",
+        "type" : "ext4",
+        "mountpoint" : "/home"
+      },
+      {
+        "available" : "547125892",
+        "used" : "404652",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/1"
+      },
+      {
+        "available" : "547305068",
+        "used" : "225476",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/2"
+      },
+      {
+        "available" : "547325924",
+        "used" : "204620",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/3"
+      },
+      {
+        "available" : "547320928",
+        "used" : "209616",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/4"
+      },
+      {
+        "available" : "547315544",
+        "used" : "215000",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/5"
+      },
+      {
+        "available" : "547327008",
+        "used" : "203536",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/6"
+      },
+      {
+        "available" : "547310644",
+        "used" : "219900",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/7"
+      },
+      {
+        "available" : "547320544",
+        "used" : "210000",
+        "percent" : "1%",
+        "size" : "576831992",
+        "type" : "ext4",
+        "mountpoint" : "/data/8"
+      }
+    ],
+    "host_health_report" : "",
+    "host_name" : "myhost",
+    "host_state" : "HEALTHY",
+    "host_status" : "HEALTHY",
+    "ip" : "10.104.44.95",
+    "last_agent_env" : {
+      "stackFoldersAndFiles" : [ ],
+      "rpms" : [
+        {
+          "name" : "nagios",
+          "installed" : true,
+          "version" : "nagios-3.5.0-99.x86_64"
+        },
+        {
+          "name" : "ganglia",
+          "installed" : false
+        },
+        {
+          "name" : "hadoop",
+          "installed" : true,
+          "version" : "hadoop-1.2.0.1.3.0.0-107.el6.x86_64"
+        },
+        {
+          "name" : "hadoop-lzo",
+          "installed" : true,
+          "version" : "hadoop-lzo-0.5.0-1.x86_64"
+        },
+        {
+          "name" : "hbase",
+          "installed" : false
+        },
+        {
+          "name" : "oozie",
+          "installed" : true,
+          "version" : "oozie-3.3.2.1.3.0.0-107.el6.noarch"
+        },
+        {
+          "name" : "sqoop",
+          "installed" : false
+        },
+        {
+          "name" : "pig",
+          "installed" : false
+        },
+        {
+          "name" : "zookeeper",
+          "installed" : true,
+          "version" : "zookeeper-3.4.5.1.3.0.0-107.el6.noarch"
+        },
+        {
+          "name" : "hive",
+          "installed" : true,
+          "version" : "hive-0.11.0.1.3.0.0-107.el6.noarch"
+        },
+        {
+          "name" : "libconfuse",
+          "installed" : true,
+          "version" : "libconfuse-2.6-3.el6.x86_64"
+        },
+        {
+          "name" : "ambari-log4j",
+          "installed" : true,
+          "version" : "ambari-log4j-1.2.3.6-1.noarch"
+        }
+      ],
+      "alternatives" : [ ],
+      "existingUsers" : [ ],
+      "existingRepos" : [
+        "unable_to_determine"
+      ],
+      "installedPackages" : [ ],
+      "hostHealth" : {
+        "activeJavaProcs" : [ ],
+        "agentTimeStampAtReporting" : 1377776815389,
+        "serverTimeStampAtReporting" : 1377776801984,
+        "liveServices" : [
+          {
+            "name" : "ntpd",
+            "desc" : "ntpd is stopped\n",
+            "status" : "Unhealthy"
+          }
+        ],
+        "diskStatus" : [
+          {
+            "available" : "25032456",
+            "used" : "6650096",
+            "percent" : "21%",
+            "size" : "33378088",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          }
+        ]
+      }
+    },
+    "last_heartbeat_time" : 1377776827188,
+    "last_registration_time" : 1377605551901,
+    "os_arch" : "x86_64",
+    "os_type" : "redhat6",
+    "ph_cpu_count" : 2,
+    "public_host_name" : "myhost",
+    "rack_info" : "/default-rack",
+    "total_mem" : 99048488,
+    "desired_configs" : { }
+  },
+  "host_components" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/myhost/host_components/GANGLIA_MONITOR",
+      "HostRoles" : {
+        "cluster_name" : "test1",
+        "component_name" : "GANGLIA_MONITOR",
+        "host_name" : "myhost"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/myhost/host_components/GANGLIA_SERVER",
+      "HostRoles" : {
+        "cluster_name" : "test1",
+        "component_name" : "GANGLIA_SERVER",
+        "host_name" : "myhost"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/myhost/host_components/MAPREDUCE_CLIENT",
+      "HostRoles" : {
+        "cluster_name" : "test1",
+        "component_name" : "MAPREDUCE_CLIENT",
+        "host_name" : "myhost"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/myhost/host_components/NAGIOS_SERVER",
+      "HostRoles" : {
+        "cluster_name" : "test1",
+        "component_name" : "NAGIOS_SERVER",
+        "host_name" : "myhost"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/hosts/myhost/host_components/NAMENODE",
+      "HostRoles" : {
+        "cluster_name" : "test1",
+        "component_name" : "NAMENODE",
+        "host_name" : "myhost"
+      }
+    }
+  ]
+}

@@ -19,7 +19,7 @@
 package org.apache.ambari.server.api.util;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -40,7 +40,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   /**
    * child nodes
    */
-  private Map<String, TreeNode<T>> m_mapChildren = new HashMap<String, TreeNode<T>>();
+  private Map<String, TreeNode<T>> m_mapChildren = new LinkedHashMap<String, TreeNode<T>>();
 
   /**
    * associated object
@@ -114,7 +114,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   @Override
   public void setProperty(String name, String value) {
     if (m_mapNodeProps == null) {
-      m_mapNodeProps = new HashMap<String, String>();
+      m_mapNodeProps = new LinkedHashMap<String, String>();
     }
     m_mapNodeProps.put(name, value);
   }

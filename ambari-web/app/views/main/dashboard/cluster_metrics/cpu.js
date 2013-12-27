@@ -28,8 +28,8 @@ var App = require('app');
  */
 App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-cpu",
-  sourceUrl: "?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/cluster_metrics/cpu_1hr.json",
+
+  ajaxIndex: 'dashboard.cluster_metrics.cpu',
 
   title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
@@ -39,10 +39,9 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
     if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {
       var cpu_idle;
       for ( var name in jsonData.metrics.cpu) {
-        var displayName = name;
         var seriesData = jsonData.metrics.cpu[name];
         if (seriesData) {
-          var s = this.transformData(seriesData, displayName);
+          var s = this.transformData(seriesData, name);
           if (Em.I18n.t('dashboard.clusterMetrics.cpu.displayNames.idle') == s.name) {
             cpu_idle = s;
           }

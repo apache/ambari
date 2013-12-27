@@ -27,6 +27,7 @@ import java.util.Properties;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -59,13 +60,20 @@ public class BootStrapTest extends TestCase {
   public void testRun() throws Exception {
     Properties properties = new Properties();
     String bootdir =  temp.newFolder("bootdir").toString();
+    String metadetadir =  temp.newFolder("metadetadir").toString();
+    String serverVersionFilePath =  temp.newFolder("serverVersionFilePath").toString();
     LOG.info("Bootdir is " + bootdir);
+    LOG.info("Metadetadir is " + metadetadir);
+    LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
     properties.setProperty(Configuration.BOOTSTRAP_DIR,
        bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
+    properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
     Configuration conf = new Configuration(properties);
-    BootStrapImpl impl = new BootStrapImpl(conf);
+    AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
+    BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);
     impl.init();
     SshHostInfo info = new SshHostInfo();
     info.setSshKey("xyz");
@@ -73,6 +81,8 @@ public class BootStrapTest extends TestCase {
     hosts.add("host1");
     hosts.add("host2");
     info.setHosts(hosts);
+    info.setUser("user");
+    info.setPassword("passwd");
     BSResponse response = impl.runBootStrap(info);
     LOG.info("Response id from bootstrap " + response.getRequestId());
     /* do a query */
@@ -90,6 +100,7 @@ public class BootStrapTest extends TestCase {
     Assert.assertTrue(status.getLog().contains("host1,host2"));
     Assert.assertEquals(BSStat.SUCCESS, status.getStatus());
     Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "sshKey").exists());
+    Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "host_pass").exists());
   }
 
 

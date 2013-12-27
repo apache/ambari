@@ -38,7 +38,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
@@ -53,7 +52,6 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
   protected static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
-  protected static final String CLUSTER_ACTUAL_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "actual_configs");  
 
 
   private static Set<String> pkPropertyIds =
@@ -102,14 +100,21 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final ClusterRequest clusterRequest = getRequest(PredicateHelper.getProperties(predicate));
+    final Set<ClusterRequest> requests = new HashSet<ClusterRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    // TODO : handle multiple requests
     Set<ClusterResponse> responses = getResources(new Command<Set<ClusterResponse>>() {
       @Override
       public Set<ClusterResponse> invoke() throws AmbariException {
-        return getManagementController().getClusters(Collections.singleton(clusterRequest));
+        return getManagementController().getClusters(requests);
       }
     });
 
@@ -123,7 +128,6 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
-      setResourceProperty(resource, CLUSTER_ACTUAL_CONFIGS_PROPERTY_ID, response.getActualConfigs(), requestedIds);
 
       resource.setProperty(CLUSTER_VERSION_PROPERTY_ID,
           response.getDesiredStackVersion());
@@ -142,20 +146,21 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
   public RequestStatus updateResources(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    RequestStatusResponse response = null;
-    Set<Map<String, Object>> propertyMaps = getPropertyMaps(request.getProperties().iterator().next(), predicate);
-    if (propertyMaps.size() > 1) {
-      throw new SystemException("Single update request cannot modify multiple clusters.", null);
+    final Set<ClusterRequest>   requests = new HashSet<ClusterRequest>();
+    RequestStatusResponse       response;
+
+    for (Map<String, Object> requestPropertyMap : request.getProperties()) {
+      Set<Map<String, Object>> propertyMaps = getPropertyMaps(requestPropertyMap, predicate);
+      for (Map<String, Object> propertyMap : propertyMaps) {
+        requests.add(getRequest(propertyMap));
+      }
     }
-    for (Map<String, Object> propertyMap : propertyMaps) {
-      final ClusterRequest clusterRequest = getRequest(propertyMap);
-      response = modifyResources(new Command<RequestStatusResponse>() {
-        @Override
-        public RequestStatusResponse invoke() throws AmbariException {
-          return getManagementController().updateCluster(clusterRequest, request.getRequestInfoProperties());
-        }
-      });
-    }
+    response = modifyResources(new Command<RequestStatusResponse>() {
+      @Override
+      public RequestStatusResponse invoke() throws AmbariException {
+        return getManagementController().updateClusters(requests, request.getRequestInfoProperties());
+      }
+    });
     notifyUpdate(Resource.Type.Cluster, request, predicate);
     return getRequestStatus(response);
   }

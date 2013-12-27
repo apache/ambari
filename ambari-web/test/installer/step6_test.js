@@ -20,135 +20,201 @@ var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step6_controller');
 
-/*
-describe('App.InstallerStep6Controller', function () {
+describe('App.WizardStep6Controller', function () {
 
-  var HOSTS = [ 'host1', 'host2', 'host3', 'host4' ];
-  //App.InstallerStep6Controller.set.rawHosts = HOSTS;
-  var controller = App.InstallerStep6Controller.create();
-  controller.set('showHbase', false);
-  HOSTS.forEach(function (_hostName) {
-    controller.get('hosts').pushObject(Ember.Object.create({
-      hostname: _hostName,
-      isDataNode: true,
-      isTaskTracker: true,
-      isRegionServer: true
-    }));
+  var controller = App.WizardStep6Controller.create();
+
+  controller.set('content', {
+    hosts: {},
+    masterComponentHosts: {},
+    services: [
+      Em.Object.create({
+        serviceName: 'MAPREDUCE',
+        isSelected: true
+      }),
+      Em.Object.create({
+        serviceName: 'YARN',
+        isSelected: true
+      }),
+      Em.Object.create({
+        serviceName: 'HBASE',
+        isSelected: true
+      }),
+      Em.Object.create({
+        serviceName: 'HDFS',
+        isSelected: true
+      })
+    ]
   });
 
+  var HOSTS = [ 'host0', 'host1', 'host2', 'host3' ];
 
-
-describe('#selectAllDataNodes()', function () {
-  controller.get('hosts').setEach('isDataNode', false);
-
-  it('should set isDataNode to true on all hosts', function () {
-    controller.selectAllDataNodes();
-    expect(controller.get('hosts').everyProperty('isDataNode', true)).to.equal(true);
-  })
-})
-
-describe('#selectAllTaskTrackers()', function () {
-  it('should set isTaskTracker to true on all hosts', function () {
-    controller.selectAllTaskTrackers();
-    expect(controller.get('hosts').everyProperty('isTaskTracker', true)).to.equal(true);
-  })
-})
-
-describe('#selectAllRegionServers()', function () {
-  it('should set isRegionServer to true on all hosts', function () {
-    controller.selectAllRegionServers();
-    expect(controller.get('hosts').everyProperty('isRegionServer', true)).to.equal(true);
-  })
-})
-
-describe('#isAllDataNodes()', function () {
-
-  beforeEach(function () {
-    controller.get('hosts').setEach('isDataNode', true);
-  })
-
-  it('should return true if isDataNode is true for all services', function () {
-    expect(controller.get('isAllDataNodes')).to.equal(true);
-  })
-
-  it('should return false if isDataNode is false for one host', function () {
-    controller.get('hosts')[0].set('isDataNode', false);
-    expect(controller.get('isAllDataNodes')).to.equal(false);
-  })
-})
-
-describe('#isAllTaskTrackers()', function () {
-
-  beforeEach(function () {
-    controller.get('hosts').setEach('isTaskTracker', true);
-  })
-
-  it('should return true if isTaskTracker is true for all hosts', function () {
-    expect(controller.get('isAllTaskTrackers')).to.equal(true);
-  })
-
-  it('should return false if isTaskTracker is false for one host', function () {
-    controller.get('hosts')[0].set('isTaskTracker', false);
-    expect(controller.get('isAllTaskTrackers')).to.equal(false);
-  })
-
-})
-
-describe('#isAllRegionServers()', function () {
-
-  beforeEach(function () {
-    controller.get('hosts').setEach('isRegionServer', true);
+  var h = {};
+  var m = [];
+  HOSTS.forEach(function (hostName) {
+    var obj = Em.Object.create({
+      name: hostName,
+      hostName: hostName,
+      bootStatus: 'REGISTERED'
+    });
+    h[hostName] = obj;
+    m.push(obj);
   });
 
-  it('should return true if isRegionServer is true for all hosts', function () {
-    expect(controller.get('isAllRegionServers')).to.equal(true);
-  })
+  controller.set('content.hosts', h);
+  controller.set('content.masterComponentHosts', m);
+  controller.set('isMasters', false);
 
-  it('should return false if isRegionServer is false for one host', function () {
-    controller.get('hosts')[0].set('isRegionServer', false);
-    expect(controller.get('isAllRegionServers')).to.equal(false);
-  })
 
-})
+  describe('#loadStep', function() {
+    controller.loadStep();
+    it('Hosts are loaded', function() {
+      expect(controller.get('hosts').length).to.equal(HOSTS.length);
+    });
 
-describe('#validate()', function () {
-
-  beforeEach(function () {
-    controller.get('hosts').setEach('isDataNode', true);
-    controller.get('hosts').setEach('isTaskTracker', true);
-    controller.get('hosts').setEach('isRegionServer', true);
+    it('Headers are loaded', function() {
+      expect(controller.get('headers').length).not.to.equal(0);
+    });
   });
 
-  it('should return false if isDataNode is false for all hosts', function () {
-    controller.get('hosts').setEach('isDataNode', false);
-    expect(controller.validate()).to.equal(false);
-  })
+  describe('#isAddHostWizard', function() {
+    it('true if content.controllerName is addHostController', function() {
+      controller.set('content.controllerName', 'addHostController');
+      expect(controller.get('isAddHostWizard')).to.equal(true);
+    });
+    it('false if content.controllerName is not addHostController', function() {
+      controller.set('content.controllerName', 'mainController');
+      expect(controller.get('isAddHostWizard')).to.equal(false);
+    });
+  });
 
-  it('should return false if isTaskTracker is false for all hosts', function () {
-    controller.get('hosts').setEach('isTaskTracker', false);
-    expect(controller.validate()).to.equal(false);
-  })
+  describe('#isInstallerWizard', function() {
+    it('true if content.controllerName is addHostController', function() {
+      controller.set('content.controllerName', 'installerController');
+      expect(controller.get('isInstallerWizard')).to.equal(true);
+    });
+    it('false if content.controllerName is not addHostController', function() {
+      controller.set('content.controllerName', 'mainController');
+      expect(controller.get('isInstallerWizard')).to.equal(false);
+    });
+  });
 
-  it('should return false if isRegionServer is false for all hosts', function () {
-    controller.get('hosts').setEach('isRegionServer', false);
-    expect(controller.validate()).to.equal(false);
-  })
+  describe('#isAddServiceWizard', function() {
+    it('true if content.controllerName is addServiceController', function() {
+      controller.set('content.controllerName', 'addServiceController');
+      expect(controller.get('isAddServiceWizard')).to.equal(true);
+    });
+    it('false if content.controllerName is not addServiceController', function() {
+      controller.set('content.controllerName', 'mainController');
+      expect(controller.get('isAddServiceWizard')).to.equal(false);
+    });
+  });
 
-  it('should return true if isDataNode, isTaskTracker, and isRegionServer is true for all hosts', function () {
-    expect(controller.validate()).to.equal(true);
-  })
+  describe('#hasMasterComponents', function() {
+    HOSTS.forEach(function(host) {
+      it('Host ' + host + ' is master', function() {
+        expect(controller.hasMasterComponents(host)).to.equal(true);
+      });
+    });
+    var notMasterHost = 'NotMasterHost';
+    it('Host ' + notMasterHost + ' is not master', function() {
+      expect(controller.hasMasterComponents(notMasterHost)).to.equal(false);
+    });
+  });
 
-  it('should return true if isDataNode, isTaskTracker, and isRegionServer is true for only one host', function () {
-    controller.get('hosts').setEach('isDataNode', false);
-    controller.get('hosts').setEach('isTaskTracker', false);
-    controller.get('hosts').setEach('isRegionServer', false);
-    var host = controller.get('hosts')[0];
-    host.set('isDataNode', true);
-    host.set('isTaskTracker', true);
-    host.set('isRegionServer', true);
-    expect(controller.validate()).to.equal(true);
-  })
+  describe('#setAllNodes', function() {
 
-})
+    var test_config = [
+      {
+        title: 'DataNode',
+        state: false
+      },
+      {
+        title: 'DataNode',
+        state: true
+      },
+      {
+        title: 'TaskTracker',
+        state: false
+      },
+      {
+        title: 'TaskTracker',
+        state: true
+      }
+    ];
 
-})*/
+    test_config.forEach(function(test) {
+      it((test.state?'Select':'Deselect') + ' all ' + test.title, function() {
+        controller.setAllNodes(test.title, test.state);
+        var hosts = controller.get('hosts');
+        hosts.forEach(function(host) {
+          var cb = host.get('checkboxes').filterProperty('isInstalled', false).findProperty('title', test.title);
+          if (cb) {
+            expect(cb.get('checked')).to.equal(test.state);
+          }
+        });
+      });
+    });
+
+
+  });
+
+  describe('#isServiceSelected', function() {
+    controller.get('content.services').forEach(function(service) {
+      it(service.serviceName + ' is selected', function() {
+        expect(controller.isServiceSelected(service.serviceName)).to.equal(true);
+      });
+    });
+    var unselectedService = 'FAKESERVICE';
+    it(unselectedService + ' is not selected', function() {
+      expect(controller.isServiceSelected(unselectedService)).to.equal(false);
+    });
+  });
+
+  describe('#validateEachComponent', function() {
+    it('Nothing checked', function() {
+      controller.get('hosts').forEach(function(host) {
+        host.get('checkboxes').setEach('checked', false);
+      });
+      expect(controller.validateEachComponent('')).to.equal(false);
+    });
+    it('One slave is not selected for no one host', function() {
+      controller.get('hosts').forEach(function(host) {
+        host.get('checkboxes').forEach(function(checkbox, index) {
+          checkbox.set('checked', index === 0);
+        });
+      });
+      expect(controller.validateEachComponent('')).to.equal(false);
+    });
+    it('All checked', function() {
+      controller.get('hosts').forEach(function(host) {
+        host.get('checkboxes').forEach(function(checkbox) {
+          checkbox.set('checked', true);
+        });
+      });
+      expect(controller.validateEachComponent('')).to.equal(true);
+    });
+  });
+
+  describe('#validateEachHost', function() {
+    it('Nothing checked', function() {
+      controller.get('hosts').forEach(function(host) {
+        host.get('checkboxes').setEach('checked', false);
+      });
+      expect(controller.validateEachHost('')).to.equal(false);
+    });
+    it('One host doesn\'t have assigned slaves', function() {
+      controller.get('hosts').forEach(function(host, index) {
+        host.get('checkboxes').setEach('checked', index === 0);
+      });
+      expect(controller.validateEachHost('')).to.equal(false);
+    });
+    it('All checked', function() {
+      controller.get('hosts').forEach(function(host) {
+        host.get('checkboxes').setEach('checked', true);
+      });
+      expect(controller.validateEachHost('')).to.equal(true);
+    });
+  });
+
+});

@@ -31,8 +31,7 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('hosts.host.metrics.cpu'),
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
 
-  sourceUrl: "/hosts/{hostName}?fields=metrics/cpu/cpu_user[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_wio[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_nice[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_aidle[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_system[{fromSeconds},{toSeconds},{stepSeconds}],metrics/cpu/cpu_idle[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/hosts/metrics/cpu.json",
+  ajaxIndex: 'host.metrics.cpu',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

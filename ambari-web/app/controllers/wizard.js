@@ -26,19 +26,36 @@ App.WizardController = Em.Controller.extend({
   init: function () {
     this.set('isStepDisabled', []);
     this.clusters = App.Cluster.find();
-    this.isStepDisabled.pushObject(Ember.Object.create({
+    this.get('isStepDisabled').pushObject(Ember.Object.create({
       step: 1,
       value: false
     }));
     for (var i = 2; i <= this.get('totalSteps'); i++) {
-      this.isStepDisabled.pushObject(Ember.Object.create({
+      this.get('isStepDisabled').pushObject(Ember.Object.create({
         step: i,
         value: true
       }));
     }
-    // window.onbeforeunload = function () {
-    // return "You have not saved your document yet.  If you continue, your work will not be saved."
-    //}
+  },
+
+  dbNamespace: function(){
+    return this.get('name').capitalize().replace('Controller', "");
+  }.property('name'),
+  /**
+   * get property from local storage
+   * @param key
+   * @return {*}
+   */
+  getDBProperty: function(key){
+    return App.db.get(this.get('dbNamespace'), key);
+  },
+  /**
+   * set property to local storage
+   * @param key
+   * @param value
+   */
+  setDBProperty: function(key, value){
+    App.db.set(this.get('dbNamespace'), key, value);
   },
 
   setStepsEnable: function () {
@@ -82,6 +99,10 @@ App.WizardController = Em.Controller.extend({
 
   clusters: null,
 
+  isStep0: function () {
+    return this.get('currentStep') == 0;
+  }.property('currentStep'),
+
   isStep1: function () {
     return this.get('currentStep') == 1;
   }.property('currentStep'),
@@ -124,7 +145,7 @@ App.WizardController = Em.Controller.extend({
 
   gotoStep: function (step) {
     if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
-      return;
+      return false;
     }
     // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
     // to Step 9
@@ -148,6 +169,11 @@ App.WizardController = Em.Controller.extend({
     } else {
       App.router.send('gotoStep' + step);
     }
+    return true;
+  },
+
+  gotoStep0: function () {
+    this.gotoStep(0);
   },
 
   gotoStep1: function () {
@@ -195,7 +221,7 @@ App.WizardController = Em.Controller.extend({
    */
   setInfoForStep9: function () {
 
-    var hostInfo = App.db.getHosts();
+    var hostInfo = this.getDBProperty('hosts');
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
       hostInfo[index].message = 'Waiting';
@@ -203,7 +229,7 @@ App.WizardController = Em.Controller.extend({
       hostInfo[index].tasks = [];
       hostInfo[index].progress = '0';
     }
-    App.db.setHosts(hostInfo);
+    this.setDBProperty('hosts', hostInfo);
   },
 
   /**
@@ -212,15 +238,15 @@ App.WizardController = Em.Controller.extend({
   clearInstallOptions: function () {
     var installOptions = jQuery.extend({}, this.get('installOptionsTemplate'));
     this.set('content.installOptions', installOptions);
-    this.save('installOptions');
+    this.setDBProperty('installOptions', installOptions);
     this.set('content.hosts', []);
-    this.save('hosts');
+    this.setDBProperty('hosts', []);
   },
 
-  toObject: function(object){
+  toObject: function (object) {
     var result = {};
-    for(var i in object){
-      if(object.hasOwnProperty(i)){
+    for (var i in object) {
+      if (object.hasOwnProperty(i)) {
         result[i] = object[i];
       }
     }
@@ -235,11 +261,11 @@ App.WizardController = Em.Controller.extend({
     var oldStatus = this.toObject(this.get('content.cluster'));
     clusterStatus = jQuery.extend(oldStatus, clusterStatus);
     if (clusterStatus.requestId &&
-      clusterStatus.oldRequestsId.indexOf(clusterStatus.requestId) === -1){
+      clusterStatus.oldRequestsId.indexOf(clusterStatus.requestId) === -1) {
       clusterStatus.oldRequestsId.push(clusterStatus.requestId);
     }
     this.set('content.cluster', clusterStatus);
-    this.save('cluster');
+    this.setDBProperty('cluster', clusterStatus);
   },
 
   /**
@@ -251,107 +277,90 @@ App.WizardController = Em.Controller.extend({
     // clear requests since we are installing services
     // and we don't want to get tasks for previous install attempts
     this.set('content.cluster.oldRequestsId', []);
-    this.set('content.cluster.requestId', null);
-
-    var self = this;
     var clusterName = this.get('content.cluster.name');
-    var url;
-    var method = (App.testMode) ? 'GET' : 'PUT';
     var data;
-
-    switch (this.get('content.controllerName')) {
-      case 'addHostController':
-        if (isRetry) {
-          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INSTALLED';
-        } else {
-          url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
-        }
-        data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
-        break;
-      case 'installerController':
-      default:
-        if (isRetry) {
-          url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state!=INSTALLED';
-          data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
-        } else {
-          url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INIT';
-          data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-        }
-        break;
+    var name;
+    if (isRetry) {
+      name = 'wizard.install_services.installer_controller.is_retry';
+      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installComponents') + '"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
+    }
+    else {
+      name = 'wizard.install_services.installer_controller.not_is_retry';
+      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
     }
 
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        var installStartTime = new Date().getTime();
-        console.log("TRACE: In success function for the installService call");
-        console.log("TRACE: value of the url is: " + url);
-        if (jsonData) {
-          var requestId = jsonData.Requests.id;
-          console.log('requestId is: ' + requestId);
-          var clusterStatus = {
-            status: 'PENDING',
-            requestId: requestId,
-            isInstallError: false,
-            isCompleted: false,
-            installStartTime: installStartTime
-          };
-          self.saveClusterStatus(clusterStatus);
-        } else {
-          console.log('ERROR: Error occurred in parsing JSON data');
-        }
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: clusterName
       },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the installService call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-        console.log('Error message is: ' + request.responseText);
-        var clusterStatus = {
-          status: 'PENDING',
-          isInstallError: false,
-          isCompleted: false
-        };
-
-        self.saveClusterStatus(clusterStatus);
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
     });
   },
+
+  installServicesSuccessCallback: function (jsonData) {
+    var installStartTime = new Date().getTime();
+    console.log("TRACE: In success function for the installService call");
+    if (jsonData) {
+      var requestId = jsonData.Requests.id;
+      console.log('requestId is: ' + requestId);
+      var clusterStatus = {
+        status: 'PENDING',
+        requestId: requestId,
+        isInstallError: false,
+        isCompleted: false,
+        installStartTime: installStartTime
+      };
+      this.saveClusterStatus(clusterStatus);
+    } else {
+      console.log('ERROR: Error occurred in parsing JSON data');
+    }
+  },
+
+  installServicesErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: In error function for the installService call");
+    console.log("TRACE: error code status is: " + request.status);
+    console.log('Error message is: ' + request.responseText);
+    var clusterStatus = {
+      status: 'PENDING',
+      requestId: this.get('content.cluster.requestId'),
+      isInstallError: true,
+      isCompleted: false
+    };
+    this.saveClusterStatus(clusterStatus);
+    App.showAlertPopup(Em.I18n.t('common.errorPopup.header'), request.responseText);
+  },
+
+  bootstrapRequestId: null,
 
   /*
    Bootstrap selected hosts.
    */
   launchBootstrap: function (bootStrapData) {
-    var self = this;
-    var requestId = null;
-    var method = App.testMode ? 'GET' : 'POST';
-    var url = App.testMode ? '/data/wizard/bootstrap/bootstrap.json' : App.apiPrefix + '/bootstrap';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: bootStrapData,
-      timeout: App.timeout,
-      contentType: 'application/json',
-      success: function (data) {
-        console.log("TRACE: POST bootstrap succeeded");
-        requestId = data.requestId;
+    App.ajax.send({
+      name: 'wizard.launch_bootstrap',
+      sender: this,
+      data: {
+        bootStrapData: bootStrapData
       },
-      error: function () {
-        console.log("ERROR: POST bootstrap failed");
-        alert('Bootstrap call failed.  Please try again.');
-      },
-      statusCode: require('data/statusCodes')
+      success: 'launchBootstrapSuccessCallback',
+      error: 'launchBootstrapErrorCallback'
     });
-    return requestId;
+
+    return this.get('bootstrapRequestId');
+  },
+
+  launchBootstrapSuccessCallback: function (data) {
+    console.log("TRACE: POST bootstrap succeeded");
+    this.set('bootstrapRequestId', data.requestId);
+  },
+
+  launchBootstrapErrorCallback: function () {
+    console.log("ERROR: POST bootstrap failed");
+    alert('Bootstrap call failed. Please try again.');
   },
 
   /**
@@ -365,19 +374,24 @@ App.WizardController = Em.Controller.extend({
     if (this.get('content.' + name) && !reload) {
       return false;
     }
-    var result = App.db['get' + name.capitalize()]();
-    if (!result){
-      result = this['get' + name.capitalize()]();
-      App.db['set' + name.capitalize()](result);
-      console.log(this.get('name') + ": created " + name, result);
+    var result = this.getDBProperty(name);
+    if (!result) {
+      if (this['get' + name.capitalize()]) {
+        result = this['get' + name.capitalize()]();
+        this.setDBProperty(name, result);
+        console.log(this.get('name') + ": created " + name, result);
+      }
+      else {
+        console.debug('get' + name.capitalize(), ' not defined in the ' + this.get('name'));
+      }
     }
     this.set('content.' + name, result);
     console.log(this.get('name') + ": loaded " + name, result);
   },
 
-  save: function(name){
+  save: function (name) {
     var value = this.toObject(this.get('content.' + name));
-    App.db['set' + name.capitalize()](value);
+    this.setDBProperty(name, value);
     console.log(this.get('name') + ": saved " + name, value);
   },
 
@@ -389,7 +403,7 @@ App.WizardController = Em.Controller.extend({
     this.clearStorageData();
   },
 
-  clusterStatusTemplate : {
+  clusterStatusTemplate: {
     name: "",
     status: "PENDING",
     isCompleted: false,
@@ -401,122 +415,124 @@ App.WizardController = Em.Controller.extend({
     oldRequestsId: []
   },
 
-  clearStorageData: function(){
-    App.db.setService(undefined); //not to use this data at AddService page
-    App.db.setHosts(undefined);
-    App.db.setMasterComponentHosts(undefined);
-    App.db.setSlaveComponentHosts(undefined);
-    App.db.setCluster(undefined);
-    App.db.setAllHostNames(undefined);
-    App.db.setSlaveProperties(undefined);
-    App.db.setInstallOptions(undefined);
-    App.db.setAllHostNamesPattern(undefined);
+  clearStorageData: function () {
+    this.setDBProperty('service',undefined); //not to use this data at AddService page
+    this.setDBProperty('hosts', undefined);
+    this.setDBProperty('masterComponentHosts', undefined);
+    this.setDBProperty('slaveComponentHosts', undefined);
+    this.setDBProperty('cluster', undefined);
+    this.setDBProperty('allHostNames', undefined);
+    this.setDBProperty('installOptions', undefined);
+    this.setDBProperty('allHostNamesPattern', undefined);
   },
 
   installOptionsTemplate: {
     hostNames: "", //string
     manualInstall: false, //true, false
     useSsh: true, //bool
-    isJavaHome : false, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
-    bootRequestId: null //string
+    bootRequestId: null, //string
+    sshUser: "root" //string
   },
+
+  loadedServiceComponents: null,
+
   /**
    * Generate serviceComponents as pr the stack definition  and save it to localdata
    * called form stepController step4WizardController
    */
-  loadServiceComponents: function (displayOrderConfig, apiUrl) {
-    var result = null;
-    var method = 'GET';
-    var testUrl = '/data/wizard/stack/hdp/version/1.3.0.json';
-    var url = (App.testMode) ? testUrl : App.apiPrefix + apiUrl + '?fields=stackServices/StackServices';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
-        console.log("TRACE: jsonData.services : " + jsonData.services);
-
-        // Creating Model
-        var Service = Ember.Object.extend({
-          serviceName: null,
-          displayName: null,
-          isDisabled: true,
-          isSelected: true,
-          isInstalled: false,
-          description: null,
-          version: null
-        });
-
-        var data = [];
-
-        // loop through all the service components
-        for (var i = 0; i < displayOrderConfig.length; i++) {
-          var entry = jsonData.stackServices.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
-          if (entry) {
-            entry = entry.StackServices;
-            var myService = Service.create({
-              serviceName: entry.service_name,
-              displayName: displayOrderConfig[i].displayName,
-              isDisabled: i === 0,
-              isSelected: true,
-              isInstalled: false,
-              isHidden: displayOrderConfig[i].isHidden,
-              description: entry.comments,
-              version: entry.service_version
-            });
-
-            data.push(myService);
-          }
-          else {
-            console.warn('Service not found - ', displayOrderConfig[i].serviceName);
-          }
-        }
-
-        result = data;
-        console.log('TRACE: service components: ' + JSON.stringify(data));
-
+  loadServiceComponents: function () {
+    App.ajax.send({
+      name: 'wizard.service_components',
+      sender: this,
+      data: {
+        stackUrl: App.get('stack2VersionURL'),
+        stackVersion: App.get('currentStackVersionNumber')
       },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
-        console.log("TRACE: STep5 -> value of the url is: " + url);
-        console.log("TRACE: STep5 -> error code status is: " + request.status);
-        console.log('Step8: Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'loadServiceComponentsSuccessCallback',
+      error: 'loadServiceComponentsErrorCallback'
     });
-    return result;
+    return this.get('loadedServiceComponents');
   },
 
-  loadServicesFromServer: function() {
-    var services = App.db.getService();
+  loadServiceComponentsSuccessCallback: function (jsonData) {
+    var displayOrderConfig = require('data/services');
+    console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
+    console.log("TRACE: jsonData.services : " + jsonData.items);
+
+    // Creating Model
+    var Service = Ember.Object.extend({
+      serviceName: null,
+      displayName: null,
+      isDisabled: true,
+      isSelected: true,
+      isInstalled: false,
+      description: null,
+      version: null
+    });
+
+    var data = [];
+
+    // loop through all the service components
+    for (var i = 0; i < displayOrderConfig.length; i++) {
+      var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
+      if (entry) {
+        var myService = Service.create({
+          serviceName: entry.StackServices.service_name,
+          displayName: displayOrderConfig[i].displayName,
+          isDisabled: displayOrderConfig[i].isDisabled,
+          isSelected: displayOrderConfig[i].isSelected,
+          canBeSelected: displayOrderConfig[i].canBeSelected,
+          isInstalled: false,
+          isHidden: displayOrderConfig[i].isHidden,
+          description: entry.StackServices.comments,
+          version: entry.StackServices.service_version
+        });
+
+        data.push(myService);
+      }
+      else {
+        console.warn('Service not found - ', displayOrderConfig[i].serviceName);
+      }
+    }
+
+    this.set('loadedServiceComponents', data);
+    console.log('TRACE: service components: ' + JSON.stringify(data));
+
+  },
+
+  loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
+    console.log("TRACE: STep5 -> error code status is: " + request.status);
+    console.log('Step8: Error message is: ' + request.responseText);
+  },
+
+  loadServicesFromServer: function () {
+    var services = this.getDBProperty('service');
     if (services) {
       return;
     }
-    var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stack2VersionURL');
-    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
+    var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);
-    App.db.setService(apiService);
+    this.setDBProperty('service',apiService);
+  },
+  /**
+   * Load config groups from local DB
+   */
+  loadServiceConfigGroups: function () {
+    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups') || [];
+    this.set('content.configGroups', serviceConfigGroups);
+    console.log("InstallerController.configGroups: loaded config ", serviceConfigGroups);
   },
 
   registerErrPopup: function (header, message) {
     App.ModalPopup.show({
       header: header,
       secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
+        template: Ember.Handlebars.compile('<p>{{view.message}}</p>'),
         message: message
       })
     });
@@ -528,19 +544,23 @@ App.WizardController = Em.Controller.extend({
    */
   saveConfirmedHosts: function (stepController) {
     var hostInfo = {};
-
     stepController.get('content.hosts').forEach(function (_host) {
-      hostInfo[_host.name] = {
-        name: _host.name,
-        cpu: _host.cpu,
-        memory: _host.memory,
-        disk_info: _host.disk_info,
-        bootStatus: _host.bootStatus,
-        isInstalled: false
-      };
+      if (_host.bootStatus == 'REGISTERED') {
+        hostInfo[_host.name] = {
+          name: _host.name,
+          cpu: _host.cpu,
+          memory: _host.memory,
+          disk_info: _host.disk_info,
+          os_type: _host.os_type,
+          os_arch: _host.os_arch,
+          ip: _host.ip,
+          bootStatus: _host.bootStatus,
+          isInstalled: false
+        };
+      }
     });
     console.log('wizardController:saveConfirmedHosts: save hosts ', hostInfo);
-    App.db.setHosts(hostInfo);
+    this.setDBProperty('hosts', hostInfo);
     this.set('content.hosts', hostInfo);
   },
 
@@ -550,7 +570,7 @@ App.WizardController = Em.Controller.extend({
    */
   saveInstalledHosts: function (stepController) {
     var hosts = stepController.get('hosts');
-    var hostInfo = App.db.getHosts();
+    var hostInfo = this.getDBProperty('hosts');
 
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
@@ -562,7 +582,7 @@ App.WizardController = Em.Controller.extend({
       }
     }
     this.set('content.hosts', hostInfo);
-    this.save('hosts');
+    this.setDBProperty('hosts', hostInfo);
     console.log('wizardController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
@@ -576,14 +596,14 @@ App.WizardController = Em.Controller.extend({
     var headers = stepController.get('headers');
 
     var formattedHosts = Ember.Object.create();
-    headers.forEach(function(header) {
+    headers.forEach(function (header) {
       formattedHosts.set(header.get('name'), []);
     });
 
     hosts.forEach(function (host) {
 
       var checkboxes = host.get('checkboxes');
-      headers.forEach(function(header) {
+      headers.forEach(function (header) {
         var cb = checkboxes.findProperty('title', header.get('label'));
         if (cb.get('checked')) {
           formattedHosts.get(header.get('name')).push({
@@ -597,7 +617,7 @@ App.WizardController = Em.Controller.extend({
 
     var slaveComponentHosts = [];
 
-    headers.forEach(function(header) {
+    headers.forEach(function (header) {
       slaveComponentHosts.push({
         componentName: header.get('name'),
         displayName: header.get('label').replace(/\s/g, ''),
@@ -605,7 +625,7 @@ App.WizardController = Em.Controller.extend({
       });
     });
 
-    App.db.setSlaveComponentHosts(slaveComponentHosts);
+    this.setDBProperty('slaveComponentHosts', slaveComponentHosts);
     console.log('wizardController.slaveComponentHosts: saved hosts', slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
   },
@@ -614,19 +634,41 @@ App.WizardController = Em.Controller.extend({
    * Return true if cluster data is loaded and false otherwise.
    * This is used for all wizard controllers except for installer wizard.
    */
-  dataLoading: function(){
+  dataLoading: function () {
     var dfd = $.Deferred();
     this.connectOutlet('loading');
-    if (App.router.get('clusterController.isLoaded')){
+    if (App.router.get('clusterController.isLoaded')) {
       dfd.resolve();
-    } else{
-      var interval = setInterval(function(){
-        if (App.router.get('clusterController.isLoaded')){
+    } else {
+      var interval = setInterval(function () {
+        if (App.router.get('clusterController.isLoaded')) {
           dfd.resolve();
           clearInterval(interval);
         }
-      },50);
+      }, 50);
     }
+    return dfd.promise();
+  },
+
+  /**
+   * Return true if user data is loaded via App.MainServiceInfoConfigsController
+   * This function is used in reassign master wizard right now.
+   */
+
+  usersLoading: function () {
+    var self = this;
+    var dfd = $.Deferred();
+    var miscController = App.MainAdminMiscController.create({content: self.get('content')});
+    miscController.loadUsers();
+    var interval = setInterval(function () {
+      if (miscController.get('dataIsLoaded')) {
+        if (self.get("content.hdfsUser")) {
+          self.set('content.hdfsUser', miscController.get('content.hdfsUser'));
+        }
+        dfd.resolve();
+        clearInterval(interval);
+      }
+    }, 10);
     return dfd.promise();
   },
 
@@ -634,7 +676,7 @@ App.WizardController = Em.Controller.extend({
    * Save cluster status before going to deploy step
    * @param name cluster state. Unique for every wizard
    */
-  saveClusterState: function(name){
+  saveClusterState: function (name) {
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: name,
@@ -647,21 +689,21 @@ App.WizardController = Em.Controller.extend({
    * load advanced configs from server
    */
   loadAdvancedConfigs: function () {
-    var configs = (App.db.getAdvancedServiceConfig()) ? App.db.getAdvancedServiceConfig() : [];
+    var configs = (this.getDBProperty('advancedServiceConfig')) ? this.getDBProperty('advancedServiceConfig') : [];
     this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
       var serviceComponents = App.config.loadAdvancedConfig(_serviceName);
-      if(serviceComponents){
+      if (serviceComponents) {
         configs = configs.concat(serviceComponents);
       }
     }, this);
     this.set('content.advancedServiceConfig', configs);
-    App.db.setAdvancedServiceConfig(configs);
+    this.setDBProperty('advancedServiceConfig', configs);
   },
   /**
    * Load serviceConfigProperties to model
    */
   loadServiceConfigProperties: function () {
-    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
   },
@@ -672,39 +714,58 @@ App.WizardController = Em.Controller.extend({
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
+
+      if (_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi) {
+        _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
+      }
+
       _content.get('configs').forEach(function (_configProperties) {
-        var displayType = _configProperties.get('displayType');
-        if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
-          _configProperties.set('value', value);
-        }
-        var overrides = _configProperties.get('overrides');
-        var overridesArray = [];
-        if(overrides!=null){
-          overrides.forEach(function(override){
-            var overrideEntry = {
-              value: override.get('value'),
-              hosts: []
-            };
-            override.get('selectedHostOptions').forEach(function(host){
-              overrideEntry.hosts.push(host);
-            });
-            overridesArray.push(overrideEntry);
-          });
-        }
         var configProperty = {
           id: _configProperties.get('id'),
           name: _configProperties.get('name'),
           value: _configProperties.get('value'),
           defaultValue: _configProperties.get('defaultValue'),
+          description: _configProperties.get('description'),
           serviceName: _configProperties.get('serviceName'),
-          domain:  _configProperties.get('domain'),
-          filename: _configProperties.get('filename')
+          domain: _configProperties.get('domain'),
+          filename: _configProperties.get('filename'),
+          displayType: _configProperties.get('displayType'),
+          isRequiredByAgent: _configProperties.get('isRequiredByAgent')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
     }, this);
-    App.db.setServiceConfigProperties(serviceConfigProperties);
+    this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+  },
+  /**
+   * save Config groups
+   * @param stepController
+   */
+  saveServiceConfigGroups: function (stepController) {
+    var serviceConfigGroups = [];
+    stepController.get('stepConfigs').forEach(function (service) {
+      service.get('configGroups').forEach(function (configGroup) {
+        var properties = [];
+        configGroup.get('properties').forEach(function (property) {
+          properties.push({
+            name: property.get('name'),
+            value: property.get('value'),
+            filename: property.get('filename')
+          })
+        });
+        //configGroup copied into plain JS object to avoid Converting circular structure to JSON
+        serviceConfigGroups.push({
+          name: configGroup.get('name'),
+          description: configGroup.get('description'),
+          hosts: configGroup.get('hosts'),
+          properties: properties,
+          isDefault: configGroup.get('isDefault'),
+          service: {id: configGroup.get('service.id')}
+        });
+      }, this)
+    }, this);
+    this.setDBProperty('serviceConfigGroups', serviceConfigGroups);
+    this.set('content.serviceConfigProperties', serviceConfigGroups);
   }
-})
+});

@@ -18,32 +18,62 @@
 
 <div class="admin-cluster">
     <div class="header">
-        <strong>{{t admin.cluster.stackVersion}}: {{App.currentStackVersion}}
-            (<a href="true" {{bindAttr class="view.isUpgradeAvailable::inactive"}}{{action "upgradeStack"}}>
-            {{#if view.isUpgradeAvailable}}{{t admin.cluster.upgradeAvailable}}: {{upgradeVersion}}
-            {{else}} {{t admin.cluster.upgradeUnavailable}}
+      <strong>{{t admin.cluster.stackVersion}}: {{App.currentStackVersion}}
+        {{#if App.supports.stackUpgrade}}
+          (<a href="#" {{bindAttr class="view.isUpgradeAvailable::inactive"}}{{action "upgradeStack"}}>
+            {{#if view.isUpgradeAvailable}}
+              {{t admin.cluster.upgradeAvailable}}: {{upgradeVersion}}
+            {{else}}
+              {{t admin.cluster.upgradeUnavailable}}
             {{/if}}
-            </a>)
-        </strong>
+          </a>)
+        {{/if}}
+      </strong>
     </div>
     <table class="table table-bordered table-striped">
-        <thead>
-        <tr>
-            <th>{{t common.service}}</th>
-            <th>{{t common.version}}</th>
-            <th>{{t common.description}}</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#each service in services}}
-        {{#unless service.isHidden}}
-        <tr>
-            <td>{{service.displayName}}</td>
-            <td>{{service.version}}</td>
-            <td>{{service.description}}</td>
-        </tr>
-        {{/unless}}
+      <thead>
+      <tr>
+        <th>{{t common.service}}</th>
+        <th>{{t common.version}}</th>
+        <th>{{t common.description}}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each service in services}}
+      {{#unless service.isHidden}}
+      <tr>
+        <td>{{service.displayName}}</td>
+        <td>{{service.version}}</td>
+        <td>{{{service.description}}}</td>
+      </tr>
+      {{/unless}}
+      {{/each}}
+      </tbody>
+    </table>
+
+    <div class="header">
+      <strong>{{t admin.cluster.repositories.repositories}}</strong>
+    </div>
+    <ul class="nav nav-tabs">
+      <li class="active">
+        <a href="javascript:void(null);">{{repositories.stackVersion}}</a>
+      </li>
+    </ul>
+
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+        <th>{{t admin.cluster.repositories.os}}</th>
+        <th>{{t admin.cluster.repositories.baseUrl}}</th>
+      </tr>
+      </thead>
+      <tbody>
+        {{#each repo in repositories}}
+          <tr>
+            <td>{{repo.osType}}</td>
+            <td>{{repo.baseUrl}}</td>
+          </tr>
         {{/each}}
-        </tbody>
+      </tbody>
     </table>
 </div>

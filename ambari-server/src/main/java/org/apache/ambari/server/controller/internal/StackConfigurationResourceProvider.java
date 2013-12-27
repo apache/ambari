@@ -37,32 +37,32 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackConfigurationResourceProvider extends
     ReadOnlyResourceProvider {
 
-  private static final String STACK_NAME_PROPERTY_ID = PropertyHelper
+  public static final String STACK_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "stack_name");
 
-  private static final String STACK_VERSION_PROPERTY_ID = PropertyHelper
+  public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "stack_version");
 
-  private static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
+  public static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "service_name");
 
-  private static final String PROPERTY_NAME_PROPERTY_ID = PropertyHelper
+  public static final String PROPERTY_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_name");
 
-  private static final String PROPERTY_VALUE_PROPERTY_ID = PropertyHelper
+  public static final String PROPERTY_VALUE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_value");
 
-  private static final String PROPERTY_DESCRIPTION_PROPERTY_ID = PropertyHelper
+  public static final String PROPERTY_DESCRIPTION_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_description");
 
-  private static final String PROPERTY_FILE_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackConfigurations", "filename");
+  public static final String PROPERTY_TYPE_PROPERTY_ID = PropertyHelper
+      .getPropertyId("StackConfigurations", "type");
+
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -79,15 +79,23 @@ public class StackConfigurationResourceProvider extends
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    final StackConfigurationRequest stackConfigurationRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+
+    final Set<StackConfigurationRequest> requests = new HashSet<StackConfigurationRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<StackConfigurationResponse> responses = getResources(new Command<Set<StackConfigurationResponse>>() {
       @Override
       public Set<StackConfigurationResponse> invoke() throws AmbariException {
-        return getManagementController().getStackConfigurations(
-            Collections.singleton(stackConfigurationRequest));
+        return getManagementController().getStackConfigurations(requests);
       }
     });
 
@@ -97,13 +105,13 @@ public class StackConfigurationResourceProvider extends
       Resource resource = new ResourceImpl(Resource.Type.StackConfiguration);
 
       setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-          stackConfigurationRequest.getStackName(), requestedIds);
+          response.getStackName(), requestedIds);
 
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
-          stackConfigurationRequest.getStackVersion(), requestedIds);
+          response.getStackVersion(), requestedIds);
 
       setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
-          stackConfigurationRequest.getServiceName(), requestedIds);
+          response.getServiceName(), requestedIds);
 
       setResourceProperty(resource, PROPERTY_NAME_PROPERTY_ID,
           response.getPropertyName(), requestedIds);
@@ -113,9 +121,9 @@ public class StackConfigurationResourceProvider extends
 
       setResourceProperty(resource, PROPERTY_DESCRIPTION_PROPERTY_ID,
           response.getPropertyDescription(), requestedIds);
-
-      setResourceProperty(resource, PROPERTY_FILE_NAME_PROPERTY_ID,
-          response.getFileName(), requestedIds);
+      
+      setResourceProperty(resource, PROPERTY_TYPE_PROPERTY_ID,
+          response.getType(), requestedIds);
 
       resources.add(resource);
     }

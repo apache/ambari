@@ -30,8 +30,7 @@ App.ChartServiceMetricsHBASE_RegionServerRegions = App.ChartLinearTimeView.exten
   id: "service-metrics-hbase-regionserver-regions",
   title: Em.I18n.t('services.service.info.metrics.hbase.regionServerRegions'),
 
-  sourceUrl: "/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hbase/regionserver_regions.json",
+  ajaxIndex: 'service.metrics.hbase.regionserver_regions',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

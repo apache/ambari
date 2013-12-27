@@ -38,6 +38,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.agent.RegistrationStatus;
 
 /**
  * Agent Resource represents Ambari agent controller.
@@ -75,11 +76,21 @@ public class AgentResource {
   @Produces({MediaType.APPLICATION_JSON})
   public RegistrationResponse register(Register message,
       @Context HttpServletRequest req)
-      throws WebApplicationException, AmbariException, InvalidStateTransitionException {
+      throws WebApplicationException, InvalidStateTransitionException {
     /* Call into the heartbeat handler */
 
-    RegistrationResponse response = hh.handleRegistration(message);
-    LOG.debug("Sending registration responce " + hh);
+    RegistrationResponse response = null;
+    try {
+      response = hh.handleRegistration(message);
+      LOG.debug("Sending registration response " + response);
+    } catch (AmbariException ex) {
+      response = new RegistrationResponse();
+      response.setResponseId(-1);
+      response.setResponseStatus(RegistrationStatus.FAILED);
+      response.setExitstatus(1);
+      response.setLog(ex.getMessage());
+      return response;
+    }
     return response;
   }
 
@@ -106,9 +117,12 @@ public class AgentResource {
     HeartBeatResponse heartBeatResponse;
     try {
       heartBeatResponse = hh.handleHeartBeat(message);
-      LOG.debug("Sending heartbeat responce " + hh);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Sending heartbeat response with response id " + heartBeatResponse.getResponseId());
+        LOG.debug("Response details " + heartBeatResponse);
+      }
     } catch (Exception e) {
-      LOG.info("Error in HeartBeat", e);
+      LOG.warn("Error in HeartBeat", e);
       throw new WebApplicationException(500);
     }
     return heartBeatResponse;

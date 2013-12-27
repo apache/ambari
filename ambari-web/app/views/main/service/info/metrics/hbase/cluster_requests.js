@@ -29,8 +29,8 @@ var App = require('app');
 App.ChartServiceMetricsHBASE_ClusterRequests = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-cluster-requests",
   title: Em.I18n.t('services.service.info.metrics.hbase.clusterRequests'),
-  sourceUrl: "/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hbase/cluster_requests.json",
+
+  ajaxIndex: 'service.metrics.hbase.cluster_requests',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

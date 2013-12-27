@@ -24,7 +24,7 @@ class hdp-hadoop::client(
 {
   $hdp::params::service_exists['hdp-hadoop::client'] = true
 
-  Hdp-hadoop::Common<||>{service_states +> $service_state}
+  Hdp-hadoop::Common<||>{service_state => $service_state}
 
   if ($hdp::params::use_32_bits_on_slaves == true) {
     Hdp-hadoop::Package<||>{include_32_bit => true}

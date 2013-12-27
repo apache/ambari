@@ -18,55 +18,120 @@
 
 package org.apache.ambari.server;
 
-//This enumerates all the roles that the server can handle.
-//Each component or a job maps to a particular role.
-public enum Role {
-  ZOOKEEPER_SERVER,
-  ZOOKEEPER_CLIENT,
-  NAMENODE,
-  NAMENODE_SERVICE_CHECK,
-  DATANODE,
-  HDFS_SERVICE_CHECK,
-  SECONDARY_NAMENODE,
-  HDFS_CLIENT,
-  HBASE_MASTER,
-  HBASE_REGIONSERVER,
-  HBASE_CLIENT,
-  JOBTRACKER,
-  TASKTRACKER,
-  MAPREDUCE_CLIENT,
-  JAVA_JCE,
-  HADOOP_CLIENT,
-  JOBTRACKER_SERVICE_CHECK,
-  MAPREDUCE_SERVICE_CHECK,
-  ZOOKEEPER_SERVICE_CHECK,
-  ZOOKEEPER_QUORUM_SERVICE_CHECK,
-  HBASE_SERVICE_CHECK,
-  MYSQL_SERVER,
-  HIVE_SERVER,
-  HIVE_METASTORE,
-  HIVE_CLIENT,
-  HIVE_SERVICE_CHECK,
-  HCAT,
-  HCAT_SERVICE_CHECK,
-  OOZIE_CLIENT,
-  OOZIE_SERVER,
-  OOZIE_SERVICE_CHECK,
-  PIG,
-  PIG_SERVICE_CHECK,
-  SQOOP,
-  SQOOP_SERVICE_CHECK,
-  WEBHCAT_SERVER,
-  WEBHCAT_SERVICE_CHECK,
-  DASHBOARD,
-  DASHBOARD_SERVICE_CHECK,
-  NAGIOS_SERVER,
-  GANGLIA_SERVER,
-  GANGLIA_MONITOR,
-  GMOND_SERVICE_CHECK,
-  GMETAD_SERVICE_CHECK,
-  MONITOR_WEBSERVER,
-  DECOMMISSION_DATANODE,
-  HUE_SERVER,
-  AMBARI_SERVER_ACTION
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Role defines the components that are available to Ambari.  It has a few
+ * similar mechanisms to an enum.
+ */
+public class Role {
+  
+  private static final Map<String, Role> roles = new ConcurrentHashMap<String, Role>();
+  
+  /**
+   * @param name the role name
+   * @return a Role instance, never <code>null</code>
+   */
+  public static Role valueOf(String name) {
+    if (roles.containsKey(name))
+      return roles.get(name);
+
+    Role role = new Role(name);
+    roles.put(name, role);
+    return role;    
+  }
+  
+  /**
+   * @return a collection of all defined Role instances
+   */
+  public static Collection<Role> values() {
+    return Collections.unmodifiableCollection(roles.values());
+  }  
+  
+  public static final Role AMBARI_SERVER_ACTION = valueOf("AMBARI_SERVER_ACTION"); 
+  public static final Role DATANODE = valueOf("DATANODE");
+  public static final Role DECOMMISSION_DATANODE = valueOf("DECOMMISSION_DATANODE");
+  public static final Role FLUME_SERVER = valueOf("FLUME_SERVER");
+  public static final Role GANGLIA_MONITOR = valueOf("GANGLIA_MONITOR");
+  public static final Role GANGLIA_SERVER = valueOf("GANGLIA_SERVER");
+  public static final Role HBASE_CLIENT = valueOf("HBASE_CLIENT");
+  public static final Role HBASE_MASTER = valueOf("HBASE_MASTER");
+  public static final Role HBASE_REGIONSERVER = valueOf("HBASE_REGIONSERVER");
+  public static final Role HBASE_SERVICE_CHECK = valueOf("HBASE_SERVICE_CHECK");
+  public static final Role HCAT = valueOf("HCAT");
+  public static final Role HCAT_SERVICE_CHECK = valueOf("HCAT_SERVICE_CHECK");
+  public static final Role GLUSTERFS_CLIENT = valueOf("GLUSTERFS_CLIENT");
+  public static final Role GLUSTERFS_SERVICE_CHECK = valueOf("GLUSTERFS_SERVICE_CHECK");
+  public static final Role HDFS_CLIENT = valueOf("HDFS_CLIENT");
+  public static final Role HDFS_SERVICE_CHECK = valueOf("HDFS_SERVICE_CHECK");
+  public static final Role HISTORYSERVER = valueOf("HISTORYSERVER");
+  public static final Role HIVE_CLIENT = valueOf("HIVE_CLIENT");
+  public static final Role HIVE_METASTORE = valueOf("HIVE_METASTORE");
+  public static final Role HIVE_SERVER = valueOf("HIVE_SERVER");
+  public static final Role HIVE_SERVICE_CHECK = valueOf("HIVE_SERVICE_CHECK");
+  public static final Role JOBTRACKER = valueOf("JOBTRACKER");
+  public static final Role NODEMANAGER = valueOf("NODEMANAGER");
+  public static final Role OOZIE_CLIENT = valueOf("OOZIE_CLIENT");
+  public static final Role OOZIE_SERVER = valueOf("OOZIE_SERVER");
+  public static final Role PEERSTATUS = valueOf("PEERSTATUS");
+  public static final Role PIG = valueOf("PIG");
+  public static final Role PIG_SERVICE_CHECK = valueOf("PIG_SERVICE_CHECK");
+  public static final Role RESOURCEMANAGER = valueOf("RESOURCEMANAGER");
+  public static final Role SECONDARY_NAMENODE = valueOf("SECONDARY_NAMENODE");
+  public static final Role SQOOP = valueOf("SQOOP");
+  public static final Role SQOOP_SERVICE_CHECK = valueOf("SQOOP_SERVICE_CHECK");
+  public static final Role HUE_SERVER = valueOf("HUE_SERVER");
+  public static final Role JOURNALNODE = valueOf("JOURNALNODE");
+  public static final Role MAPREDUCE_CLIENT = valueOf("MAPREDUCE_CLIENT");
+  public static final Role MAPREDUCE_SERVICE_CHECK = valueOf("MAPREDUCE_SERVICE_CHECK");
+  public static final Role MAPREDUCE2_SERVICE_CHECK = valueOf("MAPREDUCE2_SERVICE_CHECK");
+  public static final Role MYSQL_SERVER = valueOf("MYSQL_SERVER");
+  public static final Role NAGIOS_SERVER = valueOf("NAGIOS_SERVER");
+  public static final Role NAMENODE = valueOf("NAMENODE");
+  public static final Role NAMENODE_SERVICE_CHECK = valueOf("NAMENODE_SERVICE_CHECK");
+  public static final Role OOZIE_SERVICE_CHECK = valueOf("OOZIE_SERVICE_CHECK");
+  public static final Role TASKTRACKER = valueOf("TASKTRACKER");
+  public static final Role WEBHCAT_SERVER = valueOf("WEBHCAT_SERVER");
+  public static final Role WEBHCAT_SERVICE_CHECK = valueOf("WEBHCAT_SERVICE_CHECK");
+  public static final Role YARN_SERVICE_CHECK = valueOf("YARN_SERVICE_CHECK");
+  public static final Role ZKFC = valueOf("ZKFC");
+  public static final Role ZOOKEEPER_CLIENT = valueOf("ZOOKEEPER_CLIENT");
+  public static final Role ZOOKEEPER_QUORUM_SERVICE_CHECK = valueOf("ZOOKEEPER_QUORUM_SERVICE_CHECK");
+  public static final Role ZOOKEEPER_SERVER = valueOf("ZOOKEEPER_SERVER");
+  
+
+  private String name = null;
+  
+  private Role(String roleName) {
+    name = roleName;
+  }
+  
+  /**
+   * @return the name given to the role
+   */
+  public String name() {
+    return name;
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
+  
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (null == o || !Role.class.equals(o.getClass()))
+      return false;
+    
+    return this == o || name.equals(((Role) o).name);
+  }
+
 }

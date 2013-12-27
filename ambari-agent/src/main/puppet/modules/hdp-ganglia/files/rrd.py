@@ -23,6 +23,8 @@ import os
 import rrdtool
 import sys
 import time
+import re
+import urlparse
 
 # place this script in /var/www/cgi-bin of the Ganglia collector
 # requires 'yum install rrdtool-python' on the Ganglia collector
@@ -63,10 +65,29 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end, resolut
   sys.stdout.write("\n")
 
   if not pointInTime:
+    valueCount = 0
+    lastValue = None
+
     for tuple in rrdMetric[2]:
-      if tuple[0] is not None:
-        sys.stdout.write(str(tuple[0]))
-        sys.stdout.write("\n")
+
+      thisValue = tuple[0]
+
+      if valueCount > 0 and thisValue == lastValue:
+        valueCount += 1
+      else:
+        if valueCount > 1:
+          sys.stdout.write("[~r]")
+          sys.stdout.write(str(valueCount))
+          sys.stdout.write("\n")
+
+        if thisValue is None:
+          sys.stdout.write("[~n]\n")
+        else:
+          sys.stdout.write(str(thisValue))
+          sys.stdout.write("\n")
+
+        valueCount = 1
+        lastValue = thisValue
   else:
     value = None
     idx   = -1
@@ -81,7 +102,7 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end, resolut
       sys.stdout.write(str(value))
       sys.stdout.write("\n")
 
-  sys.stdout.write("[AMBARI_DP_END]\n")
+  sys.stdout.write("[~EOM]\n")
   return
 
 def stripList(l):
@@ -93,7 +114,14 @@ sys.stdout.write("Content-type: text/plain\n\n")
 sys.stdout.write(str(time.mktime(time.gmtime())))
 sys.stdout.write("\n")
 
-queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
+requestMethod = os.environ['REQUEST_METHOD']
+
+if requestMethod == 'POST':
+  postData = sys.stdin.readline()
+  queryString = cgi.parse_qs(postData)
+  queryString = dict((k, v[0]) for k, v in queryString.items())
+elif requestMethod == 'GET':
+  queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
 
 if "m" in queryString:
   metricParts = queryString["m"].split(",")
@@ -139,30 +167,39 @@ if "pt" in queryString:
 else:
   pointInTime = False
 
+def _walk(*args, **kwargs):
 
-host_metrics = ["boottime", "bytes_in", "bytes_out", "cpu_aidle", "cpu_idle",
-                "cpu_nice", "cpu_num", "cpu_speed", "cpu_system", "cpu_user",
-                "cpu_wio", "disk_free", "disk_total", "load_fifteen", "load_five",
-                "load_one", "mem_buffers", "mem_cached", "mem_free", "mem_shared",
-                "mem_total", "part_max_used", "pkts_in", "pkts_out", "proc_run",
-                "proc_total", "swap_free", "swap_total"]
+  for root,dirs,files in os.walk(*args, **kwargs):
+    for dir in dirs:
+      qualified_dir = os.path.join(root,dir)
+      if os.path.islink(qualified_dir):
+        for x in os.walk(qualified_dir, **kwargs):
+          yield x
+    yield (root, dirs, files)
+
 
 for cluster in clusterParts:
-  for path, dirs, files in os.walk(rrdPath + cluster):
+  for path, dirs, files in _walk(rrdPath + cluster):
     pathParts = path.split("/")
-    if len(hostParts) == 0 or pathParts[-1] in hostParts:
-      for file in files:
-        for metric in metricParts:
-          if file.endswith(metric + ".rrd"):
-            if not (metric in host_metrics):
-              printMetric(pathParts[-2], pathParts[-1], file[:-4],
-                    os.path.join(path, file), cf, start, end, resolution, pointInTime)
-            else:
-              if (cluster == "HDPSlaves"):
-                 printMetric(pathParts[-2], pathParts[-1], file[:-4],
-                    os.path.join(path, file), cf, start, end, resolution, pointInTime)
-                
-sys.stdout.write("[AMBARI_END]\n")
+    #Process only path which contains files. If no host parameter passed - process all hosts folders and summary info
+    #If host parameter passed - process only this host folder
+    if len(files) > 0 and (len(hostParts) == 0 or pathParts[-1] in hostParts):
+      for metric in metricParts:
+        file = metric + ".rrd"
+        fileFullPath = os.path.join(path, file)
+        if os.path.exists(fileFullPath):
+          #Exact name of metric
+          printMetric(pathParts[-2], pathParts[-1], file[:-4], os.path.join(path, file), cf, start, end, resolution, pointInTime)
+        else:
+          #Regex as metric name
+          metricRegex = metric + '\.rrd$'
+          p = re.compile(metricRegex)
+          matchedFiles = filter(p.match, files)
+          for matchedFile in matchedFiles:
+            printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4], os.path.join(path, matchedFile), cf, start, end, resolution, pointInTime)
+
+
+sys.stdout.write("[~EOF]\n")
 # write end time
 sys.stdout.write(str(time.mktime(time.gmtime())))
 sys.stdout.write("\n")

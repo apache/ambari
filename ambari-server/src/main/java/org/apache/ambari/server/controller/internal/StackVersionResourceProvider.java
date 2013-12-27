@@ -37,7 +37,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
@@ -57,25 +56,37 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   private static final String STACK_MIN_VERSION_PROPERTY_ID = PropertyHelper
       .getPropertyId("Versions", "min_upgrade_version");
 
+  private static final String STACK_ACTIVE_PROPERTY_ID = PropertyHelper
+      .getPropertyId("Versions", "active");
+
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
           STACK_VERSION_PROPERTY_ID }));
 
+  private static final String STACK_PARENT_PROPERTY_ID = PropertyHelper
+    .getPropertyId("Versions", "parent_stack_version");
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final StackVersionRequest stackVersionRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<StackVersionRequest> requests = new HashSet<StackVersionRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<StackVersionResponse> responses = getResources(new Command<Set<StackVersionResponse>>() {
       @Override
       public Set<StackVersionResponse> invoke() throws AmbariException {
-        return getManagementController().getStackVersions(
-            Collections.singleton(stackVersionRequest));
+        return getManagementController().getStackVersions(requests);
       }
     });
 
@@ -85,13 +96,19 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       Resource resource = new ResourceImpl(Resource.Type.StackVersion);
 
       setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-          stackVersionRequest.getStackName(), requestedIds);
+          response.getStackName(), requestedIds);
 
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
           response.getStackVersion(), requestedIds);
       
       setResourceProperty(resource, STACK_MIN_VERSION_PROPERTY_ID,
           response.getMinUpgradeVersion(), requestedIds);
+
+      setResourceProperty(resource, STACK_ACTIVE_PROPERTY_ID,
+          response.isActive(), requestedIds);
+
+      setResourceProperty(resource, STACK_PARENT_PROPERTY_ID,
+        response.getParentVersion(), requestedIds);
 
       resources.add(resource);
     }

@@ -17,480 +17,250 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
+
 App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
-
   name: 'mainAdminSecurityAddStep3Controller',
-  configMapping: require('data/secure_mapping'),
-  stages: [],
-  configs: [],
-  noOfWaitingAjaxCalls: 0,
-  secureServices: [],
-  serviceConfigTags: [],
-  globalProperties: [],
-
-  isSubmitDisabled: true,
-
-  isOozieSelected: function () {
-    return this.get('content.services').someProperty('serviceName', 'OOZIE');
-  }.property('content.services'),
-
-  isWebHcatSelected: function () {
-    return this.get('content.services').someProperty('serviceName', 'WEBHCAT');
-  }.property('content.services'),
-
-  serviceUsersBinding: 'App.router.mainAdminController.serviceUsers',
-  hasHostPopup: true,
-  services: [],
-  serviceTimestamp: null,
-
-  clearStep: function () {
-    this.get('stages').clear();
-    this.set('isSubmitDisabled', true);
-    this.get('serviceConfigTags').clear();
-  },
-
-  loadStep: function () {
-    this.clearStep();
-    this.loadStages();
-    this.addInfoToStages();
-    this.prepareSecureConfigs();
-    this.moveToNextStage();
-  },
-
-  enableSubmit: function () {
-    if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
-      this.set('isSubmitDisabled', false);
-      App.router.get('addSecurityController').setStepsEnable();
-    }
-  }.observes('stages.@each.isCompleted'),
-
-  updateServices: function () {
-    this.services.clear();
-    var services = this.get("services");
-    this.get("stages").forEach(function (stages) {
-      var newService = Ember.Object.create({
-        name: stages.label,
-        hosts: []
-      });
-      var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
-      hostNames.forEach(function (name) {
-        newService.hosts.push({
-          name: name,
-          publicName: name,
-          logTasks: stages.polledData.filterProperty("Tasks.host_name",name)
-        });
-      });
-      services.push(newService);
-    });
-    this.set('serviceTimestamp', new Date().getTime());
-  }.observes("stages.@each.polledData"),
-
-  loadStages: function () {
-    this.get('stages').pushObjects([
-      App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true}),
-      App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false}),
-      App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true})
-    ]);
-  },
-
-  startStage: function () {
-    var startedStages = this.get('stages').filterProperty('isStarted', true);
-    if (startedStages.length) {
-      var currentStage = startedStages.findProperty('isCompleted', false);
-      if (currentStage && currentStage.get('isPolling') === true) {
-        currentStage.start();
-      } else if (currentStage && currentStage.get('stage') === 'stage3') {
-        if (App.testMode) {
-          currentStage.set('isSuccess', true);
-          currentStage.set('isCompleted', true);
-          this.moveToNextStage();
-        } else {
-          var self = this;
-          window.setTimeout(function () {
-            self.loadClusterConfigs();
-          }, 12000);
-        }
-      }
-    }
-  }.observes('stages.@each.isStarted'),
-
-  onCompleteStage: function () {
-    var index = this.get('stages').filterProperty('isCompleted', true).length;
-    if (index > 0) {
-      var self = this;
-      var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
-      if (lastCompletedStageResult) {
-        window.setTimeout(function () {
-          self.moveToNextStage();
-        }, 50);
-      }
-    }
-  }.observes('stages.@each.isCompleted'),
-
-  moveToNextStage: function () {
-    var nextStage = this.get('stages').findProperty('isStarted', false);
-    if (nextStage) {
-      nextStage.set('isStarted', true);
-    }
-  },
-
-  addInfoToStages: function () {
-    this.addInfoToStage2();
-    this.addInfoToStage3();
-    this.addInfoToStage4();
-  },
-
-  addInfoToStage1: function () {
-    var stage1 = this.get('stages').findProperty('stage', 'stage1');
-    if (App.testMode) {
-      stage1.set('isSuccess', true);
-      stage1.set('isStarted', true);
-      stage1.set('isCompleted', true);
-    }
-  },
-
-  addInfoToStage2: function () {
-    var stage2 = this.get('stages').findProperty('stage', 'stage2');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
-    var data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.stopAllServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    stage2.set('url', url);
-    stage2.set('data', data);
-  },
-
-  addInfoToStage3: function () {
-
-  },
-
-  addInfoToStage4: function () {
-    var stage4 = this.get('stages').findProperty('stage', 'stage4');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
-    var data = '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
-    stage4.set('url', url);
-    stage4.set('data', data);
-  },
-
-  loadUiSideConfigs: function () {
-    var uiConfig = [];
-    var configs = this.get('configMapping').filterProperty('foreignKey', null);
-    configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config.name,
-        "value": value,
-        "filename": _config.filename
-      });
-    }, this);
-    var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
-    dependentConfig.forEach(function (_config) {
-      this.setConfigValue(uiConfig, _config);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config.name,
-        "value": _config.value,
-        "filename": _config.filename
-      });
-    }, this);
-    return uiConfig;
-  },
-
-  appendInstanceName: function (name, property) {
-    var newValue;
-    if (this.get('globalProperties').someProperty('name', name)) {
-      var globalProperty = this.get('globalProperties').findProperty('name', name);
-      newValue = globalProperty.value;
-      var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name');
-      if (isInstanceName) {
-        if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local' && property !== 'oozie.authentication.kerberos.name.rules') {
-          if (this.get('isOozieSelected') && (property === 'oozie.service.HadoopAccessorService.kerberos.principal' || property === 'oozie.authentication.kerberos.principal')) {
-            var oozieServerName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
-            newValue = newValue + '/' + oozieServerName;
-          } else if (this.get('isWebHcatSelected') && property === 'templeton.kerberos.principal') {
-            var webHcatName = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
-            newValue = newValue + '/' + webHcatName;
-          } else {
-            if (!/_HOST?$/.test(newValue)) {
-              newValue = newValue + '/_HOST';
-            }
-          }
-        }
-      }
+  hostComponents: [],
+  doDownloadCsv: function () {
+    if ($.browser.msie && $.browser.version < 10) {
+      this.openInfoInNewTab();
     } else {
-      console.log("The template name does not exist in secure_properties file");
-      newValue = null;
-    }
-    return newValue;
-  },
-
-  /**
-   * Set all site property that are derived from other puppet-variable
-   */
-
-  getGlobConfigValue: function (templateName, expression, name) {
-    var express = expression.match(/<(.*?)>/g);
-    var value = expression;
-    if (express == null) {
-      return expression;
-    }
-    express.forEach(function (_express) {
-      //console.log("The value of template is: " + _express);
-      var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      if (this.get('globalProperties').someProperty('name', templateName[index])) {
-        //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.appendInstanceName(templateName[index], name);
-        console.log('The template value of templateName ' + '[' + index + ']' + ': ' + templateName[index] + ' is: ' + globValue);
-        if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          value = value.replace(_express, globValue);
-        }
-      } else {
-        /*
-         console.log("ERROR: The variable name is: " + templateName[index]);
-         console.log("ERROR: mapped config from configMapping file has no corresponding variable in " +
-         "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
-         "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
-         */
-        value = null;
-      }
-    }, this);
-    return value;
-  },
-  /**
-   * Set all site property that are derived from other site-properties
-   */
-  setConfigValue: function (uiConfig, config) {
-    if (config.value == null) {
-      return;
-    }
-    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
-    if (fkValue) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.value = config.value.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.value = config.value.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    if (fkValue = config.name.match(/<(foreignKey.*?)>/g)) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.name = config.name.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    //For properties in the configMapping file having foreignKey and templateName properties.
-
-    var templateValue = config.value.match(/<(templateName.*?)>/g);
-    if (templateValue) {
-      templateValue.forEach(function (_value) {
-        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (this.get('globalProperties').someProperty('name', config.templateName[index])) {
-          var globValue = this.appendInstanceName(config.templateName[index]);
-          config.value = config.value.replace(_value, globValue);
-        } else {
-          config.value = null;
-        }
-      }, this);
-    }
-  },
-
-  prepareSecureConfigs: function () {
-    this.loadGlobals();
-    var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
-    var uiConfigs = this.loadUiSideConfigs();
-    this.set('configs', storedConfigs.concat(uiConfigs));
-  },
-
-  loadGlobals: function () {
-    var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
-    this.set('globalProperties', globals);
-    this.loadUsersToGlobal();
-  },
-
-  loadUsersToGlobal: function () {
-    if (!this.get('serviceUsers').length) {
-      this.loadUsersFromServer();
-    }
-    App.router.get('mainAdminController.serviceUsers').forEach(function (_user) {
-      this.get('globalProperties').pushObject(_user);
-    }, this);
-  },
-
-  loadUsersFromServer: function () {
-    var self = this;
-    if (App.testMode) {
-      var serviceUsers = this.get('serviceUsers');
-      serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-      serviceUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-      serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-      serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
-    } else {
-      App.router.get('mainAdminController').getSecurityStatusFromServer();
-    }
-  },
-
-  loadClusterConfigs: function () {
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: 10000,
-      dataType: 'text',
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-
-        //prepare tags to fetch all configuration for a service
-        self.get('content.services').forEach(function (_secureService) {
-          if (_secureService.serviceName !== 'GENERAL') {
-            self.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
-          }
-        });
-        self.getAllConfigurations();
-      },
-
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-        console.log("TRACE: error code status is: " + request.status);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-  },
-
-
-  /**
-   * set tagnames for configuration of the *-site.xml
-   */
-  setServiceTagNames: function (secureService, configs) {
-    console.log("TRACE: In setServiceTagNames function:");
-    //var serviceConfigTags = this.get('serviceConfigTags');
-    for (var index in configs) {
-      if (secureService.sites && secureService.sites.contains(index)) {
-        var serviceConfigObj = {
-          siteName: index,
-          tagName: configs[index].tag,
-          newTagName: null,
-          configs: {}
-        };
-        console.log("The value of serviceConfigTags[index]: " + configs[index]);
-        this.get('serviceConfigTags').pushObject(serviceConfigObj);
+      try {
+        var blob = new Blob([stringUtils.arrayToCSV(this.get('hostComponents'))], {type: "text/csv;charset=utf-8;"});
+        saveAs(blob, "host-principal-keytab-list.csv");
+      } catch(e) {
+         this.openInfoInNewTab();
       }
     }
-    return serviceConfigObj;
   },
-
-  applyConfigurationsToCluster: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length);
-    this.get('serviceConfigTags').forEach(function (_serviceConfig) {
-      this.applyConfigurationToCluster({type: _serviceConfig.siteName, tag: _serviceConfig.newTagName, properties: _serviceConfig.configs});
-    }, this);
+  openInfoInNewTab: function () {
+    var newWindow = window.open('');
+    var newDocument = newWindow.document;
+    newDocument.write(stringUtils.arrayToCSV(this.get('hostComponents')));
+    newWindow.focus();
   },
+  loadStep: function(){
+    var configs = this.get('content.serviceConfigProperties');
+    var hosts = App.Host.find();
+    var result = [];
+    var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
+      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER','JOURNALNODE'];
+    var securityUsers = [];
+    if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
+      securityUsers = this.getSecurityUsers();
+    }
+    var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
+    var generalConfigs = configs.filterProperty('serviceName', 'GENERAL');
+    var hdfsConfigs = configs.filterProperty('serviceName', 'HDFS');
+    var realm = generalConfigs.findProperty('name', 'kerberos_domain').value;
+    var smokeUserId = securityUsers.findProperty('name', 'smokeuser').value;
+    var hdfsUserId = securityUsers.findProperty('name', 'hdfs_user').value;
+    var hbaseUserId = securityUsers.findProperty('name', 'hbase_user').value;
+    var mapredUserId = securityUsers.findProperty('name', 'mapred_user').value;
+    var yarnUserId =  securityUsers.findProperty('name', 'yarn_user').value;
+    var hiveUserId = securityUsers.findProperty('name', 'hive_user').value;
+    var zkUserId = securityUsers.findProperty('name', 'zk_user').value;
+    var oozieUserId = securityUsers.findProperty('name', 'oozie_user').value;
+    var nagiosUserId = securityUsers.findProperty('name', 'nagios_user').value;
+    var hadoopGroupId = securityUsers.findProperty('name', 'user_group').value;
 
-  applyConfigurationToCluster: function (data) {
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName();
-    var clusterData = {
-      Clusters: {
-        desired_config: data
-      }
+    var smokeUser = smokeUserId + '@' + realm;
+    var hdfsUser = hdfsUserId + '@' + realm;
+    var hbaseUser = hbaseUserId + '@' + realm;
+    var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').value;
+    var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'hdfs_user_keytab').value;
+    var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'hbase_user_keytab').value;
+    var hadoopHttpPrincipal = hdfsConfigs.findProperty('name', 'hadoop_http_principal_name');
+    var hadoopHttpKeytabPath = hdfsConfigs.findProperty('name', 'hadoop_http_keytab').value;
+    var componentToOwnerMap = {
+      'NAMENODE': hdfsUserId,
+      'SECONDARY_NAMENODE': hdfsUserId,
+      'DATANODE': hdfsUserId,
+      'JOURNALNODE': hdfsUserId,
+      'TASKTRACKER': mapredUserId,
+      'JOBTRACKER': mapredUserId,
+      'HISTORYSERVER': mapredUserId,
+      'RESOURCEMANAGER':yarnUserId,
+      'NODEMANAGER':yarnUserId,
+      'ZOOKEEPER_SERVER': zkUserId,
+      'HIVE_SERVER': hiveUserId,
+      'OOZIE_SERVER': oozieUserId,
+      'NAGIOS_SERVER': nagiosUserId,
+      'HBASE_MASTER': hbaseUserId,
+      'HBASE_REGIONSERVER': hbaseUserId
     };
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      async: false,
-      dataType: 'text',
-      data: JSON.stringify(clusterData),
-      timeout: 5000,
-      success: function (data) {
-        self.set('noOfWaitingAjaxCalls', self.get('noOfWaitingAjaxCalls') - 1);
-        if (self.get('noOfWaitingAjaxCalls') == 0) {
-          var currentStage = self.get('stages').findProperty('stage', 'stage3');
-          currentStage.set('isSuccess', true);
-          currentStage.set('isCompleted', true);
-        }
-      },
-      error: function (request, ajaxOptions, error) {
-        self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-      },
-      statusCode: require('data/statusCodes')
-    });
 
+    var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
+
+    hosts.forEach(function (host) {
+      result.push({
+        host: host.get('hostName'),
+        component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
+        principal: smokeUser,
+        keytabFile: stringUtils.getFileFromPath(smokeUserKeytabPath),
+        keytab: stringUtils.getPath(smokeUserKeytabPath),
+        owner: smokeUserId,
+        group: hadoopGroupId,
+        acl: '440'
+      });
+      result.push({
+        host: host.get('hostName'),
+        component: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
+        principal: hdfsUser,
+        keytabFile: stringUtils.getFileFromPath(hdfsUserKeytabPath),
+        keytab: stringUtils.getPath(hdfsUserKeytabPath),
+        owner: hdfsUserId,
+        group: hadoopGroupId,
+        acl: '440'
+      });
+      if (isHbaseInstalled) {
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
+          principal: hbaseUser,
+          keytabFile: stringUtils.getFileFromPath(hbaseUserKeytabPath),
+          keytab: stringUtils.getPath(hbaseUserKeytabPath),
+          owner: hbaseUserId,
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+      if(host.get('hostComponents').someProperty('componentName', 'NAMENODE') ||
+        host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE') ||  host.get('hostComponents').someProperty('componentName', 'JOURNALNODE')){
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
+          principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + hadoopHttpPrincipal.unit,
+          keytabFile: stringUtils.getFileFromPath(hadoopHttpKeytabPath),
+          keytab: stringUtils.getPath(hadoopHttpKeytabPath),
+          owner: 'root',
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+
+      if (host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER')) {
+        var webHcatConfigs = configs.filterProperty('serviceName', 'WEBHCAT');
+        var webHCatHttpPrincipal = webHcatConfigs.findProperty('name', 'webHCat_http_principal_name');
+        var webHCatHttpKeytabPath = webHcatConfigs.findProperty('name', 'webhcat_http_keytab').value;
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
+          principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + webHCatHttpPrincipal.unit,
+          keytabFile: stringUtils.getFileFromPath(webHCatHttpKeytabPath),
+          keytab: stringUtils.getPath(webHCatHttpKeytabPath),
+          owner: 'root',
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+      if (host.get('hostComponents').someProperty('componentName', 'OOZIE_SERVER')) {
+        var oozieConfigs = configs.filterProperty('serviceName', 'OOZIE');
+        var oozieHttpPrincipal = oozieConfigs.findProperty('name', 'oozie_http_principal_name');
+        var oozieHttpKeytabPath = oozieConfigs.findProperty('name', 'oozie_http_keytab').value;
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
+          principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + oozieHttpPrincipal.unit,
+          keytabFile: stringUtils.getFileFromPath(oozieHttpKeytabPath),
+          keytab: stringUtils.getPath(oozieHttpKeytabPath),
+          owner: 'root',
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+      this.setComponentConfig(result,host,'HISTORYSERVER','MAPREDUCE2','jobhistory_http_principal_name','jobhistory_http_keytab',Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'RESOURCEMANAGER','YARN','resourcemanager_http_principal_name','resourcemanager_http_keytab',Em.I18n.t('admin.addSecurity.rm.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'NODEMANAGER','YARN','nodemanager_http_principal_name','nodemanager_http_keytab',Em.I18n.t('admin.addSecurity.nm.user.httpUser'),hadoopGroupId);
+
+      host.get('hostComponents').forEach(function(hostComponent){
+        if(componentsToDisplay.contains(hostComponent.get('componentName'))){
+          var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
+          var principal, keytab;
+          serviceConfigs.forEach(function (config) {
+            if (config.component && config.component === hostComponent.get('componentName')) {
+              if (config.name.endsWith('_principal_name')) {
+                principal = config.value.replace('_HOST', host.get('hostName').toLowerCase()) + config.unit;
+              } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
+                keytab = config.value;
+              }
+            } else if (config.components && config.components.contains(hostComponent.get('componentName'))) {
+              if (config.name.endsWith('_principal_name')) {
+                principal = config.value.replace('_HOST', host.get('hostName').toLowerCase()) + config.unit;
+              } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
+                keytab = config.value;
+              }
+            }
+          });
+          var displayName = this.changeDisplayName(hostComponent.get('displayName'));
+          var key = host.get('hostName') + "--" + principal;
+          if (!addedPrincipalsHost[key]) {
+            var owner = componentToOwnerMap[hostComponent.get('componentName')];
+            if(!owner){
+              owner = '';
+            }
+            result.push({
+              host: host.get('hostName'),
+              component: displayName,
+              principal: principal,
+              keytabFile: stringUtils.getFileFromPath(keytab),
+              keytab: stringUtils.getPath(keytab),
+              owner: owner,
+              group: hadoopGroupId,
+              acl: '400'
+            });
+            addedPrincipalsHost[key] = true;
+          }
+        }
+      },this);
+    },this);
+    this.set('hostComponents', result);
   },
 
+  getSecurityUsers: function() {
+    var securityUsers = [];
+    if (App.testMode) {
+      securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+      securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+      securityUsers.pushObject({id: 'puppet var', name: 'yarn_user', value: 'yarn'});
+      securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+      securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+      securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+      securityUsers.pushObject({id: 'puppet var', name: 'zk_user', value: 'zookeeper'});
+      securityUsers.pushObject({id: 'puppet var', name: 'oozie_user', value: 'oozie'});
+      securityUsers.pushObject({id: 'puppet var', name: 'nagios_user', value: 'nagios'});
+      securityUsers.pushObject({id: 'puppet var', name: 'user_group', value: 'hadoop'});
+    } else {
+      securityUsers = App.db.getSecureUserInfo();
+    }
+    return securityUsers;
+  },
 
-  /**
-   * gets site config properties from server and sets it for every configuration
-   * @param serviceConfigTags
-   */
-
-  getAllConfigurations: function () {
-    var self = this;
-    var urlParams = [];
-    this.get('serviceConfigTags').forEach(function (_tag) {
-      urlParams.push('(type=' + _tag.siteName + '&tag=' + _tag.tagName + ')');
-    }, this);
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations?' + urlParams.join('|');
-    if (urlParams.length > 0) {
-      $.ajax({
-        type: 'GET',
-        url: url,
-        async: true,
-        timeout: 10000,
-        dataType: 'json',
-        success: function (data) {
-          console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-          console.log("TRACE: The url is: " + url);
-          self.get('serviceConfigTags').forEach(function (_tag) {
-            _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
-          });
-          self.addSecureConfigs();
-          self.applyConfigurationsToCluster();
-        },
-
-        error: function (request, ajaxOptions, error) {
-          self.get('stages').findProperty('stage', 'stage3').set('isError', true);
-          console.log("TRACE: In error function for the getServiceConfigsFromServer call");
-          console.log("TRACE: value of the url is: " + url);
-          console.log("TRACE: error code status is: " + request.status);
-        },
-
-        statusCode: require('data/statusCodes')
-      });
+  setComponentConfig: function(hostComponents,host,componentName,serviceName,principal,keytab,displayName,groupId) {
+    if (host.get('hostComponents').someProperty('componentName', componentName)) {
+      var result = {};
+      var configs = this.get('content.serviceConfigProperties');
+      var serviceConfigs = configs.filterProperty('serviceName', serviceName);
+      var servicePrincipal = serviceConfigs.findProperty('name', principal);
+      var serviceKeytabPath = serviceConfigs.findProperty('name', keytab).value;
+      result.host = host.get('hostName');
+      result.component = displayName;
+      result.principal = servicePrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + servicePrincipal.unit;
+      result.keytabfile = stringUtils.getFileFromPath(serviceKeytabPath);
+      result.keytab = stringUtils.getPath(serviceKeytabPath);
+      result.owner = 'root';
+      result.group = groupId;
+      result.acl = '440';
+      hostComponents.push(result);
     }
   },
 
-  addSecureConfigs: function () {
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
-      _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-      if (_serviceConfigTags.siteName === 'global') {
-        this.get('globalProperties').forEach(function (_globalProperty) {
-          _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
-        }, this);
-      } else {
-        this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
-          _serviceConfigTags.configs[_config.name] = _config.value;
-        }, this);
-      }
-    }, this);
+  changeDisplayName: function (name) {
+    if (name === 'HiveServer2') {
+      return 'Hive Metastore and HiveServer2';
+    } else {
+      return name;
+    }
   }
-
 });

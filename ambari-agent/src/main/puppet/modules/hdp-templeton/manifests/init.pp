@@ -71,8 +71,6 @@ class hdp-templeton(
     class { hdp-templeton::download-hive-tar: }
     class { hdp-templeton::download-pig-tar: }
 
-    hdp::user{ $webhcat_user:}
-
     hdp::directory { $templeton_config_dir: 
       service_state => $service_state,
       force => true,
@@ -83,10 +81,10 @@ class hdp-templeton(
 
     hdp-templeton::configfile { ['webhcat-env.sh']: }
 
-    anchor { 'hdp-templeton::begin': } -> Hdp::Package['webhcat'] -> Hdp::User[$webhcat_user] -> Hdp::Directory[$templeton_config_dir] -> Hdp-templeton::Configfile<||> ->  anchor { 'hdp-templeton::end': }
+    anchor { 'hdp-templeton::begin': } -> Hdp::Package['webhcat'] -> Hdp::Directory[$templeton_config_dir] -> Hdp-templeton::Configfile<||> ->  anchor { 'hdp-templeton::end': }
 
      if ($server == true ) { 
-      Hdp::Package['webhcat'] -> Hdp::User[$webhcat_user] ->   Class['hdp-templeton::download-hive-tar'] -> Class['hdp-templeton::download-pig-tar'] -> Anchor['hdp-templeton::end']
+      Hdp::Package['webhcat'] -> Class['hdp-templeton::download-hive-tar'] -> Class['hdp-templeton::download-pig-tar'] -> Anchor['hdp-templeton::end']
      }
   }
 }

@@ -19,10 +19,6 @@
 var App = require('app');
 var validator = require('utils/validator');
 
-App.ConfigProperties = Ember.ArrayProxy.extend({
-  content: require('data/config_properties').configProperties
-});
-
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],
@@ -30,6 +26,7 @@ App.ServiceConfig = Ember.Object.extend({
   restartRequired: false,
   restartRequiredMessage: '',
   restartRequiredHostsAndComponents: {},
+  configGroups: [],
   errorCount: function () {
     var overrideErrors = 0;
     this.get('configs').filterProperty("overrides").forEach(function (e) {
@@ -38,7 +35,7 @@ App.ServiceConfig = Ember.Object.extend({
           overrideErrors += 1;
         }
       })
-    })
+    });
     var masterErrors = this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     var slaveErrors = 0;
     this.get('configCategories').forEach(function (_category) {
@@ -149,19 +146,28 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
   isVisible: true,
+  isRequiredByAgent: true, // Setting it to true implies property will be stored in global configuration
+  isSecureConfig: false,
   errorMessage: '',
+  warnMessage: '',
   serviceConfig: null, // points to the parent App.ServiceConfig object
   filename: '',
   isOriginalSCP : true, // if true, then this is original SCP instance and its value is not overridden value.
   parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false.
   selectedHostOptions : null, // contain array of hosts configured with overridden value
   overrides : null,
+  group: null, // Contain group related to this property. Set only when isOriginalSCP is false.
   isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
   isOverridable: true,
   error: false,
+  warn: false,
   overrideErrorTrigger: 0, //Trigger for overrridable property error
   isRestartRequired: false,
   restartRequiredMessage: 'Restart required',
+  index: null, //sequence number in category
+  editDone: false, //Text field: on focusOut: true, on focusIn: false
+  serviceValidator: null,
+  isNotSaved: false, // user property was added but not saved
 
   /**
    * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have
@@ -173,12 +179,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
    * No override capabilities for fields which are not edtiable
    * and fields which represent master hosts.
    */
-  isPropertyOverridable : function() {
+  isPropertyOverridable: function () {
     var overrideable = this.get('isOverridable');
-  	var editable = this.get('isEditable');
-  	var dt = this.get('displayType');
-  	return overrideable && editable && ("masterHost"!=dt);
-  }.property('isEditable', 'displayType', 'isOverridable'),
+    var editable = this.get('isEditable');
+    var overrides = this.get('overrides');
+    var dt = this.get('displayType');
+    return overrideable && (editable || !overrides || !overrides.length) && ("masterHost" != dt);
+  }.property('isEditable', 'displayType', 'isOverridable', 'overrides.length'),
   isOverridden: function() {
     var overrides = this.get('overrides');
     return (overrides != null && overrides.get('length')>0) || !this.get('isOriginalSCP');
@@ -186,12 +193,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
     var isUserProperty = this.get('isUserProperty');
-    // Removable when this is a user property, or it is not an original property
-    return isUserProperty || !isOriginalSCP;
-  }.property('isUserProperty', 'isOriginalSCP'),
+    var isEditable = this.get('isEditable');
+    var hasOverrides = this.get('overrides.length') > 0;
+    // Removable when this is a user property, or it is not an original property and it is editable
+    return isEditable && !hasOverrides && (isUserProperty || !isOriginalSCP);
+  }.property('isUserProperty', 'isOriginalSCP', 'overrides.length'),
   init: function () {
     if(this.get("displayType")=="password"){
-      this.set('retypedPassword', this.get('defaultValue'));
+      this.set('retypedPassword', this.get('value'));
     }
     if ((this.get('id') === 'puppet var') && this.get('value') == '') {
       this.set('value', this.get('defaultValue'));
@@ -214,13 +223,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
    * Don't show "Undo" for hosts on Installer Step7
    */
   cantBeUndone: function() {
-    var types = ["masterHost", "slaveHosts", "masterHosts", "slaveHost"];
+    var types = ["masterHost", "slaveHosts", "masterHosts", "slaveHost","radio button"];
     var displayType = this.get('displayType');
     var result = false;
     types.forEach(function(type) {
       if (type === displayType) {
         result = true;
-        return;
       }
     });
     return result;
@@ -234,17 +242,118 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var isOnlyFirstOneNeeded = true;
     switch (this.get('name')) {
       case 'namenode_host':
-        var temp = masterComponentHostsInDB.findProperty('component', 'NAMENODE');
-        this.set('value', temp.hostName);
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
+        break;
+      case 'dfs.http.address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'dfs.namenode.http-address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'dfs.https.address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'dfs.namenode.https-address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'fs.default.name':
+        var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + nnHost);
+        break;
+      case 'fs.defaultFS':
+        var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + nnHost);
+        break;
+      case 'hbase.rootdir':
+        var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + nnHost);
         break;
       case 'snamenode_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName);
+        // Secondary NameNode does not exist when NameNode HA is enabled
+        var snn = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
+        if (snn) {
+          this.set('value', snn.hostName);
+        }
+        break;
+      case 'dfs.secondary.http.address':
+        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
+        if (snnHost) {
+          this.setDefaultValue("(\\w*)(?=:)",snnHost.hostName);
+        }
+        break;
+      case 'dfs.namenode.secondary.http-address':
+        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
+        if (snnHost) {
+          this.setDefaultValue("(\\w*)(?=:)",snnHost.hostName);
+        }
         break;
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
         break;
+      case 'hs_host':
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));
+        break;
+      case 'yarn.log.server.url':
+        var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + hsHost);
+        break;
+      case 'mapreduce.jobhistory.webapp.address':
+        var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
+        this.setDefaultValue("(\\w*)(?=:)",hsHost);
+        break;
+      case 'mapreduce.jobhistory.address':
+        var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
+        this.setDefaultValue("(\\w*)(?=:)",hsHost);
+        break;
+      case 'rm_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
+        break;
+      case 'yarn.resourcemanager.hostname':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.set('defaultValue',rmHost);
+        this.set('value',this.get('defaultValue'));
+        break;
+      case 'yarn.resourcemanager.resource-tracker.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.webapp.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.scheduler.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.admin.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'nm_hosts':
+        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
+        break;
       case 'jobtracker_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
+        break;
+      case 'mapred.job.tracker':
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",jtHost);
+        break;
+      case 'mapred.job.tracker.http.address':
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",jtHost);
+        break;
+      case 'mapreduce.history.server.http.address':
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",jtHost);
         break;
       case 'tasktracker_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER').hosts.mapProperty('hostName'));
@@ -258,11 +367,25 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hivemetastore_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
+      case 'hive.metastore.uris':
+        var hiveHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + hiveHost);
+        break;
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
       case 'oozieserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
+        break;
+      case 'oozie.base.url':
+        var oozieHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + oozieHost);
+        break;
+      case 'webhcatserver_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'WEBHCAT_SERVER').hostName);
+        break;
+      case 'hueserver_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'HUE_SERVER').hostName);
         break;
       case 'oozie_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
@@ -270,17 +393,51 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
-      case 'dfs_name_dir':
-      case 'dfs_data_dir':
-      case 'mapred_local_dir':
+      case 'hbase.zookeeper.quorum':
+        var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+        this.setDefaultValue("(\\w*)", zkHosts);
+        break;
+      case 'templeton.zookeeper.hosts':
+        var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+        var zkHostPort = zkHosts;
+        var regex = "\\w*:(\\d+)";   //regex to fetch the port
+        var portValue = this.get('defaultValue').match(new RegExp(regex));
+        if (portValue[1]) {
+          for ( var i = 0; i < zkHosts.length; i++ ) {
+            zkHostPort[i] = zkHosts[i] + ":" + portValue[1];
+          }
+        }
+        this.setDefaultValue("(.*)", zkHostPort);
+        break;
+      case 'dfs.name.dir':
+      case 'dfs.namenode.name.dir':
+      case 'dfs.data.dir':
+      case 'dfs.datanode.data.dir':
+      case 'yarn.nodemanager.local-dirs':
+      case 'yarn.nodemanager.log-dirs':
+      case 'mapred.local.dir':
         this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
         break;
-      case 'fs_checkpoint_dir':
+      case 'fs.checkpoint.dir':
+      case 'dfs.namenode.checkpoint.dir':
       case 'zk_data_dir':
       case 'oozie_data_dir':
+      case 'hbase.tmp.dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
     }
+  },
+
+  /**
+   * @param regex : String
+   * @param replaceWith : String
+   */
+  setDefaultValue: function(regex,replaceWith) {
+    var defaultValue = this.get('defaultValue');
+    var re = new RegExp(regex);
+    defaultValue = defaultValue.replace(re,replaceWith);
+    this.set('defaultValue',defaultValue);
+    this.set('value',this.get('defaultValue'));
   },
 
   unionAllMountPoints: function (isOnlyFirstOneNeeded, localDB) {
@@ -305,26 +462,36 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var temp = '';
     var setOfHostNames = [];
     switch (this.get('name')) {
-      case 'dfs_name_dir':
+      case 'dfs.namenode.name.dir':
+      case 'dfs.name.dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
-      case 'fs_checkpoint_dir':
+      case 'fs.checkpoint.dir':
+      case 'dfs.namenode.checkpoint.dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'SECONDARY_NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
-      case 'dfs_data_dir':
+      case 'dfs.data.dir':
+      case 'dfs.datanode.data.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'DATANODE');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);
         break;
-      case 'mapred_local_dir':
-        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER');
+      case 'mapred.local.dir':
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER') || slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
+        temp.hosts.forEach(function (host) {
+          setOfHostNames.push(host.hostName);
+        }, this);
+        break;
+      case 'yarn.nodemanager.log-dirs':
+      case 'yarn.nodemanager.local-dirs':
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);
@@ -339,6 +506,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var components = masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
+        }, this);
+        break;
+      case 'hbase.tmp.dir':
+        var temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
+        temp.hosts.forEach(function (host) {
+          setOfHostNames.push(host.hostName);
         }, this);
         break;
     }
@@ -414,6 +587,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'directories':
         return App.ServiceConfigTextArea;
         break;
+      case 'multiLine':
+        return App.ServiceConfigTextArea;
+        break;
       case 'custom':
         return App.ServiceConfigBigTextArea;
       case 'masterHost':
@@ -432,14 +608,14 @@ App.ServiceConfigProperty = Ember.Object.extend({
   }.property('displayType'),
 
   validate: function () {
-
     var value = this.get('value');
     var valueRange = this.get('valueRange');
     var values = [];//value split by "," to check UNIX users, groups list
 
     var isError = false;
+    var isWarn = false;
 
-    if (typeof value === 'string' && value.trim().length === 0) {
+    if (typeof value === 'string' && value.length === 0) {
       if (this.get('isRequired')) {
         this.set('errorMessage', 'This is required');
         isError = true;
@@ -474,7 +650,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
             values = value.split(',');
             for(var i = 0, l = values.length; i < l; i++){
               if(!validator.isValidUNIXUser(values[i])){
-                this.set('errorMessage', 'Must be a valid list of user names');
+                if(this.get('type') == 'USERS'){
+                  this.set('errorMessage', 'Must be a valid list of user names');
+                } else {
+                  this.set('errorMessage', 'Must be a valid list of group names');
+                }
                 isError = true;
               }
             }
@@ -483,15 +663,16 @@ App.ServiceConfigProperty = Ember.Object.extend({
         case 'checkbox':
           break;
         case 'directories':
-          if (!validator.isValidDir(value)) {
-            this.set('errorMessage', 'Must be a slash at the start');
-            isError = true;
-          }
-          break;
         case 'directory':
           if (!validator.isValidDir(value)) {
             this.set('errorMessage', 'Must be a slash at the start');
             isError = true;
+          }
+          else {
+            if (!validator.isAllowedDir(value)) {
+              this.set('errorMessage', 'Can\'t start with "home(s)"');
+              isError = true;
+            }
           }
           break;
         case 'custom':
@@ -506,6 +687,29 @@ App.ServiceConfigProperty = Ember.Object.extend({
           if (!validator.isValidEmail(value)) {
             this.set('errorMessage', 'Must be a valid email address');
             isError = true;
+          }
+          break;
+        case 'host':
+          var hiveOozieHostNames = ['hive_hostname','hive_existing_mysql_host','hive_existing_oracle_host','hive_ambari_host',
+          'oozie_hostname','oozie_existing_mysql_host','oozie_existing_oracle_host','oozie_ambari_host'];
+          if(hiveOozieHostNames.contains(this.get('name'))) {
+            if (validator.hasSpaces(value)) {
+              this.set('errorMessage', Em.I18n.t('host.spacesValidation'));
+              isError = true;
+            }
+          } else {
+            if (validator.isNotTrimmed(value)) {
+              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
+              isError = true;
+            }
+          }
+          break;
+        case 'advanced':
+          if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
+            if (validator.isNotTrimmed(value)) {
+              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
+              isError = true;
+            }
           }
           break;
         case 'password':
@@ -523,20 +727,15 @@ App.ServiceConfigProperty = Ember.Object.extend({
       var isOriginalSCP = this.get('isOriginalSCP');
       var parentSCP = this.get('parentSCP');
       if (!isOriginalSCP) {
-        var hosts = this.get('selectedHostOptions');
-        if(hosts==null || hosts.get('length')<1){
-          this.set('errorMessage', 'Select hosts to apply exception to');
-          isError = true;
-        }
         if (!isError && parentSCP != null) {
           if (value === parentSCP.get('value')) {
-            this.set('errorMessage', 'Host exceptions must have different value');
+            this.set('errorMessage', 'Configuration overrides must have different value');
             isError = true;
           } else {
             var overrides = parentSCP.get('overrides');
             overrides.forEach(function (override) {
               if (self != override && value === override.get('value')) {
-                self.set('errorMessage', 'Multiple host exceptions cannot have same value');
+                self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
                 isError = true;
               }
             });
@@ -544,13 +743,29 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
       }
     }
-
-    if (!isError) {
-      this.set('errorMessage', '');
-      this.set('error', false);
-    } else {
-      this.set('error', true);
+    
+    var serviceValidator = this.get('serviceValidator');
+    if (serviceValidator!=null) {
+      var validationIssue = serviceValidator.validateConfig(this);
+      if (validationIssue) {
+    	this.set('warnMessage', validationIssue);
+    	isWarn = true;
+      }
     }
+
+    if (!isWarn || isError) { // Errors get priority
+        this.set('warnMessage', '');
+        this.set('warn', false);
+    } else {
+        this.set('warn', true);
+    }
+    
+    if (!isError) {
+        this.set('errorMessage', '');
+        this.set('error', false);
+      } else {
+        this.set('error', true);
+      }
   }.observes('value', 'retypedPassword')
 
 });

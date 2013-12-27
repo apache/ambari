@@ -28,10 +28,15 @@ var App = require('app');
  */
 App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTimeView.extend({
   id: "service-metrics-hbase-regionserver-rw-requests",
-  title: Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests'),
   renderer: 'line',
-  sourceUrl: "/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/readRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}],metrics/hbase/regionserver/writeRequestsCount[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hbase/regionserver_rw_requests.json",
+  ajaxIndex: 'service.metrics.hbase.regionserver_rw_requests',
+  yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('req', 
+      App.ChartLinearTimeView.DefaultFormatter),
+  title: function () {
+    return App.get('isHadoop2Stack') ? 
+        Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests.2') : 
+          Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests');
+  }.property('App.isHadoop2Stack'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

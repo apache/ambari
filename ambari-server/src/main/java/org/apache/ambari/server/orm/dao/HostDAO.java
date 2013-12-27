@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -30,6 +31,7 @@ import javax.persistence.TypedQuery;
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class HostDAO {
 
   @Inject

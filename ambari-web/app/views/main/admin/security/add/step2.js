@@ -20,6 +20,31 @@ var App = require('app');
 
 App.MainAdminSecurityAddStep2View = Em.View.extend({
 
-  templateName: require('templates/main/admin/security/add/step2')
+  templateName: require('templates/main/admin/security/add/step2'),
+
+  configProperties: function () {
+    var configProperties = [];
+    var stepConfigs = this.get('controller.stepConfigs');
+    if (stepConfigs) {
+      this.get('controller.stepConfigs').mapProperty('configs').forEach(function (_stepProperties) {
+        _stepProperties.forEach(function (_stepConfigProperty) {
+          configProperties.pushObject(_stepConfigProperty);
+        }, this);
+      }, this);
+    }
+    return configProperties;
+  }.property('controller.stepConfigs.@each.configs'),
+
+  realmName: function () {
+    return this.get('configProperties').findProperty('name', 'kerberos_domain');
+  }.property('configProperties'),
+
+  onRealmNameChange: function () {
+    this.get('configProperties').forEach(function (_globalProperty) {
+      if (/principal_name?$/.test(_globalProperty.get('name'))) {
+        _globalProperty.set('unit', '@' + this.get('realmName.value'));
+      }
+    }, this);
+  }.observes('realmName.value')
 
 });

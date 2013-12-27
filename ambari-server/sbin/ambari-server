@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# chkconfig: 345 95 20
 # description: ambari-server daemon
 # processname: ambari-server
 
@@ -20,6 +21,20 @@
 
 # /etc/init.d/ambari-server
 
+VERSION="${ambariVersion}"
+HASH="${buildNumber}"
+
+case "$1" in
+  --version)
+        echo -e $VERSION
+        exit 0
+        ;;
+  --hash)
+        echo -e $HASH
+        exit 0
+        ;;
+esac
+
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
@@ -31,15 +46,15 @@ if [ -a /var/lib/ambari-server/ambari-env.sh ]; then
   . /var/lib/ambari-server/ambari-env.sh
 fi
 
-if [ "x$PYTHON" == "x" ]; then
+if [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python
 fi
 
-if [ "x$AMBARI_PASSPHRASE" == "x" ]; then
+if [ -z "$AMBARI_PASSPHRASE" ]; then
   AMBARI_PASSPHRASE="DEV"
 fi
 
-if [ "x$JAVA_HOME" != "x" ]; then
+if [ -n "$JAVA_HOME" ]; then
   export JAVA_HOME=$JAVA_HOME
 fi
 
@@ -86,18 +101,22 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   setup)
-        echo -e "Run postgresql initdb"
-        initdb_res=`/sbin/service postgresql initdb`
-        if [ "0" == "$?" ]; then
-          echo -e "${initdb_res}"
-        fi
-        echo -e "Run postgresql start"
-        /sbin/service postgresql start
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  setup-ldap)
+        echo -e "Setting up LDAP properties..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
+  setup-security)
+        echo -e "Security setup options..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack} [options]"
+        echo "Usage: /usr/sbin/ambari-server
+        {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-security} [options]
+        Use usr/sbin/ambari-server <action> --help to get details on options available.
+        Or, simply invoke ambari-server.py --help to print the options."
         exit 1
 esac
 

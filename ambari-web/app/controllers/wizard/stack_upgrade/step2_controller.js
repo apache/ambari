@@ -45,9 +45,6 @@ App.StackUpgradeStep2Controller = Em.Controller.extend({
   showWarningPopup: function(){
     App.ModalPopup.show({
       header: Em.I18n.t('installer.step2.manualInstall.popup.header'),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: null,
       bodyClass: Ember.View.extend({
         template: Em.Handlebars.compile('{{t installer.stackUpgrade.step2.popup.body}}')

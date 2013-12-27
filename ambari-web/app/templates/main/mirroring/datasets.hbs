@@ -16,6 +16,11 @@
 * limitations under the License.
 }}
 <div>
+    <div class="top-portion">
+        <ul class="breadcrumb">
+            <li><a href="#/main/mirroring">{{t mirroring.dataset.AllDataSets}}</a> </li>
+        </ul>
+    </div>
 {{#if App.isAdmin}}
     <div class="mirroring-top-nav button-section pull-right">
         <button class="btn btn-inverse add-host-button" {{action addNewDataset}}>

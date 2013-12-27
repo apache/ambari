@@ -20,11 +20,53 @@ View Service Components
 
 [Back to Resources](index.md#resources)
 
-Refers to a collection of all components for a given service.
+**Summary**
 
-    GET /clusters/:name/services/:serviceName/components
+Returns a collection of all components for the service identified by ":serviceName" and the cluster identified by ":clusterName".
+
+    GET /clusters/:clusterName/services/:serviceName/components
 
 **Response**
+
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
+
+
+
+**Example**
+
+Returns a collection of all components for the HDFS service of the cluster "c1".
+
+
+    GET /clusters/c1/services/HDFS/components
 
     200 OK
     {

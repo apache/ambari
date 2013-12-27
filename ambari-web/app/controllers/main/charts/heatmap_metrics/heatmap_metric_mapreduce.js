@@ -24,33 +24,10 @@ App.MainChartHeatmapMapreduceMetrics = App.MainChartHeatmapMetric.extend({
   metricUrlTemplate: "/clusters/{clusterName}/services/MAPREDUCE/components/TASKTRACKER?fields=host_components/{metricName}",
 
   /**
-   * Custom mapper for DFS metrics
+   * Custom mapper for MapReduce metrics
    */
-  metricMapper: function (json) {
-    var hostToValueMap = {};
-    var metricName = this.get('defaultMetric');
-    if (json.host_components) {
-      var props = metricName.split('.');
-      transformValueFunction = this.get('transformValue');
-      json.host_components.forEach(function (hc) {
-        var value = hc;
-        props.forEach(function (prop) {
-          if (value != null && prop in value) {
-            value = value[prop];
-          } else {
-            value = null;
-          }
-        });
-        if (value != null) {
-          if (transformValueFunction) {
-            value = transformValueFunction(value);
-          }
-          var hostName = hc.HostRoles.host_name;
-          hostToValueMap[hostName] = value;
-        }
-      });
-    }
-    return hostToValueMap;
+  metricMapper: function(json) {
+    return this.metricMapperWithTransform(json, this.get('defaultMetric'), this.get('transformValue'));
   },
 
   /**
@@ -59,5 +36,5 @@ App.MainChartHeatmapMapreduceMetrics = App.MainChartHeatmapMetric.extend({
    * 
    * @type Function
    */
-  tranformValue: null
+  transformValue: null
 });

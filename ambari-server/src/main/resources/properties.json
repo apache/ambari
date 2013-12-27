@@ -5,7 +5,6 @@
         "Clusters/version",
         "Clusters/state",
         "Clusters/desired_configs",
-        "Clusters/actual_configs",
         "_"
     ],
     "Service":[
@@ -15,8 +14,8 @@
         "Services/description",
         "Services/display_name",
         "Services/attributes",
-        "ServiceInfo/desired_configs",
         "params/run_smoke_test",
+        "params/reconfigure_client",
         "_"
     ],
     "Host":[
@@ -48,7 +47,7 @@
         "ServiceComponentInfo/state",
         "ServiceComponents/display_name",
         "ServiceComponents/description",
-        "ServiceComponentInfo/desired_configs",
+        "ServiceComponentInfo/category",
         "params/run_smoke_test",
         "_"
     ],
@@ -59,13 +58,12 @@
         "HostRoles/component_name",
         "HostRoles/state",
         "HostRoles/desired_state",
-        "HostRoles/configs",
-        "HostRoles/desired_configs",
         "HostRoles/stack_id",
         "HostRoles/desired_stack_id",
         "HostRoles/actual_configs",
         "params/run_smoke_test",
         "HostRoles/nagios_alerts",
+        "HostRoles/stale_configs",
         "_"
     ],
     "Configuration":[
@@ -73,10 +71,24 @@
         "Config/type",
         "Config/cluster_name"
     ],
+    "ConfigGroup": [
+        "ConfigGroup/id",
+        "ConfigGroup/cluster_name",
+        "ConfigGroup/group_name",
+        "ConfigGroup/tag",
+        "ConfigGroup/description",
+        "ConfigGroup/hosts",
+        "ConfigGroup/desired_configs"
+    ],
     "Action":[
-        "Actions/cluster_name",
-        "Actions/service_name",
         "Actions/action_name",
+        "Actions/action_type",
+        "Actions/inputs",
+        "Actions/target_service",
+        "Actions/target_component",
+        "Actions/description",
+        "Actions/target_type",
+        "Actions/default_timeout",
         "_"
     ],
     "Request":[
@@ -84,6 +96,22 @@
         "Requests/cluster_name",
         "Requests/request_status",
         "Requests/request_context",
+        "Requests/task_count",
+        "Requests/failed_task_count",
+        "Requests/aborted_task_count",
+        "Requests/timed_out_task_count",
+        "Requests/completed_task_count",
+        "Requests/queued_task_count",
+        "Requests/progress_percent",
+        "_"
+    ],
+    "RequestSchedule" : [
+        "RequestSchedule/id",
+        "RequestSchedule/cluster_name",
+        "RequestSchedule/description",
+        "RequestSchedule/status",
+        "RequestSchedule/batch",
+        "RequestSchedule/schedule",
         "_"
     ],
     "Task":[
@@ -99,6 +127,8 @@
         "Tasks/stderr",
         "Tasks/stdout",
         "Tasks/start_time",
+        "Tasks/end_time",
+        "Tasks/structured_out",
         "Tasks/attempt_cnt",
         "_"
     ],
@@ -118,6 +148,8 @@
         "Versions/stack_name",
         "Versions/stack_version",
         "Versions/min_upgrade_version",
+        "Versions/active",
+        "Versions/parent_stack_version",
         "_"
     ],
     "OperatingSystem":[
@@ -134,6 +166,8 @@
         "Repositories/repo_id",
         "Repositories/repo_name",
         "Repositories/mirrors_list",
+        "Repositories/default_base_url",
+        "Repositories/verify_base_url",
         "_"
     ],
     "StackService":[
@@ -143,6 +177,7 @@
         "StackServices/user_name",
         "StackServices/comments",
         "StackServices/service_version",
+        "StackServices/config_types",
         "_"
     ],
     "StackConfiguration":[
@@ -152,7 +187,7 @@
         "StackConfigurations/property_name",
         "StackConfigurations/property_value",
         "StackConfigurations/property_description",
-        "StackConfigurations/filename",
+        "StackConfigurations/type",
         "_"
     ],
     "StackServiceComponent":[
@@ -236,5 +271,22 @@
         "TaskAttempt/output_bytes",
         "TaskAttempt/status",
         "TaskAttempt/locality"
+     ],
+     "RootService":[
+        "RootService/service_name"
+     ],
+    "RootServiceComponent":[
+        "RootServiceComponents/service_name",
+        "RootServiceComponents/component_name",
+        "RootServiceComponents/properties",
+        "RootServiceComponents/component_version"
+     ],
+    "RootServiceHostComponent":[
+        "RootServiceHostComponents/service_name",
+        "RootServiceHostComponents/component_name",
+        "RootServiceHostComponents/host_name",
+        "RootServiceHostComponents/component_state",
+        "RootServiceHostComponents/component_version",
+        "RootServiceHostComponents/properties"
      ]
 }

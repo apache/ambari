@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -321,7 +322,7 @@ public class ClustersTest {
     config2.persist();
     
     // cluster desired config
-    cluster.addDesiredConfig(config1);
+    cluster.addDesiredConfig("_test", config1);
 
     clusters.addHost(h1);
     clusters.addHost(h2);
@@ -340,28 +341,31 @@ public class ClustersTest {
     }, c1);
 
     // host config override
-    host1.addDesiredConfig(cluster.getClusterId(), true, config2);
+    host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
     host1.persist();
 
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
     
-    // service config
-    hdfs.updateDesiredConfigs(new HashMap<String,Config>() {{ put("t1", config1); }});
-    hdfs.persist();
-
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.persist();
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
     dataNode.persist();
+    
+    ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
+    serviceCheckNode.persist();
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
     nameNodeHost.persist();
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
     dataNodeHost.persist();
+    
+    ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
+    serviceCheckNodeHost.persist();
+    serviceCheckNodeHost.setState(State.UNKNOWN);
 
     HostComponentStateEntityPK hkspk = new HostComponentStateEntityPK();
     HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();
@@ -381,7 +385,6 @@ public class ClustersTest {
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
-    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ServiceConfigMappingEntity config").getResultList().size());
     
     clusters.deleteCluster(c1);
 
@@ -391,7 +394,6 @@ public class ClustersTest {
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
-    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ServiceConfigMappingEntity config").getResultList().size());
     
   }
   @Test

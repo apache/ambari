@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -20,27 +20,27 @@ limitations under the License.
 
 import json
 import logging
-from Hardware import Hardware
+import time
+from pprint import pformat
+
 from ActionQueue import ActionQueue
-from ServerStatus import ServerStatus
-import NetUtil
 import AmbariConfig
 import hostname
-import time
-import traceback
-from pprint import pprint, pformat
 from HostInfo import HostInfo
+from Hardware import Hardware
+
 
 logger = logging.getLogger()
 
 firstContact = True
 class Heartbeat:
 
-  def __init__(self, actionQueue):
+  def __init__(self, actionQueue, config=None):
     self.actionQueue = actionQueue
+    self.config = config
     self.reports = []
 
-  def build(self, id='-1', state_interval=-1):
+  def build(self, id='-1', state_interval=-1, componentsMapped=False):
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
@@ -55,19 +55,38 @@ class Heartbeat:
                   'nodeStatus'        : nodeStatus
                 }
 
+    commandsInProgress = False
+    if not self.actionQueue.commandQueue.empty():
+      commandsInProgress = True
     if len(queueResult) != 0:
       heartbeat['reports'] = queueResult['reports']
       heartbeat['componentStatus'] = queueResult['componentStatus']
+      if len(heartbeat['reports']) > 0:
+        # There may be IN_PROGRESS tasks
+        commandsInProgress = True
       pass
+
+    # For first request/heartbeat assume no components are mapped
+    if int(id) == 0:
+      componentsMapped = False
+
+    logger.info("Sending heartbeat with response id: " + str(id) + " and "
+                "timestamp: " + str(timestamp) +
+                ". Command(s) in progress: " + repr(commandsInProgress) +
+                ". Components mapped: " + repr(componentsMapped))
     logger.debug("Heartbeat : " + pformat(heartbeat))
 
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:
-      hostInfo = HostInfo()
+      hostInfo = HostInfo(self.config)
       nodeInfo = { }
       # for now, just do the same work as registration
-      hostInfo.register(nodeInfo)
+      # this must be the last step before returning heartbeat
+      hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)
       heartbeat['agentEnv'] = nodeInfo
       logger.debug("agentEnv : " + str(nodeInfo))
+      mounts = Hardware.osdisks()
+      heartbeat['mounts'] = mounts
+      logger.debug("mounts : " + str(mounts))
 
     return heartbeat
 

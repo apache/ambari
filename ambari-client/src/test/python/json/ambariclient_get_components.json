@@ -1,0 +1,53 @@
+{
+  "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/serviceComponents?fields=*",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/serviceComponents/DATANODE",
+      "StackServiceComponents" : {
+        "component_category" : "SLAVE",
+        "component_name" : "DATANODE",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "1.3.0"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/serviceComponents/HDFS_CLIENT",
+      "StackServiceComponents" : {
+        "component_category" : "CLIENT",
+        "component_name" : "HDFS_CLIENT",
+        "is_client" : true,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "1.3.0"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/serviceComponents/NAMENODE",
+      "StackServiceComponents" : {
+        "component_category" : "MASTER",
+        "component_name" : "NAMENODE",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "1.3.0"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HDFS/serviceComponents/SECONDARY_NAMENODE",
+      "StackServiceComponents" : {
+        "component_category" : "MASTER",
+        "component_name" : "SECONDARY_NAMENODE",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "1.3.0"
+      }
+    }
+  ]
+}

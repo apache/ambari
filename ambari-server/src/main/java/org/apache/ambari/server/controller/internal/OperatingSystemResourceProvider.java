@@ -36,7 +36,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
@@ -64,15 +63,23 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    final OperatingSystemRequest operatingSystemRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+
+    final Set<OperatingSystemRequest> requests = new HashSet<OperatingSystemRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<OperatingSystemResponse> responses = getResources(new Command<Set<OperatingSystemResponse>>() {
       @Override
       public Set<OperatingSystemResponse> invoke() throws AmbariException {
-        return getManagementController().getStackOperatingSystems(
-            Collections.singleton(operatingSystemRequest));
+        return getManagementController().getStackOperatingSystems(requests);
       }
     });
 
@@ -82,10 +89,10 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       Resource resource = new ResourceImpl(Resource.Type.OperatingSystem);
 
       setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-          operatingSystemRequest.getStackName(), requestedIds);
+          response.getStackName(), requestedIds);
       
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
-          operatingSystemRequest.getStackVersion(), requestedIds);
+          response.getStackVersion(), requestedIds);
       
       setResourceProperty(resource, OS_TYPE_PROPERTY_ID,
           response.getOsType(), requestedIds);

@@ -19,39 +19,9 @@
 var App = require('app');
 
 App.MainAdminSecurityAddStep3View = Em.View.extend({
-
   templateName: require('templates/main/admin/security/add/step3'),
-  didInsertElement: function () {
+  didInsertElement: function(){
     this.get('controller').loadStep();
   }
-
-});
-
-App.StageStatusView = Em.View.extend({
-  tagName: 'tr',
-  hasStarted: null,
-  classNameBindings: ['faintText']
-});
-
-App.StageSuccessView = Em.View.extend({
-  template: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> Done')
-});
-
-App.StageFailureView = Em.View.extend({
-  template: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> Failed')
-});
-
-App.StageInProgressView = Em.View.extend({
-  stage: null,
-  classNames: ['progress-striped', 'active', 'progress'],
-  template: Ember.Handlebars.compile([
-    '<div class="bar" {{bindAttr style="stage.barWidth"}}>',
-    '</div>'
-  ].join('\n')),
-
-  isStageCompleted: function () {
-    return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
-  }.property('controller.isStepCompleted', 'obj.progress')
-
 });
 

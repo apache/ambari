@@ -54,7 +54,7 @@ public class PersistenceManagerImpl implements PersistenceManager {
              ResourceAlreadyExistsException,
              NoSuchParentResourceException {
 
-    Map<Resource.Type, String> mapResourceIds = resource.getIds();
+    Map<Resource.Type, String> mapResourceIds = resource.getKeyValueMap();
     Resource.Type type = resource.getResourceDefinition().getType();
     Schema schema = m_controller.getSchema(type);
 
@@ -79,6 +79,23 @@ public class PersistenceManagerImpl implements PersistenceManager {
   public RequestStatus update(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException {
 
+    // Allow for multiple property sets in an update request body...
+    Set<NamedPropertySet> setProperties = requestBody.getNamedPropertySets();
+    if (setProperties.size() > 1) {
+      Map<Resource.Type, String> mapResourceIds = resource.getKeyValueMap();
+      Resource.Type type = resource.getResourceDefinition().getType();
+      Schema schema = m_controller.getSchema(type);
+
+      for (NamedPropertySet propertySet : setProperties) {
+        for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
+          Map<String, Object> mapProperties = propertySet.getProperties();
+          String property = schema.getKeyPropertyId(entry.getKey());
+          if (! mapProperties.containsKey(property)) {
+            mapProperties.put(property, entry.getValue());
+          }
+        }
+      }
+    }
     return m_controller.updateResources(resource.getResourceDefinition().getType(),
         createControllerRequest(requestBody), resource.getQuery().getPredicate());
   }

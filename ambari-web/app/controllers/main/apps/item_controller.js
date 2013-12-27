@@ -27,16 +27,11 @@ App.MainAppsItemController = Em.Controller.extend({
   content: [],
   jobsLoaded:false,
 
-  lastJobId : null,
   gettingJobs:function(){
     var currentId = this.get('content.id');
-    if(currentId == this.get('lastJobId')){
-      return;
-    }
     if(this.get('content.loadAllJobs')){
       return;
     }
-    this.set('lastJobId', currentId);
     var self = this;
 
     var url = App.testMode ? '/data/apps/jobs/'+ currentId +'.json' :

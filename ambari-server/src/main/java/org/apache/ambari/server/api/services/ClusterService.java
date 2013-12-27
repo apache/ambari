@@ -172,11 +172,40 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Get the component resource without specifying the parent service.
+   * Allows accessing component resources across services.
+   *
+   * @param clusterName the cluster name
+   * @return  the host component service with no parent set
+   */
+  @Path("{clusterName}/components")
+  public ComponentService getComponentHandler(@PathParam("clusterName") String clusterName) {
+    return new ComponentService(clusterName, null);
+  }
+
+  /**
    * Gets the workflows sub-resource.
    */
   @Path("{clusterName}/workflows")
   public WorkflowService getWorkflowHandler(@PathParam("clusterName") String clusterName) {
     return new WorkflowService(clusterName);
+  }
+
+  /**
+   * Gets the config group service
+   */
+  @Path("{clusterName}/config_groups")
+  public ConfigGroupService getConfigGroupService(@PathParam("clusterName") String clusterName) {
+    return new ConfigGroupService(clusterName);
+  }
+
+  /**
+   * Gets the request schedule service
+   */
+  @Path("{clusterName}/request_schedules")
+  public RequestScheduleService getRequestScheduleService
+                             (@PathParam ("clusterName") String clusterName) {
+    return new RequestScheduleService(clusterName);
   }
 
   /**

@@ -161,7 +161,7 @@ class kerberos {
 
     realize(File[$kerberos::site::keytab_export_dir])
 
-    $principal = "$title/$::fqdn"
+    $principal = "$title/$hdp::params::hostname"
     $keytab    = "$kerberos::site::keytab_export_dir/$title.keytab"
 
     exec { "addprinc.$title":

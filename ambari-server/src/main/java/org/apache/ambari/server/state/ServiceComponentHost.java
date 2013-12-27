@@ -19,13 +19,12 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
-import java.util.Set;
-
-import com.google.inject.persist.Transactional;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+
+import com.google.inject.persist.Transactional;
 
 
 public interface ServiceComponentHost {
@@ -70,14 +69,6 @@ public interface ServiceComponentHost {
 
   public void setDesiredState(State state);
 
-  public Map<String, Config> getDesiredConfigs();
-
-  public Map<String, String> getDesiredConfigVersionsRecursive();
-
-  public void updateDesiredConfigs(Map<String, Config> configs);
-
-  public void deleteDesiredConfigs(Set<String> configTypes);
-
   public StackId getDesiredStackVersion();
 
   public void setDesiredStackVersion(StackId stackVersion);
@@ -86,10 +77,6 @@ public interface ServiceComponentHost {
 
   public void setState(State state);
   
-  public void setHAState(String status);
-
-  public Map<String, Config> getConfigs() throws AmbariException;
-
   public StackId getStackVersion();
 
   public void setStackVersion(StackId stackVersion);
@@ -119,6 +106,7 @@ public interface ServiceComponentHost {
    * Gets the actual config tags, if known.
    * @return the actual config map
    */
-  public Map<String, DesiredConfig> getActualConfigs();
-  
+  public Map<String, HostConfig> getActualConfigs();
+
+  public HostState getHostState();
 }

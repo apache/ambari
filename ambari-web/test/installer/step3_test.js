@@ -19,92 +19,289 @@
 
 var Ember = require('ember');
 var App = require('app');
-require('models/hosts');
+require('utils/http_client');
+require('models/host');
 require('controllers/wizard/step3_controller');
 
-/*
-describe('App.InstallerStep3Controller', function () {
-  //var controller = App.InstallerStep3Controller.create();
+describe('App.WizardStep3Controller', function () {
 
-  describe('#parseHostInfo', function () {
-    var controller = App.InstallerStep3Controller.create();
-    it('should return true if there is no host with pending status in the data provided by REST bootstrap call.  It should also update the status on the client side', function () {
-      var hostFromServer = [
-        {
-          name: '192.168.1.1',
-          status: 'error'
-        },
-        {
-          name: '192.168.1.2',
-          status: 'success'
-        },
-        {
-          name: '192.168.1.3',
-          status: 'error'
-        },
-        {
-          name: '192.168.1.4',
-          status: 'success'
-        }
-      ];
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.1',
-        status: 'error'
-      }));
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.2',
-        status: 'success'
-      }));
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.3',
-        status: 'pending'        //status should be overriden to 'error' after the parseHostInfo call
-      }));
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.4',
-        status: 'success'
-      }));
-
-      var result = controller.parseHostInfo(hostFromServer, controller.content);
-      var host = controller.content.findProperty('name', '192.168.1.3');
-      expect(result).to.equal(true);
-      expect(host.bootStatus).to.equal('error');
-    })
-  })
-
-
-  describe('#onAllChecked', function () {
-    var controller = App.InstallerStep3Controller.create();
-    it('should set all visible hosts\'s isChecked to true upon checking the "all" checkbox', function () {
-      controller.set('category', 'All Hosts');
-      controller.set('allChecked', true);
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.1',
-        status: 'error',
-        isChecked: false
-      }));
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.2',
-        status: 'success',
-        isChecked: false
-      }));
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.3',
-        status: 'pending', //status should be overriden to 'error' after the parseHostInfo call
-        isChecked: true
-      }));
-      controller.content.pushObject(App.HostInfo.create({
-        name: '192.168.1.4',
-        status: 'success',
-        isChecked: false
-      }));
-      controller.onAllChecked();
-      controller.content.forEach(function (host) {
-        var result = host.get('isChecked');
-        expect(result).to.equal(true);
+  describe('#getAllRegisteredHostsCallback', function () {
+    it('One host is already in the cluster, one host is registered', function() {
+      var controller = App.WizardStep3Controller.create({
+        hostsInCluster: [{
+          hostName: 'wst3_host1'
+        }],
+        bootHosts: [
+          {name:'wst3_host1'},
+          {name:'wst3_host2'}
+        ]
       });
+      var test_data = {
+        items: [
+          {
+            Hosts: {
+              host_name: 'wst3_host1'
+            }
+          },
+          {
+            Hosts: {
+              host_name: 'wst3_host2'
+            }
+          },
+          {
+            Hosts: {
+              host_name: 'wst3_host3'
+            }
+          }
+        ]
+      };
+      controller.getAllRegisteredHostsCallback(test_data);
+      expect(controller.get('hasMoreRegisteredHosts')).to.equal(true);
+      expect(controller.get('registeredHosts').length).to.equal(1);
+    });
 
-    })
-  })
-})
+    it('All hosts are new', function() {
+      var controller = App.WizardStep3Controller.create({
+        hostsInCluster: [{
+          hostName: 'wst3_host1'
+        }],
+        bootHosts: [
+          {name:'wst3_host3'},
+          {name:'wst3_host4'}
+        ]
+      });
+      var test_data = {
+        items: [
+          {
+            Hosts: {
+              host_name: 'wst3_host3'
+            }
+          },
+          {
+            Hosts: {
+              host_name: 'wst3_host4'
+            }
+          }
+        ]
+      };
+      controller.getAllRegisteredHostsCallback(test_data);
+      expect(controller.get('hasMoreRegisteredHosts')).to.equal(false);
+      expect(controller.get('registeredHosts')).to.equal('');
+    });
 
-*/
+    it('No new hosts', function() {
+      var controller = App.WizardStep3Controller.create({
+        hostsInCluster: [{
+          hostName: 'wst3_host1'
+        }],
+        bootHosts: [
+          {name:'wst3_host1'}
+        ]
+      });
+      var test_data = {
+        items: [
+          {
+            Hosts: {
+              host_name: 'wst3_host1'
+            }
+          }
+        ]
+      };
+      controller.getAllRegisteredHostsCallback(test_data);
+      expect(controller.get('hasMoreRegisteredHosts')).to.equal(false);
+      expect(controller.get('registeredHosts')).to.equal('');
+    });
+
+  });
+
+  var tests = [
+    {
+      bootHosts: [
+        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING', isChecked: false})
+      ],
+      m: 'One registered, one registering',
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 1
+        },
+        REGISTERED: {
+          e: 1
+        },
+        FAILED: {
+          e: 0
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
+      }
+    },
+    {
+      bootHosts: [
+        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED', isChecked: false})
+      ],
+      m: 'Two registered',
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 0
+        },
+        REGISTERED: {
+          e: 2
+        },
+        FAILED: {
+          e: 0
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
+      }
+    },
+    {
+      bootHosts: [
+        Em.Object.create({name:'wst3_host1', bootStatus: 'FAILED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED', isChecked: false})
+      ],
+      m: 'One registered, one failed',
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 0
+        },
+        REGISTERED: {
+          e: 1
+        },
+        FAILED: {
+          e: 1
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
+      }
+    },
+    {
+      bootHosts: [
+        Em.Object.create({name:'wst3_host1', bootStatus: 'FAILED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'FAILED', isChecked: false})
+      ],
+      m: 'Two failed',
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 0
+        },
+        REGISTERED: {
+          e: 0
+        },
+        FAILED: {
+          e: 2
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
+      }
+    },
+    {
+      bootHosts: [
+        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERING', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING', isChecked: false})
+      ],
+      m: 'Two registering',
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 2
+        },
+        REGISTERED: {
+          e: 0
+        },
+        FAILED: {
+          e: 0
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
+      }
+    }
+  ];
+
+  describe('#registrationTimeoutSecs', function() {
+    it('Manual install', function() {
+      var controller = App.WizardStep3Controller.create({
+        content: {
+          installOptions: {
+            manualInstall: true
+          }
+        }
+      });
+      expect(controller.get('registrationTimeoutSecs')).to.equal(15);
+    });
+    it('Not manual install', function() {
+      var controller = App.WizardStep3Controller.create({
+        content: {
+          installOptions: {
+            manualInstall: false
+          }
+        }
+      });
+      expect(controller.get('registrationTimeoutSecs')).to.equal(120);
+    });
+  });
+
+  describe('#isHostHaveWarnings', function() {
+    var tests = [
+      {
+        warnings: [{},{}],
+        m: 'Warnings exist',
+        e: true
+      },
+      {
+        warnings: [],
+        m: 'Warnings don\'t exist',
+        e: false
+      }
+    ];
+    tests.forEach(function(test) {
+      var controller = App.WizardStep3Controller.create();
+      controller.set('warnings', test.warnings);
+      it(test.m, function() {
+        expect(controller.get('isHostHaveWarnings')).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#noHostsSelected', function() {
+    tests.forEach(function(test) {
+      it(test.m + ' - nothing checked', function() {
+        var controller = App.WizardStep3Controller.create({
+          hosts: test.bootHosts
+        });
+        controller.get('hosts').setEach('isChecked', false);
+        console.log(controller.hosts);
+        expect(controller.get('noHostsSelected')).to.equal(true);
+      });
+      it(test.m + ' - one checked', function() {
+        var controller = App.WizardStep3Controller.create({
+          hosts: test.bootHosts
+        });
+        controller.get('hosts').setEach('isChecked', true);
+        expect(controller.get('noHostsSelected')).to.equal(false);
+      });
+    });
+  });
+
+
+
+});

@@ -179,7 +179,7 @@
 
   <property>
     <name>mapred.map.output.compression.codec</name>
-    <value></value>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
     <description>If the map outputs are compressed, how should they be
       compressed
     </description>
@@ -196,7 +196,7 @@
 
   <property>
     <name>mapred.jobtracker.completeuserjobs.maximum</name>
-    <value>0</value>
+    <value>5</value>
   </property>
 
   <property>
@@ -371,7 +371,7 @@
 
 <property>
   <name>mapred.jobtracker.retirejob.interval</name>
-  <value>0</value>
+  <value>21600000</value>
 </property>
 
 <property>

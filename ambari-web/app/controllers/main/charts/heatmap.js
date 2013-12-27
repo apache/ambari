@@ -61,6 +61,20 @@ App.MainChartsHeatmapController = Em.Controller.extend({
       );
     }
 
+    if (App.YARNService.find().get('length')) {
+      metrics.push(
+        Em.Object.create({
+          label: Em.I18n.t('charts.heatmap.category.yarn'),
+          category: 'yarn',
+          items: [
+            App.MainChartHeatmapYarnGCTimeMillisMetric.create(),
+            App.MainChartHeatmapYarnMemHeapUsedMetric.create(),
+            App.MainChartHeatmapYarnResourceUsedMetric.create()
+          ]
+        })
+      );
+    }
+
     if (App.HBaseService.find().get('length')) {
       metrics.push(
         Em.Object.create({
@@ -80,13 +94,20 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   }.property(),
 
   selectedMetric: null,
-  /**
-   *  route on host detail page
-   * @param event
-   */
-  routeHostDetail: function (event) {
-    App.router.transitionTo('main.hosts.hostDetails.summary', event.context)
-  },
+
+  inputMaximum: '',
+
+  validation: function () {
+    if (this.get('selectedMetric')) {
+      if (/^\d+$/.test(this.get('inputMaximum'))) {
+        $('#inputMaximum').removeClass('error');
+        this.set('selectedMetric.maximumValue', this.get('inputMaximum'));
+      } else {
+        $('#inputMaximum').addClass('error');
+      }
+    }
+  }.observes('inputMaximum'),
+
   showHeatMapMetric: function (event) {
     var metricItem = event.context;
     if (metricItem) {
@@ -103,6 +124,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
     if (selectedMetric) {
       selectedMetric.refreshHostSlots();
     }
+    this.set('inputMaximum', this.get('selectedMetric.maximumValue'));
   }.observes('selectedMetric'),
 
   /**

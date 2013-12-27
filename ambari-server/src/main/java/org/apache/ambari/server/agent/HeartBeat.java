@@ -36,6 +36,7 @@ public class HeartBeat {
   private String hostname;
   List<CommandReport> reports = new ArrayList<CommandReport>();
   List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
+  private List<DiskInfo> mounts = new ArrayList<DiskInfo>();
   HostStatus nodeStatus;
   private AgentEnv agentEnv = null;
 
@@ -97,6 +98,16 @@ public class HeartBeat {
   @JsonProperty("componentStatus")
   public void setComponentStatus(List<ComponentStatus> componentStatus) {
     this.componentStatus = componentStatus;
+  }
+
+  @JsonProperty("mounts")
+  public List<DiskInfo> getMounts() {
+    return this.mounts;
+  }
+
+  @JsonProperty("mounts")
+  public void setMounts(List<DiskInfo> mounts) {
+    this.mounts = mounts;
   }
 
   @Override

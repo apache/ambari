@@ -1,0 +1,58 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=mapred-site&tag=version1",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=mapred-site&tag=version1",
+      "tag" : "version1",
+      "type" : "mapred-site",
+      "Config" : {
+        "cluster_name" : "test1"
+      },
+      "properties" : {
+        "mapred.hosts" : "/etc/hadoop/conf/mapred.include",
+        "mapred.hosts.exclude" : "/etc/hadoop/conf/mapred.exclude",
+        "mapred.jobtracker.maxtasks.per.job" : "-1",
+        "mapred.jobtracker.taskScheduler" : "org.apache.hadoop.mapred.CapacityTaskScheduler",
+        "mapred.task.tracker.task-controller" : "org.apache.hadoop.mapred.DefaultTaskController",
+        "mapred.userlog.retain.hours" : "24",
+        "mapreduce.admin.map.child.java.opts" : "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
+        "mapreduce.admin.reduce.child.java.opts" : "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
+        "mapreduce.admin.user.env" : "LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`",
+        "mapreduce.am.max-attempts" : "2",
+        "mapreduce.application.classpath" : "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*",
+        "mapreduce.framework.name" : "yarn",
+        "mapreduce.job.reduce.slowstart.completedmaps" : "0.05",
+        "mapreduce.jobhistory.address" : "dev05.hortonworks.com:10020",
+        "mapreduce.jobhistory.done-dir" : "/mr-history/done",
+        "mapreduce.jobhistory.intermediate-done-dir" : "/mr-history/tmp",
+        "mapreduce.jobhistory.webapp.address" : "dev05.hortonworks.com:19888",
+        "mapreduce.jobtracker.system.dir" : "/mapred/system",
+        "mapreduce.map.java.opts" : "-Xmx320m",
+        "mapreduce.map.log.level" : "INFO",
+        "mapreduce.map.memory.mb" : "1536",
+        "mapreduce.map.sort.spill.percent" : "0.1",
+        "mapreduce.map.speculative" : "false",
+        "mapreduce.output.fileoutputformat.compress.type" : "BLOCK",
+        "mapreduce.reduce.input.buffer.percent" : "0.0",
+        "mapreduce.reduce.java.opts" : "-Xmx756m",
+        "mapreduce.reduce.log.level" : "INFO",
+        "mapreduce.reduce.memory.mb" : "2048",
+        "mapreduce.reduce.shuffle.input.buffer.percent" : "0.7",
+        "mapreduce.reduce.shuffle.merge.percent" : "0.66",
+        "mapreduce.reduce.shuffle.parallelcopies" : "30",
+        "mapreduce.reduce.speculative" : "false",
+        "mapreduce.shuffle.port" : "13562",
+        "mapreduce.task.io.sort.factor" : "100",
+        "mapreduce.task.io.sort.mb" : "200",
+        "mapreduce.task.timeout" : "600000",
+        "mapreduce.tasktracker.healthchecker.script.path" : "file:////mapred/jobstatus",
+        "mapreduce.tasktracker.map.tasks.maximum" : "4",
+        "yarn.app.mapreduce.am.admin-command-opts" : "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
+        "yarn.app.mapreduce.am.command-opts" : "-Xmx756m",
+        "yarn.app.mapreduce.am.log.level" : "INFO",
+        "yarn.app.mapreduce.am.resource.mb" : "1024",
+        "yarn.app.mapreduce.am.staging-dir" : "/user"
+      }
+    }
+  ]
+}

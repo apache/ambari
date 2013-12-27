@@ -132,7 +132,6 @@ App.MainMirroringDataSetView = Em.View.extend({
 
   hourOptions: Ember.Object.create({
     selectedForStart: function (key, value) {
-      console.debug('selectedForStart value : ' + value);
       if (value) {
         var content = this.get('content');
         for (var i = 0; i < content.length; i++) {
@@ -314,7 +313,6 @@ App.MainMirroringDataSetView = Em.View.extend({
    * When View is displayed, it asks the controller "Give me the Model".
    */
   didInsertElement: function () {
-    console.debug('In didInsertElement');
     var controller = this.get('controller');
 
     // Load model and expose to view

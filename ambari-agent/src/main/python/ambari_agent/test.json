@@ -4,8 +4,10 @@
 
 "clusterHostInfo" : 
 {
-"NAMENODE": ["h2.hortonworks.com"],
-"DATANODE": ["h1.hortonworks.com", "h2.hortonworks.com"]
+"namenode_host" : ["1"],
+"slave_hosts"   : ["0", "1"],
+"all_hosts"     : ["h1.hortonworks.com", "h2.hortonworks.com"],
+"all_ping_ports"    : ["8670:0,1"]
 },
 "hostLevelParams": 
 {
@@ -53,7 +55,8 @@
 "hadoop_metrics" : {"ganglia_server_host" : "localhost"},
 "hive-site" : {"hive.exec.scratchdir" : "/tmp"},
 "oozie-site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
-"templeton-site" : {"templeton.override.enabled" : "true"}
+"templeton-site" : {"templeton.override.enabled" : "true"},
+"global" : {"java64_home" : " java64_home "}
 },
 
 "role": "NAMENODE",

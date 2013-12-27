@@ -13,8 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+if [ -d "/etc/ambari-agent/conf.save" ]
+then
+    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+fi
+
 getent group puppet >/dev/null || groupadd -r puppet
-getent passwd puppet >/dev/null || /usr/sbin/useradd -g puppet puppet
+getent passwd puppet >/dev/null || /usr/sbin/useradd -g puppet -M -d / puppet
 
 BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini

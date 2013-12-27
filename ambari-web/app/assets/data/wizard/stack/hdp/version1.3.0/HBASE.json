@@ -1,0 +1,293 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/zookeeper_sessiontimeout",
+      "StackConfigurations" : {
+        "property_description" : "ZooKeeper Session Timeout",
+        "property_value" : "60000",
+        "stack_version" : "1.3.0",
+        "property_name" : "zookeeper_sessiontimeout",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_master_heapsize",
+      "StackConfigurations" : {
+        "property_description" : "HBase Master Heap Size",
+        "property_value" : "1024",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase_master_heapsize",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hstore_compactionthreshold",
+      "StackConfigurations" : {
+        "property_description" : "HBase HStore compaction threshold.",
+        "property_value" : "3",
+        "stack_version" : "1.3.0",
+        "property_name" : "hstore_compactionthreshold",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hfile_blockcache_size",
+      "StackConfigurations" : {
+        "property_description" : "HFile block cache size.",
+        "property_value" : "0.25",
+        "stack_version" : "1.3.0",
+        "property_name" : "hfile_blockcache_size",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/security.client.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for HRegionInterface protocol implementations (ie. \n    clients talking to HRegionServers)\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\". \n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.3.0",
+        "property_name" : "security.client.protocol.acl",
+        "service_name" : "HBASE",
+        "type" : "hbase-policy.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hregion_blockmultiplier",
+      "StackConfigurations" : {
+        "property_description" : "HBase Region Block Multiplier",
+        "property_value" : "2",
+        "stack_version" : "1.3.0",
+        "property_name" : "hregion_blockmultiplier",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase.zookeeper.useMulti",
+      "StackConfigurations" : {
+        "property_description" : "Instructs HBase to make use of ZooKeeper's multi-update functionality.\n    This allows certain ZooKeeper operations to complete more quickly and prevents some issues\n    with rare Replication failure scenarios (see the release note of HBASE-2611 for an example).В·\n    IMPORTANT: only set this to true if all ZooKeeper servers in the cluster are on version 3.4+\n    and will not be downgraded.  ZooKeeper versions before 3.4 do not support multi-update and will\n    not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).\n    ",
+        "property_value" : "true",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase.zookeeper.useMulti",
+        "service_name" : "HBASE",
+        "type" : "hbase-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase.superuser",
+      "StackConfigurations" : {
+        "property_description" : "List of users or groups (comma-separated), who are allowed full privileges, regardless of stored ACLs, across the cluster.Only used when HBase security is enabled.\n",
+        "property_value" : "hbase",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase.superuser",
+        "service_name" : "HBASE",
+        "type" : "hbase-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_conf_dir",
+      "StackConfigurations" : {
+        "property_description" : "Config Directory for HBase.",
+        "property_value" : "/etc/hbase",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase_conf_dir",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase.zookeeper.property.clientPort",
+      "StackConfigurations" : {
+        "property_description" : "Property from ZooKeeper's config zoo.cfg.\n    The port at which the clients will connect.\n    ",
+        "property_value" : "2181",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase.zookeeper.property.clientPort",
+        "service_name" : "HBASE",
+        "type" : "hbase-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_log_dir",
+      "StackConfigurations" : {
+        "property_description" : "Log Directories for HBase.",
+        "property_value" : "/var/log/hbase",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase_log_dir",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_tmp_dir",
+      "StackConfigurations" : {
+        "property_description" : "Hbase temp directory",
+        "property_value" : "/var/log/hbase",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase_tmp_dir",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hfile_max_keyvalue_size",
+      "StackConfigurations" : {
+        "property_description" : "HBase Client Maximum key-value Size",
+        "property_value" : "10485760",
+        "stack_version" : "1.3.0",
+        "property_name" : "hfile_max_keyvalue_size",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_regionserver_heapsize",
+      "StackConfigurations" : {
+        "property_description" : "Log Directories for HBase.",
+        "property_value" : "1024",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase_regionserver_heapsize",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hregion_majorcompaction",
+      "StackConfigurations" : {
+        "property_description" : "HBase Major Compaction.",
+        "property_value" : "86400000",
+        "stack_version" : "1.3.0",
+        "property_name" : "hregion_majorcompaction",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/client_scannercaching",
+      "StackConfigurations" : {
+        "property_description" : "Base Client Scanner Caching",
+        "property_value" : "100",
+        "stack_version" : "1.3.0",
+        "property_name" : "client_scannercaching",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/security.masterregion.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for HMasterRegionInterface protocol implementations\n    (for HRegionServers communicating with HMaster)\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\". \n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.3.0",
+        "property_name" : "security.masterregion.protocol.acl",
+        "service_name" : "HBASE",
+        "type" : "hbase-policy.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase.cluster.distributed",
+      "StackConfigurations" : {
+        "property_description" : "The mode the cluster will be in. Possible values are\n      false for standalone mode and true for distributed mode.  If\n      false, startup will run all HBase and ZooKeeper daemons together\n      in the one JVM.\n    ",
+        "property_value" : "true",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase.cluster.distributed",
+        "service_name" : "HBASE",
+        "type" : "hbase-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase.master.lease.thread.wakefrequency",
+      "StackConfigurations" : {
+        "property_description" : "The interval between checks for expired region server leases.\n    This value has been reduced due to the other reduced values above so that\n    the master will notice a dead region server sooner. The default is 15 seconds.\n    ",
+        "property_value" : "3000",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase.master.lease.thread.wakefrequency",
+        "service_name" : "HBASE",
+        "type" : "hbase-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/regionserver_handlers",
+      "StackConfigurations" : {
+        "property_description" : "HBase RegionServer Handler",
+        "property_value" : "30",
+        "stack_version" : "1.3.0",
+        "property_name" : "regionserver_handlers",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase.regionserver.optionalcacheflushinterval",
+      "StackConfigurations" : {
+        "property_description" : "\n      Amount of time to wait since the last time a region was flushed before\n      invoking an optional cache flush. Default 60,000.\n    ",
+        "property_value" : "10000",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase.regionserver.optionalcacheflushinterval",
+        "service_name" : "HBASE",
+        "type" : "hbase-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hbase_pid_dir",
+      "StackConfigurations" : {
+        "property_description" : "Log Directories for HBase.",
+        "property_value" : "/var/run/hbase",
+        "stack_version" : "1.3.0",
+        "property_name" : "hbase_pid_dir",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/hstorefile_maxsize",
+      "StackConfigurations" : {
+        "property_description" : "Maximum HStoreFile Size",
+        "property_value" : "1073741824",
+        "stack_version" : "1.3.0",
+        "property_name" : "hstorefile_maxsize",
+        "service_name" : "HBASE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HBASE/configurations/security.admin.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for HMasterInterface protocol implementation (ie. \n    clients talking to HMaster for admin operations).\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\". \n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.3.0",
+        "property_name" : "security.admin.protocol.acl",
+        "service_name" : "HBASE",
+        "type" : "hbase-policy.xml",
+        "stack_name" : "HDP"
+      }
+    }
+  ]
+}

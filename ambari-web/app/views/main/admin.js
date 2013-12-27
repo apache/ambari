@@ -21,28 +21,39 @@ var App = require('app');
 App.MainAdminView = Em.View.extend({
   templateName: require('templates/main/admin'),
   selectedBinding: 'controller.category',
-  categories: [
-    {
+  categories: function() {
+    var items = [{
       name: 'user',
-      url: 'adminUser',
+      url: 'admin.index',
       label: Em.I18n.t('common.users')
-    },
-    {
-      name: 'security',
-      url: 'adminSecurity.index',
-      label: Em.I18n.t('common.security')
-    },
-    {
+    }];
+    if (App.get('isHadoop2Stack') && App.supports.highAvailability) {
+      items.push({
+        name: 'highAvailability',
+        url: 'adminHighAvailability',
+        label: Em.I18n.t('admin.highAvailability')
+      });
+    }
+    if (App.supports.secureCluster) {
+      items.push({
+        name: 'security',
+        url: 'adminSecurity.index',
+        label: Em.I18n.t('common.security')
+      });
+    };
+    items.push({
       name: 'cluster',
       url: 'adminCluster',
       label: Em.I18n.t('common.cluster')
-    },
-    {
+    });
+    items.push({
       name: 'misc',
       url: 'adminMisc',
       label: Em.I18n.t('common.misc')
-    }
-  ],
+    });
+    return items;
+  }.property(''),
+
   NavItemView: Ember.View.extend({
     tagName: 'li',
     classNameBindings: 'isActive:active'.w(),

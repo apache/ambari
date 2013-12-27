@@ -104,7 +104,7 @@ module.exports = Em.Route.extend({
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       App.clusterStatus.setClusterStatus({
         clusterName: controller.get('content.cluster.name'),
-        clusterState: 'STACK_UPGRADE_COMPLETED',
+        clusterState: 'DEFAULT',
         wizardControllerName: 'stackUpgradeController',
         localdb: App.db.data
       });

@@ -59,5 +59,92 @@ module.exports = {
       return str[1].toUpperCase();
     }
     return new_name;
+  },
+  /**
+   * Compare two versions by following rules:
+   * first higher than second then return 1
+   * first lower than second then return -1
+   * first equal to second then return 0
+   * @param first {string}
+   * @param second {string}
+   * @return {number}
+   */
+  compareVersions: function(first, second){
+    if (!(typeof first === 'string' && typeof second === 'string')) {
+      return false;
+    }
+    if (first === '' || second === '') {
+      return false;
+    }
+    var firstNumbers = first.split('.');
+    var secondNumbers = second.split('.');
+    var length = 0;
+    var i = 0;
+    var result = false;
+    if(firstNumbers.length === secondNumbers.length) {
+      length = firstNumbers.length;
+    } else if(firstNumbers.length < secondNumbers.length){
+      length = secondNumbers.length;
+    } else {
+      length = firstNumbers.length;
+    }
+
+    while(i < length && !result){
+      firstNumbers[i] = (firstNumbers[i] === undefined) ? 0 : window.parseInt(firstNumbers[i]);
+      secondNumbers[i] = (secondNumbers[i] === undefined) ? 0 : window.parseInt(secondNumbers[i]);
+      if(firstNumbers[i] > secondNumbers[i]){
+        result = 1;
+        break;
+      } else if(firstNumbers[i] === secondNumbers[i]){
+        result = 0;
+      } else if(firstNumbers[i] < secondNumbers[i]){
+        result = -1;
+        break;
+      }
+      i++;
+    }
+    return result;
+  },
+
+  isSingleLine: function(string){
+    return String(string).trim().indexOf("\n") == -1;
+  },
+  /**
+   * transform array of objects into CSV format content
+   * @param array
+   * @return {Array}
+   */
+  arrayToCSV: function(array){
+    var content = "";
+    array.forEach(function(item){
+      var row = [];
+      for(var i in item){
+        if(item.hasOwnProperty(i)){
+          row.push(item[i]);
+        }
+      }
+      content += row.join(',') + '\n';
+    });
+    return content;
+  },
+
+  /**
+   * Extracts filename from linux/unix path
+   * @param path
+   * @return {string}: filename
+   */
+  getFileFromPath: function(path) {
+    if (!path || typeof path !== 'string') {
+      return '';
+    }
+    return path.replace(/^.*[\/]/, '');
+  },
+
+  getPath: function(path) {
+    if (!path || typeof path !== 'string' || path[0] != '/') {
+      return '';
+    }
+    var last_slash = path.lastIndexOf('/');
+    return (last_slash!=0)?path.substr(0,last_slash):'/';
   }
 }

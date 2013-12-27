@@ -45,7 +45,7 @@ public class ServiceServiceTest extends BaseServiceTest {
     Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "serviceName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //getService
+    //getServices
     service = new TestServiceService("clusterName", null);
     m = service.getClass().getMethod("getServices", HttpHeaders.class, UriInfo.class);
     args = new Object[] {getHttpHeaders(), getUriInfo()};

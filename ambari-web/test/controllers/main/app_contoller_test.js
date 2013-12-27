@@ -17,14 +17,10 @@
  */
 
 
- var App = require('app');
-  require('controllers/main/apps_controller');
-/* require('models/cluster');
- require('models/service');
- require('models/pagination');
- require('controllers/main/host');*/
+var App = require('app');
+require('controllers/main/apps_controller');
 
- describe('MainAppsController', function () {
+describe('MainAppsController', function () {
 
 
    describe('#iTotalDisplayRecordsObserver()', function () {
@@ -66,42 +62,6 @@
      })
    });
 
-   describe('#filterObject.onInputChange()', function () {
-     it('should set minInputBytes,maxInputBytes of filterObject when changing value of filterObject.input', function () {
-       var mainAppsController = App.MainAppsController.create();
-       mainAppsController.set("filterObject.input", ">3gb");
-       expect(mainAppsController.get('filterObject.minInputBytes')).to.equal(3215856763);
-       expect(mainAppsController.get('filterObject.maxInputBytes')).to.equal("");
-       mainAppsController.set("filterObject.input", "<6m");
-       expect(mainAppsController.get('filterObject.minInputBytes')).to.equal("");
-       expect(mainAppsController.get('filterObject.maxInputBytes')).to.equal(6343884);
-       mainAppsController.set("filterObject.input", "10kb");
-       expect(mainAppsController.get('filterObject.minInputBytes')).to.equal(10189);
-       expect(mainAppsController.get('filterObject.maxInputBytes')).to.equal(10291);
-       mainAppsController.set("filterObject.input", "1");
-       expect(mainAppsController.get('filterObject.minInputBytes')).to.equal(1024);
-       expect(mainAppsController.get('filterObject.maxInputBytes')).to.equal(1075);
-     })
-   });
-
-   describe('#filterObject.onOutputChange()', function () {
-     it('should set minOutputBytes,maxOutputBytes of filterObject when changing value of filterObject.output', function () {
-       var mainAppsController = App.MainAppsController.create();
-       mainAppsController.set("filterObject.output", ">3gb");
-       expect(mainAppsController.get('filterObject.minOutputBytes')).to.equal(3215856763);
-       expect(mainAppsController.get('filterObject.maxOutputBytes')).to.equal("");
-       mainAppsController.set("filterObject.output", "<6m");
-       expect(mainAppsController.get('filterObject.minOutputBytes')).to.equal("");
-       expect(mainAppsController.get('filterObject.maxOutputBytes')).to.equal(6343884);
-       mainAppsController.set("filterObject.output", "10kb");
-       expect(mainAppsController.get('filterObject.minOutputBytes')).to.equal(10189);
-       expect(mainAppsController.get('filterObject.maxOutputBytes')).to.equal(10291);
-       mainAppsController.set("filterObject.output", "1");
-       expect(mainAppsController.get('filterObject.minOutputBytes')).to.equal(1024);
-       expect(mainAppsController.get('filterObject.maxOutputBytes')).to.equal(1075);
-     })
-   });
-
    describe('#filterObject.onDurationChange()', function () {
      it('should set minDuration,maxDuration of filterObject when changing value of filterObject.duration', function () {
        var mainAppsController = App.MainAppsController.create();
@@ -139,18 +99,15 @@
    });
 
    describe('#filterObject.createAppLink(), #filterObject.valueObserver()', function () {
+     var mainAppsController = App.MainAppsController.create();
+     mainAppsController.set('content.length', 20);
      it('should set runUrl of filterObject when changing value for any filter', function () {
-       var mainAppsController = App.MainAppsController.create();
        mainAppsController.set("filterObject.sSearch_0", "0");
        mainAppsController.set("filterObject.sSearch_1", "workflowName");
        mainAppsController.set("filterObject.sSearch_2", "pig");
        mainAppsController.set("filterObject.sSearch_3", "admin");
        mainAppsController.set("filterObject.minJobs", "1");
        mainAppsController.set("filterObject.maxJobs", "2");
-       mainAppsController.set("filterObject.minInputBytes", "2000");
-       mainAppsController.set("filterObject.maxInputBytes", "3000");
-       mainAppsController.set("filterObject.minOutputBytes", "1500");
-       mainAppsController.set("filterObject.maxOutputBytes", "2000");
        mainAppsController.set("filterObject.minDuration", "1000");
        mainAppsController.set("filterObject.maxDuration", "2000");
        mainAppsController.set("filterObject.minStartTime", "999");
@@ -167,10 +124,6 @@
            "&sSearch_3=admin" +
            "&minJobs=1" +
            "&maxJobs=2" +
-           "&minInputBytes=2000" +
-           "&maxInputBytes=3000" +
-           "&minOutputBytes=1500" +
-           "&maxOutputBytes=2000" +
            "&minDuration=1000" +
            "&maxDuration=2000" +
            "&minStartTime=999" +
@@ -180,8 +133,30 @@
            "&iDisplayStart=10" +
            "&iSortCol_0=1" +
            "&sSortDir_0=ASC");
-     })
+       expect(mainAppsController.get('filterObject.viewType')).to.equal('filtered');
+     });
+
+     it('should set viewType to "all" when set iDisplayLength, iDisplayStart, iSortCol_0, sSortDir_0', function () {
+       mainAppsController.set("filterObject.sSearch_0", "");
+       mainAppsController.set("filterObject.sSearch_1", "");
+       mainAppsController.set("filterObject.sSearch_2", "");
+       mainAppsController.set("filterObject.sSearch_3", "");
+       mainAppsController.set("filterObject.minJobs", "");
+       mainAppsController.set("filterObject.maxJobs", "");
+       mainAppsController.set("filterObject.minDuration", "");
+       mainAppsController.set("filterObject.maxDuration", "");
+       mainAppsController.set("filterObject.minStartTime", "");
+       mainAppsController.set("filterObject.maxStartTime", "");
+       mainAppsController.set("filterObject.sSearch", "");
+       mainAppsController.set("filterObject.iDisplayLength", "10");
+       mainAppsController.set("filterObject.iDisplayStart", "10");
+       mainAppsController.set("filterObject.iSortCol_0", "1");
+       mainAppsController.set("filterObject.sSortDir_0", "ASC");
+       expect(mainAppsController.get('filterObject.viewType')).to.equal('all');
+     });
    });
+
+
 
 
  });

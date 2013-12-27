@@ -21,8 +21,11 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
+import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.resources.*;
+import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.slf4j.Logger;
@@ -65,6 +68,11 @@ public abstract class BaseRequest implements Request {
    * Associated resource definition
    */
   private ResourceInstance m_resource;
+
+  /**
+   * Default page size for pagination request.
+   */
+  private static final int DEFAULT_PAGE_SIZE = 20;
 
   /**
    *  Logger instance.
@@ -137,7 +145,7 @@ public abstract class BaseRequest implements Request {
   @Override
   public Map<String, TemporalInfo> getFields() {
     Map<String, TemporalInfo> mapProperties;
-    String partialResponseFields = m_uriInfo.getQueryParameters().getFirst("fields");
+    String partialResponseFields = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_FIELDS);
     if (partialResponseFields == null) {
       mapProperties = Collections.emptyMap();
     } else {
@@ -183,10 +191,53 @@ public abstract class BaseRequest implements Request {
   }
 
   @Override
+  public PageRequest getPageRequest() {
+
+    String pageSize = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_PAGE_SIZE);
+    String from     = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_FROM);
+    String to       = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_TO);
+
+    if (pageSize == null && from == null && to == null) {
+      return null;
+    }
+
+    int offset = 0;
+    PageRequest.StartingPoint startingPoint;
+
+    // TODO : support other starting points
+    if (from != null) {
+      if(from.equals("start")) {
+        startingPoint = PageRequest.StartingPoint.Beginning;
+      } else {
+        offset = Integer.valueOf(from);
+        startingPoint = PageRequest.StartingPoint.OffsetStart;
+      }
+    } else if (to != null ) {
+      if (to.equals("end")) {
+        startingPoint = PageRequest.StartingPoint.End;
+      } else {
+        offset = Integer.valueOf(to);
+        startingPoint = PageRequest.StartingPoint.OffsetEnd;
+      }
+    } else {
+      startingPoint = PageRequest.StartingPoint.Beginning;
+    }
+
+    // TODO : support predicate and comparator
+    return new PageRequestImpl(startingPoint,
+        pageSize == null ? DEFAULT_PAGE_SIZE : Integer.valueOf(pageSize), offset, null, null);
+  }
+
+  @Override
+  public boolean isMinimal() {
+    String minimal = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_MINIMAL);
+    return minimal != null && minimal.equalsIgnoreCase("true");
+  }
+
+  @Override
   public RequestBody getBody() {
     return m_body;
   }
-
 
   /**
    * Obtain the result post processor for the request.
@@ -207,7 +258,6 @@ public abstract class BaseRequest implements Request {
   protected PredicateCompiler getPredicateCompiler() {
     return new PredicateCompiler();
   }
-
 
   /**
    * Parse the query string and compile it into a predicate.

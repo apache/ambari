@@ -28,7 +28,8 @@ class hdp-nagios::server(
   $plugins_dir = $hdp-nagios::params::plugins_dir
   $nagios_obj_dir = $hdp-nagios::params::nagios_obj_dir
   $check_result_path = $hdp-nagios::params::check_result_path
-
+  $nagios_httpd_config_file = $hdp-nagios::params::httpd_conf_file
+  $pid_file = $hdp-nagios::params::nagios_pid_file
 
   if hdp_is_empty($hdp::params::pathes[nagios_p1_pl]) {
     hdp_fail("There is no path to p1.pl file for nagios")
@@ -99,10 +100,20 @@ class hdp-nagios::server(
 
   } elsif ($service_state in ['running','stopped','installed_and_configured']) {
     class { 'hdp-nagios::server::packages' : service_state => $service_state}
+  
+    file{ $nagios_httpd_config_file :
+      ensure => present,
+      owner => $nagios_user,
+      group => $nagios_group,
+      content => template("hdp-nagios/nagios.conf.erb"),
+      mode   => '0644'
+    }
 
     hdp::directory { $nagios_config_dir:
       service_state => $service_state,
-      force => true
+      force => true,
+      owner => $nagios_user,
+      group => $nagios_group
     }
 
     hdp::directory { $plugins_dir:
@@ -115,7 +126,7 @@ class hdp-nagios::server(
       force => true
     }
 
-	hdp::directory_recursive_create { $nagios_pid_dir:
+    hdp::directory_recursive_create { $nagios_pid_dir:
       service_state => $service_state,
       owner => $nagios_user,
       group => $nagios_group,
@@ -128,24 +139,42 @@ class hdp-nagios::server(
     hdp::directory_recursive_create { $nagios_var_dir:
       service_state => $service_state,
       force => true,
-      owner => $hdp-nagios::params::nagios_user,
-      group => $hdp-nagios::params::nagios_group
+      owner => $nagios_user,
+      group => $nagios_group
     }
-
+    
     hdp::directory_recursive_create { $check_result_path:
       service_state => $service_state,
       force => true,
-      owner => $hdp-nagios::params::nagios_user,
-      group => $hdp-nagios::params::nagios_group
+      owner => $nagios_user,
+      group => $nagios_group
     }
 
     hdp::directory_recursive_create { $nagios_rw_dir:
       service_state => $service_state,
       force => true,
-      owner => $hdp-nagios::params::nagios_user,
-      group => $hdp-nagios::params::nagios_group
+      owner => $nagios_user,
+      group => $nagios_group
     }
-	
+    
+    hdp::directory { $nagios_log_dir:
+      service_state => $service_state,
+      force => true,
+      owner => $nagios_user,
+      group => $nagios_group,
+      mode => '0755',
+      override_owner => true
+    }
+    
+    hdp::directory { $nagios_log_archives_dir:
+      service_state => $service_state,
+      force => true,
+      owner => $nagios_user,
+      group => $nagios_group,
+      mode => '0755',
+      override_owner => true
+    }
+
     if ($service_state == 'installed_and_configured') {
       $webserver_state = 'restart'
     } elsif ($service_state == 'running') {
@@ -167,17 +196,22 @@ class hdp-nagios::server(
     class { 'hdp-nagios::server::web_permisssions': }
 
     file { "$nagios_config_dir/command.cfg" :
-      owner => $hdp-nagios::params::nagios_user,
-      group => $hdp-nagios::params::nagios_group
+      owner => $nagios_user,
+      group => $nagios_group
     }
 
     class { 'hdp-nagios::server::services': ensure => $service_state}
-	
-	
-	Class['hdp-nagios::server::packages'] -> Class['hdp-nagios::server::enable_snmp']-> Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
-	Hdp::Directory[$nagios_obj_dir] -> Hdp::Directory_Recursive_Create[$nagios_var_dir] ->
-	Hdp::Directory_Recursive_Create[$check_result_path] -> Hdp::Directory_Recursive_Create[$nagios_rw_dir] ->
-	Class['hdp-nagios::server::config'] -> Class['hdp-nagios::server::web_permisssions'] -> File["$nagios_config_dir/command.cfg"] -> Class['hdp-nagios::server::services'] -> Class['hdp-monitor-webserver']
+
+    anchor{'hdp-nagios::server::begin':}
+    anchor{'hdp-nagios::server::end':}
+
+    Anchor['hdp-nagios::server::begin'] -> Class['hdp-nagios::server::packages'] -> File[$nagios_httpd_config_file] -> Class['hdp-nagios::server::enable_snmp']->
+    Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
+    Hdp::Directory[$nagios_obj_dir] -> Hdp::Directory_Recursive_Create[$nagios_var_dir] ->
+    Hdp::Directory_Recursive_Create[$check_result_path] -> Hdp::Directory_Recursive_Create[$nagios_rw_dir] ->
+    Hdp::Directory[$nagios_log_dir] -> Hdp::Directory[$nagios_log_archives_dir] ->
+    Class['hdp-nagios::server::config'] -> Class['hdp-nagios::server::web_permisssions'] ->
+    File["$nagios_config_dir/command.cfg"] -> Class['hdp-nagios::server::services'] -> Class['hdp-monitor-webserver'] -> Anchor['hdp-nagios::server::end']
 
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
@@ -219,18 +253,30 @@ class hdp-nagios::server::web_permisssions()
   file { "/etc/nagios/htpasswd.users" :
     owner => $hdp-nagios::params::nagios_user,
     group => $hdp-nagios::params::nagios_group,
-    mode  => '0750'
+    mode  => '0640'
   }
 
-  Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"]
+  if ($hdp::params::hdp_os_type == "suse") {
+    $command = "usermod -G $hdp-nagios::params::nagios_group wwwrun"
+  } else {
+    $command = "usermod -a -G $hdp-nagios::params::nagios_group apache"
+  }
+
+  hdp::exec { "apache_permissions_htpasswd.users" :
+    command => $command  
+  }
+
+  Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"] -> Hdp::Exec["apache_permissions_htpasswd.users"]
 }
 
 class hdp-nagios::server::services($ensure)
 {
+   $pid_file = $hdp-nagios::params::nagios_pid_file
+  
    if ($ensure == 'running') {
      $command = "service nagios start"
    } elsif ($ensure == 'stopped') {
-     $command = "service nagios stop"
+     $command = "service nagios stop && rm -f ${pid_file}"
    }
 
    if ($ensure in ['running','stopped']) {

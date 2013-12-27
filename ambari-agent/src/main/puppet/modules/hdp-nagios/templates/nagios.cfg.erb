@@ -147,7 +147,7 @@ status_update_interval=10
 # This determines the effective user that Nagios should run as.  
 # You can either supply a username or a UID.
 
-nagios_user=nagios
+nagios_user=<%=scope.function_hdp_template_var("nagios_user")%>
 
 
 
@@ -215,7 +215,7 @@ external_command_buffer_slots=4096
 # This is the lockfile that Nagios will use to store its PID number
 # in when it is running in daemon mode.
 
-lock_file=/var/run/nagios/nagios.pid
+lock_file=<%=scope.function_hdp_template_var("nagios_pid_file")%>
 
 
 
@@ -1141,7 +1141,7 @@ date_format=us
 # embedded Perl interpreter) is located.  If you didn't compile
 # Nagios with embedded Perl support, this option has no effect.
 
-p1_file = <%=nagios_p1_pl %>
+p1_file = <%=scope.function_hdp_template_var("::hdp-nagios::server::nagios_p1_pl") %>
 
 
 

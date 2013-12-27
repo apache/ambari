@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.4.1-SNAPSHOT</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -69,45 +69,105 @@
     <mailingLists>
         <mailingList>
             <name>User list</name>
-            <subscribe>mailto:ambari-user-subscribe@incubator.apache.org
+            <subscribe>mailto:user-subscribe@ambari.apache.org
             </subscribe>
-            <unsubscribe>mailto:ambari-user-unsubscribe@incubator.apache.org
+            <unsubscribe>mailto:user-unsubscribe@ambari.apache.org
             </unsubscribe>
-            <post>mailto:ambari-user@incubator.apache.org</post>
+            <post>mailto:user@ambari.apache.org</post>
             <archive></archive>
         </mailingList>
         <mailingList>
             <name>Development list</name>
-            <subscribe>mailto:ambari-dev-subscribe@incubator.apache.org
+            <subscribe>mailto:dev-subscribe@ambari.apache.org
             </subscribe>
-            <unsubscribe>mailto:ambari-dev-unsubscribe@incubator.apache.org
+            <unsubscribe>mailto:dev-unsubscribe@ambari.apache.org
             </unsubscribe>
-            <post>mailto:ambari-dev@incubator.apache.org</post>
+            <post>mailto:dev@ambari.apache.org</post>
             <archive></archive>
         </mailingList>
         <mailingList>
             <name>Commit list</name>
-            <subscribe>mailto:ambari-commits-subscribe@incubator.apache.org
+            <subscribe>mailto:commits-subscribe@ambari.apache.org
             </subscribe>
-            <unsubscribe>mailto:ambari-commits-unsubscribe@incubator.apache.org
+            <unsubscribe>mailto:commits-unsubscribe@ambari.apache.org
             </unsubscribe>
-            <post>mailto:ambari-commits@incubator.apache.org</post>
+            <post>mailto:commits@ambari.apache.org</post>
             <archive></archive>
         </mailingList>
     </mailingLists>
 
     <developers>
         <developer>
-            <id>omalley</id>
-            <name>Owen O'Malley</name>
-            <email>omalley@apache.org</email>
-            <timezone>-8</timezone>
+            <id>ababiichuk</id>
+            <name>Andrii Babiichuk</name>
+            <email>ababiichuk@apache.org</email>
+            <timezone>+2</timezone>
             <roles>
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks                
-            </organization>            
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>abaranchuk</id>
+            <name>Artem Baranchuk</name>
+            <email>abaranchuk@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>aonishuk</id>
+            <name>Andrew Onischuk</name>
+            <email>aonishuk@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>        
+        <developer>
+            <id>atkach</id>
+            <name>Andrii Tkach</name>
+            <email>atkach@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>akovalenko</id>
+            <name>Aleksandr Kovalenko</name>
+            <email>akovalenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>alexantonenko</id>
+            <name>Alex Antonenko</name>
+            <email>alexantonenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>berndf</id>
@@ -124,10 +184,22 @@
             <email>billie@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>croberts</id>
+            <name>Chad Roberts</name>
+            <email>croberts@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Red Hat
             </organization>
         </developer>
         <developer>            
@@ -141,6 +213,30 @@
             <organization>
                 Hortonworks                
             </organization>            
+        </developer>
+        <developer>
+            <id>dmitriusan</id>
+            <name>Dmitry Lysnichenko</name>
+            <email>dmitriusan@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>dsen</id>
+            <name>Dmitry Sen</name>
+            <email>dsen@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>eyang</id>
@@ -175,7 +271,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                                
+                WANdisco                
             </organization>            
         </developer>
         <developer>
@@ -184,7 +280,7 @@
             <email>jaimin@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -208,7 +304,7 @@
             <email>jspeidel@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -239,12 +335,60 @@
             </organization>            
         </developer>
         <developer>
+            <id>mpapirkovskyy</id>
+            <name>Myroslav Papyrkovskyy</name>
+            <email>mpapirkovskyy@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>ncole</id>
             <name>Nate Cole</name>
             <email>ncole@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>odiachenko</id>
+            <name>Oleksandr Diachenko</name>
+            <email>odiachenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>omalley</id>
+            <name>Owen O'Malley</name>
+            <email>omalley@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>onechiporenko</id>
+            <name>Oleg Nechiporenko</name>
+            <email>onechiporenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -268,10 +412,10 @@
             <email>reznor@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                - 
             </organization>            
         </developer>
         <developer>
@@ -280,7 +424,7 @@
             <email>smohanty@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -292,7 +436,7 @@
             <email>swagle@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -304,10 +448,22 @@
             <email>srimanth@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>subin</id>
+            <name>Subin Modeel</name>
+            <email>subin@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                HP
             </organization>
         </developer>
         <developer>
@@ -315,6 +471,18 @@
             <name>Thomas Beerbower</name>
             <email>tbeerbower@apache.org</email>
             <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>vbrodetskyi</id>
+            <name>Vitaly Brodetskyi</name>
+            <email>vbrodetskyi@apache.org</email>
+            <timezone>+2</timezone>
             <roles>
                 <role>Committer</role>
             </roles>
@@ -328,7 +496,7 @@
             <email>vikram@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -343,7 +511,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                Pivotal
             </organization>           
         </developer>
         <developer>
@@ -352,12 +520,24 @@
             <email>vinodkv@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks                
             </organization>
-        </developer>        
+        </developer>       
+        <developer>
+            <id>xiwang</id>
+            <name>Xi Wang</name>
+            <email>xiwang@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer> 
         <developer>
             <id>yusaku</id>
             <name>Yusaku Sako</name>

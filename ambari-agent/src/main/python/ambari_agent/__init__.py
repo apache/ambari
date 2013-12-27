@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -29,11 +29,4 @@ __author__ = [
 ]
 __license__ = "Apache License v2.0"
 __contributors__ = "see http://incubator.apache.org/ambari/contributors"
-
-import logging
-import logging.handlers
-import threading
-import sys
-import time
-import signal
 

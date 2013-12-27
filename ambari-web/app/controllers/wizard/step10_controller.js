@@ -70,7 +70,6 @@ App.WizardStep10Controller = Em.Controller.extend({
     var hostsInfo = [];
     for (var index in hosts) {
       hostsInfo.pushObject(hosts[index]);
-      console.log('Step10 SUMMARY: value of hosts is: ' + hosts[index].status);
     }
     var succeededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
@@ -100,7 +99,6 @@ App.WizardStep10Controller = Em.Controller.extend({
         } else if (this.get('content.cluster.status') === 'START FAILED') {
           clusterState = Em.I18n.t('installer.step10.clusterState.starting');
         }
-        console.log('host value is: ' + JSON.stringify(_host));
         var failedTasks = _host.tasks.filterProperty('Tasks.status', 'FAILED');
         failedTasks.forEach(function (_task) {
           var taskStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;
@@ -167,6 +165,12 @@ App.WizardStep10Controller = Em.Controller.extend({
         case 'JOBTRACKER' :
           this.loadJt(component);
           break;
+        case 'HISTORYSERVER':
+          this.loadHS(component);
+          break;
+        case 'RESOURCEMANAGER':
+          this.loadRM(component);
+          break;
         case 'ZOOKEEPER_SERVER' :
           // TODO: Fix this; redundant entries and wrong number
           //this.loadZk(component);
@@ -189,6 +193,32 @@ App.WizardStep10Controller = Em.Controller.extend({
       }
     }, this);
     return true;
+  },
+
+  loadHS: function (component) {
+    if (component.get('hostName')) {
+      var statement = Em.I18n.t('installer.step10.master.historyServer') + component.get('hostName');
+      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
+        id: 1,
+        color: 'text-info',
+        displayStatement: statement
+      }));
+    } else {
+      console.log('ERROR: no host name assigned to HistoryServer component');
+    }
+  },
+
+  loadRM: function (component) {
+    if (component.get('hostName')) {
+      var statement = Em.I18n.t('installer.step10.master.resourceManager') + component.get('hostName');
+      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
+        id: 1,
+        color: 'text-info',
+        displayStatement: statement
+      }));
+    } else {
+      console.log('ERROR: no host name assigned to ResourceManager component');
+    }
   },
 
   loadNn: function (component) {
@@ -343,16 +373,14 @@ App.WizardStep10Controller = Em.Controller.extend({
   },
 
   loadInstallTime: function () {
-    var secondsPerMinute = 60;
     var statement;
+    var time;
     if (this.get('content.cluster.installTime')) {
-      var minutes = Math.floor(this.get('content.cluster.installTime'));
-      var seconds = Math.floor((this.get('content.cluster.installTime') - minutes) * secondsPerMinute);
-      var statement;
-      if (minutes !== 0) {
-        statement = Em.I18n.t('installer.step10.installTime.minutes').format(minutes, seconds);
+      time = this.calculateInstallTime(this.get('content.cluster.installTime'));
+      if (time.minutes !== 0) {
+        statement = Em.I18n.t('installer.step10.installTime.minutes').format(time.minutes, time.seconds);
       } else {
-        statement = Em.I18n.t('installer.step10.installTime.seconds').format(seconds);
+        statement = Em.I18n.t('installer.step10.installTime.seconds').format(time.seconds);
       }
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 5,
@@ -360,6 +388,15 @@ App.WizardStep10Controller = Em.Controller.extend({
         displayStatement: statement,
         status: []
       }));
+    }
+  },
+  calculateInstallTime: function(installTime){
+    var secondsPerMinute = 60;
+    var minutes = Math.floor(installTime);
+    var seconds = Math.floor((installTime - minutes) * secondsPerMinute);
+    return {
+      minutes: minutes,
+      seconds: seconds
     }
   }
 });

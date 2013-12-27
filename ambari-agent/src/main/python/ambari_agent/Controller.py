@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,34 +19,34 @@ limitations under the License.
 '''
 
 import logging
-import logging.handlers
 import signal
 import json
-import hostname
-import sys, traceback
+import sys
+import os
 import time
 import threading
 import urllib2
-from urllib2 import Request, urlopen, URLError
-import httplib
-import ssl
-import AmbariConfig
 import pprint
+from random import randint
+
+import hostname
+import AmbariConfig
 import ProcessHelper
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
-from optparse import OptionParser
-from wsgiref.simple_server import ServerHandler
 import security
 from NetUtil import NetUtil
-from random import randrange, randint
+import ssl
+
 
 logger = logging.getLogger()
 
+AGENT_AUTO_RESTART_EXIT_CODE = 77
+
 class Controller(threading.Thread):
 
-  def __init__(self, config, range=120):
+  def __init__(self, config, range=30):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     self.lock = threading.Lock()
@@ -60,16 +60,14 @@ class Controller(threading.Thread):
     self.netutil = NetUtil()
     self.responseId = -1
     self.repeatRegistration = False
+    self.isRegistered = False
     self.cachedconnect = None
     self.range = range
+    self.hasMappedComponents = True
+    # Event is used for synchronizing heartbeat iterations (to make possible
+    # manual wait() interruption between heartbeats )
+    self.heartbeat_wait_event = threading.Event()
 
-  def start(self):
-    self.actionQueue = ActionQueue(self.config)
-    self.actionQueue.start()
-    self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue)
-    pass
-  
   def __del__(self):
     logger.info("Server connection disconnected.")
     pass
@@ -77,26 +75,45 @@ class Controller(threading.Thread):
   def registerWithServer(self):
     retry=False
     firstTime=True
-    registered=False
     id = -1
     ret = {}
 
-    while not registered:
+    while not self.isRegistered:
       try:
         data = json.dumps(self.register.build(id))
         logger.info("Registering with the server " + pprint.pformat(data))
         response = self.sendRequest(self.registerUrl, data)
         ret = json.loads(response)
-
+        exitstatus = 0
+        # exitstatus is a code of error which was rised on server side.
+        # exitstatus = 0 (OK - Default)
+        # exitstatus = 1 (Registration failed because
+        #                different version of agent and server)
+        if 'exitstatus' in ret.keys():
+          exitstatus = int(ret['exitstatus'])
+        # log - message, which will be printed to agents  log  
+        if 'log' in ret.keys():
+          log = ret['log']
+        if exitstatus == 1:
+          logger.error(log)
+          self.isRegistered = False
+          self.repeatRegistration=False
+          return ret
         logger.info("Registered with the server with " + pprint.pformat(ret))
         print("Registered with the server")
         self.responseId= int(ret['responseId'])
-        registered = True
+        self.isRegistered = True
         if 'statusCommands' in ret.keys():
           logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']) )
           self.addToQueue(ret['statusCommands'])
           pass
+        else:
+          self.hasMappedComponents = False
         pass
+      except ssl.SSLError:
+        self.repeatRegistration=False
+        self.isRegistered = False
+        return
       except Exception, err:
         # try a reconnect only after a certain amount of random time
         delay = randint(0, self.range)
@@ -116,18 +133,13 @@ class Controller(threading.Thread):
       logger.debug("No commands from the server : " + pprint.pformat(commands))
     else:
       """Only add to the queue if not empty list """
-      for command in commands:
-        logger.debug("Adding command to the action queue: \n" +\
-                     pprint.pformat(command))
-        self.actionQueue.put(command)
-        pass
-      pass
+      self.actionQueue.put(commands)
     pass
 
   # For testing purposes
   DEBUG_HEARTBEAT_RETRIES = 0
   DEBUG_SUCCESSFULL_HEARTBEATS = 0
-  DEBUG_STOP_HEARTBITTING = False
+  DEBUG_STOP_HEARTBEATING = False
 
   def heartbeatWithServer(self):
     self.DEBUG_HEARTBEAT_RETRIES = 0
@@ -140,10 +152,12 @@ class Controller(threading.Thread):
 
     #TODO make sure the response id is monotonically increasing
     id = 0
-    while not self.DEBUG_STOP_HEARTBITTING:
+    while not self.DEBUG_STOP_HEARTBEATING:
       try:
         if not retry:
-          data = json.dumps(self.heartbeat.build(self.responseId, int(hb_interval)))
+          data = json.dumps(
+              self.heartbeat.build(self.responseId, int(hb_interval), self.hasMappedComponents))
+          logger.debug("Sending request: " + data)
           pass
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1
@@ -154,10 +168,14 @@ class Controller(threading.Thread):
         
         serverId=int(response['responseId'])
 
+        if 'hasMappedComponents' in response.keys():
+          self.hasMappedComponents = response['hasMappedComponents'] != False
+
         if 'registrationCommand' in response.keys():
           # check if the registration command is None. If none skip
           if response['registrationCommand'] is not None:
             logger.info("RegistrationCommand received - repeat agent registration")
+            self.isRegistered = False
             self.repeatRegistration = True
             return
 
@@ -170,7 +188,7 @@ class Controller(threading.Thread):
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
           pass
-        if 'statusCommands' in response.keys():
+        if 'statusCommands' in response.keys() and self.actionQueue.empty():
           self.addToQueue(response['statusCommands'])
           pass
         if "true" == response['restartAgent']:
@@ -187,6 +205,11 @@ class Controller(threading.Thread):
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
         self.DEBUG_HEARTBEAT_RETRIES = 0
+        self.heartbeat_wait_event.clear()
+      except ssl.SSLError:
+        self.repeatRegistration=False
+        self.isRegistered = False
+        return
       except Exception, err:
         #randomize the heartbeat
         delay = randint(0, self.range)
@@ -203,13 +226,21 @@ class Controller(threading.Thread):
             certVerifFailed = True
         self.cachedconnect = None # Previous connection is broken now
         retry=True
-      if self.actionQueue.isIdle():
-        time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
-      else:
-        time.sleep(self.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC)
+      # Sleep for some time
+      timeout = self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC \
+                - self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS
+      self.heartbeat_wait_event.wait(timeout = timeout)
+      # Sleep a bit more to allow STATUS_COMMAND results to be collected
+      # and sent in one heartbeat. Also avoid server overload with heartbeats
+      time.sleep(self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
     pass
 
   def run(self):
+    self.actionQueue = ActionQueue(self.config, controller=self)
+    self.actionQueue.start()
+    self.register = Register(self.config)
+    self.heartbeat = Heartbeat(self.actionQueue, self.config)
+
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)
 
@@ -225,11 +256,12 @@ class Controller(threading.Thread):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
     logger.info("Response from server = " + message)
-    time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
-    self.heartbeatWithServer()
+    if self.isRegistered:
+     time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
+     self.heartbeatWithServer()
 
   def restartAgent(self):
-    ProcessHelper.restartAgent()
+    os._exit(AGENT_AUTO_RESTART_EXIT_CODE)
     pass
 
   def sendRequest(self, url, data):

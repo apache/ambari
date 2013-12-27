@@ -18,33 +18,117 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import org.apache.ambari.server.*;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
+import com.google.gson.Gson;
+import com.google.inject.Injector;
 
 /**
  * AmbariManagementControllerImpl unit tests
  */
 public class AmbariManagementControllerImplTest {
 
+
+  @Test
+  public void testgetAmbariServerURI() throws Exception {
+    // create mocks
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+
+    // set expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    
+    //replay
+    replay(injector);
+    
+    
+    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, null, injector);
+    
+    class AmbariConfigsSetter{
+       public void setConfigs(AmbariManagementController controller, String masterProtocol, String masterHostname, Integer masterPort) throws Exception{
+         // masterProtocol
+         Class<?> c = controller.getClass();
+         Field f = c.getDeclaredField("masterProtocol");
+         f.setAccessible(true);
+         
+         Field modifiersField = Field.class.getDeclaredField("modifiers");
+         modifiersField.setAccessible(true);
+         modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+         
+         f.set(controller, masterProtocol);
+         
+         // masterHostname
+         f = c.getDeclaredField("masterHostname");
+         f.setAccessible(true);
+         
+         modifiersField = Field.class.getDeclaredField("modifiers");
+         modifiersField.setAccessible(true);
+         modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+         
+         f.set(controller, masterHostname);
+         
+         // masterPort
+         f = c.getDeclaredField("masterPort");
+         f.setAccessible(true);
+         
+         modifiersField = Field.class.getDeclaredField("modifiers");
+         modifiersField.setAccessible(true);
+         modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+         
+         f.set(controller, masterPort);
+       }
+    }
+
+    AmbariConfigsSetter ambariConfigsSetter = new AmbariConfigsSetter();
+    
+    ambariConfigsSetter.setConfigs(controller, "http", "hostname", 8080);
+    assertEquals("http://hostname:8080/jdk_path", controller.getAmbariServerURI("/jdk_path"));
+    
+    ambariConfigsSetter.setConfigs(controller, "https", "somesecuredhost", 8443);
+    assertEquals("https://somesecuredhost:8443/mysql_path", controller.getAmbariServerURI("/mysql_path"));
+
+    ambariConfigsSetter.setConfigs(controller, "https", "othersecuredhost", 8443);
+    assertEquals("https://othersecuredhost:8443/oracle/ojdbc/", controller.getAmbariServerURI("/oracle/ojdbc/"));
+    
+    verify(injector);
+  }
+  
   @Test
   public void testGetClusters() throws Exception {
     // member state mocks
@@ -181,514 +265,6 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
-  public void testGetServices() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceResponse response = createNiceMock(ServiceResponse.class);
-
-    // requests
-    ServiceRequest request1 = new ServiceRequest("cluster1", "service1", Collections.<String, String>emptyMap(), null);
-
-    Set<ServiceRequest> setRequests = new HashSet<ServiceRequest>();
-    setRequests.add(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getServices
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andReturn(service);
-
-    expect(service.convertToResponse()).andReturn(response);
-    // replay mocks
-    replay(injector, clusters, cluster, service, response);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    Set<ServiceResponse> setResponses = controller.getServices(setRequests);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    assertEquals(1, setResponses.size());
-    assertTrue(setResponses.contains(response));
-
-    verify(injector, clusters, cluster, service, response);
-  }
-
-  /**
-   * Ensure that ServiceNotFoundException is propagated in case where there is a single request.
-   */
-  @Test
-  public void testGetServices___ServiceNotFoundException() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-
-    // requests
-    ServiceRequest request1 = new ServiceRequest("cluster1", "service1", Collections.<String, String>emptyMap(), null);
-    Set<ServiceRequest> setRequests = new HashSet<ServiceRequest>();
-    setRequests.add(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getServices
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andThrow(new ServiceNotFoundException("custer1", "service1"));
-
-    // replay mocks
-    replay(injector, clusters, cluster);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-
-    // assert that exception is thrown in case where there is a single request
-    try {
-      controller.getServices(setRequests);
-      fail("expected ServiceNotFoundException");
-    } catch (ServiceNotFoundException e) {
-      // expected
-    }
-
-    assertSame(controller, controllerCapture.getValue());
-    verify(injector, clusters, cluster);
-  }
-
-  /**
-   * Ensure that ServiceNotFoundException is handled where there are multiple requests as would be the
-   * case when an OR predicate is provided in the query.
-   */
-  @Test
-  public void testGetServices___OR_Predicate_ServiceNotFoundException() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service1 = createNiceMock(Service.class);
-    Service service2 = createNiceMock(Service.class);
-    ServiceResponse response = createNiceMock(ServiceResponse.class);
-    ServiceResponse response2 = createNiceMock(ServiceResponse.class);
-
-    // requests
-    ServiceRequest request1 = new ServiceRequest("cluster1", "service1", Collections.<String, String>emptyMap(), null);
-    ServiceRequest request2 = new ServiceRequest("cluster1", "service2", Collections.<String, String>emptyMap(), null);
-    ServiceRequest request3 = new ServiceRequest("cluster1", "service3", Collections.<String, String>emptyMap(), null);
-    ServiceRequest request4 = new ServiceRequest("cluster1", "service4", Collections.<String, String>emptyMap(), null);
-
-    Set<ServiceRequest> setRequests = new HashSet<ServiceRequest>();
-    setRequests.add(request1);
-    setRequests.add(request2);
-    setRequests.add(request3);
-    setRequests.add(request4);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getServices
-    expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
-    expect(cluster.getService("service1")).andReturn(service1);
-    expect(cluster.getService("service2")).andThrow(new ServiceNotFoundException("cluster1", "service2"));
-    expect(cluster.getService("service3")).andThrow(new ServiceNotFoundException("cluster1", "service3"));
-    expect(cluster.getService("service4")).andReturn(service2);
-
-    expect(service1.convertToResponse()).andReturn(response);
-    expect(service2.convertToResponse()).andReturn(response2);
-    // replay mocks
-    replay(injector, clusters, cluster, service1, service2, response, response2);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    Set<ServiceResponse> setResponses = controller.getServices(setRequests);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    assertEquals(2, setResponses.size());
-    assertTrue(setResponses.contains(response));
-    assertTrue(setResponses.contains(response2));
-
-    verify(injector, clusters, cluster, service1, service2, response, response2);
-  }
-
-  @Test
-  public void testGetComponents() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
-    ServiceComponentResponse response = createNiceMock(ServiceComponentResponse.class);
-
-    // requests
-    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        Collections.<String, String>emptyMap(), null);
-
-    Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
-    setRequests.add(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getComponents
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andReturn(service);
-    expect(service.getServiceComponent("component1")).andReturn(component);
-
-    expect(component.convertToResponse()).andReturn(response);
-    // replay mocks
-    replay(injector, clusters, cluster, service, component, response);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    Set<ServiceComponentResponse> setResponses = controller.getComponents(setRequests);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    assertEquals(1, setResponses.size());
-    assertTrue(setResponses.contains(response));
-
-    verify(injector, clusters, cluster, service, component, response);
-  }
-
-  /**
-   * Ensure that ServiceComponentNotFoundException is propagated in case where there is a single request.
-   */
-  @Test
-  public void testGetComponents___ServiceComponentNotFoundException() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-
-    // requests
-    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        Collections.<String, String>emptyMap(), null);
-
-    Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
-    setRequests.add(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getComponents
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(cluster.getService("service1")).andReturn(service);
-    expect(service.getServiceComponent("component1")).andThrow(
-        new ServiceComponentNotFoundException("cluster1", "service1", "component1"));
-    // replay mocks
-    replay(injector, clusters, cluster, service);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-
-    // assert that exception is thrown in case where there is a single request
-    try {
-      controller.getComponents(setRequests);
-      fail("expected ServiceComponentNotFoundException");
-    } catch (ServiceComponentNotFoundException e) {
-      // expected
-    }
-
-    assertSame(controller, controllerCapture.getValue());
-    verify(injector, clusters, cluster, service);
-  }
-
-  /**
-   * Ensure that ServiceComponentNotFoundException is handled where there are multiple requests as would be the
-   * case when an OR predicate is provided in the query.
-   */
-  @Test
-  public void testGetComponents___OR_Predicate_ServiceComponentNotFoundException() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component1 = createNiceMock(ServiceComponent.class);
-    ServiceComponent component2 = createNiceMock(ServiceComponent.class);
-    ServiceComponentResponse response1 = createNiceMock(ServiceComponentResponse.class);
-    ServiceComponentResponse response2 = createNiceMock(ServiceComponentResponse.class);
-
-    // requests
-    ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        Collections.<String, String>emptyMap(), null);
-    ServiceComponentRequest request2 = new ServiceComponentRequest("cluster1", "service1", "component2",
-        Collections.<String, String>emptyMap(), null);
-    ServiceComponentRequest request3 = new ServiceComponentRequest("cluster1", "service1", "component3",
-        Collections.<String, String>emptyMap(), null);
-    ServiceComponentRequest request4 = new ServiceComponentRequest("cluster1", "service1", "component4",
-        Collections.<String, String>emptyMap(), null);
-
-    Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
-    setRequests.add(request1);
-    setRequests.add(request2);
-    setRequests.add(request3);
-    setRequests.add(request4);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getComponents
-    expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
-    expect(cluster.getService("service1")).andReturn(service).times(4);
-
-    expect(service.getServiceComponent("component1")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component1"));
-    expect(service.getServiceComponent("component2")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component2"));
-    expect(service.getServiceComponent("component3")).andReturn(component1);
-    expect(service.getServiceComponent("component4")).andReturn(component2);
-
-    expect(component1.convertToResponse()).andReturn(response1);
-    expect(component2.convertToResponse()).andReturn(response2);
-    // replay mocks
-    replay(injector, clusters, cluster, service, component1,  component2, response1, response2);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    Set<ServiceComponentResponse> setResponses = controller.getComponents(setRequests);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    assertEquals(2, setResponses.size());
-    assertTrue(setResponses.contains(response1));
-    assertTrue(setResponses.contains(response2));
-
-    verify(injector, clusters, cluster, service, component1,  component2, response1, response2);
-  }
-
-  @Test
-  public void testGetHosts() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Host host = createNiceMock(Host.class);
-    HostResponse response = createNiceMock(HostResponse.class);
-
-    Set<Cluster> setCluster = Collections.singleton(cluster);
-
-    // requests
-    HostRequest request1 = new HostRequest("host1", "cluster1", Collections.<String, String>emptyMap());
-
-    Set<HostRequest> setRequests = new HashSet<HostRequest>();
-    setRequests.add(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getHosts
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(clusters.getHost("host1")).andReturn(host);
-    expect(host.getHostName()).andReturn("host1").anyTimes();
-    expect(clusters.getClustersForHost("host1")).andReturn(setCluster);
-    expect(host.convertToResponse()).andReturn(response);
-    response.setClusterName("cluster1");
-
-    // replay mocks
-    replay(injector, clusters, cluster, host, response);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    Set<HostResponse> setResponses = controller.getHosts(setRequests);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    assertEquals(1, setResponses.size());
-    assertTrue(setResponses.contains(response));
-
-    verify(injector, clusters, cluster, host, response);
-  }
-
-  /**
-   * Ensure that HostNotFoundException is propagated in case where there is a single request.
-   */
-  @Test
-  public void testGetHosts___HostNotFoundException() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-
-    // requests
-    HostRequest request1 = new HostRequest("host1", "cluster1", Collections.<String, String>emptyMap());
-    Set<HostRequest> setRequests = Collections.singleton(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getHosts
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(clusters.getHost("host1")).andThrow(new HostNotFoundException("host1"));
-
-    // replay mocks
-    replay(injector, clusters, cluster);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-
-    // assert that exception is thrown in case where there is a single request
-    try {
-      controller.getHosts(setRequests);
-      fail("expected HostNotFoundException");
-    } catch (HostNotFoundException e) {
-      // expected
-    }
-    assertSame(controller, controllerCapture.getValue());
-    verify(injector, clusters, cluster);
-  }
-
-  /**
-   * Ensure that HostNotFoundException is propagated in case where there is a single request.
-   */
-  @Test
-  public void testGetHosts___HostNotFoundException_HostNotAssociatedWithCluster() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Host host = createNiceMock(Host.class);
-
-    // requests
-    HostRequest request1 = new HostRequest("host1", "cluster1", Collections.<String, String>emptyMap());
-    Set<HostRequest> setRequests = Collections.singleton(request1);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getHosts
-    expect(clusters.getCluster("cluster1")).andReturn(cluster);
-    expect(clusters.getHost("host1")).andReturn(host);
-    expect(host.getHostName()).andReturn("host1").anyTimes();
-    // because cluster is not in set will result in HostNotFoundException
-    expect(clusters.getClustersForHost("host1")).andReturn(Collections.<Cluster>emptySet());
-
-    // replay mocks
-    replay(injector, clusters, cluster, host);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-
-    // assert that exception is thrown in case where there is a single request
-    try {
-      controller.getHosts(setRequests);
-      fail("expected HostNotFoundException");
-    } catch (HostNotFoundException e) {
-      // expected
-    }
-    assertSame(controller, controllerCapture.getValue());
-    verify(injector, clusters, cluster, host);
-  }
-
-
-  /**
-   * Ensure that HostNotFoundException is handled where there are multiple requests as would be the
-   * case when an OR predicate is provided in the query.
-   */
-  @Test
-  public void testGetHosts___OR_Predicate_HostNotFoundException() throws Exception {
-    // member state mocks
-    Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Clusters clusters = createNiceMock(Clusters.class);
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
-    Host host2 = createNiceMock(Host.class);
-    HostResponse response = createNiceMock(HostResponse.class);
-    HostResponse response2 = createNiceMock(HostResponse.class);
-
-    // requests
-    HostRequest request1 = new HostRequest("host1", "cluster1", Collections.<String, String>emptyMap());
-    HostRequest request2 = new HostRequest("host2", "cluster1", Collections.<String, String>emptyMap());
-    HostRequest request3 = new HostRequest("host3", "cluster1", Collections.<String, String>emptyMap());
-    HostRequest request4 = new HostRequest("host4", "cluster1", Collections.<String, String>emptyMap());
-
-    Set<HostRequest> setRequests = new HashSet<HostRequest>();
-    setRequests.add(request1);
-    setRequests.add(request2);
-    setRequests.add(request3);
-    setRequests.add(request4);
-
-    // expectations
-    // constructor init
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-
-    // getHosts
-    expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
-
-    expect(clusters.getHost("host1")).andReturn(host1);
-    expect(host1.getHostName()).andReturn("host1").anyTimes();
-    expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster));
-    expect(host1.convertToResponse()).andReturn(response);
-    response.setClusterName("cluster1");
-
-    expect(clusters.getHost("host2")).andReturn(host2);
-    expect(host2.getHostName()).andReturn("host2").anyTimes();
-    expect(clusters.getClustersForHost("host2")).andReturn(Collections.singleton(cluster));
-    expect(host2.convertToResponse()).andReturn(response2);
-    response2.setClusterName("cluster1");
-
-    expect(clusters.getHost("host3")).andThrow(new HostNotFoundException("host3"));
-    expect(clusters.getHost("host4")).andThrow(new HostNotFoundException("host4"));
-
-    // replay mocks
-    replay(injector, clusters, cluster, host1, host2, response, response2);
-
-    //test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    Set<HostResponse> setResponses = controller.getHosts(setRequests);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    assertEquals(2, setResponses.size());
-    assertTrue(setResponses.contains(response));
-    assertTrue(setResponses.contains(response2));
-
-    verify(injector, clusters, cluster, host1, host2, response, response2);
-  }
-
-  @Test
   public void testGetHostComponents() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
@@ -706,7 +282,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -769,7 +345,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -841,13 +417,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -936,13 +512,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1030,13 +606,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1125,13 +701,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", null, null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host2", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1205,13 +781,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1263,13 +839,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host2", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1328,7 +904,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1405,7 +981,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, null, null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, null, null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -1466,258 +1042,4 @@ public class AmbariManagementControllerImplTest {
     verify(injector, clusters, cluster, response1, response2, response3, stack, metaInfo, service1, service2,
         component1, component2, componentHost1, componentHost2, componentHost3);
   }
-
-  @Test
-  public void testMaintenanceAndDeleteStates() throws Exception {
-    Map<String,String> mapRequestProps = new HashMap<String, String>();
-    Injector injector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        Properties properties = new Properties();
-        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-
-        properties.setProperty(Configuration.METADETA_DIR_PATH,
-            "src/main/resources/stacks");
-        properties.setProperty(Configuration.SERVER_VERSION_FILE,
-                "../version");
-        properties.setProperty(Configuration.OS_VERSION_KEY,
-            "centos5");
-        try {
-          install(new ControllerModule(properties));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
-    injector.getInstance(GuiceJpaInitializer.class);
-    AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = injector.getInstance(Clusters.class);
-    Gson gson = new Gson();
-
-    clusters.addHost("host1");
-    clusters.addHost("host2");
-    clusters.addHost("host3");
-    Host host = clusters.getHost("host1");
-    host.setOsType("centos5");
-    host.persist();
-    host = clusters.getHost("host2");
-    host.setOsType("centos5");
-    host.persist();
-    host = clusters.getHost("host3");
-    host.setOsType("centos5");
-    host.persist();
-
-    ClusterRequest clusterRequest = new ClusterRequest(null, "c1", "HDP-1.2.0", null);
-    amc.createCluster(clusterRequest);
-
-    Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, null));
-
-    amc.createServices(serviceRequests);
-
-    Type confType = new TypeToken<Map<String, String>>() {
-    }.getType();
-
-    ConfigurationRequest configurationRequest = new ConfigurationRequest("c1", "core-site", "version1",
-        gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType)
-    );
-    amc.createConfiguration(configurationRequest);
-
-    configurationRequest = new ConfigurationRequest("c1", "hdfs-site", "version1",
-        gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType)
-    );
-    amc.createConfiguration(configurationRequest);
-
-    configurationRequest = new ConfigurationRequest("c1", "global", "version1",
-        gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
-    );
-    amc.createConfiguration(configurationRequest);
-
-
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS",
-        gson.<Map<String, String>>fromJson("{\"core-site\": \"version1\", \"hdfs-site\": \"version1\", \"global\" : \"version1\" }", confType)
-        , null));
-//    serviceRequests.add(new ServiceRequest("c1", "MAPREDUCE",
-//        gson.<Map<String, String>>fromJson("{\"core-site\": \"version1\", \"mapred-site\": \"version1\"}", confType)
-//        , null));
-//    serviceRequests.add(new ServiceRequest("c1", "HBASE",
-//        gson.<Map<String, String>>fromJson("{\"hbase-site\": \"version1\", \"hbase-env\": \"version1\"}", confType)
-//        , null));
-//    serviceRequests.add(new ServiceRequest("c1", "NAGIOS",
-//        gson.<Map<String, String>>fromJson("{\"nagios-global\": \"version2\" }", confType)
-//        , null));
-
-    amc.updateServices(serviceRequests, mapRequestProps, true);
-
-
-    Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
-    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "NAMENODE", null, null));
-    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "SECONDARY_NAMENODE", null, null));
-    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "DATANODE", null, null));
-    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "HDFS_CLIENT", null, null));
-
-    amc.createComponents(serviceComponentRequests);
-
-    Set<HostRequest> hostRequests = new HashSet<HostRequest>();
-    hostRequests.add(new HostRequest("host1", "c1", null));
-    hostRequests.add(new HostRequest("host2", "c1", null));
-    hostRequests.add(new HostRequest("host3", "c1", null));
-
-    amc.createHosts(hostRequests);
-
-    Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host1", null, null));
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "SECONDARY_NAMENODE", "host1", null, null));
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, null));
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host3", null, null));
-
-
-    amc.createHostComponents(componentHostRequests);
-
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    amc.updateServices(serviceRequests, mapRequestProps, true);
-
-    Cluster cluster = clusters.getCluster("c1");
-    Map<String, ServiceComponentHost> namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-    assertEquals(1, namenodes.size());
-
-    ServiceComponentHost componentHost = namenodes.get("host1");
-
-    Map<String, ServiceComponentHost> hostComponents = cluster.getService("HDFS").getServiceComponent("DATANODE").getServiceComponentHosts();
-    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
-      ServiceComponentHost cHost = entry.getValue();
-      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
-      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
-    }
-    hostComponents = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
-      ServiceComponentHost cHost = entry.getValue();
-      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
-      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
-    }
-    hostComponents = cluster.getService("HDFS").getServiceComponent("SECONDARY_NAMENODE").getServiceComponentHosts();
-    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
-      ServiceComponentHost cHost = entry.getValue();
-      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
-      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
-    }
-
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
-
-    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
-
-    assertEquals(State.MAINTENANCE, componentHost.getState());
-
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "INSTALLED"));
-
-    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
-
-    assertEquals(State.INSTALLED, componentHost.getState());
-
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "MAINTENANCE"));
-
-    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
-
-    assertEquals(State.MAINTENANCE, componentHost.getState());
-
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null, null));
-
-    amc.createHostComponents(componentHostRequests);
-
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null, "INSTALLED"));
-
-    amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
-
-    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-    assertEquals(2, namenodes.size());
-
-    componentHost = namenodes.get("host2");
-    componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
-    componentHost.handleEvent(new ServiceComponentHostOpSucceededEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis()));
-
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
-
-    RequestStatusResponse response = amc.updateServices(serviceRequests, mapRequestProps, true);
-    for (ShortTaskStatus shortTaskStatus : response.getTasks()) {
-      assertFalse("host1".equals(shortTaskStatus.getHostName()) && "NAMENODE".equals(shortTaskStatus.getRole()));
-    }
-
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
-
-    amc.deleteHostComponents(componentHostRequests);
-    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-    assertEquals(1, namenodes.size());
-
-    // testing the behavior for runSmokeTest flag
-    // piggybacking on this test to avoid setting up the mock cluster
-    testRunSmokeTestFlag(mapRequestProps, amc, serviceRequests);
-
-    // should be able to add the host component back
-    componentHostRequests.clear();
-    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
-    amc.createHostComponents(componentHostRequests);
-    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-    assertEquals(2, namenodes.size());
-  }
-
-  private void testRunSmokeTestFlag(Map<String, String> mapRequestProps,
-                                    AmbariManagementController amc,
-                                    Set<ServiceRequest> serviceRequests)
-      throws AmbariException {
-    RequestStatusResponse response;//Starting HDFS service. No run_smoke_test flag is set, smoke
-
-    //Stopping HDFS service
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, false);
-
-    //Starting HDFS service. No run_smoke_test flag is set, smoke
-    // test(HDFS_SERVICE_CHECK) won't run
-    boolean runSmokeTest = false;
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, runSmokeTest);
-
-    List<ShortTaskStatus> taskStatuses = response.getTasks();
-    boolean smokeTestRequired = false;
-    for (ShortTaskStatus shortTaskStatus : taskStatuses) {
-      if (shortTaskStatus.getRole().equals(Role.HDFS_SERVICE_CHECK.toString())) {
-         smokeTestRequired= true;
-      }
-    }
-    assertFalse(smokeTestRequired);
-
-    //Stopping HDFS service
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, false);
-
-    //Starting HDFS service again.
-    //run_smoke_test flag is set, smoke test will be run
-    runSmokeTest = true;
-    serviceRequests.clear();
-    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, runSmokeTest);
-
-    taskStatuses = response.getTasks();
-    smokeTestRequired = false;
-    for (ShortTaskStatus shortTaskStatus : taskStatuses) {
-      if (shortTaskStatus.getRole().equals(Role.HDFS_SERVICE_CHECK.toString())) {
-        smokeTestRequired= true;
-      }
-    }
-    assertTrue(smokeTestRequired);
-  }
-
-  //todo other resources
 }

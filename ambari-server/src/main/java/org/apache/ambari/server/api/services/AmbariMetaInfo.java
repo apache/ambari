@@ -18,28 +18,48 @@
 
 package org.apache.ambari.server.api.services;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.resources.ResourceManager;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.MetricDefinition;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.RepositoryXml.Os;
+import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.*;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 
 /**
  * ServiceInfo responsible getting information about cluster.
@@ -47,39 +67,47 @@ import java.util.*;
 @Singleton
 public class AmbariMetaInfo {
 
-  private final static Logger LOG = LoggerFactory
-      .getLogger(AmbariMetaInfo.class);
-  private static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";
-  private static final String STACK_XML_MAIN_BLOCK_NAME = "metainfo";
-  private static final String STACK_XML_PROPERTY_UPGRADE = "upgrade";
-  private static final String SERVICES_FOLDER_NAME = "services";
-  private static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
-  private static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
-  private static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
+  private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
+
+  public static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";
+  public static final String SERVICES_FOLDER_NAME = "services";
+  public static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
+  public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
+  public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
+  public static final String RCO_FILE_NAME = "role_command_order.json";
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
-  private static final String REPOSITORY_XML_MAIN_BLOCK_NAME = "os";
-  private static final String REPOSITORY_XML_ATTRIBUTE_OS_TYPE = "type";
-  private static final String REPOSITORY_XML_REPO_BLOCK_NAME = "repo";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
-  private static final String REPOSITORY_XML_PROPERTY_REPOID = "repoid";
-  private static final String REPOSITORY_XML_PROPERTY_REPONAME = "reponame";
-  private static final String REPOSITORY_XML_PROPERTY_MIRRORSLIST = "mirrorslist";
-  private static final String METAINFO_XML_MAIN_BLOCK_NAME = "metainfo";
-  private static final String METAINFO_XML_PROPERTY_VERSION = "version";
-  private static final String METAINFO_XML_PROPERTY_USER = "user";
-  private static final String METAINFO_XML_PROPERTY_COMMENT = "comment";
-  private static final String METAINFO_XML_PROPERTY_COMPONENT_MAIN = "component";
-  private static final String METAINFO_XML_PROPERTY_COMPONENT_NAME = "name";
-  private static final String METAINFO_XML_PROPERTY_COMPONENT_CATEGORY = "category";
-  private static final String PROPERTY_XML_MAIN_BLOCK_NAME = "property";
-  private static final String PROPERTY_XML_PROPERTY_NAME = "name";
-  private static final String PROPERTY_XML_PROPERTY_VALUE = "value";
-  private static final String PROPERTY_XML_PROPERTY_DESCRIPTION = "description";
-  private static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
+  // all the supported OS'es
+  private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
+      "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
+      "oraclelinux6", "suse11", "sles11", "ubuntu12");
+  
+  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
+  private final static String HOOKS_DIR = "hooks";
+
+  /**
+   * This string is used in placeholder in places that are common for
+   * all operating systems or in situations where os type is not important.
+   */
+  public static final String ANY_OS = "any";
+
+  /**
+   * Value for legacy xml files that don't contain schema property
+   */
+  public static final String SCHEMA_VERSION_LEGACY = "1.0";
+
+  /**
+   * Version of XML files with support of custom services and custom commands
+   */
+  public static final String SCHEMA_VERSION_2 = "2.0";
+
+
+  public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String s) {
-      if (s.equals(".svn") || s.equals(".git"))
+      if (s.equals(".svn") || s.equals(".git") ||
+              s.equals(HOOKS_DIR)) // Hooks dir is not a service
         return false;
       return true;
     }
@@ -89,6 +117,9 @@ public class AmbariMetaInfo {
   private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
   private File stackRoot;
   private File serverVersionFile;
+
+  @Inject
+  private MetainfoDAO metainfoDAO;
 
   /**
    * Ambari Meta Info Object
@@ -104,7 +135,6 @@ public class AmbariMetaInfo {
     this.serverVersionFile = new File(serverVersionFilePath);
   }
 
-  @Inject
   public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
     this.stackRoot = stackRoot;
     this.serverVersionFile = serverVersionFile;
@@ -117,6 +147,7 @@ public class AmbariMetaInfo {
    */
   @Inject
   public void init() throws Exception {
+    stacksResult = new ArrayList<StackInfo>();
     readServerVersion();
     getConfigurationInformation(stackRoot);
   }
@@ -254,8 +285,10 @@ public class AmbariMetaInfo {
   public boolean isSupportedStack(String stackName, String version) throws AmbariException {
     boolean exist = false;
     try {
-      getStackInfo(stackName, version);
-      exist = true;
+      StackInfo stackInfo = getStackInfo(stackName, version);
+      if (stackInfo != null) {
+        exist = true;
+      }
     } catch (ObjectNotFoundException e) {
     }
     return exist;
@@ -269,8 +302,10 @@ public class AmbariMetaInfo {
 
     boolean exist = false;
     try {
-      getServiceInfo(stackName, version, serviceName);
-      exist = true;
+      ServiceInfo info= getServiceInfo(stackName, version, serviceName);
+      if (info != null) {
+        exist = true;
+      }
     } catch (ObjectNotFoundException e) {
     }
     return exist;
@@ -537,6 +572,10 @@ public class AmbariMetaInfo {
     return propertyResult;
   }
 
+
+  /**
+   * Lists operatingsystems supported by stack
+   */
   public Set<OperatingSystemInfo> getOperatingSystems(String stackName, String version)
       throws AmbariException {
 
@@ -584,89 +623,60 @@ public class AmbariMetaInfo {
   }
 
   private void getConfigurationInformation(File stackRoot) throws Exception {
-
     if (LOG.isDebugEnabled()) {
       LOG.debug("Loading stack information"
-          + ", stackRoot=" + stackRoot.getAbsolutePath());
+        + ", stackRoot = " + stackRoot.getAbsolutePath());
     }
 
     if (!stackRoot.isDirectory() && !stackRoot.exists())
       throw new IOException("" + Configuration.METADETA_DIR_PATH
-          + " should be a directory with stack"
-          + ", stackRoot=" + stackRoot.getAbsolutePath());
-    File[] stacks = stackRoot.listFiles(FILENAME_FILTER);
-    for (File stackFolder : stacks) {
-      if (stackFolder.isFile())
-        continue;
-      File[] concretStacks = stackFolder.listFiles(FILENAME_FILTER);
-      for (File stack : concretStacks) {
-        if (stack.isFile())
-          continue;
+        + " should be a directory with stack"
+        + ", stackRoot = " + stackRoot.getAbsolutePath());
 
-        StackInfo stackInfo = getStackInfo(stack);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding new stack to known stacks"
-              + ", stackName=" + stackFolder.getName()
-              + ", stackVersion=" + stack.getName());
-        }
+    StackExtensionHelper stackExtensionHelper = new StackExtensionHelper
+      (stackRoot);
+    stackExtensionHelper.fillInfo();
 
-        stacksResult.add(stackInfo);
-        // get repository data for current stack of techs
-        File repositoryFolder = new File(stack.getAbsolutePath()
-            + File.separator + REPOSITORY_FOLDER_NAME + File.separator
-            + REPOSITORY_FILE_NAME);
+    List<StackInfo> stacks = stackExtensionHelper.getAllAvailableStacks();
+    if (stacks.isEmpty()) {
+      throw new AmbariException("Unable to find stack definitions under " +
+        "stackRoot = " + stackRoot.getAbsolutePath());
+    }
 
-        if (repositoryFolder.exists()) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding repositories to stack"
-                + ", stackName=" + stackFolder.getName()
-                + ", stackVersion=" + stack.getName()
-                + ", repoFolder=" + repositoryFolder.getPath());
-          }
-          List<RepositoryInfo> repositoryInfoList = getRepository(repositoryFolder);
-          stackInfo.getRepositories().addAll(repositoryInfoList);
-        }
+    for (StackInfo stack : stacks) {
+      LOG.debug("Adding new stack to known stacks"
+        + ", stackName = " + stack.getName()
+        + ", stackVersion = " + stack.getVersion());
 
-        // Get services for this stack
-        File servicesRootFolder = new File(stack.getAbsolutePath()
-            + File.separator + SERVICES_FOLDER_NAME);
-        File[] servicesFolders = servicesRootFolder.listFiles(FILENAME_FILTER);
+      stacksResult.add(stack);
 
-        if (servicesFolders != null) {
-          for (File serviceFolder : servicesFolders) {
-            // Get information about service
-            ServiceInfo serviceInfo = new ServiceInfo();
-            serviceInfo.setName(serviceFolder.getName());
-            stackInfo.getServices().add(serviceInfo);
+      // get repository data for current stack of techs
+      File repositoryFolder = new File(stackRoot.getAbsolutePath()
+        + File.separator + stack.getName() + File.separator + stack.getVersion()
+        + File.separator + REPOSITORY_FOLDER_NAME + File.separator
+        + REPOSITORY_FILE_NAME);
 
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Adding new service to stack"
-                  + ", stackName=" + stackFolder.getName()
-                  + ", stackVersion=" + stack.getName()
-                  + ", serviceName=" + serviceInfo.getName());
-            }
+      if (repositoryFolder.exists()) {
+        LOG.debug("Adding repositories to stack"
+          + ", stackName=" + stack.getName()
+          + ", stackVersion=" + stack.getVersion()
+          + ", repoFolder=" + repositoryFolder.getPath());
 
-            // Get metainfo data from metainfo.xml
-            File metainfoFile = new File(serviceFolder.getAbsolutePath()
-                + File.separator + SERVICE_METAINFO_FILE_NAME);
-            if (metainfoFile.exists()) {
-              setMetaInfo(metainfoFile, serviceInfo);
-            }
+        List<RepositoryInfo> repositoryInfoList = getRepository
+          (repositoryFolder, stack.getVersion());
 
-            // Get all properties from all "configs/*-site.xml" files
-            File serviceConfigFolder = new File(serviceFolder.getAbsolutePath()
-                + File.separator + SERVICE_CONFIG_FOLDER_NAME);
-            File[] configFiles = serviceConfigFolder.listFiles(FILENAME_FILTER);
-            if (configFiles != null) {
-              for (File config : configFiles) {
-                if (config.getName().endsWith(SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
-                  serviceInfo.getProperties().addAll(getProperties(config));
-                }
-              }
-            }
-          }
-        }
+        stack.getRepositories().addAll(repositoryInfoList);
+      } else {
+        LOG.warn("No repository information defined for "
+          + ", stackName=" + stack.getName()
+          + ", stackVersion=" + stack.getVersion()
+          + ", repoFolder=" + repositoryFolder.getPath());
       }
+
+      List<ServiceInfo> services = stackExtensionHelper
+        .getAllApplicableServices(stack);
+
+      stack.setServices(services);
     }
   }
 
@@ -674,261 +684,149 @@ public class AmbariMetaInfo {
     return serverVersion;
   }
 
-  private StackInfo getStackInfo(File stackVersionFolder) {
+  private List<RepositoryInfo> getRepository(File repositoryFile, String stackVersion)
+      throws JAXBException {
 
-    StackInfo stackInfo = new StackInfo();
+    RepositoryXml rxml = StackExtensionHelper.unmarshal(RepositoryXml.class, repositoryFile);
 
-    stackInfo.setName(stackVersionFolder.getParentFile().getName());
-    stackInfo.setVersion(stackVersionFolder.getName());
+    List<RepositoryInfo> list = new ArrayList<RepositoryInfo>();
 
-    // Get metainfo from file
-    File stackMetainfoFile = new File(stackVersionFolder.getAbsolutePath()
-        + File.separator + STACK_METAINFO_FILE_NAME);
+    for (Os o : rxml.getOses()) {
+      for (String os : o.getType().split(",")) {
+        for (Repo r : o.getRepos()) {
+          RepositoryInfo ri = new RepositoryInfo();
+          ri.setBaseUrl(r.getBaseUrl());
+          ri.setDefaultBaseUrl(r.getBaseUrl());
+          ri.setMirrorsList(r.getMirrorsList());
+          ri.setOsType(os.trim());
+          ri.setRepoId(r.getRepoId());
+          ri.setRepoName(r.getRepoName());
 
-    if (stackMetainfoFile.exists()) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Reading stack version metainfo from file "
-            + stackMetainfoFile.getAbsolutePath());
-      }
-
-      try {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(stackMetainfoFile);
-        doc.getDocumentElement().normalize();
-
-        NodeList stackNodes = doc
-            .getElementsByTagName(STACK_XML_MAIN_BLOCK_NAME);
-
-        for (int index = 0; index < stackNodes.getLength(); index++) {
-
-          Node node = stackNodes.item(index);
-
-          if (node.getNodeType() == Node.ELEMENT_NODE) {
-            Element property = (Element) node;
-
-            stackInfo.setMinUpgradeVersion(getTagValue(
-                STACK_XML_PROPERTY_UPGRADE, property));
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-      }
-
-    }
-    return stackInfo;
-  }
-
-  private List<RepositoryInfo> getRepository(File repositoryFile)
-      throws ParserConfigurationException, IOException, SAXException {
-
-    List<RepositoryInfo> repositorysInfo = new ArrayList<RepositoryInfo>();
-//    try {
-
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-    Document doc = dBuilder.parse(repositoryFile);
-
-    NodeList osNodes = doc
-        .getElementsByTagName(REPOSITORY_XML_MAIN_BLOCK_NAME);
-
-    for (int index = 0; index < osNodes.getLength(); index++) {
-      Node osNode = osNodes.item(index);
-
-      if (osNode.getNodeType() == Node.ELEMENT_NODE) {
-        if (!osNode.getNodeName().equals(REPOSITORY_XML_MAIN_BLOCK_NAME)) {
-          continue;
-        }
-        NamedNodeMap attrs = osNode.getAttributes();
-        Node osAttr = attrs.getNamedItem(REPOSITORY_XML_ATTRIBUTE_OS_TYPE);
-        if (osAttr == null) {
-          continue;
-        }
-        String osType = osAttr.getNodeValue();
-
-        NodeList repoNodes = osNode.getChildNodes();
-        for (int j = 0; j < repoNodes.getLength(); j++) {
-          Node repoNode = repoNodes.item(j);
-          if (repoNode.getNodeType() != Node.ELEMENT_NODE
-              || !repoNode.getNodeName().equals(
-              REPOSITORY_XML_REPO_BLOCK_NAME)) {
-            continue;
-          }
-          Element property = (Element) repoNode;
-          String repoId = getTagValue(REPOSITORY_XML_PROPERTY_REPOID,
-              property);
-          String repoName = getTagValue(REPOSITORY_XML_PROPERTY_REPONAME,
-              property);
-          String baseUrl = getTagValue(
-              REPOSITORY_XML_PROPERTY_BASEURL, property);
-          String mirrorsList = getTagValue(
-              REPOSITORY_XML_PROPERTY_MIRRORSLIST, property);
-
-          String[] osTypes = osType.split(",");
-
-          for (String os : osTypes) {
-            RepositoryInfo repositoryInfo = new RepositoryInfo();
-            repositoryInfo.setOsType(os.trim());
-            repositoryInfo.setRepoId(repoId);
-            repositoryInfo.setRepoName(repoName);
-            repositoryInfo.setBaseUrl(baseUrl);
-            repositoryInfo.setMirrorsList(mirrorsList);
-
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Adding repo to stack"
-                  + ", repoInfo=" + repositoryInfo.toString());
+          if (null != metainfoDAO) {
+            LOG.debug("Checking for override for base_url");
+            String key = generateRepoMetaKey(r.getRepoName(), stackVersion,
+                o.getType(), r.getRepoId(), REPOSITORY_XML_PROPERTY_BASEURL);
+            MetainfoEntity entity = metainfoDAO.findByKey(key);
+            if (null != entity) {
+              ri.setBaseUrl(entity.getMetainfoValue());
             }
-            repositorysInfo.add(repositoryInfo);
           }
+
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding repo to stack"
+                + ", repoInfo=" + ri.toString());
+          }
+
+          list.add(ri);
         }
       }
     }
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
 
-    return repositorysInfo;
+    return list;
+
   }
 
-  private void setMetaInfo(File metainfoFile, ServiceInfo serviceInfo) {
+  public boolean isOsSupported(String osType) {
+    return ALL_SUPPORTED_OS.contains(osType);
+  }
 
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+  private String generateRepoMetaKey(String stackName, String stackVersion,
+      String osType, String repoId, String field) {
 
-    Document doc = null;
-    DocumentBuilder dBuilder = null;
-    try {
-      dBuilder = dbFactory.newDocumentBuilder();
-      doc = dBuilder.parse(metainfoFile);
-    } catch (SAXException e) {
-      LOG.error("Error while parsing metainf.xml", e);
-    } catch (IOException e) {
-      LOG.error("Error while open metainf.xml", e);
-    } catch (ParserConfigurationException e) {
-      LOG.error("Error while parsing metainf.xml", e);
-    }
+    StringBuilder sb = new StringBuilder("repo:/");
+    sb.append(stackName).append('/');
+    sb.append(stackVersion).append('/');
+    sb.append(osType).append('/');
+    sb.append(repoId);
+    sb.append(':').append(field);
 
-    if (doc == null) return;
+    return sb.toString();
+  }
 
-    doc.getDocumentElement().normalize();
 
-    NodeList metaInfoNodes = doc
-        .getElementsByTagName(METAINFO_XML_MAIN_BLOCK_NAME);
 
-    if (metaInfoNodes.getLength() > 0) {
-      Node metaInfoNode = metaInfoNodes.item(0);
-      if (metaInfoNode.getNodeType() == Node.ELEMENT_NODE) {
+  /**
+   * @param stackName the stack name
+   * @param stackVersion the stack version
+   * @param osType the os
+   * @param repoId the repo id
+   * @param newBaseUrl the new base url
+   */
+  public void updateRepoBaseURL(String stackName,
+      String stackVersion, String osType, String repoId, String newBaseUrl) throws AmbariException {
 
-        Element metaInfoElem = (Element) metaInfoNode;
+    // validate existing
+    RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
 
-        serviceInfo.setVersion(getTagValue(METAINFO_XML_PROPERTY_VERSION,
-            metaInfoElem));
-        serviceInfo.setUser(getTagValue(METAINFO_XML_PROPERTY_USER,
-            metaInfoElem));
-        serviceInfo.setComment(getTagValue(METAINFO_XML_PROPERTY_COMMENT,
-            metaInfoElem));
-      }
-    }
+    if (!stackRoot.exists())
+      throw new StackAccessException("Stack root does not exist.");
 
-    NodeList componentInfoNodes = doc
-        .getElementsByTagName(METAINFO_XML_PROPERTY_COMPONENT_MAIN);
+    ri.setBaseUrl(newBaseUrl);
 
-    if (componentInfoNodes.getLength() > 0) {
-      for (int index = 0; index < componentInfoNodes.getLength(); index++) {
-        Node componentInfoNode = componentInfoNodes.item(index);
-        if (componentInfoNode.getNodeType() == Node.ELEMENT_NODE) {
-          Element componentInfoElem = (Element) componentInfoNode;
+    if (null != metainfoDAO) {
+      String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
+          repoId, REPOSITORY_XML_PROPERTY_BASEURL);
 
-          ComponentInfo componentInfo = new ComponentInfo();
-          componentInfo.setName(getTagValue(
-              METAINFO_XML_PROPERTY_COMPONENT_NAME, componentInfoElem));
-          componentInfo.setCategory(getTagValue(
-              METAINFO_XML_PROPERTY_COMPONENT_CATEGORY, componentInfoElem));
-          serviceInfo.getComponents().add(componentInfo);
+      MetainfoEntity entity = new MetainfoEntity();
+      entity.setMetainfoName(metaKey);
+      entity.setMetainfoValue(newBaseUrl);
 
-        }
+      if (null != ri.getDefaultBaseUrl() && newBaseUrl.equals(ri.getDefaultBaseUrl())) {
+        metainfoDAO.remove(entity);
+      } else {
+        metainfoDAO.merge(entity);
       }
     }
   }
 
-  private List<PropertyInfo> getProperties(File propertyFile) {
-
-    List<PropertyInfo> resultPropertyList = new ArrayList<PropertyInfo>();
-    try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document doc = dBuilder.parse(propertyFile);
-      doc.getDocumentElement().normalize();
-
-      NodeList propertyNodes = doc
-          .getElementsByTagName(PROPERTY_XML_MAIN_BLOCK_NAME);
-
-      for (int index = 0; index < propertyNodes.getLength(); index++) {
-
-        Node node = propertyNodes.item(index);
-        if (node.getNodeType() == Node.ELEMENT_NODE) {
-          Element property = (Element) node;
-          PropertyInfo propertyInfo = new PropertyInfo();
-          propertyInfo
-              .setName(getTagValue(PROPERTY_XML_PROPERTY_NAME, property));
-          propertyInfo.setValue(getTagValue(PROPERTY_XML_PROPERTY_VALUE,
-              property));
-
-          propertyInfo.setDescription(getTagValue(
-              PROPERTY_XML_PROPERTY_DESCRIPTION, property));
-          propertyInfo.setFilename(propertyFile.getName());
-
-          if (propertyInfo.getName() == null || propertyInfo.getValue() == null)
-            continue;
-
-          resultPropertyList.add(propertyInfo);
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
+  public File getStackRoot() {
+    return stackRoot;
+  }
+  
+  /**
+   * Gets the metrics for a Role (component).
+   * @return the list of defined metrics.
+   */
+  public List<MetricDefinition> getMetrics(String stackName, String stackVersion,
+      String serviceName, String componentName, String metricType)
+  throws AmbariException {
+    
+    ServiceInfo svc = getService(stackName, stackVersion, serviceName);
+    
+    if (null == svc.getMetricsFile() || !svc.getMetricsFile().exists()) {
+      LOG.debug("Metrics file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
       return null;
     }
-    return resultPropertyList;
-  }
+    
+    Map<String, Map<String, List<MetricDefinition>>> map = svc.getMetrics();
+    
+    // check for cached
+    if (null == map) {
+      // data layout:
+      // "DATANODE" -> "Component" -> [ MetricDefinition, MetricDefinition, ... ]
+      //           \-> "HostComponent" -> [ MetricDefinition, ... ]
+      Type type = new TypeToken<Map<String, Map<String, List<MetricDefinition>>>>(){}.getType();
+      
+      Gson gson = new Gson();
 
-  private String getTagValue(String sTag, Element rawElement) {
-    String result = null;
-
-    if (rawElement.getElementsByTagName(sTag) != null && rawElement.getElementsByTagName(sTag).getLength() > 0) {
-      if (rawElement.getElementsByTagName(sTag).item(0) != null) {
-        NodeList element = rawElement.getElementsByTagName(sTag).item(0).getChildNodes();
-
-        if (element != null && element.item(0) != null) {
-          Node value = (Node) element.item(0);
-
-          result = value.getNodeValue();
-        }
+      try {
+        map = gson.fromJson(new FileReader(svc.getMetricsFile()), type);
+    
+        svc.setMetrics(map);
+        
+      } catch (Exception e) {
+        LOG.error ("Could not read the metrics file", e);
+        throw new AmbariException("Could not read metrics file", e);
       }
     }
-
-    return result;
-  }
-
-  public boolean areOsTypesCompatible(String type1, String type2) {
-    if (type1 == null || type2 == null) {
-      return false;
-    }
-    if (type1.equals(type2)) {
-      return true;
-    }
-    if (type1.equals("redhat5") || type1.equals("centos5") ||
-        type1.equals("oraclelinux5")) {
-      if (type2.equals("centos5") || type2.equals("redhat5") ||
-          type2.equals("oraclelinux5")) {
-        return true;
-      }
-    } else if (type1.equals("redhat6") || type1.equals("centos6") ||
-        type1.equals("oraclelinux6")) {
-      if (type2.equals("centos6") || type2.equals("redhat6") ||
-          type2.equals("oraclelinux6")) {
-        return true;
+    
+    if (map.containsKey(componentName)) {
+      if (map.get(componentName).containsKey(metricType)) {
+        return map.get(componentName).get(metricType);
       }
     }
-    return false;
+	  
+	  return null;
   }
+
 }

@@ -24,6 +24,10 @@ App.MainHostDetailsController = Em.Controller.extend({
   isFromHosts: false,
 
   /**
+   * path to page visited before
+   */
+  referer: '',
+  /**
    * open dashboard page
    */
   routeHome: function () {
@@ -40,17 +44,11 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
-   * set new value to isFromHosts property
-   * @param isFromHosts new value
-   */
-  setBack: function(isFromHosts){
-    this.set('isFromHosts', isFromHosts);
-  },
-
-  /**
    * Send specific command to server
    * @param url
-   * @param data Object to send
+   * @param _method
+   * @param postData
+   * @param callback
    */
   sendCommandToServer : function(url, postData, _method, callback){
     var url =  (App.testMode) ?
@@ -76,8 +74,8 @@ App.MainHostDetailsController = Em.Controller.extend({
 
       error: function (request, ajaxOptions, error) {
         //do something
-        callback(null);
-        console.log('error on change component host status')
+        console.log('error on change component host status');
+        App.ajax.defaultErrorHandler(request, url, method);
       },
 
       statusCode: require('data/statusCodes')
@@ -92,38 +90,148 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       var component = event.context;
-
-      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
-        RequestInfo : {
-          "context" : Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('componentName').toUpperCase()
-        },
-        Body:{
-          HostRoles:{
-            state: 'STARTED'
-          }
+      var context = Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('displayName');
+      self.sendStartComponentCommand(component, context);
+    });
+  },
+  
+  /**
+   * PUTs a command to server to start a component. If no 
+   * specific component is provided, all components are started.
+   * @param component  When <code>null</code> all startable components are started. 
+   * @param context  Context under which this command is beign sent. 
+   */
+  sendStartComponentCommand: function(component, context) {
+    var url = component !== null ? 
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
+        '/hosts/' + this.get('content.hostName') + '/host_components';
+    var dataToSend = {
+      RequestInfo : {
+        "context" : context
+      },
+      Body:{
+        HostRoles:{
+          state: 'STARTED'
         }
-      }, 'PUT',
-        function(requestId){
-
-        if(!requestId){
-          return;
+      }
+    };
+    if (component === null) {
+      var allComponents = this.get('content.hostComponents');
+      var startable = [];
+      allComponents.forEach(function (c) {
+        if (c.get('isMaster') || c.get('isSlave')) {
+          startable.push(c.get('componentName'));
         }
+      });
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + startable.join(',') + ")";
+    }
+    this.sendCommandToServer(url, dataToSend, 'PUT',
+      function(requestId){
 
-        console.log('Send request for STARTING successfully');
+      if(!requestId){
+        return;
+      }
 
-        if (App.testMode) {
+      console.log('Send request for STARTING successfully');
+
+      if (App.testMode) {
+        if(component === null){
+          var allComponents = this.get('content.hostComponents');
+          allComponents.forEach(function(component){
+            component.set('workStatus', App.HostComponentStatus.stopping);
+            setTimeout(function(){
+              component.set('workStatus', App.HostComponentStatus.stopped);
+            },App.testModeDelayForActions);
+          });
+        } else {
           component.set('workStatus', App.HostComponentStatus.starting);
           setTimeout(function(){
             component.set('workStatus', App.HostComponentStatus.started);
           },App.testModeDelayForActions);
-        } else {
-          App.router.get('clusterController').loadUpdatedStatusDelayed(500);
         }
-
-        App.router.get('backgroundOperationsController').showPopup();
-
+      } else {
+        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
       });
+
     });
+  },
+
+  /**
+   * send command to server to delete selected host component
+   *
+   */
+  deleteComponent: function (event) {
+    var self = this;
+    var component = event.context;
+    var componentName = component.get('componentName');
+    var displayName = component.get('displayName');
+    var isLastComponent = (App.HostComponent.find().filterProperty('componentName', componentName).get('length') === 1);
+    App.ModalPopup.show({
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/main/host/details/deleteComponentPopup')
+      }),
+      enablePrimary: false,
+      lastComponent: function() {
+        if (isLastComponent) {
+          this.set('enablePrimary',false);
+          return true;
+        } else {
+          this.set('enablePrimary',true);
+          return false;
+        }
+      }.property(),
+      lastComponentError:  Em.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
+      }),
+      deleteComponentMsg: function() {
+        return Em.I18n.t('hosts.host.deleteComponent.popup.msg').format(displayName);
+      }.property(),
+      onPrimary: function () {
+        if (!this.get('enablePrimary')) return;
+        self._doDeleteHostComponent(component);
+        this.hide();
+      }
+    });
+
+  },
+  /**
+   * Deletes the given host component, or all host components.
+   * 
+   * @param component  When <code>null</code> all host components are deleted.
+   * @return  <code>null</code> when components get deleted.
+   *          <code>{xhr: XhrObj, url: "http://", method: "DELETE"}</code> 
+   *          when components failed to get deleted. 
+   */
+  _doDeleteHostComponent: function(component) {
+    var url = component !== null ? 
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
+        '/hosts/' + this.get('content.hostName') + '/host_components';
+    url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
+    var deleted = null;
+    $.ajax({
+      type: 'DELETE',
+      url: url,
+      timeout: App.timeout,
+      async: false,
+      success: function (data) {
+        deleted = null;
+      },
+      error: function (xhr, textStatus, errorThrown) {
+        console.log('Error deleting host component');
+        console.log(textStatus);
+        console.log(errorThrown);
+        deleted = {xhr: xhr, url: url, method: 'DELETE'};
+      },
+      statusCode: require('data/statusCodes')
+      });
+    return deleted;
   },
 
   /**
@@ -136,7 +244,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.showConfirmationPopup(function() {
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
             RequestInfo : {
-              "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('componentName').toUpperCase()
+              "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('displayName')
             },
             Body:{
               HostRoles:{
@@ -158,10 +266,15 @@ App.MainHostDetailsController = Em.Controller.extend({
                 component.set('workStatus', App.HostComponentStatus.started);
               },App.testModeDelayForActions);
             } else {
-              App.router.get('clusterController').loadUpdatedStatus();
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            App.router.get('backgroundOperationsController').showPopup();
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
 
           });
     });
@@ -174,36 +287,75 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       var component = event.context;
-      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
-        RequestInfo : {
-          "context" : Em.I18n.t('requestInfo.stopHostComponent')+ " " + component.get('componentName').toUpperCase()
-        },
-        Body:{
-          HostRoles:{
-            state: 'INSTALLED'
-          }
+      var context = Em.I18n.t('requestInfo.stopHostComponent')+ " " + component.get('displayName');
+      self.sendStopComponentCommand(component, context);
+    });
+  },
+  
+  /**
+   * PUTs a command to server to stop a component. If no 
+   * specific component is provided, all components are stopped.
+   * @param component  When <code>null</code> all components are stopped. 
+   * @param context  Context under which this command is beign sent. 
+   */
+  sendStopComponentCommand: function(component, context){
+    var url = component !== null ? 
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
+        '/hosts/' + this.get('content.hostName') + '/host_components';
+    var dataToSend = {
+      RequestInfo : {
+        "context" : context
+      },
+      Body:{
+        HostRoles:{
+          state: 'INSTALLED'
         }
-      }, 'PUT',
-        function(requestId){
-        if(!requestId){
-          return;
+      }
+    };
+    if (component === null) {
+      var allComponents = this.get('content.hostComponents');
+      var startable = [];
+      allComponents.forEach(function (c) {
+        if (c.get('isMaster') || c.get('isSlave')) {
+          startable.push(c.get('componentName'));
         }
+      });
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + startable.join(',') + ")";
+    }
+    this.sendCommandToServer( url, dataToSend, 'PUT',
+      function(requestId){
+      if(!requestId){
+        return;
+      }
 
-        console.log('Send request for STOPPING successfully');
+      console.log('Send request for STOPPING successfully');
 
-        if (App.testMode) {
+      if (App.testMode) {
+        if(component === null){
+          var allComponents = this.get('content.hostComponents');
+          allComponents.forEach(function(component){
+            component.set('workStatus', App.HostComponentStatus.stopping);
+            setTimeout(function(){
+              component.set('workStatus', App.HostComponentStatus.stopped);
+            },App.testModeDelayForActions);
+          });
+        } else {
           component.set('workStatus', App.HostComponentStatus.stopping);
           setTimeout(function(){
             component.set('workStatus', App.HostComponentStatus.stopped);
           },App.testModeDelayForActions);
-        } else {
-          App.router.get('clusterController').loadUpdatedStatus();
         }
 
-        App.router.get('backgroundOperationsController').showPopup();
+      } else {
+        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+      }
 
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
       });
-
     });
   },
 
@@ -215,58 +367,279 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase().toString();
+    var subComponentNames = component.get('subComponentNames');
+    var displayName = component.get('displayName');
 
-    App.showConfirmationPopup(function() {
+    var securityEnabled = App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
 
-      self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'),{
-        RequestInfo : {
-          "context" : Em.I18n.t('requestInfo.installHostComponent') + " " + componentName
-        },
-        Body:{
-          host_components: [{
-            HostRoles:{
-              component_name: componentName
+    if (componentName === 'ZOOKEEPER_SERVER') {
+      App.showConfirmationPopup(function() {
+        self.primary(component);
+      }, Em.I18n.t('hosts.host.addComponent.addZooKeeper'));
+    }
+    else {
+      if (securityEnabled) {
+        App.showConfirmationPopup(function() {
+          self.primary(component);
+        }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName,self.get('content.hostName')));
+      }
+      else {
+        var dn = displayName;
+        if (subComponentNames !== null && subComponentNames.length > 0) {
+          var dns = [];
+          subComponentNames.forEach(function(scn){
+            dns.push(App.format.role(scn));
+          });
+          dn += " ("+dns.join(", ")+")";
+        }
+        App.ModalPopup.show({
+          primary: Em.I18n.t('yes'),
+          secondary: Em.I18n.t('no'),
+          header: Em.I18n.t('popup.confirmation.commonHeader'),
+          addComponentMsg: function() {
+            return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
+          }.property(),
+          bodyClass: Ember.View.extend({
+            templateName: require('templates/main/host/details/addComponentPopup')
+          }),
+          onPrimary: function () {
+            this.hide();
+            if (component.get('componentName') === 'CLIENTS') {
+              // Clients component has many sub-components which
+              // need to be installed.
+              var scs = component.get('subComponentNames');
+              scs.forEach(function (sc, index) {
+                var c = Em.Object.create({
+                  displayName: App.format.role(sc),
+                  componentName: sc
+                });
+                self.primary(c, scs.length - index === 1);
+              });
+            } else {
+              self.primary(component, true);
             }
-          }]
+          }
+        });
+      }
+    }
+  },
+
+  primary: function(component, showPopup) {
+    var self = this;
+    var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
+
+    self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
+        RequestInfo: {
+          "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+        },
+        Body: {
+          host_components: [
+            {
+              HostRoles: {
+                component_name: componentName
+              }
+            }
+          ]
         }
       },
-        'POST',
-        function(requestId){
+      'POST',
+      function (requestId) {
 
-          console.log('Send request for ADDING NEW COMPONENT successfully');
+        console.log('Send request for ADDING NEW COMPONENT successfully');
 
-          self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT',{
-              RequestInfo : {
-                "context" : Em.I18n.t('requestInfo.installingHostComponent')+ " " + componentName
-              },
-              Body:{
-                HostRoles:{
-                  state: 'INSTALLED'
-                }
-              }
+        self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
             },
-            'PUT',
-            function(requestId){
-              if(!requestId){
-                return;
+            Body: {
+              HostRoles: {
+                state: 'INSTALLED'
               }
+            }
+          },
+          'PUT',
+          function (requestId) {
+            if (!requestId) {
+              return;
+            }
 
-              console.log('Send request for INSTALLING NEW COMPONENT successfully');
+            console.log('Send request for INSTALLING NEW COMPONENT successfully');
 
-              if (App.testMode) {
-                component.set('workStatus', App.HostComponentStatus.installing);
-                setTimeout(function(){
-                  component.set('workStatus', App.HostComponentStatus.stopped);
-                },App.testModeDelayForActions);
-              } else {
-                App.router.get('clusterController').loadUpdatedStatus();
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
               }
-
-              App.router.get('backgroundOperationsController').showPopup();
-
+              if (componentName === 'ZOOKEEPER_SERVER') {
+                self.set('zkRequestId', requestId);
+                self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
+                self.checkZkConfigs();
+              }
             });
-          return;
-        });
+          });
+      });
+  },
+  /**
+   * Load tags
+   */
+  checkZkConfigs: function() {
+    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('zkRequestId'));
+    if (!bg) return;
+    if (!bg.get('isRunning')) {
+      this.loadConfigs();
+    }
+  },
+  loadConfigs: function() {
+    this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'loadConfigsSuccessCallback'
+    });
+  },
+  /**
+   * Load needed configs
+   * @param data
+   */
+  loadConfigsSuccessCallback: function(data) {
+    var urlParams = [];
+    urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+    if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+      urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
+    }
+    if (App.Service.find().someProperty('serviceName', 'HIVE')) {
+      urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+    }
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: urlParams.join('|')
+      },
+      success: 'setNewZkConfigs'
+    });
+  },
+  /**
+   * Set new values for some configs (based on available ZooKeeper Servers)
+   * @param data
+   */
+  setNewZkConfigs: function(data) {
+    var configs = [];
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+    }, this);
+
+    var zks = this.getZkServerHosts();
+    var zks_with_port = '';
+    zks.forEach(function(zk) {
+      zks_with_port += zk + ':2181,';
+    });
+    zks_with_port = zks_with_port.slice(0,-1);
+
+    if (App.get('isHaEnabled')) {
+      configs['core-site']['ha.zookeeper.quorum'] = zks_with_port;
+    }
+    if (configs['hbase-site']) {
+      configs['hbase-site']['hbase.zookeeper.quorum'] = zks.join(',');
+    }
+    if (configs['webhcat-site']) {
+      configs['webhcat-site']['templeton.zookeeper.hosts'] = zks_with_port;
+    }
+    for (var site in configs) {
+      if (!configs.hasOwnProperty(site)) continue;
+      App.ajax.send({
+        name: 'reassign.save_configs',
+        sender: this,
+        data: {
+          siteName: site,
+          properties: configs[site]
+        }
+      });
+    }
+  },
+
+  /**
+   * Is deleteHost action id fired
+   */
+  fromDeleteHost: false,
+
+  getZkServerHosts: function() {
+    var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
+    if (this.get('fromDeleteHost')) {
+      this.set('fromDeleteHost', false);
+      return zks.without(this.get('content.hostName'));
+    }
+    return zks;
+  },
+
+  /**
+   * send command to server to install selected host component
+   * @param event
+   * @param context
+   */
+  installComponent: function (event, context) {
+    var self = this;
+    var component = event.context;
+    var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
+
+    App.ModalPopup.show({
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      installComponentMessage: function(){
+        return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
+      }.property(),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/main/host/details/installComponentPopup')
+      }),
+      onPrimary: function () {
+        this.hide();
+        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(), {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+            },
+            Body: {
+              HostRoles: {
+                state: 'INSTALLED'
+              }
+            }
+          },
+          'PUT',
+          function (requestId) {
+            if (!requestId) {
+              return;
+            }
+
+            console.log('Send request for REINSTALL COMPONENT successfully');
+
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
+          });
+      }
     });
   },
   /**
@@ -289,22 +662,29 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (index < 0) {
           decommissionHostNames.push(hostName);
         }
-        self.doDatanodeDecommission(decommissionHostNames);
+        self.doDatanodeDecommission(decommissionHostNames, true);
       }
-      App.router.get('backgroundOperationsController').showPopup();
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
 
   /**
-   * Performs either Decommission or Recommision by updating the hosts list on
+   * Performs either Decommission or Recommission by updating the hosts list on
    * server.
+   * @param decommission defines context for request (true for decommission and false for recommission)
    */
-  doDatanodeDecommission: function(decommissionHostNames){
+  doDatanodeDecommission: function(decommissionHostNames, decommission){
     var self = this;
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
     var invocationTag = String(new Date().getTime());
+    var context = decommission ? Em.I18n.t('hosts.host.datanode.decommission') : Em.I18n.t('hosts.host.datanode.recommission');
     var clusterName = App.router.get('clusterController.clusterName');
     var clusterUrl = App.apiPrefix + '/clusters/' + clusterName;
     var configsUrl = clusterUrl + '/configurations';
@@ -322,12 +702,17 @@ App.MainHostDetailsController = Em.Controller.extend({
       data: JSON.stringify(configsData),
       timeout: App.timeout,
       success: function(){
-        var actionsUrl = clusterUrl + '/services/HDFS/actions/DECOMMISSION_DATANODE';
+        var actionsUrl = clusterUrl + '/requests';
         var actionsData = {
-          parameters: {
-            excludeFileTag: invocationTag
+          RequestInfo: {
+            context: context,
+            command: 'DECOMMISSION_DATANODE',
+            service_name: 'HDFS',
+            parameters: {
+              excludeFileTag: invocationTag
+            }
           }
-        }
+        };
         var actionsAjax = {
           type: 'POST',
           url: actionsUrl,
@@ -363,7 +748,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         console.log(textStatus);
         console.log(errorThrown);
       }
-    }
+    };
     jQuery.ajax(configsAjax);
   },
 
@@ -385,72 +770,301 @@ App.MainHostDetailsController = Em.Controller.extend({
         var hostName = self.get('content.hostName');
         var index = decommissionHostNames.indexOf(hostName);
         decommissionHostNames.splice(index, 1);
-        self.doDatanodeDecommission(decommissionHostNames);
+        self.doDatanodeDecommission(decommissionHostNames, false);
       }
-      App.router.get('backgroundOperationsController').showPopup();
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
+  },
+  
+  doAction: function(option) {
+    switch (option.context.action) {
+      case "deleteHost":
+        this.validateAndDeleteHost();
+        break;
+      case "startAllComponents":
+        this.doStartAllComponents();
+        break;
+      case "stopAllComponents":
+        this.doStopAllComponents();
+        break;
+      default:
+        break;
+    }
+  },
+  
+  doStartAllComponents: function() {
+    var self = this;
+    var components = this.get('content.hostComponents');
+    var componentsLength = components == null ? 0 : components.get('length');
+    if (componentsLength > 0) {
+      App.showConfirmationPopup(function() {
+        self.sendStartComponentCommand(null, 
+            Em.I18n.t('hosts.host.maintainance.startAllComponents.context'));
+      });
+    }
+  },
+  
+  doStopAllComponents: function() {
+    var self = this;
+    var components = this.get('content.hostComponents');
+    var componentsLength = components == null ? 0 : components.get('length');
+    if (componentsLength > 0) {
+      App.showConfirmationPopup(function() {
+        self.sendStopComponentCommand(null, 
+            Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'));
+      });
+    }
   },
 
   /**
    * Deletion of hosts not supported for this version
-   *
-   * validateDeletion: function () { var slaveComponents = [ 'DataNode',
-   * 'TaskTracker', 'RegionServer' ]; var masterComponents = []; var
-   * workingComponents = [];
-   *
-   * var components = this.get('content.components');
-   * components.forEach(function (cInstance) { var cName =
-   * cInstance.get('componentName'); if (slaveComponents.contains(cName)) { if
-   * (cInstance.get('workStatus') === App.HostComponentStatus.stopped &&
-   * !cInstance.get('decommissioned')) { workingComponents.push(cName); } } else {
-   * masterComponents.push(cName); } }); // debugger; if
-   * (workingComponents.length || masterComponents.length) {
-   * this.raiseWarning(workingComponents, masterComponents); } else {
-   * this.deleteButtonPopup(); } },
    */
-
-  raiseWarning: function (workingComponents, masterComponents) {
-    var self = this;
-    var masterString = '';
-    var workingString = '';
-    if(masterComponents && masterComponents.length) {
-      var masterList = masterComponents.join(', ');
-      var ml_text = Em.I18n.t('hosts.cant.do.popup.masterList.body');
-      masterString = ml_text.format(masterList);
+  validateAndDeleteHost: function () {
+    if (!App.supports.deleteHost) {
+      return;
     }
-    if(workingComponents && workingComponents.length) {
-      var workingList = workingComponents.join(', ');
-      var wl_text = Em.I18n.t('hosts.cant.do.popup.workingList.body');
-      workingString = wl_text.format(workingList);
+    var stoppedStates = [App.HostComponentStatus.stopped,
+                         App.HostComponentStatus.install_failed,
+                         App.HostComponentStatus.upgrade_failed,
+                         App.HostComponentStatus.unknown];
+    var masterComponents = [];
+    var runningComponents = [];
+    var unknownComponents = [];
+    var nonDeletableComponents = [];
+    var lastComponents = [];
+    var componentsOnHost = this.get('content.hostComponents');
+    var allComponents = App.HostComponent.find();
+    var zkServerInstalled = false;
+    if (componentsOnHost && componentsOnHost.get('length') > 0) {
+      componentsOnHost.forEach(function (cInstance) {
+        if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
+          zkServerInstalled = true;
+        }
+        if (allComponents.filterProperty('componentName', cInstance.get('componentName')).get('length') === 1) {
+          lastComponents.push(cInstance.get('displayName'));
+        }
+        var workStatus = cInstance.get('workStatus');
+        if (cInstance.get('isMaster') && !cInstance.get('isDeletable')) {
+          masterComponents.push(cInstance.get('displayName'));
+        }
+        if (stoppedStates.indexOf(workStatus) < 0) {
+          runningComponents.push(cInstance.get('displayName'));
+        }
+        if (!cInstance.get('isDeletable')) {
+          nonDeletableComponents.push(cInstance.get('displayName'));
+        }
+        if (workStatus === App.HostComponentStatus.unknown) {
+          unknownComponents.push(cInstance.get('displayName'));
+        }
+      });
     }
+    if (masterComponents.length > 0) {
+      this.raiseDeleteComponentsError(masterComponents, 'masterList');
+      return;
+    } else if (nonDeletableComponents.length > 0) {
+      this.raiseDeleteComponentsError(nonDeletableComponents, 'nonDeletableList');
+      return;
+    } else if (runningComponents.length > 0) {
+      this.raiseDeleteComponentsError(runningComponents, 'runningList');
+      return;
+    }
+    if (zkServerInstalled) {
+      var self = this;
+      App.showConfirmationPopup(function() {
+        self._doDeleteHost(unknownComponents, lastComponents);
+      }, Em.I18n.t('hosts.host.addComponent.deleteHostWithZooKeeper'));
+    }
+    else {
+      this._doDeleteHost(unknownComponents, lastComponents);
+    }
+  },
+  
+  raiseDeleteComponentsError: function (components, type) {
     App.ModalPopup.show({
-      header: Em.I18n.t('hosts.cant.do.popup.header'),
-      html: true,
-      body: masterString + workingString,
-      primary: Em.I18n.t('ok'),
-      secondary: null,
-      onPrimary: function() {
-        this.hide();
-      }
+      header: Em.I18n.t('hosts.cant.do.popup.title'),
+      type: type,
+      showBodyEnd: function() {
+        return this.get('type') === 'runningList' || this.get('type') === 'masterList';
+      }.property(),
+      components: components,
+      componentsStr: function() {
+        return this.get('components').join(", ");
+      }.property(),
+      componentsBody: function() {
+        return Em.I18n.t('hosts.cant.do.popup.'+type+'.body').format(this.get('components').length);
+      }.property(),
+      componentsBodyEnd: function() {
+        if (this.get('showBodyEnd')) {
+          return Em.I18n.t('hosts.cant.do.popup.'+type+'.body.end');
+        }
+        return '';
+      }.property(),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/details/raiseDeleteComponentErrorPopup')
+      }),
+      secondary: null
     })
   },
 
   /**
    * show confirmation popup to delete host
    */
-  deleteButtonPopup: function() {
+  _doDeleteHost: function(unknownComponents,lastComponents) {
     var self = this;
-    App.showConfirmationPopup(function(){
-      self.removeHost();
-    });
+    App.ModalPopup.show({
+      header: Em.I18n.t('hosts.delete.popup.title'),
+      deletePopupBody: function() {
+        return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
+      }.property(),
+      lastComponent: function() {
+         if (lastComponents && lastComponents.length) {
+           this.set('enablePrimary',false);
+           return true;
+         } else {
+           this.set('enablePrimary',true);
+           return false;
+         }
+      }.property(),
+      enablePrimary: false,
+      lastComponentError:  Em.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(lastComponents))
+      }),
+      unknownComponents: function() {
+        if (unknownComponents && unknownComponents.length) {
+          return unknownComponents.join(", ");
+        }
+        return '';
+      }.property(),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/details/doDeleteHostPopup')
+      }),
+      onPrimary: function() {
+        if (!this.get('enablePrimary')) return;
+        self.set('fromDeleteHost', true);
+        var allComponents = self.get('content.hostComponents');
+        var deleteError = null;
+        allComponents.forEach(function(component){
+          if (!deleteError) {
+            deleteError = self._doDeleteHostComponent(component);
+          }
+        });
+        if (!deleteError) {
+          App.ajax.send({
+            name: 'host.delete',
+            sender: this,
+            data: {
+              hostName: self.get('content.hostName')
+            },
+            success: 'deleteHostSuccessCallback',
+            error: 'deleteHostErrorCallback'
+          });
+
+        }
+        else {
+          this.hide();
+          deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
+          App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
+        }
+      },
+      deleteHostSuccessCallback: function(data) {
+        var dialogSelf = this;
+        App.router.get('updateController').updateHost(function(){
+          self.loadConfigs();
+          dialogSelf.hide();
+          App.router.transitionTo('hosts.index');
+        });
+      },
+      deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
+        console.log('Error deleting host.');
+        console.log(textStatus);
+        console.log(errorThrown);
+        xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
+        self.loadConfigs();
+        this.hide();
+        App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
+      }
+    })
   },
 
+  restartComponents: function(e) {
+    var staleComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
+    var commandName = "stop_component";
+    if(e.context) {
+      if(!staleComponents.findProperty('workStatus','STARTED')){
+        return;
+      }
+    } else {
+      commandName = "start_component";
+      if(!staleComponents.findProperty('workStatus','INSTALLED')){
+        return;
+      }
+    }
+    var content = this;
+    return App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      body: Em.I18n.t('question.sure'),
+      content: content,
+      onPrimary: function () {
+        var hostComponents = this.content.get('content.hostComponents').filterProperty('staleConfigs', true);
+        hostComponents.forEach(function (item) {
+          var state = 'INSTALLED',
+              componentName = item.get('componentName'),
+              context = "Stop " + App.format.role(componentName),
+              hostName = item.get('host.hostName');
+
+          if (commandName === 'start_component') {
+            context = "Start " + App.format.role(componentName);
+            state = 'STARTED';
+            if (item.get('isClient')) {
+              //start components action includes install of clients
+              context = "Install " + App.format.role(componentName);
+              state = "INSTALLED";
+            }
+          } else if (item.get('isClient')) {
+            return false;
+          }
+          App.ajax.send({
+            name: 'host.host_component.action',
+            sender: this,
+            data: {
+              hostName: hostName,
+              componentName: componentName,
+              context: context,
+              state: state
+            }
+          });
+        });
+        this.hide();
+        // load data (if we need to show this background operations popup) from persist
+        App.router.get('applicationController').dataLoading().done(function (initValue) {
+          if (initValue) {
+            App.router.get('backgroundOperationsController').showPopup();
+          }
+        });
+      }
+    });
+  },
   /**
-   * remove host and open hosts page
+   * open Reassign Master Wizard with selected component
+   * @param event
    */
-  removeHost: function () {
-    App.router.get('mainHostController').checkRemoved(this.get('content.id'));
-    App.router.transitionTo('hosts');
+  moveComponent: function (event) {
+    App.showConfirmationPopup(function() {
+      var component = event.context;
+      App.db.mergeStorage();
+      var reassignMasterController = App.router.get('reassignMasterController');
+      reassignMasterController.saveComponentToReassign(component);
+      reassignMasterController.getSecurityStatus();
+      reassignMasterController.setCurrentStep('1');
+      App.router.transitionTo('services.reassign');
+    });
   }
 
-})
+});

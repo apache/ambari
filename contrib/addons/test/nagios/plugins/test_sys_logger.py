@@ -408,5 +408,172 @@ test('Hadoop_JobTracker_UI_Down:OK',
     'OK: Hadoop: jobtracker_ui_down_ok# SERVICE MSG',
     'HARD', '1', 'OK', 'JOBTRACKER::JobTracker Web UI down', 'SERVICE MSG')
 
+# Tests for ambari nagios service check
+test('DataNode_process',
+     'Critical: Hadoop: datanode_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'DATANODE::DataNode process', 'SERVICE MSG')
+test('DataNode_process:OK',
+     'OK: Hadoop: datanode_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'DATANODE::DataNode process', 'SERVICE MSG')
+
+test('NameNode_process',
+     'Fatal: Hadoop: namenode_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'NAMENODE::NameNode process', 'SERVICE MSG')
+test('NameNode_process:WARNING',
+     'Fatal: Hadoop: namenode_process# SERVICE MSG',
+     'HARD', '1', 'WARNING', 'NAMENODE::NameNode process', 'SERVICE MSG')
+test('NameNode_process:OK',
+     'OK: Hadoop: namenode_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'NAMENODE::NameNode process', 'SERVICE MSG')
+
+test('Secondary_NameNode_process',
+     'Critical: Hadoop: secondary_namenode_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'NAMENODE::Secondary NameNode process', 'SERVICE MSG')
+test('Secondary_NameNode_process:OK',
+     'OK: Hadoop: secondary_namenode_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'NAMENODE::Secondary NameNode process', 'SERVICE MSG')
+
+test('JournalNode_process',
+     'Critical: Hadoop: journalnode_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'JOURNALNODE::JournalNode process', 'SERVICE MSG')
+test('JournalNode_process:OK',
+     'OK: Hadoop: journalnode_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'JOURNALNODE::JournalNode process', 'SERVICE MSG')
+
+test('ZooKeeper_Server_process',
+     'Critical: Hadoop: zookeeper_server_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'ZOOKEEPER::ZooKeeper Server process', 'SERVICE MSG')
+test('ZooKeeper_Server_process:OK',
+     'OK: Hadoop: zookeeper_server_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'ZOOKEEPER::ZooKeeper Server process', 'SERVICE MSG')
+
+test('JobTracker_process',
+     'Critical: Hadoop: jobtracker_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'JOBTRACKER::JobTracker process', 'SERVICE MSG')
+test('JobTracker_process:OK',
+     'OK: Hadoop: jobtracker_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'JOBTRACKER::JobTracker process', 'SERVICE MSG')
+
+test('TaskTracker_process',
+     'Critical: Hadoop: tasktracker_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'TASKTRACKER::TaskTracker process', 'SERVICE MSG')
+test('TaskTracker_process:OK',
+     'OK: Hadoop: tasktracker_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'TASKTRACKER::TaskTracker process', 'SERVICE MSG')
+
+test('Ganglia_Server_process',
+     'Critical: Hadoop: ganglia_server_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Server process', 'SERVICE MSG')
+test('Ganglia_Server_process:OK',
+     'OK: Hadoop: ganglia_server_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Server process', 'SERVICE MSG')
+
+test('Ganglia_Monitor_process_for_Slaves',
+     'Critical: Hadoop: ganglia_monitor_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Monitor process for Slaves', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_Slaves:OK',
+     'OK: Hadoop: ganglia_monitor_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Monitor process for Slaves', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_NameNode',
+     'Critical: Hadoop: ganglia_monitor_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Monitor process for NameNode', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_NameNode:OK',
+     'OK: Hadoop: ganglia_monitor_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Monitor process for NameNode', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_JobTracker',
+     'Critical: Hadoop: ganglia_monitor_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Monitor process for JobTracker', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_JobTracker:OK',
+     'OK: Hadoop: ganglia_monitor_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Monitor process for JobTracker', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_HBase_Master',
+     'Critical: Hadoop: ganglia_monitor_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Monitor process for HBase Master', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_HBase_Master:OK',
+     'OK: Hadoop: ganglia_monitor_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Monitor process for HBase Master', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_ResourceManager',
+     'Critical: Hadoop: ganglia_monitor_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Monitor process for ResourceManager', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_ResourceManager:OK',
+     'OK: Hadoop: ganglia_monitor_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Monitor process for ResourceManager', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_HistoryServer',
+     'Critical: Hadoop: ganglia_monitor_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'GANGLIA::Ganglia Monitor process for HistoryServer', 'SERVICE MSG')
+test('Ganglia_Monitor_process_for_HistoryServer:OK',
+     'OK: Hadoop: ganglia_monitor_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'GANGLIA::Ganglia Monitor process for HistoryServer', 'SERVICE MSG')
+
+test('HBase_Master_process',
+     'Critical: Hadoop: hbase_master_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'HBASEMASTER::HBase Master process', 'SERVICE MSG')
+test('HBase_Master_process:OK',
+     'OK: Hadoop: hbase_master_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'HBASEMASTER::HBase Master process', 'SERVICE MSG')
+
+test('RegionServer_process',
+     'Critical: Hadoop: regionserver_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'REGIONSERVER::RegionServer process', 'SERVICE MSG')
+test('RegionServer_process:OK',
+     'OK: Hadoop: regionserver_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'REGIONSERVER::RegionServer process', 'SERVICE MSG')
+
+test('Nagios_status_log_freshness',
+     'Critical: Hadoop: nagios_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'NAGIOS::Nagios status log freshness', 'SERVICE MSG')
+test('Nagios_status_log_freshness:OK',
+     'OK: Hadoop: nagios_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'NAGIOS::Nagios status log freshness', 'SERVICE MSG')
+
+test('Flume_Agent_process',
+     'Critical: Hadoop: flume_agent_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'FLUME::Flume Agent process', 'SERVICE MSG')
+test('Flume_Agent_process:OK',
+     'OK: Hadoop: flume_agent_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'FLUME::Flume Agent process', 'SERVICE MSG')
+
+test('Oozie_Server_status',
+     'Critical: Hadoop: oozie_server_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'OOZIE::Oozie Server status', 'SERVICE MSG')
+test('Oozie_Server_status:OK',
+     'OK: Hadoop: oozie_server_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'OOZIE::Oozie Server status', 'SERVICE MSG')
+
+test('Hive_Metastore_status',
+     'Critical: Hadoop: hive_metastore_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'HIVE-METASTORE::Hive Metastore status', 'SERVICE MSG')
+test('Hive_Metastore_status:OK',
+     'OK: Hadoop: hive_metastore_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'HIVE-METASTORE::Hive Metastore status', 'SERVICE MSG')
+
+test('WebHCat_Server_status',
+     'Critical: Hadoop: webhcat_server_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'WEBHCAT::WebHCat Server status', 'SERVICE MSG')
+test('WebHCat_Server_status:OK',
+     'OK: Hadoop: webhcat_server_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'WEBHCAT::WebHCat Server status', 'SERVICE MSG')
+
+test('ResourceManager_process',
+     'Critical: Hadoop: resourcemanager_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'RESOURCEMANAGER::ResourceManager process', 'SERVICE MSG')
+test('ResourceManager_process:OK',
+     'OK: Hadoop: resourcemanager_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'RESOURCEMANAGER::ResourceManager process', 'SERVICE MSG')
+
+test('NodeManager_process',
+     'Critical: Hadoop: nodemanager_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'NODEMANAGER::NodeManager process', 'SERVICE MSG')
+test('NodeManager_process:OK',
+     'OK: Hadoop: nodemanager_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'NODEMANAGER::NodeManager process', 'SERVICE MSG')
+
+test('HistoryServer_process',
+     'Critical: Hadoop: historyserver_process# SERVICE MSG',
+     'HARD', '1', 'CRITICAL', 'JOBHISTORY::HistoryServer process', 'SERVICE MSG')
+test('HistoryServer_process:OK',
+     'OK: Hadoop: historyserver_process_ok# SERVICE MSG',
+     'HARD', '1', 'OK', 'JOBHISTORY::HistoryServer process', 'SERVICE MSG')
+
 summary()
 

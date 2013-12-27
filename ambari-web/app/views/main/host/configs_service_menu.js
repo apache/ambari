@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.MainHostServiceMenuView = Em.CollectionView.extend({
   content:function () {
@@ -26,15 +27,19 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
     if (hostComponents) {
       hostComponents.forEach(function (hc) {
         var service = hc.get('service');
+        if (service) {
         var serviceName = service.get('serviceName');
-        if(!['PIG', 'SQOOP', 'HCATALOG', 'GANGLIA'].contains(serviceName)){
-          if (!services.findProperty('serviceName', serviceName)) {
-            services.push(service);
+          if(!['PIG', 'SQOOP', 'HCATALOG', 'GANGLIA'].contains(serviceName)){
+            if (!services.findProperty('serviceName', serviceName)) {
+              services.push(service);
+            }
           }
+        } else {
+          console.warn("service not found for " + hc.get('componentName'));
         }
       });
     }
-    return services;
+    return misc.sortByOrder(App.Service.servicesSortOrder, services);
   }.property('host'),
   
   host: function(){
@@ -45,14 +50,15 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
   
   showHostService: function(event){
     var service = event.contexts[0];
-    if(service!=null){
+    if(service != null) {
       this.set('selectedService', service);
       var context = service;
       context.host = this.get('host');
       this.get('controller').connectOutlet('service_config_outlet', 'mainHostServiceConfigs', context);
-    }else{
+    }
+    else {
       this.get('controller').connectOutlet('service_config_outlet', Em.View.extend({
-        template: Ember.Handlebars.compile('<i class="message">Service not available on this host</i>')
+        template: Ember.Handlebars.compile('<i class="message">{{t hosts.host.serviceNotAvailable}}</i>')
       }))
     }
   },
@@ -60,7 +66,7 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
   didInsertElement:function () {
     var event = {
         contexts: [this.get('content').objectAt(0)]
-    }
+    };
     this.showHostService(event);
   },
 

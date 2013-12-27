@@ -22,11 +22,12 @@ App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
   componentName: DS.attr('string'),
   haStatus: DS.attr('string'),
+  displayNameAdvanced: DS.attr('string'),
+  staleConfigs: DS.attr('boolean'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
-  actualConfigs: null,
   isClient:function () {
-    if(['PIG', 'SQOOP', 'HCAT'].contains(this.get('componentName'))){
+    if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
       return true;
     }
 
@@ -43,6 +44,7 @@ App.HostComponent = DS.Model.extend({
       case 'NAMENODE':
       case 'SECONDARY_NAMENODE':
       case 'SNAMENODE':
+      case 'JOURNALNODE':
       case 'JOBTRACKER':
       case 'ZOOKEEPER_SERVER':
       case 'HIVE_SERVER':
@@ -54,6 +56,9 @@ App.HostComponent = DS.Model.extend({
       case 'OOZIE_SERVER':
       case 'WEBHCAT_SERVER':
       case 'HUE_SERVER':
+      case 'HISTORYSERVER':
+      case 'FLUME_SERVER':
+      case 'RESOURCEMANAGER':
         return true;
       default:
         return false;
@@ -65,11 +70,37 @@ App.HostComponent = DS.Model.extend({
       case 'TASKTRACKER':
       case 'HBASE_REGIONSERVER':
       case 'GANGLIA_MONITOR':
+      case 'NODEMANAGER':
+      case 'ZKFC':
         return true;
       default:
         return false;
     }
   }.property('componentName'),
+  /**
+   * Only certain components can be deleted.
+   * They include some from master components, 
+   * some from slave components, and rest from 
+   * client components.
+   */
+  isDeletable: function() {
+    var canDelete = false;
+    switch (this.get('componentName')) {
+      case 'DATANODE':
+      case 'TASKTRACKER':
+      case 'ZOOKEEPER_SERVER':
+      case 'HBASE_REGIONSERVER':
+      case 'GANGLIA_MONITOR':
+      case 'NODEMANAGER':
+        canDelete = true;
+        break;
+      default:
+    }
+    if (!canDelete) {
+      canDelete = this.get('isClient');
+    }
+    return canDelete;
+  }.property('componentName', 'isClient'),
   /**
    * A host-component is decommissioning when it is in HDFS service's list of
    * decomNodes.
@@ -78,16 +109,20 @@ App.HostComponent = DS.Model.extend({
     var decommissioning = false;
     var hostName = this.get('host.hostName');
     var componentName = this.get('componentName');
-    if (componentName == 'DATANODE') {
-      var hdfsSvc = App.router.get('mainServiceController.hdfsService');
-      if (hdfsSvc) {
-        var decomNodes = hdfsSvc.get('decommissionDataNodes');
-        var decomNode = decomNodes != null ? decomNodes.findProperty("hostName", hostName) : null;
-        decommissioning = decomNode != null;
-      }
+    var hdfsSvc = App.HDFSService.find().objectAt(0);
+    if (componentName === 'DATANODE' && hdfsSvc) {
+      var decomNodes = hdfsSvc.get('decommissionDataNodes');
+      var decomNode = decomNodes != null ? decomNodes.findProperty("hostName", hostName) : null;
+      decommissioning = decomNode != null;
     }
     return decommissioning;
-  }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName')
+  }.property('componentName', 'host.hostName', 'App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
+  /**
+   * User friendly host component status
+   */
+  componentTextStatus: function () {
+    return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
+  }.property('workStatus','isDecommissioning')
 });
 
 App.HostComponent.FIXTURES = [];
@@ -97,11 +132,11 @@ App.HostComponentStatus = {
   starting: "STARTING",
   stopped: "INSTALLED",
   stopping: "STOPPING",
-  stop_failed: "STOP_FAILED",
-  start_failed: "START_FAILED",
   install_failed: "INSTALL_FAILED",
   installing: "INSTALLING",
   upgrade_failed: "UPGRADE_FAILED",
+  maintenance: "MAINTENANCE",
+  unknown: "UNKNOWN",
 
   getKeyName:function(value){
     switch(value){
@@ -113,18 +148,40 @@ App.HostComponentStatus = {
         return 'installed';
       case this.stopping:
         return 'stopping';
-      case this.stop_failed:
-        return 'stop_failed';
-      case this.start_failed:
-        return 'start_failed';
       case this.install_failed:
         return 'install_failed';
       case this.installing:
         return 'installing';
       case this.upgrade_failed:
         return 'upgrade_failed';
+      case this.maintenance:
+        return 'maintenance';
+      case this.unknown:
+        return 'unknown';
     }
-    return 'none';
+    return 'Unknown';
+  },
+
+  getTextStatus: function (value) {
+    switch (value) {
+      case this.installing:
+        return 'Installing...';
+      case this.install_failed:
+        return 'Install Failed';
+      case this.stopped:
+        return 'Stopped';
+      case this.started:
+        return 'Started';
+      case this.starting:
+        return 'Starting...';
+      case this.stopping:
+        return 'Stopping...';
+      case this.unknown:
+        return 'Heartbeat lost...';
+      case this.upgrade_failed:
+        return 'Upgrade Failed';
+    }
+    return 'Unknown';
   }
 };
 

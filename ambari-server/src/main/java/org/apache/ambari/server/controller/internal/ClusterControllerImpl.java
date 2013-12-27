@@ -27,13 +27,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Default cluster controller implementation.
@@ -41,7 +46,7 @@ import java.util.Set;
 public class ClusterControllerImpl implements ClusterController {
   private final static Logger LOG =
       LoggerFactory.getLogger(ClusterControllerImpl.class);
-  
+
   /**
    * Module of providers for this controller.
    */
@@ -65,6 +70,17 @@ public class ClusterControllerImpl implements ClusterController {
   private final Map<Resource.Type, Schema> schemas =
       new HashMap<Resource.Type, Schema>();
 
+  /**
+   * Resource comparator.
+   */
+  private final ResourceComparator comparator = new ResourceComparator();
+
+  /**
+   * Predicate evaluator
+   */
+  private static final DefaultResourcePredicateEvaluator
+    DEFAULT_RESOURCE_PREDICATE_EVALUATOR =
+    new DefaultResourcePredicateEvaluator();
 
   // ----- Constructors ------------------------------------------------------
 
@@ -76,31 +92,101 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- ClusterController -------------------------------------------------
 
   @Override
-  public Iterable<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
-      throws UnsupportedPropertyException,
-             SystemException,
-             NoSuchParentResourceException,
-             NoSuchResourceException {
+  public Set<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
+    Set<Resource> resources;
 
     ResourceProvider provider = ensureResourceProvider(type);
     ensurePropertyProviders(type);
-    Set<Resource> resources;
 
     if (provider == null) {
       resources = Collections.emptySet();
     } else {
+
       if (LOG.isDebugEnabled()) {
         LOG.debug("Using resource provider "
-          + provider.getClass().getName()
-          + " for request type " + type.toString());
+            + provider.getClass().getName()
+            + " for request type " + type.toString());
       }
+      // make sure that the providers can satisfy the request
       checkProperties(type, request, predicate);
 
+      // get the resources
       resources = provider.getResources(request, predicate);
-      resources = populateResources(type, resources, request, predicate);
     }
-    
-    return new ResourceIterable(resources, predicate);
+    return resources;
+  }
+
+  @Override
+  public Set<Resource> populateResources(Resource.Type type,
+                                         Set<Resource> resources,
+                                         Request request,
+                                         Predicate predicate) throws SystemException {
+    Set<Resource> keepers = resources;
+
+    for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
+      if (providesRequestProperties(propertyProvider, request, predicate)) {
+        keepers = propertyProvider.populateResources(keepers, request, predicate);
+      }
+    }
+    return keepers;
+  }
+
+  @Override
+  public Iterable<Resource> getIterable(Resource.Type type, Set<Resource> providerResources,
+                                        Request request, Predicate predicate)
+      throws NoSuchParentResourceException, UnsupportedPropertyException, NoSuchResourceException, SystemException {
+    return getPage(type, providerResources, request, predicate, null).getIterable();
+  }
+
+  @Override
+  public PageResponse getPage(Resource.Type type, Set<Resource> providerResources,
+                              Request request, Predicate predicate, PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchResourceException,
+      NoSuchParentResourceException {
+
+    Set<Resource> resources;
+    ResourceProvider provider = ensureResourceProvider(type);
+
+    ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
+        (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+
+    if (!providerResources.isEmpty()) {
+      Comparator<Resource> resourceComparator = pageRequest == null || pageRequest.getComparator() == null ?
+          comparator : pageRequest.getComparator();
+
+      TreeSet<Resource> sortedResources = new TreeSet<Resource>(resourceComparator);
+      sortedResources.addAll(providerResources);
+
+      if (pageRequest != null) {
+        switch (pageRequest.getStartingPoint()) {
+          case Beginning:
+            return getPageFromOffset(pageRequest.getPageSize(), 0,
+              sortedResources, predicate, evaluator);
+          case End:
+            return getPageToOffset(pageRequest.getPageSize(), -1,
+                sortedResources, predicate, evaluator);
+          case OffsetStart:
+            return getPageFromOffset(pageRequest.getPageSize(),
+              pageRequest.getOffset(), sortedResources, predicate, evaluator);
+          case OffsetEnd:
+            return getPageToOffset(pageRequest.getPageSize(),
+              pageRequest.getOffset(), sortedResources, predicate, evaluator);
+          // TODO : need to support the following cases for pagination
+//          case PredicateStart:
+//          case PredicateEnd:
+        }
+      }
+      resources = sortedResources;
+    } else {
+      resources = providerResources;
+    }
+
+    return new PageResponseImpl(
+        new ResourceIterable(resources, predicate, evaluator),
+        0, null, null);
   }
 
   @Override
@@ -179,6 +265,60 @@ public class ClusterControllerImpl implements ClusterController {
   // ----- helper methods ----------------------------------------------------
 
   /**
+   * Get an iterable set of resources filtered by the given request and
+   * predicate objects.
+   *
+   * @param type       type of resources
+   * @param request    the request
+   * @param predicate  the predicate object which filters which resources are returned
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  protected Iterable<Resource> getResourceIterable(Resource.Type type, Request request,
+                                                   Predicate predicate)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchParentResourceException,
+      NoSuchResourceException {
+    return getResources(type, request, predicate, null).getIterable();
+  }
+
+  /**
+   * Get a page of resources filtered by the given request, predicate objects and
+   * page request.
+   *
+   * @param type         type of resources
+   * @param request      the request
+   * @param predicate    the predicate object which filters which resources are returned
+   * @param pageRequest  the page request for a paginated response
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  protected  PageResponse getResources(Resource.Type type, Request request, Predicate predicate,
+                                       PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchResourceException,
+      NoSuchParentResourceException {
+
+    Set<Resource> providerResources = getResources(type, request, predicate);
+    populateResources(type, providerResources, request, predicate);
+    return getPage(type, providerResources, request, predicate, pageRequest);
+  }
+
+  /**
    * Check to make sure that all the property ids specified in the given request and
    * predicate are supported by the resource provider or property providers for the
    * given type.
@@ -255,7 +395,7 @@ public class ClusterControllerImpl implements ClusterController {
     Set<String>  keyPropertyIds = new HashSet<String>(provider.getKeyPropertyIds().values());
     Request      readRequest    = PropertyHelper.getReadRequest(keyPropertyIds);
 
-    Iterable<Resource> resources = getResources(type, readRequest, predicate);
+    Iterable<Resource> resources = getResourceIterable(type, readRequest, predicate);
 
     PredicateBuilder pb = new PredicateBuilder();
     PredicateBuilder.PredicateBuilderWithPredicate pbWithPredicate = null;
@@ -280,34 +420,6 @@ public class ClusterControllerImpl implements ClusterController {
       }
     }
     return pbWithPredicate == null ? null : pbWithPredicate.toPredicate();
-  }
-
-  /**
-   * Populate the given resources from the associated property providers.  This
-   * method may filter the resources based on the predicate and return a subset
-   * of the given resources.
-   *
-   * @param type       the resource type
-   * @param resources  the resources to be populated
-   * @param request    the request
-   * @param predicate  the predicate
-   *
-   * @return the set of resources that were successfully populated
-   *
-   * @throws SystemException if unable to populate the resources
-   */
-  private Set<Resource> populateResources(Resource.Type type,
-                                          Set<Resource> resources,
-                                          Request request,
-                                          Predicate predicate) throws SystemException {
-    Set<Resource> keepers = resources;
-
-    for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
-      if (providesRequestProperties(propertyProvider, request, predicate)) {
-        keepers = propertyProvider.populateResources(keepers, request, predicate);
-      }
-    }
-    return keepers;
   }
 
   /**
@@ -364,6 +476,94 @@ public class ClusterControllerImpl implements ClusterController {
     return propertyProviders.get(type);
   }
 
+  /**
+   * Get one page of resources from the given set of resources starting at the given offset.
+   *
+   * @param pageSize   the page size
+   * @param offset     the offset
+   * @param resources  the set of resources
+   * @param predicate  the predicate
+   *
+   * @return a page response containing a page of resources
+   */
+  private PageResponse getPageFromOffset(int pageSize, int offset,
+                                         NavigableSet<Resource> resources,
+                                         Predicate predicate,
+                                         ResourcePredicateEvaluator evaluator) {
+
+    int                currentOffset = 0;
+    Resource           previous      = null;
+    Set<Resource>      pageResources = new LinkedHashSet<Resource>();
+    Iterator<Resource> iterator      = resources.iterator();
+
+    // skip till offset
+    while (currentOffset < offset && iterator.hasNext()) {
+      previous = iterator.next();
+      ++currentOffset;
+    }
+
+    // get a page worth of resources
+    for (int i = 0; i < pageSize && iterator.hasNext(); ++i) {
+      pageResources.add(iterator.next());
+    }
+
+    return new PageResponseImpl(new ResourceIterable(pageResources,
+        predicate, evaluator),
+        currentOffset,
+        previous,
+        iterator.hasNext() ? iterator.next() : null);
+  }
+
+  /**
+   * Get one page of resources from the given set of resources ending at the given offset.
+   *
+   * @param pageSize   the page size
+   * @param offset     the offset; -1 indicates the end of the resource set
+   * @param resources  the set of resources
+   * @param predicate  the predicate
+   *
+   * @return a page response containing a page of resources
+   */
+  private PageResponse getPageToOffset(int pageSize, int offset,
+                                       NavigableSet<Resource> resources,
+                                       Predicate predicate,
+                                       ResourcePredicateEvaluator evaluator) {
+
+    int                currentOffset = resources.size() - 1;
+    Resource           next          = null;
+    List<Resource>     pageResources = new LinkedList<Resource>();
+    Iterator<Resource> iterator      = resources.descendingIterator();
+
+    if (offset != -1) {
+      // skip till offset
+      while (currentOffset > offset && iterator.hasNext()) {
+        next = iterator.next();
+        --currentOffset;
+      }
+    }
+
+    // get a page worth of resources
+    for (int i = 0; i < pageSize && iterator.hasNext(); ++i) {
+      pageResources.add(0, iterator.next());
+      --currentOffset;
+    }
+
+    return new PageResponseImpl(new ResourceIterable(new
+        LinkedHashSet<Resource>(pageResources), predicate, evaluator),
+        currentOffset + 1,
+        iterator.hasNext() ? iterator.next() : null,
+        next);
+  }
+
+  /**
+   * Get the associated resource comparator.
+   *
+   * @return the resource comparator
+   */
+  protected Comparator<Resource> getComparator() {
+    return comparator;
+  }
+
 
   // ----- ResourceIterable inner class --------------------------------------
 
@@ -379,6 +579,12 @@ public class ClusterControllerImpl implements ClusterController {
      */
     private final Predicate predicate;
 
+    /**
+     * The predicate evaluator.
+     */
+    private final ResourcePredicateEvaluator evaluator;
+
+
     // ----- Constructors ----------------------------------------------------
 
     /**
@@ -386,17 +592,20 @@ public class ClusterControllerImpl implements ClusterController {
      *
      * @param resources  the set of resources to iterate over
      * @param predicate  the predicate used to filter the set of resources
+     * @param evaluator  the evaluator used to evaluate with the given predicate
      */
-    private ResourceIterable(Set<Resource> resources, Predicate predicate) {
+    private ResourceIterable(Set<Resource> resources, Predicate predicate,
+                             ResourcePredicateEvaluator evaluator) {
       this.resources = resources;
       this.predicate = predicate;
+      this.evaluator = evaluator;
     }
 
     // ----- Iterable --------------------------------------------------------
 
     @Override
     public Iterator<Resource> iterator() {
-      return new ResourceIterator(resources, predicate);
+      return new ResourceIterator(resources, predicate, evaluator);
     }
   }
 
@@ -420,6 +629,10 @@ public class ClusterControllerImpl implements ClusterController {
      */
     private Resource nextResource;
 
+    /**
+     * The predicate evaluator.
+     */
+    private final ResourcePredicateEvaluator evaluator;
 
     // ----- Constructors ----------------------------------------------------
 
@@ -428,10 +641,13 @@ public class ClusterControllerImpl implements ClusterController {
      *
      * @param resources  the set of resources to iterate over
      * @param predicate  the predicate used to filter the set of resources
+     * @param evaluator  the evaluator used to evaluate with the given predicate
      */
-    private ResourceIterator(Set<Resource> resources, Predicate predicate) {
+    private ResourceIterator(Set<Resource> resources, Predicate predicate,
+                             ResourcePredicateEvaluator evaluator) {
       this.iterator     = resources.iterator();
       this.predicate    = predicate;
+      this.evaluator    = evaluator;
       this.nextResource = getNextResource();
     }
 
@@ -469,12 +685,60 @@ public class ClusterControllerImpl implements ClusterController {
     private Resource getNextResource() {
       while (iterator.hasNext()) {
         Resource next = iterator.next();
-        
-        if (predicate == null || predicate.evaluate(next)) {
+        if (predicate == null || evaluator.evaluate(predicate, next)) {
           return next;
         }
       }
       return null;
+    }
+  }
+
+  // ----- ResourceComparator inner class ------------------------------------
+
+  protected class ResourceComparator implements Comparator<Resource> {
+
+    @Override
+    public int compare(Resource resource1, Resource resource2) {
+      Resource.Type resourceType = resource1.getType();
+
+      // compare based on resource type
+      int compVal = resourceType.compareTo(resource2.getType());
+
+      if (compVal == 0) {
+        Schema schema = getSchema(resourceType);
+
+        // compare based on resource key properties
+        for (Resource.Type type : Resource.Type.values()) {
+          String keyPropertyId = schema.getKeyPropertyId(type);
+          if (keyPropertyId != null) {
+            compVal = compareValues(resource1.getPropertyValue(keyPropertyId),
+                                    resource2.getPropertyValue(keyPropertyId));
+            if (compVal != 0 ) {
+              return compVal;
+            }
+          }
+        }
+      }
+
+      // compare based on the resource strings
+      return resource1.toString().compareTo(resource2.toString());
+    }
+
+    // compare two values and account for null
+    private int compareValues(Object val1, Object val2) {
+
+      if (val1 == null || val2 == null) {
+        return val1 == null && val2 == null ? 0 : val1 == null ? -1 : 1;
+      }
+
+      if (val1 instanceof Comparable) {
+        try {
+          return ((Comparable)val1).compareTo(val2);
+        } catch (ClassCastException e) {
+          return 0;
+        }
+      }
+      return 0;
     }
   }
 }

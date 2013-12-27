@@ -140,8 +140,17 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
     return clusterDefinition;
   }
 
+  /**
+   * Get the resource provider type.
+   *
+   * @return the type
+   */
+  public Resource.Type getType() {
+    return type;
+  }
 
-  // ----- helper methods ----------------------------------------------------
+
+// ----- helper methods ----------------------------------------------------
 
   /**
    * Get the set of property ids required to satisfy the given request.

@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -33,9 +34,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+@Singleton
 public class HostRoleCommandDAO {
 
   @Inject
@@ -43,6 +44,7 @@ public class HostRoleCommandDAO {
   @Inject
   DaoUtils daoUtils;
   private static Logger LOG = LoggerFactory.getLogger(HostRoleCommandDAO.class);
+  private static final int REQUESTS_RESULT_LIMIT = 10;
 
   @Transactional
   public HostRoleCommandEntity findByPK(long taskId) {
@@ -68,11 +70,30 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  public List<Long> findTaskIdsByRequestIds(Collection<Long> requestIds) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(
+        "SELECT task.taskId FROM HostRoleCommandEntity task " +
+            "WHERE task.requestId IN ?1 " +
+            "ORDER BY task.taskId", Long.class);
+    return daoUtils.selectList(query, requestIds);
+  }
+
+  @Transactional
   public List<HostRoleCommandEntity> findByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT task FROM HostRoleCommandEntity task " +
-            "WHERE task.requestId IN ?1 OR task.taskId IN ?2 " +
+            "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
             "ORDER BY task.taskId", HostRoleCommandEntity.class
+    );
+    return daoUtils.selectList(query, requestIds, taskIds);
+  }
+
+  @Transactional
+  public List<Long> findTaskIdsByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(
+        "SELECT DISTINCT task.taskId FROM HostRoleCommandEntity task " +
+            "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
+            "ORDER BY task.taskId", Long.class
     );
     return daoUtils.selectList(query, requestIds, taskIds);
   }
@@ -87,7 +108,28 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
-  public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, Role role) {
+  public Map<String, List<HostRoleCommandEntity>> findSortedCommandsByStage(StageEntity stageEntity) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
+        "FROM HostRoleCommandEntity hostRoleCommand " +
+        "WHERE hostRoleCommand.stage=?1 " +
+        "ORDER BY hostRoleCommand.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
+    List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(query, stageEntity);
+
+    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<String, List<HostRoleCommandEntity>>();
+
+    for (HostRoleCommandEntity commandEntity : commandEntities) {
+      if (!hostCommands.containsKey(commandEntity.getHostName())) {
+        hostCommands.put(commandEntity.getHostName(), new ArrayList<HostRoleCommandEntity>());
+      }
+
+      hostCommands.get(commandEntity.getHostName()).add(commandEntity);
+    }
+
+    return hostCommands;
+  }
+
+  @Transactional
+  public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, String role) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
         "WHERE command.hostName=?1 AND command.requestId=?2 " +
@@ -103,17 +145,27 @@ public class HostRoleCommandDAO {
         "FROM HostRoleCommandEntity command ORDER BY command.requestId DESC";
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr,
         Long.class);
-    query.setMaxResults(20);
+    query.setMaxResults(REQUESTS_RESULT_LIMIT);
     return daoUtils.selectList(query);
   }
 
   @Transactional
+  /**
+   * NB: You cannot rely on return value if batch write is enabled
+   */
   public int updateStatusByRequestId(long requestId, HostRoleStatus target, Collection<HostRoleStatus> sources) {
-    Query query = entityManagerProvider.get().createQuery("UPDATE HostRoleCommandEntity command " +
-        "SET command.status=?1 " +
-        "WHERE command.requestId=?2 AND command.status IN ?3");
+    TypedQuery<HostRoleCommandEntity> selectQuery = entityManagerProvider.get().createQuery("SELECT command " +
+        "FROM HostRoleCommandEntity command " +
+        "WHERE command.requestId=?1 AND command.status IN ?2", HostRoleCommandEntity.class);
 
-    return daoUtils.executeUpdate(query, target, requestId, sources);
+    List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(selectQuery, requestId, sources);
+
+    for (HostRoleCommandEntity entity : commandEntities) {
+      entity.setStatus(target);
+      merge(entity);
+    }
+
+    return commandEntities.size();
   }
 
   @Transactional
@@ -121,6 +173,14 @@ public class HostRoleCommandDAO {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
         "WHERE command.requestId=?1 ORDER BY command.taskId", HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, requestId);
+  }
+  
+  @Transactional
+  public List<Long> findTaskIdsByRequest(long requestId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT command.taskId " +
+        "FROM HostRoleCommandEntity command " +
+        "WHERE command.requestId=?1 ORDER BY command.taskId", Long.class);
     return daoUtils.selectList(query, requestId);
   }
 
@@ -151,7 +211,7 @@ public class HostRoleCommandDAO {
       Collection<HostRoleStatus> statuses, boolean match, boolean checkAllTasks) {
     List<Long> results = null;
     StringBuilder queryStr = new StringBuilder();
-    Integer resultsLimit = null;
+
     queryStr.append("SELECT DISTINCT command.requestId ").append(
         "FROM HostRoleCommandEntity command ");
     if (statuses != null && !statuses.isEmpty()) {
@@ -173,14 +233,13 @@ public class HostRoleCommandDAO {
         }
         queryStr.append("IN ?1 ");
       }
-      resultsLimit = 20;
     }
+
     queryStr.append("ORDER BY command.requestId DESC");
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr.toString(),
         Long.class);
-    if (resultsLimit != null) {
-      query.setMaxResults(resultsLimit);
-    }
+    query.setMaxResults(REQUESTS_RESULT_LIMIT);
+
     if (statuses != null && !statuses.isEmpty()) {
       results = daoUtils.selectList(query, statuses);
     } else {

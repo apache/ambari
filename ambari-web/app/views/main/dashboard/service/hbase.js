@@ -17,6 +17,7 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hbase'),
@@ -31,37 +32,67 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
    * Passive master components
    */
   passiveMasters: function () {
-    return this.get('masters').filterProperty('haStatus', 'passive');
+    if(App.supports.multipleHBaseMasters){
+      return this.get('masters').filterProperty('haStatus', 'false');
+    }
+    return [];
   }.property('masters'),
-  /**
-   * Formatted output for passive master components
-   */
-  passiveMasterOutput: function () {
-    return Em.I18n.t('service.hbase.passiveMasters').format(this.get('passiveMasters').length);
-  }.property('passiveMasters'),
+
+
+  liveRegionServers: function () {
+    return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED");
+  }.property('service.hostComponents.@each'),
+
+  regionServesText: function () {
+    if (this.get('service.regionServers.length') == 0) {
+      return '';
+    } else if (this.get('service.regionServers.length') > 1) {
+      return Em.I18n.t('services.service.summary.viewHosts');
+    } else {
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service"),
+
+  regionServersLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED").get('length');
+    }.property("service.hostComponents.@each"),
+    totalComponents: function() {
+      return this.get("service.regionServers.length");
+    }.property("service.regionServers.length")
+  }),
+
   /**
    * One(!) active master component
    */
   activeMaster: function () {
-    return this.get('masters').findProperty('haStatus', 'active');
+    if(App.supports.multipleHBaseMasters){
+      return this.get('masters').findProperty('haStatus', 'true');
+    } else {
+      return this.get('masters')[0];
+    }
   }.property('masters'),
+
+  activeMasterTitle: function(){
+    if(App.supports.multipleHBaseMasters){
+      return this.t('service.hbase.activeMaster');
+    } else {
+      return this.get('activeMaster.host.publicHostName');
+    }
+  }.property('activeMaster'),
 
   masterServerHeapSummary: function () {
     var heapUsed = this.get('service').get('heapMemoryUsed');
     var heapMax = this.get('service').get('heapMemoryMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    var heapString = heapUsed > 0 ? heapUsed.bytesToSize(1, "parseFloat") : 0;
-    var heapMaxString = heapMax > 0 ? heapMax.bytesToSize(1, "parseFloat") : 0;
+    var heapString = numberUtils.bytesToSize(heapUsed, 1, "parseFloat");
+    var heapMaxString = numberUtils.bytesToSize(heapMax, 1, "parseFloat");
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 
-  version: function () {
-    return this.formatUnavailable(this.get('service.version'));
-  }.property('service.version'),
-
   summaryHeader: function () {
     var avgLoad = this.get('service.averageLoad');
-    if (avgLoad == null) {
+    if (isNaN(avgLoad)) {
       avgLoad = this.t("services.service.summary.unknown");
     }
     return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), avgLoad);
@@ -69,13 +100,13 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   hbaseMasterWebUrl: function () {
     if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
-      return "http://" + this.get('activeMaster.host').get('publicHostName') + ":60010";
+      return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('activeMaster.host').get('publicHostName')) + ":60010";
     }
   }.property('activeMaster'),
 
   averageLoad: function () {
     var avgLoad = this.get('service.averageLoad');
-    if (avgLoad == null) {
+    if (isNaN(avgLoad)) {
       avgLoad = this.t('services.service.summary.notAvailable');
     }
     return this.t('dashboard.services.hbase.averageLoadPerServer').format(avgLoad);

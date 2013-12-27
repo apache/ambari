@@ -35,17 +35,46 @@ public class TestStreamProvider implements StreamProvider {
     FILE_MAPPING.put("50030", "mapreduce_jobtracker_jmx.json");
     FILE_MAPPING.put("50060", "mapreduce_tasktracker_jmx.json");
     FILE_MAPPING.put("60010", "hbase_hbasemaster_jmx.json");
+    FILE_MAPPING.put("60011", "hbase_hbasemaster_jmx_2.json");
+    FILE_MAPPING.put("8088",  "resourcemanager_jmx.json");
+    FILE_MAPPING.put("8480",  "hdfs_journalnode_jmx.json");
   }
+
+  /**
+   * Delay to simulate response time.
+   */
+  protected final long delay;
 
   private String lastSpec;
 
+  private boolean isLastSpecUpdated;
+
+  public TestStreamProvider() {
+    delay = 0;
+  }
+
+  public TestStreamProvider(long delay) {
+    this.delay = delay;
+  }
+
   @Override
   public InputStream readFrom(String spec) throws IOException {
-    lastSpec = spec;
+    if (!isLastSpecUpdated)
+      lastSpec = spec;
+    
+    isLastSpecUpdated = false;
     String filename = FILE_MAPPING.get(getPort(spec));
     if (filename == null) {
       throw new IOException("Can't find JMX source for " + spec);
     }
+    if (delay > 0) {
+      try {
+        Thread.sleep(delay);
+      } catch (InterruptedException e) {
+        // do nothing
+      }
+    }
+
     return ClassLoader.getSystemResourceAsStream(filename);
   }
 
@@ -54,9 +83,16 @@ public class TestStreamProvider implements StreamProvider {
   }
 
   private String getPort(String spec) {
-    int n = spec.indexOf(":", 5);
-    return spec.substring(n + 1, n + 6);
+    int colonIndex = spec.indexOf(":", 5);
+    int slashIndex = spec.indexOf("/", colonIndex);
+
+    return spec.substring(colonIndex + 1, slashIndex);
   }
 
-
+  @Override
+  public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
+    lastSpec = spec + "?" + params;
+    isLastSpecUpdated = true;
+    return readFrom(spec);
+  }
 }

@@ -26,7 +26,7 @@ App.AlertItemView = Em.View.extend({
   }.property('content'),
   didInsertElement: function () {
     // Tooltips for alerts need to be enabled.
-    $("div[rel=tooltip]").tooltip();
+    App.tooltip($("div[rel=tooltip]"));
     $(".tooltip").remove();
   }
 })
@@ -36,19 +36,39 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   attributes:null,
   serviceStatus:{
     hdfs:false,
+    yarn:false,
     mapreduce:false,
+    mapreduce2:false,
     hbase:false,
     zookeeper:false,
     oozie:false,
     hive:false,
     ganglia:false,
     nagios:false,
-    hue: false
+    hue: false,
+    flume: false
   },
+
+  sumMasterComponentView : Em.View.extend({
+    templateName: require('templates/main/service/info/summary/master_components'),
+    mastersComp : function(){
+      return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
+    }.property("service")
+  }),
+
+  noTemplateService: function () {
+    var serviceName = this.get("service.serviceName");
+    //services with only master components
+    if(serviceName == "WEBHCAT" || serviceName == "NAGIOS"){
+      return true;
+    }else{
+      return false;
+    }
+  }.property('controller.content'),
 
   clients: function () {
     var service = this.get('controller.content');
-    if (["OOZIE", "ZOOKEEPER", "HIVE"].contains(service.get("id"))) {
+    if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
       return service.get('hostComponents').filterProperty('isClient');
     }
     return [];
@@ -61,6 +81,16 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return false;
   }.property('servers'),
 
+  clientsHostText: function () {
+    if (this.get('clients').length == 0) {
+      return '';
+    } else if (this.get("hasManyClients")) {
+      return Em.I18n.t('services.service.summary.viewHosts');
+    } else {
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("hasManyClients"),
+
   hasManyClients: function () {
     if (this.get('clients').length > 1) {
       return true;
@@ -71,7 +101,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   servers: function () {
     var result = [];
     var service = this.get('controller.content');
-    if (service.get("id") == "ZOOKEEPER") {
+    if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         result = [{
@@ -100,13 +130,58 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return result;
   }.property('controller.content'),
 
+  historyServerUI: function(){
+    var service=this.get('controller.content');
+    return (App.singleNodeInstall ? "http://" + App.singleNodeAlias + ":19888" : "http://" + service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName")+":19888");
+  }.property('controller.content'),
+
   monitors: function () {
     var result = '';
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+      var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
+      this.set("liveMonitors", liveMonitors);
       if (monitors.length) {
-        result = monitors.length - 1 ? Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(monitors.length) : Em.I18n.t('services.service.info.summary.hostRunningMonitor');
+        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
+      }
+    }
+    return result;
+  }.property('controller.content'),
+
+  monitorsLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function () {
+      var service = this.get('service');
+      if (service.get("id") == "GANGLIA") {
+        return service.get('hostComponents').filterProperty('isMaster', false).filterProperty("workStatus","STARTED").length;
+      } else {
+        return null;
+      }
+    }.property('service.hostComponents.@each'),
+    monitors: function () {
+      var result = '';
+      var service = this.get('parentView.controller.content');
+      if (service.get("id") == "GANGLIA") {
+        var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+        var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
+        if (monitors.length) {
+          result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
+        }
+      }
+      return result;
+    }.property('service.hostComponents.@each')
+  }),
+
+  hasManyMonitors: function () {
+    var service = this.get('controller.content');
+    if (service.get("id") == "GANGLIA") {
+      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+      if (monitors.length == 0) {
+        return '';
+      } else if (monitors.length > 1) {
+        return Em.I18n.t('services.service.summary.viewHosts');
+      } else {
+        return Em.I18n.t('services.service.summary.viewHost');
       }
     }
     return result;
@@ -133,7 +208,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   serversHost: function() {
     var service = this.get('controller.content');
-    if (service.get("id") == "ZOOKEEPER") {
+    if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         return servers[0];
@@ -149,7 +224,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   clientObj: function() {
     var service = this.get('controller.content');
-    if (["OOZIE", "ZOOKEEPER", "HIVE"].contains(service.get("id"))) {
+    if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
       var clients = service.get('hostComponents').filterProperty('isClient', true);
       if (clients.length > 0) {
         return clients[0];
@@ -165,32 +240,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       "user":"hive"
     }
   },
-  /**
-   * Get public host name (should be Master) for service
-   * @param {String} serviceName - GANGLIA, NAGIOS etc
-   * @return {*}
-   */
-  getServer: function(serviceName) {
-    var service=this.get('controller.content');
-    if(service.get("id") == serviceName) {
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
-    }
-    else {
-      return '';
-    }
-  },
-  gangliaServer:function() {
-    return this.getServer("GANGLIA");
-  }.property('controller.content'),
-  nagiosServer:function(){
-    return this.getServer("NAGIOS");
-  }.property('controller.content'),
-  oozieServer:function(){
-    return this.getServer("OOZIE");
-  }.property('controller.content'),
-  hueServer:function(){
-    return this.getServer("HUE");
-  }.property('controller.content'),
 
   /**
    * Array of the hostComponents for service
@@ -215,10 +264,21 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           }
         }
         obj.displayName = component.get('displayName'); // this is computed property and wasn't copied in the top block of code
-        components.push(obj);
+        // suppressing MySQL server from being displayed, because Ambari always installs MySQL server no matter what
+        // database type is selected, and shows an incorrect link in the summary to point to the host that's hosting
+        // the MySQL server
+        if (component.get('componentName') !== 'MYSQL_SERVER') {
+          components.push(obj);
+        }
       });
       this.set('components', components);
+
+  },
+  
+  _hostComponentsUpd: function() {
+    Ember.run.once(this, 'hostComponentsUpd');
   }.observes('controller.content.rand', 'controller.content.hostComponents.@each.isMaster', 'controller.content.hostComponents.@each.host'),
+  
   /**
    * Wrapper for displayName. used to render correct display name for mysql_server
    */
@@ -241,11 +301,17 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         case 'hdfs':
           svc = App.HDFSService.find().objectAt(0);
           break;
+        case 'yarn':
+          svc = App.YARNService.find().objectAt(0);
+          break;
         case 'mapreduce':
           svc = App.MapReduceService.find().objectAt(0);
           break;
         case 'hbase':
           svc = App.HBaseService.find().objectAt(0);
+          break;
+        case 'flume':
+          svc = App.FlumeService.find().objectAt(0);
           break;
         default:
           break;
@@ -291,6 +357,19 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             App.ChartServiceMetricsHDFS_JVMHeap.extend(),
             App.ChartServiceMetricsHDFS_JVMThreads.extend()]];
           break;
+        case 'yarn':
+          graphs = [[App.ChartServiceMetricsYARN_AllocatedMemory.extend(),
+              App.ChartServiceMetricsYARN_QMR.extend(),
+              App.ChartServiceMetricsYARN_AllocatedContainer.extend(),
+              App.ChartServiceMetricsYARN_NMS.extend()],
+            [App.ChartServiceMetricsYARN_ApplicationCurrentStates.extend(),
+             App.ChartServiceMetricsYARN_ApplicationFinishedStates.extend(),
+             App.ChartServiceMetricsYARN_RPC.extend(),
+            App.ChartServiceMetricsYARN_GC.extend()
+            ],
+            [App.ChartServiceMetricsYARN_JVMThreads.extend(),
+             App.ChartServiceMetricsYARN_JVMHeap.extend()]];
+          break;
         case 'mapreduce':
           graphs = [ [App.ChartServiceMetricsMapReduce_JobsStatus.extend(),
             App.ChartServiceMetricsMapReduce_TasksRunningWaiting.extend(),
@@ -308,6 +387,17 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend()],
             [App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
             App.ChartServiceMetricsHBASE_HlogSplitSize.extend()]];
+          break;
+        case 'flume':
+          graphs = [[App.ChartServiceMetricsFlume_ChannelFillPercent.extend(),
+             App.ChartServiceMetricsFlume_ChannelSize.extend(),
+             App.ChartServiceMetricsFlume_SourceAcceptedCount.extend(),
+             App.ChartServiceMetricsFlume_SinkDrainSuccessCount.extend()],
+             [App.ChartServiceMetricsFlume_SinkConnectionFailedCount.extend(),
+              //App.ChartServiceMetricsFlume_GarbageCollection.extend(),
+              //App.ChartServiceMetricsFlume_JVMHeapUsed.extend(),
+              //App.ChartServiceMetricsFlume_JVMThreadsRunnable.extend(),
+              App.ChartServiceMetricsFlume_CPUUser.extend()]];
           break;
         default:
           break;
@@ -345,6 +435,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   gangliaUrl:function () {
     var gangliaUrl = App.router.get('clusterController.gangliaUrl');
+    if (!gangliaUrl) return null;
     var svcName = this.get('service.serviceName');
     if (svcName) {
       switch (svcName.toLowerCase()) {
@@ -372,21 +463,43 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (summaryTable && alertsList) {
       var rows = $(summaryTable).find('tr');
       if (rows != null && rows.length > 0) {
-        var minimumHeight = 50;
-        var calculatedHeight = summaryTable.clientHeight;
-        if (calculatedHeight < minimumHeight) {
-          $(alertsList).attr('style', "height:" + minimumHeight + "px;");
-          $(summaryTable).append('<tr><td></td></tr>');
-          $(summaryTable).attr('style', "height:" + minimumHeight + "px;");
-        } else {
-          $(alertsList).attr('style', "height:" + calculatedHeight + "px;");
+        var minimumHeightSum = 20;
+        var summaryActualHeight = summaryTable.clientHeight;
+        // for summary window
+        if (summaryActualHeight <= minimumHeightSum) {
+          $(summaryTable).attr('style', "height:" + minimumHeightSum + "px;");
         }
       } else if (alertsList.clientHeight > 0) {
         $(summaryTable).append('<tr><td></td></tr>');
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
+      Ember.run.next(this, 'setAlertsWindowSize');
     }
   },
+  setAlertsWindowSize: function() {
+    // for alerts window
+    var summaryTable = document.getElementById('summary-info');
+    var alertsList = document.getElementById('summary-alerts-list');
+    var alertsNum = App.router.get('mainServiceInfoSummaryController.alerts.length');
+    if (summaryTable && alertsList && alertsNum != null) {
+      var summaryActualHeight = summaryTable.clientHeight;
+      var alertsActualHeight = alertsNum * 60;
+      var alertsMinHeight = 58;
+      if (alertsNum == 0) {
+        $(alertsList).attr('style', "height:" + alertsMinHeight + "px;");
+      } else if ( alertsNum <= 4) {
+        // set window size to actual alerts height
+        $(alertsList).attr('style', "height:" + alertsActualHeight + "px;");
+      } else {
+        // set window size : sum of first 4 alerts height
+        $(alertsList).attr('style', "height:" + 240 + "px;");
+      }
+      var curSize = alertsList.clientHeight;
+      if ( summaryActualHeight >= curSize) {
+        $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
+      }
+    }
+  }.observes('App.router.mainServiceInfoSummaryController.alerts.length'),
 
   clientHosts:App.Host.find(),
 

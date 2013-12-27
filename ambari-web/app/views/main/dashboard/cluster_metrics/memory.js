@@ -28,8 +28,9 @@ var App = require('app');
  */
 App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-memory",
-  sourceUrl: "?fields=metrics/memory[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/cluster_metrics/memory_1hr.json",
+
+  ajaxIndex: 'dashboard.cluster_metrics.memory',
+
   isTimePagingDisable: true,
   title: Em.I18n.t('dashboard.clusterMetrics.memory'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,

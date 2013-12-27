@@ -50,6 +50,7 @@ class hdp-pig(
     hdp::directory { $pig_config_dir:
       service_state => $service_state,
       force => true,
+      owner => $hdp::params::hdfs_user,
       group => $hdp::params::user_group,
       override_owner => true
     }
@@ -66,7 +67,8 @@ class hdp-pig(
 define hdp-pig::configfile()
 {
   hdp::configfile { "${hdp::params::pig_conf_dir}/${name}":
-    component => 'pig'
+    component => 'pig',
+    owner => $hdp::params::hdfs_user
   }
 }
 

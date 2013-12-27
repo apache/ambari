@@ -1429,9 +1429,10 @@ Rickshaw.Graph.Behavior.Series.Order = function(args) {
 	});
 
 	//hack to make jquery-ui sortable behave
-	this.graph.onUpdate( function() { 
-		var h = window.getComputedStyle(self.legend.element).height;
-		self.legend.element.style.height = h;
+	this.graph.onUpdate( function() {
+    // commenting out since this breaks rendering in IE9
+		//var h = window.getComputedStyle(self.legend.element).height;
+		//self.legend.element.style.height = h;
 	} );
 };
 Rickshaw.namespace('Rickshaw.Graph.Behavior.Series.Toggle');

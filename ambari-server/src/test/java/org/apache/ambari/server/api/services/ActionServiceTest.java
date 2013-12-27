@@ -15,65 +15,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.api.services;
-
-import static org.junit.Assert.assertEquals;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Unit tests for ServiceService.
+ */
 public class ActionServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    //getActions
-    ActionService componentService = new TestActionService("clusterName", "serviceName", null);
-    Method m = componentService.getClass().getMethod("getActions", HttpHeaders.class, UriInfo.class);
-    Object[] args = new Object[] {getHttpHeaders(), getUriInfo()};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, componentService, m, args, null));
+    //getActionDefinition
+    ActionService service = new TestActionDefinitionService("actionName");
+    Method m = service.getClass().getMethod("getActionDefinition", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "actionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    //createAction
-    componentService = new TestActionService("clusterName", "serviceName", "actionName");
-    m = componentService.getClass().getMethod("createAction", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    //getActionDefinitions
+    service = new TestActionDefinitionService(null);
+    m = service.getClass().getMethod("getActionDefinitions", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
+
+    //createActionDefinition
+    service = new TestActionDefinitionService("actionName");
+    m = service.getClass().getMethod("createActionDefinition", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "actionName"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, componentService, m, args, "body"));
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
-    //createActions
-    componentService = new TestActionService("clusterName", "serviceName", null);
-    m = componentService.getClass().getMethod("createActions", String.class, HttpHeaders.class, UriInfo.class);
-    args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, componentService, m, args, "body"));
+    //updateActionDefinition
+    service = new TestActionDefinitionService("actionName");
+    m = service.getClass().getMethod("updateActionDefinition", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "actionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
+
+    //deleteActionDefinition
+    service = new TestActionDefinitionService("actionName");
+    m = service.getClass().getMethod("deleteActionDefinition", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "actionName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, null));
 
     return listInvocations;
   }
 
-  private class TestActionService extends ActionService {
-    private String m_clusterId;
-    private String m_serviceId;
-    private String m_actionId;
+  private class TestActionDefinitionService extends ActionService {
+    private String m_actionName;
 
-    public TestActionService(String clusterName, String serviceName, String actionName) {
-
-      super(clusterName, serviceName);
-      m_clusterId = clusterName;
-      m_serviceId = serviceName;
-      m_actionId  = actionName;
+    private TestActionDefinitionService(String actionName) {
+      m_actionName = actionName;
     }
 
     @Override
-    ResourceInstance createActionResource(String clusterName, String serviceName, String actionName) {
-      assertEquals(m_clusterId, clusterName);
-      assertEquals(m_serviceId, serviceName);
-      assertEquals(m_actionId, actionName);
+    ResourceInstance createActionDefinitionResource(String actionName) {
+      assertEquals(m_actionName, actionName);
       return getTestResource();
     }
 

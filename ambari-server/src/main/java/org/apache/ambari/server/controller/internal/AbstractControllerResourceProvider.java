@@ -19,8 +19,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
-import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -34,6 +34,7 @@ import java.util.Set;
  */
 public abstract class AbstractControllerResourceProvider extends AbstractResourceProvider {
 
+  private static ResourceProviderFactory resourceProviderFactory;
   /**
    * The management controller to delegate to.
    */
@@ -54,6 +55,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
                                                AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds);
     this.managementController = managementController;
+  }
+  
+  public static void init(ResourceProviderFactory factory) {
+    resourceProviderFactory = factory;
   }
 
 
@@ -84,6 +89,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
                                                      Set<String> propertyIds,
                                                      Map<Resource.Type, String> keyPropertyIds,
                                                      AmbariManagementController managementController) {
+
     switch (type) {
       case Cluster:
         return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
@@ -92,9 +98,9 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
       case Component:
         return new ComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Host:
-        return new HostResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getHostResourceProvider(propertyIds, keyPropertyIds, managementController);
       case HostComponent:
-        return new HostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Configuration:
         return new ConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Action:
@@ -119,32 +125,49 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new OperatingSystemResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Repository:
         return new RepositoryResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootService:
+        return new RootServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootServiceComponent:
+        return new RootServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootServiceHostComponent:
+        return new RootServiceHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case ConfigGroup:
+        return new ConfigGroupResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RequestSchedule:
+        return new RequestScheduleResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
   }
 
   /**
-   * Extracting given query_paramater value from the predicate(parsed http body)
+   * Extracting given query_paramater value from the predicate
    * @param queryParameterId
    * @param predicate
    * @return
    */
   protected static Object getQueryParameterValue(String queryParameterId, Predicate predicate) {
 
+    Object result = null;
+
     if (predicate instanceof ArrayPredicate) {
       ArrayPredicate arrayPredicate  = (ArrayPredicate) predicate;
       for (Predicate predicateItem : arrayPredicate.getPredicates()) {
-        if (predicateItem instanceof ComparisonPredicate) {
-          EqualsPredicate equalsPredicate =
-              (EqualsPredicate) predicateItem;
-          if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
-            return equalsPredicate.getValue();
+          if (predicateItem instanceof EqualsPredicate) {
+            EqualsPredicate equalsPredicate =
+                (EqualsPredicate) predicateItem;
+            if (queryParameterId.equals(equalsPredicate.getPropertyId())) {
+              return equalsPredicate.getValue();
+            }
+          } else {
+            result = getQueryParameterValue(queryParameterId, predicateItem);
+            if (result != null) {
+              return result;
           }
         }
       }
 
     }
-    return null;
+    return result;
   }
 }

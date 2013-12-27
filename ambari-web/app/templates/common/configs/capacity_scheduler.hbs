@@ -26,21 +26,18 @@
         <div class="row-fluid header">
             <div class="span1">{{t services.mapReduce.config.queue.header}}</div>
             <div class="offset9 span2">
-                <div class="btn pull-right" {{action queuePopup target="view"}}>{{t services.mapReduce.config.addQueue}}</div>
+                {{#if view.canEdit}}
+                    <div class="btn pull-right" {{action queuePopup target="view"}}>{{t services.mapReduce.config.addQueue}}</div>
+                {{/if}}
             </div>
         </div>
         <div>
             <table class="table table-bordered table-striped">
                 <thead>
                 <tr>
-                    <th>{{t services.mapReduce.config.queue.name}}</th>
-                    <th>{{t common.users}}</th>
-                    <th>{{t services.mapReduce.config.queue.groups}}</th>
-                    <th>{{t services.mapReduce.config.queue.capacity}}</th>
-                    <th>{{t services.mapReduce.config.queue.maxCapacity}}</th>
-                    <th>{{t services.mapReduce.config.queue.minUserLimit}}</th>
-                    <th>{{t services.mapReduce.config.queue.userLimitFactor}}</th>
-                    <th>{{t services.mapReduce.config.queue.supportsPriority}}</th>
+                    {{#each header in view.tableHeaders}}
+                      <th>{{header}}</th>
+                    {{/each}}
                 </tr>
                 </thead>
                 <tbody>
@@ -49,13 +46,9 @@
                       <td><a href="javascript:void(0)">
                           <i {{bindAttr style="queue.color"}} class="marker"></i>{{queue.name}}</a>
                       </td>
-                      <td>{{queue.users}}</td>
-                      <td>{{queue.groups}}</td>
-                      <td>{{queue.capacity}}&#37;</td>
-                      <td>{{queue.maxCapacity}}&#37;</td>
-                      <td>{{queue.minUserLimit}}&#37;</td>
-                      <td>{{queue.userLimitFactor}}</td>
-                      <td>{{queue.supportsPriority}}</td>
+                      {{#each config in queue.configs}}
+                        <td>{{config.value}}</td>
+                      {{/each}}
                   </tr>
                   {{/each}}
                 </tbody>
@@ -64,7 +57,7 @@
         <div class="row-fluid">
             <div class="span8">
                 <div><strong>{{t admin.advanced.title}}</strong></div>
-                <form class="form-horizontal">
+                <form class="form-horizontal" autocomplete="off">
                   {{#each view.advancedConfigs}}
                     {{#if isVisible}}
                         <div class="row-fluid">
@@ -74,6 +67,13 @@
                             <div class="span8">
                                 <div {{bindAttr class="errorMessage:error: :control-group"}}>
                                   {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
+                                  {{#if view.canEdit}}
+                                      {{#if App.isAdmin}}
+                                        {{#if isRemovable}}
+                                            <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                                        {{/if}}
+                                      {{/if}}
+                                  {{/if}}
                                     <span class="help-inline">{{errorMessage}}</span>
                                 </div>
                             </div>

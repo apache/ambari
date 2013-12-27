@@ -51,30 +51,83 @@ App.ReassignMasterController = App.WizardController.extend({
     serviceConfigProperties: null,
     advancedServiceConfig: null,
     controllerName: 'reassignMasterController',
-    reassign: null
+    serviceName: 'MISC',
+    hdfsUser: "hdfs",
+    group: "hadoop",
+    reassign: null,
+    componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE'],
+    hasManualSteps: false,
+    securityEnabled: false
   }),
 
-  skipStep3: function () {
-    return this.get('content.reassign.service_id') == 'GANGLIA';
-  }.property('content.reassign.service_id'),
+  addManualSteps: function () {
+    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
+  }.observes('content.reassign.component_name', 'content.securityEnabled'),
+
+  getSecurityStatus: function () {
+    if (App.testMode) {
+      this.set('securityEnabled', !App.testEnableSecurity);
+    } else {
+      //get Security Status From Server
+      App.ajax.send({
+        name: 'config.tags.sync',
+        sender: this,
+        success: 'getSecurityStatusSuccessCallback',
+        error: 'errorCallback'
+      });
+    }
+  },
+
+  errorCallback: function () {
+    console.error('Cannot get security status from server');
+  },
+
+  getSecurityStatusSuccessCallback: function (data) {
+    var configs = data.Clusters.desired_configs;
+    if ('global' in configs) {
+      this.getServiceConfigsFromServer(configs['global'].tag);
+    }
+    else {
+      console.error('Cannot get security status from server');
+    }
+  },
+
+  getServiceConfigsFromServer: function (tag) {
+    var tags = [
+      {
+        siteName: "global",
+        tagName: tag
+      }
+    ];
+    var data = App.router.get('configurationController').getConfigsByTags(tags);
+    var configs = data.findProperty('tag', tag).properties;
+    var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
+    this.saveSecurityEnabled(result);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'DEFAULT',
+      wizardControllerName: 'reassignMasterController',
+      localdb: App.db.data
+    });
+  },
 
   /**
    * return new object extended from clusterStatusTemplate
    * @return Object
    */
-  getCluster: function(){
+  getCluster: function () {
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
 
   /**
    * Load services data from server.
    */
-  loadServicesFromServer: function() {
+  loadServicesFromServer: function () {
     var displayOrderConfig = require('data/services');
     var apiUrl = App.get('stack2VersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     //
-    apiService.forEach(function(item, index){
+    apiService.forEach(function (item, index) {
       apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
       apiService[index].isDisabled = apiService[index].isSelected;
       apiService[index].isInstalled = apiService[index].isSelected;
@@ -87,12 +140,12 @@ App.ReassignMasterController = App.WizardController.extend({
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
-  loadConfirmedHosts: function(){
+  loadConfirmedHosts: function () {
     var hosts = App.db.getHosts();
-    if(!hosts || !hosts.length){
+    if (!hosts || !hosts.length) {
       var hosts = {};
 
-      App.Host.find().forEach(function(item){
+      App.Host.find().forEach(function (item) {
         hosts[item.get('id')] = {
           name: item.get('id'),
           cpu: item.get('cpu'),
@@ -114,9 +167,9 @@ App.ReassignMasterController = App.WizardController.extend({
    */
   loadMasterComponentHosts: function () {
     var masterComponentHosts = App.db.getMasterComponentHosts();
-    if(!masterComponentHosts){
+    if (!masterComponentHosts) {
       masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function(item){
+      App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
         masterComponentHosts.push({
           component: item.get('componentName'),
           hostName: item.get('host.hostName'),
@@ -132,7 +185,7 @@ App.ReassignMasterController = App.WizardController.extend({
   /**
    * Load tasks statuses for step5 of Reassign Master Wizard to restore installation
    */
-  loadTasksStatuses: function(){
+  loadTasksStatuses: function () {
     var statuses = App.db.getReassignTasksStatuses();
     this.set('content.tasksStatuses', statuses);
     console.log('ReassignMasterController.loadTasksStatuses: loaded statuses', statuses);
@@ -193,10 +246,71 @@ App.ReassignMasterController = App.WizardController.extend({
     };
     App.db.setMasterToReassign(component);
   },
-  saveTasksStatuses: function(statuses){
+  saveTasksStatuses: function (statuses) {
     App.db.setReassignTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
     console.log('ReassignMasterController.saveTasksStatuses: saved statuses', statuses);
+  },
+
+  loadRequestIds: function () {
+    var requestIds = App.db.getReassignMasterWizardRequestIds();
+    this.set('content.requestIds', requestIds);
+  },
+
+  saveRequestIds: function (requestIds) {
+    App.db.setReassignMasterWizardRequestIds(requestIds);
+    this.set('content.requestIds', requestIds);
+  },
+
+  saveLogs: function (logs) {
+    App.db.setReassignMasterWizardLogs(logs);
+    this.set('content.logs', logs);
+  },
+
+  loadLogs: function () {
+    var logs = App.db.getReassignMasterWizardLogs();
+    this.set('content.logs', logs);
+  },
+
+  saveComponentDir: function (componentDir) {
+    App.db.setReassignMasterWizardComponentDir(componentDir);
+    this.set('content.componentDir', componentDir);
+  },
+
+  loadComponentDir: function () {
+    var componentDir = App.db.getReassignMasterWizardComponentDir();
+    this.set('content.componentDir', componentDir);
+  },
+
+  saveReassignHosts: function (reassignHosts) {
+    App.db.setReassignMasterWizardReassignHosts(reassignHosts);
+    this.set('content.reassignHosts', reassignHosts);
+  },
+
+  loadReassignHosts: function () {
+    var reassignHosts = App.db.getReassignMasterWizardReassignHosts();
+    this.set('content.reassignHosts', reassignHosts);
+  },
+
+
+  saveSecurityEnabled: function (securityEnabled) {
+    this.setDBProperty('securityEnabled', securityEnabled);
+    this.set('content.securityEnabled', securityEnabled);
+  },
+
+  loadSecurityEnabled: function () {
+    var securityEnabled = this.getDBProperty('securityEnabled');
+    this.set('content.securityEnabled', securityEnabled);
+  },
+
+  saveSecureConfigs: function (secureConfigs) {
+    this.setDBProperty('secureConfigs', secureConfigs);
+    this.set('content.secureConfigs', secureConfigs);
+  },
+
+  loadSecureConfigs: function () {
+    var secureConfigs = this.getDBProperty('secureConfigs');
+    this.set('content.secureConfigs', secureConfigs);
   },
 
   /**
@@ -207,10 +321,14 @@ App.ReassignMasterController = App.WizardController.extend({
     switch (step) {
       case '6':
       case '5':
-        this.loadTasksStatuses();
+        this.loadSecureConfigs();
+        this.loadComponentDir();
       case '4':
+        this.loadTasksStatuses();
+        this.loadRequestIds();
+        this.loadLogs();
       case '3':
-        this.loadServiceConfigProperties();
+        this.loadReassignHosts();
       case '2':
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();

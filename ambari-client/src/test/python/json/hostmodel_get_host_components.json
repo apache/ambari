@@ -1,0 +1,222 @@
+{
+    "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components?fields=HostRoles/state",
+    "items" : [
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/DATANODE",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "DATANODE",
+                "host_name" : "myhost",
+                "state" : "STARTED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/GANGLIA_MONITOR",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "GANGLIA_MONITOR",
+                "host_name" : "myhost",
+                "state" : "STARTED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/HBASE_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "HBASE_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/HBASE_MASTER",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "HBASE_MASTER",
+                "ha_status" : "active",
+                "host_name" : "myhost",
+                "state" : "STARTED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/HBASE_REGIONSERVER",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "HBASE_REGIONSERVER",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/HCAT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "HCAT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/HDFS_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "HDFS_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/HIVE_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "HIVE_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/MAPREDUCE2_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "MAPREDUCE2_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/NAMENODE",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "NAMENODE",
+                "host_name" : "myhost",
+                "state" : "STARTED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/NODEMANAGER",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "NODEMANAGER",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/OOZIE_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "OOZIE_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/PIG",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "PIG",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/RESOURCEMANAGER",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "RESOURCEMANAGER",
+                "host_name" : "myhost",
+                "state" : "STARTED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/SQOOP",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "SQOOP",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/YARN_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "YARN_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/ZOOKEEPER_CLIENT",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "ZOOKEEPER_CLIENT",
+                "host_name" : "myhost",
+                "state" : "INSTALLED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        },
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/ZOOKEEPER_SERVER",
+            "HostRoles" : {
+                "cluster_name" : "cl1",
+                "component_name" : "ZOOKEEPER_SERVER",
+                "host_name" : "myhost",
+                "state" : "STARTED"
+            },
+            "host" : {
+                "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+            }
+        }
+    ]
+}

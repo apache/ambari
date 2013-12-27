@@ -19,42 +19,66 @@ var App = require('app');
 
 App.MainServiceReconfigureView = Em.View.extend({
 
-  templateName: require('templates/main/service/reconfigure'),
+  templateName: require('templates/main/service/reconfigure')
 
 });
 
-App.StageStatusView = Em.View.extend({
-  tagName: 'tr',
-  hasStarted: null,
-  classNameBindings: ['faintText'],
-  showHostPopup:function(event){
-    var serviceName = event.contexts[0];
+App.StageLabelView = Em.View.extend({
+  tagName: 'a',
+  classNameBindings: ['removeLink'],
+  attributeBindings: ['href'],
+  href: '#',
+  removeLink: null,
+  didInsertElement: function() {
+   this.onLink();
+  },
+  onLink: function() {
+   if (this.get('showLink') === true) {
+     this.set('removeLink',null);
+   } else {
+     this.set('removeLink','remove-link');
+   }
+  }.observes('showLink'),
+  stage: null,
+  click: function () {
+    if (this.get('stage') && this.get('showLink')) {
+      this.showHostPopup(this.get('stage.label'));
+    }
+  },
+
+  showHostPopup: function (label) {
+    var serviceName = label;
     var controller = this.get("controller");
-    App.HostPopup.initPopup(serviceName, controller);
-  }
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      var popupView = App.HostPopup.initPopup(serviceName, controller);
+      popupView.set ('isNotShowBgChecked', !initValue);
+    })
+  },
+
+  isStarted: function () {
+    return  (this.get('stage') && this.get('stage.isStarted'));
+  }.property('stage.isStarted'),
+
+  showLink: function () {
+    return (this.get('stage') && this.get('stage.showLink'));
+  }.property('stage.showLink')
 });
 
 App.StageSuccessView = Em.View.extend({
-  layout: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> Done')
+  layout: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> {{t common.done}}')
 });
 
 App.StageFailureView = Em.View.extend({
-  layout: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> Failed')
+  layout: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> {{t common.failed}}')
 });
 
 App.StageInProgressView = Em.View.extend({
   stage: null,
   classNames: ['progress-striped', 'active', 'progress'],
-  template: Ember.Handlebars.compile([
-    '<div class="bar" {{bindAttr style="stage.barWidth"}}>',
-    '</div>'
-  ].join('\n')),
+  template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="stage.barWidth"}}></div>'),
 
   isStageCompleted: function () {
     return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
   }.property('controller.isStepCompleted', 'obj.progress')
 
 });
-
-
-

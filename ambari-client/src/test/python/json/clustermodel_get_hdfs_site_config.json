@@ -1,0 +1,53 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=hdfs-site&tag=version1",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=hdfs-site&tag=version1",
+      "tag" : "version1",
+      "type" : "hdfs-site",
+      "Config" : {
+        "cluster_name" : "test1"
+      },
+      "properties" : {
+        "dfs.block.access.token.enable" : "true",
+        "dfs.block.local-path-access.user" : "hbase",
+        "dfs.blockreport.initialDelay" : "120",
+        "dfs.blocksize" : "134217728",
+        "dfs.client.read.shortcircuit" : "true",
+        "dfs.client.read.shortcircuit.streams.cache.size" : "4096",
+        "dfs.cluster.administrators" : " hdfs",
+        "dfs.datanode.address" : "0.0.0.0:50010",
+        "dfs.datanode.balance.bandwidthPerSec" : "6250000",
+        "dfs.datanode.data.dir" : "/hadoop/hdfs/data",
+        "dfs.datanode.data.dir.perm" : "750",
+        "dfs.datanode.du.reserved" : "1",
+        "dfs.datanode.failed.volumes.tolerated" : "0",
+        "dfs.datanode.http.address" : "0.0.0.0:50075",
+        "dfs.datanode.ipc.address" : "0.0.0.0:8010",
+        "dfs.datanode.max.transfer.threads" : "1024",
+        "dfs.domain.socket.path" : "/var/lib/hadoop-hdfs/dn_socket",
+        "dfs.heartbeat.interval" : "3",
+        "dfs.hosts.exclude" : "/etc/hadoop/conf/dfs.exclude",
+        "dfs.https.namenode.https-address" : "dev05.hortonworks.com:50470",
+        "dfs.journalnode.edits.dir" : "/grid/0/hdfs/journal",
+        "dfs.journalnode.http-address" : "0.0.0.0:8480",
+        "dfs.namenode.accesstime.precision" : "0",
+        "dfs.namenode.avoid.read.stale.datanode" : "true",
+        "dfs.namenode.avoid.write.stale.datanode" : "true",
+        "dfs.namenode.handler.count" : "100",
+        "dfs.namenode.http-address" : "dev05.hortonworks.com:50070",
+        "dfs.namenode.name.dir" : "/hadoop/hdfs/namenode",
+        "dfs.namenode.safemode.threshold-pct" : "1.0f",
+        "dfs.namenode.secondary.http-address" : "dev05.hortonworks.com:50090",
+        "dfs.namenode.stale.datanode.interval" : "30000",
+        "dfs.namenode.write.stale.datanode.ratio" : "1.0f",
+        "dfs.permissions.enabled" : "true",
+        "dfs.permissions.superusergroup" : "hdfs",
+        "dfs.replication" : "3",
+        "dfs.replication.max" : "50",
+        "dfs.webhdfs.enabled" : "true",
+        "fs.permissions.umask-mode" : "022"
+      }
+    }
+  ]
+}

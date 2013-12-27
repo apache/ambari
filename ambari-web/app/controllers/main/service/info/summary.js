@@ -26,9 +26,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   alerts: function () {
     var serviceId = this.get('content.serviceName');
     if (serviceId) {
-      return this.get('allAlerts').filter(function (item) {
+      return App.Alert.sort(this.get('allAlerts').filter(function (item) {
         return item.get('serviceType').toLowerCase() == serviceId.toLowerCase() && !item.get('ignoredForServices');
-      });
+      }));
     }
     return [];
   }.property('allAlerts', 'content.serviceName'),
@@ -39,5 +39,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   
   isNagiosInstalled: function(){
     return App.router.get('clusterController.isNagiosInstalled');
-  }.property('App.router.clusterController.isNagiosInstalled')
+  }.property('App.router.clusterController.isNagiosInstalled'),
+
+  isGangliaInstalled: function(){
+    return App.router.get('clusterController.isGangliaInstalled');
+  }.property('App.router.clusterController.isGangliaInstalled')
 });

@@ -57,6 +57,13 @@ public class TaskAttempt {
         tmp[i] = TaskAttemptFields.values()[i].toString();
       return StringUtils.join(tmp, ",");
     }
+
+    public static String join(String tableName) {
+      String[] tmp = new String[TaskAttemptFields.values().length];
+      for (int i = 0; i < tmp.length; i++)
+        tmp[i] = tableName + "." + TaskAttemptFields.values()[i].toString();
+      return StringUtils.join(tmp, ",");
+    }
   }
   
   public static final String TASK_ATTEMPT_FIELDS = TaskAttemptFields.join();

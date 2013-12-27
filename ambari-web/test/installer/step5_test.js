@@ -19,166 +19,159 @@
 var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step5_controller');
+var components = require('data/service_components');
 
-/*
-describe('App.InstallerStep5Controller', function () {
-  var controller = App.InstallerStep5Controller.create();
-  controller.get("selectedServices").pushObject({service_name: 'ZOOKEEPER'});
+describe('App.WizardStep5Controller', function () {
+  var controller = App.WizardStep5Controller.create();
+  controller.set('content', {});
   var cpu = 2, memory = 4;
-  var HOST = ['host1', 'host2', 'host3', 'host4', 'host5'];
-  var hosts = [];
-  HOST.forEach(function (_host) {
-    controller.get('hosts').pushObject(Ember.Object.create({
-      host_name: _host,
-      cpu: cpu,
-      memory: memory
-    }));
-  });
+  var schemes = [
+    {'description': 'empty condition'},
+    {
+      'description': 'second host if amount more than 1',
+      "else": 1
+    },
+    {
+      'description': 'first host if amount less than 3, third host if amount less than 6, fourth host if amount more than 5',
+      "3": 0,
+      "6": 2,
+      "else": 3
+    },
+    {
+      'description': 'second host if amount less than 3, second host if amount less than 6, third host if amount less than 31, sixth host if amount more than 30',
+      "3": 1,
+      "6": 1,
+      "31": 2,
+      "else": 5
+    }
+  ];
+  var test_config = [
+    {
+      title: '1 host',
+      hosts: ['host0'],
+      equals: [0, 0, 0, 0]
+    },
+    {
+      title: '2 hosts',
+      hosts: ['host0', 'host1'],
+      equals: [0, 1, 0, 1]
+    },
+    {
+      title: '3 hosts',
+      hosts: ['host0', 'host1', 'host2'],
+      equals: [0, 1, 2, 1]
+    },
+    {
+      title: '5 hosts',
+      hosts: ['host0', 'host1', 'host2', 'host3', 'host4'],
+      equals: [0, 1, 2, 1]
+    },
+    {
+      title: '6 hosts',
+      hosts: ['host0', 'host1', 'host2', 'host3', 'host4', 'host6'],
+      equals: [0, 1, 3, 2]
+    },
+    {
+      title: '10 hosts',
+      hosts: ['host0', 'host1', 'host2', 'host3', 'host4', 'host5', 'host6', 'host7', 'host8', 'host9'],
+      equals: [0, 1, 3, 2]
+    },
+    {
+      title: '31 hosts',
+      hosts: ['host0', 'host1', 'host2', 'host3', 'host4', 'host5', 'host6', 'host7', 'host8', 'host9', 'host10', 'host11', 'host12', 'host13', 'host14', 'host15', 'host16', 'host17', 'host18', 'host19', 'host20', 'host21', 'host22', 'host23', 'host24', 'host25', 'host26', 'host27', 'host28', 'host29', 'host30'],
+      equals: [0, 1, 3, 5]
+    }
+  ];
 
-  var componentObj = Ember.Object.create({
-    component_name: 'ZooKeeper',
-    selectedHost: 'host2', // call the method that plays selectNode algorithm or fetches from server
-    availableHosts: []
-  });
-  componentObj.set('availableHosts', controller.get('hosts').slice(0));
-  componentObj.set('zId', 1);
-  componentObj.set("showAddControl", true);
-  componentObj.set("showRemoveControl", false);
-  controller.get("selectedServicesMasters").pushObject(componentObj);
+  schemes.forEach(function(scheme, index) {
+    describe('#getHostForComponent() condition: ' + scheme.description, function() {
 
+      delete scheme['description'];
 
-  describe('#getAvailableHosts()', function () {
-    it('should generate available hosts for a new zookeeper service', function () {
-      var hostsForNewZookeepers = controller.getAvailableHosts("ZooKeeper"),
-        ok = true, i = 0, masters = null;
-
-      //test that the hosts found, do not have Zookeeper master assigned to them
-      for (i = 0; i < hostsForNewZookeepers.get("length"); i++) {
-        masters = controller.get("selectedServicesMasters").filterProperty(hostsForNewZookeepers[i].get("host_name"));
-        if (masters.findProperty("component_name", "ZooKeeper")) {
-          ok = false;
-          break;
-        }
-      }
-
-      expect(ok).to.equal(true);
-    })
-
-    it('should return all hosts for services other than ZooKeeper', function () {
-      var hostsForNewZookeepers = controller.getAvailableHosts("");
-
-      expect(hostsForNewZookeepers.get("length")).to.equal(controller.get("hosts.length"));
-    })
-  })
-
-  describe('#assignHostToMaster()', function () {
-    it('should assign the selected host to the non-ZooKeeper master service', function () {
-      //test non-zookeeper master
-      var SERVICE_MASTER = "NameNode",
-        HOST = "host4", ZID, status;
-      var nonZookeeperObj = Ember.Object.create({
-        component_name: SERVICE_MASTER,
-        selectedHost: HOST, // call the method that plays selectNode algorithm or fetches from server
-        availableHosts: []
+      test_config.forEach(function(test) {
+        it(test.title, function () {
+          controller.get('hosts').clear();
+          test.hosts.forEach(function(_host) {
+            controller.get('hosts').pushObject(Em.Object.create({
+              host_name: _host,
+              cpu: cpu,
+              memory: memory
+            }));
+          });
+          expect(controller.getHostForComponent(test.hosts.length, scheme).host_name).to.equal(test.hosts[test.equals[index]]);
+        });
       });
-      controller.get("selectedServicesMasters").pushObject(nonZookeeperObj);
-      controller.assignHostToMaster(SERVICE_MASTER, HOST);
-      expect(controller.get("selectedServicesMasters").findProperty("component_name", SERVICE_MASTER).get("selectedHost")).to.equal(HOST);
-    })
+    });
+  });
 
-    it('should assign the selected host to the ZooKeeper master service', function () {
-      //test non-zookeeper master
-      var SERVICE_MASTER = "ZooKeeper",
-        HOST = "host4", ZID = 2;
+  describe('#getZooKeeperServer', function() {
+    it('should be array with three host names if hosts number more than three', function() {
+      var hosts = [
+        {host_name: 'host1'},
+        {host_name: 'host2'},
+        {host_name: 'host3'}
+      ];
 
-      //test zookeeper master assignment with
-      if (controller.addZookeepers()) {
-        controller.assignHostToMaster(SERVICE_MASTER, HOST, ZID);
-        expect(controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").findProperty("zId", ZID).get("selectedHost")).to.equal(HOST);
-      }
-    })
-  })
+      controller.set('hosts', hosts);
+      expect(controller.getZooKeeperServer(hosts.length)).to.eql(['host1', 'host2', 'host3']);
+    });
 
-  describe('#addZookeepers()', function () {
+    it('should be array with one host names if hosts number less than three', function() {
+      var hosts = [
+        {host_name: 'host1'},
+        {host_name: 'host2'}
+      ];
 
-    it('should add a new ZooKeeper', function () {
-      var newLength = 0;
-      if (controller.get("selectedServices").mapProperty("service_name").contains("ZOOKEEPER")
-        && controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("length") < controller.get("hosts.length")) {
-        newLength = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("length");
-        controller.addZookeepers();
-        expect(controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("length")).to.equal(newLength + 1);
-      }
-    })
+      controller.set('hosts', hosts);
+      expect(controller.getZooKeeperServer(hosts.length)).to.eql(['host1']);
+    });
+  });
 
-    it('should add ZooKeepers up to the number of hosts', function () {
+  describe('#getGangliaServer', function() {
+    it('should be host name if one host ', function() {
+      var hosts = [
+        {host_name: 'host1'}
+      ];
 
-      var currentZooKeepers = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").length,
-        success = true;
+      controller.set('hosts', hosts);
+      expect(controller.getGangliaServer(hosts.length)).to.eql('host1');
+    });
 
-      //add ZooKeepers as long as possible
-      if (currentZooKeepers) {
+    it('should be host name if hosts number more than one', function() {
+      var hosts = [
+        {host_name: 'host1'},
+        {host_name: 'host2'}
+      ];
 
-        while (success) {
-          success = controller.addZookeepers();
-        }
-        var services = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper");
-        var length = services.length;
-        expect(controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").length).to.equal(controller.get("hosts.length"));
-      }
-    })
-  })
+      controller.set('hosts', hosts);
+      expect(controller.getGangliaServer(hosts.length)).to.eql('host1');
+    });
 
-  describe('#removeZookeepers()', function () {
-    it('should remove a ZooKeeper', function () {
-      if (controller.get("selectedServices").mapProperty("service_name").contains("ZOOKEEPER")) {
-        if (controller.addZookeepers()) {
-          newLength = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("length");
-          controller.removeZookeepers(2);
-          expect(controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("length")).to.equal(newLength - 1);
-        }
-      }
-    })
+    it('should be host name different from localhost if hosts number more than one', function() {
+      var hosts = [
+        {host_name: ''},
+        {host_name: 'host2'}
+      ];
+      //first host_name is empty string, because of location.hostname = "" in console,
+      //to implement current test case
 
-    it('should fail to remove a ZooKeeper if there is only 1', function () {
-      var currentZooKeepers = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").length,
-        success = true;
-      //remove ZooKeepers as long as possible
+      controller.set('hosts', hosts);
+      expect(controller.getGangliaServer(hosts.length)).to.eql('host2');
+    });
+  });
 
-      if (currentZooKeepers) {
-        while (success) {
-          success = controller.removeZookeepers(controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("lastObject.zId"));
-        }
-        expect(controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").get("length")).to.equal(1);
-      }
-    })
 
-  })
+  controller.set('content', {});
 
-  describe('#rebalanceZookeeperHosts()', function () {
+  describe('#isReassignWizard', function() {
+    it('true if content.controllerName is reassignMasterController', function() {
+      controller.set('content.controllerName', 'reassignMasterController');
+      expect(controller.get('isReassignWizard')).to.equal(true);
+    });
+    it('false if content.controllerName is not reassignMasterController', function() {
+      controller.set('content.controllerName', 'mainController');
+      expect(controller.get('isReassignWizard')).to.equal(false);
+    });
+  });
 
-    it('should rebalance hosts for ZooKeeper', function () {
-      //assign a host to a zookeeper and then rebalance the available hosts for the other zookeepers
-      var zookeepers = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper"),
-        aZookeeper = null, aHost = null, i = 0, ok = true;
-
-      if (zookeepers.get("length") > 1) {
-        aZookeeper = controller.get("selectedServicesMasters").filterProperty("component_name", "ZooKeeper").findProperty("zId", 1);
-        aHost = aZookeeper.get("availableHosts")[0];
-        aZookeeper.set("selectedHost", aHost.get("host_name"));
-
-        controller.rebalanceZookeeperHosts();
-
-        for (i = 0; i < zookeepers.get("length"); i++) {
-          if (zookeepers[i].get("availableHosts").mapProperty("host_name").contains(aHost)) {
-            ok = false;
-            break;
-          }
-        }
-
-        expect(ok).to.equal(true);
-      }
-    })
-  })
-
-})*/
+});

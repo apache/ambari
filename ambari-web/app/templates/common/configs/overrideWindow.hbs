@@ -17,9 +17,9 @@
 }}
 
 {{! #with view.categoryConfigProperty}}
-  <form class="form-horizontal">
+  <form class="form-horizontal" autocomplete="off">
       <div class="override-controls">
-        <h4 class="message">{{t hosts.selectHostsDialog.message}}</h4>
+        <div class="alert alert-info">{{view.parentView.dialogMessage}}</div>
         {{#if view.parentView.warningMessage}}
 	        <div class="text-warning">
 	          {{view.parentView.warningMessage}}
@@ -28,11 +28,14 @@
         <table style="width: 100%;">
           <tr>
             <td>
-              <a href="#" {{action clearFilters target="view" }}>{{view.hostSelectMessage}}</a>
+              <a href="#" {{action toggleShowSelectedHosts target="view" }}>{{view.hostSelectMessage}}</a>
+              {{#if view.showOnlySelectedHosts}}
+                <i class='icon-ok-sign'></i>
+              {{/if}}
             </td>
             <td width="30%">
               <div class="row">
-                <div class="span2">
+                <div class="span2" id="filter-dropdown-div">
                   <!-- Filter text box with drop-down -->
 		              <div class="input-append">
 		                {{view Ember.TextField valueBinding="view.filterText" id="appendedDropdownButton" placeholderBinding="view.filterTextPlaceholder" class="span2"}}
@@ -57,11 +60,11 @@
 		                </div>
 		              </div>
                 </div>
-                <div class="span2">
+                <div class="span2" id="component-dropdown-div">
                   <!-- Host-components drop-down -->
 		              <div class="btn-group">
 		                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-		                  Components
+		                  {{t common.components}}
 		                  <span class="caret"></span>
 		                </a>
 		                <ul class="dropdown-menu">
@@ -91,15 +94,15 @@
               <th width="10%">
                 {{view Ember.Checkbox checkedBinding="view.allHostsSelected"}}
               </th>
-              <th width="45%">Host</th>
+              <th width="45%">{{t common.host}}</th>
               <th width="45%">{{view.filterColumn.name}}</th>
             </tr>
           </thead>
          </table>
         <div class="hosts-table-container">
           <table class="table table-striped hosts-table">
-          {{#each entry in view.filteredHosts}}
-            <tr>
+          {{#each entry in view.availableHosts}}
+            <tr {{bindAttr class="entry.filtered::hidden"}}>
               <td width="10%">
                 {{view Ember.Checkbox checkedBinding="entry.selected"}}
               </td>

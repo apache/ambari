@@ -23,7 +23,8 @@ var componentHelper = require('utils/component');
 App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
   content: App.Host.find(),
-  comeWithFilter: false,
+
+  clearFilters: null,
 
   alerts: function () {
     return App.router.get('clusterController.alerts').filterProperty('isOk', false).filterProperty('ignoredForHosts', false);
@@ -51,54 +52,25 @@ App.MainHostController = Em.ArrayController.extend({
   }.property('componentsForFilter'),
 
   /**
-   * Is true if alets filter is active
-   */
-  filteredByAlerts:false,
-
-  /**
-   * Is true if Hosts page was opened by clicking on alerts count badge
-   */
-  comeWithAlertsFilter: false,
-
-  /**
-   * Enable or disable filtering by alets
-   */
-  filterByAlerts: function () {
-    if (App.router.get('currentState.name') == 'index') {
-      this.set('filteredByAlerts', !this.get('filteredByAlerts'));
-    } else {
-      App.router.transitionTo('hosts.index');
-      this.set('comeWithAlertsFilter', true);
-    }
-  },
-
-  /**
    * Filter hosts by componentName of <code>component</code>
    * @param component App.HostComponent
    */
   filterByComponent:function (component) {
+    if(!component)
+      return;
     var id = component.get('componentName');
-
+    var column = 6;
     this.get('componentsForFilter').setEach('checkedForHostFilter', false);
-    this.get('componentsForFilter').filterProperty('id', id).setEach('checkedForHostFilter', true);
 
-    this.set('comeWithFilter', true);
+    var filterForComponent = {
+      iColumn: column,
+      value: id,
+      type: 'multiple'
+    };
+    App.db.setFilterConditions(this.get('name'), [filterForComponent]);
   },
-
-  /**
-   * On click callback for decommission button
-   * @param event
-   */
-  decommissionButtonPopup:function () {
-    var self = this;
-    App.showConfirmationPopup(function(){
-      alert('do');
-    });
-  },
-
   /**
    * On click callback for delete button
-   * @param event
    */
   deleteButtonPopup:function () {
     var self = this;
@@ -115,7 +87,7 @@ App.MainHostController = Em.ArrayController.extend({
         hostAlerts: function () {
           var allAlerts = App.router.get('clusterController.alerts').filterProperty('ignoredForHosts', false);
           if (host) {
-            return allAlerts.filterProperty('hostName', host.get('hostName'));
+            return App.Alert.sort(allAlerts.filterProperty('hostName', host.get('hostName')));
           }
           return 0;
         }.property('App.router.clusterController.alerts'),

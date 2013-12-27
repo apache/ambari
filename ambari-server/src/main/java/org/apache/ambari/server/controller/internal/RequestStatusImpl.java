@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -30,14 +31,22 @@ import java.util.Set;
 public class RequestStatusImpl implements RequestStatus{
 
   private final Resource requestResource;
+  private final Set<Resource> associatedResources;
 
   public RequestStatusImpl(Resource requestResource) {
-    this.requestResource = requestResource;
+    this.requestResource     = requestResource;
+    this.associatedResources = Collections.emptySet();
+  }
+
+  public RequestStatusImpl(Resource requestResource, Set<Resource> associatedResources) {
+    this.requestResource     = requestResource;
+    this.associatedResources = associatedResources == null ?
+        Collections.<Resource>emptySet() : associatedResources;
   }
 
   @Override
   public Set<Resource> getAssociatedResources() {
-    return Collections.emptySet();  // TODO : handle in M4
+    return associatedResources;
   }
 
   @Override

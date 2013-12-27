@@ -64,10 +64,35 @@ App.jobTimeLineMapper = App.QuickDataMapper.create({
   map:function (json) {
     var job = this.get('model'); // @model App.MainAppsItemBarView
     var parseResult = this.parseIt(json, this.config);
-
+    var self = this;
     $.each(parseResult, function (field, value) {
-      job.set(field, value);
+      var d = self.coordinatesModify(value);
+      d.reverse();
+      d = self.coordinatesModify(d);
+      d.reverse();
+      job.set(field, d);
     });
+  },
+
+  coordinatesModify: function(data) {
+    var d = this.zeroAdding(data);
+    d.reverse();
+    d = this.zeroAdding(d);
+    d.reverse();
+    return d;
+  },
+
+  zeroAdding: function(data) {
+    var d = [];
+    var last_y = 0;
+    data.forEach(function(coordinates) {
+      if (coordinates.y != 0 && last_y == 0) {
+        d.push({x: coordinates.x, y: 0});
+      }
+      d.push(coordinates);
+      last_y = coordinates.y;
+    });
+    return d;
   }
 });
 

@@ -20,11 +20,13 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 
 import javax.persistence.EntityManager;
 
+@Singleton
 public class ExecutionCommandDAO {
 
   @Inject
@@ -36,18 +38,18 @@ public class ExecutionCommandDAO {
   }
 
   @Transactional
-  public void create(ExecutionCommandEntity stageEntity) {
-    entityManagerProvider.get().persist(stageEntity);
+  public void create(ExecutionCommandEntity executionCommand) {
+    entityManagerProvider.get().persist(executionCommand);
   }
 
   @Transactional
-  public ExecutionCommandEntity merge(ExecutionCommandEntity stageEntity) {
-    return entityManagerProvider.get().merge(stageEntity);
+  public ExecutionCommandEntity merge(ExecutionCommandEntity executionCommand) {
+    return entityManagerProvider.get().merge(executionCommand);
   }
 
   @Transactional
-  public void remove(ExecutionCommandEntity stageEntity) {
-    entityManagerProvider.get().remove(merge(stageEntity));
+  public void remove(ExecutionCommandEntity executionCommand) {
+    entityManagerProvider.get().remove(merge(executionCommand));
   }
 
   @Transactional

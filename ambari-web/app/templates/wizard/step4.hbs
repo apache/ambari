@@ -30,7 +30,7 @@
           <a href="#" {{action selectAll target="controller"}} {{bindAttr class="isAll:selected:deselected"}}>{{t all}}</a>
                 |
                 <a
-                  href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>{{t minimum}}</a>
+                  href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>{{t none}}</a>
         </span>
       </th>
       <th>{{t common.version}}</th>
@@ -45,7 +45,7 @@
         class="checkbox">{{view Ember.Checkbox disabledBinding="isDisabled" checkedBinding="isSelected"}}{{displayName}}</label>
       </td>
       <td>{{version}}</td>
-      <td>{{description}}</td>
+      <td>{{{description}}}</td>
     </tr>
     {{/unless}}
     {{/each}}

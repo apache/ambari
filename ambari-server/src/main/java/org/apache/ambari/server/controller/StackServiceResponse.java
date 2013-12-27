@@ -18,8 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.List;
+
 public class StackServiceResponse {
 
+  private String stackName;
+  private String stackVersion;
   private String serviceName;
 
   private String userName;
@@ -27,12 +31,32 @@ public class StackServiceResponse {
   private String comments;
   
   private String serviceVersion;
+  
+  private List<String> configTypes;
 
-  public StackServiceResponse(String serviceName, String userName, String comments, String serviceVersion) {
+  public StackServiceResponse(String serviceName, String userName, String comments, String serviceVersion,
+      List<String> types) {
     setServiceName(serviceName);
     setUserName(userName);
     setComments(comments);
     setServiceVersion(serviceVersion);
+    configTypes = types;
+  }
+
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
   }
 
   public String getServiceName() {
@@ -65,6 +89,10 @@ public class StackServiceResponse {
 
   public void setServiceVersion(String serviceVersion) {
     this.serviceVersion = serviceVersion;
+  }
+  
+  public List<String> getConfigTypes() {
+    return configTypes;
   }
 
 }

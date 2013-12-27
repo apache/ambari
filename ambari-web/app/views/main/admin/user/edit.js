@@ -22,7 +22,6 @@ App.MainAdminUserEditView = Em.View.extend({
   templateName: require('templates/main/admin/user/edit'),
   userId: false,
   edit: function(event){
-    var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
     if(form.isValid()) {
       var Users={};
@@ -40,7 +39,7 @@ App.MainAdminUserEditView = Em.View.extend({
         Users.old_password = form.getField("old_password").get('value');
       }
 
-      parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
+      this.get("controller").sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
        Users:Users
       }, function (success, message) {
         if (!success) {
@@ -63,17 +62,25 @@ App.MainAdminUserEditView = Em.View.extend({
     }
   },
 
+  keyPress: function(event) {
+    if (event.keyCode === 13) {
+      this.edit();
+      return false;
+    }
+  },
+
   userForm: App.EditUserForm.create({}),
 
   didInsertElement: function() {
     var form = this.get('userForm');
-    if(form.getField("isLdap").get("value")) {
-      form.getField("old_password").set("disabled",true);
-      form.getField("new_password").set("disabled",true);
-    }
-    else {
-      form.getField("old_password").set("disabled",false);
-      form.getField("new_password").set("disabled",false);
+    if (form.getField("isLdap").get("value")) {
+      form.getField("old_password").set("disabled", true);
+      form.getField("new_password").set("disabled", true);
+      form.getField("new_passwordRetype").set("disabled", true);
+    } else {
+      form.getField("old_password").set("disabled", false);
+      form.getField("new_password").set("disabled", false);
+      form.getField("new_passwordRetype").set("disabled", false);
     }
     form.propertyDidChange('object');
   }

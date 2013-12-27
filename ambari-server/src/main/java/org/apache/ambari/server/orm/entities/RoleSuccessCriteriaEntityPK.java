@@ -18,13 +18,12 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.Role;
+import java.io.Serializable;
 
 import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import java.io.Serializable;
+
+import org.apache.ambari.server.Role;
 
 @SuppressWarnings("serial")
 public class RoleSuccessCriteriaEntityPK implements Serializable {
@@ -52,17 +51,16 @@ public class RoleSuccessCriteriaEntityPK implements Serializable {
     this.stageId = stageId;
   }
 
-  private Role role;
+  private String role;
 
   @Column(name = "role")
-  @Enumerated(EnumType.STRING)
   @Id
   public Role getRole() {
-    return role;
+    return Role.valueOf(role);
   }
 
   public void setRole(Role role) {
-    this.role = role;
+    this.role = role.name();
   }
 
   @Override

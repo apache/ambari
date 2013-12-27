@@ -30,7 +30,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -44,15 +43,24 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
+import javax.annotation.Nullable;
+
 //This class encapsulates the stage. The stage encapsulates all the information
 //required to persist an action.
 public class Stage {
+
   private static Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private final String clusterName;
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
+  private final String clusterHostInfo;
+
+  public String getClusterHostInfo() {
+    return clusterHostInfo;
+  }
+
   private int taskTimeout = -1;
   private int perTaskTimeFactor = 60000;
 
@@ -67,11 +75,12 @@ public class Stage {
 
   @AssistedInject
   public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-               @Assisted("requestContext") String requestContext) {
+               @Assisted("requestContext") @Nullable String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo) {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
     this.requestContext = requestContext == null ? "" : requestContext;
+    this.clusterHostInfo = clusterHostInfo;
   }
 
   /**
@@ -94,15 +103,21 @@ public class Stage {
     logDir = stageEntity.getLogInfo();
     clusterName = stageEntity.getCluster().getClusterName();
     requestContext = stageEntity.getRequestContext();
+    clusterHostInfo = stageEntity.getClusterHostInfo();
 
-    for (HostEntity hostEntity : hostDAO.findByStage(stageEntity)) {
-      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findSortedCommandsByStageAndHost(stageEntity, hostEntity);
-      commandsToSend.put(hostEntity.getHostName(), new ArrayList<ExecutionCommandWrapper>());
-      hostRoleCommands.put(hostEntity.getHostName(), new TreeMap<String, HostRoleCommand>());
-      for (HostRoleCommandEntity command : commands) {
-        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(command);
-        hostRoleCommands.get(hostEntity.getHostName()).put(hostRoleCommand.getRole().toString(), hostRoleCommand);
-        commandsToSend.get(hostEntity.getHostName()).add(hostRoleCommand.getExecutionCommandWrapper());
+
+    Map<String, List<HostRoleCommandEntity>> hostCommands = hostRoleCommandDAO.findSortedCommandsByStage(stageEntity);
+
+    for (Map.Entry<String, List<HostRoleCommandEntity>> entry : hostCommands.entrySet()) {
+      String hostname = entry.getKey();
+      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
+      for (HostRoleCommandEntity hostRoleCommandEntity : entry.getValue()) {
+        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(hostRoleCommandEntity);
+
+
+        hostRoleCommands.get(hostname).put(hostRoleCommand.getRole().toString(), hostRoleCommand);
+        commandsToSend.get(hostname).add(hostRoleCommand.getExecutionCommandWrapper());
       }
     }
 
@@ -123,6 +138,7 @@ public class Stage {
     stageEntity.setRequestContext(requestContext);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
+    stageEntity.setClusterHostInfo(clusterHostInfo);
 
     for (Role role : successFactors.keySet()) {
       RoleSuccessCriteriaEntity roleSuccessCriteriaEntity = new RoleSuccessCriteriaEntity();
@@ -186,8 +202,9 @@ public class Stage {
     cmd.setClusterName(clusterName);
     cmd.setServiceName(serviceName);
     cmd.setCommandId(this.getActionId());
-    cmd.setRole(role);
+    cmd.setRole(role.name());
     cmd.setRoleCommand(command);
+    
     Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(host);
     if (hrcMap == null) {
       hrcMap = new TreeMap<String, HostRoleCommand>();
@@ -214,6 +231,11 @@ public class Stage {
     execCmdList.add(wrapper);
   }
 
+
+  /**
+   *  Creates server-side execution command. As of now, it seems to
+   *  be used only for server upgrade
+   */
   public synchronized void addServerActionCommand(
       String actionName, Role role,  RoleCommand command, String clusterName,
       ServiceComponentHostUpgradeEvent event, String hostName) {
@@ -225,7 +247,7 @@ public class Stage {
     cmd.setClusterName(clusterName);
     cmd.setServiceName("");
     cmd.setCommandId(this.getActionId());
-    cmd.setRole(role);
+    cmd.setRole(role.name());
     cmd.setRoleCommand(command);
 
     Map<String, String> roleParams = new HashMap<String, String>();
@@ -465,6 +487,7 @@ public class Stage {
     builder.append("clusterName="+clusterName+"\n");
     builder.append("logDir=" + logDir+"\n");
     builder.append("requestContext="+requestContext+"\n");
+    builder.append("clusterHostInfo="+clusterHostInfo+"\n");
     builder.append("Success Factors:\n");
     for (Role r : successFactors.keySet()) {
       builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");

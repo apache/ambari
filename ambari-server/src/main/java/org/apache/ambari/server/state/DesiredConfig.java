@@ -32,6 +32,7 @@ public class DesiredConfig {
 
   private String versionTag;
   private String serviceName;
+  private String user;
   private List<HostOverride> hostOverrides = new ArrayList<HostOverride>();
 
   /**
@@ -68,7 +69,7 @@ public class DesiredConfig {
   public void setServiceName(String name) {
     serviceName = name;
   }
-
+  
   /**
    * Sets the host overrides for the desired config.  Cluster-based desired configs only.
    * @param overrides the host names
@@ -78,6 +79,23 @@ public class DesiredConfig {
   }
 
   /**
+   * Gets the user that set the desired config.
+   */
+  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  public String getUser() {
+    return user;
+  }
+  
+  /**
+   * Sets the user that set the desired config.
+   * @param userName the username
+   */
+  public void setUser(String userName) {
+    user = userName;
+  }
+  
+  
+  /**
    * Gets the host overrides for the desired config.  Cluster-based desired configs only.
    * @return the host names that override the desired config
    */
@@ -86,7 +104,7 @@ public class DesiredConfig {
   public List<HostOverride> getHostOverrides() {
     return hostOverrides;
   }
-
+  
   /**
    * Used to represent an override on a host.
    */

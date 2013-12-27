@@ -35,9 +35,11 @@ public class AuthorizationTestModule extends AbstractModule {
     properties.setProperty(Configuration.METADETA_DIR_PATH,
         "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE,
-        "../version");
+        "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
+    //make ambari detect active configuration
+    properties.setProperty(Configuration.LDAP_GROUP_BASE_KEY, "ou=groups,dc=ambari,dc=apache,dc=org");
 
     try {
       install(new ControllerModule(properties));

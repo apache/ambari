@@ -63,7 +63,7 @@ public class QueryCreateHandler extends BaseManagementHandler {
     // only get first element because we currently only support creation of a single sub-resource type
     final Map.Entry<Resource.Type, Set<Map<String, Object>>> entry = mapProperties.entrySet().iterator().next();
     ResourceInstance createResource = getResourceFactory().createResource(
-        entry.getKey(), request.getResource().getIds());
+        entry.getKey(), request.getResource().getKeyValueMap());
 
     RequestBody requestBody = new RequestBody();
     requestBody.setBody(request.getBody().getBody());

@@ -16,40 +16,74 @@
 * limitations under the License.
 }}
 
-{{#if selectedService.restartRequired}}
-<div class="alert">
-  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
-      {{#if view.isRestartMessageCollapsed}}
-        <i class="icon-caret-down pull-left"></i>
-      {{else}}
-        <i class="icon-caret-right pull-left"></i>
-      {{/if}}
-      <i class="icon-refresh"></i>
-      <strong>Restart Service</strong> {{selectedService.restartRequiredMessage}}
-  </div>
-  <div class="service-body">
-    <ul>
-    {{#each host in selectedService.restartRequiredHostsAndComponents}}
-      <li>
-        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
-        <ul>
-          {{#each component in host.components}}
-            <li>{{component.name}}</li>
-          {{/each}}
-        </ul>
-      </li>
-    {{/each}}
-    </ul>
-  </div>
-</div>
+{{#if view.supportsHostOverrides}}
+  {{#if selectedService.restartRequired}}
+	<div class="alert">
+	  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
+	      {{#if view.isRestartMessageCollapsed}}
+	        <i class="icon-caret-down pull-left"></i>
+	      {{else}}
+	        <i class="icon-caret-right pull-left"></i>
+	      {{/if}}
+	      <i class="icon-refresh"></i>
+	      <strong>{{t dashboard.services.configs.popup.restartService.header}}</strong> {{selectedService.restartRequiredMessage}}
+	  </div>
+	  <div class="service-body">
+	    <ul>
+	    {{#each host in selectedService.restartRequiredHostsAndComponents}}
+	      <li>
+	        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
+	        <ul>
+	          {{#each component in host.components}}
+	            <li>{{component.name}}</li>
+	          {{/each}}
+	        </ul>
+	      </li>
+	    {{/each}}
+	    </ul>
+	  </div>
+	</div>
+	{{/if}}
 {{/if}}
-          
+{{#if view.supportsHostOverrides}}
+	<div class="alert alert-info">
+	  {{t common.group}}&nbsp; 
+	  <span class="btn-group">
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn">{{selectedConfigGroup.displayNameHosts}}</button>
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
+		    <span class="caret"></span>
+		  </button>
+		  <ul class="dropdown-menu">
+		    <!-- available config group menu links -->
+		    {{#each configGroup in configGroups}}
+           <li>
+             <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
+               {{configGroup.displayNameHosts}}
+             </a>
+           </li>
+        {{/each}}
+		  </ul>
+		</span>
+    {{#if App.isAdmin}}
+      {{#if controller.isHostsConfigsPage}}
+          &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+      {{else}}
+          <a href="#"  class="link" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
+      {{/if}}
+    {{/if}}
+     <div class="pull-right">
+       {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}
+     </div>
+	</div>
+{{/if}}
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}
-      {{view category.customView categoryBinding="category" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
+      {{#if App.supports.capacitySchedulerUi}}
+        {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+      {{/if}}
     {{else}}
-    {{#view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs"}}
+    {{#view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
 
             <div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
                 <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
@@ -58,53 +92,68 @@
 
             <div class="accordion-body collapse in">
               <div class="accordion-inner service-config-section">
-                <form class="form-horizontal">
+                <form class="form-horizontal" autocomplete="off">
 
                   {{#each view.filteredCategoryConfigs}}
                       <div {{bindAttr class=":entry-row isOverridden:overridden-property"}}>
                           <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
                             <label class="control-label">
-	                            {{#if isRestartRequired}}
-	                              <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
-	                            {{/if}}
                               {{displayName}}
+                              {{#if App.supports.secureCluster}}
+                                {{#if isSecureConfig}}
+                                  <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
+                                {{/if}}
+                              {{/if}}
+                              {{#if view.supportsHostOverrides}}
+                                {{#if isRestartRequired}}
+                                  <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                                {{/if}}
+                              {{/if}}
                             </label>
                           </span>
                           <div class="controls">
                             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-                              <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                              <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
                                 {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
                                 {{#if view.canEdit}}
 	                                {{#if isPropertyOverridable}}
-	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
+                                    {{#if view.supportsHostOverrides}}
+                                      {{#if App.isAdmin}}
+	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.override}}</a>
+                                      {{/if}}
+                                    {{/if}}
 	                                {{/if}}
-	                                {{#if cantBeUndone}}
-	                                {{else}}
+	                                {{#unless cantBeUndone}}
 	                                  {{#if isNotDefaultValue}}
 	                                      <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
 	                                  {{/if}}
-	                                {{/if}}
+	                                {{/unless}}
 	                                {{#if isRemovable}}
+                                    {{#if App.isAdmin}}
 	                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                                    {{/if}}
 	                                {{/if}}
                                 {{/if}}
                                   <span class="help-inline">{{errorMessage}}</span>
+                                  <span class="help-inline">{{warnMessage}}</span>
                               </div>
                             {{#if this.isOverridden}}
-                              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this"}}
+                              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this" isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"}}
                             {{/if}}
                           </div>
                       </div>
                   {{/each}}
 
                   {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
-                  {{#if view.canEdit}}
-	                  {{#if category.canAddProperty }}
-	                      <div>
-	                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
-	                      </div>
-	                  {{/if}}
-	                {{/if}}
+                  {{#if App.isAdmin}}
+                    {{#if view.canEdit}}
+                      {{#if category.canAddProperty }}
+                        <div>
+                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+                        </div>
+                      {{/if}}
+                    {{/if}}
+                  {{/if}}
                 </form>
               </div>
             </div>

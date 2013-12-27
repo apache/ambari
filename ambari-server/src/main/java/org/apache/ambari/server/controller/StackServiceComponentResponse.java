@@ -20,6 +20,10 @@ package org.apache.ambari.server.controller;
 
 public class StackServiceComponentResponse {
 
+  private String stackName;
+  private String stackVersion;
+  private String serviceName;
+
   private String componentName;
 
   private String componentCategory;
@@ -34,6 +38,30 @@ public class StackServiceComponentResponse {
     setComponentCategory(componentCategory);
     setClient(isClient);
     setMaster(isMaster);
+  }
+
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   public String getComponentName() {

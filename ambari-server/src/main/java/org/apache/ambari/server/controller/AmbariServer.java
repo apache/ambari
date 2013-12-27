@@ -23,8 +23,8 @@ import java.io.File;
 import java.net.BindException;
 import java.util.Map;
 
-import com.google.inject.persist.PersistFilter;
-import com.google.gson.Gson;
+import javax.crypto.BadPaddingException;
+
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -32,15 +32,26 @@ import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
-import org.apache.ambari.server.api.services.*;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.AmbariMetaService;
+import org.apache.ambari.server.api.services.KeyService;
+import org.apache.ambari.server.api.services.PersistKeyValueImpl;
+import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
+import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
+import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
+import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.CertificateManager;
+import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
@@ -67,6 +78,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -77,9 +89,6 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
-  public static final int AGENT_ONE_WAY_AUTH = 8440;
-  public static final int AGENT_TWO_WAY_AUTH = 8441;
-  public static final int CLIENT_SSL_API_PORT = 8443;
 
   private Server server = null;
   private Server serverForAgent = null;
@@ -105,7 +114,6 @@ public class AmbariServer {
     return configs.getServerOsType();
   }
 
-
   private static AmbariManagementController clusterController = null;
 
   public static AmbariManagementController getController() {
@@ -113,6 +121,10 @@ public class AmbariServer {
   }
 
   public void run() throws Exception {
+    // Initialize meta info before heartbeat monitor
+    ambariMetaInfo.init();
+    LOG.info("********* Meta Info initialized **********");
+
     performStaticInjection();
     addInMemoryUsers();
     server = new Server();
@@ -173,8 +185,11 @@ public class AmbariServer {
       DelegatingFilterProxy springSecurityFilter = new DelegatingFilterProxy();
       springSecurityFilter.setTargetBeanName("springSecurityFilterChain");
 
-      //session-per-request strategy for api
+      //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
+      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
+
+      agentroot.addFilter(SecurityFilter.class, "/*", 1);
 
       if (configs.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
@@ -182,9 +197,9 @@ public class AmbariServer {
 
 
       //Secured connector for 2-way auth
-      SslSelectChannelConnector sslConnectorTwoWay = new  
+      SslSelectChannelConnector sslConnectorTwoWay = new
           SslSelectChannelConnector();
-      sslConnectorTwoWay.setPort(AGENT_TWO_WAY_AUTH);
+      sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
 
       Map<String, String> configsMap = configs.getConfigsMap();
       String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
@@ -197,7 +212,7 @@ public class AmbariServer {
       sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
       sslConnectorTwoWay.setKeystoreType("PKCS12");
       sslConnectorTwoWay.setTruststoreType("PKCS12");
-      sslConnectorTwoWay.setNeedClientAuth(true);
+      sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
 
       //Secured connector for 1-way auth
       //SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector();
@@ -226,7 +241,7 @@ public class AmbariServer {
       // sslConnectorOneWay.setWantClientAuth(false);
       // sslConnectorOneWay.setNeedClientAuth(false);
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactory);
-      sslConnectorOneWay.setPort(AGENT_ONE_WAY_AUTH);
+      sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
       sslConnectorOneWay.setAcceptors(2);
       sslConnectorTwoWay.setAcceptors(2);
       serverForAgent.setConnectors(new Connector[]{ sslConnectorOneWay, sslConnectorTwoWay});
@@ -241,6 +256,10 @@ public class AmbariServer {
               "org.apache.ambari.server.api");
       sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
           "true");
+      if (configs.csrfProtectionEnabled()) {
+        sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
+            "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
+      }
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
@@ -282,20 +301,28 @@ public class AmbariServer {
       SelectChannelConnector apiConnector;
 
       if (configs.getApiSSLAuthentication()) {
+        String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
+          File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY);
+        LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);        
+        
+        String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
+
         SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector();
-        sapiConnector.setPort(CLIENT_SSL_API_PORT);
-        sapiConnector.setKeystore(keystore);
-        sapiConnector.setTruststore(keystore);
-        sapiConnector.setPassword(srvrCrtPass);
-        sapiConnector.setKeyPassword(srvrCrtPass);
-        sapiConnector.setTrustPassword(srvrCrtPass);
+        sapiConnector.setPort(configs.getClientSSLApiPort());
+        sapiConnector.setKeystore(httpsKeystore);
+        sapiConnector.setTruststore(httpsKeystore);
+        sapiConnector.setPassword(httpsCrtPass);
+        sapiConnector.setKeyPassword(httpsCrtPass);
+        sapiConnector.setTrustPassword(httpsCrtPass);
         sapiConnector.setKeystoreType("PKCS12");
         sapiConnector.setTruststoreType("PKCS12");
+        sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
         apiConnector = sapiConnector;
       } 
       else  {
         apiConnector = new SelectChannelConnector();
         apiConnector.setPort(configs.getClientApiPort());
+        apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
       }
 
       server.addConnector(apiConnector);
@@ -303,9 +330,6 @@ public class AmbariServer {
       server.setStopAtShutdown(true);
       serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
-
-      LOG.info("********* Initializing Meta Info **********");
-      ambariMetaInfo.init();
 
       String osType = getServerOsType();
       if (osType == null || osType.isEmpty()) {
@@ -327,6 +351,11 @@ public class AmbariServer {
       AmbariManagementController controller = injector.getInstance(
           AmbariManagementController.class);
 
+      LOG.info("********* Initializing Scheduled Request Manager **********");
+      ExecutionScheduleManager executionScheduleManager = injector
+        .getInstance(ExecutionScheduleManager.class);
+
+
       clusterController = controller;
 
       // FIXME need to figure out correct order of starting things to
@@ -343,13 +372,15 @@ public class AmbariServer {
       manager.start();
       LOG.info("********* Started ActionManager **********");
 
-      //TODO: Remove this code when APIs are ready for testing.
-      //      RequestInjectorForTest testInjector = new RequestInjectorForTest(controller, clusters);
-      //      Thread testInjectorThread = new Thread(testInjector);
-      //      testInjectorThread.start();
+      executionScheduleManager.start();
+      LOG.info("********* Started Scheduled Request Manager **********");
 
       server.join();
       LOG.info("Joined the Server");
+    } catch (BadPaddingException bpe){
+      LOG.error("Bad keystore or private key password. " +
+        "HTTPS certificate re-importing may be required.");
+      throw bpe;
     } catch(BindException bindException) {
       LOG.error("Could not bind to server port - instance may already be running. " +
           "Terminating this instance.", bindException);
@@ -379,13 +410,13 @@ public class AmbariServer {
 
   protected void checkDBVersion() throws AmbariException {
     LOG.info("Checking DB store version");
-    String databaseVersion = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY).getMetainfoValue();
+    String schemaVersion = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY).getMetainfoValue();
     String serverVersion = ambariMetaInfo.getServerVersion();
-    if (! databaseVersion.equals(serverVersion)) {
+    if (! schemaVersion.equals(serverVersion)) {
       String error = "Current database store version is not compatible with " +
               "current server version"
               + ", serverVersion=" + serverVersion
-              + ", databaseVersion=" + databaseVersion;
+              + ", schemaVersion=" + schemaVersion;
       LOG.warn(error);
       throw new AmbariException(error);
     }
@@ -414,13 +445,15 @@ public class AmbariServer {
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     WorkflowJsonService.setDBProperties(
-        injector.getInstance(Configuration.class)
-    );
+        injector.getInstance(Configuration.class));
+    SecurityFilter.init(injector.getInstance(Configuration.class));
+    StackDefinedPropertyProvider.init(injector);
+    AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
   }
 
   public static void main(String[] args) throws Exception {
-
     Injector injector = Guice.createInjector(new ControllerModule());
+    
     AmbariServer server = null;
     try {
       LOG.info("Getting the controller");
@@ -428,6 +461,7 @@ public class AmbariServer {
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
+      ComponentSSLConfiguration.instance().init(server.configs);
       if (server != null) {
         server.run();
       }

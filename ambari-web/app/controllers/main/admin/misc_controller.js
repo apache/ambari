@@ -27,7 +27,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     serviceName: 'MISC'
   },
   loadUsers: function() {
-    this.set('selectedService', 'MISC');
+    this.set('selectedService', this.get('content.serviceName'));
     this.loadServiceConfig();
   },
   loadServiceConfig: function() {
@@ -42,6 +42,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     });
   },
   loadServiceTagSuccess: function(data, opt, params) {
+    var installedServices = App.Service.find().mapProperty("serviceName");
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     var loadedClusterSiteToTagMap = {};
@@ -52,13 +53,32 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
       }
     }
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
-    var configGroups = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
+    var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], this.get('serviceConfigTags'), serviceName);
 
-    var misc_configs = configSet.globalConfigs.filterProperty('serviceName', 'MISC').filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
-    this.set('users', misc_configs);
+    var misc_configs = configSet.globalConfigs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
+
+    misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
+
+    var sortOrder = this.get('configs').filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
+
+    var sorted = [];
+
+    if(sortOrder) {
+      sortOrder.forEach(function(name) {
+        sorted.push(misc_configs.findProperty('name', name));
+      });
+      this.set('users', sorted);
+    }
+    else {
+      this.set('users', misc_configs);
+    }
+    if(this.get("content.hdfsUser")){
+      this.get('content').set('hdfsUser', misc_configs.findProperty('name','hdfs_user').get("value"));
+    }
+    if (this.get("content.group")) {
+      this.get('content').set('group', misc_configs.findProperty('name','user_group').get("value"));
+    }
     this.set('dataIsLoaded', true);
-
   }
-
 });

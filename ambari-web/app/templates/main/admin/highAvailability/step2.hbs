@@ -1,0 +1,80 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<h2>{{t admin.highAvailability.wizard.step2.header}}</h2>
+<div class="alert alert-info">
+  {{t admin.highAvailability.wizard.step2.body}}
+</div>
+<div class="assign-masters">
+  <div class="select-hosts">
+    <form class="form-horizontal" autocomplete="off">
+      <!-- View for array controller -->
+      {{#each servicesMasters}}
+      <div class="control-group">
+        <label class="control-label">
+          {{#if isCurNameNode}}
+            Current
+          {{/if}}
+          {{#if isAddNameNode}}
+            Additional
+          {{/if}}
+            {{display_name}}:
+        </label>
+        <div class="controls">
+          {{view App.SelectHostView
+            contentBinding="availableHosts"
+            optionValuePath="content.host_name"
+            optionLabelPath="content.host_info"
+            selectedHostBinding="selectedHost"
+            componentNameBinding="component_name"
+            zIdBinding="zId"
+            disabledBinding="isInstalled"
+          }}
+          {{#if showAddControl}}
+            {{view App.AddControlView componentNameBinding="component_name"}}
+          {{/if}}
+          {{#if showRemoveControl}}
+            {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </form>
+  </div>
+
+  <div class="host-assignments">
+    {{#each masterHostMapping}}
+    <div class="mapping-box round-corners well">
+      <div class="hostString"><span>{{hostInfo}}</span></div>
+      {{#each masterServices}}
+        <span {{bindAttr class="color :assignedService :round-corners"}}>{{display_name}}</span>
+      {{/each}}
+    </div>
+    {{/each}}
+
+    {{#if remainingHosts}}
+    <div class="remaining-hosts round-corners well">
+      <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
+    {{/if}}
+  </div>
+  <div style="clear: both;"></div>
+</div>
+<div class="btn-area">
+  <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+</div>

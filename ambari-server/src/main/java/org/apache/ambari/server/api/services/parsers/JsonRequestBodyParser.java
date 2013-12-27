@@ -125,7 +125,12 @@ public class JsonRequestBodyParser implements RequestBodyParser {
         if (name.equals(BODY_TITLE)) {
           name = "";
         }
-        processNode(child, path.isEmpty() ? name : path + '/' + name, propertySet, requestInfoProps);
+        if (name.equals(REQUEST_BLOB_TITLE)) {
+          propertySet.getProperties().put(PropertyHelper.getPropertyId(path,
+            name), child.toString());
+        } else {
+          processNode(child, path.isEmpty() ? name : path + '/' + name, propertySet, requestInfoProps);
+        }
       } else {
         // field
         if (path.startsWith(REQUEST_INFO_PATH)) {

@@ -20,11 +20,12 @@ package org.apache.ambari.server.controller.jdbc;
 
 import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.CategoryPredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
@@ -58,7 +59,7 @@ public class SQLPredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate predicate) {
-    BasePredicate[] predicates = predicate.getPredicates();
+    Predicate[] predicates = predicate.getPredicates();
     if (predicates.length > 0) {
 
       stringBuilder.append("(");
@@ -66,7 +67,7 @@ public class SQLPredicateVisitor implements PredicateVisitor {
         if (i > 0) {
           stringBuilder.append(" ").append(predicate.getOperator()).append(" ");
         }
-        predicates[i].accept(this);
+        PredicateHelper.visit(predicates[i], this);
       }
       stringBuilder.append(")");
     }
@@ -75,7 +76,7 @@ public class SQLPredicateVisitor implements PredicateVisitor {
   @Override
   public void acceptUnaryPredicate(UnaryPredicate predicate) {
     stringBuilder.append(predicate.getOperator()).append("(");
-    predicate.getPredicate().accept(this);
+    PredicateHelper.visit(predicate.getPredicate(), this);
     stringBuilder.append(")");
   }
 

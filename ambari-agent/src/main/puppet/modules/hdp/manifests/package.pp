@@ -49,29 +49,52 @@ define hdp::package::process_pkg(
   $lzo_needed
   )
 {
+
+  $stack_version = $hdp::params::stack_version
     
 
   debug("##Processing package:  $ensure,$package_type,$size,$java_needed,$lzo_needed")
 
   include hdp::params
 
-  if hdp_is_empty($hdp::params::alt_package_names[$package_type]) {
+  if hdp_is_empty($hdp::params::package_names[$package_type]) {
     hdp_fail("No packages for $package_type")
   }
+  
+  ## Process packages depending on stack
+  if hdp_is_empty($hdp::params::package_names[$package_type][$stack_version]) {
 
-  if hdp_is_empty($hdp::params::alt_package_names[$package_type][$size]) {
-
-    if hdp_is_empty($hdp::params::alt_package_names[$package_type][ALL]) {
+    if hdp_is_empty($hdp::params::package_names[$package_type][ALL]) {
       hdp_fail("No packages for $package_type")
     }
     else {
-      $packages_list_by_size = $hdp::params::alt_package_names[$package_type][ALL]
+      $packages_list_by_stack = $hdp::params::package_names[$package_type][ALL]
     }
   }
   else {
-    $packages_list_by_size = $hdp::params::alt_package_names[$package_type][$size]
+    $packages_list_by_stack = $hdp::params::package_names[$package_type][$stack_version]
+  }
+  
+  debug("##Pkg for stack: $packages_list_by_stack")
+  
+  ## Process packages depending on arch
+  if hdp_is_empty($packages_list_by_stack[$size]) {
+
+    if hdp_is_empty($packages_list_by_stack[ALL]) {
+      hdp_fail("No packages for $package_type")
+    }
+    else {
+      $packages_list_by_size = $packages_list_by_stack[ALL]
+    }
+  }
+  else {
+    $packages_list_by_size = $packages_list_by_stack[$size]
 
   }
+  
+  debug("##Pkg for arch: $packages_list_by_size")
+  
+  ## Process packages depending on os
   if hdp_is_empty($packages_list_by_size[$hdp::params::hdp_os_type]) {
 
     if hdp_is_empty($packages_list_by_size[ALL]) {

@@ -15,6 +15,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-\connect ambari;
+\connect :dbname;
 
 COPY (SELECT count(*) FROM ambari.serviceconfigmapping WHERE service_name = 'MAPREDUCE') TO STDOUT WITH CSV;

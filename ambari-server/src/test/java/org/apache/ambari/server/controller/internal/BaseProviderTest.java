@@ -252,6 +252,26 @@ public class BaseProviderTest {
     Assert.assertEquals("value23", resource.getPropertyValue("cat4/mapMapProperty4/subMap2/key3"));
   }
 
+  @Test
+  public void testRegexpMethods() {
+    Set<String> propertyIds = new HashSet<String>();
+    String regexp = "cat/$1.replaceAll(\\\"([.])\\\",\\\"/\\\")/key";
+    String propertyId = "cat/sub/key";
+    String regexp2 = "cat/$1.replaceAll(\\\"([.])\\\",\\\"/\\\")/something/$2/key";
+    String propertyId2 = "cat/sub/something/sub2/key";
+
+    String incorrectPropertyId = "some/property/id";
+    propertyIds.add(regexp);
+    propertyIds.add(regexp2);
+
+    BaseProvider provider = new TestProvider(propertyIds);
+    Assert.assertEquals(regexp, provider.getRegExpKey(propertyId));
+    Assert.assertNull(provider.getRegExpKey(incorrectPropertyId));
+    Assert.assertEquals("sub", provider.getRegexGroups(regexp, propertyId).get(0));
+    Assert.assertEquals("sub2", provider.getRegexGroups(regexp2, propertyId2).get(1));
+    Assert.assertTrue(provider.getRegexGroups(regexp, incorrectPropertyId).isEmpty());
+  }
+
   static class TestProvider extends BaseProvider {
 
     public TestProvider(Set<String> propertyIds) {

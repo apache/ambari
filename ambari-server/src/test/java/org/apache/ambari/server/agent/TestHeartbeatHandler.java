@@ -31,6 +31,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCurrentPingPort;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -51,6 +52,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
+import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -71,6 +73,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -103,6 +106,7 @@ public class TestHeartbeatHandler {
   AmbariMetaInfo metaInfo;
   @Inject
   Configuration config;
+  private UnitOfWork unitOfWork;
 
   @Before
   public void setup() throws Exception {
@@ -112,6 +116,7 @@ public class TestHeartbeatHandler {
     injector.injectMembers(this);
     metaInfo.init();
     log.debug("Using server os type=" + config.getServerOsType());
+    unitOfWork = injector.getInstance(UnitOfWork.class);
   }
 
   @After
@@ -199,11 +204,12 @@ public class TestHeartbeatHandler {
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setServiceName(HDFS);
     cr.setTaskId(1);
-    cr.setRole(HDFS);
+    cr.setRole(DATANODE);
     cr.setStatus("COMPLETED");
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(215);
+    cr.setRoleCommand("START");
     cr.setClusterName(DummyCluster);
     
     cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
@@ -216,8 +222,8 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb);
 
     // the heartbeat test passed if actual configs is populated
-    Assert.assertNotNull(cluster.getActualConfigs());
-    Assert.assertEquals(cluster.getActualConfigs().size(), 1);
+    Assert.assertNotNull(serviceComponentHost1.getActualConfigs());
+    Assert.assertEquals(serviceComponentHost1.getActualConfigs().size(), 1);
   }
 
   @Test
@@ -283,6 +289,55 @@ public class TestHeartbeatHandler {
     assertEquals(State.STARTED, componentState1);
     assertEquals(State.INSTALLED, componentState2);
     assertEquals(State.STARTED, componentState3);
+  }
+
+  @Test
+  public void testStatusHeartbeatWithAnnotation() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    hb.setComponentStatus(componentStatuses);
+
+    HeartBeatResponse resp = handler.handleHeartBeat(hb);
+    Assert.assertFalse(resp.hasMappedComponents());
+
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.INIT);
+
+    hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(1);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+    hb.setComponentStatus(componentStatuses);
+
+    resp = handler.handleHeartBeat(hb);
+    Assert.assertTrue(resp.hasMappedComponents());
   }
 
   @Test
@@ -359,7 +414,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null);
+        new HostsMap((String) null), null, unitOfWork, null);
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -394,14 +449,13 @@ public class TestHeartbeatHandler {
   }
 
   private void populateActionDB(ActionDBAccessor db, String DummyHostname1) {
-    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbeat handler test");
+    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbeat handler test", "clusterHostInfo");
     s.setStageId(stageId);
     String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            DummyHostname1, System.currentTimeMillis(),
-            new HashMap<String, String>()), DummyCluster, HBASE);
+            DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);
@@ -424,16 +478,58 @@ public class TestHeartbeatHandler {
     hi.setHostName(DummyHostname1);
     hi.setOS(DummyOsType);
     reg.setHostname(DummyHostname1);
+    reg.setCurrentPingPort(DummyCurrentPingPort);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals(DummyOsType, hostObject.getOsType());
+    assertEquals(DummyCurrentPingPort, hostObject.getCurrentPingPort());
     assertTrue(hostObject.getLastRegistrationTime() != 0);
     assertEquals(hostObject.getLastHeartbeatTime(),
         hostObject.getLastRegistrationTime());
   }
-  
+
+  @Test
+  public void testRegistrationWithBadVersion() throws AmbariException,
+      InvalidStateTransitionException {
+
+    ActionManager am = getMockActionManager();
+    Clusters fsm = clusters;
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
+        injector);
+    clusters.addHost(DummyHostname1);
+    Host hostObject = clusters.getHost(DummyHostname1);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOsType);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(""); // Invalid agent version
+    try {
+      handler.handleRegistration(reg);
+      fail ("Expected failure for non compatible agent version");
+    } catch (AmbariException e) {
+      log.debug("Error:" + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains(
+          "Cannot register host with non compatible agent version"));
+    }
+
+    reg.setAgentVersion(null); // Invalid agent version
+    try {
+      handler.handleRegistration(reg);
+      fail ("Expected failure for non compatible agent version");
+    } catch (AmbariException e) {
+      log.debug("Error:" + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains(
+          "Cannot register host with non compatible agent version"));
+    }
+  }
+
   @Test
   public void testRegistrationPublicHostname() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = getMockActionManager();
@@ -519,7 +615,6 @@ public class TestHeartbeatHandler {
       // Expected
     }
   }
-
 
   @Test
   public void testRegisterNewNode()
@@ -946,6 +1041,8 @@ public class TestHeartbeatHandler {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
+    hb.setAgentEnv(new AgentEnv());
+    hb.setMounts(new ArrayList<DiskInfo>());
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
     ComponentStatus componentStatus1 = createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED,
@@ -969,6 +1066,7 @@ public class TestHeartbeatHandler {
         stack122, serviceComponentHost2.getStackVersion());
     assertEquals("Matching value " + serviceComponentHost3.getStackVersion(),
         stack130, serviceComponentHost3.getStackVersion());
+    assertTrue(hb.getAgentEnv().getHostHealth().getServerTimeStampAtReporting() >= hb.getTimestamp());
   }
 
   @Test
@@ -1210,10 +1308,156 @@ public class TestHeartbeatHandler {
     assertEquals("Stack version of SCH should not change after fail report",
             State.INSTALL_FAILED, serviceComponentHost2.getState());
   }
+  
+  @Test
+  public void testProcessStatusReports() throws Exception {
+    ActionManager am = getMockActionManager();
+    Clusters fsm = clusters;
+
+    Cluster cluster = getDummyCluster();
+    Host hostObject = clusters.getHost(DummyHostname1);
+    clusters.mapHostToCluster(hostObject.getHostName(), cluster.getClusterName());
+
+    ActionQueue aq = new ActionQueue();
+
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOs);
+    hi.setOSRelease(DummyOSRelease);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
+    handler.handleRegistration(reg);
+
+    hostObject.setState(HostState.UNHEALTHY);
+
+    aq.enqueue(DummyHostname1, new StatusCommand());
+    
+    //All components are up
+    HeartBeat hb1 = new HeartBeat();
+    hb1.setResponseId(0);
+    hb1.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb1.setHostname(DummyHostname1);
+    List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
+    ComponentStatus dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("STARTED");
+    componentStatus.add(dataNodeStatus);
+    ComponentStatus nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("STARTED");
+    componentStatus.add(nameNodeStatus);
+    hb1.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb1);
+    assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
+    
+    //Some slaves are down, masters are up
+    HeartBeat hb2 = new HeartBeat();
+    hb2.setResponseId(1);
+    hb2.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb2.setHostname(DummyHostname1);
+    componentStatus = new ArrayList<ComponentStatus>();
+    dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(dataNodeStatus);
+    nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("STARTED");
+    componentStatus.add(nameNodeStatus);
+    hb2.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb2);
+    assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
+    
+    //Some masters are down
+    HeartBeat hb3 = new HeartBeat();
+    hb3.setResponseId(2);
+    hb3.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb3.setHostname(DummyHostname1);
+    componentStatus = new ArrayList<ComponentStatus>();
+    dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(dataNodeStatus);
+    nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(nameNodeStatus);
+    hb3.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb3);
+    assertEquals(HostHealthStatus.HealthStatus.UNHEALTHY.name(), hostObject.getStatus());
+    
+    
+  }
+
+  @Test
+  public void testIgnoreCustomActionReport() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = getMockActionManager();
+
+    CommandReport cr1 = new CommandReport();
+    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr1.setTaskId(1);
+    cr1.setClusterName(DummyCluster);
+    cr1.setServiceName(HDFS);
+    cr1.setRole(NAMENODE);
+    cr1.setStatus(HostRoleStatus.FAILED.toString());
+    cr1.setRoleCommand("CUSTOM_COMMAND");
+    cr1.setStdErr("none");
+    cr1.setStdOut("dummy output");
+    cr1.setExitCode(0);
+    CommandReport cr2 = new CommandReport();
+    cr2.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr2.setTaskId(2);
+    cr2.setClusterName(DummyCluster);
+    cr2.setServiceName(HDFS);
+    cr2.setRole(NAMENODE);
+    cr2.setStatus(HostRoleStatus.FAILED.toString());
+    cr2.setRoleCommand("ACTIONEXECUTE");
+    cr2.setStdErr("none");
+    cr2.setStdOut("dummy output");
+    cr2.setExitCode(0);
+
+    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(cr1);
+    reports.add(cr2);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(reports);
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    // CUSTOM_COMMAND and ACTIONEXECUTE reports are ignored
+    // they should not change the host component state
+    try {
+      handler.handleHeartBeat(hb);
+    } catch (Exception e) {
+      fail();
+    }
+
+  }
 
   private ActionManager getMockActionManager() {
     return new ActionManager(0, 0, null, null,
-              new ActionDBInMemoryImpl(), new HostsMap((String) null), null);
+              new ActionDBInMemoryImpl(), new HostsMap((String) null), null, unitOfWork, null);
   }
 
 

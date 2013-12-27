@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.spi;
 
+import java.util.Set;
 
 /**
  * The cluster controller is the main access point for accessing resources
@@ -24,6 +25,7 @@ package org.apache.ambari.server.controller.spi;
  * resource providers keyed by resource types.
  */
 public interface ClusterController {
+
 
   // ----- Monitoring ------------------------------------------------------
 
@@ -43,13 +45,79 @@ public interface ClusterController {
    * @throws NoSuchResourceException no matching resource(s) found
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public Iterable<Resource> getResources(Resource.Type type,
-                                         Request request,
-                                         Predicate predicate)
+  Set<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
-             SystemException,
-             NoSuchResourceException,
-             NoSuchParentResourceException;
+      NoSuchResourceException,
+      NoSuchParentResourceException,
+      SystemException;
+
+  /**
+   * Populate the given resources from the associated property providers.  This
+   * method may filter the resources based on the predicate and return a subset
+   * of the given resources.
+   *
+   * @param type       the resource type
+   * @param resources  the resources to be populated
+   * @param request    the request
+   * @param predicate  the predicate
+   *
+   * @return the set of resources that were successfully populated
+   *
+   * @throws SystemException if unable to populate the resources
+   */
+  public Set<Resource> populateResources(Resource.Type type,
+                                            Set<Resource> resources,
+                                            Request request,
+                                            Predicate predicate) throws SystemException;
+
+  /**
+   * Get an iterable set of resources from the given set of resources filtered by the
+   * given request and predicate objects.
+   *
+   * @param type               type of resources
+   * @param providerResources  set of populated Resources
+   * @param request            the request
+   * @param predicate          the predicate object which filters which resources are returned
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  Iterable<Resource> getIterable(Resource.Type type, Set<Resource> providerResources,
+                                 Request request, Predicate predicate)
+      throws NoSuchParentResourceException,
+      UnsupportedPropertyException,
+      NoSuchResourceException,
+      SystemException;
+
+  /**
+   * Get a page of resources from the given set filtered by the given request,
+   * predicate objects and page request.
+   *
+   * @param type               type of resources
+   * @param providerResources  set of populated Resources
+   * @param request            the request
+   * @param predicate          the predicate object which filters which resources are returned
+   * @param pageRequest        the page request for a paginated response
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  PageResponse getPage(Resource.Type type, Set<Resource> providerResources,
+                       Request request, Predicate predicate, PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchResourceException,
+      NoSuchParentResourceException;
 
   /**
    * Get the {@link Schema schema} for the given resource type.  The schema

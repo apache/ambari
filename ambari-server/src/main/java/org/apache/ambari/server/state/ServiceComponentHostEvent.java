@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.state.fsm.event.AbstractEvent;
@@ -47,42 +46,22 @@ public abstract class ServiceComponentHostEvent
    */
   private final long opTimestamp;
 
-  // FIXME hack alert!!!
-  // This belongs to start event only
-  private final Map<String, String> configs;
-
   // FIXME hack alert
   // this belongs to install event only
   private final String stackId;
 
   public ServiceComponentHostEvent(ServiceComponentHostEventType type,
-      String serviceComponentName, String hostName, long opTimestamp,
-      Map<String, String> configs) {
-    this(type, serviceComponentName, hostName, opTimestamp,
-        configs, "");
-  }
-
-  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
       String serviceComponentName, String hostName, long opTimestamp) {
-    this(type, serviceComponentName, hostName, opTimestamp,
-        new HashMap<String, String>(), "");
+    this(type, serviceComponentName, hostName, opTimestamp, "");
   }
 
   public ServiceComponentHostEvent(ServiceComponentHostEventType type,
       String serviceComponentName, String hostName, long opTimestamp,
       String stackId) {
-    this(type, serviceComponentName, hostName, opTimestamp,
-        new HashMap<String, String>(), stackId);
-  }
-
-  public ServiceComponentHostEvent(ServiceComponentHostEventType type,
-      String serviceComponentName, String hostName, long opTimestamp,
-      Map<String, String> configs, String stackId) {
     super(type);
     this.serviceComponentName = serviceComponentName;
     this.hostName = hostName;
     this.opTimestamp = opTimestamp;
-    this.configs = configs;
     this.stackId = stackId;
   }
 
@@ -130,7 +109,7 @@ public abstract class ServiceComponentHostEvent
       case HOST_SVCCOMP_STARTED:
         return new ServiceComponentHostStartedEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_START:
-        return new ServiceComponentHostStartEvent(serviceComponentName, hostName, opTimestamp, configs);
+        return new ServiceComponentHostStartEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_STOP:
         return new ServiceComponentHostStopEvent(serviceComponentName, hostName, opTimestamp);
       case HOST_SVCCOMP_UNINSTALL:
@@ -145,13 +124,6 @@ public abstract class ServiceComponentHostEvent
         return new ServiceComponentHostRestoreEvent(serviceComponentName, hostName, opTimestamp);
     }
     return null;
-  }
-
-  /**
-   * @return the configs
-   */
-  public Map<String, String> getConfigs() {
-    return configs;
   }
 
   /**

@@ -17,15 +17,18 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Properties;
 
 import static org.junit.Assert.*;
 
@@ -50,14 +54,17 @@ public class TestUsers {
   protected RoleDAO roleDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
+  private Properties properties;
 
   @Before
   public void setup() throws AmbariException {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
+    properties = module.getProperties();
+    injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
     users.createDefaultRoles();
-    Authentication auth = new UsernamePasswordAuthenticationToken("admin",null);
+    Authentication auth = new UsernamePasswordAuthenticationToken("admin", null);
     SecurityContextHolder.getContext().setAuthentication(auth);
   }
 
@@ -124,5 +131,60 @@ public class TestUsers {
     user = users.getLocalUser("admin");
     assertFalse(user.getRoles().contains(users.getAdminRole()));
 
+  }
+
+  @Test
+  public void testPromoteLdapUser() throws Exception {
+    createLdapUser();
+
+    User ldapUser = users.getLdapUser("ldapUser");
+
+    users.promoteToAdmin(ldapUser);
+
+    ldapUser = users.getLdapUser("ldapUser");
+    assertTrue(ldapUser.getRoles().contains(users.getAdminRole()));
+
+    users.demoteAdmin(ldapUser);
+
+    ldapUser = users.getLdapUser("ldapUser");
+    assertFalse(ldapUser.getRoles().contains(users.getAdminRole()));
+
+    users.removeUser(ldapUser);
+
+    //toggle group mapping
+    properties.setProperty(Configuration.LDAP_GROUP_BASE_KEY, "ou=groups,dc=ambari,dc=apache,dc=org");
+    createLdapUser();
+
+    try {
+      users.promoteToAdmin(ldapUser);
+      fail("Not allowed with mapping on");
+    } catch (AmbariException e) {
+    }
+
+    try {
+      users.demoteAdmin(ldapUser);
+      fail("Not allowed with mapping on");
+    } catch (AmbariException e) {
+    }
+
+
+  }
+
+  private void createLdapUser() {
+    RoleEntity role = roleDAO.findByName(users.getUserRole());
+    UserEntity ldapUser = new UserEntity();
+
+    ldapUser.setUserName("ldapUser");
+    ldapUser.setLdapUser(true);
+
+    userDAO.create(ldapUser);
+
+    UserEntity userEntity = userDAO.findLdapUserByName("ldapUser");
+
+    userEntity.getRoleEntities().add(role);
+    role.getUserEntities().add(ldapUser);
+
+    userDAO.merge(ldapUser);
+    roleDAO.merge(role);
   }
 }

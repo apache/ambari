@@ -55,7 +55,7 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "desired_stack_version", insertable = true, updatable = true)
   private String desiredStackVersion = "";
 
-  @ManyToOne
+  @ManyToOne(cascade = CascadeType.PERSIST)
   @JoinColumns({
       @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
       @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
@@ -65,9 +65,6 @@ public class HostComponentDesiredStateEntity {
   @ManyToOne
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   private HostEntity hostEntity;
-
-  @OneToMany(mappedBy = "hostComponentDesiredStateEntity", cascade = CascadeType.ALL)
-  private Collection<HostComponentDesiredConfigMappingEntity> desiredConfigMappingEntities;
 
   public Long getClusterId() {
     return clusterId;
@@ -161,14 +158,6 @@ public class HostComponentDesiredStateEntity {
 
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
-  }
-
-  public Collection<HostComponentDesiredConfigMappingEntity> getHostComponentDesiredConfigMappingEntities() {
-    return desiredConfigMappingEntities;
-  }
-
-  public void setHostComponentDesiredConfigMappingEntities(Collection<HostComponentDesiredConfigMappingEntity> entities) {
-    desiredConfigMappingEntities = entities;
   }
 
 }

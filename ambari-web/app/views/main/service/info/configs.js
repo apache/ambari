@@ -23,5 +23,40 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
-  }
+  },
+
+  componentsCount: null,
+  hostsCount: null,
+  isStopCommand:true,
+
+
+  stopComponentsIsDisabled: function () {
+    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true);
+    if (!staleComponents.findProperty('workStatus', 'STARTED')) {
+      return true;
+    } else {
+      return false;
+    }
+  }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
+
+  startComponentsIsDisabled: function () {
+    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true);
+    if (!staleComponents.findProperty('workStatus', 'INSTALLED')) {
+      return true;
+    } else {
+      return false;
+    }
+  }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
+
+  calculateCounts: function() {
+    var hc = this.get('controller.content.restartRequiredHostsAndComponents');
+    var hostsCount = 0;
+    var componentsCount = 0;
+    for (var host in hc) {
+      hostsCount++;
+      componentsCount += hc[host].length;
+    }
+    this.set('componentsCount', componentsCount);
+    this.set('hostsCount', hostsCount);
+  }.observes('controller.content.restartRequiredHostsAndComponents')
 });

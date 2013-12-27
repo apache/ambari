@@ -20,11 +20,11 @@
 #
 #singleton for use with <||> form so that namenode, datanode, etc can pass state to hdp-hadoop and still use include
 define hdp-hadoop::common(
-  $service_states = []
+  $service_state
 )
 {
   class { 'hdp-hadoop':
-    service_states => $service_states    
+    service_state => $service_state
   }
   anchor{'hdp-hadoop::common::begin':} -> Class['hdp-hadoop'] -> anchor{'hdp-hadoop::common::end':} 
 }
@@ -38,10 +38,8 @@ class hdp-hadoop::initialize()
   hdp-hadoop::common { 'common':}
   anchor{'hdp-hadoop::initialize::begin':} -> Hdp-hadoop::Common['common'] -> anchor{'hdp-hadoop::initialize::end':}
 
-# Configs generation  
-
-debug('##Configs generation for hdp-hadoop')
-
+  # Configs generation
+  debug('##Configs generation for hdp-hadoop')
 
   if has_key($configuration, 'mapred-queue-acls') {
     configgenerator::configfile{'mapred-queue-acls': 
@@ -107,6 +105,16 @@ debug('##Configs generation for hdp-hadoop')
     }
   }
 
+  $task_log4j_properties_location = "${hdp-hadoop::params::conf_dir}/task-log4j.properties"
+  
+  file { $task_log4j_properties_location:
+    owner   => $hdp-hadoop::params::mapred_user,
+    group   => $hdp::params::user_group,
+    mode    => 644,
+    ensure  => present,
+    source  => "puppet:///modules/hdp-hadoop/task-log4j.properties",
+    replace => false
+  }
 
   if has_key($configuration, 'capacity-scheduler') {
     configgenerator::configfile{'capacity-scheduler':
@@ -179,27 +187,54 @@ debug('##Configs generation for hdp-hadoop')
     owner => $hdp-hadoop::params::mapred_user,
     group => $hdp::params::user_group
   }
+
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    if (hdp_is_empty($configuration) == false and hdp_is_empty($configuration['hdfs-site']) == false) {
+      if (hdp_is_empty($configuration['hdfs-site']['dfs.hosts.exclude']) == false) and
+         (hdp_is_empty($configuration['hdfs-exclude-file']) or
+          has_key($configuration['hdfs-exclude-file'], 'datanodes') == false) {
+        $exlude_file_path = $configuration['hdfs-site']['dfs.hosts.exclude']
+        file { $exlude_file_path :
+        ensure => present,
+        owner => $hdp-hadoop::params::hdfs_user,
+        group => $hdp::params::user_group
+        }
+      }
+      if (hdp_is_empty($hdp::params::slave_hosts) == false and hdp_is_empty($configuration['hdfs-site']['dfs.hosts']) == false) {
+        $include_file_path = $configuration['hdfs-site']['dfs.hosts']
+        $include_hosts_list = $hdp::params::slave_hosts
+        file { $include_file_path :
+        ensure => present,
+        owner => $hdp-hadoop::params::hdfs_user,
+        group => $hdp::params::user_group,
+        content => template('hdp-hadoop/include_hosts_list.erb')
+        }
+      }
+    }
+  }
+
 }
 
 class hdp-hadoop(
-  $service_states  = []
+  $service_state
 )
 {
   include hdp-hadoop::params
   $hadoop_config_dir = $hdp-hadoop::params::conf_dir
   $mapred_user = $hdp-hadoop::params::mapred_user  
-  $hdfs_user = $hdp-hadoop::params::hdfs_user  
+  $hdfs_user = $hdp-hadoop::params::hdfs_user
+  $hadoop_tmp_dir = $hdp-hadoop::params::hadoop_tmp_dir
 
   anchor{'hdp-hadoop::begin':} 
   anchor{'hdp-hadoop::end':} 
 
-  if ('uninstalled' in $service_states) {
+  if ($service_state=='uninstalled') {
     hdp-hadoop::package { 'hadoop':
       ensure => 'uninstalled'
     }
 
     hdp::directory_recursive_create { $hadoop_config_dir:
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true
     }
 
@@ -208,17 +243,31 @@ class hdp-hadoop(
     
     hdp-hadoop::package { 'hadoop':}
 
+    #Replace limits config file
+    hdp::configfile {"${hdp::params::limits_conf_dir}/hdfs.conf":
+      component => 'hadoop',
+      owner => 'root',
+      group => 'root',
+      require => Hdp-hadoop::Package['hadoop'],
+      before  => Anchor['hdp-hadoop::end'],
+      mode => 644    
+    }
 
     hdp::directory_recursive_create { $hadoop_config_dir:
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true,
-      owner => $hdfs_user,
-      group => $hdp::params::user_group
+      owner => 'root',
+      group => 'root'
     }
  
-    hdp::user{ $hdfs_user:}
-    if ($hdfs_user != $mapred_user) {
-      hdp::user { $mapred_user:}
+    hdp::user{ 'hdfs_user':
+      user_name => $hdfs_user,
+      groups => [$hdp::params::user_group]
+    }
+    
+    hdp::user { 'mapred_user':
+      user_name => $mapred_user,
+      groups => [$hdp::params::user_group]
     }
 
     $logdirprefix = $hdp-hadoop::params::hdfs_log_dir_prefix
@@ -229,18 +278,25 @@ class hdp-hadoop(
     hdp::directory_recursive_create { $piddirprefix: 
         owner => 'root'
     }
+
+    $dfs_domain_socket_path_dir = hdp_get_directory_from_filepath($hdp-hadoop::params::dfs_domain_socket_path)
+    hdp::directory_recursive_create { $dfs_domain_socket_path_dir:
+      owner => $hdfs_user,
+      group => $hdp::params::user_group,
+      mode  => '0644'
+    }
  
     #taskcontroller.cfg properties conditional on security
     if ($hdp::params::security_enabled == true) {
       file { "${hdp::params::hadoop_bin}/task-controller":
         owner   => 'root',
-        group   => $hdp::params::user_group,
+        group   => $hdp-hadoop::params::mapred_tt_group,
         mode    => '6050',
         require => Hdp-hadoop::Package['hadoop'],
         before  => Anchor['hdp-hadoop::end']
       }
       $tc_owner = 'root'
-      $tc_mode = '0400'
+      $tc_mode = '0644'
     } else {
       $tc_owner = $hdfs_user
       $tc_mode = undef
@@ -251,21 +307,83 @@ class hdp-hadoop(
       mode  => $tc_mode
     }
 
-    $template_files = [ 'hadoop-env.sh', 'health_check', 'commons-logging.properties', 'log4j.properties', 'slaves']
+    $template_files = [ 'hadoop-env.sh', 'commons-logging.properties', 'slaves']
     hdp-hadoop::configfile { $template_files:
       tag   => 'common', 
       owner => $hdfs_user
     }
+
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+      hdp-hadoop::configfile { 'health_check' :
+        tag   => 'common',
+        owner => $hdfs_user,
+        template_tag => 'v2'
+      }
+    } else {
+      hdp-hadoop::configfile { 'health_check' :
+        tag   => 'common',
+        owner => $hdfs_user
+      }
+    }
+
+    # log4j.properties has to be installed just one time to prevent
+    # manual changes overwriting
+    if ($service_state=='installed_and_configured') {
+      hdp-hadoop::configfile { 'log4j.properties' :
+        tag   => 'common',
+        owner => $hdfs_user,
+      }
+    }
+
+    # updating log4j.properties with data which is sent from server
+    hdp-hadoop::update-log4j-properties { 'log4j.properties': }
     
     hdp-hadoop::configfile { 'hadoop-metrics2.properties' : 
       tag   => 'common', 
       owner => $hdfs_user,
     }
 
-    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->  Hdp::Directory_recursive_create[$hadoop_config_dir] 
-    -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Anchor['hdp-hadoop::end']
-    Anchor['hdp-hadoop::begin'] -> Hdp::Directory_recursive_create[$logdirprefix] -> Anchor['hdp-hadoop::end']
-    Anchor['hdp-hadoop::begin'] -> Hdp::Directory_recursive_create[$piddirprefix] -> Anchor['hdp-hadoop::end']
+    # Copy database drivers for rca enablement
+    $server_db_name = $hdp::params::server_db_name
+    $hadoop_lib_home = $hdp::params::hadoop_lib_home
+    $db_driver_filename = $hdp::params::db_driver_file
+    $oracle_driver_url = $hdp::params::oracle_jdbc_url
+    $mysql_driver_url = $hdp::params::mysql_jdbc_url
+
+    if ($server_db_name == 'oracle' and $oracle_driver_url != "") {
+      $db_driver_dload_cmd = "curl -kf --retry 5 $oracle_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
+    } elsif ($server_db_name == 'mysql' and $mysql_driver_url != "") {
+      $db_driver_dload_cmd = "curl -kf --retry 5 $mysql_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
+    }
+    if ($db_driver_dload_cmd != undef) {
+      exec { '${db_driver_dload_cmd}':
+        command => $db_driver_dload_cmd,
+        unless  => "test -e ${hadoop_lib_home}/${db_driver_filename}",
+        creates => "${hadoop_lib_home}/${db_driver_filename}",
+        path    => ["/bin","/usr/bin/"],
+        require => Hdp-hadoop::Package['hadoop'],
+        before  => Anchor['hdp-hadoop::end']
+      }
+    }
+
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+      hdp::directory_recursive_create { "$hadoop_tmp_dir":
+        service_state => $service_state,
+        force => true,
+        owner => $hdfs_user
+      }
+    }
+
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+      Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
+      Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Hdp-hadoop::Update-log4j-properties['log4j.properties'] ->
+      Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Hdp::Directory_recursive_create["$hadoop_tmp_dir"] -> Anchor['hdp-hadoop::end']
+    } else {
+      Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
+      Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Hdp-hadoop::Update-log4j-properties['log4j.properties'] ->
+      Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Anchor['hdp-hadoop::end']
+    }
+
   }
 }
 
@@ -326,13 +444,16 @@ define hdp-hadoop::exec-hadoop(
   $timeout = 900,
   $try_sleep = undef,
   $user = undef,
-  $logoutput = undef
+  $logoutput = undef,
+  $onlyif = undef,
+  $path = undef
 )
 {
   include hdp-hadoop::params
   $security_enabled = $hdp::params::security_enabled
   $conf_dir = $hdp-hadoop::params::conf_dir
   $hdfs_user = $hdp-hadoop::params::hdfs_user
+  $hbase_user = $hdp-hadoop::params::hbase_user
 
   if ($user == undef) {
     $run_user = $hdfs_user
@@ -341,23 +462,37 @@ define hdp-hadoop::exec-hadoop(
   }
 
   if (($security_enabled == true) and ($kinit_override == false)) {
-    #TODO: may figure out so dont need to call kinit if auth in caceh already
     if ($run_user in [$hdfs_user,'root']) {
-      $keytab = "${hdp-hadoop::params::keytab_path}/${hdfs_user}.headless.keytab"
+      $keytab = $hdp::params::hdfs_user_keytab
       $principal = $hdfs_user
+    } elsif ($run_user in [$hbase_user]) {
+      $keytab = $hdp::params::hbase_user_keytab
+      $principal = $hbase_user
     } else {
-      $keytab = "${hdp-hadoop::params::keytab_path}/${user}.headless.keytab" 
-      $principal = $user
+      $keytab = $hdp::params::smokeuser_keytab
+      $principal = $hdp::params::smokeuser
     }
-    $kinit_if_needed = "${kinit_path_local} -kt ${keytab} ${principal}; "
+    $kinit_if_needed = "su - ${run_user} -c '${hdp::params::kinit_path_local} -kt ${keytab} ${principal}'"
   } else {
     $kinit_if_needed = ""
   }
- 
-  if ($echo_yes == true) {
-    $cmd = "${kinit_if_needed}yes Y | hadoop --config ${conf_dir} ${command}"
-  } else {
-    $cmd = "${kinit_if_needed}hadoop --config ${conf_dir} ${command}"
+  
+  if ($path == undef) {
+    if ($echo_yes == true) {
+      $cmd = "yes Y | hadoop --config ${conf_dir} ${command}"
+    } else {
+      $cmd = "hadoop --config ${conf_dir} ${command}"
+    } 
+    } else {
+      $cmd = "${path} ${command}"
+    }
+  
+  if ($kinit_if_needed != "") {
+    exec { "kinit_before_${cmd}":
+      command => $kinit_if_needed,
+      path => ['/bin'],
+      before => Hdp::Exec[$cmd]
+    }
   }
 
   hdp::exec { $cmd:
@@ -368,6 +503,45 @@ define hdp-hadoop::exec-hadoop(
     tries       => $tries,
     timeout     => $timeout,
     try_sleep   => $try_sleep,
-    logoutput   => $logoutput
+    logoutput   => $logoutput,
+    onlyif      => $onlyif,
+  }
+}
+
+#####
+define hdp-hadoop::update-log4j-properties(
+  $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
+)
+{
+  $properties = [
+    { name => 'ambari.jobhistory.database', value => $hdp-hadoop::params::ambari_db_rca_url },
+    { name => 'ambari.jobhistory.driver', value => $hdp-hadoop::params::ambari_db_rca_driver },
+    { name => 'ambari.jobhistory.user', value => $hdp-hadoop::params::ambari_db_rca_username },
+    { name => 'ambari.jobhistory.password', value => $hdp-hadoop::params::ambari_db_rca_password },
+    { name => 'ambari.jobhistory.logger', value => 'DEBUG,JHA' },
+
+    { name => 'log4j.appender.JHA', value => 'org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender' },
+    { name => 'log4j.appender.JHA.database', value => '${ambari.jobhistory.database}' },
+    { name => 'log4j.appender.JHA.driver', value => '${ambari.jobhistory.driver}' },
+    { name => 'log4j.appender.JHA.user', value => '${ambari.jobhistory.user}' },
+    { name => 'log4j.appender.JHA.password', value => '${ambari.jobhistory.password}' },
+
+    { name => 'log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger', value => '${ambari.jobhistory.logger}' },
+    { name => 'log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger', value => 'true' }
+  ]
+  hdp-hadoop::update-log4j-property { $properties :
+    log4j_file      => $name,
+    hadoop_conf_dir => $hadoop_conf_dir
+  }
+}
+
+#####
+define hdp-hadoop::update-log4j-property(
+  $log4j_file,
+  $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
+)
+{
+  hdp::exec{ "sed -i 's~\\(${hdp-hadoop::params::rca_disabled_prefix}\\)\\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}":
+    command => "sed -i 's~\\(${hdp-hadoop::params::rca_disabled_prefix}\\)\\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}"
   }
 }

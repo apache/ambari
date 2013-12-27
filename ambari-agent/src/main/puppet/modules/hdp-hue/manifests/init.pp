@@ -43,7 +43,9 @@ class hdp-hue(
     hdp::package { 'hue-server': }
 
     ## Create user
-    hdp::user{ $hue_user: }
+    hdp::user{ 'hue_user':
+      user_name => $hue_user
+    }
 
     ## Create dir
     hdp::directory_recursive_create { $hue_conf_dir:
@@ -59,7 +61,7 @@ class hdp-hue(
       }
     }
 
-    anchor { 'hdp-hue::begin': } -> Hdp::Package['hue-server'] ->  Hdp::User[$hue_user] -> Hdp::Directory_recursive_create[$hue_conf_dir] -> Hdp-Hue::Generate_config_file<||> -> anchor { 'hdp-hue::end': }
+    anchor { 'hdp-hue::begin': } -> Hdp::Package['hue-server'] ->  Hdp::User['hue_user'] -> Hdp::Directory_recursive_create[$hue_conf_dir] -> Hdp-Hue::Generate_config_file<||> -> anchor { 'hdp-hue::end': }
 
   }
 }

@@ -31,8 +31,7 @@ App.ChartServiceMetricsHBASE_HlogSplitSize = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.hbase.hlogSplitSize'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
-  sourceUrl: "/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/splitSize_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hbase/hlog_split_size.json",
+  ajaxIndex: 'service.metrics.hbase.hlog_split_size',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

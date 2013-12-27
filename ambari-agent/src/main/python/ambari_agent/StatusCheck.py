@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,20 +18,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from shell import shellRunner
 import logging
-import logging.handlers
-import sys
 import os
 import re
 import string
+from shell import shellRunner
+
 
 logger = logging.getLogger()
 
 
 class StatusCheck:
     
-    
+  USER_PATTERN='{USER}'
+  firstInit = True
+
   def listFiles(self, dir):
     basedir = dir
     logger.debug("Files in " + os.path.abspath(dir) + ": ")
@@ -63,15 +64,16 @@ class StatusCheck:
     except Exception as e:
         logger.error("Error while filling directories values " + str(e))
         
-  def __init__(self, serviceToPidDict, pidPathesVars, globalConfig, linuxUserPattern):
-
-    self.serToPidDict = serviceToPidDict
+  def __init__(self, serviceToPidDict, pidPathesVars, globalConfig,
+    servicesToLinuxUser):
+    
+    self.serToPidDict = serviceToPidDict.copy()
     self.pidPathesVars = pidPathesVars
     self.pidPathes = []
     self.sh = shellRunner()
     self.pidFilesDict = {}
     self.globalConfig = globalConfig
-    self.linuxUserPattern = linuxUserPattern
+    self.servicesToLinuxUser = servicesToLinuxUser
     
     self.fillDirValues()
     
@@ -79,7 +81,20 @@ class StatusCheck:
       self.listFiles(pidPath)
 
     for service, pid in self.serToPidDict.items():
-      self.serToPidDict[service] = string.replace(pid, '{USER}', self.linuxUserPattern)
+      if self.servicesToLinuxUser.has_key(service):
+        linuxUserKey = self.servicesToLinuxUser[service]
+        if self.globalConfig.has_key(linuxUserKey):
+          self.serToPidDict[service] = string.replace(pid, self.USER_PATTERN,
+            self.globalConfig[linuxUserKey])
+      else:
+        if self.USER_PATTERN in pid:
+          logger.error('There is no linux user mapping for component: ' + service)
+
+    if StatusCheck.firstInit:
+      logger.info('Service to pid dictionary: ' + str(self.serToPidDict))
+      StatusCheck.firstInit = False
+    else:
+      logger.debug('Service to pid dictionary: ' + str(self.serToPidDict))
 
   def getIsLive(self, pidPath):
 
@@ -100,7 +115,7 @@ class StatusCheck:
       procInfo = lines[1]
       isLive = not procInfo == None
     except IndexError:
-      logger.info('Process is dead')
+      logger.info("Process is dead. Checking " + str(pidPath))
     return isLive
 
   def getStatus(self, serviceCode):

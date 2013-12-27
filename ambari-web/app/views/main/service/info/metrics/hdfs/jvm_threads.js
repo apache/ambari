@@ -30,8 +30,8 @@ App.ChartServiceMetricsHDFS_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-hdfs-jvm-threads",
   title: Em.I18n.t('services.service.info.metrics.hdfs.jvmThreads'),
   renderer: 'line',
-  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hdfs/jvm_threads.json",
+
+  ajaxIndex: 'service.metrics.hdfs.jvm_threads',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

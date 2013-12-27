@@ -19,13 +19,32 @@
 
 # /etc/init.d/ambari-agent
 
+VERSION="${ambariVersion}"
+HASH="${buildNumber}"
+
+case "$1" in
+  --version)
+        echo -e $VERSION
+        exit 0
+        ;;
+  --hash)
+        echo -e $HASH
+        exit 0
+        ;;
+esac
+
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
+# Because Ambari rpm unpacks modules here on all systems
+export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
+
 AMBARI_AGENT=ambari-agent
 PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
-LOGFILE=/var/log/ambari-agent/ambari-agent.out
+OUTFILE=/var/log/ambari-agent/ambari-agent.out
+LOGFILE=/var/log/ambari-agent/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
+AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
 OK=1
 NOTOK=0
 
@@ -38,6 +57,8 @@ if [ "x$PYTHON" == "x" ]; then
   PYTHON=/usr/bin/python
 fi
 
+export PYTHON=$PYTHON
+
 # Trying to read the passphrase from an environment
 if [ ! -z $AMBARI_PASSPHRASE ]; then
   RESOLVED_AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
@@ -46,6 +67,10 @@ fi
 # Reading the environment file
 if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
   . /var/lib/ambari-agent/ambari-env.sh
+fi
+
+if [ ! -z $AMBARI_LOG_DIR ]; then
+  LOGFILE=$AMBARI_LOG_DIR/ambari-agent.log
 fi
 
 if [ -z $RESOLVED_AMBARI_PASSPHRASE ] &&  [ ! -z $AMBARI_PASSPHRASE ]; then
@@ -75,6 +100,13 @@ check_python_version ()
   return $OK
 }
 
+retcode=0
+
+if [ "$(id -u)" != "0" ]; then
+ echo "You can't perform this operation as non-root user. Please, re-login as root user"
+ exit 0
+fi
+
 case "$1" in
   start)
         check_python_version
@@ -96,18 +128,28 @@ case "$1" in
           fi
         fi
         echo "Starting ambari-agent"
-        nohup $PYTHON $AGENT_SCRIPT > $LOGFILE 2>&1 &
+        nohup $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 &
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
         if [ -z "`ps ax -o pid | grep $PID`" ]; then
-          echo "ERROR: $AMBARI_AGENT start failed for unknown reason"
+          if [ -s $OUTFILE ]; then
+            echo "ERROR: $AMBARI_AGENT start failed. For more details, see $OUTFILE:"
+            echo "===================="
+            tail -n 10 $OUTFILE
+            echo "===================="
+          else
+            echo "ERROR: $AMBARI_AGENT start failed"
+          fi
+          echo "Agent out at: $OUTFILE"
+          echo "Agent log at: $LOGFILE"
           exit -1
         fi
         tput bold
         echo "Ambari Agent successfully started"
         tput sgr0
         echo "Agent PID at: $PIDFILE"
+        echo "Agent out at: $OUTFILE"
         echo "Agent log at: $LOGFILE"
         ;;
   status)
@@ -116,11 +158,13 @@ case "$1" in
           echo "Found $AMBARI_AGENT PID: $PID"
           if [ -z "`ps ax -o pid | grep $PID`" ]; then
             echo "$AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
+            retcode=2
           else
             tput bold
             echo "$AMBARI_AGENT running."
             tput sgr0
             echo "Agent PID at: $PIDFILE"
+            echo "Agent out at: $OUTFILE"
             echo "Agent log at: $LOGFILE"
           fi
         else
@@ -128,6 +172,7 @@ case "$1" in
           echo "$AMBARI_AGENT currently not running"
           tput sgr0
           echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
+          retcode=3
         fi
         ;;
   stop)
@@ -160,13 +205,14 @@ case "$1" in
   restart)
         echo -e "Restarting $AMBARI_AGENT"
         $0 stop
-        $0 start
+        $0 start "$@"
+        retcode=$?
         ;;     
   *)
         tput bold
         echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
         tput sgr0
-        exit 1
+        retcode=1
 esac
 
-exit 0
+exit $retcode

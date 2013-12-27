@@ -18,6 +18,8 @@
 
 // Application bootstrapper
 
+var stringUtils = require('utils/string_utils');
+
 module.exports = Em.Application.create({
   name: 'Ambari Web',
   rootElement: '#wrapper',
@@ -34,6 +36,9 @@ module.exports = Em.Application.create({
    */
   stackVersionURL:function(){
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    if(stackVersion.indexOf('HDPLocal') !== -1){
+      return '/stacks/HDPLocal/version/' + stackVersion.replace(/HDPLocal-/g, '');
+    }
     return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   
@@ -42,10 +47,46 @@ module.exports = Em.Application.create({
    */
   stack2VersionURL:function(){
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    if(stackVersion.indexOf('HDPLocal') !== -1){
+      return '/stacks2/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
+    }
     return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   clusterName: null,
-  currentStackVersion: null
+  currentStackVersion: '',
+  currentStackVersionNumber: function(){
+    return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
+  }.property('currentStackVersion'),
+  isHadoop2Stack: function(){
+    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
+      stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
+  }.property('currentStackVersionNumber'),
+
+  /**
+   * If High Availability is enabled
+   * Based on <code>clusterStatus.isInstalled</code>, stack version, <code>SNameNode</code> availability
+   *
+   * @type {Boolean}
+   */
+  isHaEnabled: function() {
+    if (!this.get('isHadoop2Stack')) return false;
+    return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
+  }.property('router.clusterController.isLoaded')
+
+});
+
+/**
+ * overwritten set method of Ember.View to avoid uncaught errors
+ * when trying to set property of destroyed view
+ */
+Em.View.reopen({
+  set: function(attr, value){
+    if(!this.get('isDestroyed') && !this.get('isDestroying')){
+      this._super(attr, value);
+    } else {
+      console.debug('Calling set on destroyed view');
+    }
+  }
 });
 
 /**
@@ -88,6 +129,16 @@ DS.attr.transforms.date = {
       return null;
     }
   }
-}
+};
+
+DS.attr.transforms.object = {
+  from: function(serialized) {
+    return Ember.none(serialized) ? null : Object(serialized);
+  },
+
+  to: function(deserialized) {
+    return Ember.none(deserialized) ? null : Object(deserialized);
+  }
+};
 
 

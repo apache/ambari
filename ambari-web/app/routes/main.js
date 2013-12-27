@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 
+var App = require('app');
+var stringUtils = require('utils/string_utils');
+
 module.exports = Em.Route.extend({
   route: '/main',
   enter: function (router) {
+    App.db.updateStorage();
     console.log('in /main:enter');
     if (router.getAuthenticated()) {
       App.router.get('clusterController').loadClusterName(false);
@@ -92,14 +96,19 @@ module.exports = Em.Route.extend({
       router.transitionTo(event.context);
     }
   }),
-  apps: Em.Route.extend({
-    route: '/apps',
-    connectOutlets: function (router) {
-      //router.get('clusterController').loadRuns();
-      router.get('mainAppsController').loadRuns();
-      router.get('mainController').connectOutlet('mainApps');
-    }
-  }),
+    apps: Em.Route.extend({
+      route: '/apps',
+      connectOutlets: function (router) {
+        if (App.get('isHadoop2Stack')) {
+          Em.run.next(function () {
+            router.transitionTo('main.dashboard');
+          });
+        } else {
+          router.get('mainAppsController').loadRuns();
+          router.get('mainController').connectOutlet('mainApps');
+        }
+      }
+    }),
 
   mirroring: Em.Route.extend({
     route: '/mirroring',
@@ -114,11 +123,13 @@ module.exports = Em.Route.extend({
         controller.set('datasets', datasets);
       },
       connectOutlets: function (router, context) {
-        console.debug('Inside connectOutlets in ' + App.get('router.currentState.path'));
         router.get('mainController').connectOutlet('mainMirroring');
       }
     }),
 
+    gotoMirroringHome: function (router) {
+      router.transitionTo('mirroring/index');
+    },
     addNewDataset: function (router) {
       router.transitionTo('addNewDatasetRoute');
     },
@@ -126,17 +137,6 @@ module.exports = Em.Route.extend({
     addTargetCluster: function (router, event) {
       router.transitionTo('addTargetClusterRoute');
     },
-
-    gotoShowJobs: function (router, event) {
-      router.transitionTo('showDatasetJobs', event.context);
-    },
-
-    showDatasetJobs: Em.Route.extend({
-      route: '/dataset/:dataset_id',
-      connectOutlets: function (router, dataset) {
-        router.get('mainController').connectOutlet('mainJobs', dataset);
-      }
-    }),
 
     addNewDatasetRoute: Em.Route.extend({
       route: '/dataset/add',
@@ -156,22 +156,27 @@ module.exports = Em.Route.extend({
         this.setupController(controller);
 
         var self = this;
+        controller.set('isSubmitted', false);
         App.ModalPopup.show({
           classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
           header: Em.I18n.t('mirroring.dataset.newDataset'),
           primary: Em.I18n.t('mirroring.dataset.save'),
           secondary: Em.I18n.t('common.cancel'),
           onPrimary: function () {
+            controller.set('isSubmitted', true);
+            var isValid = controller.validate();
+
+            if (!isValid) {
+              return;
+            }
             newDataSet = controller.getNewDataSet();
             var schedule = newDataSet.get('schedule');
             var targetCluster = newDataSet.get('targetCluster');
-            console.debug('Before setting, schedule = ' + schedule + " , targetCluster = " + targetCluster);
             var scheduleRecord = App.Dataset.Schedule.createRecord(schedule);
             var dataSetRecord = App.Dataset.createRecord(newDataSet);
             scheduleRecord.set('dataset', dataSetRecord);
             dataSetRecord.set('schedule', scheduleRecord);
 
-            console.debug('After setting, schedule = ' + dataSetRecord.get('schedule') + " , targetCluster = " + dataSetRecord.get('targetCluster'));
             this.hide();
             router.transitionTo('main.mirroring.index');
           },
@@ -183,6 +188,17 @@ module.exports = Em.Route.extend({
             controller: router.get('mainMirroringDataSetController')
           })
         });
+      }
+    }),
+
+    gotoShowJobs: function (router, event) {
+      router.transitionTo('showDatasetJobs', event.context);
+    },
+
+    showDatasetJobs: Em.Route.extend({
+      route: '/dataset/:dataset_id',
+      connectOutlets: function (router, dataset) {
+        router.get('mainController').connectOutlet('mainJobs', dataset);
       }
     }),
 
@@ -206,12 +222,19 @@ module.exports = Em.Route.extend({
         this.setupController(controller, dataset);
 
         var self = this;
+        controller.set('isSubmitted', false);
         controller.set('popup', App.ModalPopup.show({
           classNames: ['sixty-percent-width-modal'],
           header: Em.I18n.t('mirroring.dataset.editDataset'),
           primary: Em.I18n.t('mirroring.dataset.save'),
           secondary: Em.I18n.t('common.cancel'),
           onPrimary: function () {
+            controller.set('isSubmitted', true);
+            var isValid = controller.validate();
+
+            if (!isValid) {
+              return;
+            }
             newDataSet = controller.getNewDataSet();
 
             var originalRecord = controller.get('model.originalRecord');
@@ -252,16 +275,24 @@ module.exports = Em.Route.extend({
 
         enter: function (router, context) {
 
-          console.debug('Inside connectOutlets in ' + App.get('router.currentState.path'));
           var self = this;
           var controller = App.router.get('mainMirroringTargetClusterController');
           this.setupController(controller);
 
+          controller.set('isSubmitted1', false);
+          controller.set('isSubmitted2', false);
           controller.set('popup', App.ModalPopup.show({
             classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
             header: Em.I18n.t('mirroring.targetcluster.addCluster'),
             primary: Em.I18n.t('mirroring.targetcluster.testConnection'),
             onPrimary: function () {
+              controller.set('isSubmitted1', true);
+              var isValid = controller.validate1();
+
+              if (!isValid) {
+                return;
+              }
+
               App.router.transitionTo('testConnectionResultsRoute');
             },
             onSecondary: function () {
@@ -303,6 +334,14 @@ module.exports = Em.Route.extend({
           popup.set('primary', Em.I18n.t('common.save'));
           popup.set('onPrimary',
             function () {
+              var controller = App.router.get('mainMirroringTargetClusterController');
+              controller.set('isSubmitted2', true);
+              var isValid = controller.validate2();
+
+              if (!isValid) {
+                return;
+              }
+
               var controller = App.router.get('testConnectionResultsController');
               controller.saveClusterName();
             }
@@ -343,11 +382,22 @@ module.exports = Em.Route.extend({
       testConnectionRoute: Em.Route.extend({
         connectOutlets: function (router, targetCluster) {
           var controller = router.get('mainMirroringTargetClusterController');
+          controller.set('isSubmitted1', false);
+          controller.set('isSubmitted2', false);
+
           controller.set('popup', App.ModalPopup.show({
             classNames: ['sixty-percent-width-modal'],
             header: Em.I18n.t('mirroring.dataset.editDataset'),
             primary: Em.I18n.t('mirroring.targetcluster.testConnection'),
             onPrimary: function () {
+              var controller = App.router.get('mainMirroringTargetClusterController');
+              controller.set('isSubmitted1', true);
+              var isValid = controller.validate1();
+
+              if (!isValid) {
+                return;
+              }
+
               App.router.transitionTo('testConnectionResultsRoute');
             },
             secondary: Em.I18n.t('common.cancel'),
@@ -379,8 +429,15 @@ module.exports = Em.Route.extend({
           popup.set('primary', Em.I18n.t('common.save'));
           popup.set('onPrimary',
             function () {
-              var controller = App.router.get('testConnectionResultsController');
-              controller.saveClusterName();
+              var controller = App.router.get('mainMirroringTargetClusterController');
+              controller.set('isSubmitted2', true);
+              var isValid = controller.validate1();
+
+              if (!isValid) {
+                return;
+              }
+              var controller2 = App.router.get('testConnectionResultsController');
+              controller2.saveClusterName();
             }
           );
 
@@ -464,26 +521,17 @@ module.exports = Em.Route.extend({
       }
     }),
 
-    backToHostsList: function (router, event) {
-      router.transitionTo('hosts.index');
-    },
-
-    showDetails: function (router, event) {
-      router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.summary', event.context)
+    back: function (router, event) {
+      var referer = router.get('mainHostDetailsController.referer');
+      if (referer) {
+        router.route(referer);
+      }
+      else {
+        window.history.back();
+      }
     },
 
     addHost: function (router) {
-      if (App.clusterStatus) {
-        App.clusterStatus.updateFromServer();
-        var currentClusterStatus = App.clusterStatus.get('value');
-        if (currentClusterStatus && currentClusterStatus.clusterState == "ADD_HOSTS_COMPLETED_5") {
-          // The last time add hosts ran, it left the status
-          // in this state. We need to clear any previous status
-          // so that the hosts page starts from fresh.
-          currentClusterStatus.clusterState = 'CLUSTER_STARTED_5';
-        }
-      }
       router.transitionTo('hostAdd');
     }
 
@@ -494,26 +542,21 @@ module.exports = Em.Route.extend({
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      var controller = router.get('mainAdminController');
-      if (!App.db.getUser().admin) {
+      if (!App.isAdmin) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard');
         });
-      } else {
-        // Em.run.next(function () {
-        // router.transitionTo('admin' + controller.get('category').capitalize());
-        //});
       }
     },
 
     routePath: function (router, event) {
-      if (!App.db.getUser().admin) {
+      if (!App.isAdmin) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard');
         });
       } else {
-        // var controller = router.get('mainAdminController');
-        //router.transitionTo('admin' + controller.get('category').capitalize());
+        var controller = router.get('mainAdminController');
+        router.transitionTo('admin' + controller.get('category').capitalize());
       }
     },
     connectOutlets: function (router, context) {
@@ -591,20 +634,44 @@ module.exports = Em.Route.extend({
       }
     }),
 
+    adminHighAvailability: Em.Route.extend({
+      route: '/highAvailability',
+      enter: function (router) {
+        Em.run.next(function () {
+          router.transitionTo('adminHighAvailability.index');
+        });
+      },
+      index: Ember.Route.extend({
+        route: '/',
+        connectOutlets: function (router, context) {
+          router.set('mainAdminController.category', "highAvailability");
+          router.get('mainAdminController').connectOutlet('mainAdminHighAvailability');
+        }
+      })
+    }),
+
+    enableHighAvailability: require('routes/high_availability_routes'),
+
+    rollbackHighAvailability: require('routes/rollbackHA_routes'),
+
+
 
     adminSecurity: Em.Route.extend({
       route: '/security',
       enter: function (router) {
-        //alert("1.. I am in enter path");
         router.set('mainAdminController.category', "security");
         var controller = router.get('mainAdminSecurityController');
-        if (!(controller.getAddSecurityWizardStatus() === 'RUNNING')) {
+        if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
           Em.run.next(function () {
             router.transitionTo('adminSecurity.index');
           });
-        } else {
+        } else if (controller.getAddSecurityWizardStatus() === 'RUNNING') {
           Em.run.next(function () {
             router.transitionTo('adminAddSecurity');
+          });
+        } else if (controller.getDisableSecurityStatus() === 'RUNNING') {
+          Em.run.next(function () {
+            router.transitionTo('disableSecurity');
           });
         }
       },
@@ -614,33 +681,84 @@ module.exports = Em.Route.extend({
         connectOutlets: function (router, context) {
           var controller = router.get('mainAdminController');
           controller.set('category', "security");
-          var securityStatus = controller.securityStatusLoading();
-          securityStatus.done(function () {
-            controller.connectOutlet('mainAdminSecurity');
-          });
-          securityStatus.fail(function () {
-            App.ModalPopup.show({
-              header: Em.I18n.translations['common.error'],
-              secondary: false,
-              onPrimary: function () {
-                this.hide();
-              },
-              bodyClass: Ember.View.extend({
-                template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
-              })
-            });
-          });
+          controller.connectOutlet('mainAdminSecurity');
         }
       }),
 
       addSecurity: function (router, object) {
+        App.db.mergeStorage();
+        router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
         router.transitionTo('adminAddSecurity');
       },
 
       disableSecurity: Ember.Route.extend({
-        route: '/',
-        connectOutlets: function (router, context) {
-          router.get('mainAdminSecurityController').connectOutlet('mainAdminSecurityDisable');
+        route: '/disableSecurity',
+        enter: function (router) {
+          //after refresh check if the wizard is open then restore it
+          if (router.get('mainAdminSecurityController').getDisableSecurityStatus() === 'RUNNING') {
+            Ember.run.next(function () {
+              App.router.get('updateController').set('isWorking', false);
+              App.ModalPopup.show({
+                classNames: ['full-width-modal'],
+                header: Em.I18n.t('admin.removeSecurity.header'),
+                bodyClass: App.MainAdminSecurityDisableView.extend({
+                  controllerBinding: 'App.router.mainAdminSecurityDisableController'
+                }),
+                primary: Em.I18n.t('form.cancel'),
+                secondary: null,
+                showFooter: false,
+
+                onClose: function () {
+                  var self = this;
+                  var controller = router.get('mainAdminSecurityDisableController');
+                  if (!controller.get('isSubmitDisabled')) {
+                    self.proceedOnClose();
+                    return;
+                  }
+                  var applyingConfigStage = controller.get('stages').findProperty('stage', 'stage3');
+                  if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
+                    if (applyingConfigStage.get('isStarted')) {
+                      App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
+                    } else {
+                      App.showConfirmationPopup(function () {
+                        self.proceedOnClose();
+                      }, Em.I18n.t('admin.addSecurity.disable.onClose'));
+                    }
+                  } else {
+                    self.proceedOnClose();
+                  }
+                },
+                proceedOnClose: function () {
+                  router.get('mainAdminSecurityDisableController').clearStep();
+                  App.db.setSecurityDeployStages(undefined);
+                  App.router.get('updateController').set('isWorking', true);
+                  router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
+                  App.clusterStatus.setClusterStatus({
+                    clusterName: router.get('content.cluster.name'),
+                    clusterState: 'DEFAULT'
+                  });
+                  this.hide();
+                  router.transitionTo('adminSecurity.index');
+                },
+                didInsertElement: function () {
+                  this.fitHeight();
+                }
+              });
+            });
+          } else {
+            router.transitionTo('adminSecurity.index');
+          }
+        },
+
+        unroutePath: function () {
+          return false;
+        },
+
+        done: function (router, context) {
+          var controller = router.get('mainAdminSecurityDisableController');
+          if (!controller.get('isSubmitDisabled')) {
+            $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+          }
         }
       }),
 
@@ -661,10 +779,9 @@ module.exports = Em.Route.extend({
         router.get('mainAdminController').connectOutlet('mainAdminAdvanced');
       }
     }),
-
     adminMisc: Em.Route.extend({
       route: '/misc',
-      connectOutlets: function(router) {
+      connectOutlets: function (router) {
         router.set('mainAdminController.category', "misc");
         router.get('mainAdminController').connectOutlet('mainAdminMisc');
       }
@@ -688,7 +805,7 @@ module.exports = Em.Route.extend({
       router.transitionTo('admin' + object.context.capitalize());
     },
 
-    //events
+//events
     goToAdmin: function (router, event) {
       router.transitionTo(event.context);
     }
@@ -700,27 +817,26 @@ module.exports = Em.Route.extend({
     route: '/dashboard',
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
-    },
-    showDetails: function (router, event) {
-      router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hosts.hostDetails.summary', event.context);
     }
   }),
 
   services: Em.Route.extend({
     route: '/services',
     index: Ember.Route.extend({
-      route: '/'
+      route: '/',
+      enter: function (router) {
+        Ember.run.next(function () {
+          var controller = router.get('mainController');
+          controller.dataLoading().done(function () {
+            var service = router.get('mainServiceItemController.content');
+            if (!service) {
+              service = App.Service.find().objectAt(0); // getting the first service to display
+            }
+            router.transitionTo('service.summary', service);
+          });
+        });
+      }
     }),
-    enter: function (router) {
-      Ember.run.next(function () {
-        var service = router.get('mainServiceItemController.content');
-        if (!service) {
-          service = App.Service.find().objectAt(0); // getting the first service to display
-        }
-        router.transitionTo('service.summary', service);
-      });
-    },
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainService');
     },
@@ -753,6 +869,14 @@ module.exports = Em.Route.extend({
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
           router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+        },
+        unroutePath: function (router, context) {
+          var controller = router.get('mainServiceInfoConfigsController');
+          if (!controller.get('forceTransition') && controller.hasUnsavedChanges()) {
+            controller.showSavePopup(context);
+          } else {
+            this._super(router, context);
+          }
         }
       }),
       audit: Em.Route.extend({
@@ -763,32 +887,39 @@ module.exports = Em.Route.extend({
         }
       }),
       showInfo: function (router, event) {
+        var mainServiceInfoConfigsController = App.router.get('mainServiceInfoConfigsController');
+        if (event.context === 'summary' && mainServiceInfoConfigsController.hasUnsavedChanges()) {
+          mainServiceInfoConfigsController.showSavePopup(router.get('location.lastSetURL').replace('configs', 'summary'));
+          return false;
+        }
         var parent = event.view._parentView;
         parent.deactivateChildViews();
         event.view.set('active', "active");
         router.transitionTo(event.context);
-      },
-      showDetails: function (router, event) {
-        router.get('mainHostDetailsController').setBack(true);
-        router.transitionTo('hosts.hostDetails.summary', event.context);
       }
     }),
     showService: Em.Router.transitionTo('service'),
-    addService: Em.Router.transitionTo('serviceAdd')
+    addService: Em.Router.transitionTo('serviceAdd'),
+    reassign: require('routes/reassign_master_routes')
   }),
 
 
   serviceAdd: require('routes/add_service_routes'),
-  reassignMaster: require('routes/reassign_master_routes'),
 
-
-  selectService: Em.Route.transitionTo('services.service'),
+  selectService: Em.Route.transitionTo('services.service.summary'),
   selectHost: function (router, event) {
-    router.get('mainHostDetailsController').setBack(false);
+    router.get('mainHostDetailsController').set('isFromHosts', false);
     router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts: function (router, component) {
+    if(!component.context)
+      return;
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts.index');
+  },
+  showDetails: function (router, event) {
+    router.get('mainHostDetailsController').set('referer', router.location.lastSetURL);
+    router.get('mainHostDetailsController').set('isFromHosts', true);
+    router.transitionTo('hosts.hostDetails.summary', event.context);
   }
 });

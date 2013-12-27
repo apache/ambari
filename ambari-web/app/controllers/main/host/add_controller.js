@@ -39,6 +39,8 @@ App.AddHostController = App.WizardController.extend({
    * hostsInfo - list of selected hosts
    * slaveComponentHosts, hostSlaveComponents - info about slave hosts
    * masterComponentHosts - info about master hosts
+   * serviceConfigGroups - info about selected config group for service
+   * configGroups - all config groups
    * config??? - to be described later
    */
   content: Em.Object.create({
@@ -50,10 +52,20 @@ App.AddHostController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addHostController'
+    controllerName: 'addHostController',
+    serviceConfigGroups: null,
+    configGroups: null
   }),
 
   components:require('data/service_components'),
+
+  setCurrentStep: function (currentStep, completed) {
+    this._super(currentStep, completed);
+    App.clusterStatus.setClusterStatus({
+      wizardControllerName: this.get('name'),
+      localdb: App.db.data
+    });
+  },
 
   /**
    * return new object extended from clusterStatusTemplate
@@ -79,13 +91,17 @@ App.AddHostController = App.WizardController.extend({
     return [];
   },
 
-   /**
-   * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
+  /**
+   * Remove host from model. Used at <code>Confirm hosts</code> step
    * @param hosts Array of hosts, which we want to delete
    */
   removeHosts: function (hosts) {
-    //todo Replace this code with real logic
-    App.db.removeHosts(hosts);
+    var dbHosts = this.getDBProperty('hosts');
+    hosts.forEach(function (_hostInfo) {
+      var host = _hostInfo.hostName;
+      delete dbHosts[host];
+    });
+    this.setDBProperty('hosts', dbHosts);
   },
 
   /**
@@ -102,14 +118,14 @@ App.AddHostController = App.WizardController.extend({
       apiService[index].isInstalled = apiService[index].isSelected;
     });
     this.set('content.services', apiService);
-    App.db.setService(apiService);
+    this.setDBProperty('service', apiService);
   },
 
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = App.db.getService();
+    var servicesInfo = this.getDBProperty('service');
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
     });
@@ -117,14 +133,13 @@ App.AddHostController = App.WizardController.extend({
     console.log('AddHostController.loadServices: loaded data ', servicesInfo);
     var serviceNames = servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName');
     console.log('selected services ', serviceNames);
-    this.set('content.skipMasterStep', !serviceNames.contains('HBASE') && !serviceNames.contains('ZOOKEEPER'));
   },
 
   /**
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts();
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
     if (!masterComponentHosts) {
       masterComponentHosts = [];
       App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
@@ -136,7 +151,7 @@ App.AddHostController = App.WizardController.extend({
           display_name: item.get('displayName')
         })
       });
-      App.db.setMasterComponentHosts(masterComponentHosts);
+      this.setDBProperty('masterComponentHosts', masterComponentHosts);
     }
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("AddHostController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
@@ -150,7 +165,7 @@ App.AddHostController = App.WizardController.extend({
     var self = this;
     var hosts = stepController.get('hosts');
     var headers = stepController.get('headers');
-    var masterComponentHosts = App.db.getMasterComponentHosts();
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
 
     headers.forEach(function(header) {
       var rm = masterComponentHosts.filterProperty('component', header.get('name'));
@@ -175,7 +190,7 @@ App.AddHostController = App.WizardController.extend({
     });
 
     console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
-    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
@@ -244,7 +259,7 @@ App.AddHostController = App.WizardController.extend({
       displayName: 'client',
       hosts: hosts,
       isInstalled: true
-    })
+    });
 
     return result;
   },
@@ -253,7 +268,7 @@ App.AddHostController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = App.db.getSlaveComponentHosts();
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts');
     if (!slaveComponentHosts) {
       slaveComponentHosts = this.getSlaveComponentHosts();
     }
@@ -265,7 +280,7 @@ App.AddHostController = App.WizardController.extend({
    * Load information about hosts with clients components
    */
   loadClients: function () {
-    var clients = App.db.getClientsForSelectedServices();
+    var clients = this.getDBProperty('clientInfo');
     this.set('content.clients', clients);
     console.log("AddHostController.loadClients: loaded list ", clients);
   },
@@ -290,9 +305,111 @@ App.AddHostController = App.WizardController.extend({
       }
     }, this);
 
-    App.db.setClientsForSelectedServices(clients);
+    this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("AddHostController.saveClients: saved list ", clients);
+  },
+
+  /**
+   *  Apply config groups from step4 Configurations
+   */
+  applyConfigGroup: function () {
+    var serviceConfigGroups = this.get('content.serviceConfigGroups');
+    serviceConfigGroups.forEach(function (group){
+      if (group.configGroups.someProperty('ConfigGroup.group_name', group.selectedConfigGroup)) {
+        var configGroup = group.configGroups.findProperty('ConfigGroup.group_name', group.selectedConfigGroup);
+        group.hosts.forEach(function(host){
+          configGroup.ConfigGroup.hosts.push({
+            host_name: host
+          });
+        },this);
+        delete configGroup.href;
+        App.ajax.send({
+          name: 'config_groups.update_config_group',
+          sender: this,
+          data: {
+            id: configGroup.ConfigGroup.id,
+            configGroup: configGroup
+          }
+        });
+      }
+    },this);
+  },
+
+  /**
+   * Load information about selected config groups
+   */
+  getServiceConfigGroups: function () {
+    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups');
+    this.set('content.serviceConfigGroups', serviceConfigGroups);
+  },
+
+  /**
+   * Save information about selected config groups
+   */
+  saveServiceConfigGroups: function () {
+    this.setDBProperty('serviceConfigGroups', this.get('content.serviceConfigGroups'));
+    this.set('content.serviceConfigGroups', this.get('content.serviceConfigGroups'));
+  },
+
+  /**
+   * Set content.serviceConfigGroups for step4
+   */
+  loadServiceConfigGroups: function () {
+    var slaveComponentHosts = this.get('content.slaveComponentHosts');
+    var selectedServices = [];
+    var selectedClientHosts = slaveComponentHosts.findProperty('componentName', 'CLIENT').hosts.mapProperty('hostName');
+    var componentServiceMap = App.QuickDataMapper.componentServiceMap;
+
+    slaveComponentHosts.forEach(function (slave) {
+      if (slave.hosts.length > 0) {
+        if (slave.componentName != "CLIENT") {
+          var service = componentServiceMap[slave.componentName];
+          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
+          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
+          var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+          configGroupsNames.unshift(defaultGroupName);
+          selectedServices.push({
+            serviceId: service,
+            displayName: App.Service.DisplayNames[service],
+            hosts: slave.hosts.mapProperty('hostName'),
+            configGroupsNames: configGroupsNames,
+            configGroups: configGroups,
+            selectedConfigGroup: defaultGroupName
+          });
+        }
+      }
+    }, this);
+    if (selectedClientHosts.length > 0) {
+      this.loadClients();
+      var clients = this.get('content.clients');
+      clients.forEach(function (client) {
+        var service = componentServiceMap[client.component_name];
+        var serviceMatch = selectedServices.findProperty('serviceId', service);
+        if (serviceMatch) {
+          serviceMatch.hosts = serviceMatch.hosts.concat(selectedClientHosts).uniq();
+        } else {
+          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
+          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name').sort();
+          var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+          configGroupsNames.unshift(defaultGroupName);
+          selectedServices.push({
+            serviceId: service,
+            displayName: App.Service.DisplayNames[service],
+            hosts: selectedClientHosts,
+            configGroupsNames: configGroupsNames,
+            configGroups: configGroups,
+            selectedConfigGroup: defaultGroupName
+          });
+        }
+      }, this);
+    }
+    selectedServices.forEach(function(selectedService){
+      selectedService.configGroups.sort(function(cfgA, cfgB){
+        return cfgA.ConfigGroup.group_name >= cfgB.ConfigGroup.group_name;
+      });
+    });
+    this.set('content.serviceConfigGroups', selectedServices);
   },
 
   /**
@@ -301,12 +418,11 @@ App.AddHostController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
-      case '9':
-      case '8':
       case '7':
       case '6':
       case '5':
         this.loadServiceConfigProperties();
+        this.getServiceConfigGroups();
       case '4':
       case '3':
         this.loadClients();
@@ -341,6 +457,45 @@ App.AddHostController = App.WizardController.extend({
     this.clearAllSteps();
     this.clearStorageData();
     App.router.get('updateController').updateAll();
+    App.updater.immediateRun('updateHost');
+  },
+
+  installServices: function (isRetry) {
+    this.set('content.cluster.oldRequestsId', []);
+    var clusterName = this.get('content.cluster.name');
+    var data;
+    var name;
+    var hostnames = [];
+    for (var hostname in this.getDBProperty('hosts')) {
+      hostnames.push(hostname);
+    }
+
+    if (isRetry) {
+      name = 'wizard.install_services.add_host_controller.is_retry';
+    }
+    else {
+      name = 'wizard.install_services.add_host_controller.not_is_retry';
+    }
+    data = {
+      "RequestInfo": {
+        "context": Em.I18n.t('requestInfo.installComponents'),
+        "query": "HostRoles/host_name.in(" + hostnames.join(',') + ")"
+      },
+      "Body": {
+        "HostRoles": {"state": "INSTALLED"}
+      }
+    };
+    data = JSON.stringify(data);
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: clusterName
+      },
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
+    });
   }
 
 });

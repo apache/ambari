@@ -55,17 +55,33 @@
             {{t installer.step2.useSsh.tooltip.title}}</a>
         {{t installer.step2.useSsh.provide_id_rsa}}
       </label>
-      <div {{bindAttr class="sshKeyError:error :control-group :ssh-key-input"}}>
+      <div class="ssh-key-input">
         {{#if view.isFileApi}}
           {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
         {{/if}}
-          <div class="controls">
+        <div {{bindAttr class="sshKeyError:error :controls :control-group"}}>
             {{view Ember.TextArea class="span6" rows="3" id="sshKey"
             placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
             {{#if sshKeyError}}
                 <span class="help-inline">{{sshKeyError}}</span>
             {{/if}}
+        </div>
+        <div>
+            <label class="ssh-user pull-left">
+              {{t installer.step2.sshUser}}
+                <a href="javascript:void(null)"
+                   rel="popover"
+                  {{translateAttr title="installer.step2.sshUser.link" data-content="installer.step2.sshUser.toolTip"}}>
+                  {{t installer.step2.sshUser.link}}</a>
+              {{t installer.step2.sshUser.account}}
+            </label>
+          <div {{bindAttr class="sshUserError:error :control-group"}}>
+            {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh"}}
+            {{#if sshUserError}}
+                <span class="help-inline">{{sshUserError}}</span>
+            {{/if}}
           </div>
+        </div>
       </div>
 
       <label class="radio">
@@ -82,8 +98,8 @@
   </div>
 
   <div class="advancedOptions">
+    {{#unless App.supports.localRepositories}}
     <h5>{{t installer.step2.advancedOptions.header}}</h5>
-
     <label {{bindAttr class=":checkbox"}}>
       {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
 
@@ -95,18 +111,7 @@
         {{t installer.step2.localRepo.tooltip.title}}</a>
       {{t installer.step2.localRepo.label_instead}}
     </label>
-
-    <label {{bindAttr class=":checkbox"}}>
-      <div class="java-home">
-      {{view Ember.Checkbox checkedBinding="content.installOptions.isJavaHome"}}
-        {{t installer.step2.javaHome.label}}
-        <a href="javascript:void(null)"
-           rel="popover"
-          {{translateAttr title="installer.step2.javaHome.tooltip.title" data-content="installer.step2.javaHome.tooltip.content"}}>
-            {{t installer.step2.javaHome.tooltip.title}}</a>
-      </div>
-      {{view App.WizardTextField valueBinding="content.installOptions.javaHome" placeholder="/usr/jdk/jdk1.6.0_31"}}
-    </label>
+    {{/unless}}
   </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}

@@ -22,21 +22,18 @@ App.AddSecurityController = App.WizardController.extend({
   name: 'addSecurityController',
   securityEnabled: false,
 
-  totalSteps: 3,
+  totalSteps: 4,
 
   content: Em.Object.create({
     services: [],
+    isNnHa: 'false',
     serviceConfigProperties: null,
-    controllerName: 'addSecurityController',
-
-    saveCurrentStage: function (stage) {
-      App.db.setSecurityStage(stage);
-    },
-
-    loadCurrentStage: function () {
-      return App.db.getSecurityStage();
-    }
+    controllerName: 'addSecurityController'
   }),
+
+  installedServices: function() {
+    return App.Service.find().mapProperty('serviceName');
+  }.property(),
 
   /**
    * Loads all prior steps on refresh
@@ -44,12 +41,13 @@ App.AddSecurityController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '4':
       case '3':
-        this.loadStages();
       case '2':
         this.loadServiceConfigs();
       case '1':
         this.loadServices();
+        this.loadNnHastatus();
     }
   },
 
@@ -60,20 +58,18 @@ App.AddSecurityController = App.WizardController.extend({
   },
 
   /**
-   * loads the status of stages of step3 from localDb
-   */
-
-  loadStages: function () {
-
-  },
-
-  /**
    * Loads all installed services
    */
   loadServices: function () {
     this.clearServices();
-    var secureServices = require('data/secure_configs');
-    var installedServices = App.Service.find().mapProperty('serviceName');
+    var secureServices;
+    if(App.get('isHadoop2Stack')) {
+      secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
+    } else {
+      secureServices = $.extend(true, [], require('data/secure_configs'));
+    }
+
+    var installedServices = this.get('installedServices');
     //General (only non service tab) tab is always displayed
     this.get('content.services').push(secureServices.findProperty('serviceName', 'GENERAL'));
     installedServices.forEach(function (_service) {
@@ -85,12 +81,57 @@ App.AddSecurityController = App.WizardController.extend({
 
   },
 
+  loadNnHastatus: function() {
+    var isNnHa = App.db.getIsNameNodeHa();
+    this.set('content.isNnHa', isNnHa);
+  },
+
+  saveServiceConfigProperties: function (stepController) {
+    var serviceConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      _content.get('configs').forEach(function (_configProperties) {
+        _configProperties.set('value', App.config.trimProperty(_configProperties,true));
+        var overrides = _configProperties.get('overrides');
+        var overridesArray = [];
+        if(overrides!=null){
+          overrides.forEach(function(override){
+            var overrideEntry = {
+              value: override.get('value'),
+              hosts: []
+            };
+            override.get('selectedHostOptions').forEach(function(host){
+              overrideEntry.hosts.push(host);
+            });
+            overridesArray.push(overrideEntry);
+          });
+        }
+        overridesArray = (overridesArray.length) ? overridesArray : null;
+        var configProperty = {
+          id: _configProperties.get('id'),
+          name: _configProperties.get('name'),
+          value: _configProperties.get('value'),
+          defaultValue: _configProperties.get('defaultValue'),
+          serviceName: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
+          filename: _configProperties.get('filename'),
+          unit: _configProperties.get('unit'),
+          components: _configProperties.get('components'),
+          component: _configProperties.get('component'),
+          overrides: overridesArray
+        };
+        serviceConfigProperties.push(configProperty);
+      }, this);
+    }, this);
+    App.db.setSecureConfigProperties(serviceConfigProperties);
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+  },
+
   /**
    * Loads all service config properties
    */
 
   loadServiceConfigs: function () {
-    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    var serviceConfigProperties = App.db.getSecureConfigProperties();
     this.set('content.serviceConfigProperties', serviceConfigProperties);
   }
 });

@@ -27,8 +27,11 @@ public class StackInfo {
   private String name;
   private String version;
   private String minUpgradeVersion;
+  private boolean active;
+  private String rcoFileLocation;
   private List<RepositoryInfo> repositories;
   private List<ServiceInfo> services;
+  private String parentStackVersion;
 
   public String getName() {
     return name;
@@ -66,7 +69,8 @@ public class StackInfo {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Stack name:" + name + "\nversion:" + version );//TODO add repository
+    StringBuilder sb = new StringBuilder("Stack name:" + name + "\nversion:" +
+      version + "\nactive:" + active);
     if (services != null) {
       sb.append("\n\t\tService:");
       for (ServiceInfo service : services) {
@@ -106,7 +110,8 @@ public class StackInfo {
 
   public StackVersionResponse convertToResponse() {
 
-    return new StackVersionResponse(getVersion(), getMinUpgradeVersion());
+    return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
+      isActive(), getParentStackVersion());
   }
 
   public String getMinUpgradeVersion() {
@@ -115,5 +120,29 @@ public class StackInfo {
 
   public void setMinUpgradeVersion(String minUpgradeVersion) {
     this.minUpgradeVersion = minUpgradeVersion;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
+  public String getParentStackVersion() {
+    return parentStackVersion;
+  }
+
+  public void setParentStackVersion(String parentStackVersion) {
+    this.parentStackVersion = parentStackVersion;
+  }
+
+  public String getRcoFileLocation() {
+    return rcoFileLocation;
+  }
+
+  public void setRcoFileLocation(String rcoFileLocation) {
+    this.rcoFileLocation = rcoFileLocation;
   }
 }

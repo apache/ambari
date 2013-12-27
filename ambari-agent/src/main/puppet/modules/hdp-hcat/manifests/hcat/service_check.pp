@@ -25,10 +25,10 @@ class hdp-hcat::hcat::service_check()
   $smoke_test_user = $hdp::params::smokeuser
   $output_file = "/apps/hive/warehouse/hcatsmoke${unique}"
   $security_enabled=$hdp::params::security_enabled
-  $smoke_user_keytab = "${hdp-hcat::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
 
   if ($security_enabled == true) {
-    $smoke_user_kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
+    $smoke_user_kinitcmd="${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
   } else {
     $smoke_user_kinitcmd=""
   }

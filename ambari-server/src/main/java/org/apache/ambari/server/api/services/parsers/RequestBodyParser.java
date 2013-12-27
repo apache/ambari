@@ -31,6 +31,12 @@ public interface RequestBodyParser {
    * RequestInfo category path.
    */
   public static final String REQUEST_INFO_PATH = "RequestInfo";
+
+  /**
+   * Category path to ignore parsing of the child node
+   */
+  public static final String REQUEST_BLOB_TITLE = "RequestBodyInfo";
+
   /**
    * Name of the query property which may exist under REQUEST_INFO_PATH.
    */

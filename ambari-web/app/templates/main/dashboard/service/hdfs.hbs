@@ -42,34 +42,31 @@
       <tbody>
     {{/unless}}
 
-      <!-- NameNode -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.nanmenode}}</td>
-        <td><a href="#" {{action showDetails view.service.nameNode}}>{{view.service.nameNode.publicHostName}}</a></td>
-      </tr>
-      <!-- SecondaryNameNode -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.snanmenode}}</td>
-        <td><a href="#" {{action showDetails view.service.snameNode}}>{{view.service.snameNode.publicHostName}}</a></td>
-      </tr>
+      {{view view.dashboardMasterComponentView}}
       <!-- Data Nodes -->
       <tr>
-        <td>{{t dashboard.services.hdfs.datanodes}}</td>
+        <td><a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a></td>
         <td>
-          <a href="#" {{action filterHosts view.dataNodeComponent}}>{{view.service.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
+          <span>
+            {{#view view.dataNodesLiveTextView}}
+              {{view.liveComponents}}/{{view.totalComponents}}
+            {{/view}}
+          </span>  {{t services.service.summary.DataNodesLive}}
         </td>
       </tr>
-      <!-- Version -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.version}}</td>
-        <td>{{view.version}}</td>
-      </tr>
-      <!-- NameNode Web UI -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.nameNodeWebUI}}</td>
-        <td><a {{bindAttr href="view.nodeWebUrl"}} target="_blank">{{view.service.nameNode.publicHostName}}:50070</a>
-        </td>
-      </tr>
+      <!-- JournalNodes -->
+      {{#if view.showJournalNodes}}
+        <tr>
+          <td><a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a></td>
+          <td>
+                <span>
+                  {{#view view.journalNodesLiveTextView}}
+                    {{view.liveComponents}}/{{view.totalComponents}}
+                  {{/view}}
+                </span>  {{t services.service.summary.JournalNodesLive}}
+         </td>
+        </tr>
+      {{/if}}
       <!-- NameNode Uptime -->
       <tr>
         <td>{{t dashboard.services.hdfs.nodes.uptime}}</td>
@@ -84,8 +81,8 @@
       <tr>
         <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
         <td>
-          {{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} /
-          {{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} /
+          {{view.dataNodesLive.length}} {{t dashboard.services.hdfs.nodes.live}} /
+          {{view.dataNodesDead.length}} {{t dashboard.services.hdfs.nodes.dead}} /
           {{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}
         </td>
       </tr>
@@ -115,22 +112,14 @@
       <tr>
         <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
         <td>
-          {{#if view.service.upgradeStatus}}
-            {{t services.service.summary.pendingUpgradeStatus.notPending}}
-          {{else}}
-            {{t services.service.summary.pendingUpgradeStatus.pending}}
-          {{/if}}
+          {{view.upgradeStatus}}
         </td>
       </tr>
       <!-- Safe Mode Status -->
       <tr>
         <td>{{t services.service.summary.safeModeStatus}}</td>
         <td>
-          {{#if view.isSafeMode}}
-            {{t services.service.summary.safeModeStatus.inSafeMode}}
-          {{else}}
-            {{t services.service.summary.safeModeStatus.notInSafeMode}}
-          {{/if}}
+          {{view.safeModeStatus}}
         </td>
       </tr>
 
@@ -152,7 +141,11 @@
         </a>
         <ul class="dropdown-menu">
           {{#each view.quickLinks}}
-            <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+            {{#if disabled}}
+                <li><a class="disabled-hdfs-quick-link">{{label}}</a></li>
+            {{else}}
+                <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+            {{/if}}
           {{/each}}
         </ul>
       </div>

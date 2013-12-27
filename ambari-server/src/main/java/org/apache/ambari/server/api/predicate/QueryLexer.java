@@ -33,6 +33,16 @@ import java.util.regex.Pattern;
  * Second, each string token is converted into a Token with type and value information.
  */
 public class QueryLexer {
+
+  /**
+   * Query string constants.
+   */
+  public static final String QUERY_FIELDS    = "fields";
+  public static final String QUERY_PAGE_SIZE = "page_size";
+  public static final String QUERY_TO        = "to";
+  public static final String QUERY_FROM      = "from";
+  public static final String QUERY_MINIMAL   = "minimal_response";
+
   /**
    * All valid deliminators.
    */
@@ -167,7 +177,11 @@ public class QueryLexer {
    */
   static {
     // ignore values
-    SET_IGNORE.add("fields");
+    SET_IGNORE.add(QUERY_FIELDS);
+    SET_IGNORE.add(QUERY_PAGE_SIZE);
+    SET_IGNORE.add(QUERY_TO);
+    SET_IGNORE.add(QUERY_FROM);
+    SET_IGNORE.add(QUERY_MINIMAL);
     SET_IGNORE.add("_");
   }
 

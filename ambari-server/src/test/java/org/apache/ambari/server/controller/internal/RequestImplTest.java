@@ -60,8 +60,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("HostRoles/actual_configs"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_stack_id"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/stack_id"));
-    Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_configs"));
-    Assert.assertTrue(validPropertyIds.contains("HostRoles/configs"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/desired_state"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/state"));
     Assert.assertTrue(validPropertyIds.contains("HostRoles/component_name"));
@@ -79,7 +77,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Clusters/version"));
     Assert.assertTrue(validPropertyIds.contains("Clusters/state"));
     Assert.assertTrue(validPropertyIds.contains("Clusters/desired_configs"));
-    Assert.assertTrue(validPropertyIds.contains("Clusters/actual_configs"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Service));
     validPropertyIds = request.getPropertyIds();
@@ -92,8 +89,8 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Services/description"));
     Assert.assertTrue(validPropertyIds.contains("Services/display_name"));
     Assert.assertTrue(validPropertyIds.contains("Services/attributes"));
-    Assert.assertTrue(validPropertyIds.contains("ServiceInfo/desired_configs"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
+    Assert.assertTrue(validPropertyIds.contains("params/reconfigure_client"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Host));
     validPropertyIds = request.getPropertyIds();
@@ -131,7 +128,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/state"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponents/display_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponents/description"));
-    Assert.assertTrue(validPropertyIds.contains("ServiceComponentInfo/desired_configs"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
 
 
@@ -149,9 +145,14 @@ public class RequestImplTest {
 
     //Action resource properties
     Assert.assertFalse(validPropertyIds.contains("Action/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("Actions/cluster_name"));
-    Assert.assertTrue(validPropertyIds.contains("Actions/service_name"));
     Assert.assertTrue(validPropertyIds.contains("Actions/action_name"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/action_type"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/inputs"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/target_service"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/target_component"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/description"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/target_type"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/default_timeout"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Request));
     validPropertyIds = request.getPropertyIds();

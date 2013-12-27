@@ -16,34 +16,70 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.testMode = false;
-if(location.port == '3333'){
-  App.testMode = true;
-}
+App.testMode = (location.port == '3333'); // test mode is automatically enabled if running on brunch server
 App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
+App.testEnableSecurity = true; // By default enable security is tested; turning it false tests disable security
+App.testNameNodeHA = true;
 App.apiPrefix = '/api/v1';
-App.defaultStackVersion = 'HDP-1.2.1';
-App.defaultLocalStackVersion = 'HDPLocal-1.2.1';
+App.defaultStackVersion = 'HDP-2.0.5';
+App.defaultLocalStackVersion = 'HDPLocal-2.0.5';
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
-App.addServicesEnabled = false;
-// default AJAX timeout
-App.timeout = 180000;
-// max number of retries for certain AJAX calls
-App.maxRetries = 3;
+App.timeout = 180000; // default AJAX timeout
+App.maxRetries = 3; // max number of retries for certain AJAX calls
 App.bgOperationsUpdateInterval = 6000;
 App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
+App.singleNodeInstall = false;
+App.singleNodeAlias = document.location.hostname;
+App.reassignableComponents = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
+
+// experimental features are automatically enabled if running on brunch server
+App.enableExperimental = false;
+
+App.supports = {
+  addServices: false,
+  hostOverrides: true,
+  hostOverridesInstaller: true,
+  hostOverridesHost: true,
+  mirroring: false,
+  secureCluster: true,
+  secureClusterProceedPopup: false,
+  reassignMaster: true,
+  stackUpgrade: false,
+  capacitySchedulerUi: false,
+  startStopAllServices: true,
+  hiveOozieExtraDatabases: true,
+  multipleHBaseMasters: true,
+  addMasters: false,
+  customizeSmokeTestUser: true,
+  hue: false,
+  ldapGroupMapping: false,
+  localRepositories: true,
+  highAvailability: true,
+  deleteHost: true,
+  autoRollbackHA: false
+};
+
+if (App.enableExperimental) {
+  for (var support in App.supports) {
+    App.supports[support] = true;
+  }
+}
 
 // this is to make sure that IE does not cache data when making AJAX calls to the server
-$.ajaxSetup({
-  cache: false
-});
+if (!$.mocho) {
+  $.ajaxSetup({
+    cache: false,
+    headers: {"X-Requested-By": "X-Requested-By"}
+  });
+}
 
 /**
  * Test Mode values

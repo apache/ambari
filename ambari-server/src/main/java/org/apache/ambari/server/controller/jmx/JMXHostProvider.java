@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
 /**
  * Provider of JMX host information.
@@ -49,4 +51,17 @@ public interface JMXHostProvider {
    */
   public String getPort(String clusterName, String componentName)
       throws SystemException;
+  
+  /**
+   * Get the protocol for the specified cluster name and component.
+   *
+   * @param clusterName    the cluster name
+   * @param componentName  the component name
+   *
+   * @return the JMX protocol for the specified cluster name and component, one of http or https
+   *
+   */
+  public String getJMXProtocol(String clusterName, String componentName) ;
+  
+  
 }

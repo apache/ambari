@@ -74,7 +74,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * - STACK_UPGRADING,
    * - STACK_UPGRADE_FAILED,
    * - STACK_UPGRADED,
-   * - STACK_UPGRADE_COMPLETED
+   * - DEFAULT = STACK UPGRADE COMPLETED
    */
   saveClusterStatus: function(clusterStatus){
     var oldStatus = this.get('content.cluster');
@@ -142,12 +142,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * run stop services
    */
   stopServices: function () {
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=STARTED';
-    var data = '{"RequestInfo": {"context": "'+ Em.I18n.t("requestInfo.stopAllServices") +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    var method = 'PUT';
     var process = this.get('processes').findProperty('name', 'STOP_SERVICES');
-    var self = this;
     process.set('isRunning', true);
     if (App.testMode) {
       this.startPolling();
@@ -156,43 +151,43 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
         status: 'STOPPING_SERVICES',
         isCompleted: false
       });
-    } else {
-      $.ajax({
-        type: method,
-        url: url,
-        async: false,
-        data: data,
-        dataType: 'text',
-        timeout: App.timeout,
-        success: function (data) {
-          var requestId = jQuery.parseJSON(data).Requests.id;
-          var clusterStatus = {
-            requestId: requestId,
-            status: 'STOPPING_SERVICES',
-            isCompleted: false
-          };
-          process.set('status', 'IN_PROGRESS');
-          self.saveClusterStatus(clusterStatus);
-          self.startPolling();
-          console.log('Call to stop service successful')
+    }
+    else {
+      var data = '{"RequestInfo": {"context": "'+ Em.I18n.t("requestInfo.stopAllServices") +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+      App.ajax.send({
+        name: 'admin.stack_upgrade.stop_services',
+        sender: this,
+        data: {
+          data: data
         },
-        error: function () {
-          self.finishProcess(process, 'FAILED');
-          process.set('status', 'FAILED');
-          console.log("Call to stop services failed");
-        },
-        statusCode: require('data/statusCodes')
+        success: 'stopServicesSuccessCallback',
+        error: 'stopServicesErrorCallback'
       });
     }
+  },
+  stopServicesSuccessCallback: function (data) {
+    var process = this.get('processes').findProperty('name', 'STOP_SERVICES');
+    var requestId = data.Requests.id;
+    var clusterStatus = {
+      requestId: requestId,
+      status: 'STOPPING_SERVICES',
+      isCompleted: false
+    };
+    process.set('status', 'IN_PROGRESS');
+    this.saveClusterStatus(clusterStatus);
+    this.startPolling();
+    console.log('Call to stop service successful')
+  },
+  stopServicesErrorCallback: function () {
+    var process = this.get('processes').findProperty('name', 'STOP_SERVICES');
+    this.finishProcess(process, 'FAILED');
+    process.set('status', 'FAILED');
+    console.log("Call to stop services failed");
   },
   /**
    * send request to run upgrade all services
    */
   runUpgrade: function () {
-    var method = "PUT";
-    var url = App.apiPrefix + '/clusters/' + this.get('content.cluster.name');
-    var self = this;
-    var data = '{"Clusters": {"version" : "' + this.get('content.upgradeVersion') + '"}}';
     var process = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
     process.set('isRunning', true);
     if (App.testMode) {
@@ -202,34 +197,39 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
         status: 'STACK_UPGRADING',
         isCompleted: false
       });
-    } else {
-      $.ajax({
-        type: method,
-        url: url,
-        async: false,
-        data: data,
-        dataType: 'text',
-        timeout: App.timeout,
-        success: function (data) {
-          var jsonData = jQuery.parseJSON(data);
-          var requestId = jsonData.Requests.id;
-          var clusterStatus = {
-            status: 'STACK_UPGRADING',
-            requestId: requestId,
-            isCompleted: false
-          };
-          process.set('status', 'IN_PROGRESS');
-          self.saveClusterStatus(clusterStatus);
-          self.startPolling();
+    }
+    else {
+      var data = '{"Clusters": {"version" : "' + this.get('content.upgradeVersion') + '"}}';
+      App.ajax.send({
+        name: 'admin.stack_upgrade.run_upgrade',
+        sender: this,
+        data: {
+          data: data
         },
-        error: function (request, ajaxOptions, error) {
-          self.finishProcess(process, 'FAILED');
-          process.set('status', 'FAILED');
-        },
-        statusCode: require('data/statusCodes')
+        success: 'runUpgradeSuccessCallback',
+        error: 'runUpgradeErrorCallback'
       });
     }
   },
+  runUpgradeSuccessCallback: function (jsonData) {
+    var process = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
+    var requestId = jsonData.Requests.id;
+    var clusterStatus = {
+      status: 'STACK_UPGRADING',
+      requestId: requestId,
+      isCompleted: false
+    };
+    process.set('status', 'IN_PROGRESS');
+    this.saveClusterStatus(clusterStatus);
+    this.startPolling();
+  },
+
+  runUpgradeErrorCallback: function (request, ajaxOptions, error) {
+    var process = this.get('processes').findProperty('name', 'UPGRADE_SERVICES');
+    this.finishProcess(process, 'FAILED');
+    process.set('status', 'FAILED');
+  },
+
   /**
    * start polling tasks for current process
    */
@@ -253,17 +253,17 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     var simulateAttempt = this.get('simulateAttempt');
     var process = this.get('processes').findProperty('isRunning', true);
     var upgradeURLs = [
-      '/data/wizard/upgrade/poll_1.json',
-      '/data/wizard/upgrade/poll_2.json',
-      '/data/wizard/upgrade/poll_3.json',
-      '/data/wizard/upgrade/poll_4.json',
-      '/data/wizard/upgrade/poll_5.json'
+      '/upgrade/poll_1.json',
+      '/upgrade/poll_2.json',
+      '/upgrade/poll_3.json',
+      '/upgrade/poll_4.json',
+      '/upgrade/poll_5.json'
     ];
     var stopURLs = [
-      '/data/wizard/stop_services/poll_1.json',
-      '/data/wizard/stop_services/poll_2.json',
-      '/data/wizard/stop_services/poll_3.json',
-      '/data/wizard/stop_services/poll_4.json'
+      '/stop_services/poll_1.json',
+      '/stop_services/poll_2.json',
+      '/stop_services/poll_3.json',
+      '/stop_services/poll_4.json'
     ];
     if(process.get('name') == 'STOP_SERVICES'){
       if(simulateAttempt < 4){
@@ -291,41 +291,51 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * poll server for tasks, which contain process progress data
    * @param interval
    */
-  doPoll: function(interval){
-    var url = this.getUrl();
+  doPoll: function(interval) {
     var self = this;
     var pollInterval = interval || self.POLL_INTERVAL;
     if (self.get('isPolling')) {
       setTimeout(function () {
-        $.ajax({
-          type: 'GET',
-          url: url,
-          async: true,
-          timeout: App.timeout,
-          dataType: 'json',
-          success: function (data) {
-            var result = self.parseTasks(data);
-            if(result){
-              if (App.testMode) {
-                self.simulatePolling();
-              } else {
-                self.doPoll();
-              }
-            }
+
+        App.ajax.send({
+          name: 'admin.stack_upgrade.do_poll',
+          sender: self,
+          data: {
+            cluster: self.get('content.cluster.name'),
+            requestId: self.get('content.cluster.requestId'),
+            mock: self.get('mockUrl')
           },
-          error: function () {
-            console.log('ERROR: poll request failed')
-          },
-          statusCode: require('data/statusCodes')
-        }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
-          function () {
-            App.showReloadPopup();
-            console.log('Install services all retries failed');
-          }
-        );
+          success: 'doPollSuccessCallback',
+          error: 'doPollErrorCallback'
+        }).retry({
+            times: App.maxRetries,
+            timeout: App.timeout
+          }).then(
+            null,
+            function () {
+              App.showReloadPopup();
+              console.log('Install services all retries failed');
+            });
       }, pollInterval);
     }
   },
+
+  doPollSuccessCallback: function (data) {
+    var result = this.parseTasks(data);
+    if(result){
+      if (App.testMode) {
+        this.simulatePolling();
+      }
+      else {
+        this.doPoll();
+      }
+    }
+  },
+
+  doPollErrorCallback: function () {
+    console.log('ERROR: poll request failed')
+  },
+
   /**
    * parse tasks from poll
    * change status, message, progress on services according to tasks
@@ -475,9 +485,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * @param host
    */
   setLogTasksStatePerHost: function (tasksPerHost, host) {
-    console.log('In step3 setTasksStatePerHost function.');
     tasksPerHost.forEach(function (_task) {
-      console.log('In step3 _taskPerHost function.');
       var task = host.get('logTasks').findProperty('Tasks.id', _task.Tasks.id);
       if (task) {
         host.get('logTasks').removeObject(task);
@@ -539,7 +547,6 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    */
   displayMessage: function (task) {
     var role = App.format.role(task.role);
-    console.log("In display message with task command value: " + task.command);
     switch (task.command){
       case 'UPGRADE':
         switch (task.status) {

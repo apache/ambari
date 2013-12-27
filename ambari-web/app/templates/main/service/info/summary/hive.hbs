@@ -16,22 +16,11 @@
 * limitations under the License.
 }}
 
-{{#each component in view.components}}
-  {{#if component.isMaster}}
-    <tr>
-      <td>
-        {{view view.componentNameView compBinding="component"}}
-      </td>
-      <td>
-        <a href="#" {{action selectHost component.host}}>{{component.host.publicHostName}}</a>
-      </td>
-    </tr>
-  {{/if}}
-{{/each}}
+{{view view.sumMasterComponentView}}
 
 <tr>
-  <td class="summary-label">{{t services.hive.clients}}</td>
+  <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{t services.hive.clients}}</a></td>
   <td>
-    <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} {{t services.hive.client}}{{#if view.hasManyClients}}s{{/if}}</a>
+    <span class="green-live">{{view.clients.length}} </span>{{t services.hive.client}}{{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
   </td>
 </tr>

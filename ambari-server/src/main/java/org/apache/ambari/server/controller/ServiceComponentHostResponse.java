@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Map;
-
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostConfig;
+
+import java.util.Map;
 
 public class ServiceComponentHostResponse {
 
@@ -32,13 +33,8 @@ public class ServiceComponentHostResponse {
 
   private String hostname;
 
-  // Config type -> version mapping
-  private Map<String, String> configs;
-
-  private Map<String, String> desiredConfigs;
-  
   // type -> desired config
-  private Map<String, DesiredConfig> actualConfigs;
+  private Map<String, HostConfig> actualConfigs;
 
   private String liveState;
 
@@ -48,22 +44,18 @@ public class ServiceComponentHostResponse {
 
   private String desiredState;
   
-  private String ha_status = "NA";
+  private boolean staleConfig = false;
 
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
                                       String componentName, String hostname,
-                                      Map<String, String> configVersions,
-                                      Map<String, String> desiredConfigs,
-                                      String liveState, String stackVersion,
+                                      String liveState,
+                                      String stackVersion,
                                       String desiredState, String desiredStackVersion) {
-    super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.hostname = hostname;
-    this.configs = configVersions;
-    this.desiredConfigs = desiredConfigs;
     this.liveState = liveState;
     this.stackVersion = stackVersion;
     this.desiredState = desiredState;
@@ -110,20 +102,6 @@ public class ServiceComponentHostResponse {
    */
   public void setHostname(String hostname) {
     this.hostname = hostname;
-  }
-
-  /**
-   * @return the configVersions
-   */
-  public Map<String, String> getConfigs() {
-    return configs;
-  }
-
-  /**
-   * @param configVersions the configVersions to set
-   */
-  public void setConfigs(Map<String, String> configVersions) {
-    this.configs = configVersions;
   }
 
   /**
@@ -196,26 +174,6 @@ public class ServiceComponentHostResponse {
     this.clusterName = clusterName;
   }
 
-  /**
-   * 
-   * @return ha_status status of HBaseMaster
-   */
-  public String getHa_status() {
-    return ha_status;
-  }
-
-  
-  /**
-   * 
-   * @param ha_status the state of HBaseMaster
-   */
-  public void setHa_status(String ha_status) {
-    this.ha_status = ha_status;
-  }
-
-  
-  
-  
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -253,22 +211,32 @@ public class ServiceComponentHostResponse {
     return result;
   }
 
-  public Map<String, String> getDesiredConfigs() {
-    return desiredConfigs;
-  }
-
   /**
-   * @param actualConfigs the actual configs
+   * @param configs the actual configs
    */
-  public void setActualConfigs(Map<String, DesiredConfig> configs) {
+  public void setActualConfigs(Map<String, HostConfig> configs) {
     actualConfigs = configs;
   }
   
   /**
    * @return the actual configs
    */
-  public Map<String, DesiredConfig> getActualConfigs() {
+  public Map<String, HostConfig> getActualConfigs() {
     return actualConfigs;
+  }
+
+  /**
+   * @return if the configs are stale
+   */
+  public boolean isStaleConfig() {
+    return staleConfig;
+  }
+  
+  /**
+   * @param stale
+   */
+  public void setStaleConfig(boolean stale) {
+    staleConfig = stale;
   }
 
 }

@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller.predicate;
 
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,15 +29,43 @@ import java.util.Set;
  * Predicate which evaluates an array of predicates.
  */
 public abstract class ArrayPredicate implements BasePredicate {
-  private final BasePredicate[] predicates;
+  private final Predicate[] predicates;
   private final Set<String> propertyIds = new HashSet<String>();
 
-  public ArrayPredicate(BasePredicate... predicates) {
+  // ----- Constructors -----------------------------------------------------
+
+  /**
+   * Constructor.
+   *
+   * @param predicates  the predicates
+   */
+  public ArrayPredicate(Predicate... predicates) {
     this.predicates = predicates;
-    for (BasePredicate predicate : predicates) {
-      propertyIds.addAll(predicate.getPropertyIds());
+    for (Predicate predicate : predicates) {
+      propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
     }
   }
+
+
+  // ----- BasePredicate ----------------------------------------------------
+
+  @Override
+  public Set<String> getPropertyIds() {
+    return propertyIds;
+  }
+
+
+  // ----- PredicateVisitorAcceptor -----------------------------------------
+
+  @Override
+  public void accept(PredicateVisitor visitor) {
+    visitor.acceptArrayPredicate(this);
+  }
+
+
+  // ----- ArrayPredicate ---------------------------------------------------
+
+  public abstract String getOperator();
 
   /**
    * Factory method.
@@ -43,17 +74,22 @@ public abstract class ArrayPredicate implements BasePredicate {
    *
    * @return a new ArrayPredicate
    */
-  public abstract BasePredicate create(BasePredicate... predicates);
+  public abstract Predicate create(Predicate... predicates);
 
 
-  public BasePredicate[] getPredicates() {
+  // ----- accessors --------------------------------------------------------
+
+  /**
+   * Get the predicates.
+   *
+   * @return the predicates
+   */
+  public Predicate[] getPredicates() {
     return predicates;
   }
 
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {
@@ -65,23 +101,37 @@ public abstract class ArrayPredicate implements BasePredicate {
     if (propertyIds != null ? !propertyIds.equals(that.propertyIds) : that.propertyIds != null) return false;
 
     // don't care about array order
-    Set<BasePredicate> setThisPredicates = new HashSet<BasePredicate>(Arrays.asList(predicates));
-    Set<BasePredicate> setThatPredicates = new HashSet<BasePredicate>(Arrays.asList(that.predicates));
+    Set<Predicate> setThisPredicates = new HashSet<Predicate>(Arrays.asList(predicates));
+    Set<Predicate> setThatPredicates = new HashSet<Predicate>(Arrays.asList(that.predicates));
     return setThisPredicates.equals(setThatPredicates);
   }
 
   @Override
   public int hashCode() {
     // don't care about array order
-    int result = predicates != null ? new HashSet<BasePredicate>(Arrays.asList(predicates)).hashCode() : 0;
+    int result = predicates != null ? new HashSet<Predicate>(Arrays.asList(predicates)).hashCode() : 0;
     result = 31 * result + (propertyIds != null ? propertyIds.hashCode() : 0);
     return result;
   }
 
   @Override
-  public void accept(PredicateVisitor visitor) {
-    visitor.acceptArrayPredicate(this);
-  }
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
 
-  public abstract String getOperator();
+    for (Predicate predicate : predicates) {
+
+      boolean arrayPredicate = predicate instanceof ArrayPredicate;
+
+      if (sb.length() > 0) {
+        sb.append(" ").append(getOperator()).append(" ");
+      }
+
+      if (arrayPredicate) {
+        sb.append("(").append(predicate).append(")");
+      } else {
+        sb.append(predicate);
+      }
+    }
+    return sb.toString();
+  }
 }

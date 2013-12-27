@@ -1,30 +1,24 @@
 {
-  "href" : "http://ec2-107-20-107-224.compute-1.amazonaws.com:8080/api/v1/hosts?fields=*",
+  "href" : "http://ec2-54-226-45-9.compute-1.amazonaws.com:8080/api/v1/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name&_=1374246845396",
   "items" : [
     {
-      "href" : "http://ec2-107-20-107-224.compute-1.amazonaws.com:8080/api/v1/hosts/ip-10-190-153-220.ec2.internal",
+      "href" : "http://ec2-54-226-45-9.compute-1.amazonaws.com:8080/api/v1/hosts/ip-10-144-81-35.ec2.internal",
       "Hosts" : {
-        "host_status" : "HEALTHY",
-        "public_host_name" : "ec2-50-19-188-43.compute-1.amazonaws.com",
         "cpu_count" : 2,
-        "rack_info" : "/default-rack",
-        "host_health_report" : "",
-        "os_arch" : "x86_64",
-        "host_name" : "ip-10-190-153-220.ec2.internal",
         "disk_info" : [
           {
-            "available" : "3822572",
-            "used" : "2022188",
-            "percent" : "35%",
-            "size" : "5904748",
-            "type" : "ext3",
+            "available" : "3227064",
+            "used" : "2617700",
+            "percent" : "45%",
+            "size" : "5904752",
+            "type" : "ext4",
             "mountpoint" : "/"
           },
           {
-            "available" : "3932160",
+            "available" : "3823132",
             "used" : "0",
             "percent" : "0%",
-            "size" : "3932160",
+            "size" : "3823132",
             "type" : "tmpfs",
             "mountpoint" : "/dev/shm"
           },
@@ -45,12 +39,9 @@
             "mountpoint" : "/grid/1"
           }
         ],
-        "ip" : "10.190.153.220",
-        "os_type" : "redhat5",
-        "last_heartbeat_time" : 1358871154566,
-        "host_state" : "HEALTHY",
+        "host_name" : "ip-10-144-81-35.ec2.internal",
         "last_agent_env" : {
-          "paths" : [
+          "stackFoldersAndFiles" : [
             {
               "name" : "/etc/hadoop",
               "type" : "not_exist"
@@ -120,10 +111,6 @@
               "type" : "not_exist"
             },
             {
-              "name" : "/var/run/templeton",
-              "type" : "not_exist"
-            },
-            {
               "name" : "/var/log/hive",
               "type" : "not_exist"
             },
@@ -132,146 +119,105 @@
               "type" : "not_exist"
             }
           ],
-          "javaProcs" : [ ],
           "rpms" : [
             {
-              "name" : "yum",
-              "installed" : true,
-              "version" : "yum-3.2.22-39.el5"
-            },
-            {
-              "name" : "rpm",
-              "installed" : true,
-              "version" : "rpm-4.4.2.3-27.el5"
-            },
-            {
-              "name" : "openssl",
-              "installed" : true,
-              "version" : "openssl-0.9.8e-22.el5\nopenssl-0.9.8e-22.el5"
-            },
-            {
-              "name" : "curl",
-              "installed" : true,
-              "version" : "curl-7.15.5-15.el5\ncurl-7.15.5-15.el5"
-            },
-            {
-              "name" : "wget",
-              "installed" : false
-            },
-            {
-              "name" : "net-snmp",
-              "installed" : true,
-              "version" : "net-snmp-5.3.2.2-17.el5"
-            },
-            {
-              "name" : "ntpd",
-              "installed" : false
-            },
-            {
-              "name" : "ruby",
-              "installed" : true,
-              "version" : "ruby-1.8.5-24.el5"
-            },
-            {
-              "name" : "puppet",
-              "installed" : false
-            },
-            {
               "name" : "nagios",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "ganglia",
-              "installed" : false
-            },
-            {
-              "name" : "passenger",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "hadoop",
-              "installed" : false
+              "installed" : true
+            },
+            {
+              "name" : "hadoop-lzo",
+              "installed" : true
             },
             {
               "name" : "hbase",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "oozie",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "sqoop",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "pig",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "zookeeper",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "hive",
-              "installed" : false
+              "installed" : true
             },
             {
               "name" : "libconfuse",
-              "installed" : false
+              "installed" : true
             },
             {
-              "name" : "postgresql",
-              "installed" : true,
-              "version" : "postgresql-8.1.23-1.el5_7.3"
-            },
-            {
-              "name" : "httpd",
-              "installed" : true,
-              "version" : "httpd-2.2.3-63.el5"
-            },
-            {
-              "name" : "apache2",
-              "installed" : false
-            },
-            {
-              "name" : "http-server",
-              "installed" : false
+              "name" : "ambari-log4j",
+              "installed" : true
             }
           ],
-          "varRunHadoopPidCount" : 0,
-          "varLogHadoopLogCount" : 0,
-          "etcAlternativesConf" : [ ],
-          "repoInfo" : "Loaded plugins: amazon-id, fastestmirror, rhui-lb, security\nrepo id                             repo name                             status\nAMBARI.dev-1.x                      Ambari 1.x                                6\nHDP-UTILS-1.1.0.15                  Hortonworks Data Platform Utils Versi    51\nepel                                Extra Packages for Enterprise Linux 5  7243\nrhui-us-east-client-config-server-5 Red Hat Update Infrastructure 2.0 Cli     1\nrhui-us-east-rhel-server            Red Hat Enterprise Linux Server 5 (RP 14819\nrepolist: 22120\n"
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1374246790510,
+            "serverTimeStampAtReporting" : 1374246790555,
+            "liveServices" : [
+              {
+                "name" : "ntpd",
+                "desc" : "ntpd is stopped\n",
+                "status" : "Healthy"
+              }
+            ],
+            "diskStatus" : [
+              {
+                "available" : "3225780",
+                "used" : "2618984",
+                "percent" : "45%",
+                "size" : "5904752",
+                "type" : "ext4",
+                "mountpoint" : "/"
+              }
+            ]
+          },
+          "umask" : 18
         },
-        "last_registration_time" : 1358871040696,
-        "total_mem" : 7864320
+        "total_mem" : 7644119
       }
     },
     {
-      "href" : "http://ec2-107-20-107-224.compute-1.amazonaws.com:8080/api/v1/hosts/domU-12-31-39-14-04-91.compute-1.internal",
+      "href" : "http://ec2-54-226-45-9.compute-1.amazonaws.com:8080/api/v1/hosts/ip-10-147-171-151.ec2.internal",
       "Hosts" : {
-        "host_status" : "HEALTHY",
-        "public_host_name" : "ec2-107-20-107-224.compute-1.amazonaws.com",
         "cpu_count" : 2,
-        "rack_info" : "/default-rack",
-        "host_health_report" : "",
-        "os_arch" : "x86_64",
-        "host_name" : "domU-12-31-39-14-04-91.compute-1.internal",
         "disk_info" : [
           {
-            "available" : "3400492",
-            "used" : "2444268",
-            "percent" : "42%",
-            "size" : "5904748",
-            "type" : "ext3",
+            "available" : "3647552",
+            "used" : "2197212",
+            "percent" : "38%",
+            "size" : "5904752",
+            "type" : "ext4",
             "mountpoint" : "/"
           },
           {
-            "available" : "3932160",
+            "available" : "3823132",
             "used" : "0",
             "percent" : "0%",
-            "size" : "3932160",
+            "size" : "3823132",
             "type" : "tmpfs",
             "mountpoint" : "/dev/shm"
           },
@@ -292,150 +238,10 @@
             "mountpoint" : "/grid/1"
           }
         ],
-        "ip" : "10.206.7.95",
-        "os_type" : "redhat5",
-        "last_heartbeat_time" : 1358871154070,
-        "host_state" : "HEALTHY",
+        "host_name" : "ip-10-147-171-151.ec2.internal",
         "last_agent_env" : {
-          "paths" : [
-            {
-              "name" : "/etc/hadoop",
-              "type" : "directory"
-            },
-            {
-              "name" : "/etc/hadoop/conf",
-              "type" : "file"
-            },
-            {
-              "name" : "/etc/hbase",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/etc/hcatalog",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/etc/hive",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/etc/oozie",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/etc/sqoop",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/etc/ganglia",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/etc/nagios",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/run/hadoop",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/run/zookeeper",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/run/hbase",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/run/templeton",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/run/oozie",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/log/hadoop",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/log/zookeeper",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/log/hbase",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/run/templeton",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/log/hive",
-              "type" : "not_exist"
-            },
-            {
-              "name" : "/var/log/nagios",
-              "type" : "not_exist"
-            }
-          ],
-          "javaProcs" : [
-            {
-              "user" : "root",
-              "pid" : 2283,
-              "command" : "/bin/sh -c /usr/jdk64/jdk1.6.0_31/bin/java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -Xms512m -Xmx2048m -cp /etc/ambari-server/conf:/usr/lib/ambari-server/*:/usr/kerberos/sbin:/usr/kerberos/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/lib/ambari-server/* org.apache.ambari.server.controller.AmbariServer >/var/log/ambari-server/ambari-server.out 2>&1",
-              "hadoop" : true
-            },
-            {
-              "user" : "root",
-              "pid" : 2284,
-              "command" : "/usr/jdk64/jdk1.6.0_31/bin/java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -Xms512m -Xmx2048m -cp /etc/ambari-server/conf:/usr/lib/ambari-server/*:/usr/kerberos/sbin:/usr/kerberos/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/lib/ambari-server/* org.apache.ambari.server.controller.AmbariServer",
-              "hadoop" : false
-            }
-          ],
+          "stackFoldersAndFiles" : [ ],
           "rpms" : [
-            {
-              "name" : "yum",
-              "installed" : true,
-              "version" : "yum-3.2.22-39.el5"
-            },
-            {
-              "name" : "rpm",
-              "installed" : true,
-              "version" : "rpm-4.4.2.3-27.el5"
-            },
-            {
-              "name" : "openssl",
-              "installed" : true,
-              "version" : "openssl-0.9.8e-22.el5\nopenssl-0.9.8e-22.el5"
-            },
-            {
-              "name" : "curl",
-              "installed" : true,
-              "version" : "curl-7.15.5-15.el5\ncurl-7.15.5-15.el5"
-            },
-            {
-              "name" : "wget",
-              "installed" : false
-            },
-            {
-              "name" : "net-snmp",
-              "installed" : true,
-              "version" : "net-snmp-5.3.2.2-17.el5"
-            },
-            {
-              "name" : "ntpd",
-              "installed" : false
-            },
-            {
-              "name" : "ruby",
-              "installed" : true,
-              "version" : "ruby-1.8.5-24.el5"
-            },
-            {
-              "name" : "puppet",
-              "installed" : false
-            },
             {
               "name" : "nagios",
               "installed" : false
@@ -445,11 +251,11 @@
               "installed" : false
             },
             {
-              "name" : "passenger",
+              "name" : "hadoop",
               "installed" : false
             },
             {
-              "name" : "hadoop",
+              "name" : "hadoop-lzo",
               "installed" : false
             },
             {
@@ -481,31 +287,46 @@
               "installed" : false
             },
             {
-              "name" : "postgresql",
-              "installed" : true,
-              "version" : "postgresql-8.1.23-6.el5_8"
-            },
-            {
-              "name" : "httpd",
-              "installed" : true,
-              "version" : "httpd-2.2.3-63.el5"
-            },
-            {
-              "name" : "apache2",
-              "installed" : false
-            },
-            {
-              "name" : "http-server",
+              "name" : "ambari-log4j",
               "installed" : false
             }
           ],
-          "varRunHadoopPidCount" : 0,
-          "varLogHadoopLogCount" : 0,
-          "etcAlternativesConf" : [ ],
-          "repoInfo" : "Loaded plugins: amazon-id, fastestmirror, rhui-lb, security\nrepo id                             repo name                             status\nAMBARI.dev-1.x                      Ambari 1.x                                6\nHDP-UTILS-1.1.0.15                  Hortonworks Data Platform Utils Versi    51\nepel                                Extra Packages for Enterprise Linux 5  7243\nrhui-us-east-client-config-server-5 Red Hat Update Infrastructure 2.0 Cli     1\nrhui-us-east-rhel-server            Red Hat Enterprise Linux Server 5 (RP 14819\nrepolist: 22120\n"
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [
+              {
+                "user" : "root",
+                "pid" : 2283,
+                "command" : "/bin/sh -c /usr/jdk64/jdk1.6.0_31/bin/java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC -Xms512m -Xmx2048m -cp /etc/ambari-server/conf:/usr/lib/ambari-server/*:/usr/kerberos/sbin:/usr/kerberos/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/lib/ambari-server/* org.apache.ambari.server.controller.AmbariServer >/var/log/ambari-server/ambari-server.out 2>&1",
+                "hadoop" : true
+              }
+            ],
+            "agentTimeStampAtReporting" : 1374246809459,
+            "serverTimeStampAtReporting" : 1374246809848,
+            "liveServices" : [
+              {
+                "name" : "ntpd",
+                "desc" : "ntpd is stopped\n",
+                "status" : "Unhealthy"
+              }
+            ],
+            "diskStatus" : [
+              {
+                "available" : "3646556",
+                "used" : "2198208",
+                "percent" : "38%",
+                "size" : "5904752",
+                "type" : "ext4",
+                "mountpoint" : "/"
+              }
+            ]
+          },
+          "umask" : 19
         },
-        "last_registration_time" : 1358870784262,
-        "total_mem" : 7864320
+        "total_mem" : 7644119
       }
     }
   ]

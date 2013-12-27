@@ -43,15 +43,18 @@ import java.util.Map.Entry;
 /**
  * Resource provider for configuration resources.
  */
-class ConfigurationResourceProvider extends AbstractControllerResourceProvider {
+public class ConfigurationResourceProvider extends
+  AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Configurations (values are part of query strings and body post, so they don't have defined categories)
   protected static final String CONFIGURATION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "cluster_name");
   // TODO : should these be Config/type and Config/tag to be consistent?
-  protected static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  = PropertyHelper.getPropertyId(null, "type");
-  protected static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   = PropertyHelper.getPropertyId(null, "tag");
+  public static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  =
+    PropertyHelper.getPropertyId(null, "type");
+  public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   =
+    PropertyHelper.getPropertyId(null, "tag");
 
 
   /**
@@ -208,26 +211,6 @@ class ConfigurationResourceProvider extends AbstractControllerResourceProvider {
 
 
   // ----- utility methods ---------------------------------------------------
-
-  /**
-   * Get the config related property ids from the given map of property ids.
-   *
-   * @param propertyIdMap  the map of property ids
-   *
-   * @return  a subset of the given map containing olny the property ids that have a
-   *          category of "config"
-   */
-  public static Map<String, String> getConfigPropertyValues(Map<String, Object> propertyIdMap) {
-    Map<String, String> configMap = new HashMap<String, String>();
-
-    for (Map.Entry<String,Object> entry : propertyIdMap.entrySet()) {
-      String propertyId = entry.getKey();
-      if (PropertyHelper.getPropertyCategory(propertyId).equals("config")) {
-        configMap.put(PropertyHelper.getPropertyName(propertyId), (String) entry.getValue());
-      }
-    }
-    return configMap;
-  }
 
   /**
    * Get a configuration request object from the given map of properties.

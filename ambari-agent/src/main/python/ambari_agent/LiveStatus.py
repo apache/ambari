@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,10 +22,6 @@ import json
 import logging
 from StatusCheck import StatusCheck
 import AmbariConfig
-import socket
-import time
-import traceback
-from pprint import pprint, pformat
 from StackVersionsFileHandler import StackVersionsFileHandler
 from ActualConfigHandler import ActualConfigHandler
 
@@ -36,7 +32,33 @@ class LiveStatus:
   SERVICES = [
     "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
     "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
-    "KERBEROS", "TEMPLETON", "HIVE"
+    "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT",
+    "YARN", "MAPREDUCE2", "FLUME"
+  ]
+
+  CLIENT_COMPONENTS = [
+    {"serviceName" : "HBASE",
+     "componentName" : "HBASE_CLIENT"},
+    {"serviceName" : "HDFS",
+     "componentName" : "HDFS_CLIENT"},
+    {"serviceName" : "MAPREDUCE",
+     "componentName" : "MAPREDUCE_CLIENT"},
+    {"serviceName" : "ZOOKEEPER",
+     "componentName" : "ZOOKEEPER_CLIENT"},
+    {"serviceName" : "OOZIE",
+     "componentName" : "OOZIE_CLIENT"},
+    {"serviceName" : "HCATALOG",
+     "componentName" : "HCAT"},
+    {"serviceName" : "HIVE",
+     "componentName" : "HIVE_CLIENT"},
+    {"serviceName" : "YARN",
+     "componentName" : "YARN_CLIENT"},
+    {"serviceName" : "MAPREDUCE2",
+     "componentName" : "MAPREDUCE2_CLIENT"},
+    {"serviceName" : "PIG",
+     "componentName" : "PIG"},
+    {"serviceName" : "SQOOP",
+     "componentName" : "SQOOP"}
   ]
 
   COMPONENTS = [
@@ -46,48 +68,61 @@ class LiveStatus:
        "componentName" : "NAMENODE"},
       {"serviceName" : "HDFS",
        "componentName" : "SECONDARY_NAMENODE"},
-#      {"serviceName" : "HDFS",
-#       "componentName" : "HDFS_CLIENT"},
+      {"serviceName" : "HDFS",
+       "componentName" : "JOURNALNODE"},
+      {"serviceName" : "HDFS",
+       "componentName" : "ZKFC"},
+
       {"serviceName" : "MAPREDUCE",
        "componentName" : "JOBTRACKER"},
       {"serviceName" : "MAPREDUCE",
        "componentName" : "TASKTRACKER"},
-#      {"serviceName" : "MAPREDUCE",
-#       "componentName" : "MAPREDUCE_CLIENT"},
-      {"serviceName" : "GANGLIA",             #!
+
+      {"serviceName" : "GANGLIA",
        "componentName" : "GANGLIA_SERVER"},
-      {"serviceName" : "GANGLIA",             #!
+      {"serviceName" : "GANGLIA",
        "componentName" : "GANGLIA_MONITOR"},
-      {"serviceName" : "HBASE",               #!
+
+      {"serviceName" : "HBASE",
        "componentName" : "HBASE_MASTER"},
-      {"serviceName" : "HBASE",              #!
+      {"serviceName" : "HBASE",
        "componentName" : "HBASE_REGIONSERVER"},
-#      {"serviceName" : "HBASE",
-#       "componentName" : "HBASE_CLIENT"},
-      {"serviceName" : "NAGIOS",             #!
+
+      {"serviceName" : "NAGIOS",
        "componentName" : "NAGIOS_SERVER"},
+
+      {"serviceName" : "FLUME",
+       "componentName" : "FLUME_SERVER"},
+
       {"serviceName" : "ZOOKEEPER",
        "componentName" : "ZOOKEEPER_SERVER"},
-#      {"serviceName" : "ZOOKEEPER",
-#       "componentName" : "ZOOKEEPER_CLIENT"},
+
       {"serviceName" : "OOZIE",
        "componentName" : "OOZIE_SERVER"},
-#      {"serviceName" : "OOZIE",
-#       "componentName" : "OOZIE_CLIENT"},
-      {"serviceName" : "HCATALOG",            #!
+
+      {"serviceName" : "HCATALOG",
        "componentName" : "HCATALOG_SERVER"},
+
       {"serviceName" : "KERBEROS",
-       "componentName" : "KERBEROS_SERVER"}, #!
-#      {"serviceName" : "TEMPLETON",
-#       "componentName" : "TEMPLETON_SERVER"},
-#      {"serviceName" : "TEMPLETON",
-#       "componentName" : "TEMPLETON_CLIENT"},
-      {"serviceName" : "HIVE",               #!
+       "componentName" : "KERBEROS_SERVER"},
+
+      {"serviceName" : "HIVE",
        "componentName" : "HIVE_SERVER"},
-      {"serviceName" : "HIVE",               #!
+      {"serviceName" : "HIVE",
        "componentName" : "HIVE_METASTORE"},
-      {"serviceName" : "HIVE",               #!
+      {"serviceName" : "HIVE",
        "componentName" : "MYSQL_SERVER"},
+
+      {"serviceName" : "WEBHCAT",
+       "componentName" : "WEBHCAT_SERVER"},
+
+      {"serviceName" : "YARN",
+       "componentName" : "RESOURCEMANAGER"},
+      {"serviceName" : "YARN",
+       "componentName" : "NODEMANAGER"},
+
+      {"serviceName" : "MAPREDUCE2",
+       "componentName" : "HISTORYSERVER"},
   ]
 
   LIVE_STATUS = "STARTED"
@@ -106,29 +141,41 @@ class LiveStatus:
     #TODO: Should also check belonging of server to cluster
     return component['serviceName'] == self.service
 
-  # Live status was stripped from heartbeat after revision e1718dd
-  def build(self):
-    global SERVICES, COMPONENTS, LIVE_STATUS, DEAD_STATUS
-    statusCheck = StatusCheck(AmbariConfig.servicesToPidNames, AmbariConfig.pidPathesVars, self.globalConfig, AmbariConfig.linuxUserPattern)
+  def build(self, forsed_component_status = None):
+    """
+    If forsed_component_status is explicitly defined, than StatusCheck methods are
+    not used. This feature has been added to support custom (ver 2.0) services.
+    """
+    global SERVICES, CLIENT_COMPONENTS, COMPONENTS, LIVE_STATUS, DEAD_STATUS
+
     livestatus = None
-    for component in self.COMPONENTS:
-      if component["serviceName"] == self.service and component["componentName"] == self.component:
-        serviceStatus = statusCheck.getStatus(component["componentName"])
+    component = {"serviceName" : self.service, "componentName" : self.component}
+    if component in self.COMPONENTS + self.CLIENT_COMPONENTS :
+      if forsed_component_status: # If already determined
+        status = forsed_component_status  # Nothing to do
+      elif component in self.CLIENT_COMPONENTS:
+        status = self.DEAD_STATUS # CLIENT components can't have status STARTED
+      else:
+        statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
+                                  AmbariConfig.pidPathesVars, self.globalConfig,
+                                  AmbariConfig.servicesToLinuxUser)
+        serviceStatus = statusCheck.getStatus(self.component)
         if serviceStatus is None:
-          logger.warn("There is no service to pid mapping for " + component["componentName"])
+          logger.warn("There is no service to pid mapping for " + self.component)
         status = self.LIVE_STATUS if serviceStatus else self.DEAD_STATUS
-        livestatus ={"componentName" : component["componentName"],
-                       "msg" : "",
-                       "status" : status,
-                       "clusterName" : self.cluster,
-                       "serviceName" : self.service,
-                       "stackVersion": self.versionsHandler.
-                                    read_stack_version(component["componentName"])
-                    }
-        active_config = self.actualConfigHandler.read_actual_component(component['componentName'])
-        if not active_config is None:
-          livestatus['configurationTags'] = active_config
-        break
+
+      livestatus ={"componentName" : self.component,
+                   "msg" : "",
+                   "status" : status,
+                   "clusterName" : self.cluster,
+                   "serviceName" : self.service,
+                   "stackVersion": self.versionsHandler.
+                   read_stack_version(self.component)
+      }
+      active_config = self.actualConfigHandler.read_actual_component(self.component)
+      if not active_config is None:
+        livestatus['configurationTags'] = active_config
+
     logger.debug("The live status for component " + str(self.component) +\
                 " of service " + str(self.service) + " is " + str(livestatus))
     return livestatus

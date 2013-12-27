@@ -19,7 +19,6 @@ package org.apache.ambari.server.bootstrap;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,22 +37,29 @@ import org.apache.commons.logging.LogFactory;
 class BSRunner extends Thread {
   private static Log LOG = LogFactory.getLog(BSRunner.class);
 
+  private static final String DEFAULT_USER = "root";
+
   private  boolean finished = false;
   private SshHostInfo sshHostInfo;
   private File bootDir;
   private String bsScript;
   private File requestIdDir;
   private File sshKeyFile;
+  private File passwordFile;
   private int requestId;
   private String agentSetupScript;
   private String agentSetupPassword;
   private String ambariHostname;
   private boolean verbose;
   private BootStrapImpl bsImpl;
+  private final String clusterOsType;
+  private String projectVersion;
+  private int serverPort;
 
   public BSRunner(BootStrapImpl impl, SshHostInfo sshHostInfo, String bootDir,
       String bsScript, String agentSetupScript, String agentSetupPassword,
-      int requestId, long timeout, String hostName, boolean isVerbose)
+      int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsType,
+      String projectVersion, int serverPort)
   {
     this.requestId = requestId;
     this.sshHostInfo = sshHostInfo;
@@ -66,7 +71,10 @@ class BSRunner extends Thread {
     this.agentSetupPassword = agentSetupPassword;
     this.ambariHostname = hostName;
     this.verbose = isVerbose;
+    this.clusterOsType = clusterOsType;
+    this.projectVersion = projectVersion;
     this.bsImpl = impl;
+    this.serverPort = serverPort;
     BootStrapStatus status = new BootStrapStatus();
     status.setLog("RUNNING");
     status.setStatus(BSStat.RUNNING);
@@ -130,6 +138,10 @@ class BSRunner extends Thread {
     FileUtils.writeStringToFile(sshKeyFile, data);
   }
 
+  private void writePasswordFile(String data) throws IOException {
+    FileUtils.writeStringToFile(passwordFile, data);
+  }
+
   public synchronized void finished() {
     this.finished = true;
   }
@@ -137,7 +149,11 @@ class BSRunner extends Thread {
   @Override
   public void run() {
     String hostString = createHostString(sshHostInfo.getHosts());
-    String commands[] = new String[6];
+    String user = sshHostInfo.getUser();
+    if (user == null || user.isEmpty()) {
+      user = DEFAULT_USER;
+    }
+    String commands[] = new String[11];
     String shellCommand[] = new String[3];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
@@ -150,9 +166,19 @@ class BSRunner extends Thread {
             + sshHostInfo.getSshKey() + "\"");
       }
 
+      String password = sshHostInfo.getPassword();
+      if (password != null && !password.isEmpty()) {
+        this.passwordFile = new File(this.requestIdDir, "host_pass");
+        // TODO : line separator should be changed
+        // if we are going to support multi platform server-agent solution
+        String lineSeparator = System.getProperty("line.separator");
+        password = password + lineSeparator;
+        writePasswordFile(password);
+      }
+
       writeSshKeyFile(sshHostInfo.getSshKey());
       /* Running command:
-       * script hostlist bsdir sshkeyfile
+       * script hostlist bsdir user sshkeyfile
        */
       shellCommand[0] = "sh";
       shellCommand[1] = "-c";
@@ -160,11 +186,20 @@ class BSRunner extends Thread {
       commands[0] = this.bsScript;
       commands[1] = hostString;
       commands[2] = this.requestIdDir.toString();
-      commands[3] = this.sshKeyFile.toString();
-      commands[4] = this.agentSetupScript.toString();
-      commands[5] = this.ambariHostname;
+      commands[3] = user;
+      commands[4] = this.sshKeyFile.toString();
+      commands[5] = this.agentSetupScript.toString();
+      commands[6] = this.ambariHostname;
+      commands[7] = this.clusterOsType;
+      commands[8] = this.projectVersion;
+      commands[9] = this.serverPort+"";
+      if (this.passwordFile != null) {
+        commands[10] = this.passwordFile.toString();
+      }
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
-          requestIdDir + " keyfile=" + this.sshKeyFile + " server=" + this.ambariHostname);
+          requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
+          " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
+          " version=" + projectVersion + " serverPort=" + this.serverPort);
 
       String[] env = new String[] { "AMBARI_PASSPHRASE=" + agentSetupPassword };
       if (this.verbose)
@@ -187,8 +222,7 @@ class BSRunner extends Thread {
       shellCommand[2] = commandString.toString();
       Process process = Runtime.getRuntime().exec(shellCommand, env);
 
-      /** Startup a scheduled executor service to look through the logs
-       */
+      // Startup a scheduled executor service to look through the logs
       ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
       BSStatusCollector statusCollector = new BSStatusCollector();
       ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector,
@@ -264,7 +298,8 @@ class BSRunner extends Thread {
     } catch(IOException io) {
       LOG.info("Error executing bootstrap " + io.getMessage());
       stat = BSStat.ERROR;
-    } finally {
+    }
+    finally {
       /* get the bstatus */
       BootStrapStatus tmpStatus = bsImpl.getStatus(requestId);
       tmpStatus.setLog(scriptlog);
@@ -275,7 +310,15 @@ class BSRunner extends Thread {
       try {
         FileUtils.forceDelete(sshKeyFile);
       } catch (IOException io) {
-        LOG.info(io.getMessage());
+        LOG.warn(io.getMessage());
+      }
+      if (passwordFile != null) {
+        // Remove password file after bootstrap is complete
+        try {
+          FileUtils.forceDelete(passwordFile);
+        } catch (IOException io) {
+          LOG.warn(io.getMessage());
+        }
       }
       finished();
     }

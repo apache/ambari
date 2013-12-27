@@ -1,0 +1,50 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<button class="btn single-btn-group add-button" {{action "clickFilterButton" target="view"}} >
+    <i class="icon-plus"></i> <span style="font-weight: bold">{{t common.add}}</span>
+</button>
+<ul class="dropdown-menu filter-components" >
+  {{#if view.hiddenWidgets.length}}
+    <li>
+      <ul>
+        {{#each widget in view.hiddenWidgets}}
+          <li>
+            <label class="checkbox">
+              {{view Ember.Checkbox checkedBinding="widget.checked"}} {{unbound widget.displayName}}
+            </label>
+          </li>
+        {{/each}}
+      </ul>
+    </li>
+    <li>
+      <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
+      <button class="btn btn-primary" {{action "applyFilter" target="view"}}>{{t common.apply}}</button>
+    </li>
+  {{else}}
+    <li>
+      <ul>
+      <li>{{t dashboard.widgets.nothing}}</li>
+      </ul>
+    </li>
+    <li>
+      <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
+    </li>
+
+  {{/if}}
+</ul>

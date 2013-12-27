@@ -8,7 +8,7 @@
     "url":""
   },
   "engines":{
-    "node":"~0.6.10 || 0.8 || 0.9"
+    "node":"~0.6.10 || 0.8 || 0.9 || 0.10"
   },
   "scripts":{
     "start":"brunch watch --server"
@@ -19,14 +19,14 @@
     "uglify-js-brunch":">= 1.0 < 1.5",
     "clean-css-brunch":">= 1.0 < 1.5",
     "ember-precompiler-brunch":">= 1.0 < 1.5",
-    "less-brunch":">= 1.0 < 1.5"
+    "less-brunch":">= 1.0 < 1.5",
+    "cssstyle":"0.2.3"
   },
   "devDependencies":{
-    "mocha":"*",
+    "mocha":"1.9.0",
     "chai":"*",
     "sinon":"*",
     "sinon-chai":"*",
-    "express":"2.5.8",
-    "mocha-phantomjs": "*"
+    "express":"2.5.8"
   }
 }

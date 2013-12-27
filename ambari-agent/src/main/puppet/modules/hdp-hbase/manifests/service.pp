@@ -21,7 +21,7 @@
 define hdp-hbase::service(
   $ensure = 'running',
   $create_pid_dir = true,
-  $create_log_dir = true,
+  $create_conf_dir = true,
   $initial_wait = undef)
 {
   include hdp-hbase::params
@@ -34,12 +34,14 @@ define hdp-hbase::service(
   $cmd = "$hbase_daemon --config ${conf_dir}"
   $pid_dir = $hdp-hbase::params::hbase_pid_dir
   $pid_file = "${pid_dir}/hbase-hbase-${role}.pid"
+  $hbase_log_dir = $hdp-hbase::params::hbase_log_dir
+  $hbase_tmp_dir = $hdp-hbase::params::hbase_tmp_dir
 
   if ($ensure == 'running') {
     $daemon_cmd = "su - ${user} -c  '${cmd} start ${role}'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
-    $daemon_cmd = "su - ${user} -c  '${cmd} stop ${role}'"
+    $daemon_cmd = "su - ${user} -c  '${cmd} stop ${role}' && rm -f ${pid_file}"
     $no_op_test = undef
   } else {
     $daemon_cmd = undef
@@ -55,22 +57,26 @@ define hdp-hbase::service(
       force => true
     }
   }
-  if ($create_log_dir == true) {
-    hdp::directory_recursive_create { $hdp-hbase::params::hbase_log_dir: 
+  if ($create_conf_dir == true) {
+   # To avoid duplicate resource definitions
+    $hbase_conf_dirs = hdp_set_from_comma_list("${hbase_tmp_dir},${hbase_log_dir}")
+
+    hdp::directory_recursive_create_ignore_failure { $hbase_conf_dirs:
       owner => $user,
-      tag   => $tag,
+      context_tag => 'hbase_service',
       service_state => $ensure,
       force => true
     }
   }
 
-  anchor{"hdp-hbase::service::${name}::begin":} -> Hdp::Directory_recursive_create<|tag == $tag|> -> anchor{"hdp-hbase::service::${name}::end":}
   if ($daemon_cmd != undef) { 
     hdp::exec { $daemon_cmd:
       command      => $daemon_cmd,
       unless       => $no_op_test,
       initial_wait => $initial_wait
     }
-    Hdp::Directory_recursive_create<|context_tag == 'hbase_service'|> -> Hdp::Exec[$daemon_cmd] -> Anchor["hdp-hbase::service::${name}::end"]
+    anchor{"hdp-hbase::service::${name}::begin":} -> Hdp::Directory_recursive_create<|tag == $tag|> -> Hdp::Exec[$daemon_cmd] -> anchor{"hdp-hbase::service::${name}::end":}
+  } else {
+    anchor{"hdp-hbase::service::${name}::begin":} -> Hdp::Directory_recursive_create<|tag == $tag|> -> anchor{"hdp-hbase::service::${name}::end":}  
   }
 }
