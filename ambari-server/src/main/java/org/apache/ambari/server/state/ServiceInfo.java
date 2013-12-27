@@ -233,7 +233,7 @@ public class ServiceInfo {
     Set<String> keys = configLayout.get(type);
 
     for (String staleCheck : keyNames) {
-      if (keys.contains(staleCheck))
+      if (keys != null && keys.contains(staleCheck))
         return true;
     }
     
