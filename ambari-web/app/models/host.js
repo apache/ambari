@@ -63,7 +63,7 @@ App.Host = DS.Model.extend({
 
   componentsWithStaleConfigsCount: function() {
     return this.get('hostComponents').filterProperty('staleConfigs', true).length;
-  }.property('hostComponents.@each'),
+  }.property('hostComponents.@each.staleConfigs'),
 
   publicHostNameFormatted: function() {
     return this.get('publicHostName').length < 43 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 40) + '...';

@@ -25,23 +25,31 @@ describe('App.HostStatusView', function () {
       p: 'isFailed',
       tests: [
         {
-          controller: {isStepCompleted: true},
-          obj: {status: 'failed'},
+          obj: {
+            status: 'failed',
+            progress: 100
+          },
           e: true
         },
         {
-          controller: {isStepCompleted: false},
-          obj: {status: 'failed'},
+          obj: {
+            status: 'failed',
+            progress: 99
+          },
           e: false
         },
         {
-          controller: {isStepCompleted: true},
-          obj: {status: 'success'},
+          obj: {
+            status: 'success',
+            progress: 100
+          },
           e: false
         },
         {
-          controller: {isStepCompleted: false},
-          obj: {status: 'success'},
+          obj: {
+            status: 'success',
+            progress: 99
+          },
           e: false
         }
       ]
@@ -50,23 +58,31 @@ describe('App.HostStatusView', function () {
       p: 'isSuccess',
       tests: [
         {
-          controller: {isStepCompleted: true},
-          obj: {status: 'success'},
+          obj: {
+            status: 'success',
+            progress: 100
+          },
           e: true
         },
         {
-          controller: {isStepCompleted: false},
-          obj: {status: 'success'},
+          obj: {
+            status: 'success',
+            progress: 99
+          },
           e: false
         },
         {
-          controller: {isStepCompleted: true},
-          obj: {status: 'failed'},
+          obj: {
+            status: 'failed',
+            progress: 100
+          },
           e: false
         },
         {
-          controller: {isStepCompleted: false},
-          obj: {status: 'failed'},
+          obj: {
+            status: 'failed',
+            progress: 99
+          },
           e: false
         }
       ]
@@ -75,23 +91,31 @@ describe('App.HostStatusView', function () {
       p: 'isWarning',
       tests: [
         {
-          controller: {isStepCompleted: true},
-          obj: {status: 'warning'},
+          obj: {
+            status: 'warning',
+            progress: 100
+          },
           e: true
         },
         {
-          controller: {isStepCompleted: false},
-          obj: {status: 'warning'},
+          obj: {
+            status: 'warning',
+            progress: 99
+          },
           e: false
         },
         {
-          controller: {isStepCompleted: true},
-          obj: {status: 'failed'},
+          obj: {
+            status: 'failed',
+            progress: 100
+          },
           e: false
         },
         {
-          controller: {isStepCompleted: false},
-          obj: {status: 'failed'},
+          obj: {
+            status: 'failed',
+            progress: 99
+          },
           e: false
         }
       ]
@@ -101,8 +125,7 @@ describe('App.HostStatusView', function () {
     describe(test.p, function() {
       test.tests.forEach(function(t) {
         var hostStatusView = App.HostStatusView.create();
-        it('controller.isStepCompleted = ' + t.controller.isStepCompleted + '; obj.status = ' + t.obj.status, function() {
-          hostStatusView.set('controller', t.controller);
+        it('obj.progress = ' + t.obj.progress + '; obj.status = ' + t.obj.status, function() {
           hostStatusView.set('obj', t.obj);
           expect(hostStatusView.get(test.p)).to.equal(t.e);
         });

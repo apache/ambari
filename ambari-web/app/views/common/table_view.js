@@ -44,9 +44,13 @@ App.TableView = Em.View.extend({
     var name = this.get('controller.name');
 
     this.set('startIndexOnLoad', App.db.getStartIndex(name));
-    self.dataLoading().done(function (initValue) {
-      self.set('displayLength', initValue);
-    });
+    if (App.db.getDisplayLength(name)) {
+      this.set('displayLength', App.db.getDisplayLength(name));
+    } else {
+      self.dataLoading().done(function (initValue) {
+        self.set('displayLength', initValue);
+      });
+    }
 
     var filterConditions = App.db.getFilterConditions(name);
     if (filterConditions) {
@@ -205,7 +209,10 @@ App.TableView = Em.View.extend({
   }),
 
   rowsPerPageSelectView: Em.Select.extend({
-    content: ['10', '25', '50']
+    content: ['10', '25', '50'],
+    change: function () {
+      this.get('parentView').saveDisplayLength();
+    }
   }),
 
   // start index for displayed content on the page
@@ -277,13 +284,12 @@ App.TableView = Em.View.extend({
   saveDisplayLength: function() {
     var self = this;
     Em.run.next(function() {
-      //App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
-      var key = self.displayLengthKey();
+      App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
       if (!App.testMode) {
-        self.postUserPref(key, self.get('displayLength'));
+        self.postUserPref(self.displayLengthKey(), self.get('displayLength'));
       }
     });
-  }.observes('displayLength'),
+  },
 
   saveStartIndex: function() {
     if (this.get('filteringComplete')) {

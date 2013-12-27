@@ -71,17 +71,17 @@ App.MainHostSummaryView = Em.View.extend({
   loadDecommissionNodesList: function () {
     var self = this;
     var clusterName = App.router.get('clusterController.clusterName');
-    var persistUrl = App.apiPrefix + '/persist';
+    var persistUrl = App.apiPrefix + '/persist/decommissionDataNodesTag';
     var clusterUrl = App.apiPrefix + '/clusters/' + clusterName;
     var getConfigAjax = {
       type: 'GET',
       url: persistUrl,
       dataType: 'json',
       timeout: App.timeout,
-      success: function (data) {
-        if (data && data.decommissionDataNodesTag) {
+      success: function (decommissionDataNodesTag) {
+        if (decommissionDataNodesTag) {
           // We know the tag which contains the decommisioned nodes.
-          var configsUrl = clusterUrl + '/configurations?type=hdfs-exclude-file&tag=' + data.decommissionDataNodesTag;
+          var configsUrl = clusterUrl + '/configurations?type=hdfs-exclude-file&tag=' + decommissionDataNodesTag;
           var decomNodesAjax = {
             type: 'GET',
             url: configsUrl,
@@ -120,11 +120,13 @@ App.MainHostSummaryView = Em.View.extend({
           }
         }
       }
-    }
+    };
     jQuery.ajax(getConfigAjax);
   },
   didInsertElement: function () {
-    this.loadDecommissionNodesList();
+    if (this.get('content.hostComponents').someProperty('componentName', 'DATANODE')) {
+      this.loadDecommissionNodesList();
+    }
     this.addToolTip();
   },
   addToolTip: function() {
