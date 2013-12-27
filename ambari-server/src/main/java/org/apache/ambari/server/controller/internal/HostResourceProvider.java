@@ -63,10 +63,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
+
+
 /**
  * Resource provider for host resources.
  */
-class HostResourceProvider extends AbstractControllerResourceProvider {
+public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -97,8 +103,12 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
       PropertyHelper.getPropertyId("Hosts", "last_registration_time");
   protected static final String HOST_DISK_INFO_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "disk_info");
+  
+  
   protected static final String HOST_HOST_STATUS_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_status");
+  
+  
   protected static final String HOST_HOST_HEALTH_REPORT_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_health_report");
   protected static final String HOST_STATE_PROPERTY_ID =
@@ -121,9 +131,10 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  HostResourceProvider(Set<String> propertyIds,
-                       Map<Resource.Type, String> keyPropertyIds,
-                       AmbariManagementController managementController) {
+  @AssistedInject
+  HostResourceProvider(@Assisted Set<String> propertyIds,
+                       @Assisted Map<Resource.Type, String> keyPropertyIds,
+                       @Assisted AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
@@ -154,6 +165,7 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
+  @Transactional
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 

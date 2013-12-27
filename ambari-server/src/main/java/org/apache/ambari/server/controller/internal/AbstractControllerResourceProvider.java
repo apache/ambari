@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -33,6 +34,7 @@ import java.util.Set;
  */
 public abstract class AbstractControllerResourceProvider extends AbstractResourceProvider {
 
+  private static ResourceProviderFactory resourceProviderFactory;
   /**
    * The management controller to delegate to.
    */
@@ -53,6 +55,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
                                                AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds);
     this.managementController = managementController;
+  }
+  
+  public static void init(ResourceProviderFactory factory) {
+    resourceProviderFactory = factory;
   }
 
 
@@ -83,6 +89,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
                                                      Set<String> propertyIds,
                                                      Map<Resource.Type, String> keyPropertyIds,
                                                      AmbariManagementController managementController) {
+
     switch (type) {
       case Cluster:
         return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
@@ -91,9 +98,9 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
       case Component:
         return new ComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Host:
-        return new HostResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getHostResourceProvider(propertyIds, keyPropertyIds, managementController);
       case HostComponent:
-        return new HostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Configuration:
         return new ConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Action:
