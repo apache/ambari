@@ -1419,6 +1419,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (selectedServices.someProperty('serviceName', 'YARN')) {
       this.get('serviceConfigTags').pushObject(this.createYarnSiteObj());
       this.get('serviceConfigTags').pushObject(this.createCapacityScheduler());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('YARN'));
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.get('serviceConfigTags').pushObject(this.createHbaseSiteObj());
@@ -1431,6 +1432,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
       this.get('serviceConfigTags').pushObject(this.createHiveSiteObj('HIVE'));
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE'));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE-EXEC'));
     }
     if (selectedServices.someProperty('serviceName', 'WEBHCAT')) {
       this.get('serviceConfigTags').pushObject(this.createWebHCatSiteObj('WEBHCAT'));
@@ -1592,17 +1594,17 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
-  createLog4jObj: function (serviceName) {
-    serviceName = serviceName.toLowerCase();
-    var Log4jObj = this.get('configs').filterProperty('filename', serviceName + '-log4j.xml');
+  createLog4jObj: function (fileName) {
+    fileName = fileName.toLowerCase();
+    var Log4jObj = this.get('configs').filterProperty('filename', fileName + '-log4j.xml');
     var Log4jProperties = {};
     Log4jObj.forEach(function (_configProperty) {
       Log4jProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, serviceName + '-log4j', 'version1', this);
+      this._recordHostOverrideFromObj(_configProperty, fileName + '-log4j', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
-    return {"type": serviceName + "-log4j", "tag": "version1", "properties": Log4jProperties };
+    return {"type": fileName + "-log4j", "tag": "version1", "properties": Log4jProperties };
   },
 
   createHueSiteObj: function () {

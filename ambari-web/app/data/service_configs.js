@@ -79,9 +79,10 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: App.supports.capacitySchedulerUi}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedYARNLog4j', displayName : 'Custom yarn-log4j.xml', siteFileName: 'yarn-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'yarn-site', 'capacity-scheduler'],
+    sites: ['global', 'yarn-site', 'capacity-scheduler', 'yarn-log4j'],
     configs: []
   },
 
@@ -110,9 +111,10 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHiveLog4j', displayName : 'Custom hive-log4j.xml', siteFileName: 'hive-log4j.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveLog4j', displayName : 'Custom hive-log4j.xml', siteFileName: 'hive-log4j.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveExecLog4j', displayName : 'Custom hive-exec-log4j.xml', siteFileName: 'hive-exec-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'hive-site', 'hive-log4j'],
+    sites: ['global', 'hive-site', 'hive-log4j', 'hive-log4j-exec'],
     configs: []
   },
 
