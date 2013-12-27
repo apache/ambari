@@ -64,10 +64,12 @@
         {{/each}}
 		  </ul>
 		</span>
-    {{#if controller.isHostsConfigsPage}}
-      &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
-    {{else}}
-        <a href="#" class="link" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
+    {{#if App.isAdmin}}
+      {{#if controller.isHostsConfigsPage}}
+          &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+      {{else}}
+          <a href="#"  class="link" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
+      {{/if}}
     {{/if}}
      <div class="pull-right">
        {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}
