@@ -40,20 +40,12 @@ GET_IFCONFIG_CMD = "ifconfig"
 GET_UPTIME_CMD = "cat /proc/uptime"
 GET_MEMINFO_CMD = "cat /proc/meminfo"
 
-DATA_IFCONFIG_OUTPUT = ""
-DATA_UPTIME_OUTPUT = ""
-DATA_MEMINFO_OUTPUT = ""
-
-
 class Facter():
   def __init__(self):
-    global DATA_IFCONFIG_OUTPUT
-    DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()
-    global DATA_UPTIME_OUTPUT
-    DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()
-    global DATA_MEMINFO_OUTPUT
-    DATA_MEMINFO_OUTPUT = Facter.setMemInfoOutput()
-    pass
+    
+    self.DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()    
+    self.DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()    
+    self.DATA_MEMINFO_OUTPUT = Facter.setMemInfoOutput()
 
   @staticmethod
   def setDataIfConfigOutput():
@@ -133,7 +125,7 @@ class Facter():
     else:
       return 'OS NOT SUPPORTED'
 
-  # Returns the OS vesion
+  # Returns the OS version
   def getOperatingSystemRelease(self):
     dist = platform.linux_distribution()
     if dist[1] != '':
@@ -226,24 +218,29 @@ class Facter():
 
   # Return first ip adress
   def getIpAddress(self):
-    result = self.data_return_first("(?: inet addr:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", DATA_IFCONFIG_OUTPUT)
+    result = self.data_return_first("(?: inet addr:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", 
+                                    self.DATA_IFCONFIG_OUTPUT)
     if result == '':
+      log.warn("Can't get an ip address from {0}".format(self.DATA_IFCONFIG_OUTPUT))
       return 'OS NOT SUPPORTED'
     else:
       return result
 
   # Return  netmask
   def getNetmask(self):
-    result = self.data_return_first("(?: Mask:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", DATA_IFCONFIG_OUTPUT)
+    result = self.data_return_first("(?: Mask:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", 
+                                    self.DATA_IFCONFIG_OUTPUT)
     if result == '':
+      log.warn("Can't get a netmask from {0}".format(self.DATA_IFCONFIG_OUTPUT))
       return 'OS NOT SUPPORTED'
     else:
       return result
 
   # Return interfaces
   def getInterfaces(self):
-    result = self.data_return_list("(\w+)(?:.*Link encap:)", DATA_IFCONFIG_OUTPUT)
+    result = self.data_return_list("(\w+)(?:.*Link encap:)", self.DATA_IFCONFIG_OUTPUT)
     if result == '':
+      log.warn("Can't get a network interfaces list from {0}".format(self.DATA_IFCONFIG_OUTPUT))
       return 'OS NOT SUPPORTED'
     else:
       return result
@@ -251,8 +248,9 @@ class Facter():
   # Return uptime seconds
   def getUptimeSeconds(self):
     try:
-      return int(self.data_return_first("\d+", DATA_UPTIME_OUTPUT))
+      return int(self.data_return_first("\d+", self.DATA_UPTIME_OUTPUT))
     except ValueError:
+      log.warn("Can't get an uptime value from {0}".format(self.DATA_UPTIME_OUTPUT))
       return 0
 
 
@@ -268,39 +266,44 @@ class Facter():
   def getMemoryFree(self):
     #:memoryfree_mb => "MemFree",
     try:
-      return int(self.data_return_first("MemFree:.*?(\d+) .*", DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first("MemFree:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
+      log.warn("Can't get free memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
 
   # Return memorytotal
   def getMemoryTotal(self):
     try:
-      return int(self.data_return_first("MemTotal:.*?(\d+) .*", DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first("MemTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
+      log.warn("Can't get total memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
 
   # Return swapfree
   def getSwapFree(self):
     #:swapfree_mb   => "SwapFree"
     try:
-      return int(self.data_return_first("SwapFree:.*?(\d+) .*", DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first("SwapFree:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
+      log.warn("Can't get free swap memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
 
   # Return swapsize
   def getSwapSize(self):
     #:swapsize_mb   => "SwapTotal",
     try:
-      return int(self.data_return_first("SwapTotal:.*?(\d+) .*", DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first("SwapTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
+      log.warn("Can't get total swap memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
 
   # Return memorysize
   def getMemorySize(self):
     #:memorysize_mb => "MemTotal"
     try:
-      return int(self.data_return_first("MemTotal:.*?(\d+) .*", DATA_MEMINFO_OUTPUT))
+      return int(self.data_return_first("MemTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
+      log.warn("Can't get memory size from {0}".format(self.DATA_MEMINFO_OUTPUT))
       return 0
 
 
