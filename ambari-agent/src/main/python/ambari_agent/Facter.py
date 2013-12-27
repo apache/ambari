@@ -222,7 +222,7 @@ class Facter():
                                     self.DATA_IFCONFIG_OUTPUT)
     if result == '':
       log.warn("Can't get an ip address from {0}".format(self.DATA_IFCONFIG_OUTPUT))
-      return 'OS NOT SUPPORTED'
+      return socket.gethostbyname(socket.gethostname())
     else:
       return result
 
