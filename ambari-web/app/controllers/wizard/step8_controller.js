@@ -1395,11 +1395,15 @@ App.WizardStep8Controller = Em.Controller.extend({
   createConfigurations: function () {
     var selectedServices = this.get('selectedServices');
     if (this.get('content.controllerName') == 'installerController') {
-      this.get('serviceConfigTags').pushObject(this.createGlobalSiteObj());
       this.get('serviceConfigTags').pushObject(this.createCoreSiteObj());
       this.get('serviceConfigTags').pushObject(this.createHdfsSiteObj());
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HDFS'));
     }
+    var globalSiteObj = this.createGlobalSiteObj();
+    if (this.get('content.controllerName') == 'addServiceController') {
+      globalSiteObj.tag = 'version' + (new Date).getTime();
+    }
+    this.get('serviceConfigTags').pushObject(globalSiteObj);
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.get('serviceConfigTags').pushObject(this.createMrSiteObj());
       if (App.supports.capacitySchedulerUi) {
@@ -1535,9 +1539,6 @@ App.WizardStep8Controller = Em.Controller.extend({
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value + "m";
         } else {
           globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
-        }
-        if (_globalSiteObj.name == 'java64_home') {
-          globalSiteProperties['java64_home'] = this.get('content.installOptions.javaHome');
         }
       }
       this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);

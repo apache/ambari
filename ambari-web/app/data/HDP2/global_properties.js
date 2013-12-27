@@ -1311,19 +1311,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "java64_home",
-      "displayName": "Path to 64-bit JAVA_HOME",
-      "description": "Path to 64-bit JAVA_HOME.  /usr/jdk/jdk1.6.0_31 is the default used by Ambari.  You can override this to a specific path that contains the JDK.  Note that the path must be valid on ALL hosts in your cluster.",
-      "defaultValue": "/usr/jdk64/jdk1.6.0_31",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "serviceName": "MISC",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
       "name": "hdfs_user",
       "displayName": "HDFS User",
       "description": "User to run HDFS as",
