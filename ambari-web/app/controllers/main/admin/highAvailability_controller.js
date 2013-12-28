@@ -49,7 +49,6 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
         return;
       }
     }
-    App.db.mergeStorage();
     App.router.transitionTo('enableHighAvailability');
   },
 

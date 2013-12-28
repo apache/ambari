@@ -220,7 +220,6 @@ App.MainServiceItemController = Em.Controller.extend({
   reassignMaster: function (hostComponent) {
     var component = App.HostComponent.find().findProperty('componentName', hostComponent);
     console.log('In Reassign Master', hostComponent);
-    App.db.mergeStorage();
     var reassignMasterController = App.router.get('reassignMasterController');
     reassignMasterController.saveComponentToReassign(component);
     reassignMasterController.getSecurityStatus();

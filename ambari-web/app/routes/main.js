@@ -686,7 +686,6 @@ module.exports = Em.Route.extend({
       }),
 
       addSecurity: function (router, object) {
-        App.db.mergeStorage();
         router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
         router.transitionTo('adminAddSecurity');
       },

@@ -95,6 +95,10 @@ App.clusterStatus = Ember.Object.create({
           } else {
             // default status already set
           }
+          // this is to ensure that the local storage namespaces are initialized with all expected namespaces.
+          // after upgrading ambari, loading local storage data from the "persist" data saved via an older version of
+          // Ambari can result in missing namespaces that are defined in the new version of Ambari.
+          App.db.mergeStorage();
         },
         error: function (xhr) {
           if (xhr.status == 404) {

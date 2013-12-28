@@ -93,7 +93,7 @@ App.db.mergeStorage = function() {
     console.log('doing a cleanup');
     App.db.cleanUp();
   } else {
-    App.db.data = $.extend(true,{}, InitialData, App.db.data);
+    localStorage.setObject('ambari', $.extend(true,{}, InitialData, App.db.data));
   }
 };
 
