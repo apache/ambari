@@ -283,7 +283,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           }
         } else if (hostComponent.component_name === 'HBASE_MASTER') {
           if (hostComponent.work_status === 'STARTED') {
-            hostComponent.ha_status == 'true' ?
+            (hostComponent.ha_status === true || hostComponent.ha_status == 'true') ?
               hostComponent.display_name_advanced = this.t('dashboard.services.hbase.masterServer.active') :
               hostComponent.display_name_advanced = this.t('dashboard.services.hbase.masterServer.standby');
           } else {
