@@ -1058,7 +1058,6 @@ App.MainHostDetailsController = Em.Controller.extend({
   moveComponent: function (event) {
     App.showConfirmationPopup(function() {
       var component = event.context;
-      App.db.mergeStorage();
       var reassignMasterController = App.router.get('reassignMasterController');
       reassignMasterController.saveComponentToReassign(component);
       reassignMasterController.getSecurityStatus();
