@@ -22,17 +22,16 @@ from resource_management import *
 import sys
 
 
-def hive(type=None, name=None):
+def hive(name=None):
   import params
 
-  if name == 'hiveserver2':
+  if name == 'metastore' or name == 'hiveserver2':
     hive_config_dir = params.hive_server_conf_dir
     config_file_mode = 0600
+    jdbc_connector()
   else:
     hive_config_dir = params.hive_conf_dir
     config_file_mode = 0644
-
-  jdbc_connector()
 
   Directory(hive_config_dir,
             owner=params.hive_user,
@@ -66,7 +65,7 @@ def hive(type=None, name=None):
          content=StaticFile('startHiveserver2.sh')
     )
 
-  if type != "client":
+  if name != "client":
     crt_directory(params.hive_pid_dir)
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)

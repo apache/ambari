@@ -34,7 +34,7 @@ class HiveMetastore(Script):
     import params
     env.set_params(params)
 
-    hive(type='master', name='metastore')
+    hive(name='metastore')
 
   def start(self, env):
     import params

@@ -33,7 +33,7 @@ class HiveServer(Script):
     import params
     env.set_params(params)
 
-    hive(type='master', name='hiveserver2')
+    hive(name='hiveserver2')
 
   def start(self, env):
     import params

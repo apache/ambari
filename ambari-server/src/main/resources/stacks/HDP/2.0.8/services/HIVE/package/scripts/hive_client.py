@@ -31,7 +31,7 @@ class HiveClient(Script):
     import params
     env.set_params(params)
 
-    hive(type='client')
+    hive(name='client')
 
 
   def status(self, env):
