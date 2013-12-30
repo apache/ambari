@@ -393,9 +393,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         });
         if (duplicated) {
           self.get('selectedConfigGroup.properties').forEach(function(property) {
-            var property = $.extend(false, {},property);
+            var property = App.ServiceConfigProperty.create($.extend(false, {}, property));
             property.set('group', newConfigGroupData);
-            properties.push(App.ServiceConfigProperty.create(property));
+            properties.push(property);
           });
           newConfigGroupData.set('properties', properties);
         } else {
