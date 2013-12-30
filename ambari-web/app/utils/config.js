@@ -1062,12 +1062,17 @@ App.config = Em.Object.create({
     availableConfigGroups = result;
     var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
         availableConfigGroups[0] : null;
+    var serviceName = App.Service.DisplayNames[serviceId];
     App.ModalPopup.show({
       classNames: [ 'sixty-percent-width-modal' ],
-      header: Em.I18n.t('config.group.selection.dialog.title').format(App.Service.DisplayNames[serviceId]),
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
-      warningMessage: null,
+      header: Em.I18n.t('config.group.selection.dialog.title').format(serviceName),
+      subTitle: Em.I18n.t('config.group.selection.dialog.subtitle').format(serviceName),
+      selectExistingGroupLabel: Em.I18n.t('config.group.selection.dialog.option.select').format(serviceName),
+      noGroups: Em.I18n.t('config.group.selection.dialog.no.groups').format(serviceName),
+      createNewGroupLabel: Em.I18n.t('config.group.selection.dialog.option.create').format(serviceName),
+      createNewGroupDescription: Em.I18n.t('config.group.selection.dialog.option.create.msg').format(serviceName),
+      warningMessage: '&nbsp;',
+      isWarning: false,
       optionSelectConfigGroup: true,
       optionCreateConfigGroup: function(){
         return !this.get('optionSelectConfigGroup');
@@ -1079,7 +1084,7 @@ App.config = Em.Object.create({
       selectedConfigGroup: selectedConfigGroup,
       newConfigGroupName: '',
       enablePrimary: function () {
-        return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').trim().length > 0 && !this.get('warningMessage'));
+        return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').trim().length > 0 && !this.get('isWarning'));
       }.property('newConfigGroupName', 'optionSelectConfigGroup', 'warningMessage'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
@@ -1115,15 +1120,18 @@ App.config = Em.Object.create({
         this.set('selectedConfigGroup', configGroup);
       },
       validate: function () {
-        var msg = null;
+        var msg = '&nbsp;';
+        var isWarning = false;
         var optionSelect = this.get('optionSelectConfigGroup');
         if (!optionSelect) {
           var nn = this.get('newConfigGroupName');
           if (nn && configGroups.mapProperty('name').contains(nn)) {
             msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+            isWarning = true;
           }
         }
         this.set('warningMessage', msg);
+        this.set('isWarning', isWarning);
       }.observes('newConfigGroupName', 'optionSelectConfigGroup'),
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/configs/selectCreateConfigGroup'),
@@ -1171,8 +1179,6 @@ App.config = Em.Object.create({
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('config.group.host.switch.dialog.title'),
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
       configGroups: configGroups,
       selectedConfigGroup: selectedGroup,
       enablePrimary: function () {
