@@ -360,9 +360,9 @@ App.MainHostSummaryView = Em.View.extend({
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
     }.property('workStatus', 'isDataNodeRecommissionAvailable', 'this.content.isDecommissioning'),
 
-    disabled: function() {
-      return this.get('parentView.content.isNotHeartBeating')?'disabled':'';
-    }.property('parentView.content.isNotHeartBeating'),
+    disabled: function () {
+      return (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") ? 'disabled' : '';
+    }.property('parentView.content.healthClass'),
     /**
      * For Upgrade failed state
      */
