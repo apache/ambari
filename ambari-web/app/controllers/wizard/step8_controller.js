@@ -1485,6 +1485,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configGroups = this.get('content.configGroups').filterProperty('isDefault', false);
     var clusterName = this.get('clusterName');
     var sendData = [];
+    var updateData = [];
     var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
     configGroups.forEach(function (configGroup) {
       var groupConfigs = [];
@@ -1504,10 +1505,25 @@ App.WizardStep8Controller = Em.Controller.extend({
         groupConfigs.push(Em.Object.create(property));
       });
       groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs);
-      sendData.push({"ConfigGroup": groupData});
+      // check for group from installed service
+      if (configGroup.isForUpdate === true) {
+        // if group is a new one, create it
+        if (!configGroup.id) {
+          sendData.push({"ConfigGroup": groupData});
+        } else {
+          // update an existing group
+          groupData.id = configGroup.id;
+          updateData.push({"ConfigGroup": groupData});
+        }
+      } else {
+        sendData.push({"ConfigGroup": groupData});
+      }
     }, this);
     if (sendData.length > 0) {
       this.applyConfigurationGroups(sendData);
+    }
+    if (updateData.length > 0) {
+      this.applyInstalledServicesConfigurationGroup(updateData);
     }
   },
 
@@ -1517,6 +1533,12 @@ App.WizardStep8Controller = Em.Controller.extend({
       type: 'POST',
       url: url,
       data: JSON.stringify(sendData)
+    });
+  },
+
+  applyInstalledServicesConfigurationGroup: function (updateData) {
+    updateData.forEach(function(item) {
+      App.router.get('mainServiceInfoConfigsController').putConfigGroupChanges(item);
     });
   },
 

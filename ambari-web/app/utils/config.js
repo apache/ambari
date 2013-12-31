@@ -391,6 +391,7 @@ App.config = Em.Object.create({
         configData.overrides = stored.overrides;
         configData.filename = stored.filename;
         configData.description = stored.description;
+        configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
       } else if (!preDefined && stored) {
 
         configData = {
@@ -411,6 +412,7 @@ App.config = Em.Object.create({
         this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
       } else if (preDefined && !stored) {
         configData = preDefined;
+        configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
         if (isAdvanced) {
           var advanced = advancedConfigs.findProperty('name', configData.name);
           configData.value = configData.displayType == "password" ? '' : advanced.value;
@@ -814,6 +816,9 @@ App.config = Em.Object.create({
           var overrides = 'overrides';
           if (!(overrides in serviceConfig)) {
             serviceConfig.overrides = [];
+          }
+          if (!serviceConfig.overrides) {
+           serviceConfig.set('overrides', []);
           }
           console.log("loadServiceConfigHostsOverrides(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
           serviceConfig.overrides.push({value: hostOverrideValue, group: group});

@@ -78,6 +78,15 @@ App.ConfigGroup = Ember.Object.extend({
   hosts: [],
 
   /**
+   * In add service wizard we have installed services.
+   * And on deploy step we need to update existing config groups
+   * also mark it for be sure that config group data came from
+   * installed service.
+   *
+   */
+  isForUpdate: false,
+
+  /**
    * Provides a display friendly name. This includes trimming
    * names to a certain length.
    */

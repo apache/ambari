@@ -744,11 +744,15 @@ App.WizardController = Em.Controller.extend({
    */
   saveServiceConfigGroups: function (stepController) {
     var serviceConfigGroups = [];
+    var isForUpdate = false;
     stepController.get('stepConfigs').forEach(function (service) {
+      // mark group of installed service
+      if (service.get('selected') === false) isForUpdate = true;
       service.get('configGroups').forEach(function (configGroup) {
         var properties = [];
         configGroup.get('properties').forEach(function (property) {
           properties.push({
+            isRequiredByAgent: property.get('isRequiredByAgent'),
             name: property.get('name'),
             value: property.get('value'),
             filename: property.get('filename')
@@ -756,11 +760,13 @@ App.WizardController = Em.Controller.extend({
         });
         //configGroup copied into plain JS object to avoid Converting circular structure to JSON
         serviceConfigGroups.push({
+          id: configGroup.get('id'),
           name: configGroup.get('name'),
           description: configGroup.get('description'),
           hosts: configGroup.get('hosts'),
           properties: properties,
           isDefault: configGroup.get('isDefault'),
+          isForUpdate: isForUpdate,
           service: {id: configGroup.get('service.id')}
         });
       }, this)
