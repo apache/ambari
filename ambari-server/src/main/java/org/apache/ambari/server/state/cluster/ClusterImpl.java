@@ -38,12 +38,12 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
-import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostConfigMapping;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -1185,12 +1185,12 @@ public class ClusterImpl implements Cluster {
         }
 
         if (!map.isEmpty()) {
-          Map<String, List<HostConfigMappingEntity>> hostMappingsByType =
+          Map<String, List<HostConfigMapping>> hostMappingsByType =
               hostConfigMappingDAO.findSelectedHostsByTypes(clusterEntity.getClusterId(), types);
 
           for (Entry<String, DesiredConfig> entry : map.entrySet()) {
             List<DesiredConfig.HostOverride> hostOverrides = new ArrayList<DesiredConfig.HostOverride>();
-            for (HostConfigMappingEntity mappingEntity : hostMappingsByType.get(entry.getKey())) {
+            for (HostConfigMapping mappingEntity : hostMappingsByType.get(entry.getKey())) {
               hostOverrides.add(new DesiredConfig.HostOverride(mappingEntity.getHostName(),
                   mappingEntity.getVersion()));
             }
@@ -1238,7 +1238,7 @@ public class ClusterImpl implements Cluster {
       return Collections.emptyMap();
     }
 
-    List<HostConfigMappingEntity> mappingEntities =
+    Set<HostConfigMapping> mappingEntities =
         hostConfigMappingDAO.findSelectedByHosts(clusterEntity.getClusterId(), hostnames);
 
     Map<String, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<String, Map<String, DesiredConfig>>();
@@ -1247,7 +1247,7 @@ public class ClusterImpl implements Cluster {
       desiredConfigsByHost.put(hostname, new HashMap<String, DesiredConfig>());
     }
 
-    for (HostConfigMappingEntity mappingEntity : mappingEntities) {
+    for (HostConfigMapping mappingEntity : mappingEntities) {
       DesiredConfig desiredConfig = new DesiredConfig();
       desiredConfig.setVersion(mappingEntity.getVersion());
       desiredConfig.setServiceName(mappingEntity.getServiceName());

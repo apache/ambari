@@ -25,7 +25,6 @@ import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntityPK;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.List;
 

@@ -31,8 +31,10 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.serveraction.ServerActionManager;
@@ -187,6 +189,8 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("service"), ServiceResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("component"), ComponentResourceProvider.class)
         .build(ResourceProviderFactory.class)); 
 
     

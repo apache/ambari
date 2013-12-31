@@ -56,10 +56,14 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
+
 /**
  * Resource provider for component resources.
  */
-class ComponentResourceProvider extends AbstractControllerResourceProvider {
+public class ComponentResourceProvider extends AbstractControllerResourceProvider {
 
 
   // ----- Property ID constants ---------------------------------------------
@@ -91,9 +95,10 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  ComponentResourceProvider(Set<String> propertyIds,
-                            Map<Resource.Type, String> keyPropertyIds,
-                            AmbariManagementController managementController) {
+  @AssistedInject
+  ComponentResourceProvider(@Assisted Set<String> propertyIds,
+                            @Assisted Map<Resource.Type, String> keyPropertyIds,
+                            @Assisted AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
@@ -126,6 +131,7 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
+  @Transactional
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 

@@ -1,14 +1,27 @@
 package org.apache.ambari.server.api.resources;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.anyObject;
+
 import org.apache.ambari.server.api.handlers.BaseManagementHandler;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
+import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * BaseResourceDefinition tests.
@@ -33,7 +46,23 @@ public class BaseResourceDefinitionTest {
     TreeNode<Resource> serviceNode = new TreeNodeImpl<Resource>(parentNode, service, "service1");
 
     parentNode.setProperty("isCollection", "true");
-
+    
+    ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
+        .getPropertyIds(Resource.Type.Service),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Service),
+        managementController);
+    
+    expect(factory.getServiceResourceProvider(anyObject(Set.class),
+        anyObject(Map.class),
+        anyObject(AmbariManagementController.class))).andReturn(serviceResourceProvider);
+    
+    AbstractControllerResourceProvider.init(factory);
+    
+    replay(factory, managementController);
+    
     processor.process(null, serviceNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services");
 
     String href = serviceNode.getProperty("href");

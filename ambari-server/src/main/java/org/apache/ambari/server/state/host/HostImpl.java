@@ -37,7 +37,6 @@ import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -47,6 +46,8 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
+import org.apache.ambari.server.state.HostConfigMapping;
+import org.apache.ambari.server.state.HostConfigMappingImpl;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
 import org.apache.ambari.server.state.HostHealthStatus;
@@ -1135,7 +1136,7 @@ public class HostImpl implements Host {
     if (null == user)
       throw new NullPointerException("User must be specified.");
     
-    HostConfigMappingEntity exist = getDesiredConfigEntity(clusterId, config.getType());
+    HostConfigMapping exist = getDesiredConfigEntity(clusterId, config.getType());
     if (null != exist && exist.getVersion().equals(config.getVersionTag())) {
       if (!selected) {
         exist.setSelected(0);
@@ -1148,22 +1149,22 @@ public class HostImpl implements Host {
     
     try {
       // set all old mappings for this type to empty
-      for (HostConfigMappingEntity e : hostConfigMappingDAO.findByType(clusterId,
+      for (HostConfigMapping e : hostConfigMappingDAO.findByType(clusterId,
           hostEntity.getHostName(), config.getType())) {
         e.setSelected(0);
         hostConfigMappingDAO.merge(e);
       }
       
-      HostConfigMappingEntity entity = new HostConfigMappingEntity();
-      entity.setClusterId(Long.valueOf(clusterId));
-      entity.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
-      entity.setHostName(hostEntity.getHostName());
-      entity.setSelected(1);
-      entity.setUser(user);
-      entity.setType(config.getType());
-      entity.setVersion(config.getVersionTag());
+      HostConfigMapping hostConfigMapping = new HostConfigMappingImpl();
+      hostConfigMapping.setClusterId(Long.valueOf(clusterId));
+      hostConfigMapping.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
+      hostConfigMapping.setHostName(hostEntity.getHostName());
+      hostConfigMapping.setSelected(1);
+      hostConfigMapping.setUser(user);
+      hostConfigMapping.setType(config.getType());
+      hostConfigMapping.setVersion(config.getVersionTag());
       
-      hostConfigMappingDAO.create(entity);
+      hostConfigMappingDAO.create(hostConfigMapping);
     }
     finally {
       writeLock.unlock();
@@ -1178,7 +1179,7 @@ public class HostImpl implements Host {
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId) {
     Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
 
-    for (HostConfigMappingEntity e : hostConfigMappingDAO.findSelected(
+    for (HostConfigMapping e : hostConfigMappingDAO.findSelected(
         clusterId, hostEntity.getHostName())) {
       
       DesiredConfig dc = new DesiredConfig();
@@ -1233,8 +1234,10 @@ public class HostImpl implements Host {
     return hostConfigMap;
   }
 
-  private HostConfigMappingEntity getDesiredConfigEntity(long clusterId, String type) {
-    return hostConfigMappingDAO.findSelectedByType(clusterId,
+  private HostConfigMapping getDesiredConfigEntity(long clusterId, String type) {
+    HostConfigMapping findSelectedByType = hostConfigMappingDAO.findSelectedByType(clusterId,
         hostEntity.getHostName(), type);
+    
+    return findSelectedByType;
   }
 }
