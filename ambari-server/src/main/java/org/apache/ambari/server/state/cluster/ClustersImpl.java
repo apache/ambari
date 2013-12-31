@@ -30,7 +30,6 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
-import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -104,30 +103,12 @@ public class ClustersImpl implements Clusters {
     LOG.info("Initializing the ClustersImpl");
   }
 
-  @Transactional
-  void loadClustersAndHosts() {
+  void checkLoaded() {
     if (!clustersLoaded) {
       w.lock();
       try {
         if (!clustersLoaded) {
-          for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
-            Cluster currentCluster = clusterFactory.create(clusterEntity);
-            clusters.put(clusterEntity.getClusterName(), currentCluster);
-            clustersById.put(currentCluster.getClusterId(), currentCluster);
-            clusterHostMap.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>()));
-          }
-
-          for (HostEntity hostEntity : hostDAO.findAll()) {
-            Host host = hostFactory.create(hostEntity, true);
-            hosts.put(hostEntity.getHostName(), host);
-            Set<Cluster> cSet = Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>());
-            hostClusterMap.put(hostEntity.getHostName(), cSet);
-
-            for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
-              clusterHostMap.get(clusterEntity.getClusterName()).add(host);
-              cSet.add(clusters.get(clusterEntity.getClusterName()));
-            }
-          }
+          loadClustersAndHosts();
         }
         clustersLoaded = true;
       } finally {
@@ -136,10 +117,33 @@ public class ClustersImpl implements Clusters {
     }
   }
 
+  @Transactional
+  void loadClustersAndHosts() {
+    for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
+      Cluster currentCluster = clusterFactory.create(clusterEntity);
+      clusters.put(clusterEntity.getClusterName(), currentCluster);
+      clustersById.put(currentCluster.getClusterId(), currentCluster);
+      clusterHostMap.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>()));
+    }
+
+    for (HostEntity hostEntity : hostDAO.findAll()) {
+      Host host = hostFactory.create(hostEntity, true);
+      hosts.put(hostEntity.getHostName(), host);
+      Set<Cluster> cSet = Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>());
+      hostClusterMap.put(hostEntity.getHostName(), cSet);
+
+      for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
+        clusterHostMap.get(clusterEntity.getClusterName()).add(host);
+        cSet.add(clusters.get(clusterEntity.getClusterName()));
+      }
+    }
+
+  }
+
   @Override
   public void addCluster(String clusterName)
       throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
 
     if (clusters.containsKey(clusterName)) {
       throw new DuplicateResourceException("Attempted to create a Cluster which already exists"
@@ -178,7 +182,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public Cluster getCluster(String clusterName)
       throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     r.lock();
     try {
       if (!clusters.containsKey(clusterName)) {
@@ -192,7 +196,7 @@ public class ClustersImpl implements Clusters {
 
   @Override
   public Cluster getClusterById(long id) throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     r.lock();
     try {
       if (!clustersById.containsKey(id)) {
@@ -214,7 +218,7 @@ public class ClustersImpl implements Clusters {
           + " for cluster " + clusterName);
     }
 
-    loadClustersAndHosts();
+    checkLoaded();
     r.lock();
     try {
       if (!clusters.containsKey(clusterName)) {
@@ -230,7 +234,7 @@ public class ClustersImpl implements Clusters {
   @Override
   @Transactional
   public List<Host> getHosts() {
-    loadClustersAndHosts();
+    checkLoaded();
     r.lock();
 
     try {
@@ -245,7 +249,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public Set<Cluster> getClustersForHost(String hostname)
       throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     r.lock();
     try {
       if (LOG.isDebugEnabled()) {
@@ -261,9 +265,7 @@ public class ClustersImpl implements Clusters {
 
   @Override
   public Host getHost(String hostname) throws AmbariException {
-    if (!clustersLoaded) {
-      loadClustersAndHosts();
-    }
+    checkLoaded();
     r.lock();
     try {
       if (!hosts.containsKey(hostname)) {
@@ -277,7 +279,7 @@ public class ClustersImpl implements Clusters {
 
   @Override
   public void addHost(String hostname) throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     String duplicateMessage = "Duplicate entry for Host"
         + ", hostName= " + hostname;
 
@@ -325,7 +327,7 @@ public class ClustersImpl implements Clusters {
   public void updateHostWithClusterAndAttributes(Map<String, Set<String>> hostClusters, Map<String,
       Map<String, String>> hostAttributes)
       throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     w.lock();
     try {
       if (hostClusters != null) {
@@ -389,7 +391,7 @@ public class ClustersImpl implements Clusters {
   @Transactional
   private Map<String, Host> getHostsMap(Collection<String> hostSet) throws
       HostNotFoundException {
-    loadClustersAndHosts();
+    checkLoaded();
     Map<String, Host> hostMap = new HashMap<String, Host>();
     r.lock();
     try {
@@ -408,7 +410,7 @@ public class ClustersImpl implements Clusters {
   @Transactional
   private Map<String, Cluster> getClustersMap(Collection<String> clusterSet) throws
       ClusterNotFoundException {
-    loadClustersAndHosts();
+    checkLoaded();
     Map<String, Cluster> clusterMap = new HashMap<String, Cluster>();
     r.lock();
     try {
@@ -429,7 +431,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public void mapHostToCluster(String hostname,
                                String clusterName) throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     w.lock();
 
     try {
@@ -485,7 +487,7 @@ public class ClustersImpl implements Clusters {
   @Override
   @Transactional
   public Map<String, Cluster> getClusters() {
-    loadClustersAndHosts();
+    checkLoaded();
     r.lock();
     try {
       return Collections.unmodifiableMap(clusters);
@@ -497,7 +499,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public void mapHostsToCluster(Set<String> hostnames,
                                              String clusterName) throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     w.lock();
     try {
       for (String hostname : hostnames) {
@@ -544,7 +546,7 @@ public class ClustersImpl implements Clusters {
   public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException {
     if (!clustersLoaded) {
-      loadClustersAndHosts();
+      checkLoaded();
     }
     r.lock();
 
@@ -564,7 +566,7 @@ public class ClustersImpl implements Clusters {
   @Override
   public void deleteCluster(String clusterName)
       throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
     w.lock();
     try {
       Cluster cluster = getCluster(clusterName);
@@ -590,7 +592,7 @@ public class ClustersImpl implements Clusters {
   public void unmapHostFromCluster(String hostname, String clusterName)
       throws AmbariException {
 
-    loadClustersAndHosts();
+    checkLoaded();
     
     w.lock();
 
@@ -642,7 +644,7 @@ public class ClustersImpl implements Clusters {
   
   @Override
   public void deleteHost(String hostname) throws AmbariException {
-    loadClustersAndHosts();
+    checkLoaded();
 
     if (!hosts.containsKey(hostname))
       return;
