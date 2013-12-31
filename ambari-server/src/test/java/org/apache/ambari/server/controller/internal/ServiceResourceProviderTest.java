@@ -451,13 +451,11 @@ public class ServiceResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-
-    AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Service,
-            propertyIds,
-            keyPropertyIds,
-            managementController);
+    
+    
+    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds,
+        keyPropertyIds,
+        managementController);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());
@@ -863,12 +861,9 @@ public class ServiceResourceProviderTest {
 
   public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.Service;
-
-    return (ServiceResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+    return new ServiceResourceProvider(PropertyHelper.getPropertyIds(type),
+            PropertyHelper.getKeyPropertyIds(type),
+            managementController);
   }
 
   public static void createServices(AmbariManagementController controller, Set<ServiceRequest> requests) throws AmbariException {

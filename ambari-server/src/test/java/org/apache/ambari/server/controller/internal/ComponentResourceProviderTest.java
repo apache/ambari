@@ -112,9 +112,7 @@ public class ComponentResourceProviderTest {
     replay(managementController, response, clusters, cluster, service, stackId, ambariMetaInfo,
         serviceComponentFactory, serviceComponent);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
+    ResourceProvider provider = new ComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
@@ -186,8 +184,7 @@ public class ComponentResourceProviderTest {
     replay(managementController, clusters, cluster, ambariMetaInfo, service,
         serviceComponent1, serviceComponent2, serviceComponent3, stackId, componentInfo);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
+    ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -292,8 +289,7 @@ public class ComponentResourceProviderTest {
         serviceComponent1, serviceComponent2, serviceComponent3, serviceComponentHost,
         requestStatusResponse, stackId);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
+    ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -326,8 +322,7 @@ public class ComponentResourceProviderTest {
     // replay
     replay(managementController);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
+    ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
@@ -467,8 +462,7 @@ public class ComponentResourceProviderTest {
   public static ComponentResourceProvider getComponentResourceProvider(AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.Component;
 
-    return (ComponentResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-        type,
+    return new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController);

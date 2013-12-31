@@ -54,7 +54,6 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -63,10 +62,14 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
+
 /**
  * Resource provider for service resources.
  */
-class ServiceResourceProvider extends AbstractControllerResourceProvider {
+public class ServiceResourceProvider extends AbstractControllerResourceProvider {
 
 
   // ----- Property ID constants ---------------------------------------------
@@ -107,9 +110,10 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
    * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  ServiceResourceProvider(Set<String> propertyIds,
-                          Map<Resource.Type, String> keyPropertyIds,
-                          AmbariManagementController managementController) {
+  @AssistedInject
+  public ServiceResourceProvider(@Assisted Set<String> propertyIds,
+                          @Assisted Map<Resource.Type, String> keyPropertyIds,
+                          @Assisted AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
@@ -139,6 +143,7 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
+  @Transactional
   public Set<Resource> getResources(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 

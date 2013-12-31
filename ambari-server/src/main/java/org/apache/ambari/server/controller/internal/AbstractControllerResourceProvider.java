@@ -94,9 +94,9 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
       case Cluster:
         return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Service:
-        return new ServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Component:
-        return new ComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Host:
         return resourceProviderFactory.getHostResourceProvider(propertyIds, keyPropertyIds, managementController);
       case HostComponent:

@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
+import org.apache.ambari.server.state.HostConfigMapping;
+import org.apache.ambari.server.state.HostConfigMappingImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,8 +55,8 @@ public class HostConfigMappingDAOTest {
     injector.getInstance(PersistService.class).stop();
   }
   
-  private HostConfigMappingEntity createEntity(long clusterId, String host, String type, String version) throws Exception {
-    HostConfigMappingEntity entity = new HostConfigMappingEntity();
+  private HostConfigMapping createEntity(long clusterId, String host, String type, String version) throws Exception {
+    HostConfigMapping entity = new HostConfigMappingImpl();
     entity.setClusterId(Long.valueOf(clusterId));
     entity.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
     entity.setHostName(host);
@@ -78,43 +78,60 @@ public class HostConfigMappingDAOTest {
 
   @Test
   public void testFindByType() throws Exception {
-    HostConfigMappingEntity source = createEntity(1L, "h1", "global", "v1");
+    HostConfigMapping source = createEntity(1L, "h1", "global", "v1");
     
-    List<HostConfigMappingEntity> target = hostConfigMappingDAO.findByType(1L, "h1", "global");
+    Set<HostConfigMapping> target = hostConfigMappingDAO.findByType(1L, "h1", "global");
 
     Assert.assertEquals("Expected one result", 1, target.size());
-    Assert.assertEquals("Expected version 'v1'", source.getVersion(), target.get(0).getVersion());
+    
+    for (HostConfigMapping item : target) 
+      Assert.assertEquals("Expected version 'v1'", source.getVersion(), item.getVersion());
   }
   
   @Test
   public void testMerge() throws Exception {
-    HostConfigMappingEntity source = createEntity(1L, "h1", "global", "v1");
+    HostConfigMapping source = createEntity(1L, "h1", "global", "v1");
     
-    List<HostConfigMappingEntity> target = hostConfigMappingDAO.findByType(1L, "h1", "global");
+    Set<HostConfigMapping> target = hostConfigMappingDAO.findByType(1L, "h1", "global");
 
     Assert.assertEquals("Expected one result", 1, target.size());
-    Assert.assertEquals("Expected version 'v1'", source.getVersion(), target.get(0).getVersion());
-    Assert.assertEquals("Expected selected flag 1", 1, target.get(0).isSelected());
     
-    HostConfigMappingEntity toChange = target.get(0);
+    HostConfigMapping toChange = null;
     
-    toChange.setSelected(0);
+    for (HostConfigMapping item: target) {
+      
+      Assert.assertEquals("Expected version 'v1'", source.getVersion(), item.getVersion());
+      Assert.assertEquals("Expected selected flag 1", 1, (int)item.getSelected());
+      
+      toChange = item;
+      
+      toChange.setSelected(0);
+      
+    }
+    
+
     
     hostConfigMappingDAO.merge(toChange);
     
     target = hostConfigMappingDAO.findByType(1L, "h1", "global");
 
     Assert.assertEquals("Expected one result", 1, target.size());
-    Assert.assertEquals("Expected version 'v1'", source.getVersion(), target.get(0).getVersion());
-    Assert.assertEquals("Expected selected flag 0", 0, target.get(0).isSelected());
+    
+    
+    for (HostConfigMapping item: target) {
+      
+      Assert.assertEquals("Expected version 'v1'", source.getVersion(), item.getVersion());
+      Assert.assertEquals("Expected selected flag 0", 0, (int)item.getSelected());
+      
+    }
   }
   
   @Test
   public void testFindSelected() throws Exception {
     createEntity(1L, "h1", "global", "version1");
-    HostConfigMappingEntity entity2 = createEntity(1L, "h1", "core-site", "version1");
+    HostConfigMapping entity2 = createEntity(1L, "h1", "core-site", "version1");
     
-    List<HostConfigMappingEntity> targets = hostConfigMappingDAO.findSelected(1L, "h1");
+    Set<HostConfigMapping> targets = hostConfigMappingDAO.findSelected(1L, "h1");
     Assert.assertEquals("Expected two entities", 2, targets.size());
     
     entity2.setSelected(0);
@@ -128,9 +145,9 @@ public class HostConfigMappingDAOTest {
   
   @Test
   public void testFindSelectedByType() throws Exception {
-    HostConfigMappingEntity entity1 = createEntity(1L, "h1", "global", "version1");
+    HostConfigMapping entity1 = createEntity(1L, "h1", "global", "version1");
     
-    HostConfigMappingEntity target = hostConfigMappingDAO.findSelectedByType(1L, "h1", "core-site");
+    HostConfigMapping target = hostConfigMappingDAO.findSelectedByType(1L, "h1", "core-site");
     Assert.assertNull("Expected null entity for type 'core-site'", target);
     
     target = hostConfigMappingDAO.findSelectedByType(1L, "h1", "global");
@@ -140,7 +157,7 @@ public class HostConfigMappingDAOTest {
     target.setSelected(0);
     hostConfigMappingDAO.merge(target);
     
-    HostConfigMappingEntity entity2 = createEntity(1L, "h1", "global", "version2");
+    HostConfigMapping entity2 = createEntity(1L, "h1", "global", "version2");
     
     target = hostConfigMappingDAO.findSelectedByType(1L, "h1", "global");
     Assert.assertNotNull("Expected non-null entity for type 'global'", target);
@@ -151,33 +168,11 @@ public class HostConfigMappingDAOTest {
   }
   
   @Test
-  public void testFindSelectedHostsByType() throws Exception {
-    HostConfigMappingEntity entity1 = createEntity(1L, "h1", "global", "v1");
-    HostConfigMappingEntity entity2 = createEntity(1L, "h2", "global", "v1");
+  public void testEmptyTable() throws Exception {
     
-    List<HostConfigMappingEntity> list = hostConfigMappingDAO.findSelectedHostsByType(1L, "global");
-    Assert.assertEquals("Expected two hosts", 2, list.size());
+    hostConfigMappingDAO.removeHost(1L, "h1");
+    HostConfigMapping target = hostConfigMappingDAO.findSelectedByType(1L, "h1", "core-site");
     
-    entity2.setSelected(0);
-    hostConfigMappingDAO.merge(entity2);
-    
-    list = hostConfigMappingDAO.findSelectedHostsByType(1L, "global");
-    Assert.assertEquals("Expected one host", 1, list.size());
-    
-    
-    list = hostConfigMappingDAO.findSelectedHostsByType(1L, "core-site");
-    Assert.assertEquals("Expected no matching hosts", 0, list.size());
-    
-    entity1.setSelected(0);
-    hostConfigMappingDAO.merge(entity1);
-    
-    list = hostConfigMappingDAO.findSelectedHostsByType(1L, "global");
-    Assert.assertEquals("Expected no selected hosts", 0, list.size());
+    Assert.assertEquals(null, target);
   }
-  
-
-  
-  
-  
-  
 }

@@ -531,7 +531,7 @@ public class AmbariManagementControllerImpl implements
   }
 
 
-  private synchronized Set<ClusterResponse> getClusters(ClusterRequest request)
+  private Set<ClusterResponse> getClusters(ClusterRequest request)
       throws AmbariException {
 
     Set<ClusterResponse> response = new HashSet<ClusterResponse>();
@@ -576,7 +576,7 @@ public class AmbariManagementControllerImpl implements
     return response;
   }
 
-  private synchronized Set<ServiceComponentHostResponse> getHostComponents(
+  private Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
@@ -704,7 +704,7 @@ public class AmbariManagementControllerImpl implements
   }
 
 
-  private synchronized Set<ConfigurationResponse> getConfigurations(
+  private Set<ConfigurationResponse> getConfigurations(
       ConfigurationRequest request) throws AmbariException {
     if (request.getClusterName() == null) {
       throw new IllegalArgumentException("Invalid arguments, cluster name"

@@ -62,9 +62,7 @@ public class AbstractResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Service,
+    AbstractResourceProvider provider = new ServiceResourceProvider(
             propertyIds,
             keyPropertyIds,
             managementController);
@@ -102,9 +100,7 @@ public class AbstractResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Service,
+    AbstractResourceProvider provider = new ServiceResourceProvider(
             propertyIds,
             keyPropertyIds,
             managementController);
@@ -119,9 +115,7 @@ public class AbstractResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    AbstractResourceProvider provider =
-        (AbstractResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-            Resource.Type.Service,
+    AbstractResourceProvider provider = new ServiceResourceProvider(
             propertyIds,
             keyPropertyIds,
             managementController);
