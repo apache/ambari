@@ -25,7 +25,8 @@ import urlparse
 
 def namenode(action=None, format=True):
   import params
-
+  #we need this directory to be present before any action(HA manual steps for
+  #additional namenode)
   if action == "configure":
     create_name_dirs(params.dfs_name_dir)
 

@@ -27,6 +27,8 @@ class NameNode(Script):
 
     self.install_packages(env)
     env.set_params(params)
+    #TODO remove when config action will be implemented
+    self.config(env)
 
   def start(self, env):
     import params

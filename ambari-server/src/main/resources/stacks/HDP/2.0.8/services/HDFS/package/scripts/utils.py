@@ -102,7 +102,7 @@ def hdfs_directory(name=None, owner=None, group=None,
                 try_sleep=try_sleep,
                 tries=tries,
                 not_if=format(
-                  "{dir_absent_in_stub} && {dfs_check_nn_status_cmd} && "
+                  "! {dir_absent_in_stub} && {dfs_check_nn_status_cmd} && "
                   "{dir_exists} && ! {namenode_safe_mode_off}"),
                 only_if=format(
                   "{dir_absent_in_stub} && {dfs_check_nn_status_cmd} && "
@@ -112,7 +112,7 @@ def hdfs_directory(name=None, owner=None, group=None,
   )
   Execute(record_dir_in_stub,
           user=params.hdfs_user,
-          only_if=format("! {dir_absent_in_stub}")
+          only_if=format("{dir_absent_in_stub}")
   )
 
   recursive = "-R" if recursive_chown else ""
@@ -128,7 +128,7 @@ def hdfs_directory(name=None, owner=None, group=None,
   for cmd in perm_cmds:
     ExecuteHadoop(cmd,
                   user=params.hdfs_user,
-                  only_if=format("{dir_absent_in_stub} && {dfs_check_nn_status_cmd} && {namenode_safe_mode_off} && {dir_exists}"),
+                  only_if=format("! {dir_absent_in_stub} && {dfs_check_nn_status_cmd} && {namenode_safe_mode_off} && {dir_exists}"),
                   try_sleep=try_sleep,
                   tries=tries,
                   conf_dir=params.hadoop_conf_dir

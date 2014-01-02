@@ -90,16 +90,17 @@ class HdfsServiceCheck(Script):
               tries=5
       )
 
-    if params.has_zkfc_hosts:
-      pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
-      pid_file = format("{pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
-      check_zkfc_process_cmd = format(
-        "ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
-      Execute(check_zkfc_process_cmd,
-              logoutput=True,
-              try_sleep=3,
-              tries=5
-      )
+    if params.is_namenode_master:
+      if params.has_zkfc_hosts:
+        pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
+        pid_file = format("{pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
+        check_zkfc_process_cmd = format(
+          "ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+        Execute(check_zkfc_process_cmd,
+                logoutput=True,
+                try_sleep=3,
+                tries=5
+        )
 
 
 if __name__ == "__main__":
