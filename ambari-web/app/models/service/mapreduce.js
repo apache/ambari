@@ -19,6 +19,7 @@ var App = require('app');
 
 App.MapReduceService = App.Service.extend({
   version: DS.attr('string'),
+  jobHistoryServer: DS.belongsTo('App.Host'),
   jobTracker: DS.belongsTo('App.Host'),
   taskTrackers: function () {
     return this.get('hostComponents').filterProperty('componentName', 'TASKTRACKER').mapProperty('host');

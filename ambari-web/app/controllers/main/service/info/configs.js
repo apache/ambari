@@ -1662,7 +1662,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
         jobTrackerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
         globalConfigs.push(jobTrackerHost);
-        break;
       case 'MAPREDUCE2':
         var historyServerHost = serviceConfigs.findProperty('name', 'hs_host');
         historyServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');

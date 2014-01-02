@@ -352,7 +352,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.setDefaultValue("(\\w*)(?=:)",jtHost);
         break;
       case 'mapreduce.history.server.http.address':
-        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'HISTORYSERVER').hostName;
         this.setDefaultValue("(\\w*)(?=:)",jtHost);
         break;
       case 'tasktracker_hosts':

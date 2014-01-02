@@ -245,6 +245,10 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       if (jobTrackerHost) {
         jobTrackerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
       }
+      var jobHistoryServerHost = mapReduceService.configs.findProperty('name', 'jobhistoryserver_host');
+      if (jobHistoryServerHost) {
+        jobHistoryServerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+      }
     }
     if (mapReduce2Service) {
       var jobHistoryServerHost = mapReduce2Service.configs.findProperty('name', 'jobhistoryserver_host');

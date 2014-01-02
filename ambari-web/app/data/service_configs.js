@@ -56,6 +56,7 @@ module.exports = [
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
+      App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
       App.ServiceConfigCategory.create({ name: 'JobTracker', displayName : 'JobTracker', hostComponentNames : ['JOBTRACKER']}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName : 'TaskTracker', hostComponentNames : ['TASKTRACKER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),

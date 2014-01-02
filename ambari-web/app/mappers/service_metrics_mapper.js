@@ -91,6 +91,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
+    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
     job_tracker_id: 'jobTrackerComponent.host_components[0].HostRoles.host_name',
     job_tracker_start_time: 'jobTrackerComponent.ServiceComponentInfo.StartTime',
     job_tracker_heap_used: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryUsed',
@@ -526,6 +527,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
             item.black_list_trackers.push(nj.hostname);
           });
         }
+      } else if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {
+        item.jobHistoryServerComponent = component;
+        finalConfig = jQuery.extend(finalConfig, mapReduceConfig);
       }
     });
     // Map

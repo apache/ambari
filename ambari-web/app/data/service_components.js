@@ -60,6 +60,14 @@ module.exports = new Ember.Set([
   },
   {
     service_name: 'MAPREDUCE',
+    component_name: 'HISTORYSERVER',
+    display_name: 'History Server',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  },
+  {
+    service_name: 'MAPREDUCE',
     component_name: 'TASKTRACKER',
     display_name: 'TaskTracker',
     isMaster: false,

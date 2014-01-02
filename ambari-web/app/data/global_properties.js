@@ -335,6 +335,20 @@ module.exports =
   /**********************************************MAPREDUCE***************************************/
     {
       "id": "puppet var",
+      "name": "hs_host",
+      "displayName": "History Server",
+      "description": "History Server",
+      "defaultValue": "",
+      "isOverridable": false,
+      "displayType": "masterHost",
+      "isRequiredByAgent": false,
+      "isVisible": true,
+      "serviceName": "MAPREDUCE",
+      "category": "HistoryServer",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
       "name": "jobtracker_host",
       "displayName": "JobTracker host",
       "value": "",
