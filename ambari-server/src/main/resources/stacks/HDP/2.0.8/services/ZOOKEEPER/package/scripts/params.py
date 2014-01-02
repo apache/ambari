@@ -52,6 +52,7 @@ zk_principal = zk_principal_name.replace('_HOST',hostname)
 java64_home = config['configurations']['global']['java64_home']
 
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts.sort()
 
 keytab_path = "/etc/security/keytabs"
 zk_keytab_path = format("{keytab_path}/zk.service.keytab")
