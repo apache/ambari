@@ -364,8 +364,6 @@ define service {
         max_check_attempts      5
 }
 
-{% endif %}
-
 {% if hostgroup_defs['tasktracker-servers'] %}
 define service {
         hostgroup_name          nagios-server
@@ -402,6 +400,7 @@ define service {
         max_check_attempts      3
 }
 
+{% endif %}
 {% endif %}
 
 {% if hostgroup_defs['resourcemanager'] %}
