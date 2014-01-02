@@ -33,7 +33,7 @@ oozie_keytab = config['configurations']['global']['oozie_keytab']
 oracle_driver_jar_name = "ojdbc6.jar"
 java_share_dir = "/usr/share/java"
 
-java_home = config['configurations']['global']['java64_home']
+java_home = config['hostLevelParams']['java_home']
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
 oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")

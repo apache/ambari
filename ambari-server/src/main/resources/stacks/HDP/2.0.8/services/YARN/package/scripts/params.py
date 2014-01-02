@@ -41,7 +41,7 @@ rm_host = config['clusterHostInfo']['rm_host'][0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = "8090"
 
-java64_home = config['configurations']['global']['java64_home']
+java64_home = config['hostLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
 hadoop_libexec_dir = '/usr/lib/hadoop/libexec'

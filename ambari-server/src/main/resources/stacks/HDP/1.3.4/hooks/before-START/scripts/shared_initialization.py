@@ -27,13 +27,23 @@ def setup_java():
   """
   import params
 
-  jdk_curl_target = format("{artifact_dir}/{jdk_bin}")
+  jdk_curl_target = format("{artifact_dir}/{jdk_name}")
   java_dir = os.path.dirname(params.java_home)
   java_exec = format("{java_home}/bin/java")
-  Execute(format("mkdir -p {artifact_dir} ; curl -kf --retry 10 {jdk_location}/{jdk_bin} -o {jdk_curl_target}"),
+  
+  if not params.jdk_name:
+    return
+  
+  Execute(format("mkdir -p {artifact_dir} ; curl -kf --retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
           path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}"))
-  Execute(format("mkdir -p {java_dir} ; chmod +x {jdk_curl_target}; cd {java_dir} ; echo A | {jdk_curl_target} -noregister > /dev/null 2>&1"),
+
+  if params.jdk_name.endswith(".bin"):
+    install_cmd = format("mkdir -p {java_dir} ; chmod +x {jdk_curl_target}; cd {java_dir} ; echo A | {jdk_curl_target} -noregister > /dev/null 2>&1")
+  elif params.jdk_name.endswith(".gz"):
+    install_cmd = format("mkdir -p {java_dir} ; cd {java_dir} ; tar -xf {jdk_curl_target} > /dev/null 2>&1")
+  
+  Execute(install_cmd,
           path = ["/bin","/usr/bin/"],
           not_if = format("test -e {java_exec}")
   )
@@ -44,13 +54,15 @@ def setup_java():
         not_if =format("test -e {jce_curl_target}"),
         ignore_failures = True
   )
-  security_dir = format("{java_home}/jre/lib/security")
-  extract_cmd = format("rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q {jce_curl_target}")
-  Execute(extract_cmd,
-        only_if = format("test -e {security_dir} && test -f {jce_curl_target}"),
-        cwd  = security_dir,
-        path = ['/bin/','/usr/bin']
-  )
+  
+  if params.security_enabled:
+    security_dir = format("{java_home}/jre/lib/security")
+    extract_cmd = format("rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q {jce_curl_target}")
+    Execute(extract_cmd,
+          only_if = format("test -e {security_dir} && test -f {jce_curl_target}"),
+          cwd  = security_dir,
+          path = ['/bin/','/usr/bin']
+    )
 
 def setup_hadoop():
   """

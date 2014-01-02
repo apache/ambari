@@ -111,9 +111,7 @@ define hdp::package::process_pkg(
   debug("##Packages list: $packages_list")
 
   if (($java_needed == true) and ($ensure == 'present')){
-    hdp::java::package{ $name:
-      size                 => $size
-    }
+    hdp::java::package{ $name:}
   }
 
   if (($lzo_needed == true) and ($ensure == 'present')){

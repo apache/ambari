@@ -32,5 +32,5 @@ smokeuser = config['configurations']['global']['smokeuser']
 user_group = config['configurations']['global']['user_group']
 
 # not supporting 32 bit jdk.
-java64_home = config['configurations']['global']['java64_home']
+java64_home = config['hostLevelParams']['java_home']
 hadoop_home = "/usr"

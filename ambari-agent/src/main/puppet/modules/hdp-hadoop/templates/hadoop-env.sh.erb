@@ -24,7 +24,7 @@
 # remote nodes.
 
 # The java implementation to use.  Required.
-export JAVA_HOME=<%=scope.function_hdp_java_home()%>
+export JAVA_HOME=<%=scope.function_hdp_template_var("::hdp::params::java64_home")%>
 export HADOOP_HOME_WARN_SUPPRESS=1
 
 # Hadoop Configuration Directory

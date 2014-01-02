@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_HOME=<%=scope.function_hdp_java_home()%>
+JAVA_HOME=<%=scope.function_hdp_template_var("::hdp::params::java64_home")%>
 HADOOP_HOME=${HADOOP_HOME:-<%=scope.function_hdp_template_var("::hdp::params::hadoop_home")%>}

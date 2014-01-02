@@ -185,6 +185,9 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
         hostLevelParams = new TreeMap<String, String>();
       }
       hostLevelParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
+      hostLevelParams.put(JAVA_HOME, amc.getJavaHome());
+      hostLevelParams.put(JDK_NAME, amc.getJDKName());
+      hostLevelParams.put(JCE_NAME, amc.getJCEName());
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION,stackId.getStackVersion());
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
@@ -330,6 +333,9 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
       hostLevelParams = new TreeMap<String, String>();
     }
     hostLevelParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
+    hostLevelParams.put(JAVA_HOME, amc.getJavaHome());
+    hostLevelParams.put(JDK_NAME, amc.getJDKName());
+    hostLevelParams.put(JCE_NAME, amc.getJCEName());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION,stackId.getStackVersion());
     hostLevelParams.putAll(amc.getRcaParameters());
@@ -534,6 +540,9 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
     // TODO: Move parameter population to org.apache.ambari.server.controller.AmbariManagementControllerImpl.createAction()
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
+    hostParams.put(JAVA_HOME, amc.getJavaHome());
+    hostParams.put(JDK_NAME, amc.getJDKName());
+    hostParams.put(JCE_NAME, amc.getJCEName());
     hostParams.put(STACK_NAME, stackId.getStackName());
     hostParams.put(STACK_VERSION, stackId.getStackVersion());
     hostParams.put(DB_NAME, amc.getServerDB());

@@ -145,6 +145,9 @@ public class AmbariManagementControllerImpl implements
   final private static int REPO_URL_READ_TIMEOUT = 500;
 
   final private String jdkResourceUrl;
+  final private String javaHome;
+  final private String jdkName;
+  final private String jceName;
   final private String ojdbcUrl;
   final private String serverDB;
   final private String mysqljdbcUrl;
@@ -173,7 +176,10 @@ public class AmbariManagementControllerImpl implements
         this.masterProtocol = "http";
         this.masterPort = configs.getClientApiPort();
       }  
-      this.jdkResourceUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION);    
+      this.jdkResourceUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION);
+      this.javaHome = configs.getJavaHome();
+      this.jdkName = configs.getJDKName();
+      this.jceName = configs.getJCEName();
       this.ojdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName());
       this.mysqljdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName());
      
@@ -182,7 +188,10 @@ public class AmbariManagementControllerImpl implements
       this.masterProtocol = null;
       this.masterPort = null;
       
-      this.jdkResourceUrl = null; 
+      this.jdkResourceUrl = null;
+      this.javaHome = null;
+      this.jdkName = null;
+      this.jceName = null;
       this.ojdbcUrl = null;
       this.mysqljdbcUrl = null;
       this.serverDB = null;
@@ -2530,6 +2539,21 @@ public class AmbariManagementControllerImpl implements
   @Override
   public String getJdkResourceUrl() {
     return jdkResourceUrl;
+  }
+
+  @Override
+  public String getJavaHome() {
+    return javaHome;
+  }
+
+  @Override
+  public String getJDKName() {
+    return jdkName;
+  }
+
+  @Override
+  public String getJCEName() {
+    return jceName;
   }
 
   @Override

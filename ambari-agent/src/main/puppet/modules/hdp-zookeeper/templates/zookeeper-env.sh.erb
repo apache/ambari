@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-export JAVA_HOME=<%=scope.function_hdp_java_home()%>
+export JAVA_HOME=<%=scope.function_hdp_template_var("::hdp::params::java64_home")%>
 export ZOO_LOG_DIR=<%=scope.function_hdp_template_var("zk_log_dir")%>
 export ZOOPIDFILE=<%=scope.function_hdp_template_var("zk_pid_file")%>
 export SERVER_JVMFLAGS=<%=scope.function_hdp_template_var("zk_server_heapsize")%>

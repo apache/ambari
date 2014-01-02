@@ -49,7 +49,7 @@ zk_primary_name = "zookeeper"
 zk_principal_name = "zookeeper/_HOST@EXAMPLE.COM"
 zk_principal = zk_principal_name.replace('_HOST',hostname)
 
-java64_home = config['configurations']['global']['java64_home']
+java64_home = config['hostLevelParams']['java_home']
 
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()

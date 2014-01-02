@@ -20,7 +20,7 @@ export HADOOP_YARN_HOME=<%=scope.function_hdp_template_var("hadoop_yarn_home")%>
 export YARN_LOG_DIR=<%=scope.function_hdp_template_var("yarn_log_dir_prefix")%>/$USER
 export YARN_PID_DIR=<%=scope.function_hdp_template_var("yarn_pid_dir_prefix")%>/$USER
 export HADOOP_LIBEXEC_DIR=<%=scope.function_hdp_template_var("hadoop_libexec_dir")%>
-export JAVA_HOME=<%=scope.function_hdp_java_home()%>
+export JAVA_HOME=<%=scope.function_hdp_template_var("::hdp::params::java64_home")%>
 
 # User for YARN daemons
 export HADOOP_YARN_USER=${HADOOP_YARN_USER:-yarn}

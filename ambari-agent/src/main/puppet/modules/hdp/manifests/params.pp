@@ -261,18 +261,14 @@ class hdp::params()
   $host_address = undef 
 
   ##### java 
-  $java32_home = hdp_default("java32_home","/usr/jdk32/jdk1.6.0_31")
-  $java64_home = hdp_default("java64_home","/usr/jdk64/jdk1.6.0_31")
+  $java64_home = hdp_default("java_home")
   
   $wipeoff_data =  hdp_default("wipeoff_data",false) 
 
   $jdk_location = hdp_default("jdk_location","http://download.oracle.com/otn-pub/java/jdk/6u31-b03")
-  $jdk_bins = hdp_default("jdk_bins",{
-    32 => "jdk-6u31-linux-i586.bin",
-    64 => "jdk-6u31-linux-x64.bin"
-  })
+  $jdk_name = hdp_default("jdk_name","")
 
-  $jce_policy_zip = "jce_policy-6.zip"
+  $jce_policy_zip = hdp_default("jce_name","")
   $jce_location = hdp_default("jce_location","http://download.oracle.com/otn-pub/java/jce_policy/6")
   $server_db_name = hdp_default("db_name", "postgres")
   $oracle_jdbc_url = hdp_default("oracle_jdbc_url", "")

@@ -245,6 +245,9 @@ public class ExecutionCommand extends AgentCommand {
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";
     String JDK_LOCATION = "jdk_location";
+    String JAVA_HOME = "java_home";
+    String JDK_NAME = "jdk_name";
+    String JCE_NAME = "jce_name";
     String MYSQL_JDBC_URL = "mysql_jdbc_url";
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";

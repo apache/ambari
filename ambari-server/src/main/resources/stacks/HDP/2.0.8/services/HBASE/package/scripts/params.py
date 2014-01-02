@@ -37,7 +37,7 @@ user_group = config['configurations']['global']['user_group']
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
-java64_home = config['configurations']['global']['java64_home']
+java64_home = config['hostLevelParams']['java_home']
 
 log_dir = config['configurations']['global']['hbase_log_dir']
 master_heapsize = config['configurations']['global']['hbase_master_heapsize']

@@ -1795,13 +1795,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "write_property")
+  @patch.object(ambari_server, "remove_property")
+  @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "get_JAVA_HOME")
   @patch.object(ambari_server, "get_ambari_properties")
   @patch("shutil.copyfile")
   @patch("sys.exit")
   def test_download_jdk(self, exit_mock, copyfile_mock, get_ambari_properties_mock, get_JAVA_HOME_mock, \
-                        print_info_msg_mock, write_property_mock, \
+                        print_info_msg_mock, get_validated_string_input_mock, remove_property_mock, write_property_mock, \
                         run_os_command_mock, get_YN_input_mock, track_jdk_mock,
                         path_existsMock, path_isfileMock, statMock):
     args = MagicMock()
@@ -1817,20 +1819,22 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       # Expected
       self.assertTrue(get_ambari_properties_mock.called)
       pass
-      # Test case: JDK already exists
+    # Test case: JDK already exists
     p = MagicMock()
     get_ambari_properties_mock.return_value = p
     p.__getitem__.return_value = "somewhere"
     get_JAVA_HOME_mock.return_value = True
-    path_existsMock.side_effect = [True,False]
+    get_YN_input_mock.return_value = False
+    path_existsMock.side_effect = [False,False]
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
     # Test case: java home setup
-    path_existsMock.side_effect = [True,False]
+    path_existsMock.side_effect = [True,False,False]
     get_JAVA_HOME_mock.return_value = False
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
     self.assertTrue(write_property_mock.called)
+    self.assertTrue(remove_property_mock.call_count == 2)
     # Test case: JDK file does not exist, property not defined
     path_existsMock.side_effect = None
     path_existsMock.return_value = False
@@ -1848,6 +1852,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.__getitem__.return_value = "somewhere"
     p.__getitem__.side_effect = None
     path_existsMock.return_value = False
+    get_YN_input_mock.return_value = True
+    get_validated_string_input_mock.return_value = "1"
     run_os_command_mock.return_value = (0, "Wrong out", None)
     try:
       ambari_server.download_jdk(args)
@@ -1875,11 +1881,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Test case: JDK file does not exist, jdk-location argument passed
     exit_mock.reset_mock()
+    write_property_mock.reset_mock()
+    remove_property_mock.reset_mock()
     get_YN_input_mock.reset_mock()
     get_YN_input_mock.return_value = True
-    args.jdk_location = "/existing/jdk/file"
-    path_existsMock.side_effect = [False, False, True, False, False, False]
+    args.jdk_location = "/existing/jdk/jdk-6u31-linux-x64.bin"
+    path_existsMock.side_effect = [False, True]
     ambari_server.download_jdk(args)
+    self.assertTrue(write_property_mock.call_count == 1)
+    self.assertTrue(remove_property_mock.call_count == 2)
     self.assertTrue(copyfile_mock.called)
 
     copyfile_mock.reset_mock()
@@ -1888,7 +1898,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.__getitem__.return_value = "somewhere"
     p.__getitem__.side_effect = None
     args.jdk_location = "/existing/jdk/file"
-    path_existsMock.side_effect = [False, False, True, False, False, False]
+    path_existsMock.side_effect = [False, True]
 
     def copyfile_side_effect(s, d):
       raise Exception("TerribleException")
@@ -1906,19 +1916,22 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = p
     p.__getitem__.return_value = "somewhere"
     get_JAVA_HOME_mock.return_value = True
-    path_existsMock.return_value = True
+    get_YN_input_mock.return_value = False
+    path_existsMock.side_effect = [False, True]
     with patch.object(ambari_server, "download_jce_policy") as download_jce_policy_mock:
       rcode = ambari_server.download_jdk(args)
-      self.assertTrue(download_jce_policy_mock.called)
+      self.assertFalse(download_jce_policy_mock.called)
 
     # Test case: Update JAVA_HOME location using command: ambari-server setup -j %NEW_LOCATION%
     write_property_mock.reset_mock()
+    remove_property_mock.reset_mock()
     args.java_home = "somewhere"
     path_existsMock.return_value = True
-    path_existsMock.side_effect = [True,False]
+    path_existsMock.side_effect = [True,False,False]
     get_JAVA_HOME_mock.return_value = True
     ambari_server.download_jdk(args)
-    self.assertTrue(write_property_mock.called)
+    self.assertTrue(write_property_mock.call_count == 1)
+    self.assertTrue(remove_property_mock.call_count == 2)
 
     # Test case: Negative test case JAVA_HOME location should not be updated if -j option is supplied and
     # jce_policy file already exists in resources dir.
@@ -1933,6 +1946,27 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException as fe:
       # Expected
       self.assertFalse(write_property_mock.called)
+    # Test case: Setup ambari-server first time, Custom JDK selected, JDK exists
+    write_property_mock.reset_mock()
+    remove_property_mock.reset_mock()
+    path_existsMock.side_effect = [False,False,True]
+    get_validated_string_input_mock.return_value = "3"
+    get_JAVA_HOME_mock.return_value = False
+    rcode = ambari_server.download_jdk(args)
+    self.assertEqual(0, rcode)
+    self.assertTrue(write_property_mock.called)
+    self.assertTrue(remove_property_mock.call_count == 2)
+    # Test case: Setup ambari-server first time, Custom JDK selected, JDK not exists
+    write_property_mock.reset_mock()
+    remove_property_mock.reset_mock()
+    path_existsMock.side_effect = [False,False,False]
+    get_validated_string_input_mock.return_value = "3"
+    get_JAVA_HOME_mock.return_value = False
+    try:
+      ambari_server.download_jdk(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
       pass
 
 

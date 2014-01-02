@@ -79,6 +79,8 @@ public class Configuration {
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
   public static final String JAVA_HOME_KEY = "java.home";
+  public static final String JDK_NAME_KEY = "jdk.name";
+  public static final String JCE_NAME_KEY = "jce.name";
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
@@ -208,8 +210,6 @@ public class Configuration {
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/share/ambari/resources/";
   
-  public static final String JAVA_HOME_DEFAULT = "/usr/jdk64/jdk1.6.0_31";
-
   private static final String  ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
       
   private static final String CLIENT_SECURITY_DEFAULT = "local";
@@ -339,7 +339,7 @@ public class Configuration {
     configsMap.put(CLIENT_API_SSL_CRT_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
     configsMap.put(JAVA_HOME_KEY, properties.getProperty(
-        JAVA_HOME_KEY, JAVA_HOME_DEFAULT));
+        JAVA_HOME_KEY));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -764,7 +764,19 @@ public class Configuration {
   public String getOjdbcJarName() {
 	return properties.getProperty(OJDBC_JAR_NAME_KEY, OJDBC_JAR_NAME_DEFAULT);
   }
-  
+
+  public String getJavaHome() {
+    return properties.getProperty(JAVA_HOME_KEY);
+  }
+
+  public String getJDKName() {
+    return properties.getProperty(JDK_NAME_KEY);
+  }
+
+  public String getJCEName() {
+    return properties.getProperty(JCE_NAME_KEY);
+  }
+
   public String getServerDBName() {
 	return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
   }

@@ -19,7 +19,7 @@
 # Set environment variables here.
 
 # The java implementation to use. Java 1.6 required.
-export JAVA_HOME=<%=scope.function_hdp_java_home()%>
+export JAVA_HOME=<%=scope.function_hdp_template_var("::hdp::params::java64_home")%>
 
 # HBase Configuration directory
 export HBASE_CONF_DIR=${HBASE_CONF_DIR:-<%=scope.function_hdp_template_var("hbase_conf_dir")%>}

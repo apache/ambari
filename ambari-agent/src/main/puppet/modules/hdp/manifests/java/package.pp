@@ -18,57 +18,60 @@
 # under the License.
 #
 #
-define hdp::java::package(
-  $size
-)
+define hdp::java::package()
 {
     
   include hdp::params
   
   $security_enabled = $hdp::params::security_enabled
-  $jdk_bin = $hdp::params::jdk_bins[$size]
+  $jdk_bin = $hdp::params::jdk_name
   $artifact_dir = $hdp::params::artifact_dir
   $jdk_location = $hdp::params::jdk_location
   $jdk_curl_target = "${artifact_dir}/${jdk_bin}"
  
-  if ($size == "32") {
-    $java_home = $hdp::params::java32_home
-  } else {
-    $java_home = $hdp::params::java64_home
-  }
+  $java_home = $hdp::params::java64_home
   $java_exec = "${java_home}/bin/java"
   $java_dir = regsubst($java_home,'/[^/]+$','')
 
-  # curl -k - ignoring unverified server ssl sertificate,
-  $curl_cmd = "mkdir -p ${artifact_dir} ; curl -kf --retry 10 ${jdk_location}/${jdk_bin} -o ${jdk_curl_target}"
-  exec{ "${curl_cmd} ${name}":
-    command => $curl_cmd,
-    creates => $jdk_curl_target,
-    path    => ["/bin","/usr/bin/"],
-    unless  => "test -e ${java_exec}"
-  }
- 
-  $install_cmd = "mkdir -p ${java_dir} ; chmod +x ${jdk_curl_target}; cd ${java_dir} ; echo A | ${jdk_curl_target} -noregister > /dev/null 2>&1"
-  exec{ "${install_cmd} ${name}":
-    command => $install_cmd,
-    unless  => "test -e ${java_exec}",
-    path    => ["/bin","/usr/bin/"]
-  }
- 
-  file { "${java_exec} ${name}":
-  ensure => present
-  }   
- 
-  if ($security_enabled == true) {
-    hdp::java::jce::package{ $name:
-      java_home_dir  => $java_home,
-      jdk_location => $jdk_location,
-      jdk_bin => $jdk_bin
+  if ($jdk_bin != "") {
+    # curl -k - ignoring unverified server ssl sertificate,
+    $curl_cmd = "mkdir -p ${artifact_dir} ; curl -kf --retry 10 ${jdk_location}/${jdk_bin} -o ${jdk_curl_target}"
+    exec{ "${curl_cmd} ${name}":
+      command => $curl_cmd,
+      creates => $jdk_curl_target,
+      path    => ["/bin","/usr/bin/"],
+      unless  => "test -e ${java_exec}"
     }
-  }
 
-  anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> File["${java_exec} ${name}"] ->  anchor{"hdp::java::package::${name}::end":}
-  if ($security_enabled == true) {
-    File["${java_exec} ${name}"] -> Hdp::Java::Jce::Package[$name] 
-  }
+    if (hdp_str_ends_with($jdk_bin, ".bin")) {
+      $install_cmd = "mkdir -p ${java_dir} ; chmod +x ${jdk_curl_target}; cd ${java_dir} ; echo A | ${jdk_curl_target} -noregister > /dev/null 2>&1"
+    }
+    elsif (hdp_str_ends_with($jdk_bin, ".gz")) {
+      $install_cmd = "mkdir -p ${java_dir} ; cd ${java_dir} ; tar -xf ${jdk_curl_target} > /dev/null 2>&1"
+    }
+
+    exec{ "${install_cmd} ${name}":
+      command => $install_cmd,
+      unless  => "test -e ${java_exec}",
+      path    => ["/bin","/usr/bin/"]
+    }
+
+    exec{ "${java_exec} ${name}":
+      command => "test -e ${java_exec}",
+      path    => ["/bin","/usr/bin/"]
+    }
+
+    if ($security_enabled == true) {
+      hdp::java::jce::package{ $name:
+        java_home_dir  => $java_home,
+        jdk_location => $jdk_location,
+        jdk_bin => $jdk_bin
+      }
+    }
+
+    anchor{"hdp::java::package::${name}::begin":} -> Exec["${curl_cmd} ${name}"] ->  Exec["${install_cmd} ${name}"] -> Exec["${java_exec} ${name}"] ->  anchor{"hdp::java::package::${name}::end":}
+    if ($security_enabled == true) {
+      Exec["${java_exec} ${name}"] -> Hdp::Java::Jce::Package[$name]
+   }
+ }
 }

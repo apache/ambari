@@ -155,11 +155,11 @@ class PuppetExecutor:
     # After installing we must have jdk available for start/stop/smoke
     if command['roleCommand'] != "INSTALL":
       java64_home = None
-      if ('global' in command['configurations']) and ('java64_home' in command['configurations']['global']):
-        java64_home = str(command['configurations']['global']['java64_home']).strip()
+      if 'hostLevelParams' in command and 'java_home' in command['hostLevelParams']:
+        java64_home = str(command['hostLevelParams']['java_home']).strip()
       if java64_home is None or not self.isJavaAvailable(java64_home):
         if java64_home is None:
-          errMsg = "Cannot access JDK! Make sure java64_home is specified in global config"
+          errMsg = "Cannot access JDK! Make sure java_home is specified in global config"
         else:
           errMsg = JAVANOTVALID_MSG.format(java64_home)
         return {'stdout': '', 'stderr': errMsg, 'exitcode': 1}

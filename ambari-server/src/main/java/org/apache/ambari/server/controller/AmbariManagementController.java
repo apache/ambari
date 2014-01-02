@@ -450,6 +450,21 @@ public interface AmbariManagementController {
   public String getJdkResourceUrl();
 
   /**
+   * Getter for the java home, stored in ambari.properties
+   */
+  public String getJavaHome();
+
+  /**
+   * Getter for the jdk name, stored in ambari.properties
+   */
+  public String getJDKName();
+
+  /**
+   * Getter for the jce name, stored in ambari.properties
+   */
+  public String getJCEName();
+
+  /**
    * Getter for the name of server database
    */
   public String getServerDB();

@@ -72,7 +72,7 @@ nn_metrics_property = "FSNamesystem"
 clientPort = config['configurations']['global']['clientPort'] #ZK 
 
 
-java64_home = config['configurations']['global']['java64_home']
+java64_home = config['hostLevelParams']['java_home']
 security_enabled = config['configurations']['global']['security_enabled']
 
 nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")

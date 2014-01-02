@@ -485,10 +485,12 @@ define hdp::exec(
     logoutput   => $logoutput,
     cwd         => $cwd
   }
+
+  hdp::java::package{ $name:}
   
-  anchor{ "hdp::exec::${name}::begin":} -> Exec[$name] -> anchor{ "hdp::exec::${name}::end":} 
+  anchor{ "hdp::exec::${name}::begin":} -> Hdp::Java::Package[$name] -> Exec[$name] -> anchor{ "hdp::exec::${name}::end":}
   if (($initial_wait != undef) and ($initial_wait != "undef")) {
-    Anchor["hdp::exec::${name}::begin"] -> Hdp::Wait["service ${name}"] -> Exec[$name]
+    Anchor["hdp::exec::${name}::begin"] -> Hdp::Wait["service ${name}"] -> Hdp::Java::Package[$name] -> Exec[$name]
   }
 }
 

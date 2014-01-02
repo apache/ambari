@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_HOME=<%=scope.function_hdp_java_home()%>
+JAVA_HOME=<%=scope.function_hdp_template_var("::hdp::params::java64_home")%>
 HCAT_PID_DIR=<%=scope.function_hdp_template_var("::hcat_pid_dir")%>/
 HCAT_LOG_DIR=<%=scope.function_hdp_template_var("::hcat_log_dir")%>/
 HCAT_CONF_DIR=<%=scope.function_hdp_template_var("hcat_conf_dir")%>

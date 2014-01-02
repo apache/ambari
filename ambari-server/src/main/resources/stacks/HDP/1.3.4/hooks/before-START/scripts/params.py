@@ -24,10 +24,9 @@ import os
 config = Script.get_config()
 
 #java params
-java_home = "/usr/jdk64/jdk1.6.0_31"
 artifact_dir = "/tmp/HDP-artifacts/"
-jdk_bin = "jdk-6u31-linux-x64.bin"
-jce_policy_zip = "jce_policy-6.zip"
+jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
 #security params
@@ -124,7 +123,7 @@ else:
   rca_prefix = rca_disabled_prefix
 
 #hadoop-env.sh
-java_home = config['configurations']['global']['java64_home']
+java_home = config['hostLevelParams']['java_home']
 if System.get_instance().platform == "suse":
   jsvc_path = "/usr/lib/bigtop-utils"
 else:
