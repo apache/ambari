@@ -29,6 +29,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.Scheduler;
 import org.quartz.impl.StdSchedulerFactory;
+
+import java.io.File;
 import java.util.Properties;
 import static org.easymock.EasyMock.expect;
 import static org.mockito.Mockito.spy;
@@ -52,8 +54,6 @@ public class ExecutionSchedulerTest {
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, "db.driver");
     properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "db.url");
     properties.setProperty(Configuration.SERVER_JDBC_USER_NAME_KEY, "user");
-    properties.setProperty(Configuration.SERVER_JDBC_USER_PASSWD_KEY,
-      "ambari-server/src/test/resources/password.dat");
     properties.setProperty(Configuration.SERVER_DB_NAME_KEY, "derby");
 
     this.configuration = new Configuration(properties);
