@@ -24,6 +24,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
@@ -36,6 +37,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ConfigGroupDAOTest {
   private Injector injector;
@@ -191,13 +193,16 @@ public class ConfigGroupDAOTest {
     Assert.assertNotNull(configGroupEntity
       .getConfigGroupHostMappingEntities().iterator().next());
 
-    List<ConfigGroupHostMappingEntity> hostMappingEntities = configGroupHostMappingDAO
+    Set<ConfigGroupHostMapping> hostMappingEntities = configGroupHostMappingDAO
       .findByHost("h1");
 
     Assert.assertNotNull(hostMappingEntities);
-    Assert.assertEquals("h1", hostMappingEntities.get(0).getHostname());
-    Assert.assertEquals("centOS", hostMappingEntities.get(0).getHostEntity()
-      .getOsType());
+    
+    for (ConfigGroupHostMapping hostMappingEntity : hostMappingEntities) {
+    
+      Assert.assertEquals("h1", hostMappingEntity.getHostname());
+      Assert.assertEquals("centOS", hostMappingEntity.getHost().getOsType());
+    }
   }
 
   @Test

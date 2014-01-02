@@ -27,9 +27,9 @@ import javax.persistence.TypedQuery;
 
 import com.google.inject.Singleton;
 
+import org.apache.ambari.server.orm.cache.HostConfigMapping;
+import org.apache.ambari.server.orm.cache.HostConfigMappingImpl;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
-import org.apache.ambari.server.state.HostConfigMapping;
-import org.apache.ambari.server.state.HostConfigMappingImpl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 
@@ -71,7 +71,7 @@ public class HostConfigMappingDAO {
             
             for (HostConfigMappingEntity hostConfigMappingEntity : hostConfigMappingEntities) {
 
-              Set<HostConfigMapping> setByHost = hostConfigMappingByHost.get((hostConfigMappingEntity.getType()));
+              Set<HostConfigMapping> setByHost = hostConfigMappingByHost.get((hostConfigMappingEntity.getHostName()));
               
               if (setByHost == null) {
                 setByHost = new HashSet<HostConfigMapping>();

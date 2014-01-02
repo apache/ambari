@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.orm.cache;
+
 
 public class HostConfigMappingImpl implements HostConfigMapping {
   

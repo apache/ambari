@@ -27,6 +27,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
+import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
@@ -43,7 +45,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.HostConfigMapping;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -332,11 +333,11 @@ public class ClusterImpl implements Cluster {
     try {
       readLock.lock();
       try {
-        List<ConfigGroupHostMappingEntity> hostMappingEntities =
+        Set<ConfigGroupHostMapping> hostMappingEntities =
           configGroupHostMappingDAO.findByHost(hostname);
 
         if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
-          for (ConfigGroupHostMappingEntity entity : hostMappingEntities) {
+          for (ConfigGroupHostMapping entity : hostMappingEntities) {
             ConfigGroup configGroup = configGroupMap.get(entity.getConfigGroupId());
             if (configGroup != null && !configGroups.containsKey(configGroup.getId())) {
               configGroups.put(configGroup.getId(), configGroup);
