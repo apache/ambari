@@ -18,14 +18,15 @@
 
 package org.apache.ambari.server.controller.ganglia;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Ganglia property provider implementation for component resources.
@@ -61,6 +62,10 @@ public class GangliaComponentPropertyProvider extends GangliaPropertyProvider {
 
   @Override
   protected Set<String> getGangliaClusterNames(Resource resource, String clusterName) {
-    return Collections.singleton(GANGLIA_CLUSTER_NAME_MAP.get(getComponentName(resource)));
+    String component = getComponentName(resource);
+    
+    return new HashSet<String>(GANGLIA_CLUSTER_NAME_MAP.containsKey(component) ?
+        GANGLIA_CLUSTER_NAME_MAP.get(component) :
+          Collections.<String>emptyList());    
   }
 }

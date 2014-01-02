@@ -161997,7 +161997,7 @@ load_five
 0.00308333333333
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_idle
 1371116160
@@ -162140,7 +162140,7 @@ cpu_idle
 98.6988888889
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.ChannelCapacity
 1371116160
@@ -162262,7 +162262,7 @@ flume.CHANNEL.c1.ChannelCapacity
 10000.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.StartTime
 1371116160
@@ -162384,7 +162384,7 @@ flume.CHANNEL.c1.StartTime
 1.37117557853e+12
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.EventTakeAttemptCount
 1371116160
@@ -162506,7 +162506,7 @@ flume.CHANNEL.c1.EventTakeAttemptCount
 2778.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_speed
 1371116160
@@ -162646,7 +162646,7 @@ cpu_speed
 2266.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_wio
 1371116160
@@ -162789,7 +162789,7 @@ cpu_wio
 0.0777777777778
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 proc_run
 1371116160
@@ -162932,7 +162932,7 @@ proc_run
 1.13611111111
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.ConnectionCreatedCount
 1371116160
@@ -163054,7 +163054,7 @@ flume.SINK.sink1.ConnectionCreatedCount
 265.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 load_one
 1371116160
@@ -163197,7 +163197,7 @@ load_one
 0.00616666666667
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_num
 1371116160
@@ -163337,7 +163337,7 @@ cpu_num
 2.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.BatchCompleteCount
 1371116160
@@ -163459,7 +163459,7 @@ flume.SINK.sink1.BatchCompleteCount
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 bytes_in
 1371116160
@@ -163602,7 +163602,7 @@ bytes_in
 2497.8
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.EventDrainSuccessCount
 1371116160
@@ -163724,7 +163724,7 @@ flume.SINK.sink1.EventDrainSuccessCount
 1940.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 swap_total
 1371116160
@@ -163864,7 +163864,7 @@ swap_total
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.StartTime
 1371116160
@@ -163986,7 +163986,7 @@ flume.SINK.sink1.StartTime
 1.37117557853e+12
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_aidle
 1371116160
@@ -164129,7 +164129,7 @@ cpu_aidle
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_user
 1371116160
@@ -164272,7 +164272,7 @@ cpu_user
 0.721111111111
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.EventTakeSuccessCount
 1371116160
@@ -164394,7 +164394,7 @@ flume.CHANNEL.c1.EventTakeSuccessCount
 1940.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.EventDrainAttemptCount
 1371116160
@@ -164659,7 +164659,7 @@ bytes_out
 6786.544
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 disk_total
 1371116160
@@ -164802,7 +164802,7 @@ disk_total
 893.765
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.EventPutAttemptCount
 1371116160
@@ -164924,7 +164924,7 @@ flume.CHANNEL.c1.EventPutAttemptCount
 1960.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_nice
 1371116160
@@ -165067,7 +165067,7 @@ cpu_nice
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.StopTime
 1371116160
@@ -165332,7 +165332,7 @@ pkts_out
 34.58
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.ConnectionFailedCount
 1371116160
@@ -165454,7 +165454,7 @@ flume.SINK.sink1.ConnectionFailedCount
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 cpu_system
 1371116160
@@ -165597,7 +165597,7 @@ cpu_system
 0.525
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 part_max_used
 1371116160
@@ -165740,7 +165740,7 @@ part_max_used
 64.8
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.ChannelFillPercentage
 1371116160
@@ -165862,7 +165862,7 @@ flume.CHANNEL.c1.ChannelFillPercentage
 0.2
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.ChannelSize
 1371116160
@@ -165984,7 +165984,7 @@ flume.CHANNEL.c1.ChannelSize
 20.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 disk_free
 1371116160
@@ -166270,7 +166270,7 @@ load_fifteen
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.CHANNEL.c1.EventPutSuccessCount
 1371116160
@@ -166535,7 +166535,7 @@ mem_total
 7646152.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.BatchUnderflowCount
 1371116160
@@ -166657,7 +166657,7 @@ flume.SINK.sink1.BatchUnderflowCount
 97.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.ConnectionClosedCount
 1371116160
@@ -166779,7 +166779,7 @@ flume.SINK.sink1.ConnectionClosedCount
 264.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.StopTime
 1371116160
@@ -167473,7 +167473,7 @@ mem_shared
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 boottime
 1371116160
@@ -167756,7 +167756,7 @@ swap_free
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-39-113-33.ec2.internal
 flume.SINK.sink1.BatchEmptyCount
 1371116160
@@ -169732,7 +169732,7 @@ cpu_idle
 283.961388889
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.ChannelCapacity
 1371116160
@@ -173836,7 +173836,7 @@ rpc.metrics.stopMaster_avg_time
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.StartTime
 1371116160
@@ -176234,7 +176234,7 @@ rpc.metrics.replicateLogEntries_num_ops
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.EventTakeAttemptCount
 1371116160
@@ -183896,7 +183896,7 @@ rpc.metrics.getRegionInfo.aboveOneSec._num_ops
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.ConnectionCreatedCount
 1371116160
@@ -192695,7 +192695,7 @@ hbase.regionserver.compactionSize_avg_time
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.BatchCompleteCount
 1371116160
@@ -202205,7 +202205,7 @@ rpc.metrics.abort_avg_time
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.EventDrainSuccessCount
 1371116160
@@ -203890,7 +203890,7 @@ rpc.metrics.isRestoreSnapshotDone_num_ops
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.StartTime
 1371116160
@@ -208427,7 +208427,7 @@ cpu_user
 10.2077777778
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.EventTakeSuccessCount
 1371116160
@@ -210967,7 +210967,7 @@ hbase.RegionServerDynamicStatistics.tbl..META..cf.info.memstoreSizeMB
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.EventDrainAttemptCount
 1371116160
@@ -217492,7 +217492,7 @@ rpc.metrics.checkAndPut_avg_time
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.EventPutAttemptCount
 1371116160
@@ -218898,7 +218898,7 @@ metricssystem.MetricsSystem.publish_min_time
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.StopTime
 1371116160
@@ -222584,7 +222584,7 @@ hbase.regionserver.updatesBlockedSecondsHighWater_mean
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.ConnectionFailedCount
 1371116160
@@ -225974,7 +225974,7 @@ hbase.RegionServerDynamicStatistics.storeFileSizeMB.max
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.ChannelFillPercentage
 1371116160
@@ -227236,7 +227236,7 @@ rpc.metrics.increment.aboveOneSec._num_ops
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.ChannelSize
 1371116160
@@ -234620,7 +234620,7 @@ hbase.regionserver.updatesBlockedSeconds_75th_percentile
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.CHANNEL.c1.EventPutSuccessCount
 1371116160
@@ -235027,7 +235027,7 @@ mem_total
 22938456.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.BatchUnderflowCount
 1371116160
@@ -236288,7 +236288,7 @@ ugi.ugi.loginFailure_num_ops
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.ConnectionClosedCount
 1371116160
@@ -236979,7 +236979,7 @@ jvm.metrics.maxMemoryM
 1004.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.StopTime
 1371116160
@@ -250617,7 +250617,7 @@ hbase.regionserver.fsPreadLatency_avg_time
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 __SummaryInfo__
 flume.SINK.sink1.BatchEmptyCount
 1371116160
@@ -256149,7 +256149,7 @@ bytes_out
 637.831
 [~EOM]
 sum
-HDPSlaves
+HDPFlumeServer
 ip-10-40-205-86.ec2.internal
 disk_total
 1371116160

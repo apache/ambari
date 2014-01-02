@@ -54,21 +54,21 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
   /**
    * Map of Ganglia cluster names keyed by component type.
    */
-  public static final Map<String, String> GANGLIA_CLUSTER_NAME_MAP = new HashMap<String, String>();
+  static final Map<String, List<String>> GANGLIA_CLUSTER_NAME_MAP = new HashMap<String, List<String>>();
 
+  
   static {
-    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           "HDPNameNode");
-    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER",         "HDPJobTracker");
-    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER",        "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER",    "HDPResourceManager");
-    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER",        "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER",      "HDPHistoryServer");
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER",       "HDPHBaseMaster");
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_CLIENT",       "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("FLUME_SERVER",       "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("JOURNALNODE",        "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           Arrays.asList("HDPNameNode"));
+    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           Arrays.asList("HDPDataNode", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER",         Arrays.asList("HDPJobTracker"));
+    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER",        Arrays.asList("HDPTaskTracker", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER",    Arrays.asList("HDPResourceManager"));
+    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER",        Arrays.asList("HDPNodeManager", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER",      Arrays.asList("HDPHistoryServer"));
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER",       Arrays.asList("HDPHBaseMaster"));
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", Arrays.asList("HDPHBaseRegionServer", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("FLUME_SERVER",       Arrays.asList("HDPFlumeServer", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("JOURNALNODE",        Arrays.asList("HDPJournalNode", "HDPSlaves"));
   }
 
   protected final static Logger LOG =

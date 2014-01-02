@@ -42,7 +42,11 @@ jtnode_host = default("/clusterHostInfo/jtnode_host", [])
 rm_host = default("/clusterHostInfo/rm_host", [])
 hs_host = default("/clusterHostInfo/hs_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
+# datanodes are marked as slave_hosts
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+tt_hosts = default("/clusterHostInfo/mapred_tt_hosts", [])
+hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", [])
+flume_hosts = default("/clusterHostInfo/flume_hosts", [])
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
@@ -50,13 +54,19 @@ is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
+is_tasktracker = hostname in tt_hosts
+is_hbase_rs = hostname in hbase_rs_hosts
+is_flume = hostname in flume_hosts
 
 has_namenodes = not len(namenode_host) == 0
 has_jobtracker = not len(jtnode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
-has_histroryserver = not len(hs_host) == 0
+has_historyserver = not len(hs_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_slaves = not len(slave_hosts) == 0
+has_tasktracker = not len(tt_hosts) == 0
+has_hbase_rs = not len(hbase_rs_hosts) == 0
+has_flume = not len(flume_hosts) == 0
 
 if System.get_instance().platform == "suse":
   rrd_py_path = '/srv/www/cgi-bin'

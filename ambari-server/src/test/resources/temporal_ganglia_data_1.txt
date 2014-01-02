@@ -13,7 +13,7 @@ mapred.shuffleOutput.shuffle_exceptions_caught
 [~r]86
 [~EOM]
 sum
-HDPDataNode
+HDPJournalNode
 domU-12-31-39-0E-34-E1.compute-1.internal
 jvm.metrics.gcCount
 1358434800

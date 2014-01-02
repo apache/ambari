@@ -75,41 +75,70 @@ class GangliaMonitor(Script):
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
+
     if params.is_jtnode_master:
       generate_daemon("gmond",
                       name = "HDPJobTracker",
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
+
     if params.is_rmnode_master:
       generate_daemon("gmond",
                       name = "HDPResourceManager",
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
+
     if params.is_hsnode_master:
       generate_daemon("gmond",
                       name = "HDPHistoryServer",
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
+
     if params.is_hbase_master:
       generate_daemon("gmond",
                       name = "HDPHBaseMaster",
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
-    not_any_master = params.is_namenode_master == False and \
-                     params.is_jtnode_master == False and \
-                     params.is_rmnode_master == False and \
-                     params.is_hsnode_master == False and \
-                     params.is_hbase_master == False
-    if params.is_slave or not_any_master:
+
+    if params.is_hsnode_master:
       generate_daemon("gmond",
-                      name = "HDPSlaves",
+                      name = "HDPHistoryServer",
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
+
+    if params.is_slave:
+      generate_daemon("gmond",
+                      name = "HDPDataNode",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_tasktracker:
+      generate_daemon("gmond",
+                      name = "HDPTaskTracker",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_hbase_rs:
+      generate_daemon("gmond",
+                      name = "HDPHBaseRegionServer",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_flume:
+      generate_daemon("gmond",
+                      name = "HDPFlumeServer",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
 
     Directory(path.join(params.ganglia_dir, "conf.d"),
               owner="root",

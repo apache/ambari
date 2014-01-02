@@ -1,6 +1,6 @@
 1378331362.0
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.NumOpenConnections
 1378216155
@@ -8,7 +8,7 @@ rpc.rpc.NumOpenConnections
 1.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.NumAllSinks
 1378216155
@@ -16,7 +16,7 @@ metricssystem.MetricsSystem.NumAllSinks
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 part_max_used
 1378216155
@@ -24,21 +24,21 @@ part_max_used
 12.8
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.NewEpochAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.FinalizeLogSegmentNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs60s90thPercentileLatencyMicros
 1378216155
@@ -46,7 +46,7 @@ dfs.JournalNode.Syncs60s90thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 ugi.UgiMetrics.LoginFailureAvgTime
 1378216155
@@ -54,7 +54,7 @@ ugi.UgiMetrics.LoginFailureAvgTime
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs60s95thPercentileLatencyMicros
 1378216155
@@ -62,7 +62,7 @@ dfs.JournalNode.Syncs60s95thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.Sink_gangliaDropped
 1378216155
@@ -70,7 +70,7 @@ metricssystem.MetricsSystem.Sink_gangliaDropped
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 ugi.UgiMetrics.LoginSuccessNumOps
 1378216155
@@ -78,7 +78,7 @@ ugi.UgiMetrics.LoginSuccessNumOps
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.GcTimeMillisPS Scavenge
 1378216155
@@ -86,7 +86,7 @@ jvm.JvmMetrics.GcTimeMillisPS Scavenge
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs300sNumOps
 1378216155
@@ -94,7 +94,7 @@ dfs.JournalNode.Syncs300sNumOps
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.SnapshotAvgTime
 1378216155
@@ -102,7 +102,7 @@ metricssystem.MetricsSystem.SnapshotAvgTime
 0.266666666667
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.GetEditLogManifestAvgTime
 1378216155
@@ -110,7 +110,7 @@ rpcdetailed.rpcdetailed.GetEditLogManifestAvgTime
 2.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs300s95thPercentileLatencyMicros
 1378216155
@@ -118,21 +118,21 @@ dfs.JournalNode.Syncs300s95thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.JournalAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.StartLogSegmentNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcQueueTimeNumOps
 1378216155
@@ -140,7 +140,7 @@ rpc.rpc.RpcQueueTimeNumOps
 0.0266666666667
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.GcCountPS MarkSweep
 1378216155
@@ -148,7 +148,7 @@ jvm.JvmMetrics.GcCountPS MarkSweep
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs60sNumOps
 1378216155
@@ -156,7 +156,7 @@ dfs.JournalNode.Syncs60sNumOps
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.BatchesWritten
 1378216155
@@ -164,14 +164,14 @@ dfs.JournalNode.BatchesWritten
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.PrepareRecoveryAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.LastWriterEpoch
 1378216155
@@ -179,7 +179,7 @@ dfs.JournalNode.LastWriterEpoch
 5.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.MemNonHeapCommittedM
 1378216155
@@ -187,7 +187,7 @@ jvm.JvmMetrics.MemNonHeapCommittedM
 23.5625
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 load_five
 1378216155
@@ -195,7 +195,7 @@ load_five
 0.114
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs300s75thPercentileLatencyMicros
 1378216155
@@ -203,7 +203,7 @@ dfs.JournalNode.Syncs300s75thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.LogInfo
 1378216155
@@ -211,7 +211,7 @@ jvm.JvmMetrics.LogInfo
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.DroppedPubAll
 1378216155
@@ -219,14 +219,14 @@ metricssystem.MetricsSystem.DroppedPubAll
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.FinalizeLogSegmentAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.ThreadsTerminated
 1378216155
@@ -234,7 +234,7 @@ jvm.JvmMetrics.ThreadsTerminated
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.CallQueueLength
 1378216155
@@ -242,7 +242,7 @@ rpc.rpc.CallQueueLength
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs3600s99thPercentileLatencyMicros
 1378216155
@@ -250,7 +250,7 @@ dfs.JournalNode.Syncs3600s99thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.MemHeapUsedM
 1378216155
@@ -258,7 +258,7 @@ jvm.JvmMetrics.MemHeapUsedM
 9.5575423
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs3600s50thPercentileLatencyMicros
 1378216155
@@ -266,7 +266,7 @@ dfs.JournalNode.Syncs3600s50thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 load_one
 1378216155
@@ -274,7 +274,7 @@ load_one
 0.226
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.NumActiveSources
 1378216155
@@ -282,7 +282,7 @@ metricssystem.MetricsSystem.NumActiveSources
 5.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.PublishNumOps
 1378216155
@@ -290,7 +290,7 @@ metricssystem.MetricsSystem.PublishNumOps
 0.112380952381
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.ThreadsWaiting
 1378216155
@@ -298,7 +298,7 @@ jvm.JvmMetrics.ThreadsWaiting
 9.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcProcessingTimeNumOps
 1378216155
@@ -306,7 +306,7 @@ rpc.rpc.RpcProcessingTimeNumOps
 0.0266666666667
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.Sink_gangliaAvgTime
 1378216155
@@ -314,7 +314,7 @@ metricssystem.MetricsSystem.Sink_gangliaAvgTime
 25.4
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 swap_total
 1378216155
@@ -322,7 +322,7 @@ swap_total
 4128760.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcAuthenticationSuccesses
 1378216155
@@ -330,7 +330,7 @@ rpc.rpc.RpcAuthenticationSuccesses
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_user
 1378216155
@@ -338,14 +338,14 @@ cpu_user
 3.3
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.GetJournalStateNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs300s90thPercentileLatencyMicros
 1378216155
@@ -353,7 +353,7 @@ dfs.JournalNode.Syncs300s90thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.LogWarn
 1378216155
@@ -361,7 +361,7 @@ jvm.JvmMetrics.LogWarn
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.SnapshotNumOps
 1378216155
@@ -369,7 +369,7 @@ metricssystem.MetricsSystem.SnapshotNumOps
 0.674285714286
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcAuthenticationFailures
 1378216155
@@ -377,7 +377,7 @@ rpc.rpc.RpcAuthenticationFailures
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 bytes_in
 1378216155
@@ -385,14 +385,14 @@ bytes_in
 22547.48
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.AcceptRecoveryAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 mem_free
 1378216155
@@ -400,7 +400,7 @@ mem_free
 1365496.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 mem_cached
 1378216155
@@ -408,7 +408,7 @@ mem_cached
 589576.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 mem_shared
 1378216155
@@ -416,7 +416,7 @@ mem_shared
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.MemMaxM
 1378216155
@@ -424,7 +424,7 @@ jvm.JvmMetrics.MemMaxM
 910.25
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs300s50thPercentileLatencyMicros
 1378216155
@@ -432,7 +432,7 @@ dfs.JournalNode.Syncs300s50thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.MemNonHeapUsedM
 1378216155
@@ -440,7 +440,7 @@ jvm.JvmMetrics.MemNonHeapUsedM
 22.78144
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_idle
 1378216155
@@ -448,7 +448,7 @@ cpu_idle
 88.2
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.LastPromisedEpoch
 1378216155
@@ -456,7 +456,7 @@ dfs.JournalNode.LastPromisedEpoch
 5.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.ThreadsBlocked
 1378216155
@@ -464,14 +464,14 @@ jvm.JvmMetrics.ThreadsBlocked
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.AcceptRecoveryNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.GcTimeMillis
 1378216155
@@ -479,14 +479,14 @@ jvm.JvmMetrics.GcTimeMillis
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.PrepareRecoveryNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 disk_total
 1378216155
@@ -494,7 +494,7 @@ disk_total
 101.515
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcProcessingTimeAvgTime
 1378216155
@@ -502,7 +502,7 @@ rpc.rpc.RpcProcessingTimeAvgTime
 2.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.SentBytes
 1378216155
@@ -510,7 +510,7 @@ rpc.rpc.SentBytes
 1.01333333333
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.ThreadsNew
 1378216155
@@ -518,7 +518,7 @@ jvm.JvmMetrics.ThreadsNew
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 load_fifteen
 1378216155
@@ -526,7 +526,7 @@ load_fifteen
 0.026
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcQueueTimeAvgTime
 1378216155
@@ -534,7 +534,7 @@ rpc.rpc.RpcQueueTimeAvgTime
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.GcCountPS Scavenge
 1378216155
@@ -542,7 +542,7 @@ jvm.JvmMetrics.GcCountPS Scavenge
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 bytes_out
 1378216155
@@ -550,7 +550,7 @@ bytes_out
 5772.33
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs3600sNumOps
 1378216155
@@ -558,7 +558,7 @@ dfs.JournalNode.Syncs3600sNumOps
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.ThreadsTimedWaiting
 1378216155
@@ -566,7 +566,7 @@ jvm.JvmMetrics.ThreadsTimedWaiting
 3.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.MemHeapCommittedM
 1378216155
@@ -574,7 +574,7 @@ jvm.JvmMetrics.MemHeapCommittedM
 48.8125
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs3600s95thPercentileLatencyMicros
 1378216155
@@ -582,14 +582,14 @@ dfs.JournalNode.Syncs3600s95thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.StartLogSegmentAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.NumAllSources
 1378216155
@@ -597,7 +597,7 @@ metricssystem.MetricsSystem.NumAllSources
 5.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs3600s90thPercentileLatencyMicros
 1378216155
@@ -605,7 +605,7 @@ dfs.JournalNode.Syncs3600s90thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_system
 1378216155
@@ -613,7 +613,7 @@ cpu_system
 8.4
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 pkts_in
 1378216155
@@ -621,7 +621,7 @@ pkts_in
 24.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.LogError
 1378216155
@@ -629,7 +629,7 @@ jvm.JvmMetrics.LogError
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs3600s75thPercentileLatencyMicros
 1378216155
@@ -637,7 +637,7 @@ dfs.JournalNode.Syncs3600s75thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_num
 1378216155
@@ -645,7 +645,7 @@ cpu_num
 2.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 disk_free
 1378216155
@@ -653,7 +653,7 @@ disk_free
 92.428
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcAuthorizationSuccesses
 1378216155
@@ -661,7 +661,7 @@ rpc.rpc.RpcAuthorizationSuccesses
 0.0266666666667
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_nice
 1378216155
@@ -669,7 +669,7 @@ cpu_nice
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.NumActiveSinks
 1378216155
@@ -677,7 +677,7 @@ metricssystem.MetricsSystem.NumActiveSinks
 1.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 mem_total
 1378216155
@@ -685,7 +685,7 @@ mem_total
 4055144.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs60s50thPercentileLatencyMicros
 1378216155
@@ -693,7 +693,7 @@ dfs.JournalNode.Syncs60s50thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.CurrentLagTxns
 1378216155
@@ -701,7 +701,7 @@ dfs.JournalNode.CurrentLagTxns
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 proc_total
 1378216155
@@ -709,14 +709,14 @@ proc_total
 657.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.NewEpochNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 proc_run
 1378216155
@@ -724,7 +724,7 @@ proc_run
 4.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.Sink_gangliaNumOps
 1378216155
@@ -732,7 +732,7 @@ metricssystem.MetricsSystem.Sink_gangliaNumOps
 0.112380952381
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 swap_free
 1378216155
@@ -740,7 +740,7 @@ swap_free
 4128760.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.LogFatal
 1378216155
@@ -748,7 +748,7 @@ jvm.JvmMetrics.LogFatal
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 pkts_out
 1378216155
@@ -756,7 +756,7 @@ pkts_out
 35.4
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.ThreadsRunnable
 1378216155
@@ -764,7 +764,7 @@ jvm.JvmMetrics.ThreadsRunnable
 6.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_wio
 1378216155
@@ -772,7 +772,7 @@ cpu_wio
 0.1
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.RpcAuthorizationFailures
 1378216155
@@ -780,7 +780,7 @@ rpc.rpc.RpcAuthorizationFailures
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.BatchesWrittenWhileLagging
 1378216155
@@ -788,7 +788,7 @@ dfs.JournalNode.BatchesWrittenWhileLagging
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 ugi.UgiMetrics.LoginFailureNumOps
 1378216155
@@ -796,7 +796,7 @@ ugi.UgiMetrics.LoginFailureNumOps
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.TxnsWritten
 1378216155
@@ -804,7 +804,7 @@ dfs.JournalNode.TxnsWritten
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.GcTimeMillisPS MarkSweep
 1378216155
@@ -812,7 +812,7 @@ jvm.JvmMetrics.GcTimeMillisPS MarkSweep
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.BytesWritten
 1378216155
@@ -820,7 +820,7 @@ dfs.JournalNode.BytesWritten
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.LastWrittenTxId
 1378216155
@@ -828,7 +828,7 @@ dfs.JournalNode.LastWrittenTxId
 613.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.Sink_gangliaQsize
 1378216155
@@ -836,7 +836,7 @@ metricssystem.MetricsSystem.Sink_gangliaQsize
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 mem_buffers
 1378216155
@@ -844,7 +844,7 @@ mem_buffers
 129384.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 boottime
 1378216155
@@ -852,7 +852,7 @@ boottime
 1378290058.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs60s75thPercentileLatencyMicros
 1378216155
@@ -860,7 +860,7 @@ dfs.JournalNode.Syncs60s75thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 ugi.UgiMetrics.LoginSuccessAvgTime
 1378216155
@@ -868,7 +868,7 @@ ugi.UgiMetrics.LoginSuccessAvgTime
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_speed
 1378216155
@@ -876,7 +876,7 @@ cpu_speed
 3583.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 metricssystem.MetricsSystem.PublishAvgTime
 1378216155
@@ -884,7 +884,7 @@ metricssystem.MetricsSystem.PublishAvgTime
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpc.rpc.ReceivedBytes
 1378216155
@@ -892,7 +892,7 @@ rpc.rpc.ReceivedBytes
 6.34666666667
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 cpu_aidle
 1378216155
@@ -900,7 +900,7 @@ cpu_aidle
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs60s99thPercentileLatencyMicros
 1378216155
@@ -908,14 +908,14 @@ dfs.JournalNode.Syncs60s99thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.JournalNumOps
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 dfs.JournalNode.Syncs300s99thPercentileLatencyMicros
 1378216155
@@ -923,7 +923,7 @@ dfs.JournalNode.Syncs300s99thPercentileLatencyMicros
 0.0
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.GetEditLogManifestNumOps
 1378216155
@@ -931,14 +931,14 @@ rpcdetailed.rpcdetailed.GetEditLogManifestNumOps
 0.0266666666667
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.GetJournalStateAvgTime
 1378216155
 15
 [~EOM]
 sum
-HDPSlaves
+HDPJournalNode
 ip-10-39-113-33.ec2.internal
 jvm.JvmMetrics.GcCount
 1378216155
