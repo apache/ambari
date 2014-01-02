@@ -15,24 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.configgroup;
 
-import com.google.inject.assistedinject.Assisted;
-import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
+package org.apache.ambari.server.orm.cache;
+
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 
-import java.util.Map;
-
-public interface ConfigGroupFactory {
-  ConfigGroup createNew(@Assisted("cluster") Cluster cluster,
-                       @Assisted("name") String name,
-                       @Assisted("tag") String tag,
-                       @Assisted("description") String description,
-                       @Assisted("configs") Map<String, Config> configs,
-                       @Assisted("hosts") Map<String, Host> hosts);
-
-  ConfigGroup createExisting(Cluster cluster, ConfigGroupEntity entity);
+public interface ConfigGroupHostMapping {
+  
+  public Long getConfigGroupId();
+  public String getHostname();
+  public Host getHost();
+  public ConfigGroup getConfigGroup();
+  
+  public void setConfigGroupId(Long configGroupId);
+  public void setHostname(String hostname);
+  public void setHost(Host host);
+  public void setConfigGroup(ConfigGroup configGroup);
 }

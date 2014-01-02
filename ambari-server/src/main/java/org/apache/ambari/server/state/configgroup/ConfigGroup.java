@@ -20,13 +20,10 @@ package org.apache.ambari.server.state.configgroup;
 
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
-import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
 
-import java.util.List;
 import java.util.Map;
 
 /**
