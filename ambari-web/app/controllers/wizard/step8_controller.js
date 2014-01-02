@@ -84,9 +84,11 @@ App.WizardStep8Controller = Em.Controller.extend({
       App.router.get('mainAdminSecurityController').setSecurityStatus();
     }
     this.clearStep();
-    this.formatProperties();
-    this.loadGlobals();
-    this.loadConfigs();
+    if (this.get('content.serviceConfigProperties')) {
+      this.formatProperties();
+      this.loadGlobals();
+      this.loadConfigs();
+    }
     this.loadClusterInfo();
     this.loadServices();
     this.set('isSubmitDisabled', false);
