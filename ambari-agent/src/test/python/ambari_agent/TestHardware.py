@@ -23,6 +23,7 @@ from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
 from mock.mock import patch
 from ambari_agent.Facter import Facter
+import unittest
 
 class TestHardware(TestCase):
   def test_build(self):
@@ -157,4 +158,6 @@ lo        Link encap:Local Loopback
     self.assertEquals(result['netmask'], '255.255.255.0')
     self.assertEquals(result['interfaces'], 'eth0,eth1,lo')
 
+if __name__ == "__main__":
+  unittest.main()
 

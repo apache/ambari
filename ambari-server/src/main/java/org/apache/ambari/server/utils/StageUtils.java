@@ -250,8 +250,6 @@ public class StageUtils {
             //Add index of host to current host role
             hostsForComponentsHost.add(hostIndex);
           }
-          else
-            LOG.warn("Component " + componentName + " doesn't have mapped role name for cluster host info");
         }
       }
     }
