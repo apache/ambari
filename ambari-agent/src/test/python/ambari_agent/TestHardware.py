@@ -22,6 +22,8 @@ from unittest import TestCase
 from ambari_agent.Hardware import Hardware
 from mock.mock import patch
 from ambari_agent.Facter import Facter
+import unittest
+import socket
 
 class TestHardware(TestCase):
   def test_build(self):
@@ -75,14 +77,18 @@ class TestHardware(TestCase):
 
     self.assertEquals(result, None)
 
-  @patch.object(Facter, "getFqdn")
-  def test_fqdnDomainHostname(self, facter_getFqdn_mock):
-    facter_getFqdn_mock.return_value = "ambari.apache.org"
+  '''
+  This test validates the current behavior where hostname and fqdn are
+  the same.
+  '''
+  @patch.object(socket, "getfqdn")
+  def test_fqdnDomainHostname(self, socket_getFqdn_mock):
+    socket_getFqdn_mock.return_value = "ambari.apache.org"
     result = Facter().facterInfo()
 
-    self.assertEquals(result['hostname'], "ambari")
-    self.assertEquals(result['domain'], "apache.org")
-    self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
+    self.assertEquals(result['hostname'], "ambari.apache.org")
+    self.assertEquals(result['domain'], "")
+    self.assertEquals(result['fqdn'], (result['hostname'] + result['domain']))
 
   @patch.object(Facter, "setDataUpTimeOutput")
   def test_uptimeSecondsHoursDays(self, facter_setDataUpTimeOutput_mock):
@@ -154,4 +160,6 @@ lo        Link encap:Local Loopback
     self.assertEquals(result['netmask'], '255.255.255.0')
     self.assertEquals(result['interfaces'], 'eth0,eth1,lo')
 
+if __name__ == "__main__":
+  unittest.main()
 

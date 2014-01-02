@@ -1317,6 +1317,14 @@ public class TestHeartbeatHandler {
     Cluster cluster = getDummyCluster();
     Host hostObject = clusters.getHost(DummyHostname1);
     clusters.mapHostToCluster(hostObject.getHostName(), cluster.getClusterName());
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
 
     ActionQueue aq = new ActionQueue();
 
@@ -1400,8 +1408,54 @@ public class TestHeartbeatHandler {
     hb3.setComponentStatus(componentStatus);
     handler.handleHeartBeat(hb3);
     assertEquals(HostHealthStatus.HealthStatus.UNHEALTHY.name(), hostObject.getStatus());
-    
-    
+
+    //All are up
+    hb1.setResponseId(3);
+    handler.handleHeartBeat(hb1);
+    assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
+
+    //Only one component reported status
+    hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.INSTALLED);
+    HeartBeat hb4 = new HeartBeat();
+    hb4.setResponseId(4);
+    hb4.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb4.setHostname(DummyHostname1);
+    componentStatus = new ArrayList<ComponentStatus>();
+    dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("STARTED");
+    componentStatus.add(dataNodeStatus);
+    hb4.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb4);
+    assertEquals(HostHealthStatus.HealthStatus.UNHEALTHY.name(), hostObject.getStatus());
+
+    hb1.setResponseId(5);
+    handler.handleHeartBeat(hb1);
+    assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
+
+    //Some command reports
+    HeartBeat hb5 = new HeartBeat();
+    hb5.setResponseId(6);
+    hb5.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb5.setHostname(DummyHostname1);
+    CommandReport cr1 = new CommandReport();
+    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr1.setServiceName(HDFS);
+    cr1.setTaskId(1);
+    cr1.setRole(DATANODE);
+    cr1.setStatus("COMPLETED");
+    cr1.setStdErr("");
+    cr1.setStdOut("");
+    cr1.setExitCode(215);
+    cr1.setRoleCommand("STOP");
+    cr1.setClusterName(DummyCluster);
+    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(cr1);
+    hb5.setReports(reports);
+    handler.handleHeartBeat(hb5);
+    assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
   }
 
   private ActionManager getMockActionManager() {

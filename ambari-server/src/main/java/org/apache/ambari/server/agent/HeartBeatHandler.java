@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -182,7 +181,8 @@ public class HeartBeatHandler {
     // Examine heartbeart for component live status reports
     processStatusReports(heartbeat, hostname, clusterFsm);
     
-    //Calculate host status
+    // Calculate host status
+    // NOTE: This step must be after processing command/status reports
     processHostStatus(heartbeat, hostname);
 
     // Send commands if node is active
@@ -196,44 +196,61 @@ public class HeartBeatHandler {
   protected void processHostStatus(HeartBeat heartbeat, String hostname) throws AmbariException {
 
     Host host = clusterFsm.getHost(hostname);
-
-    
     HealthStatus healthStatus = host.getHealthStatus().getHealthStatus();
-    
+
     if (!healthStatus.equals(HostHealthStatus.HealthStatus.UNKNOWN)) {
 
       List<ComponentStatus> componentStatuses = heartbeat.getComponentStatus();
       //Host status info could be calculated only if agent returned statuses in heartbeat
+      //Or, if a command is executed that can change component status
+      boolean calculateHostStatus = false;
+      String clusterName = null;
       if (componentStatuses.size() > 0) {
+        calculateHostStatus = true;
+        for (ComponentStatus componentStatus : componentStatuses) {
+          clusterName = componentStatus.getClusterName();
+          break;
+        }
+      }
 
+      if (!calculateHostStatus) {
+        List<CommandReport> reports = heartbeat.getReports();
+        for (CommandReport report : reports) {
+          if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand())) {
+            continue;
+          }
+
+          String service = report.getServiceName();
+          if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
+            continue;
+          }
+          if (report.getStatus().equals("COMPLETED")) {
+            calculateHostStatus = true;
+            clusterName = report.getClusterName();
+            break;
+          }
+        }
+      }
+
+      if (calculateHostStatus) {
+        //Use actual component status to compute the host status
         int masterCount = 0;
         int mastersRunning = 0;
         int slaveCount = 0;
         int slavesRunning = 0;
 
-        Map<String, StackId> stackIdsByClusters =
-            new HashMap<String, StackId>();
+        StackId stackId;
+        Cluster cluster = clusterFsm.getCluster(clusterName);
+        stackId = cluster.getDesiredStackVersion();
 
-        for (ComponentStatus componentStatus : componentStatuses) {
-
-          String clusterName = componentStatus.getClusterName();
-
-          StackId stackId;
-          if (stackIdsByClusters.containsKey(clusterName)) {
-            stackId = stackIdsByClusters.get(clusterName);
-
-          } else {
-            Cluster cluster = clusterFsm.getCluster(clusterName);
-            stackId = cluster.getDesiredStackVersion();
-            stackIdsByClusters.put(clusterName, stackId);
-          }
-
+        List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(heartbeat.getHostname());
+        for (ServiceComponentHost scHost : scHosts) {
           ComponentInfo componentInfo =
               ambariMetaInfo.getComponent(stackId.getStackName(),
-                  stackId.getStackVersion(), componentStatus.getServiceName(),
-                  componentStatus.getComponentName());
+                  stackId.getStackVersion(), scHost.getServiceName(),
+                  scHost.getServiceComponentName());
 
-          String status = componentStatus.getStatus();
+          String status = scHost.getState().name();
 
           String category = componentInfo.getCategory();
 
@@ -249,7 +266,7 @@ public class HeartBeatHandler {
             }
           }
         }
-        
+
         if (masterCount == mastersRunning && slaveCount == slavesRunning) {
           healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
         } else if (masterCount > 0 && mastersRunning < masterCount) {
@@ -257,18 +274,17 @@ public class HeartBeatHandler {
         } else {
           healthStatus = HostHealthStatus.HealthStatus.ALERT;
         }
-        
+
         host.setStatus(healthStatus.name());
         host.persist();
       }
-      
+
       //If host doesn't belongs to any cluster
       if ((clusterFsm.getClustersForHost(host.getHostName())).size() == 0) {
         healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
         host.setStatus(healthStatus.name());
         host.persist();
-      } 
-      
+      }
     }
   }
 

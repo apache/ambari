@@ -1009,12 +1009,13 @@ public class HostImpl implements Host {
 
   @Override
   public void setStatus(String status) {
-    try {
-      writeLock.lock();
-      this.status = status;
-    }
-    finally {
-      writeLock.unlock();
+    if (status != null && !status.equals(this.status)) {
+      try {
+        writeLock.lock();
+        this.status = status;
+      } finally {
+        writeLock.unlock();
+      }
     }
   }
 
