@@ -172,6 +172,7 @@ module.exports = Em.Route.extend({
         addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
         addServiceController.get('content').set('serviceConfigProperties', null);
         addServiceController.setDBProperty('serviceConfigProperties', null);
+        addServiceController.setDBProperty('groupsToDelete', []);
         router.transitionTo('step4');
       }
     }

@@ -1487,6 +1487,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     var sendData = [];
     var updateData = [];
     var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
+    var groupsToDelete = App.router.get(this.get('content.controllerName')).getDBProperty('groupsToDelete');
+    if (groupsToDelete && groupsToDelete.length > 0) {
+      this.removeInstalledServicesConfigurationGroups(groupsToDelete);
+    }
     configGroups.forEach(function (configGroup) {
       var groupConfigs = [];
       var groupData = {
@@ -1539,6 +1543,12 @@ App.WizardStep8Controller = Em.Controller.extend({
   applyInstalledServicesConfigurationGroup: function (updateData) {
     updateData.forEach(function(item) {
       App.router.get('mainServiceInfoConfigsController').putConfigGroupChanges(item);
+    });
+  },
+
+  removeInstalledServicesConfigurationGroups: function(groupsToDelete) {
+    groupsToDelete.forEach(function(item) {
+      App.config.deleteConfigGroup(Em.Object.create(item));
     });
   },
 

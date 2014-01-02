@@ -1907,18 +1907,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (!this.get('enablePrimary')) {
           return false;
         }
+        var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
         // Save modified config-groups
         if (!!controller) {
           controller.set('selectedService.configGroups', App.router.get('manageConfigGroupsController.configGroups'));
           controller.selectedServiceObserver();
           if (controller.get('name') == "wizardStep7Controller") {
+            if (controller.get('selectedService.selected') === false && modifiedConfigGroups.toDelete.length > 0) {
+              controller.setGroupsToDelete(modifiedConfigGroups.toDelete);
+            }
             App.config.persistWizardStep7ConfigGroups();
             this.updateConfigGroupOnServicePage();
           }
           this.hide();
           return;
         }
-        var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
         console.log("manageConfigurationGroups(): Saving modified config-groups: ", modifiedConfigGroups);
         var self = this;
         var errors = [];

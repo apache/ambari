@@ -52,6 +52,8 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   configGroups: [],
 
+  groupsToDelete: [],
+
   selectedConfigGroup: null,
 
   serviceConfigsData: require('data/service_configs'),
@@ -320,6 +322,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     if(this.get('allInstalledServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi){
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
+    this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     var localDB = {
       hosts: this.get('wizardController').getDBProperty('hosts'),
       masterComponentHosts: this.get('wizardController').getDBProperty('masterComponentHosts'),
@@ -361,6 +364,16 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
+  setGroupsToDelete: function(groups) {
+    var groupsToDelete = this.get('groupsToDelete');
+    groups.forEach(function(group) {
+      if (group.get('id'))
+        groupsToDelete.push({
+          id: group.get('id')
+        });
+    });
+    this.get('wizardController').setDBProperty('groupsToDelete', groupsToDelete);
+  },
   selectedServiceObserver: function () {
     if (App.supports.hostOverridesInstaller && this.get('selectedService') && (this.get('selectedService.serviceName') !== 'MISC')) {
       var serviceGroups = this.get('selectedService.configGroups');
