@@ -678,6 +678,9 @@ public class AmbariManagementControllerImpl implements
               continue;
             }
             ServiceComponentHostResponse r = sch.convertToResponse();
+            if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
+              continue;
+            }
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
@@ -957,9 +960,9 @@ public class AmbariManagementControllerImpl implements
       ArrayList<ServiceComponentHost>();
     if (changedScHosts != null && !changedScHosts.isEmpty()) {
       for (String sc : changedScHosts.keySet()) {
-        for (State s : changedScHosts.get(sc).keySet())
-          if (s == State.STARTED) {
-            serviceComponentHosts.addAll(changedScHosts.get(sc).get(s));
+        for (State state : changedScHosts.get(sc).keySet())
+          if (state == State.STARTED) {
+            serviceComponentHosts.addAll(changedScHosts.get(sc).get(state));
           }
       }
     }
