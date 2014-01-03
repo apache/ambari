@@ -51,7 +51,10 @@ tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 client_jaas_config_file = default('hbase_client_jaas_config_file', format("{conf_dir}/hbase_client_jaas.conf"))
 master_jaas_config_file = default('hbase_master_jaas_config_file', format("{conf_dir}/hbase_master_jaas.conf"))
 regionserver_jaas_config_file = default('hbase_regionserver_jaas_config_file', format("{conf_dir}/hbase_regionserver_jaas.conf"))
-ganglia_server_host = default('ganglia_server_host', "") # is not passed when ganglia is not present
+
+ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
+ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
+
 rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 
 smoke_test_user = config['configurations']['global']['smokeuser']
