@@ -33,6 +33,8 @@ public class ServiceComponentHostRequest {
   private String desiredState; // CREATE/UPDATE
 
   private String desiredStackId; // UPDATE
+
+  private String staleConfig; // GET - predicate
   
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceName,
@@ -129,6 +131,20 @@ public class ServiceComponentHostRequest {
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  /**
+   * @param staleConfig whether the config is stale
+   */
+  public void setStaleConfig(String staleConfig) {
+    this.staleConfig = staleConfig;
+  }
+
+  /**
+   * @return Stale config indicator
+   */
+  public String getStaleConfig() {
+    return this.staleConfig;
   }
 
   public String toString() {

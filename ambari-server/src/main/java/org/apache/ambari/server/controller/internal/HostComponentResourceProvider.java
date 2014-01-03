@@ -292,6 +292,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
     serviceComponentHostRequest.setDesiredStackId(
         (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
+    if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
+      serviceComponentHostRequest.setStaleConfig(
+          properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString());
+    }
 
     return serviceComponentHostRequest;
   }
