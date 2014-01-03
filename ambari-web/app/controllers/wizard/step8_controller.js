@@ -1481,6 +1481,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterName');
     var sendData = [];
     var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
+    var timeTag = (new Date).getTime();
     configGroups.forEach(function (configGroup) {
       var groupConfigs = [];
       var groupData = {
@@ -1498,8 +1499,10 @@ App.WizardStep8Controller = Em.Controller.extend({
       configGroup.properties.forEach(function (property) {
         groupConfigs.push(Em.Object.create(property));
       });
-      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs);
+      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs, timeTag);
       sendData.push({"ConfigGroup": groupData});
+      //each group should have unique tag to prevent overriding configs from common sites
+      timeTag++;
     }, this);
     if (sendData.length > 0) {
       this.applyConfigurationGroups(sendData);
