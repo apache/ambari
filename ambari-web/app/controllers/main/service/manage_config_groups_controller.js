@@ -339,6 +339,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         }
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
         self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
+        self.get('selectedConfigGroup.properties').forEach(function(property){
+          property.set('group', self.get('selectedConfigGroup'));
+        });
         this.hide();
       }
     });
@@ -485,6 +488,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           groupCopy[prop] = group[prop];
         }
       }
+      groupCopy.properties.forEach(function(property){
+        property.set('group', group);
+      });
       result.push(App.ConfigGroup.create(groupCopy));
     }, this);
     return result;
