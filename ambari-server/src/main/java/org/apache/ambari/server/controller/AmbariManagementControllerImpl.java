@@ -589,7 +589,7 @@ public class AmbariManagementControllerImpl implements
 
     if (request.getHostname() != null) {
       try {
-        if (! clusters.getClustersForHost(request.getHostname()).contains(cluster)) {
+        if (!clusters.getClustersForHost(request.getHostname()).contains(cluster)) {
           // case where host exists but not associated with given cluster
           throw new ParentObjectNotFoundException("Parent Host resource doesn't exist",
               new HostNotFoundException(request.getClusterName(), request.getHostname()));
@@ -617,7 +617,7 @@ public class AmbariManagementControllerImpl implements
         if (serviceName == null
             || serviceName.isEmpty()) {
           throw new ServiceComponentHostNotFoundException(
-              cluster.getClusterName(), null, request.getComponentName(),request.getHostname());
+              cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
         }
         request.setServiceName(serviceName);
       }
@@ -635,6 +635,12 @@ public class AmbariManagementControllerImpl implements
 
     boolean checkDesiredState = false;
     State desiredStateToCheck = null;
+    boolean filterBasedConfigStaleness = false;
+    boolean staleConfig = true;
+    if (request.getStaleConfig() != null) {
+      filterBasedConfigStaleness = true;
+      staleConfig = "true".equals(request.getStaleConfig().toLowerCase());
+    }
     if (request.getDesiredState() != null
         && !request.getDesiredState().isEmpty()) {
       desiredStateToCheck = State.valueOf(request.getDesiredState());
@@ -653,7 +659,7 @@ public class AmbariManagementControllerImpl implements
       } else {
         components.addAll(s.getServiceComponents().values());
       }
-      for(ServiceComponent sc : components) {
+      for (ServiceComponent sc : components) {
         if (request.getComponentName() != null) {
           if (!sc.getName().equals(request.getComponentName())) {
             continue;
@@ -676,13 +682,12 @@ public class AmbariManagementControllerImpl implements
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
               throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
-                  request.getServiceName(), request.getComponentName(),request.getHostname());
+                  request.getServiceName(), request.getComponentName(), request.getHostname());
             } else {
               // ignore this since host_component was not specified
               // this is an artifact of how we get host_components and can happen
               // in case where we get all host_components for a host
             }
-
           }
         } else {
           for (ServiceComponentHost sch :
@@ -691,7 +696,11 @@ public class AmbariManagementControllerImpl implements
                 && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
+
             ServiceComponentHostResponse r = sch.convertToResponse();
+            if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
+              continue;
+            }
             response.add(r);
           }
         }
