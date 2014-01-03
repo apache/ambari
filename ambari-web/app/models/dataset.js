@@ -33,7 +33,27 @@ App.Dataset = DS.Model.extend({
   lastDuration: DS.attr('number'),
   avgData: DS.attr('string'),
   createdDate: DS.attr('string'),
-  datasetJobs: DS.hasMany('App.DataSetJob')
+  datasetJobs: DS.hasMany('App.DataSetJob'),
+
+  //Next instance to run. Will be calculated later.
+  nextInstance: function () {
+    return '';
+  }.property(),
+
+  //Name of target cluster related to dataset
+  cluster: function () {
+    return this.get('targetCluster.clusterName');
+  }.property('targetCluster.clusterName'),
+
+  //Class name for dataset health status indicator
+  healthClass: function () {
+    var jobs = this.get('datasetJobs').toArray();
+    jobs = jobs.filterProperty('status', 'FAILED').concat(jobs.filterProperty('status', 'SUCCESSFUL'));
+    jobs.sort(function (a, b) {
+      return a.get('endDate') - b.get('endDate');
+    });
+    return jobs.length && jobs[0].get('status') === 'FAILED' ? 'health-status-DEAD-RED' : 'health-status-LIVE';
+  }.property('datasetJobs', 'datasetJobs.@each.status')
 });
 
 

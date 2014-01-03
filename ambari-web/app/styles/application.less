@@ -3780,6 +3780,20 @@ ul.filter {
         visibility: hidden;
       }
     }
+    .status-dot-position {
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 20px;
+      width: 13px;
+    }
+    .health-status-LIVE {
+      background-image: @status-live-marker;
+      .status-dot-position;
+    }
+    .health-status-DEAD-RED {
+      background-image: @status-dead-red-marker;
+      .status-dot-position;
+    }
   }
 
   .box-footer .footer-pagination {

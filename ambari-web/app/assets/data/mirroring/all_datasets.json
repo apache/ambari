@@ -106,7 +106,7 @@
             "id":"90",
             "cluster":"drtarget1",
             "sourceCluster":"drsource",
-            "status":"SUCCESSFUL",
+            "status":"FAILED",
             "start":"2012-03-06T03:17Z",
             "end":"2012-03-06T03:19Z",
             "details":"",

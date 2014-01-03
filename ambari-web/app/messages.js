@@ -163,6 +163,7 @@ Em.I18n.translations = {
   'common.ignore': 'Ignore',
   'common.restart': 'Restart',
   'common.discard': 'Discard',
+  'common.actions': 'Actions',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1343,7 +1344,6 @@ Em.I18n.translations = {
   'hosts.host.summary.hostname':'Hostname',
   'hosts.host.summary.agentHeartbeat':'Agent <br/> Heartbeat',
   'hosts.host.summary.hostMetrics':'Host Metrics',
-  'hosts.host.summary.action':'Actions',
   'hosts.host.summary.addComponent':'Add Component',
 
   'hosts.host.details.hostActions':'Host Actions',
@@ -1667,7 +1667,8 @@ Em.I18n.translations = {
   'apps.isRunning.popup.content':'Job is running now',
 
   'mirroring.dataset.AllDataSets':'All Datasets',
-  'mirroring.dataset.createNewDataset':'Create New Dataset',
+  'mirroring.dataset.createDataset':'Create Dataset',
+  'mirroring.dataset.manageClusters':'Manage Clusters',
   'mirroring.dataset.newDataset':'New Dataset',
   'mirroring.dataset.editDataset':'Edit Dataset',
   'mirroring.dataset.selectTargetClusters':'Select Target Cluster...',
@@ -1694,7 +1695,8 @@ Em.I18n.translations = {
   'mirroring.targetcluster.enterClusterName':'Name of the Target Cluster',
 
   'mirroring.table.noDatasets':'No datasets to display',
-  'mirroring.table.datasetSource':'Dataset Source',
+  'mirroring.table.datasetSource':'Source',
+  'mirroring.table.datasetTarget':'Target',
   'mirroring.table.lastSuccess':'Last Success',
   'mirroring.table.lastFail':'Last Fail',
   'mirroring.table.lastDuration':'Last Duration',
@@ -1705,6 +1707,7 @@ Em.I18n.translations = {
   'mirroring.table.end':'End',
   'mirroring.table.duration':'Duration',
   'mirroring.table.data':'Data',
+  'mirroring.table.nextInstance':'Next Instance',
 
   'mirroring.sidebar.header.history': 'History',
   'mirroring.sidebar.header.clusters': 'Target Clusters',

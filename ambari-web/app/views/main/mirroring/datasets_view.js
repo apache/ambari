@@ -49,29 +49,31 @@ App.MainDatasetsView = App.TableView.extend({
     name: 'name',
     displayName: Em.I18n.t('common.name')
   }),
-  dataSetSourceSort: sort.fieldView.extend({
-    name: 'sourceDir',
+
+  sourceSort: sort.fieldView.extend({
+    name: 'source',
     displayName: Em.I18n.t('mirroring.table.datasetSource')
   }),
+
+  targetSort: sort.fieldView.extend({
+    name: 'target',
+    displayName: Em.I18n.t('mirroring.table.datasetTarget')
+  }),
+
+  clusterSort: sort.fieldView.extend({
+    name: 'cluster',
+    displayName: Em.I18n.t('common.cluster')
+  }),
+
   lastSuccessSort: sort.fieldView.extend({
     name: 'lastSucceededDate',
     displayName: Em.I18n.t('mirroring.table.lastSuccess'),
     type: 'number'
   }),
-  lastFailSort: sort.fieldView.extend({
-    name: 'lastFailedDate',
-    displayName: Em.I18n.t('mirroring.table.lastFail'),
-    type: 'number'
-  }),
-  lastDurationSort: sort.fieldView.extend({
-    name: 'lastDuration',
-    displayName: Em.I18n.t('mirroring.table.lastDuration'),
-    type: 'number'
-  }),
-  avgDataSort: sort.fieldView.extend({
-    name: 'avgData',
-    displayName: Em.I18n.t('mirroring.table.avgData'),
-    type: 'number'
+
+  nextInstanceSort: sort.fieldView.extend({
+    name: 'nextInstance',
+    displayName: Em.I18n.t('mirroring.table.nextInstance')
   }),
 
   /**
@@ -87,44 +89,55 @@ App.MainDatasetsView = App.TableView.extend({
   }),
 
   datasetSourceFilterView: filters.createTextView({
-    fieldType: 'input-small',
+    fieldType: 'input-medium',
     column: 2,
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
-  lastSuccessFilterView: filters.createSelectView({
+  datasetTargetFilterView: filters.createTextView({
     fieldType: 'input-medium',
     column: 3,
-    content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
-  lastFailFilterView: filters.createSelectView({
+  clusterFilterView: filters.createSelectView({
     fieldType: 'input-medium',
     column: 4,
+    content: function () {
+      return ['Any'].concat(this.get('parentView.content').mapProperty('targetCluster.clusterName'));
+    }.property('this.parentView.content'),
+    onClearValue: function () {
+      if (this.get('value') === '') {
+        this.set('value', 'Any');
+      }
+    }.observes('value'),
+    onChangeValue: function () {
+      var value = this.get('value');
+      if (value === 'Any') {
+        value = '';
+      }
+      this.get('parentView').updateFilter(this.get('column'), value, 'string');
+    }
+  }),
+
+  lastSuccessFilterView: filters.createSelectView({
+    fieldType: 'input-medium',
+    column: 5,
     content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     }
   }),
 
-  lastDurationFilterView: filters.createTextView({
-    fieldType: 'input-small',
-    column: 5,
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'duration');
-    }
-  }),
-
-  avgDataFilterView: filters.createTextView({
+  nextInstanceFilterView: filters.createTextView({
     fieldType: 'input-small',
     column: 6,
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'ambari-bandwidth');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
@@ -159,11 +172,11 @@ App.MainDatasetsView = App.TableView.extend({
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'name';
-    associations[2] = 'sourceDir';
-    associations[3] = 'lastSucceededDate';
-    associations[4] = 'lastFailedDate';
-    associations[5] = 'lastDuration';
-    associations[6] = 'avgData';
+    associations[2] = 'source';
+    associations[3] = 'target';
+    associations[4] = 'cluster';
+    associations[5] = 'lastSucceededDate';
+    associations[6] = 'nextInstance';
     return associations;
   }.property()
 
