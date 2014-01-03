@@ -101,23 +101,16 @@ def create_app_directories():
                    mode="755"
     )
   if len(params.hs_host) != 0:
-    if params.yarn_log_aggregation_enabled:
-      hdfs_directory(name=params.yarn_nm_app_log_dir,
-                     owner=params.yarn_user,
-                     group=params.user_group,
-                     mode="1777",
-                     recursive_chmod=True
-      )
     hdfs_directory(name=params.mapreduce_jobhistory_intermediate_done_dir,
                    owner=params.mapred_user,
                    group=params.user_group,
-                   mode="1777"
+                   mode="777"
     )
 
     hdfs_directory(name=params.mapreduce_jobhistory_done_dir,
                    owner=params.mapred_user,
                    group=params.user_group,
-                   mode="1777"
+                   mode="777"
     )
 
   pass

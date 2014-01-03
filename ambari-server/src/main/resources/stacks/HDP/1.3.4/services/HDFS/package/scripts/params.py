@@ -127,8 +127,6 @@ hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']#",
 hbase_staging_dir = "/apps/hbase/staging"
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"] #, "/apps/hive/warehouse")
 webhcat_apps_dir = "/apps/webhcat"
-yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']#","true")
-yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']#","/app-logs")
 mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']#","/app-logs")
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']#","/mr-history/done")
 

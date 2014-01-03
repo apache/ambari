@@ -106,13 +106,13 @@ def create_app_directories():
       hdfs_directory(name=params.yarn_nm_app_log_dir,
                      owner=params.yarn_user,
                      group=params.user_group,
-                     mode="1777",
+                     mode="777",
                      recursive_chmod=True
       )
     hdfs_directory(name=params.mapreduce_jobhistory_intermediate_done_dir,
                    owner=params.mapred_user,
                    group=params.user_group,
-                   mode="1777"
+                   mode="777"
     )
 
     hdfs_directory(name=params.mapreduce_jobhistory_done_dir,

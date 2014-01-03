@@ -46,7 +46,6 @@ from resource_management import *
 
 from mapreduce import mapreduce
 from service import service
-from historyserver import Historyserver
 
 class Jobtracker(Script):
   def install(self, env):
@@ -65,9 +64,7 @@ class Jobtracker(Script):
     service('jobtracker',
             action='start'
     )
-
-    Historyserver().start(env) #TODO HS will be separate component
-
+    
   def stop(self, env):
     import params
     env.set_params(params)
@@ -75,9 +72,7 @@ class Jobtracker(Script):
     service('jobtracker',
             action='stop'
     )
-
-    Historyserver().stop(env) #TODO HS will be separate component
-
+    
   def status(self, env):
     import status_params
     env.set_params(status_params)

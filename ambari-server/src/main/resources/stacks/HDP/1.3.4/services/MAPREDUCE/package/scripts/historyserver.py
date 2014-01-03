@@ -26,14 +26,14 @@ from mapreduce import mapreduce
 from service import service
 
 class Historyserver(Script):
-  # def install(self, env):
-  #   self.install_packages(env)
-  #   self.configure(env)
-  #
-  # def configure(self, env):
-  #   import params
-  #   env.set_params(params)
-  #   mapreduce()
+  def install(self, env):
+    self.install_packages(env)
+    self.configure(env)
+  
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    mapreduce()
 
   def start(self, env):
     import params
@@ -50,10 +50,10 @@ class Historyserver(Script):
             action='stop'
     )
 
-  # def status(self, env):
-  #   import status_params
-  #   env.set_params(status_params)
-  #   check_process_status(status_params.historyserver_pid_file)
+  def status(self, env):
+     import status_params
+     env.set_params(status_params)
+     check_process_status(status_params.historyserver_pid_file)
 
 if __name__ == "__main__":
   Historyserver().execute()
