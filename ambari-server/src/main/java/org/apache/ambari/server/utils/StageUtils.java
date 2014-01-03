@@ -109,20 +109,16 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
     componentToClusterInfoKeyMap.put("HIVE_SERVER", "hive_server_host");
     componentToClusterInfoKeyMap.put("OOZIE_SERVER", "oozie_server");
-    componentToClusterInfoKeyMap.put("WEBHCAT_SERVER",
-        "webhcat_server_host");
-    componentToClusterInfoKeyMap.put(Role.MYSQL_SERVER.toString(),
-        "hive_mysql_host");
+    componentToClusterInfoKeyMap.put("WEBHCAT_SERVER", "webhcat_server_host");
+    componentToClusterInfoKeyMap.put("MYSQL_SERVER", "hive_mysql_host");
     componentToClusterInfoKeyMap.put("DASHBOARD", "dashboard_host");
     componentToClusterInfoKeyMap.put("NAGIOS_SERVER", "nagios_server_host");
-    componentToClusterInfoKeyMap.put("GANGLIA_SERVER",
-        "ganglia_server_host");
+    componentToClusterInfoKeyMap.put("GANGLIA_SERVER", "ganglia_server_host");
     componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
     componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
     componentToClusterInfoKeyMap.put("KERBEROS_SERVER", "kdc_host");
-    componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT",
-        "kerberos_adminclient_host");
+    componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT", "kerberos_adminclient_host");
   }
 
   public static String getActionId(long requestId, long stageId) {
@@ -233,38 +229,36 @@ public class StageUtils {
         
         ServiceComponent serviceComponent = serviceComponentEntry.getValue();
         String componentName = serviceComponent.getName();
-
-        for (final String hostName:serviceComponent.getServiceComponentHosts().keySet()) {
-
-          if (componentToClusterInfoKeyMap.containsKey(componentName)) {
-            
-            String roleName = componentToClusterInfoKeyMap.get(componentName);
-            SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
-            
-            if (hostsForComponentsHost == null) {
-              hostsForComponentsHost = new TreeSet<Integer>();
-              hostRolesInfo.put(roleName, hostsForComponentsHost);
-            }
-
-            int hostIndex = hostsList.indexOf(hostName);
-            //Add index of host to current host role
-            hostsForComponentsHost.add(hostIndex);
+        
+        String roleName = componentToClusterInfoKeyMap.get(componentName);
+        if (null == roleName && !serviceComponent.isClientComponent())
+          roleName = componentName.toLowerCase() + "_hosts";
+        
+        if (null == roleName)
+          continue;
+        
+        for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
+          
+          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+          
+          if (hostsForComponentsHost == null) {
+            hostsForComponentsHost = new TreeSet<Integer>();
+            hostRolesInfo.put(roleName, hostsForComponentsHost);
           }
+
+          int hostIndex = hostsList.indexOf(hostName);
+          //Add index of host to current host role
+          hostsForComponentsHost.add(hostIndex);
         }
       }
     }
     
-    for (String roleName : componentToClusterInfoKeyMap.values()) {
-      if (hostRolesInfo.containsKey(roleName)) {
-
-        TreeSet<Integer> sortedSet =
-            new TreeSet<Integer>(hostRolesInfo.get(roleName));
-
-        Set<String> replacedRangesSet = replaceRanges(sortedSet);
-
-        clusterHostInfo.put(roleName, replacedRangesSet);
-
-      }
+    for (Entry<String, SortedSet<Integer>> entry : hostRolesInfo.entrySet()) {
+      TreeSet<Integer> sortedSet = new TreeSet<Integer>(entry.getValue());
+  
+      Set<String> replacedRangesSet = replaceRanges(sortedSet);
+  
+      clusterHostInfo.put(entry.getKey(), replacedRangesSet);
     }
 
     clusterHostInfo.put(HOSTS_LIST, hostsSet);

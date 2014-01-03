@@ -210,6 +210,13 @@ public class TestStageUtils {
     mrTopology.put("TASKTRACKER", taskTrackerIndexes);
     addService(fsm.getCluster("c1"), hostList, mrTopology , "MAPREDUCE", injector);
     
+    
+    //Add NONAME service
+    Map<String, List<Integer>> nonameTopology = new HashMap<String, List<Integer>>(); 
+    nonameTopology.put("NONAME_SERVER", Collections.singletonList(7));
+    addService(fsm.getCluster("c1"), hostList, nonameTopology , "NONAME", injector);
+    
+    
     //Get cluster host info
     Map<String, Set<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"),
         fsm.getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)),
@@ -244,7 +251,6 @@ public class TestStageUtils {
     
     Set<String> actualPingPorts = info.get("all_ping_ports");
     
-    
     if (pingPorts.contains(null))
       assertEquals(new HashSet<Integer>(pingPorts).size(), actualPingPorts.size() + 1);
     else
@@ -262,6 +268,9 @@ public class TestStageUtils {
     }
 
     assertEquals(pingPorts, reindexedPorts);
+    
+    // check for no-name in the list
+    assertTrue(info.containsKey("noname_server_hosts"));
 
   }
 
