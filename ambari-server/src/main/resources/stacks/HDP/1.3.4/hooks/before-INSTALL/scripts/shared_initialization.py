@@ -100,3 +100,8 @@ def set_uid(user, user_dirs):
        mode=0555)
   Execute(format("/tmp/changeUid.sh {user} {user_dirs} 2>/dev/null"),
           not_if = format("test $(id -u {user}) -gt 1000"))
+
+def install_packages():
+  Package("unzip")
+  Package("net-snmp")
+  Package("net-snmp-utils")

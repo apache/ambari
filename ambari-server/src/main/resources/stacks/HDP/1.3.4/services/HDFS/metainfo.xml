@@ -70,19 +70,7 @@
           <packages>
             <package>
               <type>rpm</type>
-              <name>net-snmp</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>net-snmp-utils</name>
-            </package>
-            <package>
-              <type>rpm</type>
               <name>lzo</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>unzip</name>
             </package>
             <package>
               <type>rpm</type>

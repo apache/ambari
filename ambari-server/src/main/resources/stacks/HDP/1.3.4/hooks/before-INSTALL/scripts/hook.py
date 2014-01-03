@@ -30,6 +30,7 @@ class BeforeConfigureHook(Hook):
 
     env.set_params(params)
     setup_users()
+    install_packages()
 
 if __name__ == "__main__":
   BeforeConfigureHook().execute()
