@@ -974,11 +974,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * construct desired_configs for config groups from overriden properties
    * @param configs
+   * @param timeTag
    * @return {Array}
    */
-  buildGroupDesiredConfigs: function (configs) {
+  buildGroupDesiredConfigs: function (configs, timeTag) {
     var sites = [];
-    var time = (new Date).getTime();
+    var time = timeTag || (new Date).getTime();
     configs.forEach(function (config) {
       var type = config.get('filename').replace('.xml', '');
       var site = sites.findProperty('type', type);

@@ -1489,6 +1489,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var sendData = [];
     var updateData = [];
     var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
+    var timeTag = (new Date).getTime();
     var groupsToDelete = App.router.get(this.get('content.controllerName')).getDBProperty('groupsToDelete');
     if (groupsToDelete && groupsToDelete.length > 0) {
       this.removeInstalledServicesConfigurationGroups(groupsToDelete);
@@ -1510,7 +1511,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       configGroup.properties.forEach(function (property) {
         groupConfigs.push(Em.Object.create(property));
       });
-      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs);
+      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs, timeTag);
       // check for group from installed service
       if (configGroup.isForUpdate === true) {
         // if group is a new one, create it
@@ -1524,6 +1525,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       } else {
         sendData.push({"ConfigGroup": groupData});
       }
+      //each group should have unique tag to prevent overriding configs from common sites
+      timeTag++;
     }, this);
     if (sendData.length > 0) {
       this.applyConfigurationGroups(sendData);
