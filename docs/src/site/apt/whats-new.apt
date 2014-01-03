@@ -16,20 +16,13 @@
 
 What's New with Ambari?
 
- * The current Ambari 1.4.1 features:
+ * The current Ambari 1.4.2 features:
 
    * Ability to deploy and manage the Hadoop 2.0 stack using Ambari
 
-   * A wizard to enable Namenode HA
-
-   * Added support for enabling Kerberos based security for Hadoop 2.0 services
-
-   * Support to work with SSL enabled Hadoop daemons 
-
-   * Support to work with web authentication enabled for Hadoop daemons
-
-   * Added support for JDK 7 
-
+   * Ability to move Masters
+    
+   * Ability to delete hosts/host  components and services
 
 Getting Ambari Source
 
