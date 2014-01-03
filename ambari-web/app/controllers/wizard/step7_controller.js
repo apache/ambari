@@ -217,29 +217,28 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (s.configsValidator) {
       s.configsValidator.set('recommendedDefaults', recommendedDefaults);
     }
-    configs.forEach(function (_serviceConfigProperty) {
-      console.log("config", _serviceConfigProperty);
-      if (!_serviceConfigProperty) return;
-      var overrides = _serviceConfigProperty.get('overrides');
+    configs.forEach(function (serviceConfigProperty) {
+      console.log("config", serviceConfigProperty);
+      if (!serviceConfigProperty) return;
+      var overrides = serviceConfigProperty.get('overrides');
       // we will populate the override properties below
-      _serviceConfigProperty.set('overrides', null);
+      serviceConfigProperty.set('overrides', null);
 
-      if (_serviceConfigProperty.isOverridable === undefined) {
-        _serviceConfigProperty.set('isOverridable', true);
+      if (serviceConfigProperty.isOverridable === undefined) {
+        serviceConfigProperty.set('isOverridable', true);
       }
-      if (_serviceConfigProperty.displayType === 'checkbox') {
-        switch (_serviceConfigProperty.value) {
+      if (serviceConfigProperty.displayType === 'checkbox') {
+        switch (serviceConfigProperty.value) {
           case 'true':
-            _serviceConfigProperty.set('value', true);
-            _serviceConfigProperty.set('defaultValue', true);
+            serviceConfigProperty.set('value', true);
+            serviceConfigProperty.set('defaultValue', true);
             break;
           case 'false':
-            _serviceConfigProperty.set('value', false);
-            _serviceConfigProperty.set('defaultValue', false);
+            serviceConfigProperty.set('value', false);
+            serviceConfigProperty.set('defaultValue', false);
             break;
         }
       }
-      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       if (serviceConfigProperty.get('serviceName') === component.get('serviceName')) {
         if (s.configsValidator) {
           var validators = s.configsValidator.get('configValidators');
@@ -257,10 +256,10 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
       if (overrides != null) {
         overrides.forEach(function (override) {
-          var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
+          var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
           newSCP.set('value', override.value);
           newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-          newSCP.set('parentSCP', _serviceConfigProperty);
+          newSCP.set('parentSCP', serviceConfigProperty);
           if (App.supports.hostOverrides && defaultGroupSelected) {
             var group = component.get('configGroups').findProperty('name', override.group.get('name'));
             // prevent cycle in proto object, clean link
@@ -302,6 +301,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
   },
+
   /**
    * On load function
    */
