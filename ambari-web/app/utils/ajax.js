@@ -90,6 +90,26 @@ var urls = {
       };
     }
   },
+  'service.stale_host_components.start_stop': {
+    'real': '/clusters/{clusterName}/host_components?' +
+            'HostRoles/stale_configs=true&HostRoles/component_name.in({componentNames})',
+    'mock': '/data/wizard/deploy/poll_1.json',
+    'format': function (data, opt) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.requestInfo
+          },
+          Body: {
+            HostRoles: {
+              state: data.state
+            }
+          }
+        })
+      };
+    }
+  },
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': ''
@@ -262,6 +282,26 @@ var urls = {
   },
   'host.host_component.action': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.context
+          },
+          Body: {
+            "HostRoles": {
+              "state": data.state
+            }
+          }
+        })
+      }
+    }
+  },
+  'host.stale_host_components.start_stop': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components?HostRoles/stale_configs=true&' +
+            'HostRoles/component_name.in({componentNames})',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {

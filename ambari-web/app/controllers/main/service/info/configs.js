@@ -1791,35 +1791,44 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       content: content,
       onPrimary: function () {
         var selectedService = this.content.get('content.id');
-        var hostComponents = App.HostComponent.find().filterProperty('service.id', selectedService).filterProperty('staleConfigs', true)
-        hostComponents.forEach(function (item) {
-          var state = 'INSTALLED',
-              componentName = item.get('componentName'),
-              context = "Stop " + App.format.role(componentName),
-              hostName = item.get('host.hostName');
+        var hostComponents = App.HostComponent.find().filterProperty('service.id', selectedService);
+        var desiredState = commandName == 'start_component' ? 'STARTED' : 'INSTALLED';
+        var nonClientRequestInfo = commandName == 'start_component' ? 'Start Components' : 'Stop Components';
+        var clientRequestInfo = 'Update Clients';
 
-          if (commandName === 'start_component') {
-            context = "Start " + App.format.role(componentName);
-            state = 'STARTED';
-            if (item.get('isClient')) {
-              //start components action includes install of clients
-              context = "Install " + App.format.role(componentName);
-              state = "INSTALLED";
-            }
-          } else if (item.get('isClient')) {
-            return false;
+        // the action is to either 1) start stale components for the service or 2) stop stale components for the service
+        // start is done through two API calls:
+        //  * first call to start non-client components
+        //  * second call to update clients
+        // stop is done through one API call:
+        //  * call to stop non-client components
+
+        var nonClientComponentNames = hostComponents.filterProperty('isClient', false).mapProperty('componentName').uniq();
+        var clientComponentNames = hostComponents.filterProperty('isClient', true).mapProperty('componentName').uniq();
+
+        // start/stop stale non-client host components for the service
+        App.ajax.send({
+          name: 'service.stale_host_components.start_stop',
+          sender: this,
+          data: {
+            componentNames: nonClientComponentNames.join(','),
+            requestInfo: nonClientRequestInfo,
+            state: desiredState
           }
+        });
+
+        // start only: update stale client host components for the service
+        if (desiredState == 'STARTED') {
           App.ajax.send({
-            name: 'host.host_component.action',
+            name: 'service.stale_host_components.start_stop',
             sender: this,
             data: {
-              hostName: hostName,
-              componentName: componentName,
-              context: context,
-              state: state
+              componentNames: clientComponentNames.join(','),
+              requestInfo: clientRequestInfo,
+              state: 'INSTALLED'
             }
           });
-        });
+        }
         this.hide();
         // load data (if we need to show this background operations popup) from persist
         App.router.get('applicationController').dataLoading().done(function (initValue) {
