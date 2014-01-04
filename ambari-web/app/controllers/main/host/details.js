@@ -1004,6 +1004,11 @@ App.MainHostDetailsController = Em.Controller.extend({
         return;
       }
     }
+
+    var nonClientRequestInfo = commandName == 'start_component' ? 'Start Components' : 'Stop Components';
+    var clientRequestInfo = 'Update Clients';
+    var desiredState = commandName == 'start_component' ? 'STARTED' : 'INSTALLED';
+
     var content = this;
     return App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
@@ -1012,35 +1017,42 @@ App.MainHostDetailsController = Em.Controller.extend({
       body: Em.I18n.t('question.sure'),
       content: content,
       onPrimary: function () {
-        var hostComponents = this.content.get('content.hostComponents').filterProperty('staleConfigs', true);
-        hostComponents.forEach(function (item) {
-          var state = 'INSTALLED',
-              componentName = item.get('componentName'),
-              context = "Stop " + App.format.role(componentName),
-              hostName = item.get('host.hostName');
+        var hostName = this.content.get('content.hostName');
+        var hostComponents = this.content.get('content.hostComponents');
 
-          if (commandName === 'start_component') {
-            context = "Start " + App.format.role(componentName);
-            state = 'STARTED';
-            if (item.get('isClient')) {
-              //start components action includes install of clients
-              context = "Install " + App.format.role(componentName);
-              state = "INSTALLED";
-            }
-          } else if (item.get('isClient')) {
-            return false;
+        // the action is to either 1) start stale components for the host or 2) stop stale components for the host
+        // start is done through two API calls:
+        //  * call to start non-client components
+        //  * call to update clients
+        // stop is done through one API call:
+        //  * call to stop non-client components
+
+        var nonClientComponentNames = hostComponents.filterProperty('isClient', false).mapProperty('componentName').uniq();
+        var clientComponentNames = hostComponents.filterProperty('isClient', true).mapProperty('componentName').uniq();
+
+        App.ajax.send({
+          name: 'host.stale_host_components.start_stop',
+          sender: this,
+          data: {
+            hostName: hostName,
+            context: nonClientRequestInfo,
+            componentNames: nonClientComponentNames,
+            state: desiredState
           }
+        });
+
+        if (desiredState == 'STARTED') {
           App.ajax.send({
-            name: 'host.host_component.action',
+            name: 'host.stale_host_components.start_stop',
             sender: this,
             data: {
               hostName: hostName,
-              componentName: componentName,
-              context: context,
-              state: state
+              context: clientRequestInfo,
+              componentNames: clientComponentNames,
+              state: 'INSTALLED'
             }
           });
-        });
+        }
         this.hide();
         // load data (if we need to show this background operations popup) from persist
         App.router.get('applicationController').dataLoading().done(function (initValue) {
