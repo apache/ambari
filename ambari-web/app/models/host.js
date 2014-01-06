@@ -44,61 +44,104 @@ App.Host = DS.Model.extend({
   cpuSystem:DS.attr('number'),
   cpuUser:DS.attr('number'),
 
+  /**
+   * Overall CPU usage (system and user)
+   * @returns {Number}
+   */
   cpuUsage: function () {
-    if (this.get('cpuSystem') && this.get('cpu_user')) {
-      return this.get('cpuSystem') + this.get('cpu_user');
+    if (this.get('cpuSystem') && this.get('cpuUser')) {
+      return this.get('cpuSystem') + this.get('cpuUser');
     }
+    return 0;
   }.property('cpuSystem', 'cpuUser'),
 
+  /**
+   * Percent value of used memory
+   * @returns {Number}
+   */
   memoryUsage: function () {
     if (this.get('memFree') && this.get('memTotal')) {
       var memUsed = this.get('memTotal') - this.get('memFree');
       return (100 * memUsed) / this.get('memTotal');
     }
+    return 0;
   }.property('memTotal', 'memFree'),
 
+  /**
+   * Get count of critical alerts for current host
+   * @returns {Number}
+   */
   criticalAlertsCount: function () {
     return App.router.get('clusterController.alertsHostMap')[this.get('hostName')];
   }.property('App.router.clusterController.alerts.length'),
 
+  /**
+   * Get count of host components with stale configs
+   * @returns {Number}
+   */
   componentsWithStaleConfigsCount: function() {
     return this.get('hostComponents').filterProperty('staleConfigs', true).length;
   }.property('hostComponents.@each.staleConfigs'),
 
+  /**
+   * Get count of host components in maintenance mode
+   * @returns {Number}
+   */
+  componentsInMaintenanceCount: function() {
+    return this.get('hostComponents').filterProperty('workStatus', App.HostComponentStatus.maintenance).length;
+  }.property('hostsComponents.@each.workStatus').volatile(),
+
+  /**
+   * Truncate hostName if it longer than 43 symbols
+   * @returns {String}
+   */
   publicHostNameFormatted: function() {
     return this.get('publicHostName').length < 43 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 40) + '...';
   }.property('publicHostName'),
 
+  /**
+   * Count of mounted on host disks
+   * @returns {Number}
+   */
   disksMounted: function() {
     return this.get('diskInfo.length');
   }.property('diskInfo.length'),
 
   /**
    * API return diskTotal and diskFree. Need to save their different
+   * @returns {Number}
    */
   diskUsed: function(){
     return this.get('diskTotal') - this.get('diskFree');
   }.property('diskFree', 'diskTotal'),
+
   /**
    * Format diskUsed value to float with 2 digits (also convert to GB)
+   * @returns {String} Format: '*** GB'
    */
   diskUsedFormatted: function() {
     return Math.round(this.get('diskUsed') * Math.pow(10, 2)) / Math.pow(10, 2) + 'GB';
   }.property('diskUsed'),
+
   /**
    * Format diskTotal value to float with 2 digits (also convert to GB)
+   * @returns {String} Format: '*** GB'
    */
   diskTotalFormatted: function() {
     return Math.round(this.get('diskTotal') * Math.pow(10, 2)) / Math.pow(10, 2) + 'GB';
   }.property('diskTotal'),
+
   /**
    * Percent value of used disk space
+   * @returns {Number}
    */
   diskUsage: function() {
     return (this.get('diskUsed')) / this.get('diskTotal') * 100;
   }.property('diskUsed', 'diskTotal'),
+
   /**
    * Format diskUsage to float with 2 digits
+   * @returns {String} Format: '**.** %'
    */
   diskUsageFormatted: function() {
     if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
@@ -111,6 +154,10 @@ App.Host = DS.Model.extend({
     return s + '%';
   }.property('diskUsage'),
 
+  /**
+   * Formatted string with data about disk usage
+   * @returns {String}
+   */
   diskInfoBar: function() {
     if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
       return this.get('diskUsageFormatted');
@@ -118,25 +165,39 @@ App.Host = DS.Model.extend({
     return this.get('diskUsedFormatted') + '/' + this.get('diskTotalFormatted') + ' (' + this.get('diskUsageFormatted')
       + ' ' + Em.I18n.t('services.service.summary.diskInfoBar.used') + ')';
   }.property('diskUsedFormatted', 'diskTotalFormatted'),
+
   /**
-   * formatted bytes to appropriate value
+   * Formatted bytes to appropriate value
+   * @returns {String}
    */
   memoryFormatted: function () {
     return misc.formatBandwidth(this.get('memory') * 1024);
   }.property('memory'),
+
   /**
    * Return true if the host has not sent heartbeat within the last 180 seconds
+   * @returns {bool}
    */
   isNotHeartBeating : function() {
     return (App.testMode) ? false : ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
   }.property('lastHeartBeatTime'),
 
+  /**
+   * Average load
+   * @returns {Number}
+   */
   loadAvg: function() {
     if (this.get('loadOne') != null) return this.get('loadOne').toFixed(2);
     if (this.get('loadFive') != null) return this.get('loadFive').toFixed(2);
     if (this.get('loadFifteen') != null) return this.get('loadFifteen').toFixed(2);
+    return null;
   }.property('loadOne', 'loadFive', 'loadFifteen'),
 
+  /**
+   * Host health indicator
+   * Based on  <code>healthStatus</code>
+   * @returns {String}
+   */
   healthClass: function(){
     var statusMap = {
       'UNKNOWN': 'health-status-DEAD-YELLOW',
@@ -147,6 +208,11 @@ App.Host = DS.Model.extend({
     return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
   }.property('healthStatus'),
 
+  /**
+   * Tooltip for host indicator
+   * Contains affected host components names (based on <code>healthClass</code>)
+   * @returns {String}
+   */
   healthToolTip: function(){
     var hostComponents = this.get('hostComponents').filter(function(item){
       if(item.get('workStatus') !== App.HostComponentStatus.started){

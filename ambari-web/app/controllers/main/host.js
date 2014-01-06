@@ -32,6 +32,7 @@ App.MainHostController = Em.ArrayController.extend({
 
   /**
    * Components which will be shown in component filter
+   * @returns {Array}
    */
   componentsForFilter:function() {
     var installedComponents = componentHelper.getInstalledComponents();
@@ -39,21 +40,33 @@ App.MainHostController = Em.ArrayController.extend({
     return installedComponents;
   }.property('App.router.clusterController.isLoaded'),
 
+  /**
+   * Master components
+   * @returns {Array}
+   */
   masterComponents:function () {
     return this.get('componentsForFilter').filterProperty('isMaster', true);
   }.property('componentsForFilter'),
 
+  /**
+   * Slave components
+   * @returns {Array}
+   */
   slaveComponents:function () {
     return this.get('componentsForFilter').filterProperty('isSlave', true);
   }.property('componentsForFilter'),
 
+  /**
+   * Client components
+   * @returns {Array}
+   */
   clientComponents: function() {
     return this.get('componentsForFilter').filterProperty('isClient', true);
   }.property('componentsForFilter'),
 
   /**
    * Filter hosts by componentName of <code>component</code>
-   * @param component App.HostComponent
+   * @param {App.HostComponent} component
    */
   filterByComponent:function (component) {
     if(!component)
@@ -99,9 +112,6 @@ App.MainHostController = Em.ArrayController.extend({
         templateName: require('templates/main/host/alerts_popup')
       }),
       primary: Em.I18n.t('common.close'),
-      onPrimary: function() {
-        this.hide();
-      },
       secondary : null,
       didInsertElement: function () {
         this.$().find('.modal-footer').addClass('align-center');
@@ -125,7 +135,7 @@ App.MainHostController = Em.ArrayController.extend({
 
   /**
    * remove hosts with id equal host_id
-   * @param host_id
+   * @param {String} host_id
    */
   checkRemoved:function (host_id) {
     var hosts = this.get('content');

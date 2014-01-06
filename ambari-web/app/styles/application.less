@@ -2691,6 +2691,9 @@ table.graphs {
     background-image: @status-dead-yellow-marker;
     .status-dot-position;
   }
+  .maintenance {
+    color: #000;
+  }
   .host-name-search {
     position: relative;
     top: 0px;
@@ -2715,6 +2718,7 @@ table.graphs {
     .health-status-bar {
       font-size: 0.9em;
       margin-left: 0;
+      margin-bottom: 15px;
       min-width: 790px;
       color: #b4b4b4;
       .health-status {
@@ -2778,7 +2782,7 @@ table.graphs {
     .col0,
     td:first-child,
     th:first-child {
-      width: 3%;
+      width: 2%;
       min-width:13px!important;
     }
     .col1,
@@ -2786,15 +2790,15 @@ table.graphs {
     th:first-child + th{
       width: 19%;
     }
-    .col2,
+    .col2, .col3,
     td:first-child + td + td,
-    th:first-child + th + th{
-      width:3%;
+    th:first-child + th + th,
+    td:first-child + td + td + td,
+    th:first-child + th + th + th,{
+      width:2%;
       min-width:13px!important;
     }
-    .col3,.col4,.col5,.col6,.col7,
-    td:first-child + td + td + td,
-    th:first-child + th + th + th,
+    .col4,.col5,.col6,.col7,.col8,
     td:first-child + td + td + td + td,
     th:first-child + th + th + th + th,
     td:first-child + td + td + td + td + td,
@@ -2802,12 +2806,14 @@ table.graphs {
     td:first-child + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th,
     td:first-child + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th{
-      width: 12%;
-    }
-    .col8,
+    th:first-child + th + th + th + th + th + th + th,
     td:first-child + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th{
+      width: 12%;
+    }
+    .col9,
+    td:first-child + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th{
       width: 15%;
     }
 

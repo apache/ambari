@@ -164,6 +164,7 @@ Em.I18n.translations = {
   'common.restart': 'Restart',
   'common.discard': 'Discard',
   'common.actions': 'Actions',
+  'common.maintenance': 'Maintenance',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1302,6 +1303,9 @@ Em.I18n.translations = {
 
   'hosts.table.restartComponents.withNames':'Restart {0}',
   'hosts.table.restartComponents.withoutNames':'{0} components should be restarted',
+
+  'hosts.table.componentsInMaintenance.withNames':'{0} in maintenance mode',
+  'hosts.table.componentsInMaintenance.withoutNames':'{0} components in maintenance mode',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',

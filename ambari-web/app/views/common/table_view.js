@@ -348,6 +348,7 @@ App.TableView = Em.View.extend({
     var filterConditions = this.get('filterConditions');
     if (!filterConditions.length) {
       this.set('filtersUsed', false);
+      return;
     }
     var filtersUsed = false;
     filterConditions.forEach(function(filterCondition) {

@@ -26,6 +26,10 @@ App.HostComponent = DS.Model.extend({
   staleConfigs: DS.attr('boolean'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
+  /**
+   * Determine if component is client
+   * @returns {bool}
+   */
   isClient:function () {
     if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
       return true;
@@ -33,12 +37,27 @@ App.HostComponent = DS.Model.extend({
 
     return Boolean(this.get('componentName').match(/_client/gi));
   }.property('componentName'),
+  /**
+   * Determine if component is running now
+   * Based on <code>workStatus</code>
+   * @returns {bool}
+   */
   isRunning: function(){
     return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
   }.property('workStatus'),
+
+  /**
+   * Formatted <code>componentName</code>
+   * @returns {String}
+   */
   displayName: function () {
     return App.format.role(this.get('componentName'));
   }.property('componentName'),
+
+  /**
+   * Determine if component is master
+   * @returns {bool}
+   */
   isMaster: function () {
     switch (this.get('componentName')) {
       case 'NAMENODE':
@@ -64,6 +83,11 @@ App.HostComponent = DS.Model.extend({
         return false;
     }
   }.property('componentName'),
+
+  /**
+   * Determine if component is slave
+   * @returns {bool}
+   */
   isSlave: function(){
     switch (this.get('componentName')) {
       case 'DATANODE':
@@ -82,6 +106,7 @@ App.HostComponent = DS.Model.extend({
    * They include some from master components, 
    * some from slave components, and rest from 
    * client components.
+   * @returns {bool}
    */
   isDeletable: function() {
     var canDelete = false;
@@ -104,6 +129,7 @@ App.HostComponent = DS.Model.extend({
   /**
    * A host-component is decommissioning when it is in HDFS service's list of
    * decomNodes.
+   * @returns {bool}
    */
   isDecommissioning: function () {
     var decommissioning = false;
@@ -119,6 +145,7 @@ App.HostComponent = DS.Model.extend({
   }.property('componentName', 'host.hostName', 'App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
   /**
    * User friendly host component status
+   * @returns {String}
    */
   componentTextStatus: function () {
     return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
@@ -138,6 +165,11 @@ App.HostComponentStatus = {
   maintenance: "MAINTENANCE",
   unknown: "UNKNOWN",
 
+  /**
+   * Get host component status in "machine" format
+   * @param {String} value
+   * @returns {String}
+   */
   getKeyName:function(value){
     switch(value){
       case this.started:
@@ -162,6 +194,11 @@ App.HostComponentStatus = {
     return 'Unknown';
   },
 
+  /**
+   * Get user-friendly host component status
+   * @param {String} value
+   * @returns {String}
+   */
   getTextStatus: function (value) {
     switch (value) {
       case this.installing:
