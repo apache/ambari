@@ -199,6 +199,26 @@ var urls = {
     }
   },
 
+  'host_component.maintenance_mode': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data, opt) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.requestInfo
+          },
+          Body: {
+            HostRoles: {
+              state: data.state
+            }
+          }
+        })
+      };
+    }
+  },
+
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',

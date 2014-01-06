@@ -796,7 +796,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         break;
     }
   },
-  
+
   doStartAllComponents: function() {
     var self = this;
     var components = this.get('content.hostComponents');
@@ -1076,6 +1076,38 @@ App.MainHostDetailsController = Em.Controller.extend({
       reassignMasterController.setCurrentStep('1');
       App.router.transitionTo('services.reassign');
     });
-  }
+  },
 
+  turnOnOffMaintenanceConfirmation: function(event){
+    var self = this;
+    var component = event.context;
+    var componentName = component.get('componentName').toUpperCase();
+    var state, onOff;
+    if (component.get("workStatus") == App.HostComponentStatus.maintenance) {
+      onOff = "Off";
+      state = App.HostComponentStatus.stopped;
+    } else {
+      onOff = "On";
+      state = App.HostComponentStatus.maintenance;
+    }
+    App.showConfirmationPopup(function() {
+          self.turnOnOffmaintenance(state, componentName)
+        },
+        Em.I18n.t('hosts.maintenanceMode.popup').format(onOff,component.get('displayName'))
+    );
+  },
+
+  turnOnOffmaintenance: function(state,componentName) {
+    var hostName = this.get('content.hostName');
+    App.ajax.send({
+      name: 'host_component.maintenance_mode',
+      sender: this,
+      data: {
+        hostName: hostName,
+        componentName: componentName,
+        state: state,
+        requestInfo: componentName + " " + state
+      }
+    });
+  }
 });

@@ -356,6 +356,11 @@ App.MainHostSummaryView = Em.View.extend({
         return 'health-status-color-blue icon-cog';
       }
 
+      //Class when maintenance
+      if (this.get('workStatus') === App.HostComponentStatus.maintenance) {
+        return 'icon-medkit';
+      }
+
       //For all other cases
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
     }.property('workStatus', 'isDataNodeRecommissionAvailable', 'this.content.isDecommissioning'),
@@ -409,6 +414,10 @@ App.MainHostSummaryView = Em.View.extend({
       return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
     }.property('workStatus'),
 
+    isStop: function () {
+      return (this.get('workStatus') == App.HostComponentStatus.stopped);
+    }.property('workStatus'),
+
     isInstalling: function () {
       return (this.get('workStatus') == App.HostComponentStatus.installing);
     }.property('workStatus'),
@@ -440,6 +449,10 @@ App.MainHostSummaryView = Em.View.extend({
       var hostComponentDecommissioning = this.get('hostComponent.isDecommissioning');
       return this.get('isDataNode') &&  this.get("isDataNodeRecommissionAvailable") && hostComponentDecommissioning;
     }.property("workStatus", "isDataNodeRecommissionAvailable", "hostComponent.isDecommissioning"),
+
+    isInMaintenance: function () {
+      return (this.get('workStatus') == App.HostComponentStatus.maintenance);
+    }.property("workStatus"),
 
     /**
      * Set in template via binding from parent view

@@ -165,6 +165,8 @@ Em.I18n.translations = {
   'common.discard': 'Discard',
   'common.actions': 'Actions',
   'common.maintenance': 'Maintenance',
+  'maintenance.turnOn':'Turn On Maintenance Mode',
+  'maintenance.turnOff':'Turn Off Maintenance Mode',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1408,6 +1410,7 @@ Em.I18n.translations = {
     'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
   'hosts.assignRack':'Assign Rack',
+  'hosts.maintenanceMode.popup':'Are you sure you want to Turn {0} Maintenance Mode for {1}?',
 
   'charts.horizon.chart.showText':'show',
   'charts.horizon.chart.hideText':'hide',

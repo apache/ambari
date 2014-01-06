@@ -217,6 +217,8 @@ App.HostComponentStatus = {
         return 'Heartbeat lost...';
       case this.upgrade_failed:
         return 'Upgrade Failed';
+      case this.maintenance:
+        return 'Maintenance';
     }
     return 'Unknown';
   }
