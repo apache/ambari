@@ -33,7 +33,7 @@ hbase.extendedperiod = 3600
 # hbase.class=org.apache.hadoop.metrics.ganglia.GangliaContext
 hbase.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
 hbase.period=10
-hbase.servers=<%=scope.function_hdp_host("ganglia_server_host")%>:8663
+hbase.servers={{ganglia_server_host}}:8663
 
 # Configuration of the "jvm" context for ganglia
 # Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
