@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
@@ -245,6 +246,9 @@ public class ConfigGroupResourceProvider extends
           ConfigGroup configGroup = configGroupMap.get(request.getId());
           if (configGroup != null) {
             responses.add(configGroup.convertToResponse());
+          } else {
+            throw new ConfigGroupNotFoundException(cluster.getClusterName(),
+              request.getId().toString());
           }
           continue;
         }

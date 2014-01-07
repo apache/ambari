@@ -17,9 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ConfigGroupNotFoundException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -53,6 +57,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 public class ConfigGroupResourceProviderTest {
 
@@ -331,6 +336,7 @@ public class ConfigGroupResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getConfigGroups()).andReturn(configGroupMap).anyTimes();
+    expect(cluster.getClusterName()).andReturn("Cluster100").anyTimes();
 
     expect(configGroup1.getName()).andReturn("g1").anyTimes();
     expect(configGroup2.getName()).andReturn("g2").anyTimes();
@@ -456,6 +462,20 @@ public class ConfigGroupResourceProviderTest {
           .CONFIGGROUP_HOSTS_PROPERTY_ID);
     assertEquals("h1", hostSet.iterator().next().get
       (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+
+    // Read by id
+    predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
+      .CONFIGGROUP_ID_PROPERTY_ID).equals(11L).and().property
+      (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
+      .equals("Cluster100").toPredicate();
+
+    NoSuchResourceException resourceException = null;
+    try {
+      resourceProvider.getResources(request, predicate);
+    } catch (NoSuchResourceException ce) {
+      resourceException = ce;
+    }
+    Assert.assertNotNull(resourceException);
 
     verify(managementController, clusters, cluster, configGroup1,
       configGroup2, configGroup3, configGroup4, response1, response2,
