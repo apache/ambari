@@ -26,7 +26,7 @@ import java.util.Date;
  */
 public class DateUtils {
 
-  public static final String ALLOWED_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+  public static final String ALLOWED_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssz";
 
   /**
    * Milliseconds to readable format in current server timezone
