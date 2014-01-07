@@ -62,7 +62,7 @@ App.MainHostView = App.TableView.extend({
   cpuSort: sort.fieldView.extend({
     column: 3,
     name:'cpu',
-    displayName: Em.I18n.t('common.cpu'),
+    displayName: Em.I18n.t('common.cores'),
     type: 'number'
   }),
   memorySort: sort.fieldView.extend({

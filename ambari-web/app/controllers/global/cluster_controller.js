@@ -326,7 +326,7 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,' +
+    var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,Hosts/disk_info,' +
       'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free'+
       '&minimal_response=true';

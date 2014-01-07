@@ -39,6 +39,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       item: 'id'
     },
     cpu: 'Hosts.cpu_count',
+    cpu_physical: 'Hosts.ph_cpu_count',
     memory: 'Hosts.total_mem',
     disk_info: 'Hosts.disk_info',
     disk_total: 'metrics.disk.disk_total',
@@ -109,6 +110,7 @@ App.hostsMapper = App.QuickDataMapper.create({
               public_host_name: host.public_host_name,
               memory: host.memory,
               cpu: host.cpu,
+              cpu_physical: host.cpu_physical,
               host_components: host.host_components
             };
           });
@@ -125,6 +127,7 @@ App.hostsMapper = App.QuickDataMapper.create({
               host.public_host_name = cacheHost.public_host_name;
               host.memory = cacheHost.memory;
               host.cpu = cacheHost.cpu;
+              host.cpu_physical = cacheHost.cpu_physical;
               host.host_components = cacheHost.host_components;
             }
           });

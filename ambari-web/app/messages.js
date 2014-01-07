@@ -90,6 +90,7 @@ Em.I18n.translations = {
   'common.value':'Value',
   'common.ipAddress':'IP Address',
   'common.cpu':'CPU',
+  'common.cores': 'Cores (CPU)',
   'common.ram':'RAM',
   'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',

@@ -26,6 +26,7 @@ App.Host = DS.Model.extend({
   cluster: DS.belongsTo('App.Cluster'),
   hostComponents: DS.hasMany('App.HostComponent'),
   cpu: DS.attr('string'),
+  cpuPhysical: DS.attr('string'),
   memory: DS.attr('string'),
   diskTotal: DS.attr('number'),
   diskFree: DS.attr('number'),
@@ -106,6 +107,10 @@ App.Host = DS.Model.extend({
   disksMounted: function() {
     return this.get('diskInfo.length');
   }.property('diskInfo.length'),
+
+  coresFormatted: function() {
+    return this.get('cpu') + ' (' + this.get('cpuPhysical') + ')';
+  }.property('cpu', 'cpuPhysical'),
 
   /**
    * API return diskTotal and diskFree. Need to save their different
