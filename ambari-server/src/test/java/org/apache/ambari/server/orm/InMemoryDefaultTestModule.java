@@ -21,6 +21,9 @@ package org.apache.ambari.server.orm;
 import com.google.inject.AbstractModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.scheduler.ExecutionScheduleManagerTest;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+
 import java.util.Properties;
 
 public class InMemoryDefaultTestModule extends AbstractModule {

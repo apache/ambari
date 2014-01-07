@@ -63,7 +63,7 @@ public class RequestScheduleService extends BaseService {
   @GET
   @Produces("text/plain")
   public Response getRequestSchedules(@Context HttpHeaders headers,
-                                  @Context UriInfo ui) {
+                                      @Context UriInfo ui) {
     return handleRequest(headers, null, ui, Request.Type.GET,
       createRequestSchedule(m_clusterName, null));
   }
@@ -95,32 +95,11 @@ public class RequestScheduleService extends BaseService {
    */
   @POST
   @Produces("text/plain")
-  public Response createRequestSchedule(String body, @Context HttpHeaders
-    headers,
-                                    @Context UriInfo ui) {
+  public Response createRequestSchedule(String body,
+                                        @Context HttpHeaders headers,
+                                        @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
       createRequestSchedule(m_clusterName, null));
-  }
-
-  /**
-   * Handles PUT /clusters/{clusterId}/request_schedules/{requestScheduleId}
-   * Update a request schedule
-   *
-   * @param body
-   * @param headers
-   * @param ui
-   * @param requestScheduleId
-   * @return
-   */
-  @PUT
-  @Path("{requestScheduleId}")
-  @Produces("text/plain")
-  public Response updateRequestSchedule(String body,
-                                        @Context HttpHeaders headers,
-                                        @Context UriInfo ui,
-                                        @PathParam("requestScheduleId") String requestScheduleId) {
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-      createRequestSchedule(m_clusterName, requestScheduleId));
   }
 
   /**
@@ -136,8 +115,8 @@ public class RequestScheduleService extends BaseService {
   @Path("{requestScheduleId}")
   @Produces("text/plain")
   public Response deleteRequestSchedule(@Context HttpHeaders headers,
-                                    @Context UriInfo ui,
-                                    @PathParam("requestScheduleId") String requestScheduleId) {
+                                        @Context UriInfo ui,
+                                        @PathParam("requestScheduleId") String requestScheduleId) {
     return handleRequest(headers, null, ui, Request.Type.DELETE,
       createRequestSchedule(m_clusterName, requestScheduleId));
   }

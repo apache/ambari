@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services.parsers;
 
+import junit.framework.Assert;
 import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -147,6 +148,7 @@ public class JsonRequestBodyParserTest {
 
   String bodyWithRequestInfoProperties = "{ \"RequestInfo\" : { \"query\" : \"foo=bar\", \"prop1\" : \"val1\", \"prop2\" : \"val2\" }, \"Body\":" + serviceJson + "}";
 
+  String bodyWithRequestBlobProperties = "{ \"RequestBodyInfo\" : { " +"\"RequestInfo\" : { \"query\" : \"foo=bar\", \"prop1\" : \"val1\", \"prop2\" : \"val2\" }, \"Body\":" + serviceJson + "} }";
 
   @Test
   public void testParse() throws BodyParseException {
@@ -561,8 +563,44 @@ public class JsonRequestBodyParserTest {
 
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(mapExpected, setProps2.iterator().next().getProperties());
+  }
 
+  @Test
+  public void testRequestBlobProperties() throws Exception {
+    RequestBodyParser parser = new JsonRequestBodyParser();
+    RequestBody body = parser.parse(bodyWithRequestBlobProperties).iterator().next();
 
+    Set<NamedPropertySet> setProps = body.getNamedPropertySets();
+    assertEquals(1, setProps.size());
+
+    String requestBlob = null;
+
+    for (NamedPropertySet ps : setProps) {
+      assertEquals("", ps.getName());
+      Map<String, Object> mapProps = ps.getProperties();
+
+      for (Map.Entry<String, Object> entry : mapProps.entrySet()) {
+        if (entry.getKey().equals(JsonRequestBodyParser.REQUEST_BLOB_TITLE)) {
+          requestBlob = (String) entry.getValue();
+        }
+      }
+    }
+
+    Assert.assertNotNull(requestBlob);
+    body = parser.parse(requestBlob).iterator().next();
+
+    Map<String, Object> mapExpected = new HashMap<String, Object>();
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "service_name"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "display_name"), "HDFS");
+    mapExpected.put(PropertyHelper.getPropertyId("ServiceInfo", "cluster_name"), "tbmetrictest");
+    mapExpected.put(PropertyHelper.getPropertyId("Services", "description"), "Apache Hadoop Distributed File System");
+    mapExpected.put(PropertyHelper.getPropertyId("ServiceInfo", "state"), "STARTED");
+    mapExpected.put(PropertyHelper.getPropertyId("OuterCategory", "propName"), "100");
+    mapExpected.put(PropertyHelper.getPropertyId("OuterCategory/nested1/nested2", "innerPropName"), "innerPropValue");
+    mapExpected.put(PropertyHelper.getPropertyId(null, "topLevelProp"), "value");
+
+    Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
+    assertEquals(mapExpected, setProps2.iterator().next().getProperties());
   }
 }
 

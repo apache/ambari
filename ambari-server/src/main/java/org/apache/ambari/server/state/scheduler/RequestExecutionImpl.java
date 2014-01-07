@@ -264,13 +264,11 @@ public class RequestExecutionImpl implements RequestExecution {
     if (batch != null) {
       List<BatchRequest> batchRequests = batch.getBatchRequests();
       if (batchRequests != null) {
-        // Sort by orderId and assign increasing batch id
         Collections.sort(batchRequests);
-        Long batchId = 1L;
         for (BatchRequest batchRequest : batchRequests) {
           RequestScheduleBatchRequestEntity batchRequestEntity = new
             RequestScheduleBatchRequestEntity();
-          batchRequestEntity.setBatchId(batchId);
+          batchRequestEntity.setBatchId(batchRequest.getOrderId());
           batchRequestEntity.setScheduleId(requestScheduleEntity.getScheduleId());
           batchRequestEntity.setRequestScheduleEntity(requestScheduleEntity);
           batchRequestEntity.setRequestType(batchRequest.getType());
@@ -283,7 +281,6 @@ public class RequestExecutionImpl implements RequestExecution {
           requestScheduleEntity.getRequestScheduleBatchRequestEntities().add
             (batchRequestEntity);
           requestScheduleDAO.merge(requestScheduleEntity);
-          batchId++;
         }
       }
     }

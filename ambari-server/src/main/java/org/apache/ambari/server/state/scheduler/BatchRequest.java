@@ -106,4 +106,13 @@ public class BatchRequest implements Comparable<BatchRequest> {
     POST,
     DELETE
   }
+
+  @Override
+  public String toString() {
+    return "BatchRequest {" +
+      "orderId=" + orderId +
+      ", type=" + type +
+      ", uri='" + uri + '\'' +
+      '}';
+  }
 }

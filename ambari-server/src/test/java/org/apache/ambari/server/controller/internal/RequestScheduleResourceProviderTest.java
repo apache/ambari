@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.scheduler.Batch;
@@ -77,9 +78,13 @@ public class RequestScheduleResourceProviderTest {
     RequestExecutionFactory executionFactory = createNiceMock
       (RequestExecutionFactory.class);
     RequestExecution requestExecution = createNiceMock(RequestExecution.class);
+    ExecutionScheduleManager executionScheduleManager = createNiceMock
+      (ExecutionScheduleManager.class);
 
-    expect(managementController.getClusters()).andReturn(clusters);
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getExecutionScheduleManager()).andReturn
+      (executionScheduleManager).anyTimes();
     expect(managementController.getRequestExecutionFactory()).andReturn
       (executionFactory);
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
@@ -92,7 +97,7 @@ public class RequestScheduleResourceProviderTest {
       capture(batchCapture), capture(scheduleCapture))).andReturn(requestExecution);
 
     replay(managementController, clusters, cluster, executionFactory,
-      requestExecution, response);
+      requestExecution, response, executionScheduleManager);
 
     RequestScheduleResourceProvider resourceProvider = getResourceProvider
       (managementController);
@@ -157,7 +162,7 @@ public class RequestScheduleResourceProviderTest {
     resourceProvider.createResources(request);
 
     verify(managementController, clusters, cluster, executionFactory,
-      requestExecution, response);
+      requestExecution, response, executionScheduleManager);
 
     List<BatchRequest> testRequests = batchCapture.getValue().getBatchRequests();
     Assert.assertNotNull(testRequests);
@@ -185,10 +190,14 @@ public class RequestScheduleResourceProviderTest {
     final RequestExecution requestExecution = createNiceMock(RequestExecution.class);
     RequestScheduleResponse requestScheduleResponse = createNiceMock
       (RequestScheduleResponse.class);
+    ExecutionScheduleManager executionScheduleManager = createNiceMock
+      (ExecutionScheduleManager.class);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(managementController.getExecutionScheduleManager()).andReturn
+      (executionScheduleManager).anyTimes();
 
     expect(requestExecution.getId()).andReturn(25L).anyTimes();
     expect(requestExecution.convertToResponse()).andReturn
@@ -208,7 +217,7 @@ public class RequestScheduleResourceProviderTest {
     });
 
     replay(managementController, clusters, cluster, requestExecution,
-      response, requestScheduleResponse);
+      response, requestScheduleResponse, executionScheduleManager);
 
     RequestScheduleResourceProvider resourceProvider = getResourceProvider
       (managementController);
@@ -279,7 +288,7 @@ public class RequestScheduleResourceProviderTest {
     resourceProvider.updateResources(request, predicate);
 
     verify(managementController, clusters, cluster, requestExecution,
-      response, requestScheduleResponse);
+      response, requestScheduleResponse, executionScheduleManager);
   }
 
   @Test
@@ -369,14 +378,23 @@ public class RequestScheduleResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    RequestExecution requestExecution = createNiceMock(RequestExecution.class);
+    ExecutionScheduleManager executionScheduleManager = createNiceMock
+      (ExecutionScheduleManager.class);
+
+    Map<Long, RequestExecution> requestExecutionMap = new HashMap<Long,
+      RequestExecution>();
+    requestExecutionMap.put(1L, requestExecution);
 
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getExecutionScheduleManager()).andReturn
+      (executionScheduleManager).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getAllRequestExecutions()).andReturn(requestExecutionMap);
 
-    cluster.deleteRequestExecution(1L);
-
-    replay(managementController, clusters, cluster);
+    replay(managementController, clusters, cluster, executionScheduleManager,
+      requestExecution );
 
     RequestScheduleResourceProvider resourceProvider = getResourceProvider
       (managementController);
@@ -399,6 +417,7 @@ public class RequestScheduleResourceProviderTest {
     Assert.assertEquals(predicate, lastEvent.getPredicate());
     Assert.assertNull(lastEvent.getRequest());
 
-    verify(managementController, clusters, cluster);
+    verify(managementController, clusters, cluster, executionScheduleManager,
+      requestExecution);
   }
 }

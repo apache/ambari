@@ -68,7 +68,8 @@ public class ExecutionSchedulerTest {
   @Test
   public void testSchedulerInitialize() throws Exception {
 
-    ExecutionSchedulerImpl executionScheduler = spy(new ExecutionSchedulerImpl(configuration));
+    ExecutionSchedulerImpl executionScheduler =
+      spy(new ExecutionSchedulerImpl(configuration));
 
     Properties actualProperties = executionScheduler
       .getQuartzSchedulerProperties();

@@ -104,93 +104,7 @@ select 'version','${ambariVersion}';
 
 COMMIT;
 
-CREATE TABLE workflow (
-  workflowId TEXT, workflowName TEXT,
-  parentWorkflowId TEXT,
-  workflowContext TEXT, userName TEXT,
-  startTime BIGINT, lastUpdateTime BIGINT,
-  numJobsTotal INTEGER, numJobsCompleted INTEGER,
-  inputBytes BIGINT, outputBytes BIGINT,
-  duration BIGINT,
-  PRIMARY KEY (workflowId),
-  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
-);
-
-CREATE TABLE job (
-  jobId TEXT, workflowId TEXT, jobName TEXT, workflowEntityName TEXT,
-  userName TEXT, queue TEXT, acls TEXT, confPath TEXT,
-  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT,
-  maps INTEGER, reduces INTEGER, status TEXT, priority TEXT,
-  finishedMaps INTEGER, finishedReduces INTEGER,
-  failedMaps INTEGER, failedReduces INTEGER,
-  mapsRuntime BIGINT, reducesRuntime BIGINT,
-  mapCounters TEXT, reduceCounters TEXT, jobCounters TEXT,
-  inputBytes BIGINT, outputBytes BIGINT,
-  PRIMARY KEY(jobId),
-  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
-);
-
-CREATE TABLE task (
-  taskId TEXT, jobId TEXT, taskType TEXT, splits TEXT,
-  startTime BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT,
-  failedAttempt TEXT,
-  PRIMARY KEY(taskId),
-  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE
-);
-
-CREATE TABLE taskAttempt (
-  taskAttemptId TEXT, taskId TEXT, jobId TEXT, taskType TEXT, taskTracker TEXT,
-  startTime BIGINT, finishTime BIGINT,
-  mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT,
-  locality TEXT, avataar TEXT,
-  status TEXT, error TEXT, counters TEXT,
-  inputBytes BIGINT, outputBytes BIGINT,
-  PRIMARY KEY(taskAttemptId),
-  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE,
-  FOREIGN KEY(taskId) REFERENCES task(taskId) ON DELETE CASCADE
-);
-
-CREATE TABLE hdfsEvent (
-  timestamp BIGINT,
-  userName TEXT,
-  clientIP TEXT,
-  operation TEXT,
-  srcPath TEXT,
-  dstPath TEXT,
-  permissions TEXT
-);
-
-CREATE TABLE mapreduceEvent (
-  timestamp BIGINT,
-  userName TEXT,
-  clientIP TEXT,
-  operation TEXT,
-  target TEXT,
-  result TEXT,
-  description TEXT,
-  permissions TEXT
-);
-
-CREATE TABLE clusterEvent (
-  timestamp BIGINT,
-  service TEXT, status TEXT,
-  error TEXT, data TEXT ,
-  host TEXT, rack TEXT
-);
-
 -- Quartz tables
-
-drop table qrtz_fired_triggers;
-DROP TABLE QRTZ_PAUSED_TRIGGER_GRPS;
-DROP TABLE QRTZ_SCHEDULER_STATE;
-DROP TABLE QRTZ_LOCKS;
-drop table qrtz_simple_triggers;
-drop table qrtz_cron_triggers;
-drop table qrtz_simprop_triggers;
-DROP TABLE QRTZ_BLOB_TRIGGERS;
-drop table qrtz_triggers;
-drop table qrtz_job_details;
-drop table qrtz_calendars;
 
 CREATE TABLE qrtz_job_details
   (
@@ -361,3 +275,77 @@ create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIG
 create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
 
 commit;
+
+CREATE TABLE workflow (
+  workflowId TEXT, workflowName TEXT,
+  parentWorkflowId TEXT,
+  workflowContext TEXT, userName TEXT,
+  startTime BIGINT, lastUpdateTime BIGINT,
+  numJobsTotal INTEGER, numJobsCompleted INTEGER,
+  inputBytes BIGINT, outputBytes BIGINT,
+  duration BIGINT,
+  PRIMARY KEY (workflowId),
+  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
+);
+
+CREATE TABLE job (
+  jobId TEXT, workflowId TEXT, jobName TEXT, workflowEntityName TEXT,
+  userName TEXT, queue TEXT, acls TEXT, confPath TEXT,
+  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT,
+  maps INTEGER, reduces INTEGER, status TEXT, priority TEXT,
+  finishedMaps INTEGER, finishedReduces INTEGER,
+  failedMaps INTEGER, failedReduces INTEGER,
+  mapsRuntime BIGINT, reducesRuntime BIGINT,
+  mapCounters TEXT, reduceCounters TEXT, jobCounters TEXT,
+  inputBytes BIGINT, outputBytes BIGINT,
+  PRIMARY KEY(jobId),
+  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
+);
+
+CREATE TABLE task (
+  taskId TEXT, jobId TEXT, taskType TEXT, splits TEXT,
+  startTime BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT,
+  failedAttempt TEXT,
+  PRIMARY KEY(taskId),
+  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE
+);
+
+CREATE TABLE taskAttempt (
+  taskAttemptId TEXT, taskId TEXT, jobId TEXT, taskType TEXT, taskTracker TEXT,
+  startTime BIGINT, finishTime BIGINT,
+  mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT,
+  locality TEXT, avataar TEXT,
+  status TEXT, error TEXT, counters TEXT,
+  inputBytes BIGINT, outputBytes BIGINT,
+  PRIMARY KEY(taskAttemptId),
+  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE,
+  FOREIGN KEY(taskId) REFERENCES task(taskId) ON DELETE CASCADE
+);
+
+CREATE TABLE hdfsEvent (
+  timestamp BIGINT,
+  userName TEXT,
+  clientIP TEXT,
+  operation TEXT,
+  srcPath TEXT,
+  dstPath TEXT,
+  permissions TEXT
+);
+
+CREATE TABLE mapreduceEvent (
+  timestamp BIGINT,
+  userName TEXT,
+  clientIP TEXT,
+  operation TEXT,
+  target TEXT,
+  result TEXT,
+  description TEXT,
+  permissions TEXT
+);
+
+CREATE TABLE clusterEvent (
+  timestamp BIGINT,
+  service TEXT, status TEXT,
+  error TEXT, data TEXT ,
+  host TEXT, rack TEXT
+);

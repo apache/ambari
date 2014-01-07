@@ -21,14 +21,41 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.scheduler.AbstractLinearExecutionJob;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 
+import java.util.Map;
+
 public class BatchRequestJob extends AbstractLinearExecutionJob {
+  public static final String BATCH_REQUEST_EXECUTION_ID_KEY =
+    "BatchRequestJob.ExecutionId";
+  public static final String BATCH_REQUEST_BATCH_ID_KEY =
+    "BatchRequestJob.BatchId";
 
   public BatchRequestJob(ExecutionScheduleManager executionScheduleManager) {
     super(executionScheduleManager);
   }
 
   @Override
-  protected void doWork() throws AmbariException {
+  protected void doWork(Map<String, Object> properties) throws AmbariException {
 
+    String executionId = properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) != null ?
+      (String) properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) : null;
+    String batchId = properties.get(BATCH_REQUEST_BATCH_ID_KEY) != null ?
+      (String) properties.get(BATCH_REQUEST_BATCH_ID_KEY) : null;
+
+
+    if (executionId == null || batchId == null) {
+      throw new AmbariException("Unable to retrieve persisted batch request"
+        + ", execution_id = " + executionId
+        + ", batch_id = " + batchId);
+    }
+
+    Long requestId = executionScheduleManager.executeBatchRequest
+      (Long.parseLong(executionId), Long.parseLong(batchId));
+
+    if (requestId != null) {
+      // Wait on request completion
+
+      BatchRequestResponse batchRequestResponse =
+        executionScheduleManager.getBatchRequestResponse(requestId);
+    }
   }
 }

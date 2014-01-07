@@ -18,12 +18,14 @@
 package org.apache.ambari.server.scheduler;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.quartz.Job;
+import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -38,13 +40,21 @@ import java.util.Properties;
 public class ExecutionSchedulerImpl implements ExecutionScheduler {
   @Inject
   private Configuration configuration;
-  private Scheduler scheduler;
   private static final Logger LOG = LoggerFactory.getLogger(ExecutionSchedulerImpl.class);
   protected static final String DEFAULT_SCHEDULER_NAME = "ExecutionScheduler";
-  private static volatile boolean isInitialized = false;
+  protected Scheduler scheduler;
+  protected static volatile boolean isInitialized = false;
 
   @Inject
-  public ExecutionSchedulerImpl(Configuration configuration) {
+  public ExecutionSchedulerImpl(Injector injector) {
+    injector.injectMembers(this);
+  }
+
+  /**
+   * Constructor used for unit testing
+   * @param configuration
+   */
+  protected ExecutionSchedulerImpl(Configuration configuration) {
     this.configuration = configuration;
   }
 
@@ -157,14 +167,18 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
   }
 
   @Override
-  public void scheduleJob(RequestExecution requestExecution, Schedule schedule)
-      throws AmbariException {
-
+  public void scheduleJob(Trigger trigger) throws SchedulerException {
+    scheduler.scheduleJob(trigger);
   }
 
   @Override
-  public void scheduleJob(Trigger trigger) throws SchedulerException {
-    scheduler.scheduleJob(trigger);
+  public void addJob(JobDetail jobDetail) throws SchedulerException {
+    scheduler.addJob(jobDetail, true);
+  }
+
+  @Override
+  public void deleteJob(JobKey jobKey) throws SchedulerException {
+    scheduler.deleteJob(jobKey);
   }
 
 }

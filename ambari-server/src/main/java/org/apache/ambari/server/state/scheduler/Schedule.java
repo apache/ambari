@@ -148,6 +148,31 @@ public class Schedule {
       && (endTime == null || endTime.isEmpty());
   }
 
+  /**
+   * Return a cron expression from the schedule fields.
+   * Example: "0 0 12 * * ?"
+   * @return
+   */
+  public String getScheduleExpression() {
+    StringBuilder expression = new StringBuilder();
+    expression.append("0"); // seconds
+    expression.append(" ");
+    expression.append(minutes);
+    expression.append(" ");
+    expression.append(hours);
+    expression.append(" ");
+    expression.append(daysOfMonth);
+    expression.append(" ");
+    expression.append(month);
+    expression.append(" ");
+    expression.append(dayOfWeek);
+    if (year != null && !year.isEmpty()) {
+      expression.append(" ");
+      expression.append(year);
+    }
+    return expression.toString();
+  }
+
   @Override
   public int hashCode() {
     int result = minutes != null ? minutes.hashCode() : 0;
@@ -163,7 +188,7 @@ public class Schedule {
 
   @Override
   public String toString() {
-    return "Schedule{" +
+    return "Schedule {" +
       "minutes='" + minutes + '\'' +
       ", hours='" + hours + '\'' +
       ", days_of_month='" + daysOfMonth + '\'' +

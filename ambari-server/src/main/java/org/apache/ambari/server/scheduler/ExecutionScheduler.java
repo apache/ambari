@@ -21,7 +21,9 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.quartz.Job;
+import org.quartz.JobDetail;
 import org.quartz.JobKey;
+import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 
@@ -39,14 +41,24 @@ public interface ExecutionScheduler {
   public void stopScheduler() throws AmbariException;
 
   /**
-   * Create a job based on the @RequestExecution and add a trigger for the
-   * created job based on the @Schedule. Schedule the job with the scheduler.
-   * @param requestExecution
-   * @param schedule
-   * @throws AmbariException
+   * Add a trigger to the execution scheduler
+   * @param trigger
+   * @throws SchedulerException
    */
-  public void scheduleJob(RequestExecution requestExecution,
-                          Schedule schedule) throws AmbariException;
-
   public void scheduleJob(Trigger trigger) throws SchedulerException;
+
+  /**
+   * Persist job data
+   * @param job
+   * @throws SchedulerException
+   */
+  public void addJob(JobDetail job) throws SchedulerException;
+
+
+  /**
+   * Delete the identified Job from the Scheduler - and any associated Triggers.
+   * @param jobKey
+   * @throws SchedulerException
+   */
+  public void deleteJob(JobKey jobKey) throws SchedulerException;
 }

@@ -146,8 +146,8 @@ public class RequestExecutionTest {
     }
     Assert.assertNotNull(reqEntity1);
     Assert.assertNotNull(reqEntity2);
-    Assert.assertEquals(Long.valueOf(1L), reqEntity1.getBatchId());
-    Assert.assertEquals(Long.valueOf(2L), reqEntity2.getBatchId());
+    Assert.assertEquals(Long.valueOf(10L), reqEntity1.getBatchId());
+    Assert.assertEquals(Long.valueOf(12L), reqEntity2.getBatchId());
     Assert.assertEquals(BatchRequest.Type.DELETE.name(), reqEntity1.getRequestType());
     Assert.assertEquals(BatchRequest.Type.POST.name(), reqEntity2.getRequestType());
     Assert.assertEquals(requestExecution.getSchedule().getMinutes(),
@@ -213,8 +213,8 @@ public class RequestExecutionTest {
     }
     Assert.assertNotNull(reqEntity1);
     Assert.assertNotNull(reqEntity2);
-    Assert.assertEquals(Long.valueOf(1L), reqEntity1.getBatchId());
-    Assert.assertEquals(Long.valueOf(2L), reqEntity2.getBatchId());
+    Assert.assertEquals(Long.valueOf(10L), reqEntity1.getBatchId());
+    Assert.assertEquals(Long.valueOf(12L), reqEntity2.getBatchId());
     Assert.assertEquals(BatchRequest.Type.PUT.name(), reqEntity1.getRequestType());
     Assert.assertEquals(BatchRequest.Type.POST.name(), reqEntity2.getRequestType());
     Assert.assertEquals("11", scheduleEntity.getHours());
@@ -250,8 +250,8 @@ public class RequestExecutionTest {
     }
     Assert.assertNotNull(reqEntity1);
     Assert.assertNotNull(reqEntity2);
-    Assert.assertEquals(Long.valueOf(1L), reqEntity1.getBatchId());
-    Assert.assertEquals(Long.valueOf(2L), reqEntity2.getBatchId());
+    Assert.assertEquals(Long.valueOf(10L), reqEntity1.getBatchId());
+    Assert.assertEquals(Long.valueOf(12L), reqEntity2.getBatchId());
     Assert.assertEquals(BatchRequest.Type.DELETE.name(), reqEntity1.getRequestType());
     Assert.assertEquals(BatchRequest.Type.POST.name(), reqEntity2.getRequestType());
     Assert.assertEquals(requestExecution.getSchedule().getMinutes(),

@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -512,5 +513,10 @@ public interface AmbariManagementController {
    * @return
    */
   public RequestExecutionFactory getRequestExecutionFactory();
+
+  /**
+   * Get Execution Schedule Manager
+   */
+  public ExecutionScheduleManager getExecutionScheduleManager();
 }
   

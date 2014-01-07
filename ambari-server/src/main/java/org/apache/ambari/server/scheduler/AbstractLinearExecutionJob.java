@@ -28,6 +28,9 @@ import org.quartz.PersistJobDataAfterExecution;
 import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+
 import static org.quartz.DateBuilder.futureDate;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
@@ -42,8 +45,8 @@ import static org.quartz.TriggerBuilder.newTrigger;
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
 public abstract class AbstractLinearExecutionJob implements ExecutionJob {
-  private ExecutionScheduleManager executionScheduleManager;
   private static Logger LOG = LoggerFactory.getLogger(AbstractLinearExecutionJob.class);
+  protected ExecutionScheduleManager executionScheduleManager;
 
   public AbstractLinearExecutionJob(ExecutionScheduleManager executionScheduleManager) {
     this.executionScheduleManager = executionScheduleManager;
@@ -52,8 +55,10 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
   /**
    * Do the actual work of the fired job.
    * @throws AmbariException
+   * @param properties
    */
-  protected abstract void doWork() throws AmbariException;
+  protected abstract void doWork(Map<String, Object> properties) throws
+    AmbariException;
 
   /**
    * Get the next job id from context and create a trigger to fire the next
@@ -74,7 +79,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
 
     // Perform work and exit if failure reported
     try {
-      doWork();
+      doWork(context.getMergedJobDataMap().getWrappedMap());
     } catch (AmbariException e) {
       LOG.error("Exception caught on job execution. Exiting linear chain...", e);
       throw new JobExecutionException(e);
@@ -100,4 +105,5 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
 
     executionScheduleManager.scheduleJob(trigger);
   }
+
 }

@@ -54,6 +54,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
@@ -133,6 +134,8 @@ public class AmbariManagementControllerImpl implements
   private ConfigHelper configHelper;
   @Inject
   private RequestExecutionFactory requestExecutionFactory;
+  @Inject
+  private ExecutionScheduleManager executionScheduleManager;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -1033,6 +1036,11 @@ public class AmbariManagementControllerImpl implements
   @Override
   public RequestExecutionFactory getRequestExecutionFactory() {
     return requestExecutionFactory;
+  }
+
+  @Override
+  public ExecutionScheduleManager getExecutionScheduleManager() {
+    return executionScheduleManager;
   }
 
   private List<Stage> doStageCreation(Cluster cluster,

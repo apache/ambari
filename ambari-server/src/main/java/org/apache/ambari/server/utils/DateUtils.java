@@ -26,6 +26,8 @@ import java.util.Date;
  */
 public class DateUtils {
 
+  public static final String ALLOWED_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
   /**
    * Milliseconds to readable format in current server timezone
    * @param timestamp
@@ -49,6 +51,28 @@ public class DateUtils {
       e.printStackTrace();
     }
     return null;
+  }
+
+  /**
+   * Convert from supported format to Date
+   * @param date
+   * @return
+   * @throws ParseException
+   */
+  public static Date convertToDate(String date) throws ParseException {
+    SimpleDateFormat sdf = new SimpleDateFormat(ALLOWED_DATE_FORMAT);
+    return sdf.parse(date);
+  }
+
+  /**
+   * Convert Date to allowed format
+   * @param date
+   * @return
+   * @throws ParseException
+   */
+  public static String convertDateToString(Date date) throws ParseException {
+    SimpleDateFormat sdf = new SimpleDateFormat(ALLOWED_DATE_FORMAT);
+    return sdf.format(date);
   }
 
   /**

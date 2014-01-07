@@ -217,6 +217,20 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     return resources;
   }
 
+  /**
+   * Currently unsupported operation. Since strong guarantees are required
+   * that no jobs are currently running.
+   * @param request    the request object which defines the set of properties
+   *                   for the resources to be updated
+   * @param predicate  the predicate object which can be used to filter which
+   *                   resources are updated
+   *
+   * @return
+   * @throws SystemException
+   * @throws UnsupportedPropertyException
+   * @throws NoSuchResourceException
+   * @throws NoSuchParentResourceException
+   */
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
@@ -286,11 +300,29 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
           + "exist", e);
     }
 
-    LOG.info("Deleting Request Schedule "
-      + ", clusterName = " + request.getClusterName()
-      + ", id = " + request.getId());
+    RequestExecution requestExecution =
+      cluster.getAllRequestExecutions().get(request.getId());
 
-    cluster.deleteRequestExecution(request.getId());
+    if (requestExecution == null) {
+      throw new AmbariException("Request Schedule not found "
+        + ", clusterName = " + request.getClusterName()
+        + ", description = " + request.getDescription()
+        + ", id = " + request.getId());
+    }
+
+    String username = getManagementController().getAuthName();
+
+    LOG.info("Disabling Request Schedule "
+      + ", clusterName = " + request.getClusterName()
+      + ", id = " + request.getId()
+      + ", user = " + username);
+
+    // Delete all jobs and triggers
+    getManagementController().getExecutionScheduleManager()
+      .deleteAllJobs(requestExecution);
+
+    requestExecution.setStatus(RequestExecution.Status.DISABLED);
+    requestExecution.persist();
   }
 
   private synchronized void updateRequestSchedule
@@ -347,6 +379,10 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
         + ", user = " + username);
 
       requestExecution.persist();
+
+      // Update schedule for the batch
+      getManagementController().getExecutionScheduleManager()
+        .updateBatchSchedule(requestExecution);
     }
   }
 
@@ -385,6 +421,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
       requestExecution.setCreateUser(username);
       requestExecution.setUpdateUser(username);
+      requestExecution.setStatus(RequestExecution.Status.SCHEDULED);
 
       LOG.info("Persisting new Request Schedule "
         + ", clusterName = " + request.getClusterName()
@@ -393,6 +430,10 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
       requestExecution.persist();
       cluster.addRequestExecution(requestExecution);
+
+      // Setup batch schedule
+      getManagementController().getExecutionScheduleManager()
+        .scheduleBatch(requestExecution);
 
       RequestScheduleResponse response = new RequestScheduleResponse
         (requestExecution.getId(), requestExecution.getClusterName(),
@@ -407,9 +448,30 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     return responses;
   }
 
-  private void validateRequest(RequestScheduleRequest request) {
+  private void validateRequest(RequestScheduleRequest request) throws AmbariException {
     if (request.getClusterName() == null) {
       throw new IllegalArgumentException("Cluster name is required.");
+    }
+    Schedule schedule = request.getSchedule();
+    if (schedule != null) {
+      getManagementController().getExecutionScheduleManager()
+        .validateSchedule(schedule);
+    }
+    Batch batch = request.getBatch();
+    if (batch != null && !batch.getBatchRequests().isEmpty()) {
+      // Verify requests can be ordered
+      HashSet<Long> orderIdSet = new HashSet<Long>();
+      for (BatchRequest batchRequest : batch.getBatchRequests()) {
+        if (batchRequest.getOrderId() == null) {
+          throw new AmbariException("No order id provided for batch request. " +
+            "" + batchRequest);
+        }
+        if (orderIdSet.contains(batchRequest.getOrderId())) {
+          throw new AmbariException("Duplicate order id provided for batch " +
+            "request. " + batchRequest);
+        }
+        orderIdSet.add(batchRequest.getOrderId());
+      }
     }
   }
 
