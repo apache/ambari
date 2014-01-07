@@ -350,8 +350,8 @@ class ActionScheduler implements Runnable {
               svcCompHost.handleEvent(timeoutEvent);
               LOG.warn("Operation timed out. Role: " + roleStr + ", host: " + host);
             } catch (ServiceComponentNotFoundException scnex) {
-              LOG.debug("Not a service component, assuming its an action. Details: "
-                  + scnex.getMessage());
+              LOG.debug(roleStr + " associated with service " + c.getServiceName() +
+                  " is not a service component, assuming it's an action.");
             } catch (InvalidStateTransitionException e) {
               LOG.info("Transition failed for host: " + host + ", role: "
                   + roleStr, e);

@@ -664,17 +664,17 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       }
 
     } catch (Exception e) {
-      LOG.error("Exception while detecting JMX protocol for clusterName = " + clusterName +
+      LOG.info("Exception while detecting JMX protocol for clusterName = " + clusterName +
           ", componentName = " + componentName,  e);
-      LOG.error("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
+      LOG.info("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
           ", componentName = " + componentName +
           componentName);
       jmxProtocolString = "http";
     }
     if (jmxProtocolString == null) {
-      LOG.error("Detected JMX protocol is null for clusterName = " + clusterName +
+      LOG.debug("Detected JMX protocol is null for clusterName = " + clusterName +
           ", componentName = " + componentName);
-      LOG.error("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
+      LOG.debug("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
           ", componentName = " + componentName +
           componentName);
       jmxProtocolString = "http";
