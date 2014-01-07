@@ -48,6 +48,7 @@
     </pluginRepository>
   </pluginRepositories>
   <modules>
+    <module>ambari-web</module>
     <module>ambari-project</module>
     <module>ambari-server</module>
     <module>ambari-agent</module>
@@ -160,18 +161,6 @@
     </plugins>
   </build>
   <profiles>
-    <profile>
-      <id>default</id>
-      <activation>
-         <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-         <module>ambari-web</module>
-      </modules>
-    </profile>
-    <profile>
-       <id>static-web</id>
-    </profile>
     <profile>
       <id>clover</id>
       <activation>
