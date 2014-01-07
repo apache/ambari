@@ -81,7 +81,7 @@ public class DateUtils {
    * @return
    */
   public static Long getDateDifferenceInMinutes(Date oldTime) {
-    long diff = oldTime.getTime() - new Date().getTime();
+    long diff = Math.abs(oldTime.getTime() - new Date().getTime());
     return diff / (60 * 1000) % 60;
   }
 }
