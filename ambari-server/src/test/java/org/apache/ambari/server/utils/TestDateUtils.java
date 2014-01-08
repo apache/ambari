@@ -18,6 +18,7 @@
 package org.apache.ambari.server.utils;
 
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Calendar;
@@ -26,6 +27,7 @@ import java.util.TimeZone;
 
 public class TestDateUtils {
 
+  @Ignore
   @Test
   public void testConvertToReadableTime() throws Exception {
     Long timestamp = 1389125737000L;
@@ -50,6 +52,7 @@ public class TestDateUtils {
     Assert.assertEquals(0, date.compareTo(calendar.getTime()));
   }
 
+  @Ignore
   @Test
   public void testGetDateDifferenceInMinutes() throws Exception {
     Calendar calendar = Calendar.getInstance();
