@@ -235,7 +235,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         }
         if (!App.get('isHaEnabled')) {
           if (App.Service.find().someProperty('serviceName', 'HBASE')) {
-            configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
+            configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
           }
         }
         if (securityEnabled) {
