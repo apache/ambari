@@ -29,6 +29,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import java.util.Collection;
 
 @Table(name = "requestschedule")
@@ -40,6 +41,12 @@ import java.util.Collection;
     "SELECT reqSchedule FROM RequestScheduleEntity reqSchedule " +
       "WHERE reqSchedule.status=:status")
 })
+@TableGenerator(name = "schedule_id_generator",
+  table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
+  , pkColumnValue = "requestschedule_id_seq"
+  , initialValue = 1
+  , allocationSize = 1
+)
 public class RequestScheduleEntity {
 
   @Id
