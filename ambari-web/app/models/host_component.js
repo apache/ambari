@@ -77,6 +77,7 @@ App.HostComponent = DS.Model.extend({
       case 'HUE_SERVER':
       case 'HISTORYSERVER':
       case 'FLUME_SERVER':
+      case 'NIMBUS':
       case 'RESOURCEMANAGER':
         return true;
       default:
@@ -96,6 +97,7 @@ App.HostComponent = DS.Model.extend({
       case 'GANGLIA_MONITOR':
       case 'NODEMANAGER':
       case 'ZKFC':
+      case 'SUPERVISOR':
         return true;
       default:
         return false;
@@ -116,6 +118,7 @@ App.HostComponent = DS.Model.extend({
       case 'ZOOKEEPER_SERVER':
       case 'HBASE_REGIONSERVER':
       case 'GANGLIA_MONITOR':
+      case 'SUPERVISOR':
       case 'NODEMANAGER':
         canDelete = true;
         break;

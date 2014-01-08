@@ -329,5 +329,21 @@ module.exports = new Ember.Set([
     isMaster: false, 
     isClient: true, 
     description: 'Client component for GLUSTERFS'
+  },
+  {
+    service_name: 'STORM',
+    component_name: 'NIMBUS',
+    display_name: 'Nimbus',
+    isMaster: true,
+    isClient: false,
+    description: 'Master component for STORM'
+  },
+  {
+    service_name: 'STORM',
+    component_name: 'SUPERVISOR',
+    display_name: 'Supervisor',
+    isMaster: false,
+    isClient: false,
+    description: 'Client component for STORM'
   }
 ]);

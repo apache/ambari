@@ -155,5 +155,13 @@ module.exports = [
     isSelected: App.supports.hue,
     canBeSelected: App.supports.hue,
     isHidden: !App.supports.hue
+  },
+  {
+    serviceName: 'STORM',
+    displayName: 'Storm',
+    isDisabled: false,
+    isSelected: App.testMode,
+    canBeSelected: App.testMode,
+    isHidden: !App.testMode
   }
 ]

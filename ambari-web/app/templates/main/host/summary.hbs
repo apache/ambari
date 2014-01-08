@@ -95,8 +95,8 @@
                       </li>
                     {{/if}}
                   {{/if}}
-                  {{#if view.isHBaseMaster}}
-                    <li {{bindAttr class="view.isDeleteHBaseMasterDisabled:disabled"}}>
+                  {{#if view.isDeletableComponent}}
+                    <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
                       <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
                         {{t common.delete}}
                       </a>

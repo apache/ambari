@@ -478,10 +478,18 @@ App.MainHostSummaryView = Em.View.extend({
     /**
      * Shows whether we need to show Delete button
      */
-    isHBaseMaster: function () {
-      return this.get('content.componentName') === 'HBASE_MASTER';
+    isDeletableComponent: function () {
+      var canDelete = false;
+      switch (this.get('content.componentName')) {
+        case 'HBASE_MASTER':
+        case 'SUPERVISOR':
+          canDelete = true;
+          break;
+        default:
+      }
+      return canDelete;
     }.property('content'),
-    isDeleteHBaseMasterDisabled: function () {
+    isDeleteComponentDisabled: function () {
       return !(this.get('workStatus') == App.HostComponentStatus.stopped || this.get('workStatus') == App.HostComponentStatus.unknown ||
         this.get('workStatus') == App.HostComponentStatus.install_failed || this.get('workStatus') == App.HostComponentStatus.upgrade_failed);
     }.property('workStatus'),

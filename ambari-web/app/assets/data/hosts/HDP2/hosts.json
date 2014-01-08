@@ -275,6 +275,22 @@
             "component_name" : "ZOOKEEPER_SERVER",
             "host_name" : "dev01.hortonworks.com"
           }
+        },
+        {
+          "href" : "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/NIMBUS",
+          "HostRoles" : {
+            "cluster_name" : "c1",
+            "component_name" : "NIMBUS",
+            "host_name" : "dev01.hortonworks.com"
+          }
+        },
+        {
+          "href" : "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/SUPERVISOR",
+          "HostRoles" : {
+            "cluster_name" : "c1",
+            "component_name" : "SUPERVISOR",
+            "host_name" : "dev01.hortonworks.com"
+          }
         }
       ]
     }

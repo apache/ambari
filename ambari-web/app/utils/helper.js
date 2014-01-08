@@ -348,6 +348,10 @@ App.format = {
         return 'Flume Agent';
       case 'ZKFC':
         return 'ZKFailoverController';
+      case 'NIMBUS':
+        return 'Nimbus';
+      case 'SUPERVISOR':
+        return 'Supervisor';
     }
   },
 
