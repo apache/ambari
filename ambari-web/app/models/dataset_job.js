@@ -28,8 +28,11 @@ App.DataSetJob = DS.Model.extend({
   duration: DS.attr('number'),
   startDateFormatted: function () {
     return date.dateFormatShort(this.get('startDate'));
-  }.property('startDate')
+  }.property('startDate'),
   //data : DS.attr('string')
+  healthClass: function () {
+    return this.get('status') === 'FAILED' ? 'health-status-DEAD-RED' : 'health-status-LIVE';
+  }.property('status')
 });
 
 

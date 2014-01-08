@@ -21,7 +21,12 @@ var App = require('app');
 App.MainJobsController = Em.Controller.extend({
   name: 'mainJobsController',
   jobs: function () {
-    return App.DataSetJob.find().filterProperty('dataset', this.get('content'));
+    var jobs = App.DataSetJob.find().filterProperty('dataset', this.get('content')).sort(
+      function(a, b) {
+        return a.get('id') < b.get('id');
+      }
+    );
+    return jobs;
   }.property('content'),
 
   actionDesc: function () {
