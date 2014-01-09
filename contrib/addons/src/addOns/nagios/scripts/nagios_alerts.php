@@ -367,6 +367,7 @@ function hdp_mon_generate_response( $response_data )
     switch ($pieces[0]) {
 	  case "DATANODE":
       case "NAMENODE":
+      case "JOURNALNODE":
         $pieces[0] = "HDFS";
         break;
       case "JOBTRACKER":
