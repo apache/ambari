@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="pull-left dataset-form" autocomplete="off">
+<div class="row-fluid">
     <form class="form-horizontal">
         <div class="add-data-set">
             <table>
@@ -31,6 +31,20 @@
                 <tr>
                     <td class="spacer" colspan="3"></td>
                 </tr>
+
+                <tr {{bindAttr class="model.isTypeError:error"}}>
+                    <td class="percent25" colspan="1">
+                      {{t mirroring.dataset.type}}
+                    </td>
+                    <td colspan="2" style="text-align: left">
+                      {{view view.typeSelect }}
+                        <span class="help-inline">{{typeErrorMessage}}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="spacer" colspan="3"></td>
+                </tr>
+
                 <tr {{bindAttr class="model.isSourceDirError:error"}}>
                     <td colspan="1">
                       {{t mirroring.dataset.sourceDir}}

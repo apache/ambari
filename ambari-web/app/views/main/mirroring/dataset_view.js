@@ -130,6 +130,31 @@ App.MainMirroringDataSetView = Em.View.extend({
 
   }.property('controller.model.newDataSet'),
 
+  typeSelect: App.MainMirroringDropdownView.extend({
+
+    controller: App.get('router.mainMirroringDataSetController'),
+
+    select: function (event) {
+      var selected = event.context;
+      this.set('selected', selected);
+      this.set('controller.model.newDataSet.type', selected.value);
+    },
+
+    listOfOptions: function () {
+      return [
+        {
+          title: Em.I18n.t('mirroring.dataset.type.HDFS'),
+          value: 'HDFS'
+        },
+        {
+          title: Em.I18n.t('mirroring.dataset.type.Hive'),
+          value: 'Hive'
+        }
+      ]
+    }.property()
+
+  }),
+
   hourOptions: Ember.Object.create({
     selectedForStart: function (key, value) {
       if (value) {

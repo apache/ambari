@@ -44,6 +44,15 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
         return isNameError;
       }.property('newDataSet.name', 'model.newDataSet.name'),
 
+      isTypeError: function (key, value) {
+        if (value) {
+          return value;
+        }
+        var controller = App.router.get('mainMirroringDataSetController');
+        var isTypeError = controller.checkNameErrors();
+        return isTypeError;
+      }.property('newDataSet.type', 'model.newDataSet.type'),
+
       isSourceDirError: function (key, value) {
         if (value) {
           return value;
@@ -107,6 +116,7 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
 
   validate: function () {
     var isNameError = this.checkNameErrors();
+    var isTypeError = this.checkTypeErrors();
     var isSourceDirError = this.checkSourceDirErrors();
     var isTargetClusterError = this.checkTargetClusterErrors();
     var isTargetDirError = this.checkTargetDirErrors();
@@ -114,7 +124,7 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
     var isEndDateError = this.checkEndDateErrors();
     var isFrequencyError = this.checkFrequencyErrors();
 
-    if (isNameError || isSourceDirError || isTargetClusterError || isTargetDirError || isStartDateError || isEndDateError || isFrequencyError) {
+    if (isNameError || isTypeError || isSourceDirError || isTargetClusterError || isTargetDirError || isStartDateError || isEndDateError || isFrequencyError) {
       return false;
     }
     return true;
@@ -133,6 +143,24 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
     }
     else {
       this.set('nameErrorMessage', "");
+      return false;
+    }
+
+  },
+
+  checkTypeErrors: function () {
+    if (!this.get('isSubmitted')){
+      this.set('typeErrorMessage', "");
+      return false;
+    }
+    var type = this.get('model.newDataSet.type');
+    if (!type || type.trim() === "") {
+      this.set('model.isTypeError', true);
+      this.set('typeErrorMessage', Em.I18n.t('mirroring.required.error'));
+      return true;
+    }
+    else {
+      this.set('typeErrorMessage', "");
       return false;
     }
 
@@ -281,6 +309,7 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
   },
 
   nameErrorMessage: null,
+  typeErrorMessage: null,
   sourceDirErrorMessage: null,
   targetClusterErrorMessage: null,
   targetDirErrorMessage: null,
@@ -301,6 +330,7 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
   createNewDataSet: function () {
     var newDataSet = Ember.Object.create({
       name: null,
+      type: null,
       sourceDir: null,
       targetCluster: Ember.Object.create(),
       targetDir: null,
@@ -314,6 +344,7 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
   setDataSet: function (dataset) {
     var newDataSet = Ember.Object.create({
       name: dataset.get('name'),
+      type: dataset.get('type'),
       sourceDir: dataset.get('sourceDir'),
       targetCluster: dataset.get('targetCluster'),
       targetDir: dataset.get('targetDir'),
@@ -334,9 +365,8 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
   },
 
   createTargetCluster: function () {
-    var controller = App.router.get('mainMirroringTargetClusterController');
-    controller.set('returnRoute', App.get('router.currentState.path'));
-    App.router.transitionTo('addTargetClusterRoute');
+    var controller = App.router.get('mainMirroringController');
+    controller.manageClusters();
   },
 
   /**

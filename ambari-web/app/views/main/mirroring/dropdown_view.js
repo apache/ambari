@@ -27,7 +27,7 @@ App.MainMirroringDropdownView = Em.View.extend({
 
   templateName:require('templates/main/mirroring/dropdown'),
 
-  selected: Ember.Object.create({title: 'Select', value: ''}),
+  selected: Ember.Object.create({title: 'Select type', value: ''}),
 
   listOfOptions : null,
 
