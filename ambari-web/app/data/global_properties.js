@@ -1072,7 +1072,7 @@ module.exports =
       "description": "Data directory for ZooKeeper",
       "defaultValue": "",
       "defaultDirectory": "/hadoop/zookeeper",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "displayType": "directory",
       "isVisible": true,
       "serviceName": "ZOOKEEPER",
