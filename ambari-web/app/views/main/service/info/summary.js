@@ -46,7 +46,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     ganglia:false,
     nagios:false,
     hue: false,
-    flume: false
+    flume: false,
+    storm: false
   },
 
   sumMasterComponentView : Em.View.extend({

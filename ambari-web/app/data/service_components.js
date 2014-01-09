@@ -330,6 +330,7 @@ module.exports = new Ember.Set([
     isClient: true, 
     description: 'Client component for GLUSTERFS'
   },
+  // @todo change with real info about service component
   {
     service_name: 'STORM',
     component_name: 'NIMBUS',
@@ -338,6 +339,7 @@ module.exports = new Ember.Set([
     isClient: false,
     description: 'Master component for STORM'
   },
+  // @todo change with real info about service component
   {
     service_name: 'STORM',
     component_name: 'SUPERVISOR',

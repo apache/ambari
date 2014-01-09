@@ -28,7 +28,7 @@ App.Service = DS.Model.extend({
   rand: DS.attr('string'),
   toolTipContent: DS.attr('string'),
   alerts: DS.hasMany('App.Alert'),
-  quickLinks: DS.hasMany('App.QuickLinks'),
+  quickLinks: DS.hasMany('App.QuickLinks'),  // mapped in app/mappers/service_metrics_mapper.js method - mapQuickLinks
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
 

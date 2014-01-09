@@ -74,6 +74,11 @@ App.QuickViewLinks = Em.View.extend({
     this.setQuickLinks();
   },
 
+  findComponentHost: function (componentName) {
+    var components = this.get('content.hostComponents');
+    return App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', componentName).get('host.publicHostName')
+  },
+
   setQuickLinks: function () {
     this.loadTags();
     var serviceName = this.get('content.serviceName');
@@ -85,7 +90,7 @@ App.QuickViewLinks = Em.View.extend({
     switch (serviceName) {
       case "HDFS":
         if (this.get('content.snameNode')) { // not HA
-          host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
+          host = this.findComponentHost('NAMENODE');
         } else {
           // HA
           if (this.get('content.activeNameNode')) {
@@ -118,13 +123,15 @@ App.QuickViewLinks = Em.View.extend({
         }
         break;
       case "YARN":
-        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'RESOURCEMANAGER').get('host.publicHostName');
+        host = this.findComponentHost('RESOURCEMANAGER');
         break;
       case "MAPREDUCE2":
-        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'HISTORYSERVER').get('host.publicHostName');
+        host = this.findComponentHost('HISTORYSERVER');
+        break;
+      case "STORM":
+        host = this.findComponentHost('NIMBUS');
         break;
     }
-
     if (!host) {
       quickLinks = [
         {

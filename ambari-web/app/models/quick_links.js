@@ -388,5 +388,18 @@ App.QuickLinks.FIXTURES = [
     site: 'mapred-site',
     regex: portRegex,
     default_http_port: 19888
+  },
+  /* @todo Add real info about links */
+  {
+    id:31,
+    label:'Nimbus UI',
+    url:'%@://%@:%@/stacks',
+    service_id: 'STORM',
+    template:'%@://%@:%@/nimbus',
+    http_config: 'mapreduce.jobhistory.webapp.address',
+    https_config: 'mapreduce.jobhistory.webapp.https.address',
+    site: 'storm-site',
+    regex: portRegex,
+    default_http_port: 9292
   }
 ];
