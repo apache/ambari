@@ -322,7 +322,7 @@ module.exports = {
               break;
           }
           return match;
-        }
+        };
         break;
       case 'duration':
         return function (rowValue, rangeExp) {
@@ -363,7 +363,7 @@ module.exports = {
               break;
           }
           return match;
-        }
+        };
         break;
       case 'date':
         return function (rowValue, rangeExp) {
@@ -390,7 +390,7 @@ module.exports = {
               break;
           }
           return match;
-        }
+        };
         break;
       case 'number':
         return function(rowValue, rangeExp){
@@ -431,7 +431,7 @@ module.exports = {
               if (rangeExp == rowValue) match = true;
           }
           return match;
-        }
+        };
         break;
       case 'multiple':
         return function(origin, compareValue){
@@ -447,7 +447,12 @@ module.exports = {
             }
           }
           return false;
-        }
+        };
+        break;
+      case 'boolean':
+        return function (origin, compareValue){
+          return origin === compareValue;
+        };
         break;
       case 'string':
       default:

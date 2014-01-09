@@ -46,6 +46,11 @@ App.Host = DS.Model.extend({
   cpuUser:DS.attr('number'),
 
   /**
+   * Is host checked at the main Hosts page
+   */
+  selected:DS.attr('boolean'),
+
+  /**
    * Overall CPU usage (system and user)
    * @returns {Number}
    */

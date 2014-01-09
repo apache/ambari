@@ -27,10 +27,6 @@ App.MainHostView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content.length'),
 
-  willInsertElement: function() {
-    this._super();
-  },
-
   clearFiltersObs: function() {
     var self = this;
     Em.run.next(function() {
@@ -44,6 +40,59 @@ App.MainHostView = App.TableView.extend({
   didInsertElement: function() {
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
+    this.addObserver('selectAllHosts', this, this.toggleAllHosts);
+  },
+
+  /**
+   * return filtered number of all content number information displayed on the page footer bar
+   * @returns {String}
+   */
+  filteredContentInfo: function () {
+    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredContent.length'), this.get('content').get('length'));
+  }.property('content.length', 'filteredContent.length'),
+
+  /**
+   * Select/deselect all visible hosts flag
+   * @property {bool}
+   */
+  selectAllHosts: false,
+
+  /**
+   * Set <code>selected</code> property for each App.Host
+   */
+  toggleAllHosts: function() {
+    this.get('pageContent').setEach('selected', this.get('selectAllHosts'));
+  },
+
+  /**
+   * Trigger updating <code>selectedHostsCount</code> only 1 time
+   */
+  selectedHostsObserver: function() {
+    Ember.run.once(this, 'updateCheckedFlags');
+  }.observes('pageContent.@each.selected'),
+
+  /**
+   * Update <code>selectAllHosts</code> value
+   */
+  updateCheckedFlags: function() {
+    this.removeObserver('selectAllHosts', this, this.toggleAllHosts);
+    if (this.get('pageContent').length) {
+      this.set('selectAllHosts', this.get('pageContent').everyProperty('selected', true));
+    }
+    else {
+      this.set('selectAllHosts', false);
+    }
+    this.addObserver('selectAllHosts', this, this.toggleAllHosts);
+  },
+
+  /**
+   * Clear selectedFilter
+   * Set <code>selected</code> to false for each host
+   */
+  clearSelection: function() {
+    this.get('pageContent').setEach('selected', false);
+    this.set('selectAllHosts', false);
+    this.clearFilters();
   },
 
   sortView: sort.wrapperView,
@@ -148,6 +197,7 @@ App.MainHostView = App.TableView.extend({
       var alerts = this.get('alerts');
       var restart = this.get('restart');
       var maintenance = this.get('maintenance');
+      var selected = this.get('selected');
       if(alerts) {
         return this.get('view.content').filterProperty('criticalAlertsCount').get('length');
       }
@@ -160,16 +210,21 @@ App.MainHostView = App.TableView.extend({
             return this.get('view.content').filterProperty('componentsInMaintenanceCount').get('length');
           }
           else {
-            if (statusString == "") {
-              return this.get('view.content').get('length');
+            if (selected) {
+              return this.get('view.content').filterProperty('selected').get('length');
             }
             else {
-              return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
+              if (statusString == "") {
+                return this.get('view.content').get('length');
+              }
+              else {
+                return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
+              }
             }
           }
         }
       }
-    }.property('view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount', 'view.content.@each.componentsInMaintenanceCount', 'view.content.@each.componentsWithStaleConfigsCount'),
+    }.property('view.content.@each.selected', 'view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount', 'view.content.@each.componentsInMaintenanceCount', 'view.content.@each.componentsWithStaleConfigsCount'),
 
     label: function () {
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
@@ -186,7 +241,7 @@ App.MainHostView = App.TableView.extend({
       }.property('isActive')
     });
 
-    var categories = [
+    return [
       self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: '', isActive: true, isVisible: false}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE', isVisible: true}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED', isVisible: true}),
@@ -194,12 +249,17 @@ App.MainHostView = App.TableView.extend({
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', isVisible: true}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', alerts: true, isVisible: true }),
       self.categoryObject.create({value: Em.I18n.t('common.restart'), healthStatusValue: 'health-status-RESTART', restart: true, isVisible: true }),
+      self.categoryObject.create({value: Em.I18n.t('common.selected'), healthStatusValue: 'health-status-SELECTED', selected: true, isVisible: false }),
       self.categoryObject.create({value: Em.I18n.t('common.maintenance'), healthStatusValue: 'health-status-MAINTENANCE', maintenance: true, last: true, isVisible: true })
     ];
-
-    return categories;
   }.property(),
 
+  /**
+   * Category for <code>selected</code> property of each App.Host
+   */
+  selectedCategory: function() {
+    return this.get('categories').findProperty('selected', true);
+  }.property('categories.@each.selected'),
 
   statusFilter: Em.View.extend({
     column: 0,
@@ -226,6 +286,7 @@ App.MainHostView = App.TableView.extend({
         this.get('parentView').updateFilter(7, '>0', 'number');
         this.get('parentView').updateFilter(8, '', 'number');
         this.get('parentView').updateFilter(9, '', 'number');
+        this.get('parentView').updateFilter(10, '', 'boolean');
       }
       else {
         if(category.get('restart')) {
@@ -233,7 +294,7 @@ App.MainHostView = App.TableView.extend({
           this.get('parentView').updateFilter(7, '', 'number');
           this.get('parentView').updateFilter(8, '>0', 'number');
           this.get('parentView').updateFilter(9, '', 'number');
-
+          this.get('parentView').updateFilter(10, '', 'boolean');
         }
         else {
           if(category.get('maintenance')) {
@@ -241,12 +302,23 @@ App.MainHostView = App.TableView.extend({
             this.get('parentView').updateFilter(7, '', 'number');
             this.get('parentView').updateFilter(8, '', 'number');
             this.get('parentView').updateFilter(9, '>0', 'number');
+            this.get('parentView').updateFilter(10, '', 'boolean');
           }
           else {
-            this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
-            this.get('parentView').updateFilter(7, '', 'number');
-            this.get('parentView').updateFilter(8, '', 'number');
-            this.get('parentView').updateFilter(9, '', 'number');
+            if(category.get('selected')) {
+              this.get('parentView').updateFilter(0, '', 'string');
+              this.get('parentView').updateFilter(7, '', 'number');
+              this.get('parentView').updateFilter(8, '', 'number');
+              this.get('parentView').updateFilter(9, '', 'number');
+              this.get('parentView').updateFilter(10, true, 'boolean');
+            }
+            else {
+              this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
+              this.get('parentView').updateFilter(7, '', 'number');
+              this.get('parentView').updateFilter(8, '', 'number');
+              this.get('parentView').updateFilter(9, '', 'number');
+              this.get('parentView').updateFilter(10, '', 'boolean');
+            }
           }
         }
       }
@@ -308,6 +380,21 @@ App.MainHostView = App.TableView.extend({
       }
     }
   }),
+
+  selectedFilter: Em.View.extend({
+    column: 10,
+    value: null,
+    class: ['noDisplay'],
+    showClearFilter: function(){
+      var mockEvent = {
+        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-SELECTED')
+      };
+      if(this.get('value')) {
+        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
+      }
+    }
+  }),
+
 
   /**
    * Filter view for name column
@@ -505,6 +592,7 @@ App.MainHostView = App.TableView.extend({
     associations[7] = 'criticalAlertsCount';
     associations[8] = 'componentsWithStaleConfigsCount';
     associations[9] = 'componentsInMaintenanceCount';
+    associations[10] = 'selected';
     return associations;
   }.property()
 });

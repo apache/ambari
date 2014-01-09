@@ -163,17 +163,10 @@ App.TableView = Em.View.extend({
   },
 
   /**
-   * return filtered number of all content number information displayed on the page footer bar
-   */
-  filteredHostsInfo: function () {
-    return this.t('apps.filters.filteredHostsInfo').format(this.get('filteredContent.length'), this.get('content').get('length'));
-  }.property('content.length', 'filteredContent.length'),
-
-  /**
    * return pagination information displayed on the page
    */
   paginationInfo: function () {
-    return this.t('apps.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
+    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
   }.property('displayLength', 'filteredContent.length', 'startIndex', 'endIndex'),
 
   paginationLeft: Ember.View.extend({

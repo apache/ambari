@@ -166,6 +166,7 @@ Em.I18n.translations = {
   'common.discard': 'Discard',
   'common.actions': 'Actions',
   'common.maintenance': 'Maintenance',
+  'common.selected': 'Selected',
   'maintenance.turnOn':'Turn On Maintenance Mode',
   'maintenance.turnOff':'Turn Off Maintenance Mode',
 
@@ -1304,6 +1305,13 @@ Em.I18n.translations = {
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
 
+  'hosts.filters.filteredHostsInfo': '{0} of {1} hosts showing',
+
+  'hosts.filters.selectedHostInfo': 'host selected',
+  'hosts.filters.selectedHostsInfo': 'hosts selected',
+
+  'hosts.filters.clearSelection': 'clear selection',
+
   'hosts.table.restartComponents.withNames':'Restart {0}',
   'hosts.table.restartComponents.withoutNames':'{0} components should be restarted',
 
@@ -1646,6 +1654,12 @@ Em.I18n.translations = {
   'apps.item.dag.output': 'Output',
   'apps.item.dag.duration': 'Duration',
 
+  'tableView.filters.all': 'All',
+  'tableView.filters.filtered': 'Filtered',
+  'tableView.filters.clearFilters': 'Clear filters',
+  'tableView.filters.paginationInfo': '{0} - {1} of {2}',
+  'tableView.filters.clearAllFilters': 'clear filters',
+
   'apps.table.column.appId':'App ID',
   'apps.table.column.runDate': 'Run Date',
   'apps.avgTable.avg': 'Avg',
@@ -1657,13 +1671,7 @@ Em.I18n.translations = {
   'apps.avgTable.duration': 'Duration',
   'apps.avgTable.oldest': 'Oldest',
   'apps.avgTable.mostRecent': 'Most Recent',
-  'apps.filters.all': 'All',
-  'apps.filters.filtered': 'Filtered',
   'apps.filters.filter': 'Filter',
-  'apps.filters.clearFilters': 'Clear filters',
-  'apps.filters.paginationInfo': '{0} - {1} of {2}',
-  'apps.filters.clearAllFilters': 'clear filters',
-  'apps.filters.filteredHostsInfo': '{0} of {1} hosts showing - ',
   'apps.filters.customRunDate':'Run Date custom filter',
   'apps.filters.nothingToShow': 'No jobs to display',
   'apps.filters.filterComponents': 'Filter by <strong>Component</strong>',

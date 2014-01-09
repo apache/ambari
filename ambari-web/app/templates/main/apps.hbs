@@ -53,13 +53,13 @@
   <div class="filter_info">
 
     <div class="span4" id="filter_buttons">{{t common.show}}:
-      <a class="all" {{action "clickViewType" target="view"}} data-view-type="all">{{t apps.filters.all}}
+      <a class="all" {{action "clickViewType" target="view"}} data-view-type="all">{{t tableView.filters.all}}
         ({{controller.paginationObject.iTotalRecords}})</a> &#124;
-      <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">{{t apps.filters.filtered}}
+      <a class="filtered" {{action "clickViewType" target="view"}} data-view-type="filtered">{{t tableView.filters.filtered}}
         ({{controller.filterObject.filteredDisplayRecords}})</a>
     </div>
     <div class="span2 clear_filter">
-        <a {{action "clearFilters" target="controller"}}>{{t apps.filters.clearFilters}}</a>
+        <a {{action "clearFilters" target="controller"}}>{{t tableView.filters.clearFilters}}</a>
     </div>
     <div class="search-bar">
         {{view view.appSearchThrough valueBinding="controller.filterObject.sSearch"}}

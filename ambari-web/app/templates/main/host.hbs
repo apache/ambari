@@ -69,6 +69,7 @@
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
         <th class="first"> </th>
+        <th> </th>
         {{view view.parentView.nameSort}}
         <th> </th>
         <th> </th>
@@ -80,7 +81,8 @@
         <th class="sort-view-6">{{t common.components}}</th>
       {{/view}}
       <tr id="filter-row">
-        <th class="first"> </th>
+        <th class="first"><div class="ember-view view-wrapper">{{view Ember.Checkbox checkedBinding="view.selectAllHosts"}}</div></th>
+        <th> </th>
         <th>{{view view.nameFilterView}}</th>
         <th> </th>
         <th> </th>
@@ -97,7 +99,9 @@
       {{#each host in view.pageContent}}
         {{#view view.HostView contentBinding="host"}}
 
-          <td class="first">
+          <td class="first">{{view Ember.Checkbox checkedBinding="host.selected"}}</td>
+
+          <td class="health">
             <span rel="HealthTooltip" {{bindAttr class="host.healthClass"}} {{bindAttr data-original-title="host.healthToolTip" }}></span>
           </td>
 
@@ -114,7 +118,7 @@
           </td>
           <td class="maintenance">
             {{#if host.componentsInMaintenanceCount}}
-                <span class="icon-medkit" rel="ComponentsTooltip" {{bindAttr title="view.componentsInMaintenanceMessage"}}></span>
+              <span class="icon-medkit" rel="ComponentsTooltip" {{bindAttr title="view.componentsInMaintenanceMessage"}}></span>
             {{/if}}
           </td>
           <td>{{host.ip}}</td>
@@ -138,8 +142,8 @@
       {{/each}}
     {{else}}
       <tr>
-        <td class="first"></td>
-        <td colspan="9">
+        <td class="first"> </td>
+        <td colspan="11">
           {{t hosts.table.noHosts}}
         </td>
       </tr>
@@ -149,7 +153,17 @@
 
   <div class="page-bar">
     <div class="filtered-hosts-info span4">
-      <label>{{view.filteredHostsInfo}} <a {{action clearFilters target="view"}} href="#">{{t apps.filters.clearAllFilters}}</a></label>
+      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+    </div>
+    <div class="selected-hosts-info span4">
+      {{#if view.selectedCategory.hostsCount}}
+        {{#view view.statusFilter categoriesBinding="view.categories"}}
+          <a {{action selectCategory view.parentView.selectedCategory target="view"}} href="#">
+            {{view.parentView.selectedCategory.hostsCount}}
+            {{pluralize view.parentView.selectedCategory.hostsCount singular="t:hosts.filters.selectedHostInfo" plural="t:hosts.filters.selectedHostsInfo"}}
+          </a>
+        {{/view}} - <a {{action clearSelection target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
+      {{/if}}
     </div>
     <div class="items-on-page">
       <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>

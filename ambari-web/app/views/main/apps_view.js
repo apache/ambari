@@ -22,7 +22,7 @@ var filters = require('views/common/filter_view');
 App.MainAppsView = Em.View.extend({
   templateName: require('templates/main/apps'),
   paginationInfo: function() {
-    return this.t('apps.filters.paginationInfo').format(this.get('controller.paginationObject.startIndex'), this.get('controller.paginationObject.endIndex'), this.get('controller.paginationObject.iTotalDisplayRecords'));
+    return this.t('tableView.filters.paginationInfo').format(this.get('controller.paginationObject.startIndex'), this.get('controller.paginationObject.endIndex'), this.get('controller.paginationObject.iTotalDisplayRecords'));
   }.property('controller.paginationObject.startIndex', 'controller.paginationObject.endIndex', 'controller.paginationObject.iTotalDisplayRecords'),
   //Pagination left/right buttons css class
   paginationLeft: Ember.View.extend({
