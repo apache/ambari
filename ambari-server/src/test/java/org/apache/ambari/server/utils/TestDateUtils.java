@@ -27,7 +27,6 @@ import java.util.TimeZone;
 
 public class TestDateUtils {
 
-  @Ignore
   @Test
   public void testConvertToReadableTime() throws Exception {
     Long timestamp = 1389125737000L;
@@ -37,11 +36,11 @@ public class TestDateUtils {
 
   @Test
   public void testConvertToDate() throws Exception {
-    String time = "2013-11-18T14:29:29-0800";
+    String time = "2013-11-18T14:29:29-0000";
     Date date = DateUtils.convertToDate(time);
     Assert.assertNotNull(date);
     Calendar calendar = Calendar.getInstance();
-    calendar.setTimeZone(TimeZone.getTimeZone("PST"));
+    calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
     calendar.set(Calendar.YEAR, 2013);
     calendar.set(Calendar.MONTH, Calendar.NOVEMBER);
     calendar.set(Calendar.DAY_OF_MONTH, 18);
@@ -52,10 +51,10 @@ public class TestDateUtils {
     Assert.assertEquals(0, date.compareTo(calendar.getTime()));
   }
 
-  @Ignore
   @Test
   public void testGetDateDifferenceInMinutes() throws Exception {
     Calendar calendar = Calendar.getInstance();
+    calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
     calendar.set(Calendar.YEAR, 2013);
     calendar.set(Calendar.MONTH, Calendar.NOVEMBER);
     calendar.set(Calendar.DAY_OF_MONTH, 18);
@@ -63,7 +62,7 @@ public class TestDateUtils {
     calendar.set(Calendar.MINUTE, 49);
     calendar.set(Calendar.SECOND, 29);
     calendar.set(Calendar.MILLISECOND, 0);
-    String time = "2013-11-18T14:29:29-0800";
+    String time = "2013-11-18T14:29:29-0000";
     Date date = DateUtils.convertToDate(time);
     Long diff = (Math.abs(date.getTime() - calendar.getTimeInMillis())) / (60 * 1000) % 60;
     Assert.assertEquals(Long.valueOf(20L).longValue(), diff.longValue());
