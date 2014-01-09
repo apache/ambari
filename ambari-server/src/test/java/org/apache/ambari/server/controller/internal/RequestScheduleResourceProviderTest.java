@@ -202,6 +202,8 @@ public class RequestScheduleResourceProviderTest {
     expect(requestExecution.getId()).andReturn(25L).anyTimes();
     expect(requestExecution.convertToResponse()).andReturn
       (requestScheduleResponse).anyTimes();
+    expect(requestExecution.convertToResponseWithBody()).andReturn
+      (requestScheduleResponse).anyTimes();
     expect(requestScheduleResponse.getId()).andReturn(25L).anyTimes();
     expect(requestScheduleResponse.getClusterName()).andReturn("Cluster100")
       .anyTimes();
@@ -309,6 +311,8 @@ public class RequestScheduleResourceProviderTest {
     expect(requestExecution.getStatus()).andReturn(RequestExecution.Status
       .SCHEDULED.name()).anyTimes();
     expect(requestExecution.convertToResponse()).andReturn
+      (requestScheduleResponse).anyTimes();
+    expect(requestExecution.convertToResponseWithBody()).andReturn
       (requestScheduleResponse).anyTimes();
     expect(requestScheduleResponse.getId()).andReturn(25L).anyTimes();
     expect(requestScheduleResponse.getClusterName()).andReturn("Cluster100")

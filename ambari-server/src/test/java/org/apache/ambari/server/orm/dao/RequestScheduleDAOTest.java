@@ -117,7 +117,7 @@ public class RequestScheduleDAOTest {
     Assert.assertNotNull(batchRequestEntity);
     Assert.assertEquals(testUri, batchRequestEntity.getRequestUri());
     Assert.assertEquals(testType, batchRequestEntity.getRequestType());
-    Assert.assertEquals(testBody, batchRequestEntity.getRequestBody());
+    Assert.assertEquals(testBody, batchRequestEntity.getRequestBodyAsString());
   }
 
   @Test

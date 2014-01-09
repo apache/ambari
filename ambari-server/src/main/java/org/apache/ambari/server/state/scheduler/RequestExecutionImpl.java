@@ -109,9 +109,9 @@ public class RequestExecutionImpl implements RequestExecution {
       for (RequestScheduleBatchRequestEntity batchRequestEntity :
           batchRequestEntities) {
         BatchRequest batchRequest = new BatchRequest();
+        batchRequest.setOrderId(batchRequestEntity.getBatchId());
         batchRequest.setType(BatchRequest.Type.valueOf(batchRequestEntity.getRequestType()));
         batchRequest.setUri(batchRequestEntity.getRequestUri());
-        batchRequest.setBody(batchRequestEntity.getRequestBody());
         batchRequest.setStatus(batchRequestEntity.getRequestStatus());
         batchRequest.setReturnCode(batchRequestEntity.getReturnCode());
         batchRequest.setResponseMsg(batchRequestEntity.getReturnMessage());
@@ -166,8 +166,9 @@ public class RequestExecutionImpl implements RequestExecution {
     readWriteLock.readLock().lock();
     try{
       RequestScheduleResponse response = new RequestScheduleResponse(
-        getId(), getClusterName(), getDescription(), getStatus(), getBatch(),
-        getSchedule(), requestScheduleEntity.getCreateUser(),
+        getId(), getClusterName(), getDescription(), getStatus(),
+        getLastExecutionStatus(), getBatch(), getSchedule(),
+        requestScheduleEntity.getCreateUser(),
         DateUtils.convertToReadableTime(requestScheduleEntity.getCreateTimestamp()),
         requestScheduleEntity.getUpdateUser(),
         DateUtils.convertToReadableTime(requestScheduleEntity.getUpdateTimestamp())
@@ -365,6 +366,48 @@ public class RequestExecutionImpl implements RequestExecution {
   @Override
   public String getUpdateUser() {
     return requestScheduleEntity.getUpdateUser();
+  }
+
+  @Override
+  public String getLastExecutionStatus() {
+    return requestScheduleEntity.getLastExecutionStatus();
+  }
+
+  @Override
+  public RequestScheduleResponse convertToResponseWithBody() {
+    readWriteLock.readLock().lock();
+    try{
+      RequestScheduleResponse response = convertToResponse();
+      Batch batch = response.getBatch();
+      if (batch != null) {
+        List<BatchRequest> batchRequests = batch.getBatchRequests();
+        if (batchRequests != null) {
+          for (BatchRequest batchRequest : batchRequests) {
+            batchRequest.setBody(getRequestBody(batchRequest.getOrderId()));
+          }
+        }
+      }
+      return response;
+    } finally {
+      readWriteLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public String getRequestBody(Long batchId) {
+    String body = null;
+    if (requestScheduleEntity != null) {
+      Collection<RequestScheduleBatchRequestEntity> requestEntities =
+        requestScheduleEntity.getRequestScheduleBatchRequestEntities();
+      if (requestEntities != null) {
+        for (RequestScheduleBatchRequestEntity requestEntity : requestEntities) {
+          if (requestEntity.getBatchId().equals(batchId)) {
+            body = requestEntity.getRequestBodyAsString();
+          }
+        }
+      }
+    }
+    return body;
   }
 
 }

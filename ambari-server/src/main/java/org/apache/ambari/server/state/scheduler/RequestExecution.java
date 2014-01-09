@@ -135,6 +135,22 @@ public interface RequestExecution {
   public String getUpdateUser();
 
   /**
+   * Get status of the last batch of requests
+   * @return
+   */
+  public String getLastExecutionStatus();
+
+  /**
+   * Get response with request body
+   */
+  public RequestScheduleResponse convertToResponseWithBody();
+
+  /**
+   * Get the request body for a batch request
+   */
+  public String getRequestBody(Long batchId);
+
+  /**
    * Status of the Request execution
    */
   public enum Status {

@@ -92,7 +92,8 @@ public class Configuration {
   public static final String CLIENT_API_SSL_CRT_PASS_KEY = "client.api.ssl.crt_pass";
   public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database";
-  public static final String SERVER_DB_NAME_DEFAULT = "postgres";
+  public static final String SERVER_DB_NAME_DEFAULT = "ambari";
+  public static final String POSTGRES_DB_NAME = "postgres";
   public static final String ORACLE_DB_NAME = "oracle";
   public static final String MYSQL_DB_NAME = "mysql";
 

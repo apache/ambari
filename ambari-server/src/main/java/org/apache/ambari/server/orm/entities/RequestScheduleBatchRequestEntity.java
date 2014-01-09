@@ -17,12 +17,15 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -53,8 +56,10 @@ public class RequestScheduleBatchRequestEntity {
   @Column(name = "request_uri")
   private String requestUri;
 
+  @Lob
+  @Basic(fetch = FetchType.LAZY)
   @Column(name = "request_body")
-  private String requestBody;
+  private byte[] requestBody;
 
   @Column(name = "request_status")
   private String requestStatus;
@@ -110,12 +115,22 @@ public class RequestScheduleBatchRequestEntity {
     this.requestUri = requestUri;
   }
 
-  public String getRequestBody() {
+  public byte[] getRequestBody() {
     return requestBody;
   }
 
-  public void setRequestBody(String requestBody) {
+  public String getRequestBodyAsString() {
+    return requestBody != null ? new String(requestBody) : null;
+  }
+
+  public void setRequestBody(byte[] requestBody) {
     this.requestBody = requestBody;
+  }
+
+  public void setRequestBody(String requestBodyStr) {
+    if (requestBodyStr != null) {
+      requestBody = requestBodyStr.getBytes();
+    }
   }
 
   public String getRequestStatus() {

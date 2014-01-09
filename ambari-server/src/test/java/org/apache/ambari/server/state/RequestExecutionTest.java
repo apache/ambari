@@ -23,6 +23,7 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.RequestScheduleResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RequestScheduleDAO;
@@ -272,4 +273,50 @@ public class RequestExecutionTest {
     Assert.assertNull(requestScheduleDAO.findById(id));
     Assert.assertNull(cluster.getAllRequestExecutions().get(id));
   }
+
+  @Test
+  public void testGetRequestScheduleWithRequestBody() throws Exception {
+    RequestExecution requestExecution = createRequestSchedule();
+    Assert.assertNotNull(requestExecution);
+    Assert.assertNotNull(cluster.getAllRequestExecutions().get
+      (requestExecution.getId()));
+
+    RequestScheduleEntity scheduleEntity = requestScheduleDAO.findById
+      (requestExecution.getId());
+    Assert.assertNotNull(scheduleEntity);
+
+    // Default Read
+    requestExecution = requestExecutionFactory.createExisting(cluster,
+      scheduleEntity);
+
+    BatchRequest postBatchRequest = null;
+    List<BatchRequest> batchRequests = requestExecution.getBatch()
+      .getBatchRequests();
+    Assert.assertNotNull(batchRequests);
+    for (BatchRequest batchRequest : batchRequests) {
+      if (batchRequest.getType().equals(BatchRequest.Type.POST.name())) {
+        postBatchRequest = batchRequest;
+      }
+    }
+    Assert.assertNotNull(postBatchRequest);
+    // Not read by default
+    Assert.assertNull(postBatchRequest.getBody());
+
+    RequestScheduleResponse requestScheduleResponse = requestExecution
+      .convertToResponseWithBody();
+
+    Assert.assertNotNull(requestScheduleResponse);
+
+    batchRequests = requestExecution.getBatch().getBatchRequests();
+    Assert.assertNotNull(batchRequests);
+    for (BatchRequest batchRequest : batchRequests) {
+      if (batchRequest.getType().equals(BatchRequest.Type.POST.name())) {
+        postBatchRequest = batchRequest;
+      }
+    }
+    Assert.assertNotNull(postBatchRequest);
+    // Request Body loaded lazily
+    Assert.assertNotNull(postBatchRequest.getBody());
+  }
+
 }

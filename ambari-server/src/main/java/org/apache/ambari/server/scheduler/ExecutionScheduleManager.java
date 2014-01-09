@@ -179,8 +179,10 @@ public class ExecutionScheduleManager {
       try {
         String startTime = schedule.getStartTime();
         String endTime = schedule.getEndTime();
-        startDate = startTime != null ? DateUtils.convertToDate(startTime) : new Date();
-        endDate = endTime != null ? DateUtils.convertToDate(endTime) : null;
+        startDate = startTime != null && !startTime.isEmpty() ?
+          DateUtils.convertToDate(startTime) : new Date();
+        endDate = endTime != null && !endTime.isEmpty() ?
+          DateUtils.convertToDate(endTime) : null;
       } catch (ParseException e) {
         LOG.error("Unable to parse startTime / endTime.", e);
       }
@@ -288,10 +290,12 @@ public class ExecutionScheduleManager {
    * @return
    */
   public void validateSchedule(Schedule schedule) throws AmbariException {
+    Date startDate = null;
+    Date endDate = null;
     if (!schedule.isEmpty()) {
       if (schedule.getStartTime() != null && !schedule.getStartTime().isEmpty()) {
         try {
-          DateUtils.convertToDate(schedule.getStartTime());
+          startDate = DateUtils.convertToDate(schedule.getStartTime());
         } catch (ParseException pe) {
           throw new AmbariException("Start time in invalid format. startTime "
             + "= " + schedule.getStartTime() + ", Allowed format = "
@@ -300,11 +304,21 @@ public class ExecutionScheduleManager {
       }
       if (schedule.getEndTime() != null && !schedule.getEndTime().isEmpty()) {
         try {
-          DateUtils.convertToDate(schedule.getEndTime());
+          endDate = DateUtils.convertToDate(schedule.getEndTime());
         } catch (ParseException pe) {
           throw new AmbariException("End time in invalid format. endTime "
             + "= " + schedule.getEndTime() + ", Allowed format = "
             + DateUtils.ALLOWED_DATE_FORMAT);
+        }
+      }
+      if (endDate != null) {
+        if (endDate.before(new Date())) {
+          throw new AmbariException("End date should be in the future. " +
+            "endDate = " + endDate);
+        }
+        if (startDate != null && endDate.before(startDate)) {
+          throw new AmbariException("End date cannot be before start date. " +
+            "startDate = " + startDate + ", endDate = " + endDate);
         }
       }
       String cronExpression = schedule.getScheduleExpression();
@@ -372,7 +386,7 @@ public class ExecutionScheduleManager {
 
       type = batchRequestEntity.getRequestType();
       uri = batchRequestEntity.getRequestUri();
-      body = batchRequestEntity.getRequestBody();
+      body = batchRequestEntity.getRequestBodyAsString();
 
     } catch (Exception e) {
 

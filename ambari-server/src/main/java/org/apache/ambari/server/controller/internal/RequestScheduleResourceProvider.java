@@ -31,6 +31,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -66,6 +67,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     PropertyHelper.getPropertyId("RequestSchedule", "description");
   protected static final String REQUEST_SCHEDULE_STATUS_PROPERTY_ID =
     PropertyHelper.getPropertyId("RequestSchedule", "status");
+  protected static final String REQUEST_SCHEDULE_LAST_STATUS_PROPERTY_ID =
+    PropertyHelper.getPropertyId("RequestSchedule", "last_execution_status");
   protected static final String REQUEST_SCHEDULE_BATCH_PROPERTY_ID =
     PropertyHelper.getPropertyId("RequestSchedule", "batch");
   protected static final String REQUEST_SCHEDULE_SCHEDULE_PROPERTY_ID =
@@ -198,6 +201,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
         response.getDescription(), requestedIds);
       setResourceProperty(resource, REQUEST_SCHEDULE_STATUS_PROPERTY_ID,
         response.getStatus(), requestedIds);
+      setResourceProperty(resource, REQUEST_SCHEDULE_LAST_STATUS_PROPERTY_ID,
+        response.getLastExecutionStatus(), requestedIds);
       setResourceProperty(resource, REQUEST_SCHEDULE_BATCH_PROPERTY_ID,
         response.getBatch(), requestedIds);
       setResourceProperty(resource, REQUEST_SCHEDULE_SCHEDULE_PROPERTY_ID,
@@ -438,6 +443,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       RequestScheduleResponse response = new RequestScheduleResponse
         (requestExecution.getId(), requestExecution.getClusterName(),
           requestExecution.getDescription(), requestExecution.getStatus(),
+          requestExecution.getLastExecutionStatus(),
           requestExecution.getBatch(), request.getSchedule(),
           requestExecution.getCreateUser(), requestExecution.getCreateTime(),
           requestExecution.getUpdateUser(), requestExecution.getUpdateTime());
@@ -499,7 +505,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
           RequestExecution requestExecution = allRequestExecutions.get
             (request.getId());
           if (requestExecution != null) {
-            responses.add(requestExecution.convertToResponse());
+            responses.add(requestExecution.convertToResponseWithBody());
           }
           continue;
         }

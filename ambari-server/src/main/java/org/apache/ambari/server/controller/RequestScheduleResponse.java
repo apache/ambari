@@ -26,6 +26,7 @@ public class RequestScheduleResponse {
   private String clusterName;
   private String description;
   private String status;
+  private String lastExecutionStatus;
   private Batch batch;
   private Schedule schedule;
   private String createUser;
@@ -35,6 +36,7 @@ public class RequestScheduleResponse {
 
   public RequestScheduleResponse(Long id, String clusterName,
                                  String description, String status,
+                                 String lastExecutionStatus,
                                  Batch batch, Schedule schedule,
                                  String createUser, String createTime,
                                  String updateUser, String updateTime) {
@@ -42,6 +44,7 @@ public class RequestScheduleResponse {
     this.clusterName = clusterName;
     this.description = description;
     this.status = status;
+    this.lastExecutionStatus = lastExecutionStatus;
     this.batch = batch;
     this.schedule = schedule;
     this.createUser = createUser;
@@ -128,5 +131,13 @@ public class RequestScheduleResponse {
 
   public void setUpdateTime(String updateTime) {
     this.updateTime = updateTime;
+  }
+
+  public String getLastExecutionStatus() {
+    return lastExecutionStatus;
+  }
+
+  public void setLastExecutionStatus(String lastExecutionStatus) {
+    this.lastExecutionStatus = lastExecutionStatus;
   }
 }

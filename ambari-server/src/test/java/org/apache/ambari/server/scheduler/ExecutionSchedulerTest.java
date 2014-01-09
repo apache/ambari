@@ -64,7 +64,6 @@ public class ExecutionSchedulerTest {
   public void teardown() throws Exception {
   }
 
-
   @Test
   public void testSchedulerInitialize() throws Exception {
 
@@ -107,5 +106,42 @@ public class ExecutionSchedulerTest {
     PowerMock.verify(factory, StdSchedulerFactory.class, scheduler);
 
     Assert.assertTrue(executionScheduler.isInitialized());
+  }
+
+  @Test
+  public void testGetQuartzDbDelegateClassAndValidationQuery() throws Exception {
+    Properties testProperties = new Properties();
+    testProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY,
+      "jdbc:postgresql://host:port/dbname");
+    testProperties.setProperty(Configuration.SERVER_DB_NAME_KEY, "ambari");
+    Configuration configuration1 = new Configuration(testProperties);
+    ExecutionSchedulerImpl executionScheduler =
+      spy(new ExecutionSchedulerImpl(configuration1));
+
+    String[] subProps = executionScheduler
+      .getQuartzDbDelegateClassAndValidationQuery();
+
+    Assert.assertEquals("org.quartz.impl.jdbcjobstore.PostgreSQLDelegate", subProps[0]);
+    Assert.assertEquals("select 0", subProps[1]);
+
+    testProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY,
+      "jdbc:mysql://host:port/dbname");
+    configuration1 = new Configuration(testProperties);
+    executionScheduler = spy(new ExecutionSchedulerImpl(configuration1));
+
+    subProps = executionScheduler.getQuartzDbDelegateClassAndValidationQuery();
+
+    Assert.assertEquals("org.quartz.impl.jdbcjobstore.StdJDBCDelegate", subProps[0]);
+    Assert.assertEquals("select 0", subProps[1]);
+
+    testProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY,
+      "jdbc:oracle:thin://host:port/dbname");
+    configuration1 = new Configuration(testProperties);
+    executionScheduler = spy(new ExecutionSchedulerImpl(configuration1));
+
+    subProps = executionScheduler.getQuartzDbDelegateClassAndValidationQuery();
+
+    Assert.assertEquals("org.quartz.impl.jdbcjobstore.oracle.OracleDelegate", subProps[0]);
+    Assert.assertEquals("select 0 from dual", subProps[1]);
   }
 }

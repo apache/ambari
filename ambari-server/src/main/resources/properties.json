@@ -110,6 +110,7 @@
         "RequestSchedule/cluster_name",
         "RequestSchedule/description",
         "RequestSchedule/status",
+        "RequestSchedule/last_execution_status",
         "RequestSchedule/batch",
         "RequestSchedule/schedule",
         "_"

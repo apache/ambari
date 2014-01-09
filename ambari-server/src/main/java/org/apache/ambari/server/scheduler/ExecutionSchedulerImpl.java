@@ -93,17 +93,10 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
     properties.setProperty("org.quartz.jobStore.isClustered",
       configuration.isExecutionSchedulerClusterd());
 
-    String dbType = configuration.getServerDBName();
-    String dbDelegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
-    String dbValidate = "select 0";
+    String[] subProps = getQuartzDbDelegateClassAndValidationQuery();
 
-    if (dbType.equals(Configuration.SERVER_DB_NAME_DEFAULT)) {
-      dbDelegate = "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate";
-    } else if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
-      dbDelegate = "org.quartz.impl.jdbcjobstore.oracle.OracleDelegate";
-      dbValidate = "select 0 from dual";
-    }
-    properties.setProperty("org.quartz.jobStore.driverDelegateClass", dbDelegate);
+    properties.setProperty("org.quartz.jobStore.driverDelegateClass",
+      subProps[0]);
     // Allow only strings in the jobDataMap which is serialized
     properties.setProperty("org.quartz.jobStore.useProperties", "false");
 
@@ -120,16 +113,33 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
     properties.setProperty("org.quartz.dataSource.myDS.maxConnections",
       configuration.getExecutionSchedulerConnections());
     properties.setProperty("org.quartz.dataSource.myDS.validationQuery",
-      dbValidate);
+      subProps[1]);
 
     // Skip update check
     properties.setProperty("org.quartz.scheduler.skipUpdateCheck", "true");
 
+    LOG.debug("Using quartz properties: " + properties);
     return properties;
   }
 
   protected synchronized boolean isInitialized() {
     return isInitialized;
+  }
+
+
+  protected String[] getQuartzDbDelegateClassAndValidationQuery() {
+    String dbUrl = configuration.getDatabaseUrl();
+    String dbDelegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
+    String dbValidate = "select 0";
+
+    if (dbUrl.contains(Configuration.POSTGRES_DB_NAME)) {
+      dbDelegate = "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate";
+    } else if (dbUrl.contains(Configuration.ORACLE_DB_NAME)) {
+      dbDelegate = "org.quartz.impl.jdbcjobstore.oracle.OracleDelegate";
+      dbValidate = "select 0 from dual";
+    }
+
+    return new String[] { dbDelegate, dbValidate };
   }
 
   @Override
