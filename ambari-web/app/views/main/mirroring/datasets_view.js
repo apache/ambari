@@ -27,6 +27,10 @@ App.MainDatasetsView = App.TableView.extend({
     return this.get('controller.datasets');
   }.property('controller.datasets'),
 
+  didInsertElement: function () {
+    this.set('filteredContent', this.get('controller.datasets'));
+  },
+
   jobs: function () {
     return App.DataSetJob.find().slice(0, 2);
   }.property(),
