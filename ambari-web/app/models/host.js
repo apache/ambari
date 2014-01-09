@@ -90,7 +90,7 @@ App.Host = DS.Model.extend({
    */
   componentsInMaintenanceCount: function() {
     return this.get('hostComponents').filterProperty('workStatus', App.HostComponentStatus.maintenance).length;
-  }.property('hostsComponents.@each.workStatus').volatile(),
+  }.property('hostComponents.@each.workStatus'),
 
   /**
    * Truncate hostName if it longer than 43 symbols

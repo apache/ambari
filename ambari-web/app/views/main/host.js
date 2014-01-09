@@ -44,7 +44,6 @@ App.MainHostView = App.TableView.extend({
   didInsertElement: function() {
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
-    this.addObserver('content.@each.hostComponents.@each', this, this.filter);
   },
 
   sortView: sort.wrapperView,
@@ -170,7 +169,7 @@ App.MainHostView = App.TableView.extend({
           }
         }
       }
-    }.property('view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount', 'view.content.@each.componentsInMaintenanceCount', 'view.content.@each.hostComponents.@each.staleConfigs'),
+    }.property('view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount', 'view.content.@each.componentsInMaintenanceCount', 'view.content.@each.componentsWithStaleConfigsCount'),
 
     label: function () {
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
