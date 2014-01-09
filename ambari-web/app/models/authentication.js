@@ -69,7 +69,7 @@ App.AuthenticationForm = App.Form.extend({
     { name:"bindUser", displayName:Em.I18n.t('admin.authentication.form.bindUserDN'), isRequired:function () {
       return this.get('form.field.bindMethod.value');
     }.property('form.field.bindMethod.value')},
-    { name:"password", displayName:Em.I18n.t('form.password'), displayType:"password",
+    { name:"password", displayName:Em.I18n.t('common.password'), displayType:"password",
       isRequired:function () {
         return this.get('form.field.bindMethod.value');
       }.property('form.field.bindMethod.value') },
@@ -90,7 +90,7 @@ App.AuthenticationForm = App.Form.extend({
     },
 
     { name:"userDN", displayName:Em.I18n.t('admin.authentication.form.userDN') },
-    { name:"userPassword", displayName:Em.I18n.t('admin.authentication.form.password'), displayType:'password'}
+    { name:"userPassword", displayName:Em.I18n.t('common.password'), displayType:'password'}
   ],
   fields:[],
   testConfiguration:function () {

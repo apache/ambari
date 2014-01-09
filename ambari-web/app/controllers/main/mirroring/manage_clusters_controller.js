@@ -18,10 +18,36 @@
 
 var App = require('app');
 
-App.MainAdminAdvancedPasswordView = App.Form.extend({
-  fieldsOptions:[
-    { name:"password", displayName:Em.I18n.t('common.password'), displayType:"password", disableRequiredOnExistent:true },
-    { name:"passwordRetype", displayName:Em.I18n.t('form.passwordRetype'), displayType:"passwordRetype", disableRequiredOnExistent:true }
-  ],
-  fields: []
+App.MainMirroringManageClustersController = Em.ArrayController.extend({
+  name: 'mainMirroringManageClustersController',
+
+  ambariSelected: true,
+
+  ambariServerSelected: false,
+
+  interfacesSelected: false,
+
+  ambariDisabled: function () {
+    return !this.get('ambariSelected');
+  }.property('ambariSelected'),
+
+  ambariServerDisabled: function () {
+    return !this.get('ambariServerSelected');
+  }.property('ambariServerSelected'),
+
+  interfacesDisabled: function () {
+    return !this.get('interfacesSelected');
+  }.property('interfacesSelected'),
+
+  clearStep: function () {
+    this.set('ambariSelected', true);
+    this.set('ambariServerSelected', false);
+    this.set('interfacesSelected', false);
+  },
+
+  addCluster: function() {},
+
+  removeCluster: function() {},
+
+  testConnection: function() {}
 });

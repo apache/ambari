@@ -216,6 +216,7 @@ require('views/main/mirroring/jobs_view');
 require('views/main/mirroring/targetClusterView');
 require('views/main/mirroring/testConnection_view');
 require('views/main/mirroring/testConnectionResults_view');
+require('views/main/mirroring/manage_clusters_view');
 require('views/installer');
 require('views/wizard/controls_view');
 require('views/wizard/step0_view');

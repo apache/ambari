@@ -167,6 +167,10 @@ Em.I18n.translations = {
   'common.actions': 'Actions',
   'common.maintenance': 'Maintenance',
   'common.selected': 'Selected',
+  'common.password': 'Password',
+  'common.url': 'URL',
+  'common.advanced': 'Advanced',
+
   'maintenance.turnOn':'Turn On Maintenance Mode',
   'maintenance.turnOff':'Turn Off Maintenance Mode',
 
@@ -206,7 +210,6 @@ Em.I18n.translations = {
 
   'login.header':'Sign in',
   'login.username':'Username',
-  'login.password':'Password',
   'login.loginButton':'Sign in',
   'login.error':'Invalid username/password combination.',
   
@@ -637,7 +640,6 @@ Em.I18n.translations = {
   'form.create':'Create',
   'form.save':'Save',
   'form.cancel':'Cancel',
-  'form.password':'Password',
   'form.passwordRetype':'Retype Password',
   'form.saveSuccess':'Successfully saved.',
   'form.saveError':'Sorry, errors occurred.',
@@ -646,7 +648,6 @@ Em.I18n.translations = {
   'form.validator.invalidIp':'Please enter valid ip address',
   'form.validator.configKey':'Invalid Key. Only alphanumerics, hyphens, underscores, and periods are allowed.',
 
-  'admin.advanced.title':'Advanced',
   'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
   'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
   'admin.advanced.button.uninstallKeepData':'Uninstall cluster but keep data.',
@@ -673,7 +674,6 @@ Em.I18n.translations = {
   'admin.authentication.form.usernameAttribute':'Username Attribute',
 
   'admin.authentication.form.userDN':'User DN',
-  'admin.authentication.form.password':'Password',
   'admin.authentication.form.configurationTest':'Configuration Test',
   'admin.authentication.form.testConfiguration':'Test Configuration',
 
@@ -906,7 +906,6 @@ Em.I18n.translations = {
   'admin.users.privileges':'Admin',
   'admin.users.type':'Type',
   'admin.users.action':'Action',
-  'admin.users.password':'Password',
   'admin.users.passwordRetype':'Retype Password',
   'admin.users.username':'Username',
   'admin.users.createSuccess': 'User successfully created.',
@@ -1703,6 +1702,16 @@ Em.I18n.translations = {
   'mirroring.dataset.addTargetCluster':'Add Target Cluster',
   'mirroring.dataset.toggle.active':'Activate',
   'mirroring.dataset.toggle.suspended':'Suspend',
+
+  'mirroring.manageClusters.ambariServer':'Ambari Server',
+  'mirroring.manageClusters.testConnection':'Test Connection',
+  'mirroring.manageClusters.interfaces':'Interfaces',
+  'mirroring.manageClusters.execute':'Execute',
+  'mirroring.manageClusters.readonly':'Readonly',
+  'mirroring.manageClusters.workflow':'Workflow',
+  'mirroring.manageClusters.staging':'Staging',
+  'mirroring.manageClusters.working':'Working',
+  'mirroring.manageClusters.temp':'Temp',
 
   'mirroring.targetcluster.nameNodeWebUrl':'NameNode Web UI',
   'mirroring.targetcluster.nameNodeRpcUrl':'NameNode RPC',

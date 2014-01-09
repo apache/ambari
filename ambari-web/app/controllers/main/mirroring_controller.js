@@ -27,6 +27,24 @@ App.MainMirroringController = Em.ArrayController.extend({
 
   targetClusters: function () {
     return App.TargetCluster.find();
-  }.property()
+  }.property(),
+
+  manageClusters: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('mirroring.dataset.manageClusters'),
+      bodyClass: App.MainMirroringManageClusterstView.extend({
+        controllerBinding: 'App.router.mainMirroringManageClustersController'
+      }),
+      primary: Em.I18n.t('common.save'),
+      secondary: null,
+      onPrimary: function () {
+        this.hide();
+      },
+      didInsertElement: function () {
+        this._super();
+        this.fitHeight();
+      }
+    });
+  }
 
 });

@@ -25,12 +25,12 @@
       <ul class="dropdown-menu pull-left">
         <li>
           <a href="javascript:void(null);">
-            <i class="icon-plus"></i>{{t mirroring.dataset.createDataset}}
+            <i class="icon-plus"></i>&nbsp;{{t mirroring.dataset.createDataset}}
           </a>
         </li>
         <li>
-          <a href="javascript:void(null);">
-            <i class="icon-cog"></i>{{t mirroring.dataset.manageClusters}}...
+          <a {{action manageClusters target="controller"}} href="javascript:void(null);">
+            <i class="icon-cog"></i>&nbsp;{{t mirroring.dataset.manageClusters}}...
           </a>
         </li>
       </ul>
