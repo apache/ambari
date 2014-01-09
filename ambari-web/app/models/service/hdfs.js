@@ -24,9 +24,12 @@ App.HDFSService = App.Service.extend({
   activeNameNode: DS.belongsTo('App.Host'),
   standbyNameNode: DS.belongsTo('App.Host'),
   standbyNameNode2: DS.belongsTo('App.Host'),
-  dataNodes: function(){
-    return this.get('hostComponents').filterProperty('componentName', 'DATANODE').mapProperty('host');
-  }.property('hostComponents.length'),
+  dataNodes: function () {
+    return this.get('hostComponents').filterProperty('componentName', 'DATANODE');
+  }.property('hostComponents.@each'),
+  journalNodes: function () {
+    return this.get('hostComponents').filterProperty('componentName', 'JOURNALNODE');
+  }.property('hostComponents.@each'),
   nameNodeStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapMax: DS.attr('number'),

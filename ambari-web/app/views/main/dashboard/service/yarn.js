@@ -41,11 +41,11 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property('service.nodeManagerNodes'),
   
   nodeManagerComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'NODEMANAGER');
-  }.property('service.hostComponents.@each'),
+    return this.get('service.nodeManagerNodes').objectAt(0);
+  }.property(),
   
   yarnClientComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'YARN_CLIENT');
+    return this.get('service.hostComponents').findProperty('componentName', 'YARN_CLIENT');
   }.property(),
 
   hasManyYarnClients: function () {
@@ -65,10 +65,6 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     return this.t('services.service.summary.notRunning');
   }.property("service.resourceManagerStartTime"),
 
-  nodeManagersLive: function () {
-    return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').filterProperty("workStatus","STARTED");
-  }.property('service.hostComponents.@each'),
-
   nodeManagerText: function () {
     if(!this.get("nodeManagerComponent") || this.get("nodeManagerComponent.length") == 0){
       return '';
@@ -80,12 +76,12 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property("nodeManagerComponent"),
 
   nodeManagersLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function() {
-      return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').filterProperty("workStatus","STARTED").get("length");
-    }.property("service.hostComponents.@each"),
-    totalComponents: function() {
-      return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').get("length");
-    }.property("service.hostComponents.@each")
+    liveComponents: function () {
+      return this.get('service.nodeManagerNodes').filterProperty("workStatus", "STARTED").get("length");
+    }.property("service.nodeManagerNodes.@each.workStatus"),
+    totalComponents: function () {
+      return this.get('service.nodeManagerNodes.length');
+    }.property("service.nodeManagerNodes.length")
   }),
 
   nodeManagersStatus: function () {

@@ -21,9 +21,9 @@ var objectUtils = require('utils/object_utils');
 App.YARNService = App.Service.extend({
   version: DS.attr('string'),
   resourceManagerNode: DS.belongsTo('App.Host'),
-  nodeManagerNodes: function(){
-    return this.get('hostComponents').filterProperty('componentName', 'NODEMANAGER').mapProperty('host');
-  }.property('hostComponents.length'),
+  nodeManagerNodes: function () {
+    return this.get('hostComponents').filterProperty('componentName', 'NODEMANAGER');
+  }.property('hostComponents.@each'),
   nodeManagerLiveNodes: DS.hasMany('App.Host'),
   nodeManagersCountActive: DS.attr('number'),
   nodeManagersCountUnhealthy: DS.attr('number'),

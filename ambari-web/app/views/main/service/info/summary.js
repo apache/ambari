@@ -242,44 +242,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   },
 
   /**
-   * Array of the hostComponents for service
-   */
-  components: [],
-
-  /**
-   * Copy hostComponents from controller to view to avoid flickering Summary block while data is updating in the controller
-   * rand - just marker in the Service model for determining that Service was updated (value changes in the service_mapper)
-   */
-  hostComponentsUpd: function() {
-      var components = [];
-      this.get('controller.content.hostComponents').forEach(function(component) {
-        var obj = {};
-        for(var prop in component){
-          if( component.hasOwnProperty(prop)
-            && prop.indexOf('__ember') < 0
-            && prop.indexOf('_super') < 0
-            && Ember.typeOf(component.get(prop)) !== 'function'
-            ) {
-            obj[prop] = component.get(prop);
-          }
-        }
-        obj.displayName = component.get('displayName'); // this is computed property and wasn't copied in the top block of code
-        // suppressing MySQL server from being displayed, because Ambari always installs MySQL server no matter what
-        // database type is selected, and shows an incorrect link in the summary to point to the host that's hosting
-        // the MySQL server
-        if (component.get('componentName') !== 'MYSQL_SERVER') {
-          components.push(obj);
-        }
-      });
-      this.set('components', components);
-
-  },
-  
-  _hostComponentsUpd: function() {
-    Ember.run.once(this, 'hostComponentsUpd');
-  }.observes('controller.content.rand', 'controller.content.hostComponents.@each.isMaster', 'controller.content.hostComponents.@each.host'),
-  
-  /**
    * Wrapper for displayName. used to render correct display name for mysql_server
    */
   componentNameView: Ember.View.extend({
@@ -456,6 +418,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
   didInsertElement:function () {
+    //TODO delegate style calculation to css
     // We have to make the height of the Alerts section
     // match the height of the Summary section.
     var summaryTable = document.getElementById('summary-info');

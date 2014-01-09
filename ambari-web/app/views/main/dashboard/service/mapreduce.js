@@ -70,16 +70,16 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
 
   trackersSummary: function () {
     var svc = this.get('service');
-    var liveCount = App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length;
+    var liveCount = svc.get('taskTrackers').filterProperty("workStatus", "STARTED").length;
     var totalCount = svc.get('taskTrackers').get('length');
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(liveCount, totalCount);
-  }.property('service.aliveTrackers.length', 'service.taskTrackers.length'),
+  }.property('service.aliveTrackers.length', 'service.taskTrackers.@each.workStatus'),
 
   trackersLiveTextView: App.ComponentLiveTextView.extend({
-    liveComponents: function() {
-      return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").get("length");
-    }.property("service.hostComponents.@each", "service.aliveTrackers.length"),
+    liveComponents: function () {
+      return this.get('service.taskTrackers').filterProperty("workStatus", "STARTED").get("length");
+    }.property("service.taskTrackers.@each.workStatus"),
     totalComponents: function() {
       return this.get("service.taskTrackers.length");
     }.property('service.taskTrackers.length')
@@ -135,6 +135,6 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.mapSlots', 'service.reduceSlots', 'service.aliveTrackers'),
 
   taskTrackerComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'TASKTRACKER');
+    return this.get('service.taskTrackers').objectAt(0);
   }.property()
 });

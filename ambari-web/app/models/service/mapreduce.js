@@ -22,8 +22,8 @@ App.MapReduceService = App.Service.extend({
   jobHistoryServer: DS.belongsTo('App.Host'),
   jobTracker: DS.belongsTo('App.Host'),
   taskTrackers: function () {
-    return this.get('hostComponents').filterProperty('componentName', 'TASKTRACKER').mapProperty('host');
-  }.property('hostComponents.length'),
+    return this.get('hostComponents').filterProperty('componentName', 'TASKTRACKER');
+  }.property('hostComponents.@each'),
   jobTrackerStartTime: DS.attr('number'),
   jobTrackerHeapUsed: DS.attr('number'),
   jobTrackerHeapMax: DS.attr('number'),

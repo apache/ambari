@@ -39,9 +39,9 @@ App.TaskTrackerUpView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  taskTrackersLive: function(){
-    return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED");
-  }.property('model.hostComponents.@each'),
+  taskTrackersLive: function () {
+    return this.get('model.taskTrackers').filterProperty("workStatus", "STARTED");
+  }.property('model.taskTrackers.@each.workStatus'),
 
   data: function () {
     if (!this.get('model.taskTrackers.length')) {

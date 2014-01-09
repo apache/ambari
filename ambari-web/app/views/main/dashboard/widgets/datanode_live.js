@@ -41,12 +41,12 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  dataNodesLive: function(){
-    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED");
-  }.property('model.hostComponents.@each'),
-  dataNodesDead: function(){
-    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED");
-  }.property('model.hostComponents.@each'),
+  dataNodesLive: function () {
+    return this.get('model.dataNodes').filterProperty("workStatus", "STARTED");
+  }.property('model.dataNodes.@each.workStatus'),
+  dataNodesDead: function () {
+    return this.get('model.dataNodes').filterProperty("workStatus", "INSTALLED");
+  }.property('model.dataNodes.@each.workStatus'),
 
   data: function () {
     if ( !this.get('model.dataNodes.length')) {

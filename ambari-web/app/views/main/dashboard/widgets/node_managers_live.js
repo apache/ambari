@@ -46,9 +46,9 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  nodeManagersLive: function(){
-    return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').filterProperty("workStatus","STARTED");
-  }.property('model.hostComponents.@each'),
+  nodeManagersLive: function () {
+    return this.get('model.nodeManagerNodes').filterProperty("workStatus", "STARTED");
+  }.property('model.nodeManagerNodes.@each.workStatus'),
 
   data: function () {
     var nodeManagers = this.get('model.nodeManagerNodes.length');

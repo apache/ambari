@@ -27,7 +27,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
    */
   masters: function () {
     return this.get('service.hostComponents').filterProperty('isMaster', true);
-  }.property('service.hostComponents.@each'),
+  }.property('service.hostComponents.length'),
   /**
    * Passive master components
    */
@@ -40,8 +40,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
 
   liveRegionServers: function () {
-    return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED");
-  }.property('service.hostComponents.@each'),
+    return this.get('service.regionServers').filterProperty("workStatus", "STARTED");
+  }.property('service.regionServers.@each.workStatus'),
 
   regionServesText: function () {
     if (this.get('service.regionServers.length') == 0) {
@@ -55,8 +55,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   regionServersLiveTextView: App.ComponentLiveTextView.extend({
     liveComponents: function() {
-      return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED").get('length');
-    }.property("service.hostComponents.@each"),
+      return this.get('service.regionServers').filterProperty("workStatus","STARTED").get('length');
+    }.property('service.regionServers.@each.workStatus'),
     totalComponents: function() {
       return this.get("service.regionServers.length");
     }.property("service.regionServers.length")
@@ -139,7 +139,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property("service.masterActiveTime"),
 
   regionServerComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'HBASE_REGIONSERVER');
+    return this.get('service.regionServers').objectAt(0);
   }.property()
 
 });
