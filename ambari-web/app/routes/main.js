@@ -145,48 +145,51 @@ module.exports = Em.Route.extend({
         controller.createNewDataSet();
       },
       enter: function (router) {
-        var controller = router.get('mainMirroringDataSetController');
-        // if we are coming from closing AddCluster popup
-        if (controller.isReturning) {
-          controller.isReturning = false;
-          return;
-        }
-
-        controller.set('isPopupForEdit', false);
-        this.setupController(controller);
-
         var self = this;
-        controller.set('isSubmitted', false);
-        App.ModalPopup.show({
-          classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
-          header: Em.I18n.t('mirroring.dataset.newDataset'),
-          primary: Em.I18n.t('mirroring.dataset.save'),
-          secondary: Em.I18n.t('common.cancel'),
-          onPrimary: function () {
-            controller.set('isSubmitted', true);
-            var isValid = controller.validate();
+        var controller = router.get('mainMirroringDataSetController');
+        controller.dataLoading().done(function () {
+          // if we are coming from closing AddCluster popup
+          if (controller.isReturning) {
+            controller.isReturning = false;
+            return;
+          }
 
-            if (!isValid) {
-              return;
-            }
-            newDataSet = controller.getNewDataSet();
-            var schedule = newDataSet.get('schedule');
-            var targetCluster = newDataSet.get('targetCluster');
-            var scheduleRecord = App.Dataset.Schedule.createRecord(schedule);
-            var dataSetRecord = App.Dataset.createRecord(newDataSet);
-            scheduleRecord.set('dataset', dataSetRecord);
-            dataSetRecord.set('schedule', scheduleRecord);
+          controller.set('isPopupForEdit', false);
+          self.setupController(controller);
 
-            this.hide();
-            router.transitionTo('main.mirroring.index');
-          },
-          onSecondary: function () {
-            this.hide();
-            router.transitionTo('main.mirroring.index');
-          },
-          bodyClass: App.MainMirroringDataSetView.extend({
-            controller: router.get('mainMirroringDataSetController')
-          })
+
+          controller.set('isSubmitted', false);
+          App.ModalPopup.show({
+            classNames: ['sixty-percent-width-modal', 'hideCloseLink'],
+            header: Em.I18n.t('mirroring.dataset.newDataset'),
+            primary: Em.I18n.t('mirroring.dataset.save'),
+            secondary: Em.I18n.t('common.cancel'),
+            onPrimary: function () {
+              controller.set('isSubmitted', true);
+              var isValid = controller.validate();
+
+              if (!isValid) {
+                return;
+              }
+              newDataSet = controller.getNewDataSet();
+              var schedule = newDataSet.get('schedule');
+              var targetCluster = newDataSet.get('targetCluster');
+              var scheduleRecord = App.Dataset.Schedule.createRecord(schedule);
+              var dataSetRecord = App.Dataset.createRecord(newDataSet);
+              scheduleRecord.set('dataset', dataSetRecord);
+              dataSetRecord.set('schedule', scheduleRecord);
+
+              this.hide();
+              router.transitionTo('main.mirroring.index');
+            },
+            onSecondary: function () {
+              this.hide();
+              router.transitionTo('main.mirroring.index');
+            },
+            bodyClass: App.MainMirroringDataSetView.extend({
+              controller: router.get('mainMirroringDataSetController')
+            })
+          });
         });
       }
     }),

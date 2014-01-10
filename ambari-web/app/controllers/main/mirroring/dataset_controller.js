@@ -112,6 +112,22 @@ App.MainMirroringDataSetController = Ember.Controller.extend({
     }
   ),
 
+  dataLoading: function () {
+    var dfd = $.Deferred();
+    this.connectOutlet('loading');
+    if (App.router.get('clusterController.isLoaded')) {
+      dfd.resolve();
+    } else {
+      var interval = setInterval(function () {
+        if (App.router.get('clusterController.isLoaded')) {
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      }, 50);
+    }
+    return dfd.promise();
+  },
+
   isSubmitted: null,
 
   validate: function () {
