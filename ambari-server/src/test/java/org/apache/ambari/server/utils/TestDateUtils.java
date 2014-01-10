@@ -18,9 +18,9 @@
 package org.apache.ambari.server.utils;
 
 import junit.framework.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import java.text.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -31,7 +31,14 @@ public class TestDateUtils {
   public void testConvertToReadableTime() throws Exception {
     Long timestamp = 1389125737000L;
     String readableTime = DateUtils.convertToReadableTime(timestamp);
-    Assert.assertEquals("2014-01-07 12:15:37", readableTime);
+
+    // expected format with tz set to utc
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    //parse using formatter with TZ=local and format using above formatter with TZ=UTC
+    Assert.assertEquals("2014-01-07 20:15:37",
+        sdf.format(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(readableTime)));
   }
 
   @Test
