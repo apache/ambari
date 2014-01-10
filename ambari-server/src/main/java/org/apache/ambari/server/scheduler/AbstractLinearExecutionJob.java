@@ -88,11 +88,11 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
     JobDataMap jobDataMap = context.getMergedJobDataMap();
     String nextJobName = jobDataMap.getString(NEXT_EXECUTION_JOB_NAME_KEY);
     String nextJobGroup = jobDataMap.getString(NEXT_EXECUTION_JOB_GROUP_KEY);
-    Integer separationMinutes = jobDataMap.getIntegerFromString(
-      (NEXT_EXECUTION_SEPARATION_MINUTES));
+    Integer separationSeconds = jobDataMap.getIntegerFromString(
+      (NEXT_EXECUTION_SEPARATION_SECONDS));
 
-    if (separationMinutes == null) {
-      separationMinutes = 0;
+    if (separationSeconds == null) {
+      separationSeconds = 0;
     }
 
     // Create trigger for next job execution
@@ -100,7 +100,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
       .forJob(nextJobName, nextJobGroup)
       .withIdentity("TriggerForJob-" + nextJobName, LINEAR_EXECUTION_TRIGGER_GROUP)
       .withSchedule(simpleSchedule().withMisfireHandlingInstructionFireNow())
-      .startAt(futureDate(separationMinutes, DateBuilder.IntervalUnit.MINUTE))
+      .startAt(futureDate(separationSeconds, DateBuilder.IntervalUnit.SECOND))
       .build();
 
     executionScheduleManager.scheduleJob(trigger);

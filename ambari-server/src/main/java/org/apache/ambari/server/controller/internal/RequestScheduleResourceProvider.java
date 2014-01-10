@@ -31,7 +31,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -43,7 +42,6 @@ import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.Schedule;
-import org.apache.ambari.server.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +81,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     PropertyHelper.getPropertyId("RequestSchedule", "update_time");
 
   protected static final String REQUEST_SCHEDULE_BATCH_SEPARATION_PROPERTY_ID =
-    PropertyHelper.getPropertyId("batch_settings", "batch_separation_in_minutes");
+    PropertyHelper.getPropertyId("batch_settings", "batch_separation_in_seconds");
   protected static final String REQUEST_SCHEDULE_BATCH_TOLERATION_PROPERTY_ID =
     PropertyHelper.getPropertyId("batch_settings", "task_failure_tolerance");
   protected static final String REQUEST_SCHEDULE_BATCH_REQUESTS_PROPERTY_ID =
@@ -573,7 +571,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
                   ((String) batchMapEntry.getValue()));
               } else if (batchMapEntry.getKey().equals
                   (REQUEST_SCHEDULE_BATCH_SEPARATION_PROPERTY_ID)) {
-                batchSettings.setBatchSeparationInMinutes(Integer.valueOf
+                batchSettings.setBatchSeparationInSeconds(Integer.valueOf
                   ((String) batchMapEntry.getValue()));
               } else if (batchMapEntry.getKey().equals
                   (REQUEST_SCHEDULE_BATCH_REQUESTS_PROPERTY_ID)) {

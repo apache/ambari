@@ -25,7 +25,7 @@ import org.quartz.Job;
 public interface ExecutionJob extends Job {
   public static final String NEXT_EXECUTION_JOB_NAME_KEY = "ExecutionJob.Name";
   public static final String NEXT_EXECUTION_JOB_GROUP_KEY = "ExecutionJob.Group";
-  public static final String NEXT_EXECUTION_SEPARATION_MINUTES =
+  public static final String NEXT_EXECUTION_SEPARATION_SECONDS =
     "ExecutionJob.SeparationMinutes";
   public static final String LINEAR_EXECUTION_JOB_GROUP =
     "LinearExecutionJobs";

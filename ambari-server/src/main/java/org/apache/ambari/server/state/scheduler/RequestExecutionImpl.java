@@ -100,7 +100,7 @@ public class RequestExecutionImpl implements RequestExecution {
     schedule = new Schedule();
 
     BatchSettings batchSettings = new BatchSettings();
-    batchSettings.setBatchSeparationInMinutes(requestScheduleEntity.getBatchSeparationInMinutes());
+    batchSettings.setBatchSeparationInSeconds(requestScheduleEntity.getBatchSeparationInSeconds());
     batchSettings.setTaskFailureToleranceLimit(requestScheduleEntity.getBatchTolerationLimit());
 
     batch.setBatchSettings(batchSettings);
@@ -309,7 +309,7 @@ public class RequestExecutionImpl implements RequestExecution {
     if (batch != null) {
       BatchSettings settings = batch.getBatchSettings();
       if (settings != null) {
-        requestScheduleEntity.setBatchSeparationInMinutes(settings.getBatchSeparationInMinutes());
+        requestScheduleEntity.setBatchSeparationInSeconds(settings.getBatchSeparationInSeconds());
         requestScheduleEntity.setBatchTolerationLimit(settings.getTaskFailureToleranceLimit());
       }
     }

@@ -63,8 +63,8 @@ public class RequestScheduleEntity {
   @Column(name = "status")
   private String status;
 
-  @Column(name = "batch_separation_minutes")
-  private Integer batchSeparationInMinutes;
+  @Column(name = "batch_separation_seconds")
+  private Integer batchSeparationInSeconds;
 
   @Column(name = "batch_toleration_limit")
   private Integer batchTolerationLimit;
@@ -148,12 +148,12 @@ public class RequestScheduleEntity {
     this.status = status;
   }
 
-  public Integer getBatchSeparationInMinutes() {
-    return batchSeparationInMinutes;
+  public Integer getBatchSeparationInSeconds() {
+    return batchSeparationInSeconds;
   }
 
-  public void setBatchSeparationInMinutes(Integer batchSeparationInMinutes) {
-    this.batchSeparationInMinutes = batchSeparationInMinutes;
+  public void setBatchSeparationInSeconds(Integer batchSeparationInMinutes) {
+    this.batchSeparationInSeconds = batchSeparationInMinutes;
   }
 
   public Integer getBatchTolerationLimit() {

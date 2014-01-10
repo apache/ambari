@@ -21,17 +21,17 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class BatchSettings {
-  private Integer batchSeparationInMinutes;
+  private Integer batchSeparationInSeconds;
   private Integer taskFailureTolerance;
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-  @JsonProperty("batch_separation_in_minutes")
-  public Integer getBatchSeparationInMinutes() {
-    return batchSeparationInMinutes;
+  @JsonProperty("batch_separation_in_seconds")
+  public Integer getBatchSeparationInSeconds() {
+    return batchSeparationInSeconds;
   }
 
-  public void setBatchSeparationInMinutes(Integer batchSeparationInMinutes) {
-    this.batchSeparationInMinutes = batchSeparationInMinutes;
+  public void setBatchSeparationInSeconds(Integer batchSeparationInSeconds) {
+    this.batchSeparationInSeconds = batchSeparationInSeconds;
   }
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
