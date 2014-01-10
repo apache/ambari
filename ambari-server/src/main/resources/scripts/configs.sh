@@ -160,7 +160,7 @@ doConfigFileUpdate () {
       newTag="version${newTag}000"
       newProperties=`cat $FILENAME`;
       finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
-      newFile="PUT_$FILENAME"
+      newFile="$FILENAME"
       echo $finalJson>$newFile
       echo "########## PUTting file:\"$FILENAME\" into config(type:\"$SITE\", tag:$newTag) via $newFile"
       curl -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
