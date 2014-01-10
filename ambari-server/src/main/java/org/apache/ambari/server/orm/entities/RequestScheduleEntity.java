@@ -152,8 +152,8 @@ public class RequestScheduleEntity {
     return batchSeparationInSeconds;
   }
 
-  public void setBatchSeparationInSeconds(Integer batchSeparationInMinutes) {
-    this.batchSeparationInSeconds = batchSeparationInMinutes;
+  public void setBatchSeparationInSeconds(Integer batchSeparationInSeconds) {
+    this.batchSeparationInSeconds = batchSeparationInSeconds;
   }
 
   public Integer getBatchTolerationLimit() {
