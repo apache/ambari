@@ -68,7 +68,9 @@
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        <th class="first"> </th>
+        <th class="first">
+          {{view App.HostTableMenuView}}
+        </th>
         <th> </th>
         {{view view.parentView.nameSort}}
         <th> </th>

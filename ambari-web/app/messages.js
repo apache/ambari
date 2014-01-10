@@ -173,6 +173,8 @@ Em.I18n.translations = {
 
   'maintenance.turnOn':'Turn On Maintenance Mode',
   'maintenance.turnOff':'Turn Off Maintenance Mode',
+  'maintenance.turnOnFor':'Turn On Maintenance Mode for',
+  'maintenance.turnOffFor':'Turn Off Maintenance Mode for',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1316,6 +1318,15 @@ Em.I18n.translations = {
 
   'hosts.table.componentsInMaintenance.withNames':'{0} in maintenance mode',
   'hosts.table.componentsInMaintenance.withoutNames':'{0} components in maintenance mode',
+
+  'hosts.table.menu.l1.selectedHosts':'Selected Hosts',
+  'hosts.table.menu.l1.filteredHosts':'Filtered Hosts',
+  'hosts.table.menu.l1.allHosts':'All Hosts',
+  'hosts.table.menu.l2.restartAllComponents':'Restart All Components',
+
+  'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
+  'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
+  'hosts.bulkOperation.confirmation.hostComponents':'Are you sure you want to <strong>{0} {1}</strong> on the following {2} hosts?',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',

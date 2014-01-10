@@ -141,6 +141,15 @@ App.MainHostController = Em.ArrayController.extend({
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('id', host_id);
     this.get('fullContent').removeObjects(selectedHosts);
+  },
+
+  /**
+   * Do bulk operation for selected hosts or hostComponents
+   * @param {Object} operationData - data about bulk operation (action, hosts or hostComponents etc)
+   * @param {Array} hostNames - list of affected hostNames
+   */
+  bulkOperation: function(operationData, hostNames) {
+
   }
 
 });

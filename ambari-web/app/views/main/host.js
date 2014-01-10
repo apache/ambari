@@ -95,6 +95,59 @@ App.MainHostView = App.TableView.extend({
     this.clearFilters();
   },
 
+  /**
+   * Confirmation Popup for bulk Operations
+   */
+  bulkOperationConfirm: function(event) {
+    var operationData = event.context;
+    var hostNames = [];
+    var self = this;
+    switch(operationData.selection) {
+      case 's':
+        hostNames = this.get('content').filterProperty('selected').mapProperty('hostName');
+        break;
+      case 'f':
+        hostNames = this.get('filteredContent').mapProperty('hostName');
+        break;
+      case 'a':
+        hostNames = this.get('content').mapProperty('hostName');
+        break;
+    }
+    var message;
+    if (operationData.componentNameFormatted) {
+      message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
+    }
+    else {
+      message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
+    }
+    App.ModalPopup.show({
+      header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
+      hostNames: hostNames.join("\n"),
+      onPrimary: function() {
+        self.get('controller').bulkOperation(operationData, hostNames);
+        this._super();
+      },
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/bulk_operation_confirm_popup'),
+        message: message,
+        textareaVisible: false,
+        textTrigger: function() {
+          this.set('textareaVisible', !this.get('textareaVisible'));
+        },
+        putHostNamesToTextarea: function() {
+          var hostNames = this.get('parentView.hostNames');
+          if (this.get('textareaVisible')) {
+            var wrapper = $(".task-detail-log-maintext");
+            $('.task-detail-log-clipboard').html(hostNames).width(wrapper.width()).height(250);
+            Em.run.next(function() {
+              $('.task-detail-log-clipboard').select();
+            });
+          }
+        }.observes('textareaVisible')
+      })
+    });
+  },
+
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
     column: 1,
@@ -394,7 +447,6 @@ App.MainHostView = App.TableView.extend({
       }
     }
   }),
-
 
   /**
    * Filter view for name column
