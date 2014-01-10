@@ -27,6 +27,7 @@ import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
 import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
@@ -47,6 +48,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -56,6 +58,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
+
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
@@ -69,14 +73,17 @@ public class ExecutionScheduleManagerTest {
   private RequestExecutionFactory requestExecutionFactory;
   private ExecutionScheduler executionScheduler;
   private Scheduler scheduler;
+  Properties properties;
 
   private static final Logger LOG =
     LoggerFactory.getLogger(ExecutionScheduleManagerTest.class);
 
   @Before
   public void setup() throws Exception {
-    injector  = Guice.createInjector(Modules.override(
-      new InMemoryDefaultTestModule()).with(new ExecutionSchedulerTestModule()));
+    InMemoryDefaultTestModule defaultTestModule = new InMemoryDefaultTestModule();
+    properties = defaultTestModule.getProperties();
+    injector  = Guice.createInjector(Modules.override(defaultTestModule)
+      .with(new ExecutionSchedulerTestModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
@@ -134,7 +141,8 @@ public class ExecutionScheduleManagerTest {
   }
 
   @Transactional
-  private RequestExecution createRequestExecution() throws Exception {
+  private RequestExecution createRequestExecution(boolean addSchedule)
+      throws Exception {
     Batch batches = new Batch();
     Schedule schedule = new Schedule();
 
@@ -165,6 +173,10 @@ public class ExecutionScheduleManagerTest {
     schedule.setDaysOfMonth("*");
     schedule.setDayOfWeek("?");
 
+    if (!addSchedule) {
+      schedule = null;
+    }
+
     RequestExecution requestExecution = requestExecutionFactory.createNew
       (cluster, batches, schedule);
     requestExecution.setDescription("Test Schedule");
@@ -176,7 +188,7 @@ public class ExecutionScheduleManagerTest {
 
   @Test
   public void testScheduleBatch() throws Exception {
-    RequestExecution requestExecution = createRequestExecution();
+    RequestExecution requestExecution = createRequestExecution(true);
     Assert.assertNotNull(requestExecution);
 
     executionScheduleManager.scheduleBatch(requestExecution);
@@ -240,7 +252,7 @@ public class ExecutionScheduleManagerTest {
 
   @Test
   public void testDeleteAllJobs() throws Exception {
-    RequestExecution requestExecution = createRequestExecution();
+    RequestExecution requestExecution = createRequestExecution(true);
     Assert.assertNotNull(requestExecution);
 
     executionScheduleManager.scheduleBatch(requestExecution);
@@ -264,5 +276,39 @@ public class ExecutionScheduleManagerTest {
 
     Assert.assertTrue(scheduler.getTriggersOfJob(JobKey.jobKey(jobName1,
       ExecutionJob.LINEAR_EXECUTION_JOB_GROUP)).isEmpty());
+  }
+
+  @Test
+  public void testPointInTimeExecutionJob() throws Exception {
+    RequestExecution requestExecution = createRequestExecution(false);
+    Assert.assertNotNull(requestExecution);
+
+    executionScheduleManager.scheduleBatch(requestExecution);
+
+    String jobName1 = executionScheduleManager.getJobName(requestExecution
+      .getId(), 10L);
+    String jobName2 = executionScheduleManager.getJobName(requestExecution
+      .getId(), 12L);
+
+    JobDetail jobDetail1 = scheduler.getJobDetail(JobKey.jobKey(jobName1,
+      ExecutionJob.LINEAR_EXECUTION_JOB_GROUP));
+    JobDetail jobDetail2 = scheduler.getJobDetail(JobKey.jobKey(jobName2,
+      ExecutionJob.LINEAR_EXECUTION_JOB_GROUP));
+
+    Assert.assertNotNull(jobDetail1);
+    Assert.assertNotNull(jobDetail2);
+
+    List<? extends Trigger> triggers = scheduler.getTriggersOfJob
+      (JobKey.jobKey(jobName1, ExecutionJob.LINEAR_EXECUTION_JOB_GROUP));
+
+    Assert.assertNotNull(triggers);
+    Assert.assertEquals(1, triggers.size());
+    assertThat(triggers.get(0), instanceOf(SimpleTrigger.class));
+
+    int waitCount = 0;
+    while (scheduler.getCurrentlyExecutingJobs().size() != 0 && waitCount < 10) {
+      Thread.sleep(100);
+      waitCount++;
+    }
   }
 }

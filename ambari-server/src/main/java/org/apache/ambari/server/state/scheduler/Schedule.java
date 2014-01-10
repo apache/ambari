@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -153,6 +154,7 @@ public class Schedule {
    * Example: "0 0 12 * * ?"
    * @return
    */
+  @JsonIgnore
   public String getScheduleExpression() {
     StringBuilder expression = new StringBuilder();
     expression.append("0"); // seconds

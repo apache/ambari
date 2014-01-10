@@ -36,6 +36,8 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +70,7 @@ public class RequestExecutionImpl implements RequestExecution {
   @AssistedInject
   public RequestExecutionImpl(@Assisted("cluster") Cluster cluster,
                               @Assisted("batch") Batch batch,
-                              @Assisted("schedule") Schedule schedule,
+                              @Assisted("schedule") @Nullable Schedule schedule,
                               Injector injector) {
     this.cluster = cluster;
     this.batch = batch;
