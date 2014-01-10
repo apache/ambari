@@ -32,6 +32,9 @@
       "hue-site" : {
         "tag" : "version1"
       },
+      "storm-site" : {
+        "tag" : "version1"
+      },
       "capacity-scheduler" : {
         "tag" : "version1"
       },

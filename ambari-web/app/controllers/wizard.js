@@ -474,11 +474,11 @@ App.WizardController = Em.Controller.extend({
     });
 
     var data = [];
-
     // loop through all the service components
     for (var i = 0; i < displayOrderConfig.length; i++) {
       var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
       if (entry) {
+        if (entry.StackServices.service_name == 'STORM' && !App.testMode) continue; // @todo remove this line after STORM integration
         var myService = Service.create({
           serviceName: entry.StackServices.service_name,
           displayName: displayOrderConfig[i].displayName,
@@ -512,7 +512,7 @@ App.WizardController = Em.Controller.extend({
   loadServicesFromServer: function () {
     var services = this.getDBProperty('service');
     if (services) {
-      return;
+//      return;
     }
     var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);

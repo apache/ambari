@@ -162,6 +162,7 @@ module.exports = [
     isDisabled: false,
     isSelected: App.testMode,
     canBeSelected: App.testMode,
-    isHidden: !App.testMode
+    isHidden: !App.testMode,
+    description: Em.I18n.t('services.storm.description')
   }
 ]

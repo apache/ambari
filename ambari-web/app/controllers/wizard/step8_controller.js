@@ -522,6 +522,10 @@ App.WizardStep8Controller = Em.Controller.extend({
            this.loadSqoop(serviceObj);
            break;
            */
+          case 'STORM':
+            if (App.testMode) {
+              this.loadSTORM(serviceObj);
+            }
           case 'HCATALOG':
             break;
           default:
@@ -891,6 +895,32 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   loadPig: function (pigObj) {
     this.get('services').pushObject(pigObj);
+  },
+
+  loadSTORM: function (stormObj) {
+    stormObj.get('service_components').forEach(function(component) {
+      switch (component.get('display_name')) {
+        case 'Nimbus':
+          this.loadNimbusValue(component);
+          break;
+        case 'SuperVisor':
+          this.loadSuperVisorValue(component);
+          break;
+        default:
+      }
+    }, this);
+    this.get('services').pushObject(stormObj);
+  },
+
+  loadNimbusValue: function(component) {
+    var nimbusHost = this.get('content.masterComponentHosts').filterProperty('display_name', component.get('display_name'));
+    component.set('component_value', nimbusHost[0].hostName);
+  },
+
+  loadSuperVisorValue: function(component) {
+    var hostsCount = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts.length;
+    var hostsText = hostsCount > 1 ? hostsCount + ' hosts' : hostsCount + ' host'
+    component.set('component_value', hostsText);
   },
 
   /**

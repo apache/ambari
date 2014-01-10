@@ -352,6 +352,10 @@ App.WizardStep5Controller = Em.Controller.extend({
   getHueServer:function (noOfHosts) {
     return this.getGangliaServer(noOfHosts);
   },
+
+  getNimbusServer: function(noOfHosts) {
+    return this.getGangliaServer(noOfHosts);
+  },
   /**
    * Return hostName of masterNode for specified service
    * @param componentName
@@ -439,13 +443,15 @@ App.WizardStep5Controller = Em.Controller.extend({
         return this.getNagiosServer(noOfHosts);
       case 'HUE_SERVER':
         return this.getHueServer(noOfHosts);
+      case 'NIMBUS':
+        return this.getNimbusServer(noOfHosts);
+      default:
     }
   },
 
   masterHostMapping:function () {
     var mapping = [], mappingObject, self = this, mappedHosts, hostObj, hostInfo;
     //get the unique assigned hosts and find the master services assigned to them
-
     mappedHosts = this.get("selectedServicesMasters").mapProperty("selectedHost").uniq();
 
     mappedHosts.forEach(function (item) {

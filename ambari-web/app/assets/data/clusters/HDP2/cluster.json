@@ -48,6 +48,10 @@
       "yarn-site" : {
         "user" : "admin",
         "tag" : "version1"
+      },
+      "storm-site" : {
+        "user" : "admin",
+        "tag" : "version1"
       }
     }
   }

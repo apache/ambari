@@ -1270,6 +1270,21 @@ module.exports =
       "serviceName": "GANGLIA",
       "category": "Advanced"
     },
+  /**********************************************STORM***************************************/
+    // @todo create real properties
+    {
+      "id": "puppet var",
+      "name": "nimbus.thrift.port",
+      "displayName": "nimbus.thrift.port",
+      "description": "",
+      "defaultValue": "6627",
+      "isReconfigurable": false,
+      "displayType": "int",
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "Nimbus"
+    },
   /**********************************************MISC***************************************/
     {
       "id": "puppet var",
@@ -1525,6 +1540,20 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "storm_user",
+      "displayName": "Storm User",
+      "description": "User to run Storm as",
+      "defaultValue": "storm",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName":"MISC",
+      "category": "Users and Groups",
+      "belongsToService":["STORM"]
+    },
+    {
+      "id": "puppet var",
       "name": "rrdcached_base_dir",
       "displayName": "Ganglia rrdcached base directory",
       "description": "Default directory for saving the rrd files on ganglia server",
@@ -1536,6 +1565,7 @@ module.exports =
       "serviceName": "GANGLIA",
       "category": "General",
       "belongsToService":["GANGLIA"]
-    }
+    },
+
   ]
 };

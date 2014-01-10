@@ -1,0 +1,17 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/STORM/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/STORM/configurations/STORM.systemmode",
+      "StackConfigurations" : {
+        "property_description" : "\n     The place where jars are kept.\n     ",
+        "property_value" : "storm-local",
+        "stack_version" : "1.3.0",
+        "property_name" : "storm.local.dir",
+        "filename" : "storm-site.xml",
+        "service_name" : "STORM",
+        "stack_name" : "HDP"
+      }
+    }
+  ]
+}

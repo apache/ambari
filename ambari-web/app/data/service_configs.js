@@ -216,7 +216,16 @@ module.exports = [
     sites: ['pig-log4j'],
     configs: []
   },
-
+  // @todo change to actual info
+  {
+    serviceName: 'STORM',
+    displayName: 'Storm',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Nimbus', displayName : 'Nimbus'})
+    ],
+    sites: ['storm-site'],
+    configs: []
+  },
   {
     serviceName: 'MISC',
     displayName: 'Misc',

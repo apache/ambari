@@ -345,7 +345,7 @@ module.exports = new Ember.Set([
     component_name: 'SUPERVISOR',
     display_name: 'Supervisor',
     isMaster: false,
-    isClient: false,
+    isClient: true,
     description: 'Client component for STORM'
   }
 ]);

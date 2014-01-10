@@ -212,6 +212,20 @@ module.exports = [
             component_value: ''
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'STORM',
+        display_name: 'Storm',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Nimbus',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'SuperVisor',
+            component_value: ''
+          })
+        ]
       })
 
     ]

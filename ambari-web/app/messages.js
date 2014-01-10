@@ -248,6 +248,7 @@ Em.I18n.translations = {
   'services.mapreduce2.description':'Apache Hadoop NextGen MapReduce (client libraries)',
   'services.yarn.description':'Apache Hadoop NextGen MapReduce (YARN)',
   'services.tez.description':'Tez is the next generation Hadoop Query Processing framework written on top of YARN',
+  'services.storm.description': 'Apache Hadoop Stream processing framework',
 
   'services.alerts.head':'You have {0} critical alert notification(s).',
   'services.alerts.OK.timePrefix': 'OK for ',

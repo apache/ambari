@@ -89,8 +89,8 @@ App.ServiceConfigCategory = Ember.Object.extend({
   }.property('name'),
 
   isForSlaveComponent: function () {
-    return this.get('name') === 'DataNode' || this.get('name') === 'TaskTracker' ||
-      this.get('name') === 'RegionServer';
+    var slaveComponents = ['DataNode', 'TaskTracker', 'RegionServer']
+    return (slaveComponents.contains(this.get('name')));
   }.property('name'),
 
   slaveErrorCount: function () {
@@ -402,6 +402,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var zkHostPort = zkHosts;
         var regex = "\\w*:(\\d+)";   //regex to fetch the port
         var portValue = this.get('defaultValue').match(new RegExp(regex));
+        if (!portValue) return;
         if (portValue[1]) {
           for ( var i = 0; i < zkHosts.length; i++ ) {
             zkHostPort[i] = zkHosts[i] + ":" + portValue[1];
