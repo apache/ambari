@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceItemView = Em.View.extend({
   templateName: require('templates/main/service/item'),
@@ -27,8 +26,7 @@ App.MainServiceItemView = Em.View.extend({
     var hosts = App.Host.find().content.length;
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var disabled = this.get('controller.isStopDisabled');
-    var serviceName = service.get('serviceName');
-    switch (serviceName) {
+    switch (service.get('serviceName')) {
       case 'GANGLIA':
       case 'NAGIOS':
         break;
@@ -45,12 +43,6 @@ App.MainServiceItemView = Em.View.extend({
         }
       default:
         options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke').format(service.get('serviceName')), disabled:disabled});
-    }
-
-    var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
-    if (rrComponentName) {
-      var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
-      options.push({action:'rollingRestart', context: rrComponentName, 'label': label, disabled: false});
     }
     return options;
   }.property('controller.content', 'controller.isStopDisabled'),

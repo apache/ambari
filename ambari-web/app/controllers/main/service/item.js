@@ -18,7 +18,6 @@
 
 var App = require('app');
 var service_components = require('data/service_components');
-var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
@@ -185,13 +184,6 @@ App.MainServiceItemController = Em.Controller.extend({
     App.showConfirmationPopup(function() {
       self.runSmokeTestPrimary();
     });
-  },
-
-  restartAllHostComponents: function(event) {
-  },
-
-  rollingRestart: function(hostComponentName) {
-    batchUtils.launchHostComponentRollingRestart(hostComponentName, false);
   },
 
   runSmokeTestPrimary: function() {

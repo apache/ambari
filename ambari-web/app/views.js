@@ -25,7 +25,6 @@ require('views/common/chart/pie');
 require('views/common/chart/linear');
 require('views/common/chart/linear_time');
 require('views/common/modal_popup');
-require('views/common/rolling_restart_view');
 require('views/common/metric');
 require('views/common/time_range');
 require('views/common/form/field');
