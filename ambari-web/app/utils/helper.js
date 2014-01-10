@@ -326,6 +326,10 @@ App.format = {
         return 'WebHCat Server';
       case 'WEBHCAT_SERVICE_CHECK':
         return 'WebHCat Service Check';
+      case 'STORM_SERVICE_CHECK':
+          return 'Storm Service Check';
+      case 'FALCON_SERVICE_CHECK':
+          return 'Falcon Service Check';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':

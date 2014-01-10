@@ -101,6 +101,8 @@ public class Role {
   public static final Role ZOOKEEPER_CLIENT = valueOf("ZOOKEEPER_CLIENT");
   public static final Role ZOOKEEPER_QUORUM_SERVICE_CHECK = valueOf("ZOOKEEPER_QUORUM_SERVICE_CHECK");
   public static final Role ZOOKEEPER_SERVER = valueOf("ZOOKEEPER_SERVER");
+  public static final Role FALCON_SERVICE_CHECK = valueOf("FALCON_SERVICE_CHECK");
+  public static final Role STORM_SERVICE_CHECK = valueOf("STORM_SERVICE_CHECK");
   
 
   private String name = null;
