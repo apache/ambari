@@ -20,9 +20,6 @@
   <div class="statusName clearfix">
     <div {{bindAttr class="view.statusIndicator rack.status"}}></div>
     <div class="rackName">{{rack.name}}</div>
-    <!--<a href="#" class="toggler" {{!action toggleRack target="view" on="click" }}>-->
-      <!--<span {{!bindAttr class="view.heatmapTogglerClass"}}></span>-->
-    <!--</a>-->
   </div>
 </div>
 <!--<div class="hostsSummary clearfix">-->
@@ -42,8 +39,8 @@
     <!--</div>-->
   <!--{{!/if}}-->
 <!--</div>-->
-<div {{bindAttr class="view.heatmapTogglerClass view.hostsBlockClass"}}>
-  {{#each rack.hosts}}
+<div class="isActive hosts clearfix">
+  {{#each view.hosts}}
     <div {{bindAttr style="view.hostCssStyle"}}>
       {{view App.MainChartsHeatmapHostView contentBinding="this"}}
     </div>

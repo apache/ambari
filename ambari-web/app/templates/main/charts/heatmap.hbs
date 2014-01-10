@@ -64,7 +64,7 @@
 	        <span id="heatmap-metric-title">{{controller.selectedMetric.name}}</span>
 	      </h4>
 	      <div class="row-fluid">
-				  {{#each rack in controller.cluster.racks}}
+				  {{#each rack in controller.racks}}
 				    <div {{bindAttr class="controller.rackClass"}}>
 				      {{view App.MainChartsHeatmapRackView rackBinding="rack" }}
 				    </div>

@@ -175,7 +175,7 @@ App.MainHostView = App.TableView.extend({
      */
     labels: function() {
       return this.get('content.hostComponents').getEach('displayName').join("<br />");
-    }.property('content.hostComponents.@each'),
+    }.property('content.hostComponents.length'),
 
     /**
      * CSS value for disk usage bar
@@ -228,7 +228,7 @@ App.MainHostView = App.TableView.extend({
 
     label: function () {
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
-    }.property('value', 'hostsCount')
+    }.property('hostsCount')
   }),
 
   categories: function () {

@@ -24,12 +24,14 @@ App.MainChartsHeatmapView = Em.View.extend({
     this._super();
     // set default metric
     this.set('controller.selectedMetric', this.get('controller.allMetrics')[0].get('items')[0]);
+    this.get('controller.racks').setEach('isLoaded', false);
     $("#heatmapDetailsBlock").hide();
   },
   showLoading: function () {
-    if (this.get('controller.selectedMetric.loading')) {
+    if (this.get('controller.selectedMetric.loading') || !this.get('controller.racks').everyProperty('isLoaded')) {
       var e = document.getElementById("heatmap-metric-loading");
       if (e) {
+        $(e).children('div.spinner').remove();
         var spinOpts = {
           lines: 9,
           length: 4,
@@ -47,5 +49,5 @@ App.MainChartsHeatmapView = Em.View.extend({
       }
       this.set('spinner', null);
     }
-  }.observes('controller.selectedMetric.loading')
+  }.observes('controller.selectedMetric.loading', 'controller.racks.@each.isLoaded')
 });

@@ -19,9 +19,19 @@ var App = require('app');
 
 App.MainChartsHeatmapController = Em.Controller.extend({
   name: 'mainChartsHeatmapController',
-  cluster: function () {
-    return App.Cluster.find().objectAt(0);
-  }.property(''),
+  modelRacks: App.Rack.find(),
+  racks: function () {
+    var racks = [];
+    this.get('modelRacks').forEach(function (rack) {
+      racks.push(Em.Object.create({
+        name: rack.get('name'),
+        hosts: rack.get('hosts'),
+        isLoaded: false
+      }));
+    });
+    return racks;
+  }.property('modelRacks.@each.isLoaded'),
+
   allMetrics: function () {
     var metrics = [
       Em.Object.create({
@@ -133,7 +143,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
    * @this App.MainChartsHeatmapController
    */
   rackClass: function () {
-    var rackCount = this.get('cluster.racks.length');
+    var rackCount = this.get('racks.length');
     if (rackCount < 2) {
       return "span12";
     } else if (rackCount == 2) {
@@ -141,5 +151,5 @@ App.MainChartsHeatmapController = Em.Controller.extend({
     } else {
       return "span4";
     }
-  }.property('cluster')
+  }.property('racks.length')
 });

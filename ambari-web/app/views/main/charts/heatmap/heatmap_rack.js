@@ -17,50 +17,51 @@
  */
 
 var App = require('app');
+var lazyloading = require('utils/lazy_loading');
 
 App.MainChartsHeatmapRackView = Em.View.extend({
   templateName: require('templates/main/charts/heatmap/heatmap_rack'),
   classNames: ['rack'],
   classNameBindings: ['visualSchema'],
-  /**
-   * this is the class for binding attribute to hosts block
-   * @private
-   */
-  hostsBlockClass:"hosts clearfix",
-  heatmapIsOpened: 1,
 
   /** rack status block class */
   statusIndicator:'statusIndicator',
+  /** loaded hosts of rack */
+  hosts: [],
 
-  toggleRack: function(){
-    var newHeatmapStatus = 1 - this.get('heatmapIsOpened');
-    this.set('heatmapIsOpened', newHeatmapStatus);
+  willInsertElement: function () {
+    this.set('hosts', []);
   },
 
-  /**
-   * change toggler class, depends on heatmapIsOpened property
-   * @this App.MainChartsHeatmapRackView
-   */
-  heatmapTogglerClass:function () {
-    if (this.heatmapIsOpened) {
-      return "isActive"
+  didInsertElement: function () {
+    var rackHosts = this.get('rack.hosts').toArray();
+    if (rackHosts.length > 100) {
+      lazyloading.run({
+        destination: this.get('hosts'),
+        source: rackHosts,
+        context: this.get('rack'),
+        initSize: 25,
+        chunkSize: 100,
+        delay: 25
+      });
+    } else {
+      this.set('hosts', rackHosts);
+      this.set('rack.isLoaded', true);
     }
-    return "";
-  }.property("heatmapIsOpened"),
-  
+  },
   /**
    * Provides the CSS style for an individual host.
    * This can be used as the 'style' attribute of element.
    */
-  hostCssStyle: function(){
+  hostCssStyle: function () {
     var rack = this.get('rack');
     var widthPercent = 100;
     var hostCount = rack.get('hosts.length');
-    if(hostCount<11){
-      widthPercent = (100/hostCount)-0.5;
-    }else{
+    if (hostCount < 11) {
+      widthPercent = (100 / hostCount) - 0.5;
+    } else {
       widthPercent = 10; // max out at 10%
     }
-    return "width:"+widthPercent+"%;float:left;";
+    return "width:" + widthPercent + "%;float:left;";
   }.property('rack')
 });
