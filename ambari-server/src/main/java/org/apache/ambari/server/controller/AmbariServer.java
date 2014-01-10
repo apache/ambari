@@ -43,6 +43,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
+import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -448,6 +449,7 @@ public class AmbariServer {
         injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
+    NagiosPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
   }
 

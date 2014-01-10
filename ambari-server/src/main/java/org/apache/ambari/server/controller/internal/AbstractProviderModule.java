@@ -33,11 +33,14 @@ import org.apache.ambari.server.controller.ganglia.GangliaReportPropertyProvider
 import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
+import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
+
 import com.google.inject.Inject;
+
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostState;
@@ -336,6 +339,12 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             this,
             PropertyHelper.getPropertyId("Clusters", "cluster_name")));
         break;
+      case Service:
+        providers.add(new NagiosPropertyProvider(type,
+            streamProvider,
+            "ServiceInfo/cluster_name",
+            "ServiceInfo/service_name"));
+        break;
       case Host :
         providers.add(createGangliaHostPropertyProvider(
             type,
@@ -345,6 +354,10 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             PropertyHelper.getPropertyId("Hosts", "cluster_name"),
             PropertyHelper.getPropertyId("Hosts", "host_name")
         ));
+        providers.add(new NagiosPropertyProvider(type,
+            streamProvider,
+            "Hosts/cluster_name",
+            "Hosts/host_name"));
         break;
       case Component : {
         // TODO as we fill out stack metric definitions, these can be phased out
