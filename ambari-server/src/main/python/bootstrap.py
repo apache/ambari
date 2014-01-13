@@ -84,10 +84,11 @@ class SCP:
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = scpstat.communicate()
-    log = "STDOUT\n" + log[0] + "\nSTDERR\n" + log[1]
+    log = log[0] + "\n" + log[1]
+    self.host_log.write("==========================")
     self.host_log.write(log)
-    self.host_log.write("scp " + self.inputFile + " done for host " + self.host +
-                 ", exitcode=" + str(scpstat.returncode))
+    self.host_log.write("scp " + self.inputFile)
+    self.host_log.write("host=" + self.host + ", exitcode=" + str(scpstat.returncode) )
     return scpstat.returncode
 
 
@@ -121,11 +122,11 @@ class SSH:
     errorMsg = log[1]
     if self.errorMessage and sshstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
-    log = "STDOUT\n" + log[0] + "\nSTDERR\n" + errorMsg
+    log = log[0] + "\n" + errorMsg
+    self.host_log.write("==========================")
     self.host_log.write(log)
-
-    self.host_log.write("SSH command execution finished for host " + self.host +
-                 ", exitcode=" + str(sshstat.returncode))
+    self.host_log.write("SSH command execution finished")
+    self.host_log.write("host=" + self.host + ", exitcode=" + str(sshstat.returncode))
     return sshstat.returncode
 
 
@@ -215,10 +216,12 @@ class Bootstrap(threading.Thread):
     fileToCopy = self.getOsCheckScript()
     target = self.getOsCheckScriptRemoteLocation()
     params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying OS type check script...")
     scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     result = scp.run()
-    self.host_log.write("Copying os type check script finished")
+    self.host_log.write("\n")
     return result
 
 
@@ -244,28 +247,33 @@ class Bootstrap(threading.Thread):
     fileToCopy = self.getRepoFile()
     target = self.getRemoteName(self.AMBARI_REPO_FILENAME)
 
+    self.host_log.write("==========================\n")
     self.host_log.write("Copying repo file to 'tmp' folder...")
     params = self.shared_state
     scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     retcode1 = scp.run()
+    self.host_log.write("\n")
 
     # Move file to repo dir
+    self.host_log.write("==========================\n")
     self.host_log.write("Moving file to repo dir...")
     targetDir = self.getRepoDir()
     command = self.getMoveRepoFileCommand(targetDir)
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode2 = ssh.run()
+    self.host_log.write("\n")
 
+    self.host_log.write("==========================\n")
     self.host_log.write("Copying setup script file...")
     fileToCopy = params.setup_agent_file
     target = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
     scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     retcode3 = scp.run()
+    self.host_log.write("\n")
 
-    self.host_log.write("Copying files finished")
     return max(retcode1, retcode2, retcode3)
 
 
@@ -315,7 +323,8 @@ class Bootstrap(threading.Thread):
 
   def runOsCheckScript(self):
     params = self.shared_state
-    self.host_log.write("Running os type check...")
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running OS type check...")
     command = "chmod a+x %s && %s %s" % \
               (self.getOsCheckScriptRemoteLocation(),
                self.getOsCheckScriptRemoteLocation(),  params.cluster_os_type)
@@ -323,18 +332,19 @@ class Bootstrap(threading.Thread):
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
-    self.host_log.write("Running os type check  finished")
+    self.host_log.write("\n")
     return retcode
 
 
   def runSetupAgent(self):
     params = self.shared_state
-    self.host_log.write("Running setup agent...")
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running setup agent script...")
     command = self.getRunSetupCommand(self.host)
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
-    self.host_log.write("Setting up agent finished")
+    self.host_log.write("\n")
     return retcode
 
 
@@ -351,6 +361,8 @@ class Bootstrap(threading.Thread):
 
   def checkSudoPackage(self):
     """ Checking 'sudo' package on remote host """
+    self.host_log.write("==========================\n")
+    self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
     command = "rpm -qa | grep sudo"
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
@@ -358,7 +370,7 @@ class Bootstrap(threading.Thread):
               errorMessage="Error: Sudo command is not available. " \
                            "Please install the sudo command.")
     retcode = ssh.run()
-    self.host_log.write("Checking 'sudo' package finished")
+    self.host_log.write("\n")
     return retcode
 
 
