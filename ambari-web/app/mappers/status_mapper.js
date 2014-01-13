@@ -23,14 +23,15 @@ App.statusMapper = App.QuickDataMapper.create({
     console.time('App.statusMapper execution time');
     if (json.items) {
       var hostsCache = App.cache['Hosts'];
+      var previousHostStatuses = App.cache['previousHostStatuses'];
+      var previousComponentStatuses = App.cache['previousComponentStatuses'];
+      var hostComponentRecordsMap = App.cache['hostComponentRecordsMap'];
       var hostStatuses = {};
-      var hostComponentStatuses = {};
       var addedHostComponents = [];
+      var updatedHostComponents = [];
       var componentServiceMap = App.QuickDataMapper.componentServiceMap;
       var currentComponentStatuses = {};
       var currentHostStatuses = {};
-      var previousHostStatuses = App.cache['previousHostStatuses'];
-      var previousComponentStatuses = App.cache['previousComponentStatuses'];
       var hostComponentsOnService = {};
 
       json.items.forEach(function (host) {
@@ -39,6 +40,7 @@ App.statusMapper = App.QuickDataMapper.create({
         if (previousHostStatuses[hostName] !== host.Hosts.host_status) {
           hostStatuses[hostName] = host.Hosts.host_status;
         }
+        //preserve all hosts' status
         currentHostStatuses[hostName] = host.Hosts.host_status;
         var hostComponentsOnHost = [];
         host.host_components.forEach(function (host_component) {
@@ -46,10 +48,13 @@ App.statusMapper = App.QuickDataMapper.create({
           var existedComponent = previousComponentStatuses[host_component.id];
           var service = componentServiceMap[host_component.HostRoles.component_name];
 
+          //delete all currently existed host-components to indicate which need to be deleted from model
+          delete previousComponentStatuses[host_component.id];
+
           if (existedComponent) {
             //update host-components, which have status changed
             if (existedComponent !== host_component.HostRoles.state) {
-              hostComponentStatuses[host_component.id] = host_component.HostRoles.state;
+              updatedHostComponents.push(host_component);
             }
           } else {
             addedHostComponents.push({
@@ -82,38 +87,37 @@ App.statusMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      var hostComponents = App.HostComponent.find();
-      var hosts = App.Host.find();
 
-      hostComponents.forEach(function (hostComponent) {
-        if (hostComponent) {
-          var status = currentComponentStatuses[hostComponent.get('id')];
-          //check whether component present in current response
-          if (status) {
-            //check whether component has status changed
-            if (hostComponentStatuses[hostComponent.get('id')]) {
-              hostComponent.set('workStatus', status);
-            }
-          } else {
-            this.deleteRecord(hostComponent);
-          }
+      for (var id in previousComponentStatuses) {
+        this.deleteRecord(hostComponentRecordsMap[id]);
+      }
+
+      updatedHostComponents.forEach(function (hostComponent) {
+        var hostComponentRecord = hostComponentRecordsMap[hostComponent.id];
+        if (hostComponentRecord) {
+          hostComponentRecord.set('workStatus', hostComponent.HostRoles.state);
         }
       }, this);
 
+      var hostRecords = App.Host.find();
+      hostRecords.forEach(function (host) {
+        var status = hostStatuses[host.get('id')];
+        if (status) {
+          host.set('healthStatus', status);
+        }
+      });
+
       if (addedHostComponents.length) {
         App.store.loadMany(this.get('model'), addedHostComponents);
+        App.HostComponent.find().forEach(function(hostComponent){
+          hostComponentRecordsMap[hostComponent.get('id')] = hostComponent;
+        });
       }
 
       App.cache['previousHostStatuses'] = currentHostStatuses;
       App.cache['previousComponentStatuses'] = currentComponentStatuses;
       App.cache['hostComponentsOnService'] = hostComponentsOnService;
 
-      hosts.forEach(function (host) {
-        var status = hostStatuses[host.get('id')];
-        if (status) {
-          host.set('healthStatus', status);
-        }
-      });
     }
     console.timeEnd('App.statusMapper execution time');
   }

@@ -27,7 +27,8 @@ App.cache = {
   'previousHostStatuses': {},
   'previousComponentStatuses': {},
   'hostComponentsOnService': {},
-  'services': []
+  'services': [],
+  'hostComponentRecordsMap': {}
 };
 
 App.ServerDataMapper = Em.Object.extend({

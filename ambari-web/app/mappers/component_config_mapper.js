@@ -27,33 +27,33 @@ App.componentConfigMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time('App.componentConfigMapper execution time');
     if (json.items) {
-      var result = {};
+      var hostComponentRecordsMap = App.cache['hostComponentRecordsMap'];
+      var staleConfigsTrue = [];
       var currentResponse = {};
       json.items.forEach(function (component) {
-        if (previousResponse[component.HostRoles.component_name + "_" + component.HostRoles.host_name]) {
-          delete previousResponse[component.HostRoles.component_name + "_" + component.HostRoles.host_name];
+        var id = component.HostRoles.component_name + "_" + component.HostRoles.host_name;
+        if (previousResponse[id]) {
+          delete previousResponse[id];
         } else {
-          result[component.HostRoles.component_name + "_" + component.HostRoles.host_name] = true;
+          staleConfigsTrue.push(id);
         }
-        currentResponse[component.HostRoles.component_name + "_" + component.HostRoles.host_name] = true;
+        currentResponse[id] = true;
       });
 
       /**
        * if stale_configs of components became
        * true:
-       *  then they will be in "result" object
+       *  then they will be in "staleConfigsTrue" object
        * false:
        *  then they will be in "previousResponse" object
        * if stale_configs haven't changed then both objects will be empty and components stay the same
        */
-      App.HostComponent.find().forEach(function (hostComponent) {
-        if (result[hostComponent.get('id')]) {
-          hostComponent.set('staleConfigs', true);
-        } else if (previousResponse[hostComponent.get('id')]) {
-          hostComponent.set('staleConfigs', false);
-        }
-      }, this);
-
+      staleConfigsTrue.forEach(function (id) {
+        hostComponentRecordsMap[id].set('staleConfigs', true);
+      });
+      for (var id in previousResponse) {
+        hostComponentRecordsMap[id].set('staleConfigs', false)
+      }
       previousResponse = currentResponse;
     }
     console.timeEnd('App.componentConfigMapper execution time');
