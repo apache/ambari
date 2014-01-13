@@ -23,17 +23,17 @@
 <configuration>
   <property>
     <name>java.library.path</name>
-    <value>"/usr/local/lib:/opt/local/lib:/usr/lib"</value>
+    <value>/usr/local/lib:/opt/local/lib:/usr/lib</value>
     <description></description>
   </property>
   <property>
     <name>storm.local.dir</name>
-    <value>"storm-local"</value>
+    <value>/hadoop/storm</value>
     <description>The place where jars are kept</description>
   </property>
   <property>
     <name>storm.zookeeper.servers</name>
-    <value>"localhost"</value>
+    <value>['localhost']</value>
     <description></description>
   </property>
   <property>
@@ -43,7 +43,7 @@
   </property>
   <property>
     <name>storm.zookeeper.root</name>
-    <value>"/storm"</value>
+    <value>/storm</value>
     <description></description>
   </property>
   <property>
@@ -73,7 +73,7 @@
   </property>
   <property>
     <name>storm.cluster.mode</name>
-    <value>"distributed"</value>
+    <value>distributed</value>
     <description>Can be distributed or local</description>
   </property>
   <property>
@@ -83,22 +83,22 @@
   </property>
   <property>
     <name>storm.thrift.transport</name>
-    <value>"backtype.storm.security.auth.SimpleTransportPlugin"</value>
+    <value>backtype.storm.security.auth.SimpleTransportPlugin</value>
     <description></description>
   </property>
   <property>
     <name>storm.messaging.transport</name>
-    <value>"backtype.storm.messaging.netty.Context"</value>
+    <value>backtype.storm.messaging.netty.Context</value>
     <description></description>
   </property>
   <property>
     <name>storm.messaging.transport</name>
-    <value>"backtype.storm.messaging.netty.Context"</value>
+    <value>backtype.storm.messaging.netty.Context</value>
     <description></description>
   </property>
   <property>
     <name>nimbus.host</name>
-    <value>"localhost"</value>
+    <value>localhost</value>
     <description></description>
   </property>
   <property>
@@ -113,7 +113,7 @@
   </property>
   <property>
     <name>nimbus.childopts</name>
-    <value>"-Xmx1024m"</value>
+    <value>-Xmx1024m</value>
     <description></description>
   </property>
   <property>
@@ -158,7 +158,7 @@
   </property>
   <property>
     <name>nimbus.topology.validator</name>
-    <value>"backtype.storm.nimbus.DefaultTopologyValidator"</value>
+    <value>backtype.storm.nimbus.DefaultTopologyValidator</value>
     <description></description>
   </property>
   <property>
@@ -168,7 +168,7 @@
   </property>
   <property>
     <name>ui.childopts</name>
-    <value>"-Xmx768m"</value>
+    <value>-Xmx768m</value>
     <description></description>
   </property>
   <property>
@@ -183,12 +183,12 @@
   </property>
   <property>
     <name>logviewer.childopts</name>
-    <value>"-Xmx128m"</value>
+    <value>-Xmx128m</value>
     <description></description>
   </property>
   <property>
     <name>logviewer.appender.name</name>
-    <value>"A1"</value>
+    <value>A1</value>
     <description></description>
   </property>
   <property>
@@ -218,12 +218,12 @@
   </property>
   <property>
     <name>drpc.childopts</name>
-    <value>"-Xmx768m"</value>
+    <value>-Xmx768m</value>
     <description></description>
   </property>
   <property>
     <name>transactional.zookeeper.root</name>
-    <value>"/transactional"</value>
+    <value>/transactional</value>
     <description></description>
   </property>
   <property>
@@ -238,16 +238,12 @@
   </property>
   <property>
     <name>supervisor.slots.ports</name>
-    <value>
-    - 6700
-    - 6701
-    - 6702
-    - 6703</value>
+    <value>[6700, 6701, 6702, 6703]</value>
     <description></description>
   </property>
   <property>
     <name>supervisor.childopts</name>
-    <value>"-Xmx256m"</value>
+    <value>-Xmx256m</value>
     <description></description>
   </property>
   <property>
@@ -277,7 +273,7 @@
   </property>
   <property>
     <name>worker.childopts</name>
-    <value>"-Xmx768m"</value>
+    <value>-Xmx768m</value>
     <description></description>
   </property>
   <property>
@@ -442,7 +438,7 @@
   </property>
   <property>
     <name>topology.disruptor.wait.strategy</name>
-    <value>"com.lmax.disruptor.BlockingWaitStrategy"</value>
+    <value>com.lmax.disruptor.BlockingWaitStrategy</value>
     <description></description>
   </property>
   <property>
@@ -472,12 +468,12 @@
   </property>
   <property>
     <name>topology.disruptor.wait.strategy</name>
-    <value>"com.lmax.disruptor.BlockingWaitStrategy"</value>
+    <value>com.lmax.disruptor.BlockingWaitStrategy</value>
     <description></description>
   </property>
   <property>
     <name>topology.spout.wait.strategy</name>
-    <value>"backtype.storm.spout.SleepSpoutWaitStrategy"</value>
+    <value>backtype.storm.spout.SleepSpoutWaitStrategy</value>
     <description></description>
   </property>
   <property>
@@ -497,12 +493,12 @@
   </property>
   <property>
     <name>topology.kryo.factory</name>
-    <value>"backtype.storm.serialization.DefaultKryoFactory"</value>
+    <value>backtype.storm.serialization.DefaultKryoFactory</value>
     <description></description>
   </property>
   <property>
     <name>topology.tuple.serializer</name>
-    <value>"backtype.storm.serialization.types.ListDelegateSerializer"</value>
+    <value>backtype.storm.serialization.types.ListDelegateSerializer</value>
     <description></description>
   </property>
   <property>
@@ -512,7 +508,7 @@
   </property>
   <property>
     <name>dev.zookeeper.path</name>
-    <value>"/tmp/dev-storm-zookeeper"</value>
+    <value>/tmp/dev-storm-zookeeper</value>
     <description></description>
   </property>
 </configuration>
