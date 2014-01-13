@@ -34,7 +34,6 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.AmbariMetaService;
 import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
@@ -466,7 +465,6 @@ public class AmbariServer {
     GetResource.init(injector.getInstance(ResourceManager.class));
     PersistKeyValueService.init(injector.getInstance(PersistKeyValueImpl.class));
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
-    AmbariMetaService.init(injector.getInstance(AmbariMetaInfo.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     WorkflowJsonService.setDBProperties(

@@ -38,22 +38,22 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Service for stacks management.
  */
-@Path("/stacks/")
-public class StacksService extends BaseService {
+@Path("/stacks2/")
+public class Stacks2Service extends BaseService {
 
   @GET
   @Produces("text/plain")
   public Response getStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createStackResource(null));
+      createStackResource(null));
   }
 
   @GET
   @Path("{stackName}")
   @Produces("text/plain")
   public Response getStack(@Context HttpHeaders headers, @Context UriInfo ui,
-                           @PathParam("stackName") String stackName) {
+      @PathParam("stackName") String stackName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackResource(stackName));
@@ -63,7 +63,7 @@ public class StacksService extends BaseService {
   @Path("{stackName}/versions")
   @Produces("text/plain")
   public Response getStackVersions(@Context HttpHeaders headers,
-                                   @Context UriInfo ui, @PathParam("stackName") String stackName) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackVersionResource(stackName, null));
@@ -73,21 +73,21 @@ public class StacksService extends BaseService {
   @Path("{stackName}/versions/{stackVersion}")
   @Produces("text/plain")
   public Response getStackVersion(@Context HttpHeaders headers,
-                                  @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                  @PathParam("stackVersion") String stackVersion) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackVersionResource(stackName, stackVersion));
   }
 
-
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories")
   @Produces("text/plain")
   public Response getRepositories(@Context HttpHeaders headers,
-                                  @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                  @PathParam("stackVersion") String stackVersion,
-                                  @PathParam("osType") String osType) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("osType") String osType) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createRepositoryResource(stackName, stackVersion, osType, null));
@@ -97,132 +97,132 @@ public class StacksService extends BaseService {
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}")
   @Produces("text/plain")
   public Response getRepository(@Context HttpHeaders headers,
-                                @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                @PathParam("stackVersion") String stackVersion,
-                                @PathParam("osType") String osType,
-                                @PathParam("repoId") String repoId) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("osType") String osType,
+      @PathParam("repoId") String repoId) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createRepositoryResource(stackName, stackVersion, osType, repoId));
   }
-
+  
   @PUT
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}")
   @Produces("text/plain")
   public Response updateRepository(String body, @Context HttpHeaders headers,
-                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                   @PathParam("stackVersion") String stackVersion,
-                                   @PathParam("osType") String osType,
-                                   @PathParam("repoId") String repoId) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("osType") String osType,
+      @PathParam("repoId") String repoId) {
 
     return handleRequest(headers, body, ui, Request.Type.PUT,
         createRepositoryResource(stackName, stackVersion, osType, repoId));
   }
-
+  
 
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices")
   @Produces("text/plain")
   public Response getStackServices(@Context HttpHeaders headers,
-                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                   @PathParam("stackVersion") String stackVersion) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, null));
   }
-
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}")
   @Produces("text/plain")
   public Response getStackService(@Context HttpHeaders headers,
-                                  @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                  @PathParam("stackVersion") String stackVersion,
-                                  @PathParam("serviceName") String serviceName) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("serviceName") String serviceName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, serviceName));
   }
-
-
+  
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/configurations")
   @Produces("text/plain")
   public Response getStackConfigurations(@Context HttpHeaders headers,
-                                         @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                         @PathParam("stackVersion") String stackVersion,
-                                         @PathParam("serviceName") String serviceName) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("serviceName") String serviceName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, null));
   }
-
-
+  
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/configurations/{propertyName}")
   @Produces("text/plain")
   public Response getStackConfiguration(@Context HttpHeaders headers,
-                                        @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                        @PathParam("stackVersion") String stackVersion,
-                                        @PathParam("serviceName") String serviceName,
-                                        @PathParam("propertyName") String propertyName) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("serviceName") String serviceName,
+      @PathParam("propertyName") String propertyName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, propertyName));
   }
-
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents")
   @Produces("text/plain")
   public Response getServiceComponents(@Context HttpHeaders headers,
-                                       @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                       @PathParam("stackVersion") String stackVersion,
-                                       @PathParam("serviceName") String serviceName) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("serviceName") String serviceName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, null));
   }
-
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}")
   @Produces("text/plain")
   public Response getServiceComponent(@Context HttpHeaders headers,
-                                      @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                      @PathParam("stackVersion") String stackVersion,
-                                      @PathParam("serviceName") String serviceName,
-                                      @PathParam("componentName") String componentName) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("serviceName") String serviceName,
+      @PathParam("componentName") String componentName) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, componentName));
   }
-
-
+  
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems")
   @Produces("text/plain")
   public Response getOperatingSystems(@Context HttpHeaders headers,
-                                      @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                      @PathParam("stackVersion") String stackVersion) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createOperatingSystemResource(stackName, stackVersion, null));
   }
-
+  
   @GET
   @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}")
   @Produces("text/plain")
   public Response getOperatingSystem(@Context HttpHeaders headers,
-                                     @Context UriInfo ui, @PathParam("stackName") String stackName,
-                                     @PathParam("stackVersion") String stackVersion,
-                                     @PathParam("osType") String osType) {
+      @Context UriInfo ui, @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion,
+      @PathParam("osType") String osType) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
         createOperatingSystemResource(stackName, stackVersion, osType));
   }
-
-
+  
+  
   ResourceInstance createOperatingSystemResource(String stackName,
-                                                 String stackVersion, String osType) {
-
+      String stackVersion, String osType) {
+    
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
@@ -244,8 +244,8 @@ public class StacksService extends BaseService {
   }
 
   ResourceInstance createStackConfigurationResource(String stackName,
-                                                    String stackVersion, String serviceName, String propertyName) {
-
+      String stackVersion, String serviceName, String propertyName) {
+    
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
@@ -256,7 +256,7 @@ public class StacksService extends BaseService {
   }
 
   ResourceInstance createStackServiceResource(String stackName,
-                                              String stackVersion, String serviceName) {
+      String stackVersion, String serviceName) {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
@@ -266,7 +266,7 @@ public class StacksService extends BaseService {
   }
 
   ResourceInstance createRepositoryResource(String stackName,
-                                            String stackVersion, String osType, String repoId) {
+      String stackVersion, String osType, String repoId) {
 
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Stack, stackName);
@@ -278,7 +278,7 @@ public class StacksService extends BaseService {
   }
 
   ResourceInstance createStackVersionResource(String stackName,
-                                              String stackVersion) {
+      String stackVersion) {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
@@ -293,4 +293,3 @@ public class StacksService extends BaseService {
 
   }
 }
-

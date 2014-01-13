@@ -32,16 +32,16 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 /**
-* Unit tests for StacksService.
-*/
-public class StacksServiceTest extends BaseServiceTest {
+ * Unit tests for StacksService.
+ */
+public class Stacks2ServiceTest extends BaseServiceTest {
 
   @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
-    // getStack
-    StacksService service = new TestStacksService("stackName", null);
+    //getStack
+    Stacks2Service service = new TestStacksService("stackName", null);
     Method m = service.getClass().getMethod("getStack", HttpHeaders.class, UriInfo.class, String.class);
     Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
@@ -52,13 +52,13 @@ public class StacksServiceTest extends BaseServiceTest {
     args = new Object[] {getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    // getStackVersion
+    //getStackVersion
     service = new TestStacksService("stackName", "stackVersion");
     m = service.getClass().getMethod("getStackVersion", HttpHeaders.class, UriInfo.class, String.class, String.class);
     args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
-    // getStackVersions
+    //getStackVersions
     service = new TestStacksService("stackName", null);
     m = service.getClass().getMethod("getStackVersions", HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {getHttpHeaders(), getUriInfo(), "stackName"};
@@ -143,7 +143,7 @@ public class StacksServiceTest extends BaseServiceTest {
     return listInvocations;
   }
 
-  private class TestStacksService extends StacksService {
+  private class TestStacksService extends Stacks2Service {
 
     private String m_stackId;
     private String m_stackVersion;
@@ -169,27 +169,30 @@ public class StacksServiceTest extends BaseServiceTest {
     @Override
     ResourceInstance createRepositoryResource(String stackName,
         String stackVersion, String osType, String repoId) {
+
       return getTestResource();
     }
 
     @Override
     ResourceInstance createStackServiceResource(String stackName,
         String stackVersion, String serviceName) {
+
       return getTestResource();
     }
 
     ResourceInstance createStackConfigurationResource(String stackName,
         String stackVersion, String serviceName, String propertyName) {
+
       return getTestResource();
     }
 
     ResourceInstance createStackServiceComponentResource(String stackName,
         String stackVersion, String serviceName, String componentName) {
+
       return getTestResource();
     }
 
-    ResourceInstance createOperatingSystemResource(String stackName,
-        String stackVersion, String osType) {
+    ResourceInstance createOperatingSystemResource(String stackName, String stackVersion, String osType) {
       return getTestResource();
     }
 
