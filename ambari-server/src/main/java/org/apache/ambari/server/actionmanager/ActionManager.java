@@ -50,12 +50,15 @@ public class ActionManager {
   private final ActionQueue actionQueue;
   private final AtomicLong requestCounter;
   private final CustomActionDBAccessor cdb;
+  private final RequestFactory requestFactory;
+
 
   @Inject
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
                        @Named("actionTimeout") long actionTimeout,
                        ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
-                       ServerActionManager serverActionManager, UnitOfWork unitOfWork, CustomActionDBAccessor cdb) {
+                       ServerActionManager serverActionManager, UnitOfWork unitOfWork, CustomActionDBAccessor cdb,
+                       RequestFactory requestFactory) {
     this.actionQueue = aq;
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
@@ -63,6 +66,7 @@ public class ActionManager {
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
     this.cdb = cdb;
+    this.requestFactory = requestFactory;
   }
 
   public void start() {
@@ -74,21 +78,25 @@ public class ActionManager {
     scheduler.stop();
   }
 
-  public void sendActions(List<Stage> stages, ExecuteActionRequest request) {
+  public void sendActions(List<Stage> stages, ExecuteActionRequest actionRequest) throws AmbariException {
+    Request request = requestFactory.createNewFromStages(stages, actionRequest);
+    sendActions(request, actionRequest);
+  }
 
+  public void sendActions(Request request, ExecuteActionRequest executeActionRequest) {
     if (LOG.isDebugEnabled()) {
-      for (Stage s : stages) {
-        LOG.debug("Persisting stage into db: " + s.toString());
-      }
+      LOG.debug(String.format("Persisting Request into DB: %s", request));
 
-      if (request != null) {
+      if (executeActionRequest != null) {
         LOG.debug("In response to request: " + request.toString());
       }
     }
-    db.persistActions(stages);
-
-    // Now scheduler should process actions
+    db.persistActions(request);
     scheduler.awake();
+  }
+
+  public List<Request> getRequests(Collection<Long> requestIds) {
+    return db.getRequests(requestIds);
   }
 
   public List<Stage> getRequestStatus(long requestId) {
@@ -179,7 +187,7 @@ public class ActionManager {
    * @return
    */
   public List<Long> getRequests() {
-    return db.getRequests();
+    return db.getRequestIds();
   }
 
   /**

@@ -45,10 +45,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -116,6 +113,8 @@ public class AmbariManagementControllerImpl implements
   private ConfigFactory configFactory;
   @Inject
   private StageFactory stageFactory;
+  @Inject
+  private RequestFactory requestFactory;
   @Inject
   private ActionMetadata actionMetadata;
   @Inject
@@ -1279,15 +1278,19 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
-  private void persistStages(List<Stage> stages) {
-    if(stages != null && stages.size() > 0) {
+  private void persistStages(List<Stage> stages) throws AmbariException {
+    if (stages != null && !stages.isEmpty()) {
+      persistRequest(requestFactory.createNewFromStages(stages));
+    }
+  }
+
+  //TODO use when request created externally
+  private void persistRequest(Request request) {
+    if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Triggering Action Manager"
-            + ", clusterName=" + stages.get(0).getClusterName()
-            + ", requestId=" + stages.get(0).getRequestId()
-            + ", stagesCount=" + stages.size());
+        LOG.debug(String.format("Triggering Action Manager, request=%s", request));
       }
-      actionManager.sendActions(stages, null);
+      actionManager.sendActions(request, null);
     }
   }
 

@@ -149,10 +149,18 @@ public class OrmTestHelper {
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
     HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setRequestId(1L);
+    requestEntity.setCluster(clusterDAO.findByName("test_cluster1"));
+
     StageEntity stageEntity = new StageEntity();
+    stageEntity.setRequest(requestEntity);
     stageEntity.setCluster(clusterDAO.findByName("test_cluster1"));
-    stageEntity.setRequestId(0L);
-    stageEntity.setStageId(0L);
+    stageEntity.setRequestId(1L);
+    stageEntity.setStageId(1L);
+
+    requestEntity.setStages(Collections.singletonList(stageEntity));
 
     HostRoleCommandEntity commandEntity = new HostRoleCommandEntity();
     HostRoleCommandEntity commandEntity2 = new HostRoleCommandEntity();
@@ -184,6 +192,7 @@ public class OrmTestHelper {
     stageEntity.getHostRoleCommands().add(commandEntity2);
     stageEntity.getHostRoleCommands().add(commandEntity3);
 
+    requestDAO.create(requestEntity);
     stageDAO.create(stageEntity);
     hostRoleCommandDAO.create(commandEntity3);
     hostRoleCommandDAO.create(commandEntity);

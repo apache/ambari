@@ -83,7 +83,7 @@ public class TestActionDBAccessorImpl {
     cdb = injector.getInstance(CustomActionDBAccessor.class);
 
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), cdb);
+        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), cdb, injector.getInstance(RequestFactory.class));
   }
 
   @After
@@ -121,9 +121,13 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testGetStagesInProgress() {
     String hostname = "host1";
-    populateActionDB(db, hostname, requestId, stageId);
-    populateActionDB(db, hostname, requestId, stageId+1);
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(createStubStage(hostname, requestId, stageId));
+    stages.add(createStubStage(hostname, requestId, stageId + 1));
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
+
+    List<Stage> stages2 = db.getStagesInProgress();
     assertEquals(2, stages.size());
   }
   
@@ -314,7 +318,8 @@ public class TestActionDBAccessorImpl {
     String hostName = cmd.getHostName();
     cmd.setStatus(HostRoleStatus.COMPLETED);
 
-    db.persistActions(stages);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
     db.abortOperation(requestId);
 
     List<HostRoleCommand> commands = db.getRequestTasks(requestId);
@@ -329,6 +334,14 @@ public class TestActionDBAccessorImpl {
 
   private void populateActionDB(ActionDBAccessor db, String hostname,
       long requestId, long stageId) {
+    Stage s = createStubStage(hostname, requestId, stageId);
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
+  }
+
+  private Stage createStubStage(String hostname, long requestId, long stageId) {
     Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test", "clusterHostInfo");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
@@ -341,9 +354,7 @@ public class TestActionDBAccessorImpl {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
             .toString(), hostname, System.currentTimeMillis()), "cluster1", "HBASE");
-    List<Stage> stages = new ArrayList<Stage>();
-    stages.add(s);
-    db.persistActions(stages);
+    return s;
   }
 
   private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
@@ -356,8 +367,9 @@ public class TestActionDBAccessorImpl {
             hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    ExecuteActionRequest request = new ExecuteActionRequest("cluster1", null, actionName, "HBASE",
+    ExecuteActionRequest executeActionRequest = new ExecuteActionRequest("cluster1", null, actionName, "HBASE",
         "HBASE_MASTER", null, null);
-    db.persistActions(stages);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
   }
 }

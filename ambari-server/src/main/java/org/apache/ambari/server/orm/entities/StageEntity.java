@@ -32,7 +32,7 @@ public class StageEntity {
   @Basic
   private Long clusterId;
 
-  @Column(name = "request_id")
+  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   @Id
   private Long requestId;
 
@@ -51,21 +51,16 @@ public class StageEntity {
   @Column(name = "cluster_host_info")
   @Basic
   private byte[] clusterHostInfo;
+
+  @ManyToOne
+  @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
+  private RequestEntity request;
   
-
-  public String getClusterHostInfo() {
-    return clusterHostInfo == null ? new String() : new String(clusterHostInfo);
-  }
-
-  public void setClusterHostInfo(String clusterHostInfo) {
-    this.clusterHostInfo = clusterHostInfo.getBytes();
-  }
-
   @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
   private ClusterEntity cluster;
 
-  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
+  @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<HostRoleCommandEntity> hostRoleCommands;
 
   @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE)
@@ -105,6 +100,14 @@ public class StageEntity {
 
   public String getRequestContext() {
     return defaultString(requestContext);
+  }
+
+  public String getClusterHostInfo() {
+    return clusterHostInfo == null ? new String() : new String(clusterHostInfo);
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo) {
+    this.clusterHostInfo = clusterHostInfo.getBytes();
   }
 
   public void setRequestContext(String requestContext) {
@@ -162,5 +165,13 @@ public class StageEntity {
 
   public void setRoleSuccessCriterias(Collection<RoleSuccessCriteriaEntity> roleSuccessCriterias) {
     this.roleSuccessCriterias = roleSuccessCriterias;
+  }
+
+  public RequestEntity getRequest() {
+    return request;
+  }
+
+  public void setRequest(RequestEntity request) {
+    this.request = request;
   }
 }

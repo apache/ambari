@@ -50,10 +50,10 @@ public class RequestScheduleBatchRequestEntity {
   @Column(name = "request_id")
   private Long requestId;
 
-  @Column(name = "request_type")
+  @Column(name = "request_type", length = 255)
   private String requestType;
 
-  @Column(name = "request_uri")
+  @Column(name = "request_uri", length = 1024)
   private String requestUri;
 
   @Lob
@@ -61,13 +61,13 @@ public class RequestScheduleBatchRequestEntity {
   @Column(name = "request_body")
   private byte[] requestBody;
 
-  @Column(name = "request_status")
+  @Column(name = "request_status", length = 255)
   private String requestStatus;
 
   @Column(name = "return_code")
   private Integer returnCode;
 
-  @Column(name = "return_message")
+  @Column(name = "return_message", length = 2000)
   private String returnMessage;
 
   @ManyToOne

@@ -16,15 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.actionmanager;
+package org.apache.ambari.server.state.scheduler;
 
-import com.google.inject.assistedinject.Assisted;
-import org.apache.ambari.server.orm.entities.StageEntity;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import org.quartz.Job;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.spi.JobFactory;
+import org.quartz.spi.TriggerFiredBundle;
 
-public interface StageFactory {
+public class GuiceJobFactory implements JobFactory {
 
-  Stage createNew(long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-                   @Assisted("requestContext") String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo);
+  private final Injector injector;
 
-  Stage createExisting(StageEntity stageEntity);
+  @Inject
+  public GuiceJobFactory(Injector injector) {
+    this.injector = injector;
+  }
+
+  @Override
+  public Job newJob(TriggerFiredBundle bundle, Scheduler scheduler) throws SchedulerException {
+    return injector.getInstance(bundle.getJobDetail().getJobClass());
+  }
 }

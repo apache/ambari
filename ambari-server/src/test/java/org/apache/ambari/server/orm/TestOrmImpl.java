@@ -23,6 +23,7 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.orm.dao.*;
 import org.apache.ambari.server.orm.entities.*;
 import org.junit.*;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -163,7 +165,7 @@ public class TestOrmImpl extends Assert {
 
     List<HostRoleCommandEntity> list =
         hostRoleCommandDAO.findSortedCommandsByStageAndHost(
-            stageDAO.findByActionId("0-0"), hostDAO.findByName("test_host1"));
+            stageDAO.findByActionId("1-1"), hostDAO.findByName("test_host1"));
     log.info("command '{}' - taskId '{}' ", list.get(0).getRoleCommand(),
         list.get(0).getTaskId());
     log.info("command '{}' - taskId '{}'", list.get(1).getRoleCommand(),
@@ -176,7 +178,7 @@ public class TestOrmImpl extends Assert {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
-    StageEntity stageEntity = stageDAO.findByActionId("0-0");
+    StageEntity stageEntity = stageDAO.findByActionId("1-1");
     log.info("StageEntity {} {}" + stageEntity.getRequestId() + " "
         + stageEntity.getStageId());
     List<HostEntity> hosts = hostDAO.findByStage(stageEntity);
@@ -188,10 +190,10 @@ public class TestOrmImpl extends Assert {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
     HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
     int result = hostRoleCommandDAO.updateStatusByRequestId(
-        0L, HostRoleStatus.ABORTED, Arrays.asList(HostRoleStatus.QUEUED,
+        1L, HostRoleStatus.ABORTED, Arrays.asList(HostRoleStatus.QUEUED,
         HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING));
     //result always 1 in batch mode
-    List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByRequest(0L);
+    List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByRequest(1L);
     int count = 0;
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (commandEntity.getStatus() == HostRoleStatus.ABORTED) {
@@ -205,7 +207,7 @@ public class TestOrmImpl extends Assert {
   public void testFindStageByHostRole() {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
     HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    List<HostRoleCommandEntity> list = hostRoleCommandDAO.findByHostRole("test_host1", 0L, 0L, Role.DATANODE.toString());
+    List<HostRoleCommandEntity> list = hostRoleCommandDAO.findByHostRole("test_host1", 1L, 1L, Role.DATANODE.toString());
     assertEquals(1, list.size());
   }
 
@@ -214,17 +216,28 @@ public class TestOrmImpl extends Assert {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
+
+    RequestEntity requestEntity = requestDAO.findByPK(1L);
+    List<StageEntity> stageEntities = new ArrayList<StageEntity>();
+
     StageEntity stageEntity = new StageEntity();
     stageEntity.setCluster(clusterDAO.findByName("test_cluster1"));
-    stageEntity.setRequestId(0L);
-    stageEntity.setStageId(1L);
+    stageEntity.setRequest(requestEntity);
+    stageEntity.setStageId(2L);
     stageDAO.create(stageEntity);
     StageEntity stageEntity2 = new StageEntity();
     stageEntity2.setCluster(clusterDAO.findByName("test_cluster1"));
-    stageEntity2.setRequestId(0L);
-    stageEntity2.setStageId(2L);
+    stageEntity2.setRequest(requestEntity);
+    stageEntity2.setRequestId(1L);
+    stageEntity2.setStageId(3L);
     stageDAO.create(stageEntity2);
-    assertEquals(0L, stageDAO.getLastRequestId());
+
+    stageEntities.add(stageEntity);
+    stageEntities.add(stageEntity2);
+    requestEntity.setStages(stageEntities);
+    requestDAO.merge(requestEntity);
+    assertEquals(1L, stageDAO.getLastRequestId());
   }
 
   @Test

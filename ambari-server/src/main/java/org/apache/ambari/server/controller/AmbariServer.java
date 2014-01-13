@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 
+import com.google.inject.name.Named;
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -41,21 +42,23 @@ import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
-import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
-import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
+import org.apache.ambari.server.security.authorization.internal.InternalTokenAuthenticationFilter;
+import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
@@ -110,6 +113,9 @@ public class AmbariServer {
   AmbariMetaInfo ambariMetaInfo;
   @Inject
   MetainfoDAO metainfoDAO;
+  @Inject
+  @Named("dbInitNeeded")
+  boolean dbInitNeeded;
 
   public String getServerOsType() {
     return configs.getServerOsType();
@@ -127,7 +133,7 @@ public class AmbariServer {
     LOG.info("********* Meta Info initialized **********");
 
     performStaticInjection();
-    addInMemoryUsers();
+    initDB();
     server = new Server();
     serverForAgent = new Server();
 
@@ -147,6 +153,11 @@ public class AmbariServer {
           injector.getInstance(AmbariLocalUserDetailsService.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
           injector.getInstance(AmbariLdapAuthenticationProvider.class));
+      factory.registerSingleton("internalTokenAuthenticationFilter",
+          injector.getInstance(InternalTokenAuthenticationFilter.class));
+      factory.registerSingleton("ambariInternalAuthenticationProvider",
+          injector.getInstance(AmbariInternalAuthenticationProvider.class));
+
       //Spring Security xml config depends on this Bean
 
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
@@ -393,9 +404,9 @@ public class AmbariServer {
    * Creates default users and roles if in-memory database is used
    */
   @Transactional
-  protected void addInMemoryUsers() {
-    if (configs.getPersistenceType() == PersistenceType.IN_MEMORY) {
-      LOG.info("In-memory database is used - creating default users");
+  protected void initDB() {
+    if (configs.getPersistenceType() == PersistenceType.IN_MEMORY || dbInitNeeded) {
+      LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
 
       users.createDefaultRoles();
@@ -403,24 +414,37 @@ public class AmbariServer {
       users.createUser("user", "user");
       try {
         users.promoteToAdmin(users.getLocalUser("admin"));
-      } catch (AmbariException e) {
-        throw new RuntimeException(e);
+      } catch (AmbariException ignored) {
       }
+
+      MetainfoEntity schemaVersion = new MetainfoEntity();
+      schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);
+      schemaVersion.setMetainfoValue(ambariMetaInfo.getServerVersion());
+
+      metainfoDAO.create(schemaVersion);
     }
   }
 
   protected void checkDBVersion() throws AmbariException {
     LOG.info("Checking DB store version");
-    String schemaVersion = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY).getMetainfoValue();
-    String serverVersion = ambariMetaInfo.getServerVersion();
-    if (! schemaVersion.equals(serverVersion)) {
+    MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
+    String schemaVersion = null;
+    String serverVersion = null;
+
+    if (schemaVersionEntity != null) {
+      schemaVersion = schemaVersionEntity.getMetainfoValue();
+      serverVersion = ambariMetaInfo.getServerVersion();
+    }
+
+    if (schemaVersionEntity==null || !schemaVersion.equals(serverVersion)) {
       String error = "Current database store version is not compatible with " +
-              "current server version"
-              + ", serverVersion=" + serverVersion
-              + ", schemaVersion=" + schemaVersion;
+          "current server version"
+          + ", serverVersion=" + serverVersion
+          + ", schemaVersion=" + schemaVersion;
       LOG.warn(error);
       throw new AmbariException(error);
     }
+
     LOG.info("DB store version is compatible");
   }
 

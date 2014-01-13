@@ -17,12 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -83,20 +78,8 @@ public class Stage {
     this.clusterHostInfo = clusterHostInfo;
   }
 
-  /**
-   * Creates Stage existing in database
-   * @param actionId "requestId-stageId" string
-   */
   @AssistedInject
-  public Stage(@Assisted String actionId, Injector injector) {
-    this(injector.getInstance(StageDAO.class).findByActionId(actionId), injector);
-  }
-
-  @AssistedInject
-  public Stage(@Assisted StageEntity stageEntity, Injector injector) {
-    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    HostDAO hostDAO = injector.getInstance(HostDAO.class);
-    HostRoleCommandFactory hostRoleCommandFactory = injector.getInstance(HostRoleCommandFactory.class);
+  public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO, ActionDBAccessor dbAccessor) {
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
@@ -106,19 +89,18 @@ public class Stage {
     clusterHostInfo = stageEntity.getClusterHostInfo();
 
 
-    Map<String, List<HostRoleCommandEntity>> hostCommands = hostRoleCommandDAO.findSortedCommandsByStage(stageEntity);
+    List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
+    Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);
 
-    for (Map.Entry<String, List<HostRoleCommandEntity>> entry : hostCommands.entrySet()) {
-      String hostname = entry.getKey();
-      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
-      hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
-      for (HostRoleCommandEntity hostRoleCommandEntity : entry.getValue()) {
-        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(hostRoleCommandEntity);
-
-
-        hostRoleCommands.get(hostname).put(hostRoleCommand.getRole().toString(), hostRoleCommand);
-        commandsToSend.get(hostname).add(hostRoleCommand.getExecutionCommandWrapper());
+    for (HostRoleCommand command : commands) {
+      String hostname = command.getHostName();
+      if (!hostRoleCommands.containsKey(hostname)) {
+        commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+        hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
       }
+
+      hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
+      commandsToSend.get(hostname).add(command.getExecutionCommandWrapper());
     }
 
     for (RoleSuccessCriteriaEntity successCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {

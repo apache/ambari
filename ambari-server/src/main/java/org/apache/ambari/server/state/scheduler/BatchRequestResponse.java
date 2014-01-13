@@ -23,4 +23,42 @@ package org.apache.ambari.server.state.scheduler;
  * tolerance calculations
  */
 public class BatchRequestResponse {
+
+  private Long requestId;
+  private String status;
+  private int returnCode;
+  private String returnMessage;
+
+
+  public Long getRequestId() {
+    return requestId;
+  }
+
+  public void setRequestId(Long requestId) {
+    this.requestId = requestId;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public int getReturnCode() {
+    return returnCode;
+  }
+
+  public void setReturnCode(int returnCode) {
+    this.returnCode = returnCode;
+  }
+
+  public String getReturnMessage() {
+    return returnMessage;
+  }
+
+  public void setReturnMessage(String returnMessage) {
+    this.returnMessage = returnMessage;
+  }
 }

@@ -151,6 +151,19 @@ public interface RequestExecution {
   public String getRequestBody(Long batchId);
 
   /**
+   * Get batch request with specified order id
+   */
+  BatchRequest getBatchRequest(long batchId);
+
+  /**
+   * Updates batch request data
+   * @param batchId order id of batch request
+   * @param batchRequestResponse
+   * @param statusOnly true if only status should be updated
+   */
+  void updateBatchRequest(long batchId, BatchRequestResponse batchRequestResponse, boolean statusOnly);
+
+  /**
    * Status of the Request execution
    */
   public enum Status {

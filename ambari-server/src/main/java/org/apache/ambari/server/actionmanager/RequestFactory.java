@@ -19,12 +19,20 @@
 package org.apache.ambari.server.actionmanager;
 
 import com.google.inject.assistedinject.Assisted;
-import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 
-public interface StageFactory {
+import java.util.Collection;
 
-  Stage createNew(long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-                   @Assisted("requestContext") String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo);
+public interface RequestFactory {
 
-  Stage createExisting(StageEntity stageEntity);
+  Request createNew(long requestId, @Assisted("clusterId") Long clusterName) throws AmbariException;
+
+  Request createNewFromStages(Collection<Stage> stages);
+
+  Request createNewFromStages(Collection<Stage> stages, ExecuteActionRequest actionRequest);
+
+  Request createExisting(RequestEntity entity);
+
 }

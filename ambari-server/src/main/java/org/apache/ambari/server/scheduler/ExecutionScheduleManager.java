@@ -18,14 +18,20 @@
 
 package org.apache.ambari.server.scheduler;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.sun.jersey.api.client.*;
+import com.sun.jersey.api.client.filter.ClientFilter;
+import com.sun.jersey.api.client.filter.CsrfProtectionFilter;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.dao.RequestScheduleBatchRequestDAO;
-import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
-import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntityPK;
+import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
+import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.scheduler.Batch;
 import org.apache.ambari.server.state.scheduler.BatchRequest;
 import org.apache.ambari.server.state.scheduler.BatchRequestJob;
@@ -33,6 +39,7 @@ import org.apache.ambari.server.state.scheduler.BatchRequestResponse;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
+import org.apache.commons.lang.text.StrBuilder;
 import org.quartz.CronExpression;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -43,10 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
@@ -60,21 +64,59 @@ import static org.quartz.TriggerBuilder.newTrigger;
 public class ExecutionScheduleManager {
   private static final Logger LOG = LoggerFactory.getLogger
     (ExecutionScheduleManager.class);
-  @Inject
-  private ExecutionScheduler executionScheduler;
-  @Inject
-  private Configuration configuration;
-  @Inject
-  private RequestScheduleBatchRequestDAO batchRequestDAO;
+
+  private final InternalTokenStorage tokenStorage;
+  private final Gson gson;
+  private final Clusters clusters;
+  ExecutionScheduler executionScheduler;
+  Configuration configuration;
 
   private volatile boolean schedulerAvailable = false;
   protected static final String BATCH_REQUEST_JOB_PREFIX = "BatchRequestJob";
   protected static final String REQUEST_EXECUTION_TRIGGER_PREFIX =
     "RequestExecution";
+  protected static final String DEFAULT_API_PATH = "api/v1";
+
+  protected Client ambariClient;
+  protected WebResource ambariWebResource;
 
   @Inject
-  public ExecutionScheduleManager(Injector injector) {
-    injector.injectMembers(this);
+  public ExecutionScheduleManager(Configuration configuration,
+                                  ExecutionScheduler executionScheduler,
+                                  InternalTokenStorage tokenStorage,
+                                  Clusters clusters,
+                                  Gson gson) {
+    this.configuration = configuration;
+    this.executionScheduler = executionScheduler;
+    this.tokenStorage = tokenStorage;
+    this.clusters = clusters;
+    this.gson = gson;
+
+    buildApiClient();
+  }
+
+  protected void buildApiClient() {
+    if (configuration.getApiSSLAuthentication()) {
+      //TODO build SSL client
+
+    } else {
+      Client client = Client.create();
+
+      this.ambariClient = client;
+
+      String pattern = "http://localhost:%s/";
+      String url = String.format(pattern, configuration.getClientApiPort());
+
+      this.ambariWebResource = client.resource(url);
+
+    }
+
+    //Install auth filters
+    ClientFilter csrfFilter = new CsrfProtectionFilter("RequestSchedule");
+    ClientFilter tokenFilter = new InternalTokenClientFilter(tokenStorage);
+    ambariClient.addFilter(csrfFilter);
+    ambariClient.addFilter(tokenFilter);
+
   }
 
   /**
@@ -197,8 +239,11 @@ public class ExecutionScheduleManager {
           .endAt(endDate)
           .build();
 
+
+
       try {
         executionScheduler.scheduleJob(trigger);
+        LOG.debug("Scheduled trigger next fire time: " + trigger.getNextFireTime());
       } catch (SchedulerException e) {
         LOG.error("Unable to schedule request execution.", e);
         throw new AmbariException(e.getMessage());
@@ -216,6 +261,7 @@ public class ExecutionScheduleManager {
 
       try {
         executionScheduler.scheduleJob(trigger);
+        LOG.debug("Scheduled trigger next fire time: " + trigger.getNextFireTime());
       } catch (SchedulerException e) {
         LOG.error("Unable to schedule request execution.", e);
         throw new AmbariException(e.getMessage());
@@ -252,6 +298,8 @@ public class ExecutionScheduleManager {
               requestExecution.getId())
             .usingJobData(BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY,
               batchRequest.getOrderId())
+            .usingJobData(BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY,
+              requestExecution.getClusterName())
             .storeDurably()
             .build();
 
@@ -369,30 +417,31 @@ public class ExecutionScheduleManager {
    * @return request id
    * @throws AmbariException
    */
-  public synchronized Long executeBatchRequest(Long executionId,
-                                               Long batchId) throws AmbariException {
+  public Long executeBatchRequest(Long executionId,
+                                  Long batchId,
+                                  String clusterName) throws AmbariException {
 
     String type = null;
     String uri = null;
     String body = null;
 
     try {
-      RequestScheduleBatchRequestEntityPK batchRequestEntityPK = new
-        RequestScheduleBatchRequestEntityPK();
-      batchRequestEntityPK.setScheduleId(executionId);
-      batchRequestEntityPK.setBatchId(batchId);
-      RequestScheduleBatchRequestEntity batchRequestEntity =
-        batchRequestDAO.findByPk(batchRequestEntityPK);
+      RequestExecution requestExecution = clusters.getCluster(clusterName).getAllRequestExecutions().get(executionId);
+      BatchRequest batchRequest = requestExecution.getBatchRequest(batchId);
+      type = batchRequest.getType();
+      uri = batchRequest.getUri();
 
-      type = batchRequestEntity.getRequestType();
-      uri = batchRequestEntity.getRequestUri();
-      body = batchRequestEntity.getRequestBodyAsString();
+      body = requestExecution.getRequestBody(batchId);
 
+      BatchRequestResponse batchRequestResponse = performApiRequest(uri, body, type);
+
+      updateBatchRequest(executionId, batchId, clusterName, batchRequestResponse, false);
+
+      return batchRequestResponse.getRequestId();
     } catch (Exception e) {
-
+      throw new AmbariException("Exception occurred while performing request", e);
     }
 
-    return -1L;
   }
 
   /**
@@ -400,10 +449,118 @@ public class ExecutionScheduleManager {
    * @return
    * @throws AmbariException
    */
-  public BatchRequestResponse getBatchRequestResponse(Long requestId)
+  public BatchRequestResponse getBatchRequestResponse(Long requestId, String clusterName)
     throws AmbariException {
 
+    StrBuilder sb = new StrBuilder();
+    sb.append(DEFAULT_API_PATH).append("/clusters/").append(clusterName).append("/requests/").append(requestId);
+
+    return performApiGetRequest(sb.toString(), true);
+
+  }
+
+  private BatchRequestResponse convertToBatchRequestResponse(ClientResponse clientResponse) {
     BatchRequestResponse batchRequestResponse = new BatchRequestResponse();
+    int retCode = clientResponse.getStatus();
+
+    batchRequestResponse.setReturnCode(retCode);
+
+    String responseString = clientResponse.getEntity(String.class);
+    LOG.debug("Processing API response: status={}, body={}", retCode, responseString);
+    Map httpResponseMap;
+    try {
+      httpResponseMap = gson.fromJson(responseString, Map.class);
+      LOG.debug("Processing responce as JSON");
+    } catch (JsonSyntaxException e) {
+      LOG.debug("Response is not valid JSON object. Recording as is");
+      httpResponseMap = new HashMap();
+      httpResponseMap.put("message", responseString);
+    }
+
+
+    if (retCode < 300) {
+      if (httpResponseMap == null) {
+        //Empty response on successful scenario
+        batchRequestResponse.setStatus(HostRoleStatus.COMPLETED.toString());
+        return batchRequestResponse;
+      }
+
+      Map requestMap = null;
+      Object requestMapObject = httpResponseMap.get("Requests");
+      if (requestMapObject instanceof Map) {
+        requestMap = (Map) requestMapObject;
+      }
+
+      if (requestMap != null) {
+        batchRequestResponse.setRequestId(((Double) requestMap.get("id")).longValue());
+        //TODO fix different names for field
+        String status = null;
+        if (requestMap.get("request_status") != null) {
+          status = requestMap.get("request_status").toString();
+        }
+        if (requestMap.get("status") != null) {
+          status = requestMap.get("status").toString();
+        }
+        batchRequestResponse.setStatus(status);
+      }
+
+    } else {
+      //unsuccessful response
+      batchRequestResponse.setReturnMessage((String) httpResponseMap.get("message"));
+      batchRequestResponse.setStatus(HostRoleStatus.FAILED.toString());
+    }
+
     return batchRequestResponse;
   }
+
+  public void updateBatchRequest(long executionId, long batchId, String clusterName,
+                                 BatchRequestResponse batchRequestResponse,
+                                 boolean statusOnly)
+      throws AmbariException{
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    RequestExecution requestExecution = cluster.getAllRequestExecutions().get(executionId);
+
+    requestExecution.updateBatchRequest(batchId, batchRequestResponse, statusOnly);
+
+  }
+
+  protected BatchRequestResponse performUriRequest(String url, String body, String method) {
+    ClientResponse response;
+    try {
+      response = ambariClient.resource(url).entity(body).method(method, ClientResponse.class);
+    } catch (UniformInterfaceException e) {
+      response = e.getResponse();
+    }
+    //Don't read response entity for logging purposes, it can be read only once from http stream
+
+    return convertToBatchRequestResponse(response);
+  }
+
+  protected BatchRequestResponse performApiGetRequest(String relativeUri, boolean queryAllFields) {
+    WebResource webResource = ambariWebResource.path(relativeUri);
+    if (queryAllFields) {
+      webResource = webResource.queryParam("fields", "*");
+    }
+    ClientResponse response;
+    try {
+      response = webResource.get(ClientResponse.class);
+    } catch (UniformInterfaceException e) {
+      response = e.getResponse();
+    }
+    return convertToBatchRequestResponse(response);
+  }
+
+  protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method) {
+    ClientResponse response;
+    try {
+      response = ambariWebResource.path(relativeUri).method(method, ClientResponse.class, body);
+    } catch (UniformInterfaceException e) {
+      response = e.getResponse();
+    }
+
+    return convertToBatchRequestResponse(response);
+  }
+
+
 }

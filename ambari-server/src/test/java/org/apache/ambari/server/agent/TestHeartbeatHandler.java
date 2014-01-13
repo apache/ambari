@@ -58,12 +58,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ActionDBInMemoryImpl;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -106,7 +101,11 @@ public class TestHeartbeatHandler {
   AmbariMetaInfo metaInfo;
   @Inject
   Configuration config;
+  @Inject
+  ActionDBAccessor actionDBAccessor;
+
   private UnitOfWork unitOfWork;
+
 
   @Before
   public void setup() throws Exception {
@@ -414,7 +413,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, unitOfWork, null);
+        new HostsMap((String) null), null, unitOfWork, null, injector.getInstance(RequestFactory.class));
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -458,7 +457,8 @@ public class TestHeartbeatHandler {
             DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    db.persistActions(stages);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
   }
 
   @Test
@@ -1511,7 +1511,7 @@ public class TestHeartbeatHandler {
 
   private ActionManager getMockActionManager() {
     return new ActionManager(0, 0, null, null,
-              new ActionDBInMemoryImpl(), new HostsMap((String) null), null, unitOfWork, null);
+              actionDBAccessor, new HostsMap((String) null), null, unitOfWork, null, injector.getInstance(RequestFactory.class));
   }
 
 

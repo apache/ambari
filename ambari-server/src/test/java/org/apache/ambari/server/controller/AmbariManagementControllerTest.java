@@ -36,13 +36,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionType;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -7096,22 +7090,27 @@ public class AmbariManagementControllerTest {
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
+    Request request = new Request(stages, clusters);
+    actionDB.persistActions(request);
 
+    stages.clear();
     stages.add(new Stage(requestId2, "/a4", clusterName, context, CLUSTER_HOST_INFO));
-    stages.get(3).setStageId(4);
-    stages.get(3).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
+    stages.get(0).setStageId(4);
+    stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
     stages.add(new Stage(requestId2, "/a5", clusterName, context, CLUSTER_HOST_INFO));
-    stages.get(4).setStageId(5);
-    stages.get(4).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
+    stages.get(1).setStageId(5);
+    stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    actionDB.persistActions(stages);
+    request = new Request(stages, clusters);
+    actionDB.persistActions(request);
+
 
     Set<TaskStatusRequest> taskStatusRequests;
     Set<TaskStatusResponse> taskStatusResponses;

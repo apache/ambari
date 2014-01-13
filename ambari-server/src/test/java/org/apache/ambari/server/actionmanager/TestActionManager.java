@@ -84,7 +84,7 @@ public class TestActionManager {
   public void testActionResponse() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), null, unitOfWork, null);
+        clusters, db, new HostsMap((String) null), null, unitOfWork, null, injector.getInstance(RequestFactory.class));
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -124,7 +124,7 @@ public class TestActionManager {
   public void testLargeLogs() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), null, unitOfWork, null);
+        clusters, db, new HostsMap((String) null), null, unitOfWork, null, injector.getInstance(RequestFactory.class));
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -171,7 +171,8 @@ public class TestActionManager {
             hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    db.persistActions(stages);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
   }
 
   // Test failing ... tracked by Jira BUG-4966
@@ -212,7 +213,7 @@ public class TestActionManager {
 
     replay(queue, db, clusters);
 
-    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null, unitOfWork, null);
+    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null, unitOfWork, null, injector.getInstance(RequestFactory.class));
     assertSame(listStages, manager.getActions(requestId));
 
     verify(queue, db, clusters);

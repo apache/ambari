@@ -76,6 +76,9 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "cluster", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
   private Collection<StageEntity> stages;
 
+  @OneToMany(mappedBy = "cluster", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
+  private Collection<RequestEntity> requests;
+
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<ClusterConfigEntity> configEntities;
 
@@ -218,5 +221,13 @@ public class ClusterEntity {
 
   public void setRequestScheduleEntities(Collection<RequestScheduleEntity> requestScheduleEntities) {
     this.requestScheduleEntities = requestScheduleEntities;
+  }
+
+  public Collection<RequestEntity> getRequests() {
+    return requests;
+  }
+
+  public void setRequests(Collection<RequestEntity> requests) {
+    this.requests = requests;
   }
 }

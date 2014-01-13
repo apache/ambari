@@ -16,15 +16,37 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.actionmanager;
+package org.apache.ambari.server.security.authorization.internal;
 
-import com.google.inject.assistedinject.Assisted;
-import org.apache.ambari.server.orm.entities.StageEntity;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-public interface StageFactory {
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
-  Stage createNew(long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-                   @Assisted("requestContext") String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo);
+@Singleton
+/**
+ * Generates single token for internal authentication
+ */
+public class InternalTokenStorage {
+  private final SecureRandom random;
+  private final String token;
 
-  Stage createExisting(StageEntity stageEntity);
+  @Inject
+  public InternalTokenStorage(SecureRandom secureRandom) {
+    this.random = secureRandom;
+    token = createNewToken();
+  }
+
+  public String getInternalToken() {
+    return token;
+  }
+
+  public boolean isValidInternalToken(String token) {
+    return this.token.equals(token);
+  }
+
+  public String createNewToken() {
+    return new BigInteger(130, random).toString(32);
+  }
 }

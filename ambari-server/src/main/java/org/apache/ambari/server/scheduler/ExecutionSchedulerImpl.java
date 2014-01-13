@@ -22,6 +22,7 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.scheduler.GuiceJobFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.quartz.Job;
@@ -40,6 +41,9 @@ import java.util.Properties;
 public class ExecutionSchedulerImpl implements ExecutionScheduler {
   @Inject
   private Configuration configuration;
+  @Inject
+  GuiceJobFactory guiceJobFactory;
+
   private static final Logger LOG = LoggerFactory.getLogger(ExecutionSchedulerImpl.class);
   protected static final String DEFAULT_SCHEDULER_NAME = "ExecutionScheduler";
   protected Scheduler scheduler;
@@ -71,6 +75,7 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
     }
     try {
       scheduler = sf.getScheduler();
+      scheduler.setJobFactory(guiceJobFactory);
       isInitialized = true;
     } catch (SchedulerException e) {
       LOG.warn("Failed to create Request Execution scheduler !");

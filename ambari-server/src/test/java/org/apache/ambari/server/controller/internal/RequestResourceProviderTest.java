@@ -38,15 +38,7 @@ import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -107,24 +99,26 @@ public class RequestResourceProviderTest {
     ActionManager actionManager = createNiceMock(ActionManager.class);
     HostRoleCommand hostRoleCommand = createNiceMock(HostRoleCommand.class);
 
+
     List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
     hostRoleCommands.add(hostRoleCommand);
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
-    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
+    org.apache.ambari.server.actionmanager.Request requestMock =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Map<Long, String> requestContexts = new HashMap<Long, String>();
-    requestContexts.put(100L, "this is a context");
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock)).anyTimes();
     expect(hostRoleCommand.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS);
 
     // replay
-    replay(managementController, actionManager, hostRoleCommand);
+    replay(managementController, actionManager, hostRoleCommand, requestMock);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -165,24 +159,26 @@ public class RequestResourceProviderTest {
     List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
     hostRoleCommands.add(hostRoleCommand);
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
-    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
+    org.apache.ambari.server.actionmanager.Request requestMock =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getClusterName()).andReturn("c1").anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Map<Long, String> requestContexts = new HashMap<Long, String>();
-    requestContexts.put(100L, "this is a context");
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
     expect(clusters.getCluster("bad-cluster")).andThrow(new AmbariException("bad cluster!")).anyTimes();
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock));
     expect(hostRoleCommand.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS);
 
     // replay
-    replay(managementController, actionManager, hostRoleCommand, clusters, cluster);
+    replay(managementController, actionManager, hostRoleCommand, clusters, cluster, requestMock);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -234,22 +230,28 @@ public class RequestResourceProviderTest {
     List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
     hostRoleCommands.add(hostRoleCommand);
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
-    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
+    org.apache.ambari.server.actionmanager.Request requestMock =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Map<Long, String> requestContexts = new HashMap<Long, String>();
-    requestContexts.put(100L, "this is a context");
+    org.apache.ambari.server.actionmanager.Request requestMock1 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock1.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
+
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands).anyTimes();
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts).anyTimes();
-    expect(hostRoleCommand.getRequestId()).andReturn(100L);
-    expect(hostRoleCommand.getRequestId()).andReturn(101L);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).
+        andReturn(Arrays.asList(requestMock, requestMock1)).anyTimes();
     expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS).anyTimes();
 
     // replay
-    replay(managementController, actionManager, hostRoleCommand);
+    replay(managementController, actionManager, hostRoleCommand, requestMock, requestMock1);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -296,21 +298,24 @@ public class RequestResourceProviderTest {
     hostRoleCommands1.add(hostRoleCommand2);
     hostRoleCommands1.add(hostRoleCommand3);
 
+    org.apache.ambari.server.actionmanager.Request requestMock0 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock0.getCommands()).andReturn(hostRoleCommands0).anyTimes();
+    expect(requestMock0.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock0.getRequestId()).andReturn(100L).anyTimes();
+
+    org.apache.ambari.server.actionmanager.Request requestMock1 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock1.getCommands()).andReturn(hostRoleCommands1).anyTimes();
+    expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
+
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
-    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
-
-    Map<Long, String> requestContexts0 = new HashMap<Long, String>();
-    requestContexts0.put(100L, "this is a context");
-
-    Map<Long, String> requestContexts1 = new HashMap<Long, String>();
-    requestContexts1.put(101L, "this is a context");
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands0);
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands1);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts0);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts1);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock0));
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock1));
     expect(hostRoleCommand0.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand1.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand2.getRequestId()).andReturn(101L).anyTimes();
@@ -321,7 +326,8 @@ public class RequestResourceProviderTest {
     expect(hostRoleCommand3.getStatus()).andReturn(HostRoleStatus.COMPLETED).anyTimes();
 
     // replay
-    replay(managementController, actionManager, hostRoleCommand0, hostRoleCommand1, hostRoleCommand2, hostRoleCommand3);
+    replay(managementController, actionManager, hostRoleCommand0, hostRoleCommand1, hostRoleCommand2, hostRoleCommand3,
+        requestMock0, requestMock1);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -378,21 +384,24 @@ public class RequestResourceProviderTest {
     hostRoleCommands1.add(hostRoleCommand2);
     hostRoleCommands1.add(hostRoleCommand3);
 
+    org.apache.ambari.server.actionmanager.Request requestMock0 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock0.getCommands()).andReturn(hostRoleCommands0).anyTimes();
+    expect(requestMock0.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock0.getRequestId()).andReturn(100L).anyTimes();
+
+    org.apache.ambari.server.actionmanager.Request requestMock1 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock1.getCommands()).andReturn(hostRoleCommands1).anyTimes();
+    expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
+
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
-    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
-
-    Map<Long, String> requestContexts0 = new HashMap<Long, String>();
-    requestContexts0.put(100L, "this is a context");
-
-    Map<Long, String> requestContexts1 = new HashMap<Long, String>();
-    requestContexts1.put(101L, "this is a context");
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands0);
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands1);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts0);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts1);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock0));
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock1));
     expect(hostRoleCommand0.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand1.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand2.getRequestId()).andReturn(101L).anyTimes();
@@ -403,7 +412,8 @@ public class RequestResourceProviderTest {
     expect(hostRoleCommand3.getStatus()).andReturn(HostRoleStatus.QUEUED).anyTimes();
 
     // replay
-    replay(managementController, actionManager, hostRoleCommand0, hostRoleCommand1, hostRoleCommand2, hostRoleCommand3);
+    replay(managementController, actionManager, hostRoleCommand0, hostRoleCommand1, hostRoleCommand2, hostRoleCommand3,
+        requestMock0, requestMock1);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -469,21 +479,24 @@ public class RequestResourceProviderTest {
     hostRoleCommands1.add(hostRoleCommand2);
     hostRoleCommands1.add(hostRoleCommand3);
 
+    org.apache.ambari.server.actionmanager.Request requestMock0 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock0.getCommands()).andReturn(hostRoleCommands0).anyTimes();
+    expect(requestMock0.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock0.getRequestId()).andReturn(100L).anyTimes();
+
+    org.apache.ambari.server.actionmanager.Request requestMock1 =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock1.getCommands()).andReturn(hostRoleCommands1).anyTimes();
+    expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
+
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
-    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
-
-    Map<Long, String> requestContexts0 = new HashMap<Long, String>();
-    requestContexts0.put(100L, "this is a context");
-
-    Map<Long, String> requestContexts1 = new HashMap<Long, String>();
-    requestContexts1.put(101L, "this is a context");
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands0);
-    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands1);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts0);
-    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts1);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock0));
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock1));
     expect(hostRoleCommand0.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand1.getRequestId()).andReturn(100L).anyTimes();
     expect(hostRoleCommand2.getRequestId()).andReturn(101L).anyTimes();
@@ -494,7 +507,8 @@ public class RequestResourceProviderTest {
     expect(hostRoleCommand3.getStatus()).andReturn(HostRoleStatus.TIMEDOUT).anyTimes();
 
     // replay
-    replay(managementController, actionManager, hostRoleCommand0, hostRoleCommand1, hostRoleCommand2, hostRoleCommand3);
+    replay(managementController, actionManager, hostRoleCommand0, hostRoleCommand1, hostRoleCommand2, hostRoleCommand3,
+        requestMock0, requestMock1);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 
@@ -55,10 +57,16 @@ public interface ActionDBAccessor {
 
   /**
    * Persists all tasks for a given request
-   *
-   * @param stages  Stages belonging to the request
+   * @param request request object
    */
-  public void persistActions(List<Stage> stages);
+  @Transactional
+  void persistActions(Request request);
+
+  @Transactional
+  void startRequest(long requestId);
+
+  @Transactional
+  void endRequest(long requestId);
 
   /**
    * For the given host, update all the tasks based on the command report
@@ -114,7 +122,7 @@ public interface ActionDBAccessor {
   /**
    * Get all requests
    */
-  public List<Long> getRequests();
+  public List<Long> getRequestIds();
 
   /**
    * Gets the host role command corresponding to the task id
@@ -135,4 +143,9 @@ public interface ActionDBAccessor {
    * Gets the request context associated with the request id
    */
   public String getRequestContext(long requestId);
+
+  /**
+   * Gets request objects by ids
+   */
+  List<Request> getRequests(Collection<Long> requestIds);
 }

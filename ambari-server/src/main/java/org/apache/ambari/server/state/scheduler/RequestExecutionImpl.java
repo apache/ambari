@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.dao.RequestScheduleBatchRequestDAO;
 import org.apache.ambari.server.orm.dao.RequestScheduleDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
+import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntityPK;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -410,6 +411,49 @@ public class RequestExecutionImpl implements RequestExecution {
       }
     }
     return body;
+  }
+
+  @Override
+  public BatchRequest getBatchRequest(long batchId) {
+    for (BatchRequest batchRequest : batch.getBatchRequests()) {
+      if (batchId == batchRequest.getOrderId()) {
+        return batchRequest;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void updateBatchRequest(long batchId, BatchRequestResponse batchRequestResponse, boolean statusOnly) {
+    long executionId = requestScheduleEntity.getScheduleId();
+
+    RequestScheduleBatchRequestEntityPK batchRequestEntityPK = new
+        RequestScheduleBatchRequestEntityPK();
+    batchRequestEntityPK.setScheduleId(executionId);
+    batchRequestEntityPK.setBatchId(batchId);
+    RequestScheduleBatchRequestEntity batchRequestEntity =
+        batchRequestDAO.findByPk(batchRequestEntityPK);
+
+    batchRequestEntity.setRequestStatus(batchRequestResponse.getStatus());
+
+    if (!statusOnly) {
+      batchRequestEntity.setReturnCode(batchRequestResponse.getReturnCode());
+      batchRequestEntity.setRequestId(batchRequestResponse.getRequestId());
+      batchRequestEntity.setReturnMessage(batchRequestResponse.getReturnMessage());
+    }
+
+    batchRequestDAO.merge(batchRequestEntity);
+
+    BatchRequest batchRequest = getBatchRequest(batchId);
+
+    batchRequest.setStatus(batchRequestResponse.getStatus());
+
+    if (!statusOnly) {
+      batchRequest.setReturnCode(batchRequestResponse.getReturnCode());
+      batchRequest.setResponseMsg(batchRequestResponse.getReturnMessage());
+    }
+
+    setLastExecutionStatus(batchRequestResponse.getStatus());
   }
 
 }

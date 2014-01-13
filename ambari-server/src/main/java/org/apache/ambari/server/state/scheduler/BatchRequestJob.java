@@ -17,29 +17,44 @@
  */
 package org.apache.ambari.server.state.scheduler;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.scheduler.AbstractLinearExecutionJob;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 public class BatchRequestJob extends AbstractLinearExecutionJob {
+  private static final Logger LOG = LoggerFactory.getLogger(BatchRequestJob.class);
+
   public static final String BATCH_REQUEST_EXECUTION_ID_KEY =
     "BatchRequestJob.ExecutionId";
   public static final String BATCH_REQUEST_BATCH_ID_KEY =
     "BatchRequestJob.BatchId";
+  public static final String BATCH_REQUEST_CLUSTER_NAME_KEY =
+      "BatchRequestJob.ClusterName";
 
-  public BatchRequestJob(ExecutionScheduleManager executionScheduleManager) {
+  private final long statusCheckInterval;
+
+  @Inject
+  public BatchRequestJob(ExecutionScheduleManager executionScheduleManager,
+                         @Named("statusCheckInterval") long statusCheckInterval) {
     super(executionScheduleManager);
+    this.statusCheckInterval = statusCheckInterval;
   }
 
   @Override
   protected void doWork(Map<String, Object> properties) throws AmbariException {
 
-    String executionId = properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) != null ?
-      (String) properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) : null;
-    String batchId = properties.get(BATCH_REQUEST_BATCH_ID_KEY) != null ?
-      (String) properties.get(BATCH_REQUEST_BATCH_ID_KEY) : null;
+    Long executionId = properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) != null ?
+      (Long) properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) : null;
+    Long batchId = properties.get(BATCH_REQUEST_BATCH_ID_KEY) != null ?
+      (Long) properties.get(BATCH_REQUEST_BATCH_ID_KEY) : null;
+    String clusterName = (String) properties.get(BATCH_REQUEST_CLUSTER_NAME_KEY);
 
 
     if (executionId == null || batchId == null) {
@@ -49,13 +64,26 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
     }
 
     Long requestId = executionScheduleManager.executeBatchRequest
-      (Long.parseLong(executionId), Long.parseLong(batchId));
+      (executionId, batchId, clusterName);
 
     if (requestId != null) {
-      // Wait on request completion
+      HostRoleStatus status;
+      do {
+        BatchRequestResponse batchRequestResponse =
+            executionScheduleManager.getBatchRequestResponse(requestId, clusterName);
 
-      BatchRequestResponse batchRequestResponse =
-        executionScheduleManager.getBatchRequestResponse(requestId);
+        status = HostRoleStatus.valueOf(batchRequestResponse.getStatus());
+
+        executionScheduleManager.updateBatchRequest(executionId, batchId, clusterName, batchRequestResponse, true);
+
+        try {
+          Thread.sleep(statusCheckInterval);
+        } catch (InterruptedException e) {
+          String message = "Job Thread interrupted";
+          LOG.error(message, e);
+          throw new AmbariException(message, e);
+        }
+      } while (!status.isCompletedState());
     }
   }
 }

@@ -18,18 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.CustomActionDBAccessor;
-import org.apache.ambari.server.actionmanager.CustomActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
-import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -84,6 +78,7 @@ public class ControllerModule extends AbstractModule {
 
   private final Configuration configuration;
   private final HostsMap hostsMap;
+  private boolean dbInitNeeded;
 
   public ControllerModule() throws Exception {
     configuration = new Configuration();
@@ -106,12 +101,16 @@ public class ControllerModule extends AbstractModule {
     install(buildJpaPersistModule());
 
     bind(Gson.class).in(Scopes.SINGLETON);
+    bind(SecureRandom.class).in(Scopes.SINGLETON);
+
     bind(Clusters.class).to(ClustersImpl.class);
     bind(AmbariCustomCommandExecutionHelper.class).to(AmbariCustomCommandExecutionHelperImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bind(CustomActionDBAccessor.class).to(CustomActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+    bindConstant().annotatedWith(Names.named("dbInitNeeded")).to(dbInitNeeded);
+    bindConstant().annotatedWith(Names.named("statusCheckInterval")).to(5000L);
 
     //ExecutionCommands cache size
 
@@ -167,9 +166,11 @@ public class ControllerModule extends AbstractModule {
     switch (configuration.getJPATableGenerationStrategy()) {
       case CREATE:
         properties.setProperty("eclipselink.ddl-generation", "create-tables");
+        dbInitNeeded = true;
         break;
       case DROP_AND_CREATE:
         properties.setProperty("eclipselink.ddl-generation", "drop-and-create-tables");
+        dbInitNeeded = true;
         break;
       default:
         break;
@@ -213,6 +214,8 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(RequestExecution.class,
       RequestExecutionImpl.class).build(RequestExecutionFactory.class));
     install(new FactoryModuleBuilder().build(StageFactory.class));
+    install(new FactoryModuleBuilder().build(RequestFactory.class));
+
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
   }
 

@@ -85,6 +85,8 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
       throw new JobExecutionException(e);
     }
 
+    LOG.debug("Finished linear job: " + jobKey);
+
     JobDataMap jobDataMap = context.getMergedJobDataMap();
     String nextJobName = jobDataMap.getString(NEXT_EXECUTION_JOB_NAME_KEY);
     String nextJobGroup = jobDataMap.getString(NEXT_EXECUTION_JOB_GROUP_KEY);

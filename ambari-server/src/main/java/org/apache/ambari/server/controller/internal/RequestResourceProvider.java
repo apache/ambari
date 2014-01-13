@@ -56,6 +56,14 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   protected static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
   protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
   protected static final String REQUEST_CONTEXT_ID = "Requests/request_context";
+  protected static final String REQUEST_TYPE_ID = "Requests/type";
+  protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
+  protected static final String REQUEST_TARGET_SERVICE_ID = "Requests/target_service";
+  protected static final String REQUEST_TARGET_COMPONENT_ID = "Requests/target_component";
+  protected static final String REQUEST_TARGET_HOSTS_ID = "Requests/target_hosts";
+  protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
+  protected static final String REQUEST_START_TIME_ID = "Requests/start_time";
+  protected static final String REQUEST_END_TIME_ID = "Requests/end_time";
   protected static final String REQUEST_TASK_CNT_ID = "Requests/task_count";
   protected static final String REQUEST_FAILED_TASK_CNT_ID = "Requests/failed_task_count";
   protected static final String REQUEST_ABORTED_TASK_CNT_ID = "Requests/aborted_task_count";
@@ -254,33 +262,88 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
                                                    List<Long> requestIds,
                                                    Set<String> requestedPropertyIds) {
 
-    List<HostRoleCommand> hostRoleCommands = actionManager.getAllTasksByRequestIds(requestIds);
-    Map<Long, String> requestContexts = actionManager.getRequestContext(requestIds);
+    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(requestIds);
+
     Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
-    // group by request id
-    Map<Long, Set<HostRoleCommand>> commandMap = new HashMap<Long, Set<HostRoleCommand>>();
-
-    for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
-      Long requestId = hostRoleCommand.getRequestId();
-      Set<HostRoleCommand> commands = commandMap.get(requestId);
-
-      if (commands == null) {
-        commands = new HashSet<HostRoleCommand>();
-        commandMap.put(requestId, commands);
-      }
-      commands.add(hostRoleCommand);
+    for (org.apache.ambari.server.actionmanager.Request request : requests) {
+      resourceMap.put(request.getRequestId(), getRequestResource(request, requestedPropertyIds));
     }
 
-    for (Map.Entry<Long, Set<HostRoleCommand>> entry : commandMap.entrySet()) {
-      Long requestId = entry.getKey();
-      Set<HostRoleCommand> commands = entry.getValue();
-      String context = requestContexts.get(requestId);
-
-      resourceMap.put(requestId,
-          getRequestResource(clusterName, requestId, context, commands, requestedPropertyIds));
-    }
     return resourceMap.values();
+  }
+
+  private Resource getRequestResource(org.apache.ambari.server.actionmanager.Request request,
+                                      Set<String> requestedPropertyIds) {
+    Resource resource = new ResourceImpl(Resource.Type.Request);
+
+    setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, request.getClusterName(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, request.getRequestId(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_CONTEXT_ID, request.getRequestContext(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TYPE_ID, request.getRequestType(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_INPUTS_ID, request.getInputs(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TARGET_SERVICE_ID, request.getTargetService(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TARGET_COMPONENT_ID, request.getTargetComponent(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TARGET_HOSTS_ID, request.getTargetHosts(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
+
+    List<HostRoleCommand> commands = request.getCommands();
+
+    int taskCount = commands.size();
+    int completedTaskCount = 0;
+    int queuedTaskCount = 0;
+    int pendingTaskCount = 0;
+    int failedTaskCount = 0;
+    int abortedTaskCount = 0;
+    int timedOutTaskCount = 0;
+
+    for (HostRoleCommand hostRoleCommand : commands) {
+      HostRoleStatus status = hostRoleCommand.getStatus();
+      if (status.isCompletedState()) {
+        completedTaskCount++;
+
+        switch (status) {
+          case ABORTED:
+            abortedTaskCount++;
+            break;
+          case FAILED:
+            failedTaskCount++;
+            break;
+          case TIMEDOUT:
+            timedOutTaskCount++;
+            break;
+        }
+      } else if (status.equals(HostRoleStatus.QUEUED)) {
+        queuedTaskCount++;
+      } else if (status.equals(HostRoleStatus.PENDING)) {
+        pendingTaskCount++;
+      }
+    }
+
+    int inProgressTaskCount = taskCount - completedTaskCount - queuedTaskCount - pendingTaskCount;
+
+    // determine request status
+    HostRoleStatus requestStatus = failedTaskCount > 0 ? HostRoleStatus.FAILED :
+        abortedTaskCount > 0 ? HostRoleStatus.ABORTED :
+            timedOutTaskCount > 0 ? HostRoleStatus.TIMEDOUT :
+                inProgressTaskCount > 0 ? HostRoleStatus.IN_PROGRESS :
+                    completedTaskCount == taskCount ? HostRoleStatus.COMPLETED :
+                        HostRoleStatus.PENDING;
+    double progressPercent =
+        ((queuedTaskCount * 0.09 + inProgressTaskCount * 0.35 + completedTaskCount) / (double) taskCount) * 100.0;
+
+    setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_FAILED_TASK_CNT_ID, failedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_ABORTED_TASK_CNT_ID, abortedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TIMED_OUT_TASK_CNT_ID, timedOutTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_QUEUED_TASK_CNT_ID, queuedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_COMPLETED_TASK_CNT_ID, completedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, progressPercent, requestedPropertyIds);
+
+    return resource;
   }
 
   // Get a request resource from the given set of host role commands.

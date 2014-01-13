@@ -160,7 +160,8 @@ public class ExecutionCommandWrapperTest {
             hostName, System.currentTimeMillis()), clusterName, "HDFS");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    db.persistActions(stages);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
   }
   
   @Test

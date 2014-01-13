@@ -31,6 +31,7 @@ import com.google.inject.persist.jpa.JpaPersistModule;
 
 import junit.framework.Assert;
 
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
@@ -76,6 +77,7 @@ public class AgentResourceTest extends JerseyTest {
   ActionManager actionManager;
   Injector injector;
   AmbariMetaInfo ambariMetaInfo;
+  ActionDBAccessor actionDBAccessor;
 
   public AgentResourceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
@@ -254,6 +256,8 @@ public class AgentResourceTest extends JerseyTest {
       bind(Clusters.class).to(ClustersImpl.class);
       actionManager = mock(ActionManager.class);
       ambariMetaInfo = mock(AmbariMetaInfo.class);
+      actionDBAccessor = mock(ActionDBAccessor.class);
+      bind(ActionDBAccessor.class).toInstance(actionDBAccessor);
       bind(ActionManager.class).toInstance(actionManager);
       bind(AgentCommand.class).to(ExecutionCommand.class);
       bind(HeartBeatHandler.class).toInstance(handler);
