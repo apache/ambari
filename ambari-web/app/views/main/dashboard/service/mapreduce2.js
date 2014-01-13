@@ -23,8 +23,12 @@ App.MainDashboardServiceMapreduce2View = App.MainDashboardServiceView.extend({
 
     titleInfo: function(){
       var hs = this.get('service.hostComponents').findProperty('componentName', 'HISTORYSERVER');
-      if(hs.get('workStatus') === App.HostComponentStatus.started)
+      if (!hs) {
+        return this.t('services.mapreduce2.history.unknown');
+      } else if (hs.get('workStatus') === App.HostComponentStatus.started) {
         return this.t('services.mapreduce2.history.running');
-      return this.t('services.mapreduce2.history.stopped');
+      } else {
+        return this.t('services.mapreduce2.history.stopped');
+      }
     }.property('service')
   });

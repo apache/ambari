@@ -359,7 +359,7 @@ App.AddHostController = App.WizardController.extend({
     var slaveComponentHosts = this.get('content.slaveComponentHosts');
     var selectedServices = [];
     var selectedClientHosts = slaveComponentHosts.findProperty('componentName', 'CLIENT').hosts.mapProperty('hostName');
-    var componentServiceMap = App.QuickDataMapper.componentServiceMap;
+    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
 
     slaveComponentHosts.forEach(function (slave) {
       if (slave.hosts.length > 0) {
