@@ -634,6 +634,22 @@
               "service_type" : "ZOOKEEPER"
             },
             {
+              "service_description" : "Falcon Server process down",
+              "host_name" : "dev01.hortonworks.com",
+              "current_attempt" : "1",
+              "current_state" : "0",
+              "plugin_output" : "TCP OK - 0.001 second response time on port 16000",
+              "last_hard_state_change" : "1375291434",
+              "last_hard_state" : "0",
+              "last_time_ok" : "1375308415",
+              "last_time_warning" : "0",
+              "last_time_unknown" : "0",
+              "last_time_critical" : "1375289980",
+              "is_flapping" : "0",
+              "last_check" : "1375308415",
+              "service_type" : "FALCON"
+            },
+            {
               "service_description" : "Storm process down",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",

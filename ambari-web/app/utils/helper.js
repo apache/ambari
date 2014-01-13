@@ -330,6 +330,10 @@ App.format = {
           return 'Storm Service Check';
       case 'FALCON_SERVICE_CHECK':
           return 'Falcon Service Check';
+      case 'FALCON_SERVER':
+          return 'Falcon Server';
+      case 'FALCON':
+          return 'Falcon';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':

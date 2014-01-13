@@ -1270,6 +1270,20 @@ module.exports =
       "serviceName": "GANGLIA",
       "category": "Advanced"
     },
+  /**********************************************FALCON***************************************/
+    {
+      "id": "puppet var",
+      "name": "falcon_dir",
+      "displayName": "Run directory for Falcon",
+      "description": "",
+      "defaultValue": "/var/run/falcon",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "FALCON",
+      "category": "Falcon"
+    },
   /**********************************************STORM***************************************/
     // @todo create real properties
     {
@@ -1554,6 +1568,20 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "falcon_user",
+      "displayName": "Falcon User",
+      "description": "User to run Falcon as",
+      "defaultValue": "falcon",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName":"MISC",
+      "category": "Users and Groups",
+      "belongsToService":["FALCON"]
+    },
+    {
+      "id": "puppet var",
       "name": "rrdcached_base_dir",
       "displayName": "Ganglia rrdcached base directory",
       "description": "Default directory for saving the rrd files on ganglia server",
@@ -1565,7 +1593,7 @@ module.exports =
       "serviceName": "GANGLIA",
       "category": "General",
       "belongsToService":["GANGLIA"]
-    },
+    }
 
   ]
 };

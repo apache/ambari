@@ -216,6 +216,15 @@ module.exports = [
     sites: ['pig-log4j'],
     configs: []
   },
+  {
+    serviceName: 'FALCON',
+    displayName: 'Falcon',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Falcon', displayName : 'Falcon Server'})
+    ],
+    sites: ['falcon-site'],
+    configs: []
+  },
   // @todo change to actual info
   {
     serviceName: 'STORM',

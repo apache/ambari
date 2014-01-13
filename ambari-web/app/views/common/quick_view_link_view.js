@@ -128,6 +128,9 @@ App.QuickViewLinks = Em.View.extend({
       case "MAPREDUCE2":
         host = this.findComponentHost('HISTORYSERVER');
         break;
+      case "FALCON":
+        host = this.findComponentHost('FALCON_SERVER');
+        break;
       case "STORM":
         host = this.findComponentHost('NIMBUS');
         break;

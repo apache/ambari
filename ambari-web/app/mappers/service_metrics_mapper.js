@@ -314,6 +314,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       finalJson.quick_links = [21];
     }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "HUE"){
       finalJson.quick_links = [22];
+    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "FALCON"){
+      finalJson.quick_links = [32];
     }
   },
 

@@ -47,6 +47,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     nagios:false,
     hue: false,
     flume: false,
+    falcon: false,
     storm: false
   },
 

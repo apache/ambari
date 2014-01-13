@@ -513,6 +513,9 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'HUE':
             this.loadHue(serviceObj);
             break;
+          case 'FALCON':
+            this.loadFalcon(serviceObj);
+            break;
           /* case 'TEZ':
            break;
            case 'PIG':
@@ -895,6 +898,22 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   loadPig: function (pigObj) {
     this.get('services').pushObject(pigObj);
+  },
+
+  loadFalcon: function (falconObj) {
+    falconObj.get('service_components').forEach(function(component) {
+      switch (component.get('display_name')) {
+        case 'Server':
+          this.loadFalconValue(component);
+          break;
+      }
+    }, this);
+    this.get('services').pushObject(falconObj);
+  },
+
+  loadFalconValue: function(component) {
+    var falconHost = this.get('content.masterComponentHosts').filterProperty('display_name', 'Falcon Server');
+    component.set('component_value', falconHost[0].hostName);
   },
 
   loadSTORM: function (stormObj) {

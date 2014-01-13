@@ -330,6 +330,14 @@ module.exports = new Ember.Set([
     isClient: true, 
     description: 'Client component for GLUSTERFS'
   },
+  {
+    service_name: 'FALCON',
+    component_name: 'FALCON_SERVER',
+    display_name: 'Falcon Server',
+    isMaster: true,
+    isClient: false,
+    description: 'Falcon Server for mirroring'
+  },
   // @todo change with real info about service component
   {
     service_name: 'STORM',

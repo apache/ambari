@@ -157,6 +157,15 @@ module.exports = [
     isHidden: !App.supports.hue
   },
   {
+    serviceName: 'FALCON',
+    displayName: 'Falcon',
+    isDisabled: false,
+    isSelected: App.supports.falcon,
+    canBeSelected: App.supports.falcon,
+    isHidden: !App.supports.falcon,
+    description: Em.I18n.t('services.falcon.description')
+  },
+  {
     serviceName: 'STORM',
     displayName: 'Storm',
     isDisabled: false,

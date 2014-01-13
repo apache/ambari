@@ -60,6 +60,7 @@ App.supports = {
   addMasters: false,
   customizeSmokeTestUser: true,
   hue: false,
+  falcon: true,
   ldapGroupMapping: false,
   localRepositories: true,
   highAvailability: true,

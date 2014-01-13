@@ -214,6 +214,16 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
+        service_name: 'FALCON',
+        display_name: 'Falcon',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Server',
+            component_value: ''
+          })
+        ]
+      }),
+      Ember.Object.create({
         service_name: 'STORM',
         display_name: 'Storm',
         service_components: [

@@ -180,6 +180,7 @@ App.Service.DisplayNames = {
   'NAGIOS': 'Nagios',
   'HUE': 'Hue',
   'FLUME': 'Flume',
+  'FALCON': 'Falcon',
   'STORM': 'Storm'
 };
 
@@ -201,6 +202,7 @@ App.Service.servicesSortOrder = [
   'PIG',
   'SQOOP',
   'HUE',
+  'FALCON',
   'STORM'
 ];
 

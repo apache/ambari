@@ -443,6 +443,13 @@ App.WizardStep5Controller = Em.Controller.extend({
         return this.getNagiosServer(noOfHosts);
       case 'HUE_SERVER':
         return this.getHueServer(noOfHosts);
+      case 'FALCON_SERVER':
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 0,
+          "6" : 0,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
       case 'NIMBUS':
         return this.getNimbusServer(noOfHosts);
       default:

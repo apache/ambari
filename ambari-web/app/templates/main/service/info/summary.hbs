@@ -62,6 +62,9 @@
             {{#if view.serviceStatus.flume}}
               {{view App.MainDashboardServiceFlumeView showOnlyRows=true serviceBinding="view.service"}}
             {{/if}}
+            {{#if view.serviceStatus.falcon}}
+              {{template "templates/main/service/info/summary/falcon"}}
+            {{/if}}
             {{#if view.serviceStatus.storm}}
               {{template "templates/main/service/info/summary/storm"}}
             {{/if}}

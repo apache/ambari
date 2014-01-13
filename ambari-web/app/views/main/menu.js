@@ -33,7 +33,7 @@ App.MainMenuView = Em.CollectionView.extend({
       { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
     ];
 
-    if (App.supports.mirroring) {
+    if (App.supports.mirroring && App.Service.find().findProperty('serviceName', 'FALCON')) {
       result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
     }
 
