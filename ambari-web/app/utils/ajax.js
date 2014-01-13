@@ -1293,7 +1293,7 @@ var urls = {
           batches.push({
             "order_id" : count + 1,
             "type" : "POST",
-            "uri" : "/api/v1/clusters/" + data.clusterName + "/requests",
+            "uri" : App.apiPrefix + "/clusters/" + data.clusterName + "/requests",
             "RequestBodyInfo" : {
               "RequestInfo" : {
                 "context" : Em.I18n.t('rollingrestart.rest.context').format(componentDisplayName, (count + 1), batchCount),
@@ -1320,6 +1320,26 @@ var urls = {
             } ]
           }
         } ])
+      }
+    }
+  },
+  'restart.service.hostComponents' : {
+    'real' : '/clusters/{clusterName}/requests',
+    'mock' : '',
+    'format' : function(data) {
+      var componentDisplayName = App.format.role(data.componentName);
+      var serviceDisplayName = App.Service.DisplayNames[data.serviceName];
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          "RequestInfo" : {
+            "context" : Em.I18n.t('restart.service.rest.context').format(serviceDisplayName, componentDisplayName),
+            "command" : "RESTART",
+            "service_name" : data.serviceName,
+            "component_name" : data.componentName,
+            "hosts" : data.hosts
+          }
+        })
       }
     }
   }

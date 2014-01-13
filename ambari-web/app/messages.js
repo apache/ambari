@@ -1783,6 +1783,9 @@ Em.I18n.translations = {
   'rollingrestart.dialog.msg.staleConfigsOnly': 'Only restart {0}s with stale configs',
   'rollingrestart.rest.context': 'Rolling Restart of {0}s - batch {1} of {2}',
 
+  'restart.service.all': 'Restart All',
+  'restart.service.rest.context': 'Restart {1}s ({0})',
+
   'menu.item.dashboard':'Dashboard',
   'menu.item.heatmaps':'Heatmaps',
   'menu.item.services':'Services',

@@ -47,6 +47,8 @@ App.MainServiceItemView = Em.View.extend({
         options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke').format(service.get('serviceName')), disabled:disabled});
     }
 
+    options.push({action:'restartAllHostComponents', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
+
     var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
     if (rrComponentName) {
       var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));

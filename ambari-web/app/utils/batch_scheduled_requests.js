@@ -49,6 +49,49 @@ module.exports = {
     return rollingRestartComponent;
   },
 
+  doPostRestartAllServiceComponents : function(serviceName) {
+    var allHostComponents = App.HostComponent.find();
+    var componentToHostsMap = {};
+    var componentCount = 0;
+    allHostComponents.forEach(function(hc) {
+      if (serviceName == hc.get('service.serviceName')) {
+        var componentName = hc.get('componentName');
+        if (!componentToHostsMap[componentName]) {
+          componentToHostsMap[componentName] = [];
+          componentCount++;
+        }
+        componentToHostsMap[componentName].push(hc.get('host.hostName'));
+      }
+    });
+    for ( var componentName in componentToHostsMap) {
+      var hosts = componentToHostsMap[componentName].join(",");
+      var data = {
+        serviceName : serviceName,
+        componentName : componentName,
+        hosts : hosts
+      }
+      var sender = {
+        successFunction : function() {
+          App.router.get('applicationController').dataLoading().done(function (initValue) {
+            if (initValue) {
+              App.router.get('backgroundOperationsController').showPopup();
+            }
+          });
+        },
+        errorFunction : function(xhr, textStatus, error, opt) {
+          App.ajax.defaultErrorHandler(xhr, opt.url, 'POST', xhr.status);
+        }
+      }
+      App.ajax.send({
+        name : 'restart.service.hostComponents',
+        sender : sender,
+        data : data,
+        success : 'successFunction',
+        error : 'errorFunction'
+      });
+    }
+  },
+
   /**
    * Makes a REST call to the server requesting the rolling restart of the
    * provided host components.
@@ -134,6 +177,11 @@ module.exports = {
           var tolerateSize = this.get('innerView.tolerateSize');
           self.doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function() {
             dialog.hide();
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
           }, function(xhr, textStatus, error, opt) {
             App.ajax.defaultErrorHandler(xhr, opt.url, 'POST', xhr.status);
           });
