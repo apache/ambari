@@ -52,6 +52,8 @@ def namenode(action=None, format=True):
       principal=params.dfs_namenode_kerberos_principal
     )
 
+  if action == "decommission":
+    decommission()
 
 def create_name_dirs(directories):
   import params
@@ -170,3 +172,21 @@ def format_namenode(force=None):
               not_if=format("test -d {mark_dir}"),
               path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin")
     Execute(format("mkdir -p {mark_dir}"))
+
+
+def decommission():
+  import params
+
+  hdfs_user = params.hdfs_user
+  conf_dir = params.hadoop_conf_dir
+
+  File(params.exclude_file_path,
+       content=Template("exclude_hosts_list.j2"),
+       owner=hdfs_user,
+       group=params.user_group
+  )
+
+  ExecuteHadoop('dfsadmin -refreshNodes',
+                user=hdfs_user,
+                conf_dir=conf_dir,
+                kinit_override=True)

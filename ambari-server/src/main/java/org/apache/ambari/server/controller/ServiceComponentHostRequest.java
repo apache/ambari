@@ -35,6 +35,8 @@ public class ServiceComponentHostRequest {
   private String desiredStackId; // UPDATE
 
   private String staleConfig; // GET - predicate
+
+  private String adminState; // GET - predicate
   
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceName,
@@ -147,6 +149,20 @@ public class ServiceComponentHostRequest {
     return this.staleConfig;
   }
 
+  /**
+   * @param adminState the adminState to use as predicate
+   */
+  public void setAdminState(String adminState) {
+    this.adminState = adminState;
+  }
+
+  /**
+   * @return the admin state of the component
+   */
+  public String getAdminState() {
+    return this.adminState;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{"
@@ -156,6 +172,8 @@ public class ServiceComponentHostRequest {
         + ", hostname=" + hostname
         + ", desiredState=" + desiredState
         + ", desiredStackId=" + desiredStackId
+        + ", staleConfig=" + staleConfig
+        + ", adminState=" + adminState
         + "}");
     return sb.toString();
   }

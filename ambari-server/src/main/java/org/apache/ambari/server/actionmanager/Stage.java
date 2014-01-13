@@ -50,11 +50,7 @@ public class Stage {
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
-  private final String clusterHostInfo;
-
-  public String getClusterHostInfo() {
-    return clusterHostInfo;
-  }
+  private String clusterHostInfo;
 
   private int taskTimeout = -1;
   private int perTaskTimeFactor = 60000;
@@ -145,6 +141,14 @@ public class Stage {
       }
     }
     return commands;
+  }
+
+  public String getClusterHostInfo() {
+    return clusterHostInfo;
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo) {
+    this.clusterHostInfo = clusterHostInfo;
   }
 
   public synchronized void setStageId(long stageId) {

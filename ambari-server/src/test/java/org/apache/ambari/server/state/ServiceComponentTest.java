@@ -188,7 +188,7 @@ public class ServiceComponentTest {
     Assert.assertTrue(sc.getServiceComponentHosts().isEmpty());
 
     try {
-      serviceComponentHostFactory.createNew(sc, "h1", false);
+      serviceComponentHostFactory.createNew(sc, "h1");
       fail("Expected error for invalid host");
     } catch (Exception e) {
       // Expected
@@ -199,11 +199,11 @@ public class ServiceComponentTest {
     addHostToCluster("h3", service.getCluster().getClusterName());
 
     ServiceComponentHost sch1 =
-        serviceComponentHostFactory.createNew(sc, "h1", false);
+        serviceComponentHostFactory.createNew(sc, "h1");
     ServiceComponentHost sch2 =
-        serviceComponentHostFactory.createNew(sc, "h2", false);
+        serviceComponentHostFactory.createNew(sc, "h2");
     ServiceComponentHost failSch =
-        serviceComponentHostFactory.createNew(sc, "h2", false);
+        serviceComponentHostFactory.createNew(sc, "h2");
 
     Map<String, ServiceComponentHost> compHosts =
         new HashMap<String, ServiceComponentHost>();
@@ -232,7 +232,7 @@ public class ServiceComponentTest {
     Assert.assertEquals("h2", schCheck.getHostName());
 
     ServiceComponentHost sch3 =
-        serviceComponentHostFactory.createNew(sc, "h3", false);
+        serviceComponentHostFactory.createNew(sc, "h3");
     sc.addServiceComponentHost(sch3);
     sch3.persist();
     Assert.assertNotNull(sc.getServiceComponentHost("h3"));

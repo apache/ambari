@@ -17,10 +17,9 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
-
 import javax.persistence.*;
 
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.State;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
@@ -54,6 +53,10 @@ public class HostComponentDesiredStateEntity {
   @Basic
   @Column(name = "desired_stack_version", insertable = true, updatable = true)
   private String desiredStackVersion = "";
+
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "admin_state", nullable = true, insertable = true, updatable = true)
+  private HostComponentAdminState adminState;
 
   @ManyToOne(cascade = CascadeType.PERSIST)
   @JoinColumns({
@@ -112,6 +115,15 @@ public class HostComponentDesiredStateEntity {
 
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
+  }
+
+
+  public HostComponentAdminState getAdminState() {
+    return adminState;
+  }
+
+  public void setAdminState(HostComponentAdminState attribute) {
+    this.adminState = attribute;
   }
 
   @Override

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,6 +42,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -589,10 +589,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @AssistedInject
   public ServiceComponentHostImpl(@Assisted ServiceComponent serviceComponent,
-                                  @Assisted String hostName, @Assisted boolean isClient, Injector injector) {
+                                  @Assisted String hostName, Injector injector) {
     injector.injectMembers(this);
 
-    if (isClient) {
+    if (serviceComponent.isClientComponent()) {
       this.stateMachine = clientStateMachineFactory.make(this);
     } else {
       this.stateMachine = daemonStateMachineFactory.make(this);
@@ -617,6 +617,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredStateEntity.setDesiredState(State.INIT);
     desiredStateEntity.setDesiredStackVersion(
         gson.toJson(serviceComponent.getDesiredStackVersion()));
+    if(!serviceComponent.isMasterComponent() && !serviceComponent.isClientComponent()) {
+      desiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
+    } else {
+      desiredStateEntity.setAdminState(null);
+    }
 
     try {
       this.host = clusters.getHost(hostName);
@@ -640,6 +645,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     this.desiredStateEntity = desiredStateEntity;
     this.stateEntity = stateEntity;
+
     //TODO implement State Machine init as now type choosing is hardcoded in above code
     if (serviceComponent.isClientComponent()) {
       this.stateMachine = clientStateMachineFactory.make(this);
@@ -755,8 +761,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -772,8 +776,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   /**
@@ -791,7 +793,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   /**
@@ -809,7 +810,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   /**
@@ -827,7 +827,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   /**
@@ -845,7 +844,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   /**
@@ -863,7 +861,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   /**
@@ -881,7 +878,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -897,8 +893,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -914,8 +908,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -931,7 +923,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -948,9 +939,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
-
 
   @Override
   public State getDesiredState() {
@@ -965,7 +954,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -997,7 +985,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -1014,7 +1001,42 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
 
+  @Override
+  public HostComponentAdminState getComponentAdminState() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        HostComponentAdminState adminState = desiredStateEntity.getAdminState();
+        if (adminState == null
+            && !serviceComponent.isClientComponent() && !serviceComponent.isMasterComponent()) {
+          adminState = HostComponentAdminState.INSERVICE;
+        }
+        return adminState;
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setComponentAdminState(HostComponentAdminState attribute) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        desiredStateEntity.setAdminState(attribute);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
   }
 
   @Override
@@ -1031,7 +1053,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             getState().toString(),
             getStackVersion().getStackId(),
             getDesiredState().toString(),
-            getDesiredStackVersion().getStackId());
+            getDesiredStackVersion().getStackId(),
+            getComponentAdminState());
 
         r.setActualConfigs(actualConfigs);
 
@@ -1040,7 +1063,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         } catch (Exception e) {
           LOG.error("Could not determine stale config", e);
         }
-        
+
         return r;
       } finally {
         readLock.unlock();
@@ -1048,7 +1071,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override

@@ -18,3 +18,8 @@
 
 
 -- DDL
+
+--Upgrade version to current
+UPDATE metainfo SET "metainfo_value" = '${ambariVersion}' WHERE metainfo_key = 'version';
+
+ALTER TABLE hostcomponentdesiredstate ADD admin_state VARCHAR(32);

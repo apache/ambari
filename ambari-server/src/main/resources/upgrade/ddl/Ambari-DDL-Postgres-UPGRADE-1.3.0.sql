@@ -137,6 +137,9 @@ CREATE TABLE ambari.action (action_name VARCHAR(255) NOT NULL, action_type VARCH
 target_service VARCHAR(255), target_component VARCHAR(255), default_timeout SMALLINT NOT NULL, description VARCHAR(1000), target_type VARCHAR(32), PRIMARY KEY (action_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.action TO :username;
 
+-- add decommission state
+ALTER TABLE ambari.hostcomponentdesiredstate ADD COLUMN admin_state VARCHAR(32);
+
 --Move cluster host info for old execution commands to stage table
 UPDATE ambari.stage sd
   SET 

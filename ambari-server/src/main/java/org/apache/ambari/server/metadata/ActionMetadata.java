@@ -50,7 +50,7 @@ public class ActionMetadata {
 
   private void fillServiceClients() {
     serviceClients.put("hdfs"       , Role.HDFS_CLIENT.toString());
-    serviceClients.put("glusterfs"       , Role.GLUSTERFS_CLIENT.toString());
+    serviceClients.put("glusterfs"  , Role.GLUSTERFS_CLIENT.toString());
     serviceClients.put("hbase"      , Role.HBASE_CLIENT.toString());
     serviceClients.put("mapreduce"  , Role.MAPREDUCE_CLIENT.toString());
     serviceClients.put("zookeeper"  , Role.ZOOKEEPER_CLIENT.toString());
@@ -62,9 +62,8 @@ public class ActionMetadata {
   }
 
   private void fillServiceActions() {
-    serviceActions.put("hdfs"       , Arrays.asList(Role.HDFS_SERVICE_CHECK.toString(),
-                                                    Role.DECOMMISSION_DATANODE.toString()));
-    serviceActions.put("glusterfs"       , Arrays.asList(Role.GLUSTERFS_SERVICE_CHECK.toString()));
+    serviceActions.put("hdfs"       , Arrays.asList(Role.HDFS_SERVICE_CHECK.toString()));
+    serviceActions.put("glusterfs"  , Arrays.asList(Role.GLUSTERFS_SERVICE_CHECK.toString()));
     serviceActions.put("hbase"      , Arrays.asList(Role.HBASE_SERVICE_CHECK.toString()));
     serviceActions.put("mapreduce"  , Arrays.asList(Role.MAPREDUCE_SERVICE_CHECK.toString()));
     serviceActions.put("mapreduce2" , Arrays.asList(Role.MAPREDUCE2_SERVICE_CHECK.toString()));
@@ -75,9 +74,9 @@ public class ActionMetadata {
     serviceActions.put("oozie"      , Arrays.asList(Role.OOZIE_SERVICE_CHECK.toString()));
     serviceActions.put("pig"        , Arrays.asList(Role.PIG_SERVICE_CHECK.toString()));
     serviceActions.put("sqoop"      , Arrays.asList(Role.SQOOP_SERVICE_CHECK.toString()));
-    serviceActions.put("webhcat"  , Arrays.asList(Role.WEBHCAT_SERVICE_CHECK.toString()));
-    serviceActions.put("storm"  , Arrays.asList(Role.STORM_SERVICE_CHECK.toString()));
-    serviceActions.put("falcon"  , Arrays.asList(Role.FALCON_SERVICE_CHECK.toString()));
+    serviceActions.put("webhcat"    , Arrays.asList(Role.WEBHCAT_SERVICE_CHECK.toString()));
+    serviceActions.put("storm"      , Arrays.asList(Role.STORM_SERVICE_CHECK.toString()));
+    serviceActions.put("falcon"     , Arrays.asList(Role.FALCON_SERVICE_CHECK.toString()));
   }
 
   private void fillServiceCheckActions() {

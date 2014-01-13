@@ -41,6 +41,10 @@ dfs_web_authentication_kerberos_principal = config['configurations']['hdfs-site'
 dfs_secondary_namenode_kerberos_principal = config['configurations']['hdfs-site']['dfs.secondary.namenode.kerberos.principal']
 dfs_journalnode_kerberos_internal_spnego_principal = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.internal.spnego.principal']
 
+#exclude file
+hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
+exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
+
 kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 #hosts
 hostname = config["hostname"]

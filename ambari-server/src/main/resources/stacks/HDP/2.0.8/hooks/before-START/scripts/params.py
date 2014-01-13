@@ -153,16 +153,6 @@ mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
 
 yarn_log_dir_prefix = default("yarn_log_dir_prefix","/var/log/hadoop-yarn")
 
-#exclude file
-exlude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
-if 'hdfs-exclude-file' in config['configurations']:
-  if 'datanodes' in config['configurations']['hdfs-exclude-file']:
-    hdfs_exclude_file = config['configurations']['hdfs-exclude-file']['datanodes'].split(",")
-  else:
-    hdfs_exclude_file = []
-else:
-  hdfs_exclude_file = []
-
 #hdfs ha properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)

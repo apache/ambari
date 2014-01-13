@@ -77,6 +77,28 @@ class Jobtracker(Script):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.jobtracker_pid_file)
+    pass
+
+  def decommission(self, env):
+    import params
+
+    env.set_params(params)
+
+    mapred_user = params.mapred_user
+    conf_dir = params.conf_dir
+    user_group = params.user_group
+
+    File(params.exclude_file_path,
+         content=Template("exclude_hosts_list.j2"),
+         owner=mapred_user,
+         group=user_group
+    )
+
+    ExecuteHadoop('mradmin -refreshNodes',
+                user=mapred_user,
+                conf_dir=conf_dir,
+                kinit_override=True)
+    pass
 
 if __name__ == "__main__":
   Jobtracker().execute()

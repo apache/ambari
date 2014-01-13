@@ -126,13 +126,13 @@ public class HostComponentResourceProviderTest {
     StackId stackId2 = new StackId("HDP-0.2");
     allResponse.add(new ServiceComponentHostResponse(
         "Cluster100", "Service100", "Component100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId()));
+        stackId2.getStackId(), null));
     allResponse.add(new ServiceComponentHostResponse(
         "Cluster100", "Service100", "Component101", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId()));
+        stackId2.getStackId(), null));
     allResponse.add(new ServiceComponentHostResponse(
         "Cluster100", "Service100", "Component102", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
-        stackId2.getStackId()));
+        stackId2.getStackId(), null));
     Map<String, String> expectedNameValues = new HashMap<String, String>();
     expectedNameValues.put(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -242,7 +242,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", "STARTED", "", "", ""));
+        "Cluster102", "Service100", "Component100", "Host100", "STARTED", "", "", "", null));
     
     HostComponentResourceProvider provider = 
         new HostComponentResourceProvider(PropertyHelper.getPropertyIds(type),

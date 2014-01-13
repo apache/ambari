@@ -23,8 +23,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 
 public interface ServiceComponentHostFactory {
 
-  ServiceComponentHost createNew(ServiceComponent serviceComponent,
-                                 String hostName, boolean isClient);
+  ServiceComponentHost createNew(ServiceComponent serviceComponent, String hostName);
 
   ServiceComponentHost createExisting(ServiceComponent serviceComponent,
                                       HostComponentStateEntity stateEntity,

@@ -34,37 +34,37 @@ public class StackExtensionHelperTest {
     StackExtensionHelper helper = new StackExtensionHelper(stackRoot);
     helper.populateServicesForStack(stackInfo);
     List<ServiceInfo> services =  stackInfo.getServices();
-    assertEquals(services.size(), 2);
+    assertEquals(5, services.size());
     for (ServiceInfo serviceInfo : services) {
-      if (serviceInfo.getName().equals("YARN")) {
+      if (serviceInfo.getName().equals("HIVE")) {
         // Check old-style service
-        assertEquals("YARN", serviceInfo.getName());
+        assertEquals("HIVE", serviceInfo.getName());
         assertEquals("1.0", serviceInfo.getSchemaVersion());
-        assertEquals("mapred", serviceInfo.getUser());
-        assertTrue(serviceInfo.getComment().startsWith("Apache Hadoop NextGen"));
-        assertEquals("2.1.0.2.0.6.0", serviceInfo.getVersion());
+        assertEquals("root", serviceInfo.getUser());
+        assertTrue(serviceInfo.getComment().startsWith("Data warehouse system"));
+        assertEquals("0.11.0.2.0.5.0", serviceInfo.getVersion());
         // Check some component definitions
         List<ComponentInfo> components = serviceInfo.getComponents();
-        assertEquals("RESOURCEMANAGER", components.get(0).getName());
+        assertEquals("HIVE_METASTORE", components.get(0).getName());
         assertEquals("MASTER", components.get(0).getCategory());
         List<PropertyInfo> properties = serviceInfo.getProperties();
         // Check some property
-        assertEquals(4, properties.size());
+        assertEquals(35, properties.size());
         boolean found = false;
         for (PropertyInfo property : properties) {
-          if (property.getName().equals("yarn.resourcemanager.resource-tracker.address")) {
-            assertEquals("localhost:8025", property.getValue());
-            assertEquals("yarn-site.xml",
+          if (property.getName().equals("javax.jdo.option.ConnectionDriverName")) {
+            assertEquals("com.mysql.jdbc.Driver", property.getValue());
+            assertEquals("hive-site.xml",
                     property.getFilename());
-            assertEquals(true, property.isDeleted());
+            assertEquals(false, property.isDeleted());
             found = true;
           }
         }
         assertTrue("Property not found in a list of properties", found);
         // Check config dependencies
         List<String> configDependencies = serviceInfo.getConfigDependencies();
-        assertEquals(1, configDependencies.size());
-        assertEquals("core-site", configDependencies.get(0));
+        assertEquals(2, configDependencies.size());
+        assertEquals("hive-site", configDependencies.get(1));
       } else if (serviceInfo.getName().equals("HBASE")) {
         assertEquals("HBASE", serviceInfo.getName());
         assertEquals("HBASE", serviceInfo.getServiceMetadataFolder());
@@ -151,7 +151,11 @@ public class StackExtensionHelperTest {
         assertEquals("hbase-policy", configDependencies.get(1));
         assertEquals("hbase-site", configDependencies.get(2));
       } else {
-        fail("Unknown service");
+        if (!serviceInfo.getName().equals("YARN") &&
+            !serviceInfo.getName().equals("HDFS") &&
+            !serviceInfo.getName().equals("MAPREDUCE2")) {
+          fail("Unknown service");
+        }
       }
     }
   }
@@ -161,7 +165,7 @@ public class StackExtensionHelperTest {
     File stackRoot = new File(stackRootStr);
     StackExtensionHelper helper = new StackExtensionHelper(stackRoot);
     File legacyMetaInfoFile = new File("./src/test/resources/stacks/HDP/2.0.7/" +
-            "services/YARN/metainfo.xml".replaceAll("/", File.separator));
+            "services/HIVE/metainfo.xml".replaceAll("/", File.separator));
     String version = helper.getSchemaVersion(legacyMetaInfoFile);
     assertEquals("1.0", version);
 

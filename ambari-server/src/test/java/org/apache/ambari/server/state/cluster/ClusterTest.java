@@ -266,7 +266,7 @@ public class ClusterTest {
     s.addServiceComponent(sc);
     sc.persist();
     ServiceComponentHost sch =
-        serviceComponentHostFactory.createNew(sc, "h1", false);
+        serviceComponentHostFactory.createNew(sc, "h1");
     sc.addServiceComponentHost(sch);
     sch.persist();
 
@@ -285,7 +285,7 @@ public class ClusterTest {
         ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
         s1.addServiceComponent(sc1);
         sc1.persist();
-        ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, "h1", false);
+        ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, "h1");
         sc1.addServiceComponentHost(sch1);
         sch1.persist();
       }

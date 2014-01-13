@@ -242,9 +242,12 @@ public class HostResourceProviderTest {
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Host100", "STARTED", "", null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Host100", "STARTED", "", null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Host100", "STARTED", "", null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+        "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+        "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+        "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -349,9 +352,12 @@ public class HostResourceProviderTest {
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Host100", "STARTED", "", null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Host100", "STARTED", "", null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Host100", "STARTED", "", null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+        "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+        "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+        "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -454,9 +460,12 @@ public class HostResourceProviderTest {
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Host100", "STARTED", "", null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Host100", "INSTALLED", "", null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Host100", "STARTED", "", null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+        "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+        "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+        "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -642,9 +651,12 @@ public class HostResourceProviderTest {
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100", "Host100", "STARTED", "", null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102", "Host100", "INSTALLED", "", null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103", "Host100", "STARTED", "", null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+        "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component102",
+        "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component103",
+        "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
     responses.add(shr1);

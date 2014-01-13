@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
@@ -103,7 +104,7 @@ public class TestStageUtils {
         .getServiceComponent(componentName)
         .addServiceComponentHost(
             serviceComponentHostFactory.createNew(cl.getService(serviceName)
-                .getServiceComponent(componentName), hostList.get(hostIndex), false));
+                .getServiceComponent(componentName), hostList.get(hostIndex)));
       }
     }
   }
@@ -215,12 +216,15 @@ public class TestStageUtils {
     Map<String, List<Integer>> nonameTopology = new HashMap<String, List<Integer>>(); 
     nonameTopology.put("NONAME_SERVER", Collections.singletonList(7));
     addService(fsm.getCluster("c1"), hostList, nonameTopology , "NONAME", injector);
-    
-    
+
+    fsm.getCluster("c1").getService("MAPREDUCE").getServiceComponent("TASKTRACKER").getServiceComponentHost("h2")
+        .setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
+    fsm.getCluster("c1").getService("MAPREDUCE").getServiceComponent("TASKTRACKER").getServiceComponentHost("h3")
+        .setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
+
     //Get cluster host info
-    Map<String, Set<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"),
-        fsm.getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)),
-        injector.getInstance(Configuration.class));
+    Map<String, Set<String>> info =
+        StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"), fsm.getCluster("c1"));
 
     //All hosts present in cluster host info
     assertEquals(fsm.getHosts().size(), info.get(HOSTS_LIST).size());
@@ -257,8 +261,7 @@ public class TestStageUtils {
       assertEquals(new HashSet<Integer>(pingPorts).size(), actualPingPorts.size());
     
     List<Integer> pingPortsActual = getRangeMappedDecompressedSet(actualPingPorts);
-    
-    
+
     List<Integer> reindexedPorts = getReindexedList(pingPortsActual, new ArrayList<String>(info.get(HOSTS_LIST)), hostList);
     
     //Treat null values
@@ -271,7 +274,9 @@ public class TestStageUtils {
     
     // check for no-name in the list
     assertTrue(info.containsKey("noname_server_hosts"));
-
+    assertTrue(info.containsKey("decom_tt_hosts"));
+    Set<String> decommissionedHosts = info.get("decom_tt_hosts");
+    assertEquals(2, decommissionedHosts.toString().split(",").length);
   }
 
   private void checkServiceCompression(Map<String, Set<String>> info,

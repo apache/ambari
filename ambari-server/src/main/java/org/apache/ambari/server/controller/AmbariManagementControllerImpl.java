@@ -457,8 +457,7 @@ public class AmbariManagementControllerImpl implements
       boolean isClient = compInfo.isClient();
 
       ServiceComponentHost sch =
-          serviceComponentHostFactory.createNew(sc, request.getHostname(),
-              isClient);
+          serviceComponentHostFactory.createNew(sc, request.getHostname());
 
       if (request.getDesiredState() != null
           && !request.getDesiredState().isEmpty()) {
@@ -538,7 +537,10 @@ public class AmbariManagementControllerImpl implements
 
   private Stage createNewStage(Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
-    return stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext, clusterHostInfo);
+    Stage stage =
+        stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext, clusterHostInfo);
+    stage.setStageId(0);
+    return stage;
   }
 
 
@@ -691,6 +693,14 @@ public class AmbariManagementControllerImpl implements
                 && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
+            if (request.getAdminState() != null) {
+              String stringToMatch =
+                  sch.getComponentAdminState() == null ? "" : sch.getComponentAdminState().name();
+              if (!request.getAdminState().equals(stringToMatch)) {
+                continue;
+              }
+            }
+
             ServiceComponentHostResponse r = sch.convertToResponse();
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
@@ -712,6 +722,14 @@ public class AmbariManagementControllerImpl implements
             if (checkDesiredState
                 && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
+            }
+
+            if (request.getAdminState() != null) {
+              String stringToMatch =
+                  sch.getComponentAdminState() == null ? "" : sch.getComponentAdminState().name();
+              if (!request.getAdminState().equals(stringToMatch)) {
+                continue;
+              }
             }
 
             ServiceComponentHostResponse r = sch.convertToResponse();
@@ -1082,15 +1100,12 @@ public class AmbariManagementControllerImpl implements
 
       // FIXME cannot work with a single stage
       // multiple stages may be needed for reconfigure
-      long stageId = 0;
       Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
-          clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector.getInstance(Configuration.class));
-      
-      
+          clusters.getHostsForCluster(cluster.getClusterName()), cluster);
+
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
       
       Stage stage = createNewStage(cluster, requestId, requestContext, clusterHostInfoJson);
-      stage.setStageId(stageId);
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1263,9 +1278,9 @@ public class AmbariManagementControllerImpl implements
           continue;
         }
         Configuration configuration = injector.getInstance(Configuration.class);
-        customCommandExecutionHelper.addServiceCheckActionImpl(stage, clientHost,
-                smokeTestRole, nowTimestamp, serviceName,
-                null, null, hostsMap, null);
+        customCommandExecutionHelper.addServiceCheckAction(stage, clientHost,
+            smokeTestRole, nowTimestamp, serviceName,
+            null, null, null);
 
       }
 
@@ -1581,6 +1596,11 @@ public class AmbariManagementControllerImpl implements
       throw new IllegalArgumentException("Invalid arguments"
           + ", cluster name, component name and host name should be"
           + " provided");
+    }
+
+    if (request.getAdminState() != null) {
+      throw new IllegalArgumentException("Property adminState cannot be modified through update. Use service " +
+          "specific DECOMMISSION action to decommision/recommission components.");
     }
   }
 
@@ -2019,13 +2039,10 @@ public class AmbariManagementControllerImpl implements
     }
 
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
-        clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap,
-        configs);
+        clusters.getHostsForCluster(cluster.getClusterName()), cluster);
 
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     Stage stage = createNewStage(cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
-
-    stage.setStageId(0);
 
     Map<String, String> params = new TreeMap<String, String>();
     // TODO : Update parameter population to be done only here
@@ -2034,7 +2051,7 @@ public class AmbariManagementControllerImpl implements
     params.putAll(getRcaParameters());
 
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.addAction(actionRequest, stage, hostsMap, params);
+      customCommandExecutionHelper.addAction(actionRequest, stage, params);
     } else {
       actionExecutionHelper.addAction(actionExecContext, stage, configs, hostsMap, params);
     }

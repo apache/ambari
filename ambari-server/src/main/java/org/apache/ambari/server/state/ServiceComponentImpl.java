@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -33,21 +28,37 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServiceComponentImpl implements ServiceComponent {
 
   private final static Logger LOG =
       LoggerFactory.getLogger(ServiceComponentImpl.class);
-  
   private final Service service;
   private final ReadWriteLock clusterGlobalLock;
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-
+  private final boolean isClientComponent;
+  private final boolean isMasterComponent;
+  boolean persisted = false;
   @Inject
   private Gson gson;
   @Inject
@@ -60,22 +71,12 @@ public class ServiceComponentImpl implements ServiceComponent {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
-
-  boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
-
   private Map<String, ServiceComponentHost> hostComponents;
-
-  private final boolean isClientComponent;
-
-  private void init() {
-    // TODO load during restart
-    // initialize from DB
-  }
 
   @AssistedInject
   public ServiceComponentImpl(@Assisted Service service,
-      @Assisted String componentName, Injector injector) throws AmbariException {
+                              @Assisted String componentName, Injector injector) throws AmbariException {
     injector.injectMembers(this);
     this.clusterGlobalLock = service.getClusterGlobalLock();
     this.service = service;
@@ -100,6 +101,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", stackInfo=" + stackId.getStackId());
     }
     this.isClientComponent = compInfo.isClient();
+    this.isMasterComponent = compInfo.isMaster();
 
     init();
   }
@@ -141,8 +143,14 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", stackInfo=" + stackId.getStackId());
     }
     this.isClientComponent = compInfo.isClient();
+    this.isMasterComponent = compInfo.isMaster();
 
     persisted = true;
+  }
+
+  private void init() {
+    // TODO load during restart
+    // initialize from DB
   }
 
   @Override
@@ -163,8 +171,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -180,8 +186,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -197,13 +201,11 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
   public Map<String, ServiceComponentHost>
-      getServiceComponentHosts() {
+  getServiceComponentHosts() {
     clusterGlobalLock.readLock().lock();
     try {
       readWriteLock.readLock().lock();
@@ -215,8 +217,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -243,8 +243,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
@@ -282,8 +280,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
@@ -311,8 +307,7 @@ public class ServiceComponentImpl implements ServiceComponent {
               + ", serviceComponentName=" + getName()
               + ", hostname=" + hostName);
         }
-        ServiceComponentHost hostComponent =
-            serviceComponentHostFactory.createNew(this, hostName, this.isClientComponent());
+        ServiceComponentHost hostComponent = serviceComponentHostFactory.createNew(this, hostName);
         // FIXME need a better approach of caching components by host
         ClusterImpl clusterImpl = (ClusterImpl) service.getCluster();
         clusterImpl.addServiceComponentHost(hostComponent);
@@ -326,13 +321,11 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
   public ServiceComponentHost getServiceComponentHost(String hostname)
-    throws AmbariException {
+      throws AmbariException {
     clusterGlobalLock.readLock().lock();
     try {
       readWriteLock.readLock().lock();
@@ -348,8 +341,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -365,8 +356,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -407,8 +396,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -434,8 +421,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -456,8 +441,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -473,8 +456,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -507,8 +488,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -524,8 +503,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -548,8 +525,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Transactional
@@ -586,8 +561,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Transactional
@@ -605,13 +578,16 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
   public boolean isClientComponent() {
     return this.isClientComponent;
+  }
+
+  @Override
+  public boolean isMasterComponent() {
+    return this.isMasterComponent;
   }
 
   @Override
@@ -642,8 +618,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override

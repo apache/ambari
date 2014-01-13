@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 
 import java.util.Map;
@@ -26,32 +26,24 @@ import java.util.Map;
 public class ServiceComponentHostResponse {
 
   private String clusterName; // REF
-
   private String serviceName;
-
   private String componentName;
-
   private String hostname;
-
   // type -> desired config
   private Map<String, HostConfig> actualConfigs;
-
   private String liveState;
-
   private String stackVersion;
-
   private String desiredStackVersion;
-
   private String desiredState;
-  
   private boolean staleConfig = false;
+  private String adminState = null;
 
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
                                       String componentName, String hostname,
-                                      String liveState,
-                                      String stackVersion,
-                                      String desiredState, String desiredStackVersion) {
+                                      String liveState, String stackVersion,
+                                      String desiredState, String desiredStackVersion,
+                                      HostComponentAdminState adminState) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
@@ -60,6 +52,9 @@ public class ServiceComponentHostResponse {
     this.stackVersion = stackVersion;
     this.desiredState = desiredState;
     this.desiredStackVersion = desiredStackVersion;
+    if (adminState != null) {
+      this.adminState = adminState.name();
+    }
   }
 
   /**
@@ -174,10 +169,28 @@ public class ServiceComponentHostResponse {
     this.clusterName = clusterName;
   }
 
+  /**
+   * @return the admin state of the host component
+   */
+  public String getAdminState() {
+    return adminState;
+  }
+
+  /**
+   * @param adminState of the host component
+   */
+  public void setAdminState(String adminState) {
+    this.adminState = adminState;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceComponentHostResponse that =
         (ServiceComponentHostResponse) o;
@@ -191,7 +204,7 @@ public class ServiceComponentHostResponse {
       return false;
     }
     if (componentName != null ?
-        !componentName.equals(that.componentName) : that.componentName != null){
+        !componentName.equals(that.componentName) : that.componentName != null) {
       return false;
     }
     if (hostname != null ?
@@ -206,18 +219,11 @@ public class ServiceComponentHostResponse {
   public int hashCode() {
     int result = clusterName != null ? clusterName.hashCode() : 0;
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 71 * result + (componentName != null ? componentName.hashCode():0);
+    result = 71 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 71 * result + (hostname != null ? hostname.hashCode() : 0);
     return result;
   }
 
-  /**
-   * @param configs the actual configs
-   */
-  public void setActualConfigs(Map<String, HostConfig> configs) {
-    actualConfigs = configs;
-  }
-  
   /**
    * @return the actual configs
    */
@@ -226,12 +232,19 @@ public class ServiceComponentHostResponse {
   }
 
   /**
+   * @param configs the actual configs
+   */
+  public void setActualConfigs(Map<String, HostConfig> configs) {
+    actualConfigs = configs;
+  }
+
+  /**
    * @return if the configs are stale
    */
   public boolean isStaleConfig() {
     return staleConfig;
   }
-  
+
   /**
    * @param stale
    */

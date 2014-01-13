@@ -25,6 +25,9 @@ ALTER TABLE hostconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
 
 ALTER TABLE stage ADD (cluster_host_info BLOB DEFAULT NULL);
 
+-- add decommission state
+ALTER TABLE hostcomponentdesiredstate ADD (component_attribute VARCHAR2 (255) DEFAULT NULL);
+
 -- DML
 --Upgrade version to current
 UPDATE metainfo SET "metainfo_key" = 'version', "metainfo_value" = '${ambariVersion}';

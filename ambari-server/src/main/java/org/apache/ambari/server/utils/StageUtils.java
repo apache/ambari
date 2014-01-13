@@ -17,6 +17,29 @@
  */
 package org.apache.ambari.server.utils;
 
+import com.google.common.base.Joiner;
+import com.google.gson.Gson;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+
+import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,57 +58,25 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.xml.bind.JAXBException;
-
-import com.google.common.base.Joiner;
-import com.google.gson.Gson;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-
 public class StageUtils {
-  
 
+
+  public static final Integer DEFAULT_PING_PORT = 8670;
   private static final Log LOG = LogFactory.getLog(StageUtils.class);
-
+  private static final String HOSTS_LIST = "all_hosts";
+  private static final String PORTS = "all_ping_ports";
   private static Map<String, String> componentToClusterInfoKeyMap =
       new HashMap<String, String>();
-
+  private static Map<String, String> decommissionedToClusterInfoKeyMap =
+      new HashMap<String, String>();
   private volatile static Gson gson;
-  public static final Integer DEFAULT_PING_PORT = 8670;
-
-  private static final String HOSTS_LIST = "all_hosts";
-
-  private static final String PORTS = "all_ping_ports";
-
-  public static void setGson(Gson gson) {
-    if (gson==null) {
-      StageUtils.gson = gson;
-    }
-  }
 
   public static Gson getGson() {
     if (gson != null) {
       return gson;
     } else {
       synchronized (LOG) {
-        if (gson==null) {
+        if (gson == null) {
           gson = new Gson();
         }
         return gson;
@@ -93,6 +84,11 @@ public class StageUtils {
     }
   }
 
+  public static void setGson(Gson gson) {
+    if (gson == null) {
+      StageUtils.gson = gson;
+    }
+  }
 
   static {
     componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
@@ -121,6 +117,13 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT", "kerberos_adminclient_host");
   }
 
+  static {
+    decommissionedToClusterInfoKeyMap.put("DATANODE", "decom_dn_hosts");
+    decommissionedToClusterInfoKeyMap.put("TASKTRACKER", "decom_tt_hosts");
+    decommissionedToClusterInfoKeyMap.put("NODEMANAGER", "decom_nm_hosts");
+    decommissionedToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "decom_hbase_rs_hosts");
+  }
+
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
   }
@@ -145,7 +148,7 @@ public class StageUtils {
 
   //For testing only
   public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo) {
-    
+
     Stage s = new Stage(requestId, "/tmp", "cluster1", "context", clusterHostInfo);
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
@@ -175,7 +178,7 @@ public class StageUtils {
   }
 
   public static String jaxbToString(Object jaxbObj) throws JAXBException,
-  JsonGenerationException, JsonMappingException, IOException {
+      JsonGenerationException, JsonMappingException, IOException {
     return getGson().toJson(jaxbObj);
   }
 
@@ -196,121 +199,141 @@ public class StageUtils {
     return mapper.readValue(is, clazz);
   }
 
-
   public static Map<String, Set<String>> getClusterHostInfo(
-      Map<String, Host> allHosts, Cluster cluster, HostsMap hostsMap,
-      Configuration configuration) throws AmbariException {
+      Map<String, Host> allHosts, Cluster cluster) throws AmbariException {
 
     Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<String, SortedSet<Integer>>();
-    
+
     Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
 
     //Fill hosts and ports lists
     Set<String> hostsSet = new LinkedHashSet<String>();
     List<Integer> portsList = new ArrayList<Integer>();
-    
+
     for (Host host : allHosts.values()) {
-      
+
       Integer currentPingPort = host.getCurrentPingPort() == null ?
           DEFAULT_PING_PORT : host.getCurrentPingPort();
-      
+
       hostsSet.add(host.getHostName());
       portsList.add(currentPingPort);
     }
-    
+
     List<String> hostsList = new ArrayList<String>(hostsSet);
-    
+
     //Fill host roles
-    for (Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) { 
-      
+    for (Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
+
       Service service = serviceEntry.getValue();
-      
+
       for (Entry<String, ServiceComponent> serviceComponentEntry : service.getServiceComponents().entrySet()) {
-        
+
         ServiceComponent serviceComponent = serviceComponentEntry.getValue();
         String componentName = serviceComponent.getName();
-        
+
         String roleName = componentToClusterInfoKeyMap.get(componentName);
-        if (null == roleName && !serviceComponent.isClientComponent())
+        if (null == roleName && !serviceComponent.isClientComponent()) {
           roleName = componentName.toLowerCase() + "_hosts";
-        
-        if (null == roleName)
+        }
+
+        String decomRoleName = decommissionedToClusterInfoKeyMap.get(componentName);
+
+        if (roleName == null && decomRoleName == null) {
           continue;
-        
+        }
+
         for (String hostName : serviceComponent.getServiceComponentHosts().keySet()) {
-          
-          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
-          
-          if (hostsForComponentsHost == null) {
-            hostsForComponentsHost = new TreeSet<Integer>();
-            hostRolesInfo.put(roleName, hostsForComponentsHost);
+
+          if (roleName != null) {
+            SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+
+            if (hostsForComponentsHost == null) {
+              hostsForComponentsHost = new TreeSet<Integer>();
+              hostRolesInfo.put(roleName, hostsForComponentsHost);
+            }
+
+            int hostIndex = hostsList.indexOf(hostName);
+            //Add index of host to current host role
+            hostsForComponentsHost.add(hostIndex);
           }
 
-          int hostIndex = hostsList.indexOf(hostName);
-          //Add index of host to current host role
-          hostsForComponentsHost.add(hostIndex);
+          if (decomRoleName != null) {
+            ServiceComponentHost scHost = serviceComponent.getServiceComponentHost(hostName);
+            if (scHost.getComponentAdminState() == HostComponentAdminState.DECOMMISSIONED) {
+              SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(decomRoleName);
+
+              if (hostsForComponentsHost == null) {
+                hostsForComponentsHost = new TreeSet<Integer>();
+                hostRolesInfo.put(decomRoleName, hostsForComponentsHost);
+              }
+
+              int hostIndex = hostsList.indexOf(hostName);
+              //Add index of host to current host role
+              hostsForComponentsHost.add(hostIndex);
+            }
+          }
         }
       }
     }
-    
+
     for (Entry<String, SortedSet<Integer>> entry : hostRolesInfo.entrySet()) {
       TreeSet<Integer> sortedSet = new TreeSet<Integer>(entry.getValue());
-  
+
       Set<String> replacedRangesSet = replaceRanges(sortedSet);
-  
+
       clusterHostInfo.put(entry.getKey(), replacedRangesSet);
     }
 
     clusterHostInfo.put(HOSTS_LIST, hostsSet);
     clusterHostInfo.put(PORTS, replaceMappedRanges(portsList));
-    
+
     return clusterHostInfo;
   }
-  
-  
+
   /**
    * Finds ranges in sorted set and replaces ranges by compact notation
-   * 
+   * <p/>
    * <p>For example, suppose <tt>set</tt> comprises<tt> [1, 2, 3, 4, 7]</tt>.
-   * After invoking <tt>rangedSet = StageUtils.replaceRanges(set)</tt> 
+   * After invoking <tt>rangedSet = StageUtils.replaceRanges(set)</tt>
    * <tt>rangedSet</tt> will comprise
    * <tt>["1-4", "7"]</tt>..
    *
-   * @param  set  the source set to be ranged
+   * @param set the source set to be ranged
    */
   public static Set<String> replaceRanges(SortedSet<Integer> set) {
-    
-    if (set == null)
+
+    if (set == null) {
       return null;
-    
+    }
+
     Set<String> rangedSet = new HashSet<String>();
-    
+
     Integer prevElement = null;
     Integer startOfRange = set.first();
-    
+
     for (Integer i : set) {
-      if (prevElement != null && (i - prevElement) > 1 ) {
+      if (prevElement != null && (i - prevElement) > 1) {
         String rangeItem = getRangedItem(startOfRange, prevElement);
         rangedSet.add(rangeItem);
         startOfRange = i;
       }
       prevElement = i;
     }
-    
+
     rangedSet.add(getRangedItem(startOfRange, prevElement));
-    
+
     return rangedSet;
   }
-  
+
   /**
    * Finds ranges in list and replaces ranges by compact notation
-   * 
+   * <p/>
    * <p>For example, suppose <tt>list</tt> comprises<tt> [1, 1, 2, 2, 1, 3]</tt>.
-   * After invoking <tt>rangedMappedSet = StageUtils.replaceMappedRanges(list)</tt> 
+   * After invoking <tt>rangedMappedSet = StageUtils.replaceMappedRanges(list)</tt>
    * <tt>rangedMappedSet</tt> will comprise
    * <tt>["1:0-1,4", "2:2-3", "3:5"]</tt>..
    *
-   * @param  list  the source list to be ranged
+   * @param values the source list to be ranged
    */
   public static Set<String> replaceMappedRanges(List<Integer> values) {
 
@@ -341,12 +364,12 @@ public class StageUtils {
   }
 
   private static String getRangedItem(Integer startOfRange, Integer endOfRange) {
-    
+
     String separator = (endOfRange - startOfRange) > 1 ? "-" : ",";
-    
-    String rangeItem = endOfRange.equals(startOfRange) ? 
+
+    String rangeItem = endOfRange.equals(startOfRange) ?
         endOfRange.toString() :
-          startOfRange + separator + endOfRange;
+        startOfRange + separator + endOfRange;
     return rangeItem;
   }
 

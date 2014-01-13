@@ -81,6 +81,10 @@ public interface ServiceComponentHost {
 
   public void setStackVersion(StackId stackVersion);
 
+  public HostComponentAdminState getComponentAdminState();
+
+  public void setComponentAdminState(HostComponentAdminState attribute);
+
   public ServiceComponentHostResponse convertToResponse();
 
   boolean isPersisted();

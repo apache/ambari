@@ -270,7 +270,6 @@ def setup_configs():
          group=params.user_group
     )
 
-  generate_exlude_file()
   generate_include_file()
 
 def update_log4j_props(file):
@@ -296,16 +295,6 @@ def update_log4j_props(file):
     value = property_map[key]
     Execute(format(
       "sed -i 's~\\({rca_disabled_prefix}\\)\\?{key}=.*~{rca_prefix}{key}={value}~' {file}"))
-
-
-def generate_exlude_file():
-  import params
-
-  File(params.exlude_file_path,
-       content=Template("exclude_hosts_list.j2"),
-       owner=params.hdfs_user,
-       group=params.user_group
-  )
 
 
 def generate_include_file():

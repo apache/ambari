@@ -68,6 +68,8 @@ public interface ServiceComponent {
 
   public boolean isClientComponent();
 
+  public boolean isMasterComponent();
+
   public boolean canBeRemoved();
 
   public void deleteAllServiceComponentHosts() throws AmbariException;

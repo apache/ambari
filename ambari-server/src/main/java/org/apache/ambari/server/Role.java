@@ -53,7 +53,6 @@ public class Role {
   
   public static final Role AMBARI_SERVER_ACTION = valueOf("AMBARI_SERVER_ACTION"); 
   public static final Role DATANODE = valueOf("DATANODE");
-  public static final Role DECOMMISSION_DATANODE = valueOf("DECOMMISSION_DATANODE");
   public static final Role FLUME_SERVER = valueOf("FLUME_SERVER");
   public static final Role GANGLIA_MONITOR = valueOf("GANGLIA_MONITOR");
   public static final Role GANGLIA_SERVER = valueOf("GANGLIA_SERVER");

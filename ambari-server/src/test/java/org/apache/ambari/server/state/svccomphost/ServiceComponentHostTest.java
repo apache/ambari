@@ -109,13 +109,13 @@ public class ServiceComponentHostTest {
       String hostName, boolean isClient) throws AmbariException{
     Cluster c = clusters.getCluster("C1");
     
-    return createNewServiceComponentHost(c, svc, svcComponent, hostName, isClient);
+    return createNewServiceComponentHost(c, svc, svcComponent, hostName);
   }
   private ServiceComponentHost createNewServiceComponentHost(
       Cluster c,
       String svc,
       String svcComponent,
-      String hostName, boolean isClient) throws AmbariException{
+      String hostName) throws AmbariException{
 
     Service s = null;
 
@@ -139,7 +139,7 @@ public class ServiceComponentHostTest {
     }
 
     ServiceComponentHost impl = serviceComponentHostFactory.createNew(
-        sc, hostName, isClient);
+        sc, hostName);
     impl.persist();
     Assert.assertEquals(State.INIT,
         impl.getState());
@@ -632,9 +632,9 @@ public class ServiceComponentHostTest {
     
     Cluster cluster = clusters.getCluster(clusterName);
     
-    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName, false);
-    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName, false);
-    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName, false);
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
     
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);

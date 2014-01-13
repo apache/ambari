@@ -98,7 +98,7 @@ class Script(object):
       # Non-zero exit code is interpreted as an INSTALLED status of a component
       sys.exit(1)
     except Fail:
-      logger.exception("Got exception while executing command {0}:".format(command_name))
+      logger.exception("Error while executing command '{0}':".format(command_name))
       sys.exit(1)
 
 
@@ -108,7 +108,7 @@ class Script(object):
     """
     self_methods = dir(self)
     if not command_name in self_methods:
-      raise Fail("Script {0} has not method '{1}'".format(sys.argv[0], command_name))
+      raise Fail("Script '{0}' has no method '{1}'".format(sys.argv[0], command_name))
     method = getattr(self, command_name)
     return method
 
