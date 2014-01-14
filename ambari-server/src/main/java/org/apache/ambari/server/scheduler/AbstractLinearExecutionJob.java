@@ -97,8 +97,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
       return;
     }
 
-    Integer separationSeconds = jobDataMap.getIntegerFromString(
-      (NEXT_EXECUTION_SEPARATION_SECONDS));
+    int separationSeconds = jobDataMap.getIntValue((NEXT_EXECUTION_SEPARATION_SECONDS));
 
     // Create trigger for next job execution
     Trigger trigger = newTrigger()
