@@ -20,14 +20,16 @@ var App = require('app');
 
 App.MainJobsController = Em.Controller.extend({
   name: 'mainJobsController',
+
+  isLoaded: function () {
+    return App.router.get('mainMirroringController.isLoaded');
+  }.property('App.router.mainMirroringController.isLoaded'),
+
   jobs: function () {
-    var jobs = App.DataSetJob.find().filterProperty('dataset', this.get('content')).sort(
-      function(a, b) {
-        return a.get('id') < b.get('id');
-      }
-    );
-    return jobs;
-  }.property('content'),
+    var mainMirroringController = App.router.get('mainMirroringController');
+    return (this.get('isLoaded')) ?
+        mainMirroringController.get('datasets').findProperty('name', this.get('content.id')).get('datasetJobs') : [];
+  }.property('content', 'isLoaded'),
 
   actionDesc: function () {
     var dataset_status = this.get('content.status');

@@ -62,30 +62,38 @@
     </tr>
     </thead>
     <tbody>
-    {{#if view.pageContent}}
-      {{#each dataset in view.pageContent}}
-        {{#view view.DatasetView contentBinding="dataset"}}
-          <td class="first">
-            <span {{bindAttr class="dataset.healthClass"}}></span>
+    {{#if controller.isLoaded}}
+      {{#if view.pageContent}}
+        {{#each dataset in view.pageContent}}
+          {{#view view.DatasetView contentBinding="dataset"}}
+            <td class="first">
+              <span {{bindAttr class="dataset.healthClass"}}></span>
+            </td>
+            <td class="name">
+              <a title="{{unbound dataset.name}}" href="#" {{action "gotoShowJobs" dataset}}>{{unbound dataset.name}}</a>
+            </td>
+            <td>{{dataset.sourceDir}}</td>
+            <td>{{dataset.targetDir}}</td>
+            <td>{{dataset.targetClusterName}}</td>
+            <td>{{view.lastSucceededDateFormatted}}</td>
+            <td>{{dataset.nextInstance}}</td>
+          {{/view}}
+        {{/each}}
+      {{else}}
+        <tr>
+          <td class="first"></td>
+          <td colspan="6">
+            {{t mirroring.table.noDatasets}}
           </td>
-          <td class="name">
-            <a title="{{unbound dataset.name}}" href="#" {{action "gotoShowJobs" dataset}}>{{unbound dataset.name}}</a>
-          </td>
-          <td>{{dataset.sourceDir}}</td>
-          <td>{{dataset.targetDir}}</td>
-          <td>{{dataset.cluster}}</td>
-          <td>{{view.lastSucceededDateFormatted}}</td>
-          <td>{{dataset.nextInstance}}</td>
-        {{/view}}
-      {{/each}}
+        </tr>
+      {{/if}}
     {{else}}
       <tr>
-        <td class="first"></td>
-        <td colspan="6">
-          {{t mirroring.table.noDatasets}}
+        <td colspan="7">
+          <div class="spinner"></div>
         </td>
       </tr>
-    {{/if}}
+      {{/if}}
     </tbody>
   </table>
 

@@ -27,7 +27,10 @@ App.MainJobsView = App.TableView.extend({
   }.property('controller.jobs'),
 
   didInsertElement: function () {
-    this.set('content', this.get('controller.jobs'));
+    var mainMirroringController = App.router.get('mainMirroringController');
+    if (!mainMirroringController.get('isLoaded')) {
+      mainMirroringController.loadDatasets();
+    }
   },
 
   dataset: function () {
@@ -36,9 +39,9 @@ App.MainJobsView = App.TableView.extend({
 
   sortView: sort.wrapperView,
   idSort: sort.fieldView.extend({
-    name: 'id',
+    name: 'name',
     displayName: Em.I18n.t('mirroring.table.jobId'),
-    type: 'number'
+    type: 'string'
   }),
   startSort: sort.fieldView.extend({
     name: 'startDate',
@@ -48,16 +51,6 @@ App.MainJobsView = App.TableView.extend({
   endSort: sort.fieldView.extend({
     name: 'endDate',
     displayName: Em.I18n.t('mirroring.table.end'),
-    type: 'number'
-  }),
-  durationSort: sort.fieldView.extend({
-    name: 'duration',
-    displayName: Em.I18n.t('mirroring.table.duration'),
-    type: 'number'
-  }),
-  dataSort: sort.fieldView.extend({
-    name: 'data',
-    displayName: Em.I18n.t('mirroring.table.data'),
     type: 'number'
   }),
 
@@ -88,22 +81,6 @@ App.MainJobsView = App.TableView.extend({
     content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
-    }
-  }),
-
-  durationFilterView: filters.createTextView({
-    fieldType: 'input-medium',
-    column: 4,
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'duration');
-    }
-  }),
-
-  dataFilterView: filters.createTextView({
-    fieldType: 'input-small',
-    column: 5,
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'ambari-bandwidth');
     }
   }),
 
@@ -187,27 +164,7 @@ App.MainJobsView = App.TableView.extend({
             break;
         }
       });
-    },
-
-    durationFormatted: function () {
-      var milliseconds = this.get('content.duration');
-      var h = Math.floor(milliseconds / 3600000);
-      var m = Math.floor((milliseconds % 3600000) / 60000);
-      var s = Math.floor(((milliseconds % 360000) % 60000) / 1000);
-      return (h == 0 ? '' : h + 'hr ') + (m == 0 ? '' : m + 'mins ') + (s == 0 ? '' : s + 'secs ');
-    }.property('content.duration'),
-
-    startFormatted: function () {
-      if (this.get('content.startDate')) {
-        return $.timeago(this.get('content.startDate'));
-      }
-    }.property('content.startDate'),
-
-    endFormatted: function () {
-      if (this.get('content.endDate')) {
-        return $.timeago(this.get('content.endDate'));
-      }
-    }.property('content.endDate')
+    }
   }),
 
   /**
@@ -215,11 +172,9 @@ App.MainJobsView = App.TableView.extend({
    */
   colPropAssoc: function () {
     var associations = [];
-    associations[1] = 'id';
+    associations[1] = 'name';
     associations[2] = 'startDate';
     associations[3] = 'endDate';
-    associations[4] = 'duration';
-    associations[5] = 'data';
     return associations;
   }.property()
 

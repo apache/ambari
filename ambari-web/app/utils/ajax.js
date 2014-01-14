@@ -1342,6 +1342,26 @@ var urls = {
         })
       }
     }
+  },
+
+  'mirroring.get_all_datasets': {
+    'real': 'falcon/entities/list/feed',
+    'mock': '/data/mirroring/datasets.json'
+  },
+
+  'mirroring.get_dataset_definition': {
+    'real': 'falcon/entities/definition/feed/{dataset}',
+    'mock': '/data/mirroring/{dataset}_definition.xml',
+    'format': function (data) {
+      return {
+        dataType: 'xml'
+      }
+    }
+  },
+
+  'mirroring.dataset.get_all_instances': {
+    'real': 'falcon/instance/status/feed/{dataset}',
+    'mock': '/data/mirroring/{dataset}_instances.json'
   }
 };
 /**

@@ -75,6 +75,7 @@
                 </tr>
                 </thead>
                 <tbody>
+                {{#if controller.isLoaded}}
                   {{#if view.pageContent}}
                     {{#each job in view.pageContent}}
                       {{#view view.JobView contentBinding="job"}}
@@ -84,8 +85,8 @@
                       </td>
 
                       <td>{{unbound job.id}}</td>
-                      <td>{{view.startFormatted}}</td>
-                      <td>{{view.endFormatted}}</td>
+                      <td>{{unbound job.startFormatted}}</td>
+                      <td>{{unbound job.endFormatted}}</td>
                       {{/view}}
                     {{/each}}
                   {{else}}
@@ -96,6 +97,13 @@
                       </td>
                   </tr>
                   {{/if}}
+                {{else}}
+                  <tr>
+                    <td colspan="7">
+                      <div class="spinner"></div>
+                    </td>
+                  </tr>
+                {{/if}}
                 </tbody>
             </table>
 

@@ -20,5 +20,10 @@ var App = require('app');
 
 App.MainMirroringView = Em.View.extend({
 
-  templateName: require('templates/main/mirroring')
+  templateName: require('templates/main/mirroring'),
+
+  didInsertElement: function () {
+    var controller = this.get('controller');
+    controller.loadDatasets();
+  }
 });

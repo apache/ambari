@@ -114,22 +114,11 @@ module.exports = Em.Route.extend({
     route: '/mirroring',
     index: Ember.Route.extend({
       route: '/',
-      enter: function () {
-        this.setupController()
-      },
-      setupController: function () {
-        var controller = App.router.get('mainMirroringController');
-        var datasets = App.Dataset.find();
-        controller.set('datasets', datasets);
-      },
       connectOutlets: function (router, context) {
         router.get('mainController').connectOutlet('mainMirroring');
       }
     }),
 
-    gotoMirroringHome: function (router) {
-      router.transitionTo('mirroring/index');
-    },
     addNewDataset: function (router) {
       router.transitionTo('addNewDatasetRoute');
     },

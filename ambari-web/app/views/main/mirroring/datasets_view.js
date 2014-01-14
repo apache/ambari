@@ -55,17 +55,17 @@ App.MainDatasetsView = App.TableView.extend({
   }),
 
   sourceSort: sort.fieldView.extend({
-    name: 'source',
+    name: 'sourceDir',
     displayName: Em.I18n.t('mirroring.table.datasetSource')
   }),
 
   targetSort: sort.fieldView.extend({
-    name: 'target',
+    name: 'targetDir',
     displayName: Em.I18n.t('mirroring.table.datasetTarget')
   }),
 
   clusterSort: sort.fieldView.extend({
-    name: 'cluster',
+    name: 'targetClusterName',
     displayName: Em.I18n.t('common.cluster')
   }),
 
@@ -112,7 +112,7 @@ App.MainDatasetsView = App.TableView.extend({
     fieldType: 'input-medium',
     column: 4,
     content: function () {
-      return ['Any'].concat(this.get('parentView.content').mapProperty('targetCluster.clusterName'));
+      return ['Any'].concat(this.get('parentView.content').mapProperty('targetClusterName').uniq());
     }.property('this.parentView.content'),
     onClearValue: function () {
       if (this.get('value') === '') {
@@ -176,9 +176,9 @@ App.MainDatasetsView = App.TableView.extend({
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'name';
-    associations[2] = 'source';
-    associations[3] = 'target';
-    associations[4] = 'cluster';
+    associations[2] = 'sourceDir';
+    associations[3] = 'targetDir';
+    associations[4] = 'targetClusterName';
     associations[5] = 'lastSucceededDate';
     associations[6] = 'nextInstance';
     return associations;

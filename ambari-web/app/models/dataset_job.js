@@ -21,28 +21,28 @@ var App = require('app');
 var date = require('utils/date');
 
 App.DataSetJob = DS.Model.extend({
+  name: DS.attr('string'),
   dataset: DS.belongsTo('App.Dataset'),
   status: DS.attr('string'),
   startDate: DS.attr('number'),
   endDate: DS.attr('number'),
-  duration: DS.attr('number'),
-  startDateFormatted: function () {
-    return date.dateFormatShort(this.get('startDate'));
+
+  startFormatted: function () {
+    if (this.get('startDate')) {
+      return $.timeago(this.get('startDate'));
+    }
   }.property('startDate'),
-  //data : DS.attr('string')
+
+  endFormatted: function () {
+    if (this.get('endDate')) {
+      return $.timeago(this.get('endDate'));
+    }
+  }.property('endDate'),
+
   healthClass: function () {
     return this.get('status') === 'FAILED' ? 'health-status-DEAD-RED' : 'health-status-LIVE';
   }.property('status')
 });
 
 
-App.DataSetJob.FIXTURES = [/*
- {
- id: 1,
- cluster_name: 'cluster1',
- stack_name: 'HDP',
- hosts: [1, 2, 3, 4],
- racks: [1, 2, 3, 4, 5, 6],
- max_hosts_per_rack: 10
- }*/
-];
+App.DataSetJob.FIXTURES = [];

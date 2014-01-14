@@ -59,8 +59,6 @@ App.ClusterController = Em.Controller.extend({
     'racks':false,
     'alerts':false,
     'users':false,
-    'datasets':false,
-    'targetclusters':false,
     'status': false,
     'componentConfigs': false
   }),
@@ -332,29 +330,6 @@ App.ClusterController = Em.Controller.extend({
       '&minimal_response=true';
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
-    var dataSetUrl = "/data/mirroring/all_datasets.json";
-    var targetClusterUrl = "/data/mirroring/target_clusters.json";
-
-    if (App.supports.mirroring) {
-      App.HttpClient.get(targetClusterUrl, App.targetClusterMapper, {
-        complete: function (jqXHR, textStatus) {
-          self.updateLoadStatus('targetclusters');
-        }
-      }, function (jqXHR, textStatus) {
-        self.updateLoadStatus('targetclusters');
-      });
-
-      App.HttpClient.get(dataSetUrl, App.dataSetMapper, {
-        complete: function (jqXHR, textStatus) {
-          self.updateLoadStatus('datasets');
-        }
-      }, function (jqXHR, textStatus) {
-        self.updateLoadStatus('datasets');
-      });
-    } else {
-      self.updateLoadStatus('targetclusters');
-      self.updateLoadStatus('datasets');
-    }
 
     App.HttpClient.get(racksUrl, App.racksMapper, {
       complete:function (jqXHR, textStatus) {

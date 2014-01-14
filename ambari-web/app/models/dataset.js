@@ -20,30 +20,23 @@
 var App = require('app');
 
 App.Dataset = DS.Model.extend({
-  id: DS.attr('string'),
   name: DS.attr('string'),
   status: DS.attr('string'),
   sourceClusterName: DS.attr('string'),
-  targetCluster: DS.belongsTo('App.TargetCluster'),
+  targetClusterName: DS.attr('string'),
   sourceDir: DS.attr('string'),
   targetDir: DS.attr('string'),
-  schedule: DS.belongsTo('App.Dataset.Schedule'),
-  lastSucceededDate: DS.attr('number'),
-  lastFailedDate: DS.attr('number'),
-  lastDuration: DS.attr('number'),
-  avgData: DS.attr('string'),
-  createdDate: DS.attr('string'),
   datasetJobs: DS.hasMany('App.DataSetJob'),
+
+  //Last succeeded date. Will be calculated later.
+  lastSucceededDate: function () {
+    return '';
+  }.property(),
 
   //Next instance to run. Will be calculated later.
   nextInstance: function () {
     return '';
   }.property(),
-
-  //Name of target cluster related to dataset
-  cluster: function () {
-    return this.get('targetCluster.clusterName');
-  }.property('targetCluster.clusterName'),
 
   //Class name for dataset health status indicator
   healthClass: function () {
@@ -56,36 +49,4 @@ App.Dataset = DS.Model.extend({
   }.property('datasetJobs', 'datasetJobs.@each.status')
 });
 
-
-App.Dataset.Schedule = DS.Model.extend({
-  id: DS.attr('string'),
-  startDate: DS.attr('string'),
-  endDate: DS.attr('string'),
-  startTime: DS.attr('string'),
-  endTime: DS.attr('string'),
-  timezone: DS.attr('string'),
-  frequency: DS.attr('string'),
-  dataset: DS.belongsTo('App.Dataset')
-});
-
-App.Dataset.FIXTURES = [/*
- {
- id: 1,
- cluster_name: 'cluster1',
- stack_name: 'HDP',
- hosts: [1, 2, 3, 4],
- racks: [1, 2, 3, 4, 5, 6],
- max_hosts_per_rack: 10
- }*/
-];
-
-App.Dataset.Schedule.FIXTURES = [/*
- {
- id: 1,
- cluster_name: 'cluster1',
- stack_name: 'HDP',
- hosts: [1, 2, 3, 4],
- racks: [1, 2, 3, 4, 5, 6],
- max_hosts_per_rack: 10
- }*/
-];
+App.Dataset.FIXTURES = [];
