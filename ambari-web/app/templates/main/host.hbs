@@ -27,25 +27,17 @@
       {{#view view.statusFilter categoriesBinding="view.categories"}}
         {{#each category in view.categories}}
           {{#if category.isVisible}}
-            {{#if category.alerts}}
-                <br /><br />
+            {{#if category.separator}}
+              <br /><br />
             {{else}}
-                |
+              |
             {{/if}}
             <span {{bindAttr class="aaa :category-item category.itemClass"}}>
               <a {{action selectCategory category target="view"}} href="#">
-                {{#if category.alerts}}
-                  <span class="label label-important">{{t hosts.host.alerts.st}}</span>
+                {{#if category.isHealthStatus}}
+                  <span {{bindAttr class=":health-status category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
                 {{else}}
-                  {{#if category.restart}}
-                    <span class="icon-refresh"></span>
-                  {{else}}
-                    {{#if category.maintenance}}
-                      <span class="maintenance icon-medkit"></span>
-                    {{else}}
-                      <span {{bindAttr class=":health-status category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
-                    {{/if}}
-                  {{/if}}
+                  <span {{bindAttr class="category.class"}}></span>
                 {{/if}}
                 {{category.label}}
               </a>

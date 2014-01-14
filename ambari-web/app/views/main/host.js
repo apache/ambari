@@ -23,6 +23,10 @@ var date = require('utils/date');
 
 App.MainHostView = App.TableView.extend({
   templateName:require('templates/main/host'),
+  /**
+   * List of hosts in cluster
+   * @type {Array}
+   */
   content:function () {
     return this.get('controller.content');
   }.property('controller.content.length'),
@@ -53,7 +57,7 @@ App.MainHostView = App.TableView.extend({
 
   /**
    * Select/deselect all visible hosts flag
-   * @property {bool}
+   * @property {Boolean}
    */
   selectAllHosts: false,
 
@@ -242,69 +246,139 @@ App.MainHostView = App.TableView.extend({
 
   /**
    * Category view for all hosts
+   * @type {Object}
    */
+  //@TODO maybe should be separated to two types (basing on <code>isHealthStatus</code>)
   categoryObject: Em.Object.extend({
 
-    hostsCount: function () {
+    /**
+     * Text used with <code>hostsCount</code> in category label
+     * @type {String}
+     */
+    value: null,
+    /**
+     * Is category based on host health status
+     * @type {Boolean}
+     */
+    isHealthStatus: true,
+    /**
+     * host health status (used if <code>isHealthStatus</code> is true)
+     * @type {String}
+     */
+    healthStatusValue: '',
+    /**
+     * Should category be displayed on the top of the hosts table
+     * @type {Boolean}
+     */
+    isVisible: true,
+    /**
+     * Is category selected now
+     * @type {Boolean}
+     */
+    isActive: false,
+    /**
+     * String with path that category should observe
+     * @type {String}
+     */
+    observes: null,
+    /**
+     * CSS-class for span in the category-link (used if <code>isHealthStatus</code> is false)
+     * @type {String}
+     */
+    class: null,
+    /**
+     * Associated column number
+     * @type {Number}
+     */
+    column: null,
+    /**
+     * Type of filter value (string, number, boolean)
+     * @type {String}
+     */
+    type: null,
+    /**
+     * @type {String|Number|Boolean}
+     */
+    filterValue: null,
+    /**
+     * Should new line be inserted after this category
+     * @type {Boolean}
+     */
+    separator: false,
+
+    /**
+     * <code>App.Host</code> property that should be used to calculate <code>hostsCount</code> (used if <code>isHealthStatus</code> is false)
+     * @type {String}
+     */
+    hostProperty: null,
+
+    /**
+     * Number of host in current category
+     * @type {Number}
+     */
+    hostsCount: 0,
+
+    /**
+     * Add "active" class for category span-wrapper if current category is selected
+     * @type {String}
+     */
+    itemClass: function() {
+      return this.get('isActive') ? 'active' : '';
+    }.property('isActive'),
+
+    /**
+     * Trigger updating <code>hostsCount</code> only 1 time
+     */
+    updateHostsCount: function() {
+      Em.run.once(this, 'updateOnce');
+    },
+    /**
+     * Update <code>hostsCount</code> in current category
+     */
+    updateOnce: function() {
       var statusString = this.get('healthStatusValue');
-      var alerts = this.get('alerts');
-      var restart = this.get('restart');
-      var maintenance = this.get('maintenance');
-      var selected = this.get('selected');
-      if(alerts) {
-        return this.get('view.content').filterProperty('criticalAlertsCount').get('length');
-      }
-      else {
-        if (restart) {
-          return this.get('view.content').filterProperty('componentsWithStaleConfigsCount').get('length');
+      if (this.get('isHealthStatus')) {
+        if (statusString == "") {
+          this.set('hostsCount', this.get('view.content').get('length'));
         }
         else {
-          if (maintenance) {
-            return this.get('view.content').filterProperty('componentsInMaintenanceCount').get('length');
-          }
-          else {
-            if (selected) {
-              return this.get('view.content').filterProperty('selected').get('length');
-            }
-            else {
-              if (statusString == "") {
-                return this.get('view.content').get('length');
-              }
-              else {
-                return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
-              }
-            }
-          }
+          this.set('hostsCount', this.get('view.content').filterProperty('healthClass', statusString).get('length'));
         }
       }
-    }.property('view.content.@each.selected', 'view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount', 'view.content.@each.componentsInMaintenanceCount', 'view.content.@each.componentsWithStaleConfigsCount'),
+      else {
+        this.set('hostsCount', this.get('view.content').filterProperty(this.get('hostProperty')).get('length'));
+      }
+    },
 
+    /**
+     * Text shown on the right of category icon
+     * @type {String}
+     */
     label: function () {
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
     }.property('hostsCount')
   }),
 
+  /**
+   * List of categories used to filter hosts
+   * @type {Array}
+   */
   categories: function () {
     var self = this;
     self.categoryObject.reopen({
-      view: self,
-      isActive: false,
-      itemClass: function() {
-        return this.get('isActive') ? 'active' : '';
-      }.property('isActive')
+      view: self
     });
 
-    return [
-      self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: '', isActive: true, isVisible: false}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE', isVisible: true}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED', isVisible: true}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE', isVisible: true}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', isVisible: true}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', alerts: true, isVisible: true }),
-      self.categoryObject.create({value: Em.I18n.t('common.restart'), healthStatusValue: 'health-status-RESTART', restart: true, isVisible: true }),
-      self.categoryObject.create({value: Em.I18n.t('common.selected'), healthStatusValue: 'health-status-SELECTED', selected: true, isVisible: false }),
-      self.categoryObject.create({value: Em.I18n.t('common.maintenance'), healthStatusValue: 'health-status-MAINTENANCE', maintenance: true, last: true, isVisible: true })
-    ];
+    var category_mocks = require('data/host/categories');
+
+    return category_mocks.map(function(category_mock) {
+      var c = self.categoryObject.create(category_mock);
+      if (c.get('observes')) {
+        c.addObserver(c.get('observes'), c, c.updateHostsCount);
+        c.updateHostsCount();
+      }
+      return c;
+    });
   }.property(),
 
   /**
@@ -321,59 +395,40 @@ App.MainHostView = App.TableView.extend({
     /**
      * switch active category label
      */
-    onCategoryChange: function(){
+    onCategoryChange: function() {
       this.get('categories').setEach('isActive', false);
       this.get('categories').findProperty('healthStatusValue', this.get('value')).set('isActive', true);
     }.observes('value'),
+
     showClearFilter: function(){
       var mockEvent = {
         context: this.get('categories').findProperty('healthStatusValue', this.get('value'))
       };
       this.selectCategory(mockEvent);
     },
+    /**
+     * Trigger on Category click
+     * @param {Object} event
+     */
     selectCategory: function(event){
       var category = event.context;
+      var self = this;
       this.set('value', category.get('healthStatusValue'));
-      if(category.get('alerts')) {
-        this.get('parentView').updateFilter(0, '', 'string');
-        this.get('parentView').updateFilter(7, '>0', 'number');
-        this.get('parentView').updateFilter(8, '', 'number');
-        this.get('parentView').updateFilter(9, '', 'number');
-        this.get('parentView').updateFilter(10, '', 'boolean');
+      if (category.get('isHealthStatus')) {
+        this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
+        this.get('categories').filterProperty('isHealthStatus', false).forEach(function(c) {
+          self.get('parentView').updateFilter(c.get('column'), '', c.get('type'));
+        });
       }
       else {
-        if(category.get('restart')) {
-          this.get('parentView').updateFilter(0, '', 'string');
-          this.get('parentView').updateFilter(7, '', 'number');
-          this.get('parentView').updateFilter(8, '>0', 'number');
-          this.get('parentView').updateFilter(9, '', 'number');
-          this.get('parentView').updateFilter(10, '', 'boolean');
-        }
-        else {
-          if(category.get('maintenance')) {
-            this.get('parentView').updateFilter(0, '', 'string');
-            this.get('parentView').updateFilter(7, '', 'number');
-            this.get('parentView').updateFilter(8, '', 'number');
-            this.get('parentView').updateFilter(9, '>0', 'number');
-            this.get('parentView').updateFilter(10, '', 'boolean');
+        this.get('categories').filterProperty('isHealthStatus', false).forEach(function(c) {
+          if (c.get('column') === category.get('column')) {
+            self.get('parentView').updateFilter(category.get('column'), category.get('filterValue'), category.get('type'));
           }
           else {
-            if(category.get('selected')) {
-              this.get('parentView').updateFilter(0, '', 'string');
-              this.get('parentView').updateFilter(7, '', 'number');
-              this.get('parentView').updateFilter(8, '', 'number');
-              this.get('parentView').updateFilter(9, '', 'number');
-              this.get('parentView').updateFilter(10, true, 'boolean');
-            }
-            else {
-              this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
-              this.get('parentView').updateFilter(7, '', 'number');
-              this.get('parentView').updateFilter(8, '', 'number');
-              this.get('parentView').updateFilter(9, '', 'number');
-              this.get('parentView').updateFilter(10, '', 'boolean');
-            }
+            self.get('parentView').updateFilter(c.get('column'), '', c.get('type'));
           }
-        }
+        });
       }
     },
     clearFilter: function() {
@@ -434,6 +489,9 @@ App.MainHostView = App.TableView.extend({
     }
   }),
 
+  /**
+   * view of the "selected" filter implemented as a category of host statuses
+   */
   selectedFilter: Em.View.extend({
     column: 10,
     value: null,
@@ -631,6 +689,7 @@ App.MainHostView = App.TableView.extend({
 
   /**
    * associations between host property and column index
+   * @type {Array}
    */
   colPropAssoc: function(){
     var associations = [];
