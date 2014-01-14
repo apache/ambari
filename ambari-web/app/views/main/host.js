@@ -47,6 +47,14 @@ App.MainHostView = App.TableView.extend({
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
   },
 
+  willDestroyElement: function() {
+    this.get('categories').forEach(function(c) {
+      if (c.get('observes')) {
+        c.removeObserver(c.get('observes'), c, c.updateHostsCount);
+      }
+    });
+  },
+
   /**
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
@@ -104,19 +112,25 @@ App.MainHostView = App.TableView.extend({
    */
   bulkOperationConfirm: function(event) {
     var operationData = event.context;
-    var hostNames = [];
+    var hosts = [];
     var self = this;
     switch(operationData.selection) {
       case 's':
-        hostNames = this.get('content').filterProperty('selected').mapProperty('hostName');
+        hosts = this.get('content').filterProperty('selected');
         break;
       case 'f':
-        hostNames = this.get('filteredContent').mapProperty('hostName');
+        hosts = this.get('filteredContent');
         break;
       case 'a':
-        hostNames = this.get('content').mapProperty('hostName');
+        hosts = this.get('content');
         break;
     }
+    // no hosts - no actions
+    if (!hosts.length) {
+      console.log('No bulk operation if no hosts selected.');
+      return;
+    }
+    var hostNames = hosts.mapProperty('hostName');
     var message;
     if (operationData.componentNameFormatted) {
       message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
@@ -128,7 +142,7 @@ App.MainHostView = App.TableView.extend({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
       hostNames: hostNames.join("\n"),
       onPrimary: function() {
-        self.get('controller').bulkOperation(operationData, hostNames);
+        self.get('controller').bulkOperation(operationData, hosts);
         this._super();
       },
       bodyClass: Em.View.extend({
