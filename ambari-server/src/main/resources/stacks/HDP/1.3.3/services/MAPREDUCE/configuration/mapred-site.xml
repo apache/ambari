@@ -577,4 +577,27 @@ user)</description>
   <description> Comma separated list of queues configured for this jobtracker.</description>
 </property>
 
+  
+<property>
+  <name>mapreduce.jobhistory.intermediate-done-dir</name>
+  <value>/mr-history/tmp</value>
+  <description>
+    Directory where history files are written by MapReduce jobs.
+  </description>
+</property>
+
+<property>
+  <name>mapreduce.jobhistory.done-dir</name>
+  <value>/mr-history/done</value>
+  <description>
+    Directory where history files are managed by the MR JobHistory Server.
+  </description>
+</property>
+
+<property>       
+  <name>mapreduce.jobhistory.webapp.address</name>
+  <value>localhost:19888</value>
+  <description>Enter your JobHistoryServer hostname.</description>
+</property>
+
 </configuration>
