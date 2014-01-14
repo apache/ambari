@@ -88,14 +88,17 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
     LOG.debug("Finished linear job: " + jobKey);
 
     JobDataMap jobDataMap = context.getMergedJobDataMap();
+
     String nextJobName = jobDataMap.getString(NEXT_EXECUTION_JOB_NAME_KEY);
     String nextJobGroup = jobDataMap.getString(NEXT_EXECUTION_JOB_GROUP_KEY);
+
+    if (nextJobName == null || nextJobName.isEmpty()) {
+      LOG.debug("End of linear job chain. Returning with success.");
+      return;
+    }
+
     Integer separationSeconds = jobDataMap.getIntegerFromString(
       (NEXT_EXECUTION_SEPARATION_SECONDS));
-
-    if (separationSeconds == null) {
-      separationSeconds = 0;
-    }
 
     // Create trigger for next job execution
     Trigger trigger = newTrigger()

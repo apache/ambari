@@ -304,6 +304,9 @@ public class ExecutionScheduleManagerTest {
     Assert.assertEquals(1, triggers.size());
     assertThat(triggers.get(0), instanceOf(SimpleTrigger.class));
 
+    Assert.assertNull(jobDetail2.getJobDataMap().getString(
+      ExecutionJob.NEXT_EXECUTION_JOB_NAME_KEY));
+
     int waitCount = 0;
     while (scheduler.getCurrentlyExecutingJobs().size() != 0 && waitCount < 10) {
       Thread.sleep(100);

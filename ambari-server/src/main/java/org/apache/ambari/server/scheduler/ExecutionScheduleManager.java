@@ -288,6 +288,9 @@ public class ExecutionScheduleManager {
           String jobName = getJobName(requestExecution.getId(),
             batchRequest.getOrderId());
 
+          Integer separationSeconds = requestExecution.getBatch()
+            .getBatchSettings().getBatchSeparationInSeconds();
+
           // Create Job and store properties to get next batch request details
           jobDetail = newJob(BatchRequestJob.class)
             .withIdentity(jobName, ExecutionJob.LINEAR_EXECUTION_JOB_GROUP)
@@ -300,6 +303,8 @@ public class ExecutionScheduleManager {
               batchRequest.getOrderId())
             .usingJobData(BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY,
               requestExecution.getClusterName())
+            .usingJobData(BatchRequestJob.NEXT_EXECUTION_SEPARATION_SECONDS,
+              separationSeconds != null ? separationSeconds : 0)
             .storeDurably()
             .build();
 
