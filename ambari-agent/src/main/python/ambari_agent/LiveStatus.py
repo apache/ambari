@@ -150,31 +150,30 @@ class LiveStatus:
 
     livestatus = None
     component = {"serviceName" : self.service, "componentName" : self.component}
-    if component in self.COMPONENTS + self.CLIENT_COMPONENTS :
-      if forsed_component_status: # If already determined
-        status = forsed_component_status  # Nothing to do
-      elif component in self.CLIENT_COMPONENTS:
-        status = self.DEAD_STATUS # CLIENT components can't have status STARTED
-      else:
-        statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
-                                  AmbariConfig.pidPathesVars, self.globalConfig,
-                                  AmbariConfig.servicesToLinuxUser)
-        serviceStatus = statusCheck.getStatus(self.component)
-        if serviceStatus is None:
-          logger.warn("There is no service to pid mapping for " + self.component)
-        status = self.LIVE_STATUS if serviceStatus else self.DEAD_STATUS
+    if forsed_component_status: # If already determined
+      status = forsed_component_status  # Nothing to do
+    elif component in self.CLIENT_COMPONENTS:
+      status = self.DEAD_STATUS # CLIENT components can't have status STARTED
+    elif component in self.COMPONENTS:
+      statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
+                                AmbariConfig.pidPathesVars, self.globalConfig,
+                                AmbariConfig.servicesToLinuxUser)
+      serviceStatus = statusCheck.getStatus(self.component)
+      if serviceStatus is None:
+        logger.warn("There is no service to pid mapping for " + self.component)
+      status = self.LIVE_STATUS if serviceStatus else self.DEAD_STATUS
 
-      livestatus ={"componentName" : self.component,
-                   "msg" : "",
-                   "status" : status,
-                   "clusterName" : self.cluster,
-                   "serviceName" : self.service,
-                   "stackVersion": self.versionsHandler.
-                   read_stack_version(self.component)
-      }
-      active_config = self.actualConfigHandler.read_actual_component(self.component)
-      if not active_config is None:
-        livestatus['configurationTags'] = active_config
+    livestatus ={"componentName" : self.component,
+                 "msg" : "",
+                 "status" : status,
+                 "clusterName" : self.cluster,
+                 "serviceName" : self.service,
+                 "stackVersion": self.versionsHandler.
+                 read_stack_version(self.component)
+    }
+    active_config = self.actualConfigHandler.read_actual_component(self.component)
+    if not active_config is None:
+      livestatus['configurationTags'] = active_config
 
     logger.debug("The live status for component " + str(self.component) +\
                 " of service " + str(self.service) + " is " + str(livestatus))

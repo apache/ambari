@@ -25,6 +25,9 @@ import socket
 import os, sys, StringIO
 from ambari_agent import ActualConfigHandler
 from mock.mock import patch, MagicMock, call
+import pprint
+from ambari_agent import StatusCheck
+
 
 class TestLiveStatus(TestCase):
 
@@ -69,4 +72,30 @@ class TestLiveStatus(TestCase):
     result = livestatus.build(forsed_component_status = LiveStatus.DEAD_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.DEAD_STATUS)
+
+
+  @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
+  @patch.object(StatusCheck.StatusCheck, "getStatus")
+  def test_build_predefined(self, getStatus_mock, read_actual_component_mock):
+    read_actual_component_mock.return_value = "actual_component"
+    """
+    Tests that if live status us defined (using default parameter),
+    then no StatusCheck is executed
+    """
+    config = AmbariConfig().getConfig()
+    config.set('agent', 'prefix', "ambari_agent" + os.sep + "dummy_files")
+    livestatus = LiveStatus('', 'SOME_UNKNOWN_SERVICE',
+                            'SOME_UNKNOWN_COMPONENT', {}, config)
+    livestatus.versionsHandler.versionsFilePath = "ambari_agent" + \
+                      os.sep + "dummy_files" + os.sep + "dummy_current_stack"
+    result = livestatus.build(forsed_component_status = "STARTED")
+    result_str = pprint.pformat(result)
+    self.assertEqual(result_str,
+                     "{'clusterName': '',\n "
+                     "'componentName': 'SOME_UNKNOWN_COMPONENT',\n "
+                     "'configurationTags': 'actual_component',\n "
+                     "'msg': '',\n 'serviceName': 'SOME_UNKNOWN_SERVICE',\n "
+                     "'stackVersion': '',\n 'status': 'STARTED'}")
+    self.assertFalse(getStatus_mock.called)
+
 
