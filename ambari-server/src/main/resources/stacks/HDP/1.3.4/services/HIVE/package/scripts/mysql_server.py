@@ -47,7 +47,7 @@ class MysqlServer(Script):
 
     # Autoescaping
     cmd = ("bash", "-x", params.mysql_adduser_path, self.daemon_name,
-           params.hive_metastore_user_name, params.hive_metastore_user_passwd, params.mysql_host[0])
+           params.hive_metastore_user_name, str(params.hive_metastore_user_passwd) , params.mysql_host[0])
 
     Execute(cmd,
             tries=3,
