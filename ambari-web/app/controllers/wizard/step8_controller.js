@@ -526,9 +526,7 @@ App.WizardStep8Controller = Em.Controller.extend({
            break;
            */
           case 'STORM':
-            if (App.testMode) {
-              this.loadSTORM(serviceObj);
-            }
+            this.loadSTORM(serviceObj);
           case 'HCATALOG':
             break;
           default:
@@ -1494,6 +1492,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (selectedServices.someProperty('serviceName', 'PIG')) {
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
     }
+    if (selectedServices.someProperty('serviceName', 'STORM')) {
+      this.get('serviceConfigTags').pushObject(this.createStormSiteObj('STORM'));
+    }
     if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('ZOOKEEPER'));
     }
@@ -1818,6 +1819,15 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'webhcat-site', tag: 'version1', properties: webHCatProperties};
   },
 
+  createStormSiteObj: function (s) {
+    var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
+    var stormProperties = {};
+    configs.forEach(function (_configProperty) {
+      stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, 'storm-site', 'version1', this);
+    }, this);
+    return {type: 'storm-site', tag: 'version1', properties: stormProperties};
+  },
   ajaxQueueFinished: function () {
     //do something
   },

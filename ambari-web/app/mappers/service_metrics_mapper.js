@@ -306,17 +306,16 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    * @param item
    */
   mapQuickLinks: function (finalJson, item){
-    if(item && item.ServiceInfo && item.ServiceInfo.service_name == "OOZIE"){
-      finalJson.quick_links = [19];
-    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "GANGLIA"){
-      finalJson.quick_links = [20];
-    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "NAGIOS"){
-      finalJson.quick_links = [21];
-    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "HUE"){
-      finalJson.quick_links = [22];
-    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "FALCON"){
-      finalJson.quick_links = [32];
-    }
+    if(!(item && item.ServiceInfo)) return;
+    var quickLinks = {
+      OOZIE: [19],
+      GANGLIA: [20],
+      NAGIOS: [21],
+      HUE: [22],
+      STORM: [31]
+    };
+    if (quickLinks[item.ServiceInfo.service_name])
+      finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];
   },
 
   hdfsMapper: function (item) {

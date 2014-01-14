@@ -229,10 +229,14 @@ module.exports = [
   {
     serviceName: 'STORM',
     displayName: 'Storm',
+    filename: 'storm-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Nimbus', displayName : 'Nimbus'})
+      App.ServiceConfigCategory.create({ name: 'Nimbus', displayName : 'Nimbus'}),
+      App.ServiceConfigCategory.create({ name: 'Supervisor', displayName : 'SuperVisor'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
-    sites: ['storm-site'],
+    sites: ['global', 'storm-site'],
     configs: []
   },
   {

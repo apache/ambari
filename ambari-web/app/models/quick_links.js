@@ -400,7 +400,7 @@ App.QuickLinks.FIXTURES = [
     https_config: 'mapreduce.jobhistory.webapp.https.address',
     site: 'storm-site',
     regex: portRegex,
-    default_http_port: 9292
+    default_http_port: 6627
   },
   {
     id:32,

@@ -421,6 +421,9 @@ App.config = Em.Object.create({
           configData.description = advanced.description;
         }
       }
+      if (configData.displayType === 'checkbox') {
+        configData.value = configData.defaultValue = configData.value === 'true'; // convert {String} value to {Boolean}
+      }
       mergedConfigs.push(configData);
     }, this);
     return mergedConfigs;

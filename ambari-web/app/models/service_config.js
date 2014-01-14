@@ -393,6 +393,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
+      case 'nimbus_host':
+        if (!App.supports.storm) return; // @todo remove test mode check after Storm service integration
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'NIMBUS').hostName);
+        break;
       case 'hbase.zookeeper.quorum':
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         this.setDefaultValue("(\\w*)", zkHosts);

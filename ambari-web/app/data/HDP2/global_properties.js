@@ -1285,19 +1285,44 @@ module.exports =
       "category": "Falcon"
     },
   /**********************************************STORM***************************************/
-    // @todo create real properties
     {
       "id": "puppet var",
-      "name": "nimbus.thrift.port",
-      "displayName": "nimbus.thrift.port",
+      "name": "nimbus_host",
+      "displayName": "Nimbus host",
       "description": "",
-      "defaultValue": "6627",
+      "defaultValue": "",
+      "displayType": "masterHost",
       "isReconfigurable": false,
-      "displayType": "int",
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
       "category": "Nimbus"
+    },
+    {
+      "id": "puppet var",
+      "name": "storm_log_dir",
+      "displayName": "storm_log_dir",
+      "description": "",
+      "defaultValue": "/var/log/storm",
+      "displayType": "directory",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "General"
+    },
+    {
+      "id": "puppet var",
+      "name": "storm_pid_dir",
+      "displayName": "storm_pid_dir",
+      "description": "",
+      "defaultValue": "/var/run/storm",
+      "displayType": "directory",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "General"
     },
   /**********************************************MISC***************************************/
     {

@@ -35,6 +35,9 @@
       "capacity-scheduler" : {
         "tag" : "version1"
       },
+      "storm-site" : {
+        "tag" : "version1"
+      },
       "core-site" : {
         "tag" : "version1"
       }
