@@ -13,7 +13,7 @@
 {
 "hdfs_user" : "hdfs",
 "jdk_location" : "http://hdp1/downloads",
-
+"java_home" : " java64_home ",
 "java32_home" : "/usr/jdk64/jdk1.6.0_31",
 "java64_home" : "/usr/jdk64/jdk1.6.0_31",
 "jdk_bins" :  { "32" : "jdk-6u31-linux-x64.bin", "64" : "jdk-6u31-linux-x64.bin" },

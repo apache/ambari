@@ -98,7 +98,7 @@ class TestPuppetExecutor(TestCase):
     puppetInstance.reposInstalled = False
     isJavaAvailableMock.return_value = False
     parsedJson['roleCommand'] = "START"
-    parsedJson['configurations'] = {'global':{'java64_home':'/usr/jdk/jdk123'}}
+    parsedJson['hostLevelParams'] = {'java_home':'/usr/jdk/jdk123'}
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     
     JAVANOTVALID_MSG = "Cannot access JDK! Make sure you have permission to execute {0}/bin/java"
@@ -107,10 +107,10 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(res["stderr"], errMsg)
     self.assertFalse(puppetInstance.reposInstalled)
 
-    parsedJson['configurations'] = {'random':{'name1':'value2'}}
+    parsedJson['hostLevelParams'] = {'random':{'name1':'value2'}}
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertEquals(res["exitcode"], 1)
-    self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java64_home is specified in global config")
+    self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java_home is specified in hostLevelParams")
 
 
   @patch.object(PuppetExecutor, 'isJavaAvailable')

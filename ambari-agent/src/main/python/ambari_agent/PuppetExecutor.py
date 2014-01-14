@@ -159,7 +159,7 @@ class PuppetExecutor:
         java64_home = str(command['hostLevelParams']['java_home']).strip()
       if java64_home is None or not self.isJavaAvailable(java64_home):
         if java64_home is None:
-          errMsg = "Cannot access JDK! Make sure java_home is specified in global config"
+          errMsg = "Cannot access JDK! Make sure java_home is specified in hostLevelParams"
         else:
           errMsg = JAVANOTVALID_MSG.format(java64_home)
         return {'stdout': '', 'stderr': errMsg, 'exitcode': 1}
