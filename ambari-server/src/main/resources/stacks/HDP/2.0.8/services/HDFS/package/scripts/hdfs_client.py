@@ -39,6 +39,9 @@ class HdfsClient(Script):
 
     env.set_params(params)
 
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
   def config(self, env):
     import params
 
