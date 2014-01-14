@@ -271,9 +271,13 @@ public class Configuration {
     "server.execution.scheduler.maxDbConnections";
   public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION =
     "server.execution.scheduler.misfire.toleration.minutes";
+  public static final String EXECUTION_SCHEDULER_START_DELAY =
+    "server.execution.scheduler.start.delay.seconds";
+
   public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
   public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
   public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
+  public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -898,5 +902,11 @@ public class Configuration {
       (EXECUTION_SCHEDULER_MISFIRE_TOLERATION,
         DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION);
     return Long.parseLong(limit);
+  }
+
+  public Integer getExecutionSchedulerStartDelay() {
+    String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY,
+      DEFAULT_SCHEDULER_START_DELAY_SECONDS);
+    return Integer.parseInt(delay);
   }
 }

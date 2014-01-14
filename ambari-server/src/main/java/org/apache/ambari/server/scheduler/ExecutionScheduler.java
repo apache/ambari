@@ -32,7 +32,7 @@ public interface ExecutionScheduler {
    * Initialize and start the scheduler to accept jobs.
    * @throws AmbariException
    */
-  public void startScheduler() throws AmbariException;
+  public void startScheduler(Integer delay) throws AmbariException;
 
   /**
    * Shutdown the scheduler threads and do not accept any more jobs.

@@ -92,7 +92,7 @@ public class ExecutionSchedulerTest {
     Scheduler scheduler = createNiceMock(Scheduler.class);
 
     expect(factory.getScheduler()).andReturn(scheduler);
-    expectPrivate(scheduler, "start").once();
+    expectPrivate(scheduler, "startDelayed", new Integer(180)).once();
     expectNew(StdSchedulerFactory.class).andReturn(factory);
     expectPrivate(scheduler, "shutdown").once();
 
@@ -100,7 +100,7 @@ public class ExecutionSchedulerTest {
 
     ExecutionSchedulerImpl executionScheduler = new ExecutionSchedulerImpl(configuration);
 
-    executionScheduler.startScheduler();
+    executionScheduler.startScheduler(180);
     executionScheduler.stopScheduler();
 
     PowerMock.verify(factory, StdSchedulerFactory.class, scheduler);

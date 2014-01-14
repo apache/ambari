@@ -148,7 +148,7 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
   }
 
   @Override
-  public synchronized void startScheduler() throws AmbariException {
+  public synchronized void startScheduler(Integer delay) throws AmbariException {
     try {
       if (!isInitialized) {
         initializeScheduler();
@@ -161,7 +161,7 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
       throw new AmbariException(msg);
     }
     try {
-      scheduler.start();
+      scheduler.startDelayed(delay != null ? delay : 0);
     } catch (SchedulerException e) {
       LOG.error("Failed to start scheduler", e);
       throw new AmbariException(e.getMessage());

@@ -125,8 +125,10 @@ public class ExecutionScheduleManager {
   public void start() {
     LOG.info("Starting scheduler");
     try {
-      executionScheduler.startScheduler();
+      executionScheduler.startScheduler(configuration
+        .getExecutionSchedulerStartDelay());
       schedulerAvailable = true;
+
     } catch (AmbariException e) {
       LOG.warn("Unable to start scheduler. No recurring tasks will be " +
         "scheduled.");
