@@ -26,10 +26,6 @@ App.MainHostController = Em.ArrayController.extend({
 
   clearFilters: null,
 
-  alerts: function () {
-    return App.router.get('clusterController.alerts').filterProperty('isOk', false).filterProperty('ignoredForHosts', false);
-  }.property('App.router.clusterController.alerts.length'),
-
   /**
    * Components which will be shown in component filter
    * @returns {Array}
@@ -94,22 +90,19 @@ App.MainHostController = Em.ArrayController.extend({
 
   showAlertsPopup: function (event) {
     var host = event.context;
+    App.router.get('mainAlertsController').loadAlerts(host.get('hostName'), "HOST");
     App.ModalPopup.show({
       header: this.t('services.alerts.headingOfList'),
       bodyClass: Ember.View.extend({
-        hostAlerts: function () {
-          var allAlerts = App.router.get('clusterController.alerts').filterProperty('ignoredForHosts', false);
-          if (host) {
-            return App.Alert.sort(allAlerts.filterProperty('hostName', host.get('hostName')));
-          }
-          return 0;
-        }.property('App.router.clusterController.alerts'),
+        templateName: require('templates/main/host/alerts_popup'),
+        controllerBinding: 'App.router.mainAlertsController',
+        alerts: function () {
+          return this.get('controller.alerts');
+        }.property('controller.alerts'),
 
         closePopup: function () {
           this.get('parentView').hide();
-        },
-
-        templateName: require('templates/main/host/alerts_popup')
+        }
       }),
       primary: Em.I18n.t('common.close'),
       secondary : null,

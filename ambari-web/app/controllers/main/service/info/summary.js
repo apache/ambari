@@ -19,20 +19,7 @@ var App = require('app');
 
 App.MainServiceInfoSummaryController = Em.Controller.extend({
   name: 'mainServiceInfoSummaryController',
-  allAlerts: function(){
-    return App.router.get('clusterController.alerts');
-  }.property('App.router.clusterController.alerts'),
 
-  alerts: function () {
-    var serviceId = this.get('content.serviceName');
-    if (serviceId) {
-      return App.Alert.sort(this.get('allAlerts').filter(function (item) {
-        return item.get('serviceType').toLowerCase() == serviceId.toLowerCase() && !item.get('ignoredForServices');
-      }));
-    }
-    return [];
-  }.property('allAlerts', 'content.serviceName'),
-  
   nagiosUrl: function(){
     return App.router.get('clusterController.nagiosUrl');
   }.property('App.router.clusterController.nagiosUrl'),

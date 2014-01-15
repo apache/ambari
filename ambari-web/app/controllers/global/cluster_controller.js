@@ -57,7 +57,6 @@ App.ClusterController = Em.Controller.extend({
     'cluster':false,
     'clusterStatus':false,
     'racks':false,
-    'alerts':false,
     'users':false,
     'status': false,
     'componentConfigs': false
@@ -192,81 +191,6 @@ App.ClusterController = Em.Controller.extend({
   }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
   /**
-   * Sorted list of alerts.
-   * Changes whenever alerts are loaded.
-   */
-  alerts:[],
-  alertsHostMap: {},
-  alertsServiceMap: {},
-  updateAlerts: function(){
-    var alerts = App.Alert.find().toArray();
-    var alertsHostMap = {};
-    var alertsServiceMap = {};
-    alerts.forEach(function (alert) {
-      if (!alert.get('isOk')) {
-        if (!alert.get('ignoredForHosts')) {
-          if (alertsHostMap[alert.get('hostName')]) {
-            alertsHostMap[alert.get('hostName')]++;
-          } else {
-            alertsHostMap[alert.get('hostName')] = 1;
-          }
-        }
-        if (!alert.get('ignoredForServices')) {
-          if (alertsServiceMap[alert.get('serviceType')]) {
-            alertsServiceMap[alert.get('serviceType')]++;
-          } else {
-            alertsServiceMap[alert.get('serviceType')] = 1;
-          }
-        }
-      }
-    }, this);
-    this.set('alertsHostMap', alertsHostMap);
-    this.set('alertsServiceMap', alertsServiceMap);
-    this.set('alerts', alerts);
-  },
-
-  /**
-   * Load alerts from server
-   * @param callback Slave function, should be called to fire delayed update.
-   * Look at <code>App.updater.run</code> for more information.
-   * Also used to set <code>dataLoadList.alerts</code> status during app loading
-   */
-  loadAlerts:function (callback) {
-    if (this.get('isNagiosInstalled')) {
-      var testUrl = App.get('isHadoop2Stack') ? '/data/alerts/HDP2/alerts.json':'/data/alerts/alerts.json';
-      var dataUrl = this.getUrl(testUrl, '/host_components?fields=HostRoles/nagios_alerts&HostRoles/component_name=NAGIOS_SERVER');
-      var self = this;
-      var ajaxOptions = {
-        dataType:"json",
-        complete:function () {
-          self.updateAlerts();
-          callback();
-        },
-        error: function(jqXHR, testStatus, error) {
-          console.log('Nagios $.ajax() response:', error);
-        }
-      };
-      App.HttpClient.get(dataUrl, App.alertsMapper, ajaxOptions);
-    } else {
-      console.log("No Nagios URL provided.");
-      callback();
-    }
-  },
-
-  /**
-   * Determination of Nagios presence is known only after App.Service is
-   * loaded from server. When that is done, no one tells alerts to load,
-   * due to which alerts are not loaded & shown till the next polling cycle.
-   * This method immediately loads alerts once Nagios presence is known.
-   */
-  isNagiosInstalledListener: function () {
-    var self = this;
-    self.loadAlerts(function () {
-      self.updateLoadStatus('alerts');
-    });
-  }.observes('isNagiosInstalled'),
-
-  /**
    * Send request to server to load components updated statuses
    * @param callback Slave function, should be called to fire delayed update.
    * Look at <code>App.updater.run</code> for more information
@@ -306,7 +230,6 @@ App.ClusterController = Em.Controller.extend({
       return false;
     }
     App.updater.run(this, 'loadUpdatedStatus', 'isWorking', App.componentsUpdateInterval); //update will not run it immediately
-    App.updater.run(this, 'loadAlerts', 'isWorking'); //update will not run it immediately
     return true;
   }.observes('isWorking'),
   /**
@@ -326,8 +249,8 @@ App.ClusterController = Em.Controller.extend({
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,Hosts/disk_info,' +
-      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free'+
-      '&minimal_response=true';
+      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free,'+
+      'alerts/summary&minimal_response=true';
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 
@@ -392,9 +315,6 @@ App.ClusterController = Em.Controller.extend({
       });
     });
 
-    this.loadAlerts(function(){
-        self.updateLoadStatus('alerts');
-    });
   },
 
   requestHosts: function(realUrl, callback){

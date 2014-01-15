@@ -42,7 +42,6 @@ require('mappers/cluster_mapper');
 require('mappers/jobs_mapper');
 require('mappers/runs_mapper');
 require('mappers/racks_mapper');
-require('mappers/alerts_mapper');
 require('mappers/users_mapper');
 require('mappers/service_mapper');
 require('mappers/service_metrics_mapper');

@@ -30,6 +30,14 @@ var App = require('app');
  * @type {Object}
  */
 var urls = {
+  'alerts.get_by_service': {
+    'real': '/clusters/{clusterName}/services/{serviceName}?fields=alerts',
+    'mock': '/data/background_operations/list_on_start.json'
+  },
+  'alerts.get_by_host': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}?fields=alerts',
+    'mock': '/data/background_operations/list_on_start.json'
+  },
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size=10&fields=Requests',
     'mock': '/data/background_operations/list_on_start.json',

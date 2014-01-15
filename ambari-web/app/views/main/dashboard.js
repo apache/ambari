@@ -538,18 +538,17 @@ App.MainDashboardView = Em.View.extend({
   }.property('App.router.clusterController.gangliaUrl'),
 
   showAlertsPopup: function (event) {
+    var service = event.context;
+    App.router.get('mainAlertsController').loadAlerts(service.get('serviceName'), "SERVICE");
     App.ModalPopup.show({
       header: this.t('services.alerts.headingOfList'),
       bodyClass: Ember.View.extend({
-        service: event.context,
+        templateName: require('templates/main/dashboard/alert_notification_popup'),
+        service: service,
+        controllerBinding: 'App.router.mainAlertsController',
         warnAlerts: function () {
-          var allAlerts = App.router.get('clusterController.alerts');
-          var serviceId = this.get('service.serviceName');
-          if (serviceId) {
-            return App.Alert.sort(allAlerts.filterProperty('serviceType', serviceId).filterProperty('isOk', false).filterProperty('ignoredForServices', false));
-          }
-          return 0;
-        }.property('App.router.clusterController.alerts'),
+          return this.get('controller.alerts').filterProperty('isOk', false).filterProperty('ignoredForServices', false);
+        }.property('controller.alerts'),
 
         warnAlertsCount: function () {
           return this.get('warnAlerts').length;
@@ -573,10 +572,9 @@ App.MainDashboardView = Em.View.extend({
         },
 
         selectService: function () {
-          App.router.transitionTo('services.service.summary', event.context)
+          App.router.transitionTo('services.service.summary', service);
           this.closePopup();
-        },
-        templateName: require('templates/main/dashboard/alert_notification_popup')
+        }
       }),
       primary: Em.I18n.t('common.close'),
       secondary : null,

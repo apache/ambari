@@ -18,25 +18,18 @@
 
 var App = require('app');
 
-App.AlertStatus = {
-  negative: 'corrupt',
-  positive: 'ok'
-};
-
 /**
  * Defines structure for App.Alert class. Keys mentioned here are for JSON data
  * which comes back from NAGIOS server.
  */
-App.Alert = DS.Model.extend({
-  title: DS.attr('string'),//service_description in ajax response
-  serviceType: DS.attr('string'),
-  status: DS.attr('string'),//current_state in ajax response
-  message: DS.attr('string'),//plugin_output in ajax response
-  hostName: DS.attr('string'),
-  currentAttempt: DS.attr('string'),
-  isFlapping: DS.attr('number'),
-  lastCheck: DS.attr('number'),
-  lastTime: DS.attr('number'),
+App.Alert = Em.Object.extend({
+  title: null,//service_description in ajax response
+  serviceType: null,
+  status: null,//current_state in ajax response
+  message: null,//plugin_output in ajax response
+  hostName: null,
+  lastCheck: null,
+  lastTime: null,
 
   date: function () {
     return DS.attr.transforms.date.from(this.get('lastTime'));
@@ -186,22 +179,4 @@ App.Alert = DS.Model.extend({
     }
     return null;
   }.property('serviceType')
-
 });
-
-App.Alert.sort = function (array) {
-  return array.sort(function (left, right) {
-    var statusDiff = right.get('status') - left.get('status');
-    if (statusDiff == 0) { // same error severity - sort by time
-      var rightTime = right.get('date');
-      var leftTime = left.get('date');
-      rightTime = rightTime ? rightTime.getTime() : 0;
-      leftTime = leftTime ? leftTime.getTime() : 0;
-      statusDiff = rightTime - leftTime;
-    }
-    return statusDiff;
-  });
-};
-
-App.Alert.FIXTURES = [
-];

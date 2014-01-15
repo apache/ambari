@@ -16,12 +16,16 @@
 * limitations under the License.
 }}
 
-{{#if view.hostAlerts.length}}
-<ul id='summary-alerts-list' class="alerts">
-  {{#each view.hostAlerts}}
-  {{view App.AlertItemView contentBinding="this"}}
-  {{/each}}
-</ul>
+{{#if controller.isLoaded}}
+  {{#if view.alerts.length}}
+      <ul id='summary-alerts-list' class="alerts">
+        {{#each view.alerts}}
+          {{view App.AlertItemView contentBinding="this"}}
+        {{/each}}
+      </ul>
+  {{else}}
+    {{t hosts.host.alert.noAlerts.message}}
+  {{/if}}
 {{else}}
-  {{t hosts.host.alert.noAlerts.message}}
+    <div class="spinner"></div>
 {{/if}}

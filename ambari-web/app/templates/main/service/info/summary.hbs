@@ -84,20 +84,24 @@
         {{/if}}
       </div>
       <ul id='summary-alerts-list' class="alerts">
-        {{#if controller.alerts.length}}
-          {{#each controller.alerts}}
-            {{view App.AlertItemView contentBinding="this"}}
-          {{/each}}
-        {{else}}
-          {{#if controller.isNagiosInstalled}}
-            <div class="alert alert-info">
-              {{t services.service.info.summary.nagios.noAlerts}}
-            </div>
+        {{#if view.alertsController.isLoaded}}
+          {{#if view.alerts.length}}
+            {{#each view.alerts}}
+              {{view App.AlertItemView contentBinding="this"}}
+            {{/each}}
           {{else}}
-            <div class="alert">
-              {{t services.service.info.summary.nagios.alerts}}
-            </div>
+            {{#if controller.isNagiosInstalled}}
+                <div class="alert alert-info">
+                  {{t services.service.info.summary.nagios.noAlerts}}
+                </div>
+            {{else}}
+                <div class="alert">
+                  {{t services.service.info.summary.nagios.alerts}}
+                </div>
+            {{/if}}
           {{/if}}
+        {{else}}
+          <div class="spinner"></div>
         {{/if}}
       </ul>
     </div>

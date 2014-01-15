@@ -16,15 +16,19 @@
 * limitations under the License.
 }}
 
-<p>{{view.warnAlertsMessage}}</p>
-{{#if view.warnAlertsCount}}
-  <ul id='summary-alerts-list' class="alerts">
-    {{#each view.warnAlerts}}
-      {{view App.AlertItemView contentBinding="this"}}
-    {{/each}}
-  </ul>
+{{#if controller.isLoaded}}
+    <p>{{view.warnAlertsMessage}}</p>
+    {{#if view.warnAlertsCount}}
+        <ul id='summary-alerts-list' class="alerts">
+          {{#each view.warnAlerts}}
+            {{view App.AlertItemView contentBinding="this"}}
+          {{/each}}
+        </ul>
+    {{/if}}
+    <p class="alertsPopupLinks">
+        <a href="#" {{action selectService target="view"}}>{{t services.alerts.goToService}}</a>
+        <a href="#" {{action "viewNagiosUrl" target="view" on="mouseUp"}}>{{t services.alerts.goToNagios}}</a>
+    </p>
+{{else}}
+  <div class="spinner"></div>
 {{/if}}
-<p class="alertsPopupLinks">
-    <a href="#" {{action selectService}}>{{t services.alerts.goToService}}</a>
-    <a href="#" {{action "viewNagiosUrl" on="mouseUp"}}>{{t services.alerts.goToNagios}}</a>
-</p>

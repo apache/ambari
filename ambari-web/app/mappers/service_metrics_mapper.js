@@ -27,6 +27,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     id: 'ServiceInfo.service_name',
     service_name: 'ServiceInfo.service_name',
     work_status: 'ServiceInfo.state',
+    critical_alerts_count: 'ServiceInfo.critical_alerts_count',
     $rand: Math.random(),
     $alerts: [ 1, 2, 3 ],
     host_components: 'host_components',
@@ -237,7 +238,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         App.store.loadMany(this.get('model'), result);
       } else {
         result.forEach(function (serviceJson) {
-          var fields = ['work_status', 'rand', 'alerts', 'quick_links', 'host_components', 'tool_tip_content'];
+          var fields = ['work_status', 'rand', 'alerts', 'quick_links', 'host_components', 'tool_tip_content', 'critical_alerts_count'];
           var service = this.get('model').find(serviceJson.id);
           var modifiedData = this.getDiscrepancies(serviceJson, previousResponse.findProperty('id', serviceJson.id), fields);
           if (modifiedData.isLoadNeeded) {

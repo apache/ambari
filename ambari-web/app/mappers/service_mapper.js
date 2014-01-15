@@ -23,14 +23,19 @@ App.serviceMapper = App.QuickDataMapper.create({
 
     var servicesData = [];
     json.items.forEach(function (service) {
-      servicesData.push({
+      var serviceData = {
         ServiceInfo: {
           service_name: service.ServiceInfo.service_name,
           state: service.ServiceInfo.state
         },
         host_components: [],
         components: []
-      });
+      };
+      //check whether Nagios installed and started
+      if (service.alerts) {
+        serviceData.ServiceInfo.critical_alerts_count = service.alerts.summary.CRITICAL + service.alerts.summary.WARNING;
+      }
+      servicesData.push(serviceData);
     });
 
     App.cache['services'] = servicesData;

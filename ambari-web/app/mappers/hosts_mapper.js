@@ -38,6 +38,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     host_components: {
       item: 'id'
     },
+    critical_alerts_count: 'critical_alerts_count',
     cpu: 'Hosts.cpu_count',
     cpu_physical: 'Hosts.ph_cpu_count',
     memory: 'Hosts.total_mem',
@@ -75,6 +76,10 @@ App.hostsMapper = App.QuickDataMapper.create({
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + hostName;
         }, this);
+        //check whether Nagios installed and started
+        if (item.alerts) {
+          item.critical_alerts_count = item.alerts.summary.CRITICAL + item.alerts.summary.WARNING;
+        }
 
         hostIds[hostName] = true;
         currentHostStatuses[hostName] = item.Hosts.host_status;
@@ -167,7 +172,7 @@ App.hostsMapper = App.QuickDataMapper.create({
    */
   getDiscrepancies: function (current, previous) {
     var result = {};
-    var fields = ['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free'];
+    var fields = ['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free', 'critical_alerts_count'];
     if (previous) {
       fields.forEach(function (field) {
         if (current[field] != previous[field]) result[field] = current[field];

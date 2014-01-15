@@ -58,6 +58,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     }.property("service")
   }),
 
+  alertsControllerBinding: 'App.router.mainAlertsController',
+  alerts: function () {
+    return this.get('alertsController.alerts');
+  }.property('alertsController.alerts'),
+
   noTemplateService: function () {
     var serviceName = this.get("service.serviceName");
     //services with only master components
@@ -420,6 +425,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
   didInsertElement:function () {
+    var alertsController = this.get('alertsController');
+    alertsController.loadAlerts(this.get('service.serviceName'), "SERVICE");
+    alertsController.set('isUpdating', true);
     //TODO delegate style calculation to css
     // We have to make the height of the Alerts section
     // match the height of the Summary section.
@@ -438,14 +446,17 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         $(summaryTable).append('<tr><td></td></tr>');
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
-      Ember.run.next(this, 'setAlertsWindowSize');
     }
   },
+  willDestroyElement: function(){
+    this.get('alertsController').set('isUpdating', false);
+  },
+
   setAlertsWindowSize: function() {
     // for alerts window
     var summaryTable = document.getElementById('summary-info');
     var alertsList = document.getElementById('summary-alerts-list');
-    var alertsNum = App.router.get('mainServiceInfoSummaryController.alerts.length');
+    var alertsNum = this.get('alerts').length;
     if (summaryTable && alertsList && alertsNum != null) {
       var summaryActualHeight = summaryTable.clientHeight;
       var alertsActualHeight = alertsNum * 60;
@@ -464,7 +475,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
       }
     }
-  }.observes('App.router.mainServiceInfoSummaryController.alerts.length'),
+  }.observes('alertsController.isLoaded'),
 
   clientHosts:App.Host.find(),
 

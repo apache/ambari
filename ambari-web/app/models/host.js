@@ -44,6 +44,7 @@ App.Host = DS.Model.extend({
   memFree:DS.attr('number'),
   cpuSystem:DS.attr('number'),
   cpuUser:DS.attr('number'),
+  criticalAlertsCount: DS.attr('number'),
 
   /**
    * Is host checked at the main Hosts page
@@ -72,14 +73,6 @@ App.Host = DS.Model.extend({
     }
     return 0;
   }.property('memTotal', 'memFree'),
-
-  /**
-   * Get count of critical alerts for current host
-   * @returns {Number}
-   */
-  criticalAlertsCount: function () {
-    return App.router.get('clusterController.alertsHostMap')[this.get('hostName')];
-  }.property('App.router.clusterController.alerts.length'),
 
   /**
    * Get count of host components with stale configs
