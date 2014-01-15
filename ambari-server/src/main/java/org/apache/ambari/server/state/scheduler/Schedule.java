@@ -138,6 +138,11 @@ public class Schedule {
     return true;
   }
 
+  /**
+   * Return empty if schedule has non usable fields.
+   * @return
+   */
+  @JsonIgnore
   public boolean isEmpty() {
     return (minutes == null || minutes.isEmpty())
       && (hours == null || hours.isEmpty())
