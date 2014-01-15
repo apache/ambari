@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.scheduler;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.easymock.Capture;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -36,11 +37,13 @@ public class BatchRequestJobTest {
     ExecutionScheduleManager scheduleManagerMock = createMock(ExecutionScheduleManager.class);
     BatchRequestJob batchRequestJob = new BatchRequestJob(scheduleManagerMock, 100L);
     String clusterName = "mycluster";
-    Long requestId = 11L;
+    long requestId = 11L;
+    long executionId = 31L;
+    long batchId = 1L;
 
     Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put(BatchRequestJob.BATCH_REQUEST_EXECUTION_ID_KEY, 1L);
-    properties.put(BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY, 1L);
+    properties.put(BatchRequestJob.BATCH_REQUEST_EXECUTION_ID_KEY, executionId);
+    properties.put(BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY, batchId);
     properties.put(BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY, clusterName);
 
 
@@ -64,14 +67,21 @@ public class BatchRequestJobTest {
     expect(scheduleManagerMock.getBatchRequestResponse(requestId, clusterName)).
       andReturn(inProgressResponse).times(4);
     expect(scheduleManagerMock.getBatchRequestResponse(requestId, clusterName)).
-      andReturn(completedResponse).atLeastOnce();
+      andReturn(completedResponse).once();
 
+    scheduleManagerMock.updateBatchRequest(eq(executionId), eq(batchId), eq(clusterName),
+        anyObject(BatchRequestResponse.class), eq(true));
+    expectLastCall().anyTimes();
 
     replay(scheduleManagerMock);
 
     batchRequestJob.doWork(properties);
 
     verify(scheduleManagerMock);
+
+    Assert.assertEquals(executionId, executionIdCapture.getValue().longValue());
+    Assert.assertEquals(batchId, batchIdCapture.getValue().longValue());
+    Assert.assertEquals(clusterName, clusterNameCapture.getValue());
 
 
   }
