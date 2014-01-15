@@ -598,7 +598,7 @@
         "storm.zookeeper.retry.intervalceiling.millis" : "30000",
         "storm.zookeeper.retry.times" : "5",
         "storm.zookeeper.root" : "/storm",
-        "storm.zookeeper.servers" : "[&apos;localhost&apos;]",
+        "storm.zookeeper.servers" : "['localhost']",
         "storm.zookeeper.session.timeout" : "20000",
         "supervisor.childopts" : "-Xmx256m",
         "supervisor.enable" : "true",

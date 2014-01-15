@@ -1823,7 +1823,11 @@ App.WizardStep8Controller = Em.Controller.extend({
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
     var stormProperties = {};
     configs.forEach(function (_configProperty) {
-      stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      if (_configProperty.name == "storm.zookeeper.servers") {
+        stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
+      } else {
+        stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      }
       this._recordHostOverrideFromObj(_configProperty, 'storm-site', 'version1', this);
     }, this);
     return {type: 'storm-site', tag: 'version1', properties: stormProperties};

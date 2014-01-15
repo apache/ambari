@@ -287,6 +287,12 @@ App.config = Em.Object.create({
             serviceConfigObj.set('value', dirs[0]);
             serviceConfigObj.set('defaultValue', dirs[0]);
           }
+          if (serviceConfigObj.get('displayType') == 'masterHosts') {
+            if (typeof(serviceConfigObj.get('value')) == 'string') {
+              var value = serviceConfigObj.get('value').replace(/\[|]|'|&apos;/g, "").split(',');
+              serviceConfigObj.set('value', value);
+            }
+          }
           configs.push(serviceConfigObj);
         } else {
           mappingConfigs.push(serviceConfigObj);
