@@ -279,6 +279,16 @@ public class Configuration {
   public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
   public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
 
+
+  /**
+   * This key defines whether stages of parallel requests are executed in
+   * parallel or sequentally. Only stages from different requests
+   * running on not interfering host sets may be executed in parallel.
+   */
+  public static final String PARALLEL_STAGE_EXECUTION_KEY =
+          "server.stages.parallel";
+  private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -345,6 +355,8 @@ public class Configuration {
       CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
     configsMap.put(JAVA_HOME_KEY, properties.getProperty(
         JAVA_HOME_KEY));
+    configsMap.put(PARALLEL_STAGE_EXECUTION_KEY, properties.getProperty(
+            PARALLEL_STAGE_EXECUTION_KEY, PARALLEL_STAGE_EXECUTION_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -909,4 +921,9 @@ public class Configuration {
       DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
   }
+
+  public boolean getParallelStageExecution() {
+    return "true".equalsIgnoreCase(configsMap.get(PARALLEL_STAGE_EXECUTION_KEY));
+  }
+
 }

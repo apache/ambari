@@ -84,7 +84,8 @@ public class TestActionManager {
   public void testActionResponse() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), null, unitOfWork, null, injector.getInstance(RequestFactory.class));
+        clusters, db, new HostsMap((String) null), null, unitOfWork, null, 
+        injector.getInstance(RequestFactory.class), null);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -124,7 +125,8 @@ public class TestActionManager {
   public void testLargeLogs() {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), null, unitOfWork, null, injector.getInstance(RequestFactory.class));
+        clusters, db, new HostsMap((String) null), null, unitOfWork, null,
+        injector.getInstance(RequestFactory.class), null);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -213,7 +215,8 @@ public class TestActionManager {
 
     replay(queue, db, clusters);
 
-    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null, unitOfWork, null, injector.getInstance(RequestFactory.class));
+    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, null, unitOfWork, null,
+        injector.getInstance(RequestFactory.class), null);
     assertSame(listStages, manager.getActions(requestId));
 
     verify(queue, db, clusters);

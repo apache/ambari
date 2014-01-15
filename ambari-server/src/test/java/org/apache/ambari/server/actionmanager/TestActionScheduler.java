@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.google.common.reflect.TypeToken;
@@ -47,6 +48,7 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
@@ -88,6 +90,8 @@ public class TestActionScheduler {
     Map<String, List<String>> clusterHostInfo = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
     
     ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     Service serviceObj = mock(Service.class);
@@ -114,7 +118,7 @@ public class TestActionScheduler {
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
-        10000, new HostsMap((String) null), null, unitOfWork);
+        10000, new HostsMap((String) null), null, unitOfWork, conf);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
@@ -161,6 +165,8 @@ public class TestActionScheduler {
   @Test
   public void testActionTimeout() throws Exception {
     ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     Service serviceObj = mock(Service.class);
@@ -198,7 +204,7 @@ public class TestActionScheduler {
 
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3, 
-        new HostsMap((String) null), null, unitOfWork);
+        new HostsMap((String) null), null, unitOfWork, conf);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
@@ -216,6 +222,8 @@ public class TestActionScheduler {
   @Test
   public void testActionTimeoutForLostHost() throws Exception {
     ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     Service serviceObj = mock(Service.class);
@@ -253,7 +261,7 @@ public class TestActionScheduler {
 
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-      new HostsMap((String) null), null, unitOfWork);
+      new HostsMap((String) null), null, unitOfWork, conf);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();
@@ -274,6 +282,8 @@ public class TestActionScheduler {
   @Test
   public void testServerAction() throws Exception {
     ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     Service serviceObj = mock(Service.class);
@@ -310,7 +320,8 @@ public class TestActionScheduler {
 
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork);
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+        unitOfWork, conf);
     scheduler.start();
 
     while (!stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION")
@@ -328,6 +339,8 @@ public class TestActionScheduler {
   @Test
   public void testServerActionFailed() throws Exception {
     ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     Service serviceObj = mock(Service.class);
@@ -363,7 +376,7 @@ public class TestActionScheduler {
 
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork);
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, conf);
     scheduler.start();
 
     while (!stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION")
@@ -391,6 +404,152 @@ public class TestActionScheduler {
     execCmd.setCommandParams(payload);
     return stage;
   }
+
+
+  /**
+   * Verifies that stages that are executed on different hosts and
+   * rely to different requests are scheduled to be  executed in parallel
+   */
+  @Test
+  public void testIndependentStagesExecution() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    UnitOfWork unitOfWork = mock(UnitOfWork.class);
+    RequestFactory requestFactory = mock(RequestFactory.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    String hostname1 = "ahost.ambari.apache.org";
+    String hostname2 = "bhost.ambari.apache.org";
+    String hostname3 = "chost.ambari.apache.org";
+    String hostname4 = "chost.ambari.apache.org";
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(
+            getStageWithSingleTask(
+                    hostname1, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 1, 1, 1));
+    stages.add( // Stage with the same hostname, should not be scheduled
+            getStageWithSingleTask(
+                    hostname1, "cluster1", Role.GANGLIA_MONITOR,
+                    RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+
+    stages.add(
+            getStageWithSingleTask(
+                    hostname2, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
+
+    stages.add(
+            getStageWithSingleTask(
+                    hostname3, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 4, 4, 4));
+
+    stages.add( // Stage with the same request id, should not be scheduled
+            getStageWithSingleTask(
+                    hostname4, "cluster1", Role.GANGLIA_MONITOR,
+                    RoleCommand.START, Service.Type.GANGLIA, 5, 5, 4));
+
+    ActionDBAccessor db = mock(ActionDBAccessor.class);
+    when(db.getStagesInProgress()).thenReturn(stages);
+
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+            new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+            unitOfWork, conf);
+
+    ActionManager am = new ActionManager(
+            2, 2, aq, fsm, db, new HostsMap((String) null),
+            new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
+
+    scheduler.doWork();
+
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
+  }
+
+
+  /**
+   * Verifies that ActionScheduler respects "disable parallel stage execution option"
+   */
+  @Test
+  public void testIndependentStagesExecutionDisabled() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    UnitOfWork unitOfWork = mock(UnitOfWork.class);
+    RequestFactory requestFactory = mock(RequestFactory.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    String hostname1 = "ahost.ambari.apache.org";
+    String hostname2 = "bhost.ambari.apache.org";
+    String hostname3 = "chost.ambari.apache.org";
+    String hostname4 = "chost.ambari.apache.org";
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(
+            getStageWithSingleTask(
+                    hostname1, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 1, 1, 1));
+    stages.add( // Stage with the same hostname, should not be scheduled
+            getStageWithSingleTask(
+                    hostname1, "cluster1", Role.GANGLIA_MONITOR,
+                    RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+
+    stages.add(
+            getStageWithSingleTask(
+                    hostname2, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
+
+    stages.add(
+            getStageWithSingleTask(
+                    hostname3, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 4, 4, 4));
+
+    stages.add( // Stage with the same request id, should not be scheduled
+            getStageWithSingleTask(
+                    hostname4, "cluster1", Role.GANGLIA_MONITOR,
+                    RoleCommand.START, Service.Type.GANGLIA, 5, 5, 4));
+
+    ActionDBAccessor db = mock(ActionDBAccessor.class);
+    when(db.getStagesInProgress()).thenReturn(stages);
+
+    Properties properties = new Properties();
+    properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "false");
+    Configuration conf = new Configuration(properties);
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+            new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+            unitOfWork, conf);
+
+    ActionManager am = new ActionManager(
+            2, 2, aq, fsm, db, new HostsMap((String) null),
+            new ServerActionManagerImpl(fsm), unitOfWork, null,
+            requestFactory, conf);
+
+    scheduler.doWork();
+
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
+  }
+
 
   @Test
   public void testRequestFailureOnStageFailure() throws Exception {
@@ -478,11 +637,13 @@ public class TestActionScheduler {
       }
     }).when(db).abortOperation(anyLong());
 
-
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork);
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+        unitOfWork, conf);
     ActionManager am = new ActionManager(
-        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory);
+        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
 
     scheduler.doWork();
 
@@ -623,10 +784,13 @@ public class TestActionScheduler {
       }
     }).when(db).abortOperation(anyLong());
 
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 10000, db, aq, fsm, 3,
-        new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork);
+        new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+        unitOfWork, conf);
     ActionManager am = new ActionManager(
-        2, 10000, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory);
+        2, 10000, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
 
     scheduler.doWork();
 
@@ -792,10 +956,13 @@ public class TestActionScheduler {
       }
     }).when(db).abortOperation(anyLong());
 
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork);
+        new HostsMap((String) null),
+        new ServerActionManagerImpl(fsm), unitOfWork, conf);
     ActionManager am = new ActionManager(
-        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory);
+        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
 
     scheduler.doWork();
 
@@ -893,6 +1060,8 @@ public class TestActionScheduler {
     int requestId2 = 2;
     
     ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
     Service serviceObj = mock(Service.class);
@@ -919,7 +1088,7 @@ public class TestActionScheduler {
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
-        10000, new HostsMap((String) null), null, unitOfWork);
+        10000, new HostsMap((String) null), null, unitOfWork, conf);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
     scheduler.start();

@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManager;
@@ -75,6 +77,7 @@ class ActionScheduler implements Runnable {
   private final HostsMap hostsMap;
   private final Object wakeupSyncObject = new Object();
   private final ServerActionManager serverActionManager;
+  private final Configuration configuration;
 
   /**
    * true if scheduler should run ASAP.
@@ -87,7 +90,8 @@ class ActionScheduler implements Runnable {
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
-      int maxAttempts, HostsMap hostsMap, ServerActionManager serverActionManager, UnitOfWork unitOfWork) {
+      int maxAttempts, HostsMap hostsMap, ServerActionManager serverActionManager,
+      UnitOfWork unitOfWork, Configuration configuration) {
     this.sleepTime = sleepTimeMilliSec;
     this.hostsMap = hostsMap;
     this.actionTimeout = actionTimeoutMilliSec;
@@ -100,6 +104,7 @@ class ActionScheduler implements Runnable {
     this.clusterHostInfoCache = CacheBuilder.newBuilder().
         expireAfterAccess(5, TimeUnit.MINUTES).
         build();
+    this.configuration = configuration;
   }
 
   public void start() {
@@ -149,7 +154,8 @@ class ActionScheduler implements Runnable {
   public void doWork() throws AmbariException {
     try {
       unitOfWork.begin();
-
+      Set<String> runningRequestIds = new HashSet<String>();
+      Set<String> affectedHosts = new HashSet<String>();
       List<Stage> stages = db.getStagesInProgress();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Scheduler wakes up");
@@ -163,9 +169,37 @@ class ActionScheduler implements Runnable {
       }
 
       for (Stage s : stages) {
+        // Check if we can process this stage in parallel with another stages
+
+        long requestId = s.getRequestId();
+        // Convert to string to avoid glitches with boxing/unboxing
+        String requestIdStr = String.valueOf(requestId);
+        if (runningRequestIds.contains(requestIdStr)) {
+          // We don't want to process different stages from the same request in parallel
+          continue;
+        } else {
+          runningRequestIds.add(requestIdStr);
+        }
+
+
+        List<String> stageHosts = s.getHosts();
+        boolean conflict = false;
+        for (String host : stageHosts) {
+          if (affectedHosts.contains(host)) {
+            conflict = true;
+            break;
+          }
+        }
+        if (conflict) {
+          // Also we don't want to perform stages in parallel at the same hosts
+          continue;
+        } else {
+          affectedHosts.addAll(stageHosts);
+        }
+
         List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
         Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
-        //Check if stage is failed
+        // Check if stage is failed
         boolean failed = false;
         for (String role : roleStats.keySet()) {
           RoleStats stats = roleStats.get(role);
@@ -193,23 +227,14 @@ class ActionScheduler implements Runnable {
         //Schedule what we have so far
         for (ExecutionCommand cmd : commandsToSchedule) {
           if (Role.valueOf(cmd.getRole()).equals(Role.AMBARI_SERVER_ACTION)) {
-            try {
-              long now = System.currentTimeMillis();
-              String hostName = cmd.getHostname();
-              String roleName = cmd.getRole();
-
-              s.setStartTime(hostName, roleName, now);
-              s.setLastAttemptTime(hostName, roleName, now);
-              s.incrementAttemptCount(hostName, roleName);
-              s.setHostRoleStatus(hostName, roleName, HostRoleStatus.QUEUED);
-              db.hostRoleScheduled(s, hostName, roleName);
-              String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
-              this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
-              reportServerActionSuccess(s, cmd);
-            } catch (AmbariException e) {
-              LOG.warn("Could not execute server action " + cmd.toString(), e);
-              reportServerActionFailure(s, cmd, e.getMessage());
-            }
+            /**
+             * We don't forbid executing any stages in parallel with
+             * AMBARI_SERVER_ACTION. That  should be OK as AMBARI_SERVER_ACTION
+             * is not used as of now. The general motivation has been to update
+             * Request status when last task associated with the
+             * Request is finished.
+             */
+            executeServerAction(s, cmd);
           } else {
             try {
               scheduleHostRole(s, cmd);
@@ -220,16 +245,7 @@ class ActionScheduler implements Runnable {
           }
         }
 
-        //Check if ready to go to next stage
-        boolean goToNextStage = true;
-        for (String role : roleStats.keySet()) {
-          RoleStats stats = roleStats.get(role);
-          if (!stats.isSuccessFactorMet()) {
-            goToNextStage = false;
-            break;
-          }
-        }
-        if (!goToNextStage) {
+        if (! configuration.getParallelStageExecution()) { // If disabled
           return;
         }
       }
@@ -239,10 +255,36 @@ class ActionScheduler implements Runnable {
     }
   }
 
+
+  /**
+   * Executes internal ambari-server action
+   */
+  private void executeServerAction(Stage s, ExecutionCommand cmd) {
+    try {
+      long now = System.currentTimeMillis();
+      String hostName = cmd.getHostname();
+      String roleName = cmd.getRole();
+
+      s.setStartTime(hostName, roleName, now);
+      s.setLastAttemptTime(hostName, roleName, now);
+      s.incrementAttemptCount(hostName, roleName);
+      s.setHostRoleStatus(hostName, roleName, HostRoleStatus.QUEUED);
+      db.hostRoleScheduled(s, hostName, roleName);
+      String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
+      this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
+      reportServerActionSuccess(s, cmd);
+
+    } catch (AmbariException e) {
+      LOG.warn("Could not execute server action " + cmd.toString(), e);
+      reportServerActionFailure(s, cmd, e.getMessage());
+    }
+  }
+
   private boolean hasPreviousStageFailed(Stage stage) {
     boolean failed = false;
     long prevStageId = stage.getStageId() - 1;
     if (prevStageId > 0) {
+      // Find previous stage instance
       List<Stage> allStages = db.getAllStages(stage.getRequestId());
       Stage prevStage = null;
       for (Stage s : allStages) {
@@ -293,7 +335,7 @@ class ActionScheduler implements Runnable {
     report.setStdOut("Server action succeeded");
     report.setStdErr("");
     db.updateHostRoleState(cmd.getHostname(), stage.getRequestId(), stage.getStageId(),
-                           cmd.getRole().toString(), report);
+            cmd.getRole(), report);
   }
 
   private void reportServerActionFailure(Stage stage, ExecutionCommand cmd, String message) {
@@ -303,13 +345,15 @@ class ActionScheduler implements Runnable {
     report.setStdOut("Server action failed");
     report.setStdErr(message);
     db.updateHostRoleState(cmd.getHostname(), stage.getRequestId(), stage.getStageId(),
-                           cmd.getRole().toString(), report);
+            cmd.getRole(), report);
   }
 
   /**
-   * @param commandsToSchedule
    * @return Stats for the roles in the stage. It is used to determine whether stage
    * has succeeded or failed.
+   * Side effects:
+   * This method processes command timeouts and retry attempts, and
+   * adds new (pending) execution commands to commandsToSchedule list.
    */
   private Map<String, RoleStats> processInProgressStage(Stage s,
       List<ExecutionCommand> commandsToSchedule) throws AmbariException {
@@ -328,6 +372,8 @@ class ActionScheduler implements Runnable {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
+
+        // Process command timeouts
         if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
           taskTimeout)) {
           LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:"
@@ -361,6 +407,7 @@ class ActionScheduler implements Runnable {
             // Dequeue command
             actionQueue.dequeue(host, c.getCommandId());
           } else {
+            // reschedule command
             commandsToSchedule.add(c);
           }
         } else if (status.equals(HostRoleStatus.PENDING)) {
@@ -373,8 +420,14 @@ class ActionScheduler implements Runnable {
     return roleStats;
   }
 
+
+  /**
+   * Populates a map < role_name, role_stats>.
+   */
   private Map<String, RoleStats> initRoleStats(Stage s) {
+    // Meaning: how many hosts are affected by commands for each role
     Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
+    // < role_name, rolestats >
     Map<String, RoleStats> roleStats = new TreeMap<String, RoleStats>();
 
     for (String host : s.getHostRoleCommands().keySet()) {
@@ -419,8 +472,10 @@ class ActionScheduler implements Runnable {
   private void scheduleHostRole(Stage s, ExecutionCommand cmd)
       throws InvalidStateTransitionException, AmbariException {
     long now = System.currentTimeMillis();
-    String roleStr = cmd.getRole().toString();
+    String roleStr = cmd.getRole();
     String hostname = cmd.getHostname();
+
+    // start time is -1 if host role command is not started yet
     if (s.getStartTime(hostname, roleStr) < 0) {
       if (RoleCommand.ACTIONEXECUTE != cmd.getRoleCommand()) {
         try {

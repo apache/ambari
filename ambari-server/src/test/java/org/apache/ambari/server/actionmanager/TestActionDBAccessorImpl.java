@@ -83,7 +83,8 @@ public class TestActionDBAccessorImpl {
     cdb = injector.getInstance(CustomActionDBAccessor.class);
 
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), cdb, injector.getInstance(RequestFactory.class));
+        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), cdb, 
+		injector.getInstance(RequestFactory.class), null);
   }
 
   @After
