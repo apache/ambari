@@ -375,16 +375,7 @@
               <directory>/var/lib/ambari-server/resources/upgrade/dml</directory>
               <sources>
                 <source>
-                  <location>src/main/resources/upgrade/dml/Ambari-DML-Postgres-UPGRADE_STACK.sql</location>
-                </source>
-                <source>
-                  <location>src/main/resources/upgrade/dml/Ambari-DML-Oracle-UPGRADE_STACK.sql</location>
-                </source>
-                <source>
-                  <location>src/main/resources/upgrade/dml/Ambari-DML-Postgres-INSERT_METAINFO.sql</location>
-                </source>
-                <source>
-                  <location>src/main/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql</location>
+                  <location>src/main/resources/upgrade/dml</location>
                 </source>
               </sources>
             </mapping>
