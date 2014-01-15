@@ -354,6 +354,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
      }
     });
     filteredResult = this.sortByIndex(filteredResult);
+    var categoryBlock = $('.' + this.get('category.name') + '>.accordion-body');
+    filteredResult.length ? categoryBlock.show() : categoryBlock.hide();
     return filteredResult;
   }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
 
