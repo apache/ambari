@@ -1691,12 +1691,19 @@ def download_jdk(args):
   ok = False
   jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
          "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
-  if args.java_home and os.path.exists(args.java_home):
+  if args.java_home:
+    if not os.path.exists(args.java_home):
+      err = "Path to java home " + args.java_home + " does not exists"
+      raise FatalException(1, err)
+
+    jce_policy_paths = []
     for jce_file in JCE_POLICY_FILENAMES:
       jce_policy_path = os.path.join(properties[RESOURCES_DIR_PROPERTY], jce_file)
       if os.path.exists(jce_policy_path):
-        err = "Command failed to execute. Please remove or move " + jce_policy_path + " and retry again"
-        raise FatalException(1, err)
+        jce_policy_paths.append(jce_policy_path)
+    if len(jce_policy_paths) > 0:
+      err = "Command failed to execute. Please remove or move " + str(jce_policy_paths).strip('[]') + " and retry again"
+      raise FatalException(1, err)
 
     print_warning_msg("JAVA_HOME " + args.java_home + " must be valid on ALL hosts")
     print_warning_msg(jcePolicyWarn)
@@ -1705,7 +1712,7 @@ def download_jdk(args):
     remove_property(JCE_NAME_PROPERTY)
     return 0
   else:
-    if get_JAVA_HOME():
+    if get_JAVA_HOME() and not args.jdk_location:
       change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n] (n)? ", False)
       if not change_jdk:
         return 0
@@ -1716,7 +1723,10 @@ def download_jdk(args):
       err = 'Property ' + str(e) + ' is not defined at ' + conf_file
       raise FatalException(1, err)
     ##JDK location was set by user with --jdk-location key
-    if args.jdk_location and os.path.exists(args.jdk_location):
+    if args.jdk_location:
+      if not os.path.exists(args.jdk_location):
+        err = "Path to jdk " + args.jdk_location + " does not exists"
+        raise FatalException(1, err)
       path, custom_jdk_name = os.path.split(args.jdk_location)
       dest_file = resources_dir + os.sep + custom_jdk_name
       print_warning_msg("JDK must be installed on all agent hosts and JAVA_HOME must be valid on all agent hosts.")
