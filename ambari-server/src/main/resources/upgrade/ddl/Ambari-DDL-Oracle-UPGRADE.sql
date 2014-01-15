@@ -26,7 +26,7 @@ ALTER TABLE hostconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
 ALTER TABLE stage ADD (cluster_host_info BLOB DEFAULT NULL);
 
 -- add decommission state
-ALTER TABLE hostcomponentdesiredstate ADD (component_attribute VARCHAR2 (255) DEFAULT NULL);
+ALTER TABLE hostcomponentdesiredstate ADD (admin_state VARCHAR2 (32) DEFAULT NULL);
 
 -- DML
 --Upgrade version to current

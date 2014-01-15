@@ -48,6 +48,7 @@ from resource_management import *
 from yarn import yarn
 from service import service
 
+
 class Resourcemanager(Script):
   def install(self, env):
     self.install_packages(env)
@@ -55,11 +56,13 @@ class Resourcemanager(Script):
 
   def configure(self, env):
     import params
+
     env.set_params(params)
     yarn()
 
   def start(self, env):
     import params
+
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     service('resourcemanager',
@@ -68,6 +71,7 @@ class Resourcemanager(Script):
 
   def stop(self, env):
     import params
+
     env.set_params(params)
 
     service('resourcemanager',
@@ -76,8 +80,33 @@ class Resourcemanager(Script):
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
     check_process_status(status_params.resourcemanager_pid_file)
+    pass
+
+  def decommission(self, env):
+    import params
+
+    env.set_params(params)
+
+    yarn_user = params.yarn_user
+    conf_dir = params.config_dir
+    user_group = params.user_group
+
+    yarn_refresh_cmd = format("/usr/bin/yarn --config {conf_dir} rmadmin -refreshNodes")
+
+    File(params.exclude_file_path,
+         content=Template("exclude_hosts_list.j2"),
+         owner=yarn_user,
+         group=user_group
+    )
+
+    Execute(yarn_refresh_cmd,
+            user=yarn_user
+    )
+    pass
+
 
 if __name__ == "__main__":
   Resourcemanager().execute()

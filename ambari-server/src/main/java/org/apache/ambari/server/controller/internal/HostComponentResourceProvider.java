@@ -73,8 +73,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "actual_configs");
   protected static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "stale_configs");
-  protected static final String HOST_COMPONENT_ADMIN_STATE_PROPERTY_ID
-      = PropertyHelper.getPropertyId("HostRoles", "admin_state");
+  protected static final String HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
   //Component name mappings
   private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
   private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT = 1500;   //milliseconds
@@ -193,7 +193,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
           Boolean.valueOf(response.isStaleConfig()), requestedIds);
       if (response.getAdminState() != null) {
-        setResourceProperty(resource, HOST_COMPONENT_ADMIN_STATE_PROPERTY_ID,
+        setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
             response.getAdminState(), requestedIds);
       }
 
@@ -302,9 +302,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       serviceComponentHostRequest.setStaleConfig(
           properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
     }
-    if (properties.get(HOST_COMPONENT_ADMIN_STATE_PROPERTY_ID) != null) {
+    if (properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setAdminState(
-          properties.get(HOST_COMPONENT_ADMIN_STATE_PROPERTY_ID).toString());
+          properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
     }
 
     return serviceComponentHostRequest;

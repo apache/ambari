@@ -2618,7 +2618,7 @@ def upgrade_local_repo_db(args, dbkey, dbvalue):
     client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
     client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INSERT_METAINFO_SCRIPTS[DATABASE_INDEX], args.database_username,
                                                                        BLIND_PASSWORD, args.database_name)
-    #TODO temporarty code
+    #TODO temporary code
     if not args.database == "oracle":
       raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
 

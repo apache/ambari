@@ -44,6 +44,7 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -241,15 +242,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setClusterHostInfo(
           StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
-      if (hostLevelParams == null) {
-        hostLevelParams = new TreeMap<String, String>();
-      }
-      hostLevelParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
-      hostLevelParams.put(JAVA_HOME, amc.getJavaHome());
-      hostLevelParams.put(JDK_NAME, amc.getJDKName());
-      hostLevelParams.put(JCE_NAME, amc.getJCEName());
-      hostLevelParams.put(STACK_NAME, stackId.getStackName());
-      hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
       execCmd.setHostLevelParams(hostLevelParams);
 
@@ -283,7 +275,6 @@ public class AmbariCustomCommandExecutionHelper {
           serviceInfo.getServiceMetadataFolder());
 
       execCmd.setCommandParams(commandParams);
-
     }
   }
 
@@ -332,7 +323,6 @@ public class AmbariCustomCommandExecutionHelper {
       hostName = serviceComponent.getServiceComponentHosts().keySet()
           .iterator().next();
     }
-
 
     addServiceCheckAction(stage, hostName, smokeTestRole, nowTimestamp,
         serviceName, componentName, actionParameters,
@@ -387,13 +377,6 @@ public class AmbariCustomCommandExecutionHelper {
     if (hostLevelParams == null) {
       hostLevelParams = new TreeMap<String, String>();
     }
-    hostLevelParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
-    hostLevelParams.put(JAVA_HOME, amc.getJavaHome());
-    hostLevelParams.put(JDK_NAME, amc.getJDKName());
-    hostLevelParams.put(JCE_NAME, amc.getJCEName());
-    hostLevelParams.put(STACK_NAME, stackId.getStackName());
-    hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
-    hostLevelParams.putAll(amc.getRcaParameters());
     execCmd.setHostLevelParams(hostLevelParams);
 
     Map<String, String> commandParams = new TreeMap<String, String>();
@@ -498,6 +481,14 @@ public class AmbariCustomCommandExecutionHelper {
       slaveCompType = masterToSlaveMappingForDecom.get(masterCompType);
     } else if (!masterToSlaveMappingForDecom.get(masterCompType).equals(slaveCompType)) {
       throw new AmbariException("Component " + slaveCompType + " is not supported for decommissioning.");
+    }
+
+    // Decommission only if the sch is in state STARTED or INSTALLED
+    for (ServiceComponentHost sch : svcComponents.get(slaveCompType).getServiceComponentHosts().values()) {
+      if (excludedHosts.contains(sch.getHostName()) && sch.getState() != State.STARTED) {
+        throw new AmbariException("Component " + slaveCompType + " on host " + sch.getHostName() + " cannot be " +
+            "decommissioned as its not in STARTED state. Aborting the whole request.");
+      }
     }
 
     // Set/reset decommissioned flag on all components

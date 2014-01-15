@@ -3829,6 +3829,14 @@ public class AmbariManagementControllerTest {
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
         "Decommission command cannot be issued with target host(s) specified.");
 
+    hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost("h1").setState(State.INSTALLED);
+    params2 = new HashMap<String, String>() {{
+      put("excluded_hosts", "h1 ");
+    }};
+    actionRequest = new ExecuteActionRequest("c1", "DECOMMISSION", null, "HDFS", "NAMENODE", null, params2);
+    expectActionCreationErrorWithMessage(actionRequest, requestProperties,
+        "Component DATANODE on host h1 cannot be decommissioned as its not in STARTED state");
+
     controller.getActionManager().createActionDefinition(
         "a1", ActionType.SYSTEM, "test,dirName", "Does file exist", "", "",
         TargetHostType.SPECIFIC, Short.valueOf("100"));

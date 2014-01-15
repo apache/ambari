@@ -64,7 +64,7 @@
         "params/run_smoke_test",
         "HostRoles/nagios_alerts",
         "HostRoles/stale_configs",
-        "HostRoles/admin_state",
+        "HostRoles/desired_admin_state",
         "_"
     ],
     "Configuration":[

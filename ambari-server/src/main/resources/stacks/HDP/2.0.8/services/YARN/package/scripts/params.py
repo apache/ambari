@@ -83,3 +83,7 @@ user_group = config['configurations']['global']['user_group']
 limits_conf_dir = "/etc/security/limits.d"
 hadoop_conf_dir = "/etc/hadoop/conf"
 yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
+
+#exclude file
+exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
+exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
