@@ -19,25 +19,21 @@ limitations under the License.
 """
 
 from resource_management import *
+from yaml_config import yaml_config
+import sys
 
-class ServiceCheck(Script):
-  def service_check(self, env):
-    import params
-    env.set_params(params)
+def storm():
+  import params
 
-    unique = get_unique_id_and_date()
+  Directory([params.log_dir, params.pid_dir, params.local_dir],
+            owner=params.storm_user,
+            group=params.user_group,
+            recursive=True
+  )
 
-    File("/tmp/wordCount.jar",
-         content=StaticFile("wordCount.jar")
-    )
-
-    cmd = format("env PATH=$PATH:{java64_home}/bin storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
-
-    Execute(cmd,
-            logoutput=True
-    )
-
-    Execute(format("env PATH=$PATH:{java64_home}/bin storm kill WordCount{unique}"))
-
-if __name__ == "__main__":
-  ServiceCheck().execute()
+  yaml_config( "storm.yaml",
+               conf_dir = params.conf_dir,
+               configurations = params.config['configurations']['storm-site'],
+               owner = params.storm_user,
+               group = params.user_group
+  )

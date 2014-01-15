@@ -20,49 +20,43 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from storm import storm
+from service import service
+from service_check import ServiceCheck
 
-         
+
 class Nimbus(Script):
   def install(self, env):
     self.install_packages(env)
+    # TODO remove
+    Execute("yum install http://s3.amazonaws.com/dev.hortonworks.com/storm/storm-0.9.1.2.0.6.1-1.el6.noarch.rpm -y",
+            ignore_failures = True)
+
     self.configure(env)
-    
+
   def configure(self, env):
     import params
     env.set_params(params)
-    
-    print "Configure."
-    
+
+    storm()
+
   def start(self, env):
     import params
     env.set_params(params)
     self.configure(env)
 
-    print "Start."
-    
+    service("nimbus", action="start")
+
   def stop(self, env):
     import params
     env.set_params(params)
 
-    print "Stop."
+    service("nimbus", action="stop")
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    
-    #pid_file = format("{pid_dir}/?.pid")
-    #check_process_status(pid_file)
+    check_process_status(status_params.pid_nimbus)
 
-# for testing
-def main():
-  command_type = "install"
-  command_data_file = '/root/storm.json'
-  basedir = '/root/ambari/ambari-server/src/main/resources/stacks/HDP/2.0.8/services/STORM/package'
-  stroutputf = '/1.txt'
-  sys.argv = ["", command_type, command_data_file, basedir, stroutputf]
-  
-  Nimbus().execute()
-  
 if __name__ == "__main__":
   Nimbus().execute()
-  #main()

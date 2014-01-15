@@ -91,6 +91,12 @@ def setup_users():
     User(params.zk_user,
          gid=params.user_group)
 
+  if params.has_storm_server:
+    User(params.storm_user,
+         gid=params.user_group,
+         groups=[params.user_group]
+    )
+
 def set_uid(user, user_dirs):
   """
   user_dirs - comma separated directories

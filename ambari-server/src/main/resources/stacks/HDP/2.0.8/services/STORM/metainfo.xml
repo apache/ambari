@@ -44,7 +44,39 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
+
+        <component>
+          <name>STORM_UI_SERVER</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/ui_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>DRPC_SERVER</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/drpc_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>LOGVIEWER_SERVER</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/logviewer_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
       </components>
+
+
       <!--
       <osSpecifics>
         <osSpecific>
@@ -53,10 +85,6 @@
             <package>
               <type>rpm</type>
               <name>storm</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>supervisor</name>
             </package>
         </osSpecific>
       </osSpecifics> -->
@@ -69,6 +97,7 @@
 
       <configuration-dependencies>
         <config-type>storm-site</config-type>
+        <config-type>global</config-type>
       </configuration-dependencies>
     </service>
   </services>

@@ -163,7 +163,7 @@
   </property>
   <property>
     <name>ui.port</name>
-    <value>8080</value>
+    <value>8744</value>
     <description></description>
   </property>
   <property>
@@ -238,7 +238,7 @@
   </property>
   <property>
     <name>supervisor.slots.ports</name>
-    <value>[6700, 6701, 6702, 6703]</value>
+    <value>[6700, 6701]</value>
     <description></description>
   </property>
   <property>

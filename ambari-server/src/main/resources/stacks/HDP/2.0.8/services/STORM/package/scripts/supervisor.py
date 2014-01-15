@@ -21,58 +21,43 @@ limitations under the License.
 import sys
 from resource_management import *
 from yaml_config import yaml_config
+from storm import storm
+from service import service
 
-         
+
 class Supervisor(Script):
   def install(self, env):
     self.install_packages(env)
+    # TODO remove
+    Execute("yum install http://s3.amazonaws.com/dev.hortonworks.com/storm/storm-0.9.1.2.0.6.1-1.el6.noarch.rpm -y",
+            ignore_failures = True)
     self.configure(env)
-    
+
   def configure(self, env):
     import params
     env.set_params(params)
-    
-    # example
-    #yaml_config( "storm.yaml",
-    #        #conf_dir = params.conf_dir,
-    #        conf_dir = "/etc/storm/conf",
-    #        configurations = params.config['configurations']['storm-site'],
-    #        #owner = params.storm_user,
-    #        #group = params.user_group
-    #)
-    
-    print "Configure."
-    
+    storm()
+
   def start(self, env):
     import params
     env.set_params(params)
     self.configure(env)
 
-    print "Start."
-    
+    service("supervisor", action="start")
+
   def stop(self, env):
     import params
     env.set_params(params)
 
-    print "Stop."
+    service("supervisor", action="stop")
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    
-    #pid_file = format("{pid_dir}/?.pid")
-    #check_process_status(pid_file)
 
-# for testing
-def main():
-  command_type = "install"
-  command_data_file = '/root/storm.json'
-  basedir = '/root/ambari/ambari-server/src/main/resources/stacks/HDP/2.0.8/services/STORM/package'
-  stroutputf = '/1.txt'
-  sys.argv = ["", command_type, command_data_file, basedir, stroutputf]
-  
-  Supervisor().execute()
-  
+    check_process_status(status_params.pid_supervisor)
+
+
 if __name__ == "__main__":
   Supervisor().execute()
-  #main()
+

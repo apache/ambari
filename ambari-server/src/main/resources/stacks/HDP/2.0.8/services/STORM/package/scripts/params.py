@@ -23,3 +23,12 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+
+storm_user = config['configurations']['global']['storm_user']
+log_dir = config['configurations']['global']['storm_log_dir']
+pid_dir = status_params.pid_dir
+conf_dir = "/etc/storm/conf"
+local_dir = config['configurations']['storm-site']['storm.local.dir']
+user_group = config['configurations']['global']['user_group']
+java64_home = config['hostLevelParams']['java_home']
+nimbus_host = config['configurations']['storm-site']['nimbus.host']

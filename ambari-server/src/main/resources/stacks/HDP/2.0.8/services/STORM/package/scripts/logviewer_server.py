@@ -18,26 +18,45 @@ limitations under the License.
 
 """
 
+import sys
 from resource_management import *
+from storm import storm
+from service import service
+from service_check import ServiceCheck
 
-class ServiceCheck(Script):
-  def service_check(self, env):
+
+class LogviewerServer(Script):
+  def install(self, env):
+    self.install_packages(env)
+    # TODO remove
+    Execute("yum install http://s3.amazonaws.com/dev.hortonworks.com/storm/storm-0.9.1.2.0.6.1-1.el6.noarch.rpm -y",
+            ignore_failures = True)
+
+    self.configure(env)
+
+  def configure(self, env):
     import params
     env.set_params(params)
 
-    unique = get_unique_id_and_date()
+    storm()
 
-    File("/tmp/wordCount.jar",
-         content=StaticFile("wordCount.jar")
-    )
+  def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env)
 
-    cmd = format("env PATH=$PATH:{java64_home}/bin storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
+    service("logviewer", action="start")
 
-    Execute(cmd,
-            logoutput=True
-    )
+  def stop(self, env):
+    import params
+    env.set_params(params)
 
-    Execute(format("env PATH=$PATH:{java64_home}/bin storm kill WordCount{unique}"))
+    service("logviewer", action="stop")
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_process_status(status_params.pid_logviewer)
 
 if __name__ == "__main__":
-  ServiceCheck().execute()
+  LogviewerServer().execute()
