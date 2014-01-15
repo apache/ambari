@@ -31,7 +31,6 @@ import static org.easymock.EasyMock.*;
 
 public class BatchRequestJobTest {
 
-
   @Test
   public void testDoWork() throws Exception {
     ExecutionScheduleManager scheduleManagerMock = createMock(ExecutionScheduleManager.class);
@@ -46,6 +45,10 @@ public class BatchRequestJobTest {
     properties.put(BatchRequestJob.BATCH_REQUEST_BATCH_ID_KEY, batchId);
     properties.put(BatchRequestJob.BATCH_REQUEST_CLUSTER_NAME_KEY, clusterName);
 
+    HashMap<String, Integer> taskCounts = new HashMap<String, Integer>()
+    {{ put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 0);
+      put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 0); }};
+
 
     BatchRequestResponse pendingResponse = new BatchRequestResponse();
     pendingResponse.setStatus(HostRoleStatus.PENDING.toString());
@@ -59,7 +62,8 @@ public class BatchRequestJobTest {
     Capture<String> clusterNameCapture = new Capture<String>();
 
 
-    expect(scheduleManagerMock.executeBatchRequest(captureLong(executionIdCapture), captureLong(batchIdCapture),
+    expect(scheduleManagerMock.executeBatchRequest(captureLong(executionIdCapture),
+      captureLong(batchIdCapture),
       capture(clusterNameCapture))).andReturn(requestId);
 
     expect(scheduleManagerMock.getBatchRequestResponse(requestId, clusterName)).
@@ -68,6 +72,8 @@ public class BatchRequestJobTest {
       andReturn(inProgressResponse).times(4);
     expect(scheduleManagerMock.getBatchRequestResponse(requestId, clusterName)).
       andReturn(completedResponse).once();
+    expect(scheduleManagerMock.hasToleranceThresholdExceeded(executionId,
+      clusterName, taskCounts)).andReturn(false);
 
     scheduleManagerMock.updateBatchRequest(eq(executionId), eq(batchId), eq(clusterName),
         anyObject(BatchRequestResponse.class), eq(true));
@@ -82,7 +88,5 @@ public class BatchRequestJobTest {
     Assert.assertEquals(executionId, executionIdCapture.getValue().longValue());
     Assert.assertEquals(batchId, batchIdCapture.getValue().longValue());
     Assert.assertEquals(clusterName, clusterNameCapture.getValue());
-
-
   }
 }

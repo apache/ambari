@@ -29,6 +29,10 @@ public class BatchRequestResponse {
   private int returnCode;
   private String returnMessage;
 
+  private int failedTaskCount;
+  private int abortedTaskCount;
+  private int timedOutTaskCount;
+  private int totalTaskCount;
 
   public Long getRequestId() {
     return requestId;
@@ -60,5 +64,37 @@ public class BatchRequestResponse {
 
   public void setReturnMessage(String returnMessage) {
     this.returnMessage = returnMessage;
+  }
+
+  public int getFailedTaskCount() {
+    return failedTaskCount;
+  }
+
+  public void setFailedTaskCount(int failedTaskCount) {
+    this.failedTaskCount = failedTaskCount;
+  }
+
+  public int getAbortedTaskCount() {
+    return abortedTaskCount;
+  }
+
+  public void setAbortedTaskCount(int abortedTaskCount) {
+    this.abortedTaskCount = abortedTaskCount;
+  }
+
+  public int getTimedOutTaskCount() {
+    return timedOutTaskCount;
+  }
+
+  public void setTimedOutTaskCount(int timedOutTaskCount) {
+    this.timedOutTaskCount = timedOutTaskCount;
+  }
+
+  public int getTotalTaskCount() {
+    return totalTaskCount;
+  }
+
+  public void setTotalTaskCount(int totalTaskCount) {
+    this.totalTaskCount = totalTaskCount;
   }
 }

@@ -424,7 +424,9 @@ public class RequestExecutionImpl implements RequestExecution {
   }
 
   @Override
-  public void updateBatchRequest(long batchId, BatchRequestResponse batchRequestResponse, boolean statusOnly) {
+  public void updateBatchRequest(long batchId,
+                                 BatchRequestResponse batchRequestResponse,
+                                 boolean statusOnly) {
     long executionId = requestScheduleEntity.getScheduleId();
 
     RequestScheduleBatchRequestEntityPK batchRequestEntityPK = new

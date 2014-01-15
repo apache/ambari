@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.scheduler.Batch;
 import org.apache.ambari.server.state.scheduler.BatchRequest;
 import org.apache.ambari.server.state.scheduler.BatchRequestJob;
 import org.apache.ambari.server.state.scheduler.BatchRequestResponse;
+import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
@@ -79,6 +80,13 @@ public class ExecutionScheduleManager {
 
   protected Client ambariClient;
   protected WebResource ambariWebResource;
+
+  protected static final String REQUESTS_STATUS_KEY = "request_status";
+  protected static final String REQUESTS_ID_KEY = "id";
+  protected static final String REQUESTS_FAILED_TASKS_KEY = "failed_task_count";
+  protected static final String REQUESTS_ABORTED_TASKS_KEY = "aborted_task_count";
+  protected static final String REQUESTS_TIMEDOUT_TASKS_KEY = "timed_out_task_count";
+  protected static final String REQUESTS_TOTAL_TASKS_KEY = "task_count";
 
   @Inject
   public ExecutionScheduleManager(Configuration configuration,
@@ -460,7 +468,11 @@ public class ExecutionScheduleManager {
     throws AmbariException {
 
     StrBuilder sb = new StrBuilder();
-    sb.append(DEFAULT_API_PATH).append("/clusters/").append(clusterName).append("/requests/").append(requestId);
+    sb.append(DEFAULT_API_PATH)
+      .append("/clusters/")
+      .append(clusterName)
+      .append("/requests/")
+      .append(requestId);
 
     return performApiGetRequest(sb.toString(), true);
 
@@ -499,14 +511,32 @@ public class ExecutionScheduleManager {
       }
 
       if (requestMap != null) {
-        batchRequestResponse.setRequestId(((Double) requestMap.get("id")).longValue());
+        batchRequestResponse.setRequestId((
+          (Double) requestMap.get(REQUESTS_ID_KEY)).longValue());
         //TODO fix different names for field
         String status = null;
-        if (requestMap.get("request_status") != null) {
-          status = requestMap.get("request_status").toString();
+        if (requestMap.get(REQUESTS_STATUS_KEY) != null) {
+          status = requestMap.get(REQUESTS_STATUS_KEY).toString();
         }
         if (requestMap.get("status") != null) {
           status = requestMap.get("status").toString();
+        }
+
+        if (requestMap.get(REQUESTS_ABORTED_TASKS_KEY) != null) {
+          batchRequestResponse.setAbortedTaskCount(Integer.parseInt
+            (requestMap.get(REQUESTS_ABORTED_TASKS_KEY).toString()));
+        }
+        if (requestMap.get(REQUESTS_FAILED_TASKS_KEY) != null) {
+          batchRequestResponse.setFailedTaskCount(Integer.parseInt
+            (requestMap.get(REQUESTS_FAILED_TASKS_KEY).toString()));
+        }
+        if (requestMap.get(REQUESTS_TIMEDOUT_TASKS_KEY) != null) {
+          batchRequestResponse.setTimedOutTaskCount(Integer.parseInt
+            (requestMap.get(REQUESTS_TIMEDOUT_TASKS_KEY).toString()));
+        }
+        if (requestMap.get(REQUESTS_TOTAL_TASKS_KEY) != null) {
+          batchRequestResponse.setTotalTaskCount(Integer.parseInt
+            (requestMap.get(REQUESTS_TOTAL_TASKS_KEY).toString()));
         }
         batchRequestResponse.setStatus(status);
       }
@@ -522,14 +552,17 @@ public class ExecutionScheduleManager {
 
   public void updateBatchRequest(long executionId, long batchId, String clusterName,
                                  BatchRequestResponse batchRequestResponse,
-                                 boolean statusOnly)
-      throws AmbariException{
+                                 boolean statusOnly) throws AmbariException {
 
     Cluster cluster = clusters.getCluster(clusterName);
     RequestExecution requestExecution = cluster.getAllRequestExecutions().get(executionId);
 
-    requestExecution.updateBatchRequest(batchId, batchRequestResponse, statusOnly);
+    if (requestExecution == null) {
+      throw new AmbariException("Unable to find request schedule with id = "
+        + executionId);
+    }
 
+    requestExecution.updateBatchRequest(batchId, batchRequestResponse, statusOnly);
   }
 
   protected BatchRequestResponse performUriRequest(String url, String body, String method) {
@@ -569,5 +602,28 @@ public class ExecutionScheduleManager {
     return convertToBatchRequestResponse(response);
   }
 
+  public boolean hasToleranceThresholdExceeded(Long executionId,
+      String clusterName, Map<String, Integer> taskCounts) throws AmbariException {
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    RequestExecution requestExecution = cluster.getAllRequestExecutions().get(executionId);
+
+    if (requestExecution == null) {
+      throw new AmbariException("Unable to find request schedule with id = "
+        + executionId);
+    }
+
+    int percentageFailed =
+      (int) ((taskCounts.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY) * 100.0f) /
+      taskCounts.get(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY));
+
+    BatchSettings batchSettings = requestExecution.getBatch().getBatchSettings();
+    if (batchSettings != null
+        && batchSettings.getTaskFailureToleranceLimit() != null) {
+      return percentageFailed > batchSettings.getTaskFailureToleranceLimit();
+    }
+
+    return false;
+  }
 
 }
