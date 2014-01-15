@@ -6,6 +6,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "GANGLIA"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -13,6 +20,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "HBASE"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -20,6 +34,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "HCATALOG"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -27,6 +48,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "HDFS"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 9,
+          "OK" : 1,
+          "WARNING" : 2
+        }
       }
     },
     {
@@ -34,6 +62,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "MAPREDUCE2"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -41,6 +76,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "NAGIOS"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -48,6 +90,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "OOZIE"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -55,6 +104,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "SQOOP"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
 		{
@@ -62,6 +118,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "PIG"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -69,6 +132,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "YARN"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -76,6 +146,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "ZOOKEEPER"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -83,6 +160,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "FALCON"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     },
     {
@@ -90,6 +174,13 @@
       "ServiceInfo" : {
         "cluster_name" : "cl",
         "service_name" : "STORM"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
       }
     }
   ]

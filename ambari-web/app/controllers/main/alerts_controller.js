@@ -28,6 +28,7 @@ App.MainAlertsController = Em.Controller.extend({
   resourceName: null,
   //"HOST" or "SERVICE"
   resourceType: null,
+  updateTimer: null,
 
   /**
    * load alerts for service or host
@@ -46,10 +47,12 @@ App.MainAlertsController = Em.Controller.extend({
   update: function () {
     var self = this;
     if (this.get('isUpdating')) {
-      setTimeout(function () {
+      this.set('updateTimer', setTimeout(function () {
         self.getFromServer();
         self.update();
-      }, App.componentsUpdateInterval);
+      }, App.componentsUpdateInterval));
+    } else {
+      clearTimeout(this.get('updateTimer'));
     }
   }.observes('isUpdating'),
 

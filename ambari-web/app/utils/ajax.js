@@ -32,11 +32,11 @@ var App = require('app');
 var urls = {
   'alerts.get_by_service': {
     'real': '/clusters/{clusterName}/services/{serviceName}?fields=alerts',
-    'mock': '/data/background_operations/list_on_start.json'
+    'mock': '/data/alerts/HDP2/service_alerts.json'
   },
   'alerts.get_by_host': {
     'real': '/clusters/{clusterName}/hosts/{hostName}?fields=alerts',
-    'mock': '/data/background_operations/list_on_start.json'
+    'mock': '/data/alerts/HDP2/host_alerts.json'
   },
   'background_operations.get_most_recent': {
     'real': '/clusters/{clusterName}/requests?to=end&page_size=10&fields=Requests',

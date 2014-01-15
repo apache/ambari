@@ -300,7 +300,14 @@
             "host_name" : "dev01.hortonworks.com"
           }
         }
-      ]
+      ],
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 9,
+          "OK" : 5,
+          "WARNING" : 2
+        }
+      }
     }
   ]
 }
