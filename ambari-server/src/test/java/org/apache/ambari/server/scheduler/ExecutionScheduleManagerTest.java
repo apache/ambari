@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.scheduler.*;
 import org.easymock.Capture;
+import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -507,5 +508,65 @@ public class ExecutionScheduleManagerTest {
 
     verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
       executionSchedulerMock, scheduleManager, batchMock);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testFinalizeBatch() throws Exception {
+    Clusters clustersMock = createMock(Clusters.class);
+    Cluster clusterMock = createMock(Cluster.class);
+    Configuration configurationMock = createNiceMock(Configuration.class);
+    ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
+    InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    Gson gson = new Gson();
+    RequestExecution requestExecutionMock = createMock(RequestExecution.class);
+    Batch batchMock = createMock(Batch.class);
+    JobDetail jobDetailMock = createMock(JobDetail.class);
+    final BatchRequest batchRequestMock = createMock(BatchRequest.class);
+    final Trigger triggerMock = createNiceMock(Trigger.class);
+    final List<Trigger> triggers = new ArrayList<Trigger>()  {{ add(triggerMock); }};
+
+    long executionId = 11L;
+    String clusterName = "c1";
+    Date pastDate = new Date(new Date().getTime() - 2);
+
+    Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
+    executionMap.put(executionId, requestExecutionMock);
+
+    ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).
+      withConstructor(configurationMock, executionSchedulerMock,
+        tokenStorageMock, clustersMock, gson).createMock();
+
+    expectLastCall().anyTimes();
+
+    expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getAllRequestExecutions()).andReturn(executionMap).anyTimes();
+    expect(requestExecutionMock.getBatch()).andReturn(batchMock).anyTimes();
+    expect(batchMock.getBatchRequests()).andReturn
+      (new ArrayList<BatchRequest>() {{
+        add(batchRequestMock);
+      }});
+    expect(batchRequestMock.getOrderId()).andReturn(1L).anyTimes();
+    expect(executionSchedulerMock.getJobDetail((JobKey) anyObject()))
+      .andReturn(jobDetailMock).anyTimes();
+    expect((List<Trigger>) executionSchedulerMock
+      .getTriggersForJob((JobKey) anyObject())).andReturn(triggers).anyTimes();
+    expect(triggerMock.mayFireAgain()).andReturn(true).anyTimes();
+    expect(triggerMock.getFinalFireTime()).andReturn(pastDate).anyTimes();
+
+    requestExecutionMock.updateStatus(RequestExecution.Status.COMPLETED);
+    expectLastCall();
+
+    replay(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+      executionSchedulerMock, scheduleManager, batchMock, batchRequestMock,
+      triggerMock, jobDetailMock);
+
+
+    scheduleManager.finalizeBatch(executionId, clusterName);
+
+
+    verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
+      executionSchedulerMock, scheduleManager, batchMock, batchRequestMock,
+      triggerMock, jobDetailMock);
   }
 }

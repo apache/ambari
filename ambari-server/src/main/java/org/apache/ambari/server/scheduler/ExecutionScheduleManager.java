@@ -523,20 +523,20 @@ public class ExecutionScheduleManager {
         }
 
         if (requestMap.get(REQUESTS_ABORTED_TASKS_KEY) != null) {
-          batchRequestResponse.setAbortedTaskCount(Integer.parseInt
-            (requestMap.get(REQUESTS_ABORTED_TASKS_KEY).toString()));
+          batchRequestResponse.setAbortedTaskCount(
+            ((Double) requestMap.get(REQUESTS_ABORTED_TASKS_KEY)).intValue());
         }
         if (requestMap.get(REQUESTS_FAILED_TASKS_KEY) != null) {
-          batchRequestResponse.setFailedTaskCount(Integer.parseInt
-            (requestMap.get(REQUESTS_FAILED_TASKS_KEY).toString()));
+          batchRequestResponse.setFailedTaskCount(
+            ((Double) requestMap.get(REQUESTS_FAILED_TASKS_KEY)).intValue());
         }
         if (requestMap.get(REQUESTS_TIMEDOUT_TASKS_KEY) != null) {
-          batchRequestResponse.setTimedOutTaskCount(Integer.parseInt
-            (requestMap.get(REQUESTS_TIMEDOUT_TASKS_KEY).toString()));
+          batchRequestResponse.setTimedOutTaskCount(
+            ((Double) requestMap.get(REQUESTS_TIMEDOUT_TASKS_KEY)).intValue());
         }
         if (requestMap.get(REQUESTS_TOTAL_TASKS_KEY) != null) {
-          batchRequestResponse.setTotalTaskCount(Integer.parseInt
-            (requestMap.get(REQUESTS_TOTAL_TASKS_KEY).toString()));
+          batchRequestResponse.setTotalTaskCount(
+            ((Double) requestMap.get(REQUESTS_TOTAL_TASKS_KEY)).intValue());
         }
         batchRequestResponse.setStatus(status);
       }
@@ -626,4 +626,82 @@ public class ExecutionScheduleManager {
     return false;
   }
 
+  /**
+   * Marks Request Schedule as COMPLETED, if:
+   * No triggers exist for the first job in the chain OR
+   * If the trigger will never fire again.
+   *
+   * @param executionId
+   * @param clusterName
+   * @throws AmbariException
+   */
+  public void finalizeBatch(long executionId, String clusterName)
+    throws AmbariException {
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    RequestExecution requestExecution = cluster.getAllRequestExecutions().get(executionId);
+
+    if (requestExecution == null) {
+      throw new AmbariException("Unable to find request schedule with id = "
+        + executionId);
+    }
+
+    Batch batch = requestExecution.getBatch();
+    BatchRequest firstBatchRequest = null;
+
+    if (batch != null) {
+      List<BatchRequest> batchRequests = batch.getBatchRequests();
+      if (batchRequests != null && batchRequests.size() > 0) {
+        Collections.sort(batchRequests);
+        firstBatchRequest = batchRequests.get(0);
+      }
+    }
+
+    boolean markCompleted = false;
+
+    if (firstBatchRequest != null) {
+      String jobName = getJobName(executionId, firstBatchRequest.getOrderId());
+      JobKey jobKey = JobKey.jobKey(jobName, ExecutionJob.LINEAR_EXECUTION_JOB_GROUP);
+      JobDetail jobDetail;
+      try {
+        jobDetail = executionScheduler.getJobDetail(jobKey);
+      } catch (SchedulerException e) {
+        LOG.warn("Unable to retrieve job details from scheduler. job: " + jobKey);
+        e.printStackTrace();
+        return;
+      }
+
+      if (jobDetail != null) {
+        try {
+          List<? extends Trigger> triggers = executionScheduler.getTriggersForJob(jobKey);
+          if (triggers != null && triggers.size() > 0) {
+            if (triggers.size() > 1) {
+              throw new AmbariException("Too many triggers defined for job. " +
+                "job: " + jobKey);
+            }
+
+            Trigger trigger = triggers.get(0);
+            // Note: If next fire time is in the past, it could be a misfire
+            // If final fire time is null, means it is a forever running job
+            if (!trigger.mayFireAgain() ||
+                (trigger.getFinalFireTime() != null &&
+                  !DateUtils.isFutureTime(trigger.getFinalFireTime()))) {
+              markCompleted = true;
+            }
+          } else {
+            // No triggers for job
+            markCompleted = true;
+          }
+        } catch (SchedulerException e) {
+          LOG.warn("Unable to retrieve triggers for job: " + jobKey);
+          e.printStackTrace();
+          return;
+        }
+      }
+    }
+
+    if (markCompleted) {
+      requestExecution.updateStatus(RequestExecution.Status.COMPLETED);
+    }
+  }
 }

@@ -35,6 +35,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 @Singleton
@@ -194,6 +195,16 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
   @Override
   public void deleteJob(JobKey jobKey) throws SchedulerException {
     scheduler.deleteJob(jobKey);
+  }
+
+  @Override
+  public JobDetail getJobDetail(JobKey jobKey) throws SchedulerException {
+    return scheduler.getJobDetail(jobKey);
+  }
+
+  @Override
+  public List<? extends Trigger> getTriggersForJob(JobKey jobKey) throws SchedulerException {
+    return scheduler.getTriggersOfJob(jobKey);
   }
 
 }

@@ -458,4 +458,17 @@ public class RequestExecutionImpl implements RequestExecution {
     setLastExecutionStatus(batchRequestResponse.getStatus());
   }
 
+  @Override
+  @Transactional
+  public void updateStatus(Status status) {
+    setStatus(status);
+    if (isPersisted) {
+      requestScheduleEntity.setUpdateTimestamp(System.currentTimeMillis());
+      requestScheduleDAO.merge(requestScheduleEntity);
+    } else {
+      LOG.warn("Updated status in memory, since Request Schedule is not " +
+        "persisted.");
+    }
+  }
+
 }

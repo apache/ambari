@@ -114,6 +114,8 @@ public class RequestExecutionTest {
 
     RequestExecution requestExecution = requestExecutionFactory.createNew
       (cluster, batches, schedule);
+
+    requestExecution.setStatus(RequestExecution.Status.SCHEDULED);
     requestExecution.setDescription("Test Schedule");
 
     requestExecution.persist();
@@ -319,4 +321,24 @@ public class RequestExecutionTest {
     Assert.assertNotNull(postBatchRequest.getBody());
   }
 
+  @Test
+  public void testUpdateStatus() throws Exception {
+    RequestExecution requestExecution = createRequestSchedule();
+    Assert.assertNotNull(requestExecution);
+    Assert.assertNotNull(cluster.getAllRequestExecutions().get
+      (requestExecution.getId()));
+
+    RequestScheduleEntity scheduleEntity = requestScheduleDAO.findById
+      (requestExecution.getId());
+    Assert.assertNotNull(scheduleEntity);
+    Assert.assertEquals(RequestExecution.Status.SCHEDULED.name(),
+      scheduleEntity.getStatus());
+
+    requestExecution.updateStatus(RequestExecution.Status.COMPLETED);
+
+    scheduleEntity = requestScheduleDAO.findById(requestExecution.getId());
+    Assert.assertNotNull(scheduleEntity);
+    Assert.assertEquals(RequestExecution.Status.COMPLETED.name(),
+      scheduleEntity.getStatus());
+  }
 }

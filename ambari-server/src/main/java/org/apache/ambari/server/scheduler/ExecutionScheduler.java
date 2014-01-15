@@ -27,6 +27,8 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 
+import java.util.List;
+
 public interface ExecutionScheduler {
   /**
    * Initialize and start the scheduler to accept jobs.
@@ -61,4 +63,20 @@ public interface ExecutionScheduler {
    * @throws SchedulerException
    */
   public void deleteJob(JobKey jobKey) throws SchedulerException;
+
+  /**
+   * Get details for a job from scheduler.
+   * @param jobKey
+   * @return
+   */
+  public JobDetail getJobDetail(JobKey jobKey) throws SchedulerException;
+
+  /**
+   * Get all triggers created for a job.
+   * @param jobKey
+   * @return
+   * @throws SchedulerException
+   */
+  public List<? extends Trigger> getTriggersForJob(JobKey jobKey)
+    throws SchedulerException;
 }

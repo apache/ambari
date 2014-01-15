@@ -84,4 +84,14 @@ public class DateUtils {
     long diff = Math.abs(oldTime.getTime() - new Date().getTime());
     return diff / (60 * 1000) % 60;
   }
+
+  /**
+   * Check if given time is in the future
+   * @param time
+   * @return
+   */
+  public static boolean isFutureTime(Date time) {
+    Date now = new Date();
+    return time.after(now);
+  }
 }

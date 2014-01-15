@@ -111,6 +111,27 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
     }
   }
 
+  @Override
+  protected void finalizeExecution(Map<String, Object> properties)
+      throws AmbariException {
+
+    Long executionId = properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) != null ?
+      (Long) properties.get(BATCH_REQUEST_EXECUTION_ID_KEY) : null;
+    Long batchId = properties.get(BATCH_REQUEST_BATCH_ID_KEY) != null ?
+      (Long) properties.get(BATCH_REQUEST_BATCH_ID_KEY) : null;
+    String clusterName = (String) properties.get(BATCH_REQUEST_CLUSTER_NAME_KEY);
+
+    if (executionId == null || batchId == null) {
+      throw new AmbariException("Unable to retrieve persisted batch request"
+        + ", execution_id = " + executionId
+        + ", batch_id = " + batchId);
+    }
+
+    // Check if this job has a future and update status if it doesn't
+    executionScheduleManager.finalizeBatch(executionId, clusterName);
+
+  }
+
   private Map<String, Integer> addTaskCountToProperties(Map<String, Object> properties,
                                         Map<String, Integer> oldCounts,
                                         BatchRequestResponse batchRequestResponse) {

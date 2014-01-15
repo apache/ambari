@@ -164,6 +164,11 @@ public interface RequestExecution {
   void updateBatchRequest(long batchId, BatchRequestResponse batchRequestResponse, boolean statusOnly);
 
   /**
+   * Update status and save RequestExecution
+   */
+  public void updateStatus(Status status);
+
+  /**
    * Status of the Request execution
    */
   public enum Status {
