@@ -124,13 +124,19 @@
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
             <exclude>conf/unix/ca.config</exclude>
+            <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
 
             <!--gitignore content-->
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
+            <!-- Stack definitions -->
+            <exclude>src/main/resources/stacks/HDP/2.0._/services/HBASE/package/templates/regionservers.j2</exclude>
+
             <!--test samples-->
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
+            <exclude>src/test/resources/*.txt</exclude>
+            <exclude>src/test/resources/users_for_dn_with_space.ldif</exclude>
           </excludes>
         </configuration>
       </plugin>

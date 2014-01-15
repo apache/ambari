@@ -153,7 +153,10 @@
 
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
+            <exclude>ambari-common/src/main/python/jinja2/**</exclude>
 
+            <!--Contributions-->
+            <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
           </excludes>
         </configuration>
       </plugin>
