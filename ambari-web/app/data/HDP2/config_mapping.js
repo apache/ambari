@@ -102,7 +102,14 @@ var configs = [
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
-  }
+  },
+  {
+	    "name": "gluster.daemon.user",
+	    "templateName": ["gluster_daemon_user"],
+	    "foreignKey": null,
+	    "value": "<templateName[0]>",
+	    "filename": "core-site.xml"
+	  }
 ];
 
 /**

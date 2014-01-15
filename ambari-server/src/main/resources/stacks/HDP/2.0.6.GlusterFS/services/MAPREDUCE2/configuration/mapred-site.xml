@@ -194,7 +194,7 @@
 
   <property>
     <name>mapreduce.jobhistory.intermediate-done-dir</name>
-    <value>/mr-history/tmp</value>
+    <value>glusterfs:///mr-history/tmp</value>
     <description>
       Directory where history files are written by MapReduce jobs.
     </description>
@@ -202,7 +202,7 @@
 
   <property>
     <name>mapreduce.jobhistory.done-dir</name>
-    <value>/mr-history/done</value>
+    <value>glusterfs:///mr-history/done</value>
     <description>
       Directory where history files are managed by the MR JobHistory Server.
     </description>
@@ -231,7 +231,7 @@
 
   <property>
     <name>yarn.app.mapreduce.am.staging-dir</name>
-    <value>/user</value>
+    <value>glusterfs:///tmp/hadoop-yarn/staging/mapred/.staging</value>
     <description>
       The staging dir used while submitting jobs.
     </description>

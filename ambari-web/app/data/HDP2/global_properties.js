@@ -570,6 +570,18 @@ module.exports =
           "serviceName": "GLUSTERFS",
           "category": "General"
         },
+        {
+            "id": "puppet var",
+            "name": "gluster_daemon_user",
+            "displayName": "GlusterFS Daemon user",
+            "description": "GlusterFS Daemon user",
+            "defaultValue": "yarn",
+            "displayType": "string",
+            "isVisible": true,
+            "domain": "global",
+            "serviceName": "GLUSTERFS",
+            "category": "General"
+          },
 
   /**********************************************HIVE***************************************/
     {
