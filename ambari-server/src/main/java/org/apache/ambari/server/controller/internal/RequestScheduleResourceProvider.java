@@ -324,8 +324,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     getManagementController().getExecutionScheduleManager()
       .deleteAllJobs(requestExecution);
 
-    requestExecution.setStatus(RequestExecution.Status.DISABLED);
-    requestExecution.persist();
+    requestExecution.updateStatus(RequestExecution.Status.DISABLED);
   }
 
   private synchronized void updateRequestSchedule
