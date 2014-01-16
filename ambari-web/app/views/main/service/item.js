@@ -28,6 +28,15 @@ App.MainServiceItemView = Em.View.extend({
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var disabled = this.get('controller.isStopDisabled');
     var serviceName = service.get('serviceName');
+    // Restart All action
+    options.push({action:'restartAllHostComponents', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
+    // Rolling Restart action
+    var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
+    if (rrComponentName) {
+      var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
+      options.push({action:'rollingRestart', context: rrComponentName, 'label': label, disabled: false});
+    }
+    // Service Check and Reassign Master actions
     switch (serviceName) {
       case 'GANGLIA':
       case 'NAGIOS':
@@ -44,15 +53,7 @@ App.MainServiceItemView = Em.View.extend({
           })
         }
       default:
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke').format(service.get('serviceName')), disabled:disabled});
-    }
-
-    options.push({action:'restartAllHostComponents', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
-
-    var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
-    if (rrComponentName) {
-      var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
-      options.push({action:'rollingRestart', context: rrComponentName, 'label': label, disabled: false});
+        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
     }
     return options;
   }.property('controller.content', 'controller.isStopDisabled'),

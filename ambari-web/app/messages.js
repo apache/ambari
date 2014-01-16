@@ -985,7 +985,7 @@ Em.I18n.translations = {
   'services.service.summary.historyServer': 'History Server Web UI',
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.compaction':'Run Compaction',
-  'services.service.actions.run.smoke':'Run {0} Service Check',
+  'services.service.actions.run.smoke':'Run Service Check',
   'services.service.actions.reassign.master':'Move {0}',
   'services.service.actions.reassign.master.hive':'Move HiveServer2, WebHCat Server, MySQL Server',
   'services.service.actions.manage_configuration_groups':'Manage Configuration Groups...',

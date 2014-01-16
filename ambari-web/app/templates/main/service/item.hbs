@@ -48,6 +48,26 @@
       </a>
       <ul class="dropdown-menu">
         <!-- dropdown menu links -->
+
+        <!-- Start/Stop service actions -->
+        {{#if controller.isServiceRestartable}}
+          <li {{bindAttr class="controller.isStartDisabled:disabled"}}>
+            <a href="javascript:void(null)" {{bindAttr class="controller.isStartDisabled:disabled" }}
+              {{action "startService" target="controller"}}>
+              <i {{bindAttr class=":icon-play controller.isStartDisabled:disabled:enabled" }}></i>
+              {{t services.service.start}}
+            </a>
+          </li>
+          <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
+            <a href="javascript:void(null)" {{bindAttr class="controller.isStopDisabled:disabled" }}
+              data-toggle="modal" {{action "stopService" target="controller"}}>
+              <i {{bindAttr class=":icon-stop controller.isStopDisabled:disabled:enabled" }}></i>
+              {{t services.service.stop}}
+            </a>
+          </li>
+        {{/if}}
+
+        <!-- Other service actions -->
         {{#each option in view.maintenance}}
         <li {{bindAttr class="option.disabled:disabled"}}>
           <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
@@ -56,21 +76,6 @@
       </ul>
     </div>
   {{/if}}
-  {{#if controller.isServiceRestartable}}
-	  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartDisabled:disabled:btn-success" }}
-	     data-toggle="modal" {{action "startService" target="controller"}}>
-	    <i class="icon-play"></i>
-	    {{t services.service.start}}
-	  </a>
-	  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopDisabled:disabled:btn-danger" }}
-	     data-toggle="modal" {{action "stopService" target="controller"}}>
-	    <i class="icon-stop icon-white"></i>
-	    {{t services.service.stop}}
-	  </a>
-	{{else}}
-	  <span>&nbsp;</span>
-	{{/if}}
-  </span>
 </div>
 {{/if}}
 {{outlet}}
