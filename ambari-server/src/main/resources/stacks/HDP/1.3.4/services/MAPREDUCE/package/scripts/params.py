@@ -51,3 +51,4 @@ kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin",
 #exclude file
 mr_exclude_hosts = default("/clusterHostInfo/decom_tt_hosts", [])
 exclude_file_path = config['configurations']['mapred-site']['mapred.hosts.exclude']
+mapred_hosts_file_path = config['configurations']['mapred-site']['mapred.hosts']

@@ -38,3 +38,13 @@ def mapreduce():
             mode=0755,
             recursive=True
   )
+
+  File(params.exclude_file_path,
+            owner=params.mapred_user,
+            group=params.user_group,
+  )
+
+  File(params.mapred_hosts_file_path,
+            owner=params.mapred_user,
+            group=params.user_group,
+  )
