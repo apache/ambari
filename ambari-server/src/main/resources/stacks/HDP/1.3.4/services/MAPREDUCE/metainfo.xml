@@ -24,10 +24,10 @@
       <comment>Apache Hadoop Distributed Processing Framework</comment>
       <version>1.2.0.1.3.3.0</version>
       <components>
-
         <component>
           <name>JOBTRACKER</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
           <commandScript>
             <script>scripts/jobtracker.py</script>
             <scriptType>PYTHON</scriptType>
@@ -48,6 +48,7 @@
         <component>
           <name>TASKTRACKER</name>
           <category>SLAVE</category>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/tasktracker.py</script>
             <scriptType>PYTHON</scriptType>
@@ -58,25 +59,29 @@
         <component>
           <name>MAPREDUCE_CLIENT</name>
           <category>CLIENT</category>
+          <cardinality>0+</cardinality> 
           <commandScript>
             <script>scripts/client.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
         </component>
-        
               
-	    <component>
-	      <name>HISTORYSERVER</name>
-	      <category>MASTER</category>
-	      <commandScript>
+        <component>
+          <name>HISTORYSERVER</name>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>MAPREDUCE/JOBTRACKER</co-locate>
+          </auto-deploy>
+          <commandScript>
             <script>scripts/historyserver.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
-	    </component>
+        </component>
       </components>
-
 
       <commandScript>
         <script>scripts/service_check.py</script>

@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.state;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlElements;
 
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 
@@ -30,6 +34,7 @@ public class ComponentInfo {
   private String name;
   private String category;
   private boolean deleted;
+  private String cardinality;
 
   /**
   * Added at schema ver 2
@@ -42,6 +47,21 @@ public class ComponentInfo {
   @XmlElementWrapper(name="customCommands")
   @XmlElements(@XmlElement(name="customCommand"))
   private List<CustomCommandDefinition> customCommands;
+
+  /**
+   * Component dependencies to other components.
+   */
+  @XmlElementWrapper(name="dependencies")
+  @XmlElements(@XmlElement(name="dependency"))
+  private List<DependencyInfo> dependencies = new ArrayList<DependencyInfo>();
+
+  /**
+   * Auto-deployment information.
+   * If auto-deployment is enabled and the component doesn't meet the cardinality requirement,
+   * the component is auto-deployed to the cluster topology.
+   */
+  @XmlElement(name="auto-deploy")
+  private AutoDeployInfo m_autoDeploy;
 
   public String getName() {
     return name;
@@ -99,5 +119,21 @@ public class ComponentInfo {
       }
     }
     return false;
+  }
+
+  public List<DependencyInfo> getDependencies() {
+    return dependencies;
+  }
+
+  public AutoDeployInfo getAutoDeploy() {
+    return m_autoDeploy;
+  }
+
+  public void setCardinality(String cardinality) {
+    this.cardinality = cardinality;
+  }
+
+  public String getCardinality() {
+    return this.cardinality;
   }
 }

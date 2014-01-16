@@ -42,13 +42,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.Stack;
-import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -652,5 +646,416 @@ public class AmbariMetaInfoTest {
     // not explicitly defined, uses 2.0.5
     list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", "Component");
     Assert.assertNull(list);
+  }
+
+  @Test
+  public void testFlume134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "FLUME");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(1, componentList.size());
+    ComponentInfo component = componentList.get(0);
+    Assert.assertEquals("FLUME_SERVER", component.getName());
+    // dependencies
+    List<DependencyInfo> dependencyList = component.getDependencies();
+    Assert.assertEquals(0, dependencyList.size());
+    // component auto deploy
+    Assert.assertNull(component.getAutoDeploy());
+    // cardinality
+    Assert.assertEquals("1", component.getCardinality());
+  }
+
+  @Test
+  public void testGanglia134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "GANGLIA");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(2, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("GANGLIA_SERVER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("GANGLIA_MONITOR")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertTrue(component.getAutoDeploy().isEnabled());
+        // cardinality
+        Assert.assertEquals("ALL", component.getCardinality());
+      }
+    }
+  }
+
+  @Test
+  public void testHBase134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HBASE");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(3, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("HBASE_MASTER")) {
+        // dependencies
+        List<DependencyInfo> dependencyList = component.getDependencies();
+        Assert.assertEquals(2, dependencyList.size());
+        for (DependencyInfo dependency : dependencyList) {
+          if (dependency.getName().equals("HDFS/HDFS_CLIENT")) {
+            Assert.assertEquals("host", dependency.getScope());
+            Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+          } else if (dependency.getName().equals("ZOOKEEPER/ZOOKEEPER_SERVER")) {
+            Assert.assertEquals("cluster", dependency.getScope());
+            AutoDeployInfo autoDeploy = dependency.getAutoDeploy();
+            Assert.assertEquals(true, autoDeploy.isEnabled());
+            Assert.assertEquals("HBASE/HBASE_MASTER", autoDeploy.getCoLocate());
+          } else {
+            Assert.fail("Unexpected dependency");
+          }
+        }
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("HBASE_REGIONSERVER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1+", component.getCardinality());
+      }
+      if (name.equals("HBASE_CLIENT")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("0+", component.getCardinality());
+      }
+    }
+  }
+
+  @Test
+  public void testHDFS134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HDFS");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(4, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("NAMENODE")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("DATANODE")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1+", component.getCardinality());
+      }
+      if (name.equals("SECONDARY_NAMENODE")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("HDFS_CLIENT")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("0+", component.getCardinality());
+      }
+    }
+  }
+
+  @Test
+  public void testHive134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HIVE");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(4, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("HIVE_METASTORE")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        AutoDeployInfo autoDeploy = component.getAutoDeploy();
+        Assert.assertTrue(autoDeploy.isEnabled());
+        Assert.assertEquals("HIVE/HIVE_SERVER", autoDeploy.getCoLocate());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("HIVE_SERVER")) {
+        // dependencies
+        List<DependencyInfo> dependencyList = component.getDependencies();
+        Assert.assertEquals(1, dependencyList.size());
+        DependencyInfo dependency = dependencyList.get(0);
+        Assert.assertEquals("ZOOKEEPER/ZOOKEEPER_SERVER", dependency.getName());
+        Assert.assertEquals("cluster", dependency.getScope());
+        AutoDeployInfo autoDeploy = dependency.getAutoDeploy();
+        Assert.assertTrue(autoDeploy.isEnabled());
+        Assert.assertEquals("HIVE/HIVE_SERVER", autoDeploy.getCoLocate());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("MYSQL_SERVER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        AutoDeployInfo autoDeploy = component.getAutoDeploy();
+        Assert.assertTrue(autoDeploy.isEnabled());
+        Assert.assertEquals("HIVE/HIVE_SERVER", autoDeploy.getCoLocate());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("HIVE_CLIENT")) {
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("0+", component.getCardinality());
+      }
+    }
+  }
+
+  @Test
+  public void testHue134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HUE");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(1, componentList.size());
+    ComponentInfo component = componentList.get(0);
+    Assert.assertEquals("HUE_SERVER", component.getName());
+    // dependencies
+    Assert.assertEquals(0, component.getDependencies().size());
+    // component auto deploy
+    Assert.assertNull(component.getAutoDeploy());
+    // cardinality
+    Assert.assertEquals("1", component.getCardinality());
+  }
+
+  @Test
+  public void testMapReduce134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "MAPREDUCE");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(4, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("JOBTRACKER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("TASKTRACKER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1+", component.getCardinality());
+      }
+      if (name.equals("HISTORYSERVER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        AutoDeployInfo autoDeploy = component.getAutoDeploy();
+        Assert.assertTrue(autoDeploy.isEnabled());
+        Assert.assertEquals("MAPREDUCE/JOBTRACKER", autoDeploy.getCoLocate());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("MAPREDUCE_CLIENT")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("0+", component.getCardinality());
+      }
+    }
+  }
+
+  @Test
+  public void testNagios134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "NAGIOS");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(1, componentList.size());
+    ComponentInfo component = componentList.get(0);
+    Assert.assertEquals("NAGIOS_SERVER", component.getName());
+    // dependencies
+    Assert.assertEquals(0, component.getDependencies().size());
+    // component auto deploy
+    Assert.assertNull(component.getAutoDeploy());
+    // cardinality
+    Assert.assertEquals("1", component.getCardinality());
+  }
+
+  @Test
+  public void testOozie134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "OOZIE");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(2, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("OOZIE_SERVER")) {
+        // dependencies
+        List<DependencyInfo> dependencyList = component.getDependencies();
+        Assert.assertEquals(2, dependencyList.size());
+        for (DependencyInfo dependency : dependencyList) {
+          if (dependency.getName().equals("HDFS/HDFS_CLIENT")) {
+            Assert.assertEquals("host", dependency.getScope());
+            Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+          } else if (dependency.getName().equals("MAPREDUCE/MAPREDUCE_CLIENT")) {
+            Assert.assertEquals("host", dependency.getScope());
+            Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+          } else {
+            Assert.fail("Unexpected dependency");
+          }
+        }
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("OOZIE_CLIENT")) {
+        // dependencies
+        List<DependencyInfo> dependencyList = component.getDependencies();
+        Assert.assertEquals(2, dependencyList.size());
+        for (DependencyInfo dependency : dependencyList) {
+          if (dependency.getName().equals("HDFS/HDFS_CLIENT")) {
+            Assert.assertEquals("host", dependency.getScope());
+            Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+          } else if (dependency.getName().equals("MAPREDUCE/MAPREDUCE_CLIENT")) {
+            Assert.assertEquals("host", dependency.getScope());
+            Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+          } else {
+            Assert.fail("Unexpected dependency");
+          }
+        }
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("0+", component.getCardinality());
+      }
+    }
+  }
+
+  @Test
+  public void testPig134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "PIG");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(1, componentList.size());
+    ComponentInfo component = componentList.get(0);
+    Assert.assertEquals("PIG", component.getName());
+    // dependencies
+    Assert.assertEquals(0, component.getDependencies().size());
+    // component auto deploy
+    Assert.assertNull(component.getAutoDeploy());
+    // cardinality
+    Assert.assertEquals("0+", component.getCardinality());
+  }
+
+  @Test
+  public void testSqoop134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "SQOOP");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(1, componentList.size());
+    ComponentInfo component = componentList.get(0);
+    Assert.assertEquals("SQOOP", component.getName());
+    // dependencies
+    List<DependencyInfo> dependencyList = component.getDependencies();
+    Assert.assertEquals(2, dependencyList.size());
+    for (DependencyInfo dependency : dependencyList) {
+      if (dependency.getName().equals("HDFS/HDFS_CLIENT")) {
+        Assert.assertEquals("host", dependency.getScope());
+        Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+      } else if (dependency.getName().equals("MAPREDUCE/MAPREDUCE_CLIENT")) {
+        Assert.assertEquals("host", dependency.getScope());
+        Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+      } else {
+        Assert.fail("Unexpected dependency");
+      }
+    }
+    // component auto deploy
+    Assert.assertNull(component.getAutoDeploy());
+    // cardinality
+    Assert.assertEquals("0+", component.getCardinality());
+  }
+
+  @Test
+  public void testWebHCat134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "WEBHCAT");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(1, componentList.size());
+    ComponentInfo component = componentList.get(0);
+    Assert.assertEquals("WEBHCAT_SERVER", component.getName());
+    // dependencies
+    List<DependencyInfo> dependencyList = component.getDependencies();
+    Assert.assertEquals(4, dependencyList.size());
+    for (DependencyInfo dependency : dependencyList) {
+      if (dependency.getName().equals("HDFS/HDFS_CLIENT")) {
+        Assert.assertEquals("host", dependency.getScope());
+        Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+      } else if (dependency.getName().equals("MAPREDUCE/MAPREDUCE_CLIENT")) {
+        Assert.assertEquals("host", dependency.getScope());
+        Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+      } else if (dependency.getName().equals("ZOOKEEPER/ZOOKEEPER_SERVER")) {
+        Assert.assertEquals("cluster", dependency.getScope());
+        AutoDeployInfo autoDeploy = dependency.getAutoDeploy();
+        Assert.assertEquals(true, autoDeploy.isEnabled());
+        Assert.assertEquals("WEBHCAT/WEBHCAT_SERVER", autoDeploy.getCoLocate());
+      }else if (dependency.getName().equals("ZOOKEEPER/ZOOKEEPER_CLIENT")) {
+        Assert.assertEquals("host", dependency.getScope());
+        Assert.assertEquals(true, dependency.getAutoDeploy().isEnabled());
+      }else {
+        Assert.fail("Unexpected dependency");
+      }
+    }
+    // component auto deploy
+    Assert.assertNull(component.getAutoDeploy());
+    // cardinality
+    Assert.assertEquals("1", component.getCardinality());
+  }
+
+  @Test
+  public void testZooKeeper134Dependencies() throws Exception {
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "ZOOKEEPER");
+    List<ComponentInfo> componentList = service.getComponents();
+    Assert.assertEquals(2, componentList.size());
+    for (ComponentInfo component : componentList) {
+      String name = component.getName();
+      if (name.equals("ZOOKEEPER_SERVER")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("1", component.getCardinality());
+      }
+      if (name.equals("ZOOKEEPER_CLIENT")) {
+        // dependencies
+        Assert.assertEquals(0, component.getDependencies().size());
+        // component auto deploy
+        Assert.assertNull(component.getAutoDeploy());
+        // cardinality
+        Assert.assertEquals("0+", component.getCardinality());
+      }
+    }
   }
 }
