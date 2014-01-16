@@ -374,6 +374,8 @@ App.InstallerController = App.WizardController.extend({
       this.set('validationCnt', selectedStack.get('operatingSystems').filterProperty('selected', true).length);
       this.set('invalidCnt', 0);
       selectedStack.operatingSystems.forEach(function (os) {
+        os.errorTitle = null;
+        os.errorContent = null;
         if (os.skipValidation) {
           this.set('validationCnt', 0);
         }
@@ -430,7 +432,7 @@ App.InstallerController = App.WizardController.extend({
       var os = selectedStack.operatingSystems.findProperty('osType', osType);
       os.validation = 'icon-exclamation-sign';
       os.errorTitle = request.status + ":" + request.statusText;
-      os.errorContent = $.parseJSON(request.responseText).message;
+      os.errorContent = $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "";
       selectedStack.set('reload', !selectedStack.get('reload'));
       this.set('validationCnt', this.get('validationCnt') - 1);
       this.set('invalidCnt', this.get('invalidCnt') + 1);
