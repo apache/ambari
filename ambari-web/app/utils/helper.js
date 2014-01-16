@@ -360,6 +360,12 @@ App.format = {
         return 'Nimbus';
       case 'SUPERVISOR':
         return 'Supervisor';
+      case 'STORM_UI_SERVER':
+        return 'Storm UI Server';
+      case 'DRPC_SERVER':
+        return 'DRPC Server';
+      case 'LOGVIEWER_SERVER':
+        return 'Logviewer Server';
     }
   },
 

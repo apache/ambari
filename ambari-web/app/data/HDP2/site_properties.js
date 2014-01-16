@@ -797,7 +797,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "General"
+      "category": "General",
+      "unit": "ms"
     },
     {
       "id": "site property",
@@ -810,7 +811,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "General"
+      "category": "General",
+      "unit": "ms"
     },
     {
       "id": "site property",
@@ -872,7 +874,8 @@ module.exports =
       "displayName":"storm.messaging.netty.buffer_size",
       "name":"storm.messaging.netty.buffer_size",
       "defaultValue":"5242880",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "bytes"
     },
     {
       "id":"site property",
@@ -898,7 +901,8 @@ module.exports =
       "displayName":"storm.messaging.netty.max_wait_ms",
       "name":"storm.messaging.netty.max_wait_ms",
       "defaultValue":"1000",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "ms"
     },
     {
       "id":"site property",
@@ -911,7 +915,34 @@ module.exports =
       "displayName":"storm.messaging.netty.min_wait_ms",
       "name":"storm.messaging.netty.min_wait_ms",
       "defaultValue":"100",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "ms"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "General",
+      "displayName": "storm.messaging.netty.server_worker_threads",
+      "name": "storm.messaging.netty.server_worker_threads",
+      "defaultValue": "1",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "General",
+      "displayName": "storm.messaging.netty.client_worker_threads",
+      "name": "storm.messaging.netty.client_worker_threads",
+      "defaultValue": "1",
+      "displayType": "int"
     },
     {
       "id": "site property",
@@ -942,6 +973,20 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "nimbus.thrift.max_buffer_size",
+      "displayName": "nimbus.thrift.max_buffer_size",
+      "description": "",
+      "defaultValue": "1048576",
+      "isReconfigurable": true,
+      "displayType": "int",
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "Nimbus",
+      "unit": "bytes"
+    },
+    {
+      "id": "site property",
       "name": "nimbus.childopts",
       "displayName": "nimbus.childopts",
       "description": "",
@@ -963,7 +1008,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -976,7 +1022,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -989,7 +1036,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -1002,7 +1050,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -1015,7 +1064,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -1028,7 +1078,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -1054,7 +1105,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "unit": "seconds"
     },
     {
       "id": "site property",
@@ -1105,7 +1157,8 @@ module.exports =
       "displayName":"supervisor.worker.start.timeout.secs",
       "name":"supervisor.worker.start.timeout.secs",
       "defaultValue":"120",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "seconds"
     },
     {
       "id":"site property",
@@ -1118,7 +1171,8 @@ module.exports =
       "displayName":"supervisor.worker.timeout.secs",
       "name":"supervisor.worker.timeout.secs",
       "defaultValue":"30",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "seconds"
     },
     {
       "id":"site property",
@@ -1131,7 +1185,8 @@ module.exports =
       "displayName":"supervisor.monitor.frequency.secs",
       "name":"supervisor.monitor.frequency.secs",
       "defaultValue":"3",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "seconds"
     },
     {
       "id":"site property",
@@ -1144,7 +1199,8 @@ module.exports =
       "displayName":"supervisor.heartbeat.frequency.secs",
       "name":"supervisor.heartbeat.frequency.secs",
       "defaultValue":"5",
-      "displayType":"int"
+      "displayType":"int",
+      "unit": "seconds"
     },
     {
       "id":"site property",
@@ -1158,6 +1214,150 @@ module.exports =
       "name":"supervisor.enable",
       "defaultValue":true,
       "displayType":"checkbox"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer",
+      "displayName": "drpc.port",
+      "name": "drpc.port",
+      "defaultValue": "3772",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer",
+      "displayName": "drpc.worker.threads",
+      "name": "drpc.worker.threads",
+      "defaultValue": "64",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer",
+      "displayName": "drpc.queue.size",
+      "name": "drpc.queue.size",
+      "defaultValue": "128",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer",
+      "displayName": "drpc.invocations.port",
+      "name": "drpc.invocations.port",
+      "defaultValue": "3773",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer",
+      "displayName": "drpc.request.timeout.secs",
+      "name": "drpc.request.timeout.secs",
+      "defaultValue": "600",
+      "displayType": "int",
+      "unit": "seconds"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer",
+      "displayName": "drpc.childopts",
+      "name": "drpc.childopts",
+      "defaultValue": "-Xmx768m",
+      "displayType": "string"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "StormUIServer",
+      "displayName": "ui.port",
+      "name": "ui.port",
+      "defaultValue": "8744",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "StormUIServer",
+      "displayName": "ui.childopts",
+      "name": "ui.childopts",
+      "defaultValue": "-Xmx768m",
+      "displayType": "string"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "LogviewerServer",
+      "displayName": "logviewer.port",
+      "name": "logviewer.port",
+      "defaultValue": "8000",
+      "displayType": "int"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "LogviewerServer",
+      "displayName": "logviewer.childopts",
+      "name": "logviewer.childopts",
+      "defaultValue": "-Xmx128m",
+      "displayType": "string"
+    },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "LogviewerServer",
+      "displayName": "logviewer.appender.name",
+      "name": "logviewer.appender.name",
+      "defaultValue": "A1",
+      "displayType": "string"
     },
 
   /**********************************************webhcat-site***************************************/
