@@ -216,6 +216,9 @@ App.QuickDataMapper.componentServiceMap = function () {
     'GLUSTERFS_CLIENT': 'GLUSTERFS',
     'FALCON_SERVER': 'FALCON',
     'NIMBUS': 'STORM',
-    'SUPERVISOR': 'STORM'
+    'SUPERVISOR': 'STORM',
+    'STORM_UI_SERVER': 'STORM',
+    'DRPC_SERVER': 'STORM',
+    'LOGVIEWER_SERVER': 'STORM'
   }
 };

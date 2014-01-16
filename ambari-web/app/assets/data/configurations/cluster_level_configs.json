@@ -423,6 +423,7 @@
         "dfs_name_dir" : "/hadoop/hdfs/namenode",
         "hfile_blockcache_size" : "0.25",
         "kadmin_pw" : "",
+        "logviewerserver_host" : "c6401.ambari.apache.org",
         "gmond_user" : "nobody",
         "hregion_majorcompaction" : "86400000",
         "user_group" : "hadoop",
@@ -546,7 +547,9 @@
         "oozie_database_name": "XE",
         "oozie_metastore_user_name" : "oozieuser",
         "oozie_metastore_user_passwd" : "ooziepassword",
-        "oozie_jdbc_connection_url": "jdbc:oracle:thin:@//oozie-orcl-host:1521/XE"
+        "oozie_jdbc_connection_url": "jdbc:oracle:thin:@//oozie-orcl-host:1521/XE",
+        "stormuiserver_host" : "c6401.ambari.apache.org",
+        "drpcserver_host" : "c6401.ambari.apache.org"
       }
     },
     {

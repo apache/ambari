@@ -450,6 +450,9 @@ App.WizardStep5Controller = Em.Controller.extend({
           "31" : 1,
           "else" : 2
         }).host_name;
+      case 'STORM_UI_SERVER':
+      case 'LOGVIEWER_SERVER':
+      case 'DRPC_SERVER':
       case 'NIMBUS':
         return this.getNimbusServer(noOfHosts);
       default:

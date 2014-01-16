@@ -338,7 +338,6 @@ module.exports = new Ember.Set([
     isClient: false,
     description: 'Falcon Server for mirroring'
   },
-  // @todo change with real info about service component
   {
     service_name: 'STORM',
     component_name: 'NIMBUS',
@@ -347,7 +346,6 @@ module.exports = new Ember.Set([
     isClient: false,
     description: 'Master component for STORM'
   },
-  // @todo change with real info about service component
   {
     service_name: 'STORM',
     component_name: 'SUPERVISOR',
@@ -355,5 +353,29 @@ module.exports = new Ember.Set([
     isMaster: false,
     isClient: true,
     description: 'Client component for STORM'
+  },
+  {
+    service_name: 'STORM',
+    component_name: 'STORM_UI_SERVER',
+    display_name: 'Storm UI Server',
+    isMaster: true,
+    isClient: false,
+    description: 'Master component for STORM'
+  },
+  {
+    service_name: 'STORM',
+    component_name: 'LOGVIEWER_SERVER',
+    display_name: 'Logviewer Server',
+    isMaster: true,
+    isClient: false,
+    description: 'Master component for STORM'
+  },
+  {
+    service_name: 'STORM',
+    component_name: 'DRPC_SERVER',
+    display_name: 'DRPC Server',
+    isMaster: true,
+    isClient: false,
+    description: 'Master component for STORM'
   }
 ]);

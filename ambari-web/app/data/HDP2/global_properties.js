@@ -1323,6 +1323,45 @@ module.exports =
       "serviceName": "STORM",
       "category": "General"
     },
+    {
+      "id": "puppet var",
+      "name": "stormuiserver_host",
+      "displayName": "Storm UI Server host",
+      "description": "",
+      "defaultValue": "",
+      "displayType": "masterHost",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "StormUIServer"
+    },
+    {
+      "id": "puppet var",
+      "name": "logviewerserver_host",
+      "displayName": "Logviewer Server host",
+      "description": "",
+      "defaultValue": "",
+      "displayType": "masterHost",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "LogviewerServer"
+    },
+    {
+      "id": "puppet var",
+      "name": "drpcserver_host",
+      "displayName": "DRPC Server host",
+      "description": "",
+      "defaultValue": "",
+      "displayType": "masterHost",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "DRPCServer"
+    },
   /**********************************************MISC***************************************/
     {
       "id": "puppet var",

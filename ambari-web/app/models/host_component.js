@@ -79,6 +79,9 @@ App.HostComponent = DS.Model.extend({
       case 'FLUME_SERVER':
       case 'FALCON_SERVER':
       case 'NIMBUS':
+      case 'STORM_UI_SERVER':
+      case 'LOGVIEWER_SERVER':
+      case 'DRPC_SERVER':
       case 'RESOURCEMANAGER':
         return true;
       default:

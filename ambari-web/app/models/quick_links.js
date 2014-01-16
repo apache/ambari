@@ -393,14 +393,14 @@ App.QuickLinks.FIXTURES = [
   {
     id:31,
     label:'Nimbus UI',
-    url:'%@://%@:%@/stacks',
+    url:'%@://%@:%@/',
     service_id: 'STORM',
-    template:'%@://%@:%@/nimbus',
-    http_config: 'mapreduce.jobhistory.webapp.address',
-    https_config: 'mapreduce.jobhistory.webapp.https.address',
+    template:'%@://%@:%@/',
+    http_config: 'nimbus.host',
+    https_config: 'nimbus.host',
     site: 'storm-site',
     regex: portRegex,
-    default_http_port: 6627
+    default_http_port: 8744
   },
   {
     id:32,
