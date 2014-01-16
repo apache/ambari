@@ -49,30 +49,38 @@ module.exports = {
     return rollingRestartComponent;
   },
 
-  doPostRestartAllServiceComponents : function(serviceName) {
-    var allHostComponents = App.HostComponent.find();
-    var componentToHostsMap = {};
-    var componentCount = 0;
-    allHostComponents.forEach(function(hc) {
-      if (serviceName == hc.get('service.serviceName')) {
-        var componentName = hc.get('componentName');
-        if (!componentToHostsMap[componentName]) {
-          componentToHostsMap[componentName] = [];
-          componentCount++;
-        }
-        componentToHostsMap[componentName].push(hc.get('host.hostName'));
+  restartAllServiceHostComponents : function(serviceName, staleConfigsOnly) {
+    var service = App.Service.find(serviceName);
+    if (service) {
+      var hostComponents = service.get('hostComponents')
+      if (staleConfigsOnly) {
+        hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
+      this.restartHostComponents(hostComponents);
+    }
+  },
+
+  restartHostComponents : function(hostComponentsList) {
+    var componentToHostsMap = {};
+    var componentToServiceMap = {};
+    hostComponentsList.forEach(function(hc) {
+      var componentName = hc.get('componentName');
+      if (!componentToHostsMap[componentName]) {
+        componentToHostsMap[componentName] = [];
+      }
+      componentToHostsMap[componentName].push(hc.get('host.hostName'));
+      componentToServiceMap[componentName] = hc.get('service.serviceName');
     });
     for ( var componentName in componentToHostsMap) {
       var hosts = componentToHostsMap[componentName].join(",");
       var data = {
-        serviceName : serviceName,
+        serviceName : componentToServiceMap[componentName],
         componentName : componentName,
         hosts : hosts
       }
       var sender = {
         successFunction : function() {
-          App.router.get('applicationController').dataLoading().done(function (initValue) {
+          App.router.get('applicationController').dataLoading().done(function(initValue) {
             if (initValue) {
               App.router.get('backgroundOperationsController').showPopup();
             }
@@ -96,7 +104,7 @@ module.exports = {
    * Makes a REST call to the server requesting the rolling restart of the
    * provided host components.
    */
-  doPostBatchRollingRestartRequest : function(restartHostComponents, batchSize, intervalTimeSeconds, tolerateSize, successCallback, errorCallback) {
+  _doPostBatchRollingRestartRequest : function(restartHostComponents, batchSize, intervalTimeSeconds, tolerateSize, successCallback, errorCallback) {
     var clusterName = App.get('clusterName');
     var data = {
       restartHostComponents : restartHostComponents,
@@ -175,9 +183,9 @@ module.exports = {
           var batchSize = this.get('innerView.batchSize');
           var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
           var tolerateSize = this.get('innerView.tolerateSize');
-          self.doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function() {
+          self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function() {
             dialog.hide();
-            App.router.get('applicationController').dataLoading().done(function (initValue) {
+            App.router.get('applicationController').dataLoading().done(function(initValue) {
               if (initValue) {
                 App.router.get('backgroundOperationsController').showPopup();
               }

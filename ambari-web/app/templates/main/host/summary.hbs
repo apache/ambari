@@ -30,13 +30,8 @@
           {{#if view.content.componentsWithStaleConfigsCount}}
               <div class="alert alert-warning clearfix">
                 <i class="icon-refresh"></i> {{view.needToRestartMessage}}
-                <br/>
-                <button {{bindAttr class=":btn :restart-components :pull-left view.stopComponentsIsDisabled::btn-danger" disabled="view.stopComponentsIsDisabled"}} {{action restartComponents view.isStopCommand target="controller"}}>
-                  {{t hosts.host.details.needToRestart.stopButton}}
-                </button>
-                 <span class="restart-components  pull-left">&nbsp</span>
-                 <button {{bindAttr class=":btn :restart-components :pull-left view.startComponentsIsDisabled::btn-success" disabled="view.startComponentsIsDisabled"}} {{action restartComponents target="controller"}}>
-                  {{t hosts.host.details.needToRestart.startButton}}
+                 <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning"}} {{action restartAllStaleConfigComponents target="controller"}}>
+                  {{t hosts.host.details.needToRestart.button}}
                  </button>
               </div>
           {{/if}}

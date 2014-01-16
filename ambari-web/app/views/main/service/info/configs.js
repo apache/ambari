@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceInfoConfigsView = Em.View.extend({
   templateName: require('templates/main/service/info/configs'),
@@ -29,26 +30,7 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   hostsCount: null,
   isStopCommand:true,
 
-
-  stopComponentsIsDisabled: function () {
-    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true);
-    if (!staleComponents.findProperty('workStatus', 'STARTED')) {
-      return true;
-    } else {
-      return false;
-    }
-  }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
-
-  startComponentsIsDisabled: function () {
-    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true);
-    if (!staleComponents.findProperty('workStatus', 'INSTALLED')) {
-      return true;
-    } else {
-      return false;
-    }
-  }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
-
-  calculateCounts: function() {
+  updateComponentInformation: function() {
     var hc = this.get('controller.content.restartRequiredHostsAndComponents');
     var hostsCount = 0;
     var componentsCount = 0;
@@ -58,5 +40,18 @@ App.MainServiceInfoConfigsView = Em.View.extend({
     }
     this.set('componentsCount', componentsCount);
     this.set('hostsCount', hostsCount);
-  }.observes('controller.content.restartRequiredHostsAndComponents')
+  }.observes('controller.content.restartRequiredHostsAndComponents'),
+
+  rollingRestartSlaveComponentName : function() {
+    return batchUtils.getRollingRestartComponentName(this.get('controller.content.serviceName'));
+  }.property('controller.content.serviceName'),
+
+  rollingRestartActionName : function() {
+    var label = null;
+    var componentName = this.get('rollingRestartSlaveComponentName');
+    if (componentName) {
+      label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName));
+    }
+    return label;
+  }.property('rollingRestartSlaveComponentName')
 });

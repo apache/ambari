@@ -34,24 +34,6 @@ App.MainHostSummaryView = Em.View.extend({
     window.open(gangliaMobileUrl);
   },
 
-  stopComponentsIsDisabled: function () {
-    var staleComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
-    if(!staleComponents.findProperty('workStatus','STARTED')){
-      return true;
-    } else {
-      return false;
-    }
-  }.property('content.hostComponents.@each.workStatus', 'content.hostComponents.@each.staleConfigs'),
-
-  startComponentsIsDisabled:function () {
-    var staleComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
-    if(!staleComponents.findProperty('workStatus','INSTALLED')){
-      return true;
-    } else {
-      return false;
-    }
-  }.property('content.hostComponents.@each.workStatus', 'content.hostComponents.@each.staleConfigs'),
-
   needToRestartMessage: function() {
     var componentsCount, word;
     componentsCount = this.get('content.componentsWithStaleConfigsCount');

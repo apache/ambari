@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainHostDetailsController = Em.Controller.extend({
   name: 'mainHostDetailsController',
@@ -991,78 +992,11 @@ App.MainHostDetailsController = Em.Controller.extend({
     })
   },
 
-  restartComponents: function(e) {
-    var staleComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
-    var commandName = "stop_component";
-    if(e.context) {
-      if(!staleComponents.findProperty('workStatus','STARTED')){
-        return;
-      }
-    } else {
-      commandName = "start_component";
-      if(!staleComponents.findProperty('workStatus','INSTALLED')){
-        return;
-      }
-    }
-
-    var nonClientRequestInfo = commandName == 'start_component' ? 'Start Components' : 'Stop Components';
-    var clientRequestInfo = 'Update Clients';
-    var desiredState = commandName == 'start_component' ? 'STARTED' : 'INSTALLED';
-
-    var content = this;
-    return App.ModalPopup.show({
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      body: Em.I18n.t('question.sure'),
-      content: content,
-      onPrimary: function () {
-        var hostName = this.content.get('content.hostName');
-        var hostComponents = this.content.get('content.hostComponents');
-
-        // the action is to either 1) start stale components for the host or 2) stop stale components for the host
-        // start is done through two API calls:
-        //  * call to start non-client components
-        //  * call to update clients
-        // stop is done through one API call:
-        //  * call to stop non-client components
-
-        var nonClientComponentNames = hostComponents.filterProperty('isClient', false).mapProperty('componentName').uniq();
-        var clientComponentNames = hostComponents.filterProperty('isClient', true).mapProperty('componentName').uniq();
-
-        App.ajax.send({
-          name: 'host.stale_host_components.start_stop',
-          sender: this,
-          data: {
-            hostName: hostName,
-            context: nonClientRequestInfo,
-            componentNames: nonClientComponentNames,
-            state: desiredState
-          }
-        });
-
-        if (desiredState == 'STARTED') {
-          App.ajax.send({
-            name: 'host.stale_host_components.start_stop',
-            sender: this,
-            data: {
-              hostName: hostName,
-              context: clientRequestInfo,
-              componentNames: clientComponentNames,
-              state: 'INSTALLED'
-            }
-          });
-        }
-        this.hide();
-        // load data (if we need to show this background operations popup) from persist
-        App.router.get('applicationController').dataLoading().done(function (initValue) {
-          if (initValue) {
-            App.router.get('backgroundOperationsController').showPopup();
-          }
-        });
-      }
-    });
+  restartAllStaleConfigComponents: function() {
+    var staleComponents = this.get('content.componentsWithStaleConfigs');
+    batchUtils.restartHostComponents(staleComponents);
   },
+
   /**
    * open Reassign Master Wizard with selected component
    * @param event

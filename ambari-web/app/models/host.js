@@ -74,13 +74,17 @@ App.Host = DS.Model.extend({
     return 0;
   }.property('memTotal', 'memFree'),
 
+  componentsWithStaleConfigs: function () {
+    return this.get('hostComponents').filterProperty('staleConfigs', true);
+  }.property('hostComponents.@each.staleConfigs'),
+
   /**
    * Get count of host components with stale configs
    * @returns {Number}
    */
   componentsWithStaleConfigsCount: function() {
-    return this.get('hostComponents').filterProperty('staleConfigs', true).length;
-  }.property('hostComponents.@each.staleConfigs'),
+    return this.get('componentsWithStaleConfigs').length;
+  }.property('componentsWithStaleConfigs.length'),
 
   /**
    * Get count of host components in maintenance mode

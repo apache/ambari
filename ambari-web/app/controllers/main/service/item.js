@@ -188,7 +188,7 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   restartAllHostComponents : function(serviceName) {
-    batchUtils.doPostRestartAllServiceComponents(serviceName);
+    batchUtils.restartAllServiceHostComponents(serviceName, false);
   },
 
   rollingRestart: function(hostComponentName) {
