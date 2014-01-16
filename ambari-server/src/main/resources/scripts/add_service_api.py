@@ -34,11 +34,12 @@ COMPONENTS = [
   "SUPERVISOR"
 ]
 
-COMPONENTS_TO_HOSTS = {
-  "NIMBUS": HOSTNAME,
-  "SUPERVISOR": HOSTNAME,
-  #"SUPERVISOR": "dev01.hortonworks.com"
-}
+COMPONENTS_TO_HOSTS = [
+  {"NIMBUS": HOSTNAME},
+  {"SUPERVISOR": HOSTNAME},
+  #{"SUPERVISOR": "c6402.ambari.apache.org"},
+  #{"SUPERVISOR": "c6403.ambari.apache.org"}
+]
 
 PROTOCOL = "http"
 PORT = "8080"
@@ -48,7 +49,8 @@ STACK_VERSION = "2.0.8"
 
 CONFIGS_TO_CHANGE = {
   "storm-site":{
-    "nimbus.host":HOSTNAME
+    #"storm.zookeeper.servers":"['c6401.amabri.apache.org','c6402.amabri.apache.org','c6403.amabri.apache.org']",
+    #"nimbus.host": "c6401.ambari.apache.org"
   },
   #"global":{
   #  "clientPort":"2182"
@@ -68,9 +70,10 @@ def main():
     checked_call('curl -H \'X-Requested-By:anything\' -i -X POST -d \'{{"components":[{{"ServiceComponentInfo":{{"component_name":"{component}"}}}}]}}\' -u admin:admin {server_url}/api/v1/clusters/{cluster_name}/services?ServiceInfo/service_name={service_name}'.
                format(service_name=SERVICE_NAME, component=component, server_url=SERVER_URL, cluster_name=CLUSTER_NAME))
     
-  # assign components to hosts 
-  for component, host in COMPONENTS_TO_HOSTS.iteritems():
-    checked_call('curl -H \'X-Requested-By:anything\' -i -X POST -d \'{{"host_components":[{{"HostRoles":{{"component_name":"{component}"}}}}]}}\' -u admin:admin {server_url}/api/v1/clusters/{cluster_name}/hosts?Hosts/host_name={host}'.
+  # assign components to hosts
+  for x in COMPONENTS_TO_HOSTS: 
+    for component, host in x.iteritems():
+      checked_call('curl -H \'X-Requested-By:anything\' -i -X POST -d \'{{"host_components":[{{"HostRoles":{{"component_name":"{component}"}}}}]}}\' -u admin:admin {server_url}/api/v1/clusters/{cluster_name}/hosts?Hosts/host_name={host}'.
                format(host=host, component=component, server_url=SERVER_URL, cluster_name=CLUSTER_NAME))
     
   # update and create all the service-specific configurations
