@@ -289,6 +289,9 @@ public class Configuration {
           "server.stages.parallel";
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
 
+  public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
+  public static final String AGENT_TASK_TIMEOUT_DEFAULT = "600";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -924,6 +927,22 @@ public class Configuration {
 
   public boolean getParallelStageExecution() {
     return "true".equalsIgnoreCase(configsMap.get(PARALLEL_STAGE_EXECUTION_KEY));
+  }
+
+  /**
+   * @return default task timeout in seconds (string representation). This value
+   * is used at python (agent) code.
+   */
+  public String getDefaultAgentTaskTimeout() {
+    String value =  properties.getProperty(AGENT_TASK_TIMEOUT_KEY, AGENT_TASK_TIMEOUT_DEFAULT);
+    if (StringUtils.isNumeric(value)) {
+      return value;
+    } else {
+      LOG.warn(String.format("Value of %s (%s) should be a number, " +
+              "falling back to default value (%s)",
+              AGENT_TASK_TIMEOUT_KEY, value, AGENT_TASK_TIMEOUT_DEFAULT));
+      return AGENT_TASK_TIMEOUT_DEFAULT;
+    }
   }
 
 }

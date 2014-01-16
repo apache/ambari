@@ -22,9 +22,7 @@ import java.util.*;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -34,7 +32,6 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEve
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -52,8 +49,7 @@ public class Stage {
   private final String requestContext;
   private String clusterHostInfo;
 
-  private int taskTimeout = -1;
-  private int perTaskTimeFactor = 60000;
+  private int stageTimeout = -1;
 
   //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
   private Map<Role, Float> successFactors = new HashMap<Role, Float>();
@@ -450,18 +446,34 @@ public class Stage {
   HostRoleCommand getHostRoleCommand(String hostname, String role) {
     return hostRoleCommands.get(hostname).get(role);
   }
-  
-  public synchronized int getTaskTimeout() {
-    if (taskTimeout == -1) {
-      int maxTasks = 0;
+
+  /**
+   * In this method we sum up all timeout values for all commands inside stage
+   */
+  public synchronized int getStageTimeout() {
+    if (stageTimeout == -1) {
       for (String host: commandsToSend.keySet()) {
-        if (commandsToSend.get(host).size() > maxTasks) {
-          maxTasks = commandsToSend.get(host).size();
+        int summaryTaskTimeoutForHost = 0;
+        for (ExecutionCommandWrapper command : commandsToSend.get(host)) {
+          Map<String, String> commandParams =
+                command.getExecutionCommand().getCommandParams();
+          String timeoutKey = ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+          if (commandParams != null && commandParams.containsKey(timeoutKey)) {
+            String timeoutStr = commandParams.get(timeoutKey);
+            long commandTimeout =
+                Long.parseLong(timeoutStr) * 1000; // Converting to milliseconds
+            summaryTaskTimeoutForHost += commandTimeout;
+          } else {
+            LOG.error("Execution command has no timeout parameter" +
+                    command.toString());
+          }
+        }
+        if (summaryTaskTimeoutForHost > stageTimeout) {
+          stageTimeout = summaryTaskTimeoutForHost;
         }
       }
-      taskTimeout = maxTasks * perTaskTimeFactor;
-    }  
-    return taskTimeout;
+    }
+    return stageTimeout;
   }
 
   @Override //Object

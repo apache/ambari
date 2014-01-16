@@ -174,6 +174,9 @@ public class StageUtils {
     Map<String, String> roleParams = new TreeMap<String, String>();
     roleParams.put("format", "false");
     execCmd.setRoleParams(roleParams);
+    Map<String, String> commandParams = new TreeMap<String, String>();
+    commandParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, "600");
+    execCmd.setCommandParams(commandParams);
     return s;
   }
 

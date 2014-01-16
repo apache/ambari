@@ -27,6 +27,7 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
@@ -48,6 +49,7 @@ public class HeartbeatMonitor implements Runnable {
   private Thread monitorThread = null;
   private final ConfigHelper configHelper;
   private final AmbariMetaInfo ambariMetaInfo;
+  private final Configuration configuration;
 
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
@@ -57,6 +59,7 @@ public class HeartbeatMonitor implements Runnable {
     this.threadWakeupInterval = threadWakeupInterval;
     this.configHelper = injector.getInstance(ConfigHelper.class);
     this.ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    this.configuration = injector.getInstance(Configuration.class);
   }
 
   public void shutdown() {
@@ -241,13 +244,15 @@ public class HeartbeatMonitor implements Runnable {
     Map<String, String> commandParams = statusCmd.getCommandParams();
     commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
 
-    String commandTimeout = ExecutionCommand.KeyNames.COMMAND_TIMEOUT_DEFAULT;
+    String commandTimeout = configuration.getDefaultAgentTaskTimeout();
     CommandScriptDefinition script = componentInfo.getCommandScript();
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        commandTimeout = String.valueOf(script.getTimeout());
+        if (script.getTimeout() > 0) {
+          commandTimeout = String.valueOf(script.getTimeout());
+        }
       } else {
         String message = String.format("Component %s of service %s has not " +
                 "command script defined", componentName, serviceName);

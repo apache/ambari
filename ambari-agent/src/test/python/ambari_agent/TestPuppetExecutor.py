@@ -67,7 +67,7 @@ class TestPuppetExecutor(TestCase):
     jsonStr = jsonFile.read()
     parsedJson = json.loads(jsonStr)
     parsedJson["taskId"] = 1
-    def side_effect1(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+    def side_effect1(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile, timeout):
         result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect1
     generateManifestMock.return_value = ''
@@ -77,7 +77,7 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(res["exitcode"], 0)
     self.assertTrue(puppetInstance.reposInstalled)
 
-    def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+    def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile, timeout):
         result["exitcode"] = 999
     runPuppetFileMock.side_effect = side_effect2
     puppetInstance.reposInstalled = False
@@ -124,7 +124,7 @@ class TestPuppetExecutor(TestCase):
     parsedJson = json.loads(jsonStr)
     parsedJson["taskId"] = 77
     parsedJson['roleCommand'] = "START"
-    def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+    def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile, timeout):
       result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect
     
@@ -223,7 +223,6 @@ class TestPuppetExecutor(TestCase):
     """
     subproc_mock = self.Subprocess_mockup()
     config = AmbariConfig().getConfig()
-    config.set('puppet','timeout_seconds',"0.1")
     executor_mock = self.PuppetExecutor_mock("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
       "/usr/",
       "/root/workspace/puppet-install/facter-1.6.10/",
@@ -234,7 +233,9 @@ class TestPuppetExecutor(TestCase):
     puppetEnv = { "RUBYLIB" : ""}
     kill_process_with_children_mock.side_effect = lambda pid : subproc_mock.terminate()
     subproc_mock.returncode = None
-    thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile", result, puppetEnv, tmpoutfile, tmperrfile))
+    timeout = "0.1"
+    thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile",
+        result, puppetEnv, tmpoutfile, tmperrfile, timeout))
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
@@ -247,7 +248,6 @@ class TestPuppetExecutor(TestCase):
     """
     subproc_mock = self.Subprocess_mockup()
     config = AmbariConfig().getConfig()
-    config.set('puppet','timeout_seconds',"5")
     executor_mock = self.PuppetExecutor_mock("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
     "/usr/",
     "/root/workspace/puppet-install/facter-1.6.10/",
@@ -257,8 +257,9 @@ class TestPuppetExecutor(TestCase):
     result = {  }
     puppetEnv = { "RUBYLIB" : ""}
     subproc_mock.returncode = 0
+    timeout = "5"
     thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile",
-                            result, puppetEnv, tmpoutfile, tmperrfile))
+                            result, puppetEnv, tmpoutfile, tmperrfile, timeout))
     thread.start()
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()

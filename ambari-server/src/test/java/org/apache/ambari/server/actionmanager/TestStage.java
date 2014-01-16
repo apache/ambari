@@ -21,8 +21,12 @@ import static org.junit.Assert.*;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 public class TestStage {
 
@@ -35,7 +39,12 @@ public class TestStage {
         null, "c1", "HDFS");
     s.addHostRoleExecutionCommand("h1", Role.HBASE_MASTER, RoleCommand.INSTALL,
         null, "c1", "HBASE");
-    assertEquals(3*60000, s.getTaskTimeout());
+    for (ExecutionCommandWrapper wrapper : s.getExecutionCommands("h1")) {
+      Map<String, String> commandParams = new TreeMap<String, String>();
+      commandParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, "600");
+      wrapper.getExecutionCommand().setCommandParams(commandParams);
+    }
+    assertEquals(3*600000, s.getStageTimeout());
   }
 
   @Test

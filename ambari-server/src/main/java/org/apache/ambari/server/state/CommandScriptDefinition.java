@@ -36,9 +36,10 @@ public class CommandScriptDefinition {
   private Type scriptType = Type.PYTHON;
 
   /**
-   * Timeout is given in seconds
+   * Timeout is given in seconds. Default value of 0 is used if not
+   * overridden at xml file
    */
-  private int timeout = 600;
+  private int timeout = 0;
 
 
   public String getScript() {

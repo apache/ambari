@@ -59,7 +59,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT_DEFAULT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
@@ -248,7 +247,7 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, String> commandParams = new TreeMap<String, String>();
       commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
 
-      String commandTimeout = COMMAND_TIMEOUT_DEFAULT;
+      String commandTimeout = configs.getDefaultAgentTaskTimeout();
 
       if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
         // Service check command is not custom command
@@ -260,11 +259,13 @@ public class AmbariCustomCommandExecutionHelper {
         if (script != null) {
           commandParams.put(SCRIPT, script.getScript());
           commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-          commandTimeout = String.valueOf(script.getTimeout());
+          if (script.getTimeout() > 0) {
+            commandTimeout = String.valueOf(script.getTimeout());
+          }
         } else {
           String message = String.format("Component %s has not command script " +
-              "defined. It is not possible to run service check" +
-              " for this service", componentName);
+              "defined. It is not possible to send command for " +
+                  "this service", componentName);
           throw new AmbariException(message);
         }
         // We don't need package/repo infomation to perform service check
@@ -382,7 +383,7 @@ public class AmbariCustomCommandExecutionHelper {
     Map<String, String> commandParams = new TreeMap<String, String>();
     commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
 
-    String commandTimeout = COMMAND_TIMEOUT_DEFAULT;
+    String commandTimeout = configs.getDefaultAgentTaskTimeout();
 
 
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
@@ -391,7 +392,9 @@ public class AmbariCustomCommandExecutionHelper {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        commandTimeout = String.valueOf(script.getTimeout());
+        if (script.getTimeout() > 0) {
+          commandTimeout = String.valueOf(script.getTimeout());
+        }
       } else {
         String message = String.format("Service %s has no command script " +
             "defined. It is not possible to run service check" +
@@ -569,13 +572,15 @@ public class AmbariCustomCommandExecutionHelper {
      * component main commandScript to agent. This script is only used for
      * default commads like INSTALL/STOP/START/CONFIGURE
      */
-    String commandTimeout = ExecutionCommand.KeyNames.COMMAND_TIMEOUT_DEFAULT;
+    String commandTimeout =configs.getDefaultAgentTaskTimeout();
     CommandScriptDefinition script = componentInfo.getCommandScript();
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        commandTimeout = String.valueOf(script.getTimeout());
+        if (script.getTimeout() > 0) {
+          commandTimeout = String.valueOf(script.getTimeout());
+        }
       } else {
         String message = String.format("Component %s of service %s has no " +
             "command script defined", componentName, serviceName);

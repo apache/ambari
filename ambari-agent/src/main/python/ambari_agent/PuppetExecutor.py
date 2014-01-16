@@ -125,17 +125,20 @@ class PuppetExecutor:
   def run_manifest(self, command, file, tmpoutfile, tmperrfile):
     result = {}
     taskId = 0
+    timeout = command ['commandParams']['command_timeout']
     if command.has_key("taskId"):
       taskId = command['taskId']
     puppetEnv = os.environ
     #Install repos
-    repo_manifest_list = self.generate_repo_manifests(command, self.tmpDir, self.modulesdir, taskId)
+    repo_manifest_list = self.generate_repo_manifests(command, self.tmpDir,
+                                                      self.modulesdir, taskId)
     puppetFiles = list(repo_manifest_list)
     puppetFiles.append(file)
     #Run all puppet commands, from manifest generator and for repos installation
     #Appending outputs and errors, exitcode - maximal from all
     for puppetFile in puppetFiles:
-      self.runPuppetFile(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile)
+      self.runPuppetFile(puppetFile, result, puppetEnv, tmpoutfile,
+                         tmperrfile, timeout)
       # Check if one of the puppet command fails and error out
       if not self.isSuccessfull(result["exitcode"]):
         break
@@ -178,7 +181,8 @@ class PuppetExecutor:
       result = {'stdout': '', 'stderr': errMsg, 'exitcode': 1}
     return result
 
-  def runPuppetFile(self, puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+  def runPuppetFile(self, puppetFile, result, puppetEnv, tmpoutfile,
+                    tmperrfile, timeout):
     """ Run the command and make sure the output gets propagated"""
     puppetcommand = self.puppetCommand(puppetFile)
     rubyLib = ""
@@ -200,7 +204,8 @@ class PuppetExecutor:
     logger.debug("Launching watchdog thread")
     self.event.clear()
     self.last_puppet_has_been_killed = False
-    thread = Thread(target =  self.puppet_watchdog_func, args = (puppet, ))
+    thread = Thread(target =  self.puppet_watchdog_func,
+                    args = (puppet, timeout))
     thread.start()
     # Waiting for process to finished or killed
     puppet.communicate()
@@ -246,8 +251,8 @@ class PuppetExecutor:
       stderr=tmperr,
       env=puppetEnv)
 
-  def puppet_watchdog_func(self, puppet):
-    self.event.wait(float(self.puppet_timeout))
+  def puppet_watchdog_func(self, puppet, puppet_timeout):
+    self.event.wait(float(puppet_timeout))
     if puppet.returncode is None:
       logger.error("Task timed out, killing process with PID: " + str(puppet.pid))
       shell.kill_process_with_children(puppet.pid)

@@ -100,7 +100,7 @@ public class StackExtensionHelperTest {
                 firstComponent.getCommandScript().getScript());
         assertEquals(CommandScriptDefinition.Type.PYTHON,
                 firstComponent.getCommandScript().getScriptType());
-        assertEquals(600,
+        assertEquals(777,
                 firstComponent.getCommandScript().getTimeout());
         // Check custom commands for component
         List<CustomCommandDefinition> customCommands =
@@ -112,7 +112,7 @@ public class StackExtensionHelperTest {
                 customCommands.get(0).getCommandScript().getScript());
         assertEquals(CommandScriptDefinition.Type.PYTHON,
                 customCommands.get(0).getCommandScript().getScriptType());
-        assertEquals(600,
+        assertEquals(888,
                 customCommands.get(0).getCommandScript().getTimeout());
         // Check all parsed os specifics
         Map<String,ServiceOsSpecific> specifics = serviceInfo.getOsSpecifics();
@@ -121,6 +121,12 @@ public class StackExtensionHelperTest {
         assertEquals(AmbariMetaInfo.ANY_OS, anyOs.getOsType());
         assertEquals("rpm", anyOs.getPackages().get(0).getType());
         assertEquals("wget", anyOs.getPackages().get(0).getName());
+
+        // Test default timeout value
+        ComponentInfo secondComponent = components.get(1);
+        assertEquals("HBASE_REGIONSERVER", secondComponent.getName());
+        assertEquals(0,
+                secondComponent.getCommandScript().getTimeout());
 
         ServiceOsSpecific c6Os = specifics.get("centos6");
         assertEquals("centos6", c6Os.getOsType());

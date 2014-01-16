@@ -34,7 +34,7 @@
           <commandScript> <!--This is the script to handle all default commands -->
             <script>scripts/hbase_master.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout> <!--You can also use the default value here-->
+            <timeout>777</timeout> <!--You can also use the default value here-->
           </commandScript>
           <customCommands>
             <customCommand> <!--Specialized only for custom commands, can use the same script as well -->
@@ -42,7 +42,7 @@
               <commandScript>
                 <script>scripts/hbase_master_restart.py</script>
                 <scriptType>PYTHON</scriptType>
-                <timeout>600</timeout>
+                <timeout>888</timeout>
               </commandScript>
             </customCommand>
           </customCommands>

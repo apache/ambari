@@ -108,7 +108,12 @@ public class ControllerModule extends AbstractModule {
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bind(CustomActionDBAccessor.class).to(CustomActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
-    bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+
+    // This time is added to summary timeout time of all tasks in stage
+    // So it's an "additional time", given to stage to finish execution before
+    // it is considered as timed out
+    bindConstant().annotatedWith(Names.named("actionTimeout")).to(120000L);
+
     bindConstant().annotatedWith(Names.named("dbInitNeeded")).to(dbInitNeeded);
     bindConstant().annotatedWith(Names.named("statusCheckInterval")).to(5000L);
 

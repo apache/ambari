@@ -33,6 +33,10 @@
 }]
 
 },
+"commandParams":
+{
+  "command_timeout": "600"
+},
 
 
 "configurations" : {

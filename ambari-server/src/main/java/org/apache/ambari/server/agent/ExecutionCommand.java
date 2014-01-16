@@ -258,9 +258,8 @@ public class ExecutionCommand extends AgentCommand {
     String AMBARI_DB_RCA_DRIVER = "ambari_db_rca_driver";
     String AMBARI_DB_RCA_USERNAME = "ambari_db_rca_username";
     String AMBARI_DB_RCA_PASSWORD = "ambari_db_rca_password";
-    String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
 
-    String COMMAND_TIMEOUT_DEFAULT = "600"; // TODO: Will be replaced by proper initialization in another jira
+    String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";
 
   }

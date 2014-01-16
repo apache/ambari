@@ -197,6 +197,7 @@ class ActionScheduler implements Runnable {
           affectedHosts.addAll(stageHosts);
         }
 
+        // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
         Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
         // Check if stage is failed
@@ -362,7 +363,7 @@ class ActionScheduler implements Runnable {
     long now = System.currentTimeMillis();
     long taskTimeout = actionTimeout;
     if (taskTimeoutAdjustment) {
-      taskTimeout = actionTimeout + s.getTaskTimeout();
+      taskTimeout = actionTimeout + s.getStageTimeout();
     }
     for (String host : s.getHosts()) {
       List<ExecutionCommandWrapper> commandWrappers = s.getExecutionCommands(host);
