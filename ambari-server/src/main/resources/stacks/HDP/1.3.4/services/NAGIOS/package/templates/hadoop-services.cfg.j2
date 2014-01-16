@@ -505,17 +505,6 @@ define service {
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
-        service_description     JOBHISTORY::HistoryServer RPC latency
-        servicegroups           MAPREDUCE
-        check_command           check_rpcq_latency!JobHistoryServer!{{ hs_port }}!3000!5000!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
-        normal_check_interval   5
-        retry_check_interval    1 
-        max_check_attempts      5
-}
-
-define service {
-        hostgroup_name          historyserver2
-        use                     hadoop-service
         service_description     JOBHISTORY::HistoryServer process
         servicegroups           MAPREDUCE
         check_command           check_tcp!{{ hs_port }}!-w 1 -c 1
