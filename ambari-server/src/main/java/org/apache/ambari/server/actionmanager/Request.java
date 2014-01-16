@@ -142,7 +142,9 @@ public class Request {
     this.targetHosts = entity.getTargetHosts();
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
-    this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
+    if (entity.getRequestScheduleEntity() !=null) {
+      this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
+    }
 
     for (StageEntity stageEntity : entity.getStages()) {
       Stage stage = stageFactory.createExisting(stageEntity);
