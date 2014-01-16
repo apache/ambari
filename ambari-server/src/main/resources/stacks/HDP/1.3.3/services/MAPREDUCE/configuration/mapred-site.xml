@@ -397,7 +397,7 @@
 
 <property>
   <name>mapred.job.tracker.persist.jobstatus.dir</name>
-  <value>/etc/hadoop/conf/health_check</value>
+  <value>/mapred/jobstatus</value>
   <description>The directory where the job status information is persisted
    in a file system to be available after it drops of the memory queue and
    between jobtracker restarts.
