@@ -21,43 +21,38 @@ Ambari Agent
 """
 
 from resource_management import *
-import os
-import json
 
 
 class HdfsRebalance(Script):
   def actionexecute(self, env):
-
     config = Script.get_config()
 
     hdfs_user = config['configurations']['global']['hdfs_user']
-    conf_dir = config['configurations']['global']['hadoop_conf_dir']
+    conf_dir = "/etc/hadoop/conf"
 
     security_enabled = config['configurations']['global']['security_enabled']
-    kinit_path_local = functions.get_kinit_path(
-      [default('kinit_path_local'), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
     threshold = config['commandParams']['threshold']
-    principal = config['commandParams']['principal']
-    keytab = config['commandParams']['keytab']
 
     if security_enabled:
+      kinit_path_local = functions.get_kinit_path(
+        [default('kinit_path_local', None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+      principal = config['commandParams']['principal']
+      keytab = config['commandParams']['keytab']
       Execute(format("{kinit_path_local}  -kt {keytab} {principal}"))
 
     ExecuteHadoop(format('balancer -threshold {threshold}'),
-      user=hdfs_user,
-      conf_dir=conf_dir
+                  user=hdfs_user,
+                  conf_dir=conf_dir,
+                  logoutput=True
     )
 
     structured_output_example = {
-      'user' : hdfs_user,
-      'conf_dir' : conf_dir,
-      'principal' : principal,
-      'keytab' : keytab
-      }
+      'result': 'Rebalancer completed.'
+    }
 
     self.put_structured_out(structured_output_example)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
   HdfsRebalance().execute()

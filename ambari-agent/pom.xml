@@ -346,7 +346,7 @@
             </mapping>
             <mapping>
               <!-- custom actions root-->
-              <directory>/var/lib/ambari-agent/resources</directory>
+              <directory>/var/lib/ambari-agent/resources/custom_actions</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>

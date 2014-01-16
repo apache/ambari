@@ -150,9 +150,16 @@ public class AmbariActionExecutionHelper {
     if (actionDef.getInputs() != null) {
       String[] inputs = actionDef.getInputs().split(",");
       for (String input : inputs) {
-        if (!input.trim().isEmpty() && !actionRequest.getParameters().containsKey(input.trim())) {
-          throw new AmbariException("Action " + actionRequest.getActionName() + " requires input '" +
-              input.trim() + "' that is not provided.");
+        String inputName = input.trim();
+        if (!inputName.isEmpty()) {
+          boolean mandatory = true;
+          if (inputName.startsWith("[") && inputName.endsWith("]")) {
+            mandatory = false;
+          }
+          if (mandatory && !actionRequest.getParameters().containsKey(inputName)) {
+            throw new AmbariException("Action " + actionRequest.getActionName() + " requires input '" +
+                input.trim() + "' that is not provided.");
+          }
         }
       }
     }

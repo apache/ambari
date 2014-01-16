@@ -362,6 +362,10 @@ create index idx_qrtz_ft_tg on ambari.qrtz_fired_triggers(SCHED_NAME,TRIGGER_GRO
 
 commit;
 
+-- Insert data into the table
+INSERT INTO ambari.action (action_name, action_type, inputs, target_service, target_component, default_timeout, description, target_type)
+  SELECT 'ambari_hdfs_rebalance', 'SYSTEM', 'threshold,[principal],[keytab]', 'HDFS', 'NAMENODE', 600, 'HDFS Rebalance', 'ANY';
+
 -- ambari log4j DDL
 
 --------------------------------------------------

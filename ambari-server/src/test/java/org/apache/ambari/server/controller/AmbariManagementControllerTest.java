@@ -3663,7 +3663,7 @@ public class AmbariManagementControllerTest {
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h2").persist();
 
     controller.getActionManager().createActionDefinition(
-        "a1", ActionType.SYSTEM, "test", "Does file exist", "", "",
+        "a1", ActionType.SYSTEM, "test,[optional1]", "Does file exist", "", "",
         TargetHostType.SPECIFIC, Short.valueOf("100"));
 
     controller.getActionManager().createActionDefinition(
@@ -3676,7 +3676,6 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
-    long now = System.currentTimeMillis();
 
     ArrayList<String> hosts = new ArrayList<String>() {{add("h1");}};
 
