@@ -45,6 +45,9 @@ class Source(object):
 
   def __call__(self):
     return self.get_content()
+  
+  def __repr__(self):
+    return self.__class__.__name__+"('"+self.name+"')"
 
 
 class StaticFile(Source):
@@ -123,6 +126,9 @@ else:
     def __init__(self, name, extra_imports=[], **kwargs):
       self.template_env = JinjaEnvironment(loader=FunctionLoader(lambda text: text))
       super(InlineTemplate, self).__init__(name, extra_imports, **kwargs) 
+  
+    def __repr__(self):
+      return "InlineTemplate(...)"
 
 
 class DownloadSource(Source):

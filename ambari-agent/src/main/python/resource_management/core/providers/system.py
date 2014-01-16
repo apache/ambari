@@ -218,7 +218,7 @@ class ExecuteProvider(Provider):
       if os.path.exists(self.resource.creates):
         return
 
-    self.log.info("Executing %s" % self.resource)
+    self.log.debug("Executing %s" % self.resource)
     
     if self.resource.path != []:
       if not self.resource.environment:

@@ -130,19 +130,19 @@ class Environment(object):
       # Run resource actions
       while self.resource_list:
         resource = self.resource_list.pop(0)
-        self.log.debug("Running resource %r" % resource)
+        self.log.info("%s %s" % (resource, repr(resource.arguments).replace("': u'","': '")))
         
         if resource.initial_wait:
           time.sleep(resource.initial_wait)
 
         if resource.not_if is not None and self._check_condition(
           resource.not_if):
-          self.log.debug("Skipping %s due to not_if" % resource)
+          self.log.info("Skipping %s due to not_if" % resource)
           continue
 
         if resource.only_if is not None and not self._check_condition(
           resource.only_if):
-          self.log.debug("Skipping %s due to only_if" % resource)
+          self.log.info("Skipping %s due to only_if" % resource)
           continue
 
         for action in resource.action:

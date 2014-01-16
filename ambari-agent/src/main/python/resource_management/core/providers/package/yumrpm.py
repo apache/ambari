@@ -28,10 +28,14 @@ REMOVE_CMD = "/usr/bin/yum -d 0 -e 0 -y erase %s"
 
 class YumProvider(PackageProvider):
   def install_package(self, name):
-    shell.checked_call(INSTALL_CMD % (name))
+    cmd = INSTALL_CMD % (name)
+    self.log.info("Installing package %s ('%s')", name, cmd)
+    shell.checked_call(cmd)
 
   def upgrade_package(self, name):
     return self.install_package(name)
   
   def remove_package(self, name):
-    shell.checked_call(REMOVE_CMD % (name))    
+    cmd = REMOVE_CMD % (name)
+    self.log.info("Removing package %s ('%s')", name, cmd)
+    shell.checked_call(cmd)    

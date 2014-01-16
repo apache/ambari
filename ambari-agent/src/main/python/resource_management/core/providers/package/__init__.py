@@ -37,17 +37,14 @@ class PackageProvider(Provider):
 
   def action_install(self):
     package_name = self.get_package_name_with_version()
-    self.log.info("Installing package %s", package_name)
     self.install_package(package_name)
 
   def action_upgrade(self):
     package_name = self.get_package_name_with_version()
-    self.log.info("Upgrading package %s", package_name)
     self.upgrade_package(package_name)
 
   def action_remove(self):
     package_name = self.get_package_name_with_version()
-    self.log.info("Removing package %s", package_name)
     self.remove_package(package_name)
 
   def get_package_name_with_version(self):
