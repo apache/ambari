@@ -1282,44 +1282,12 @@ var urls = {
     'real': '/clusters/{clusterName}/request_schedules',
     'mock': '',
     'format' : function(data) {
-      var hostIndex = 0;
-      var batchSize = data.batchSize;
-      var hostComponents = data.restartHostComponents;
-      var length = hostComponents.length;
-      var batches = [];
-      var batchCount = Math.ceil(length / batchSize);
-      var sampleHostComponent = hostComponents.objectAt(0);
-      var componentName = sampleHostComponent.get('componentName');
-      var componentDisplayName = App.format.role(componentName);
-      var serviceName = sampleHostComponent.get('service.serviceName');
-      for ( var count = 0; count < batchCount; count++) {
-        var hostNames = [];
-        for ( var hc = 0; hc < batchSize && hostIndex < length; hc++) {
-          hostNames.push(hostComponents.objectAt(hostIndex++).get('host.hostName'));
-        }
-        if (hostNames.length > 0) {
-          batches.push({
-            "order_id" : count + 1,
-            "type" : "POST",
-            "uri" : App.apiPrefix + "/clusters/" + data.clusterName + "/requests",
-            "RequestBodyInfo" : {
-              "RequestInfo" : {
-                "context" : Em.I18n.t('rollingrestart.rest.context').format(componentDisplayName, (count + 1), batchCount),
-                "command" : "RESTART",
-                "service_name" : serviceName,
-                "component_name" : componentName,
-                "hosts" : hostNames.join(",")
-              }
-            }
-          });
-        }
-      }
       return {
         type : 'POST',
         data : JSON.stringify([ {
           "RequestSchedule" : {
             "batch" : [ {
-              "requests" : batches
+              "requests" : data.batches
             }, {
               "batch_settings" : {
                 "batch_separation_in_seconds" : data.intervalTimeSeconds,
