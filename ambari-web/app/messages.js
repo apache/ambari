@@ -471,6 +471,8 @@ Em.I18n.translations = {
   'installer.step4.yarnCheck.popup.body':'You did not select YARN+MapReduce2, but it is needed by other services you selected. We will automatically add YARN+MapReduce2. Is this OK?',
   'installer.step4.zooKeeperCheck.popup.header':'ZooKeeper Needed',
   'installer.step4.zooKeeperCheck.popup.body':'You did not select ZooKeeper, but it is needed by other services you selected. We will automatically add ZooKeeper. Is this OK?',
+  'installer.step4.oozieCheck.popup.header':'Oozie Needed',
+  'installer.step4.oozieCheck.popup.body':'You did not select Oozie, but it is needed by other services you selected. We will automatically add Oozie. Is this OK?',
   'installer.step4.monitoringCheck.popup.header':'Limited Functionality Warning',
   'installer.step4.monitoringCheck.popup.body':'You did not select Nagios and/or Ganglia. If both are not selected, monitoring and alerts will not function properly. Is this OK?',
 

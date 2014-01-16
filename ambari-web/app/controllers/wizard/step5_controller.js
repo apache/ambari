@@ -353,6 +353,10 @@ App.WizardStep5Controller = Em.Controller.extend({
     return this.getGangliaServer(noOfHosts);
   },
 
+  getOozieServer:function(){
+    return this.selectHost('OOZIE_SERVER');
+  },
+
   getNimbusServer: function(noOfHosts) {
     return this.getGangliaServer(noOfHosts);
   },
@@ -444,12 +448,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       case 'HUE_SERVER':
         return this.getHueServer(noOfHosts);
       case 'FALCON_SERVER':
-        return this.getHostForComponent(noOfHosts, {
-          "3" : 0,
-          "6" : 0,
-          "31" : 1,
-          "else" : 2
-        }).host_name;
+        return this.getOozieServer(noOfHosts);
       case 'STORM_UI_SERVER':
       case 'LOGVIEWER_SERVER':
       case 'DRPC_SERVER':

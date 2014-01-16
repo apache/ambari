@@ -53,6 +53,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var webhcat = this.findProperty('serviceName', 'WEBHCAT');
     var yarn = this.findProperty('serviceName', 'YARN');
     var mapreduce2 = this.findProperty('serviceName', 'MAPREDUCE2');
+    var oozie = this.findProperty('serviceName', 'OOZIE');
+    var falcon = this.findProperty('serviceName', 'FALCON');
 
     // prevent against getting error when not all elements have been loaded yet
     if (hbase && zookeeper && hive && hcatalog && webhcat) {
@@ -95,6 +97,14 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       return (ds.get('length') > 0);
     }
     return false;
+  },
+
+  /**
+   * Check whether we should turn on <code>Oozie</code> service
+   * @return {Boolean}
+   */
+  needToAddOozie: function () {
+    return this.needAddService('OOZIE', ['FALCON']);
   },
 
   /**
@@ -186,8 +196,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
               if (this.multipleDFSs()) {
                 this.multipleDFSPopup();
               }
-               else {
-                this.validateMonitoring();
+              else {
+                if(this.needToAddOozie()) {
+                  this.oozieCheckPopup();
+                }
+                else {
+                  this.validateMonitoring();
+                }
               }
             }
           }
@@ -249,6 +264,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   zooKeeperCheckPopup: function () {
     this.needToAddServicePopup({serviceName:'ZOOKEEPER', selected: true}, 'zooKeeperCheck');
+  },
+
+  oozieCheckPopup: function () {
+    this.needToAddServicePopup({serviceName:'OOZIE', selected: true}, 'oozieCheck');
   },
 
   monitoringCheckPopup: function () {
