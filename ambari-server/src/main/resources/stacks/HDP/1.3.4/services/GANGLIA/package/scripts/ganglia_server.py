@@ -160,7 +160,11 @@ def server_files():
     Directory(params.rrdcached_base_dir,
               owner=rrd_file_owner,
               group=rrd_file_owner,
-              mode=0755
+              mode=0755,
+              recursive=True
+    )
+    Directory(params.rrdcached_default_base_dir,
+              action = "delete"
     )
     Link(params.rrdcached_default_base_dir,
          to=params.rrdcached_base_dir
@@ -168,7 +172,8 @@ def server_files():
   elif rrd_file_owner != 'nobody':
     Directory(params.rrdcached_default_base_dir,
               owner=rrd_file_owner,
-              group=rrd_file_owner
+              group=rrd_file_owner,
+              recursive=True
     )
 
 
