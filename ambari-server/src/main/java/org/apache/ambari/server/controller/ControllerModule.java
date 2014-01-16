@@ -71,6 +71,8 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
+import static org.eclipse.persistence.config.PersistenceUnitProperties.*;
+
 /**
  * Used for injection purposes.
  */
@@ -149,40 +151,44 @@ public class ControllerModule extends AbstractModule {
 
     switch (persistenceType) {
       case IN_MEMORY:
-        properties.put("javax.persistence.jdbc.url", Configuration.JDBC_IN_MEMORY_URL);
-        properties.put("javax.persistence.jdbc.driver", Configuration.JDBC_IN_MEMROY_DRIVER);
-        properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
-        properties.put("eclipselink.orm.throw.exceptions", "true");
+        properties.setProperty(JDBC_URL, Configuration.JDBC_IN_MEMORY_URL);
+        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_IN_MEMROY_DRIVER);
+        properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
+        properties.setProperty(THROW_EXCEPTIONS, "true");
         jpaPersistModule.properties(properties);
         return jpaPersistModule;
       case REMOTE:
-        properties.put("javax.persistence.jdbc.url", configuration.getDatabaseUrl());
-        properties.put("javax.persistence.jdbc.driver", configuration.getDatabaseDriver());
+        properties.setProperty(JDBC_URL, configuration.getDatabaseUrl());
+        properties.setProperty(JDBC_DRIVER, configuration.getDatabaseDriver());
         break;
       case LOCAL:
-        properties.put("javax.persistence.jdbc.url", configuration.getLocalDatabaseUrl());
-        properties.put("javax.persistence.jdbc.driver", Configuration.JDBC_LOCAL_DRIVER);
+        properties.setProperty(JDBC_URL, configuration.getLocalDatabaseUrl());
+        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_LOCAL_DRIVER);
         break;
     }
 
-    properties.setProperty("javax.persistence.jdbc.user", configuration.getDatabaseUser());
-    properties.setProperty("javax.persistence.jdbc.password", configuration.getDatabasePassword());
+    properties.setProperty(JDBC_USER, configuration.getDatabaseUser());
+    properties.setProperty(JDBC_PASSWORD, configuration.getDatabasePassword());
 
     switch (configuration.getJPATableGenerationStrategy()) {
       case CREATE:
-        properties.setProperty("eclipselink.ddl-generation", "create-tables");
+        properties.setProperty(DDL_GENERATION, CREATE_ONLY);
         dbInitNeeded = true;
         break;
       case DROP_AND_CREATE:
-        properties.setProperty("eclipselink.ddl-generation", "drop-and-create-tables");
+        properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
         dbInitNeeded = true;
+        break;
+      case CREATE_OR_EXTEND:
+        properties.setProperty(DDL_GENERATION, CREATE_OR_EXTEND);
         break;
       default:
         break;
     }
-    properties.setProperty("eclipselink.ddl-generation.output-mode", "both");
-    properties.setProperty("eclipselink.create-ddl-jdbc-file-name", "DDL-create.jdbc");
-    properties.setProperty("eclipselink.drop-ddl-jdbc-file-name", "DDL-drop.jdbc");
+
+    properties.setProperty(DDL_GENERATION_MODE, DDL_BOTH_GENERATION);
+    properties.setProperty(CREATE_JDBC_DDL_FILE, "DDL-create.jdbc");
+    properties.setProperty(DROP_JDBC_DDL_FILE, "DDL-drop.jdbc");
 
     jpaPersistModule.properties(properties);
 

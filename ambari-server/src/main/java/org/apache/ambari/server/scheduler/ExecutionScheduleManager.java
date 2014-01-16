@@ -26,6 +26,7 @@ import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.CsrfProtectionFilter;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
@@ -67,6 +68,7 @@ public class ExecutionScheduleManager {
     (ExecutionScheduleManager.class);
 
   private final InternalTokenStorage tokenStorage;
+  private ActionDBAccessor actionDBAccessor;
   private final Gson gson;
   private final Clusters clusters;
   ExecutionScheduler executionScheduler;
@@ -93,11 +95,13 @@ public class ExecutionScheduleManager {
                                   ExecutionScheduler executionScheduler,
                                   InternalTokenStorage tokenStorage,
                                   Clusters clusters,
+                                  ActionDBAccessor actionDBAccessor,
                                   Gson gson) {
     this.configuration = configuration;
     this.executionScheduler = executionScheduler;
     this.tokenStorage = tokenStorage;
     this.clusters = clusters;
+    this.actionDBAccessor = actionDBAccessor;
     this.gson = gson;
 
     buildApiClient();
@@ -432,8 +436,8 @@ public class ExecutionScheduleManager {
    * @return request id
    * @throws AmbariException
    */
-  public Long executeBatchRequest(Long executionId,
-                                  Long batchId,
+  public Long executeBatchRequest(long executionId,
+                                  long batchId,
                                   String clusterName) throws AmbariException {
 
     String type = null;
@@ -451,6 +455,10 @@ public class ExecutionScheduleManager {
       BatchRequestResponse batchRequestResponse = performApiRequest(uri, body, type);
 
       updateBatchRequest(executionId, batchId, clusterName, batchRequestResponse, false);
+
+      if (batchRequestResponse.getRequestId() != null) {
+        actionDBAccessor.setSourceScheduleForRequest(batchRequestResponse.getRequestId(), executionId);
+      }
 
       return batchRequestResponse.getRequestId();
     } catch (Exception e) {

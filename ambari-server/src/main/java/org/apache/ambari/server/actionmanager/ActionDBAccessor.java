@@ -69,6 +69,12 @@ public interface ActionDBAccessor {
   void endRequest(long requestId);
 
   /**
+   * Updates request with link to source schedule
+   */
+  @Transactional
+  void setSourceScheduleForRequest(long requestId, long scheduleId);
+
+  /**
    * For the given host, update all the tasks based on the command report
    */
   public void updateHostRoleState(String hostname, long requestId,

@@ -21,11 +21,11 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.internal.RepositoryResourceProvider;
+import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -57,7 +57,7 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public List<PostProcessor> getPostProcessors() {
-    return Collections.<PostProcessor>singletonList(new RequestHrefPostProcessor());
+    return Arrays.asList(new RequestHrefPostProcessor(), new RequestSourceScheduleHrefPostProcessor());
   }
 
   private class RequestHrefPostProcessor implements PostProcessor {
@@ -81,6 +81,30 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
       sb.append("requests/").append(requestId);
 
       resultNode.setProperty("href", sb.toString());
+    }
+  }
+
+  private class RequestSourceScheduleHrefPostProcessor implements PostProcessor {
+
+    @Override
+    public void process(Request request, TreeNode<Resource> resultNode, String href) {
+      StringBuilder sb = new StringBuilder();
+      String[] toks = href.split("/");
+
+      for (int i = 0; i < toks.length; ++i) {
+        String s = toks[i];
+        sb.append(s).append('/');
+        if ("clusters".equals(s)) {
+          sb.append(toks[i + 1]).append('/');
+          break;
+        }
+      }
+
+      Object scheduleId = resultNode.getObject().getPropertyValue(RequestResourceProvider.REQUEST_SOURCE_SCHEDULE_ID);
+      if (scheduleId != null) {
+        sb.append("request_schedules/").append(scheduleId);
+        resultNode.getObject().setProperty(RequestResourceProvider.REQUEST_SOURCE_SCHEDULE_HREF, sb.toString());
+      }
     }
   }
 }

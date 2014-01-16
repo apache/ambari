@@ -97,6 +97,8 @@
         "Requests/cluster_name",
         "Requests/request_status",
         "Requests/request_context",
+        "Requests/source_schedule_id",
+        "Requests/source_schedule_href",
         "Requests/type",
         "Requests/inputs",
         "Requests/target_service",

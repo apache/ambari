@@ -48,7 +48,7 @@ import java.util.Set;
 /**
  * Resource provider for request resources.
  */
-class RequestResourceProvider extends AbstractControllerResourceProvider {
+public class RequestResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
@@ -56,6 +56,8 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   protected static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
   protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
   protected static final String REQUEST_CONTEXT_ID = "Requests/request_context";
+  public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/source_schedule_href";
+  public static final String REQUEST_SOURCE_SCHEDULE_ID = "Requests/source_schedule_id";
   protected static final String REQUEST_TYPE_ID = "Requests/type";
   protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
   protected static final String REQUEST_TARGET_SERVICE_ID = "Requests/target_service";
@@ -288,6 +290,7 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
     setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE_ID, request.getRequestScheduleId(), requestedPropertyIds);
 
     List<HostRoleCommand> commands = request.getCommands();
 

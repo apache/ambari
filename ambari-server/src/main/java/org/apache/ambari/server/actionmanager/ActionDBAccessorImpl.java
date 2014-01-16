@@ -63,6 +63,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   HostRoleCommandFactory hostRoleCommandFactory;
   @Inject
   Clusters clusters;
+  @Inject
+  RequestScheduleDAO requestScheduleDAO;
 
 
 
@@ -253,6 +255,33 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       requestEntity.setEndTime(System.currentTimeMillis());
     }
     requestDAO.merge(requestEntity);
+  }
+
+  @Override
+  @Transactional
+  public void setSourceScheduleForRequest(long requestId, long scheduleId) {
+    RequestEntity requestEntity = requestDAO.findByPK(requestId);
+    if (requestEntity != null) {
+      RequestScheduleEntity scheduleEntity = requestScheduleDAO.findById(scheduleId);
+      if (scheduleEntity != null) {
+        requestEntity.setRequestScheduleEntity(scheduleEntity);
+        //we may want to break entity graph here for perf purposes (when list size is too large)
+        scheduleEntity.getRequestEntities().add(requestEntity);
+
+        requestDAO.merge(requestEntity);
+        requestScheduleDAO.merge(scheduleEntity);
+
+      } else {
+        String message = String.format("Request Schedule with id=%s not found", scheduleId);
+        LOG.error(message);
+        throw new RuntimeException(message);
+      }
+
+    } else {
+      String message = String.format("Request with id=%s not found", scheduleId);
+      LOG.error(message);
+      throw new RuntimeException(message);
+    }
   }
 
   @Override

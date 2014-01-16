@@ -35,6 +35,10 @@ public class RequestEntity {
   @Basic
   private Long clusterId;
 
+  @Column(name = "request_schedule_id", updatable = false, insertable = false, nullable = true)
+  @Basic
+  private Long requestScheduleId;
+
   @Column(name = "request_context")
   @Basic
   private String requestContext;
@@ -84,6 +88,10 @@ public class RequestEntity {
   @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
   private ClusterEntity cluster;
+
+  @ManyToOne(cascade = {CascadeType.MERGE})
+  @JoinColumn(name = "request_schedule_id", referencedColumnName = "schedule_id")
+  private RequestScheduleEntity requestScheduleEntity;
 
   public Long getRequestId() {
     return requestId;
@@ -203,6 +211,22 @@ public class RequestEntity {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public RequestScheduleEntity getRequestScheduleEntity() {
+    return requestScheduleEntity;
+  }
+
+  public void setRequestScheduleEntity(RequestScheduleEntity requestScheduleEntity) {
+    this.requestScheduleEntity = requestScheduleEntity;
+  }
+
+  public Long getRequestScheduleId() {
+    return requestScheduleId;
+  }
+
+  public void setRequestScheduleId(Long scheduleId) {
+    this.requestScheduleId = scheduleId;
   }
 
   @Override

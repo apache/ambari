@@ -39,6 +39,7 @@ public class Request {
   private final long requestId;
   private final long clusterId;
   private final String clusterName;
+  private Long requestScheduleId;
   private String commandName;
   private String requestContext;
   private long createTime;
@@ -141,6 +142,7 @@ public class Request {
     this.targetHosts = entity.getTargetHosts();
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
+    this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
 
     for (StageEntity stageEntity : entity.getStages()) {
       Stage stage = stageFactory.createExisting(stageEntity);
@@ -174,6 +176,7 @@ public class Request {
     requestEntity.setTargetComponent(targetComponent);
     requestEntity.setTargetHosts(targetHosts);
     requestEntity.setRequestType(requestType);
+    requestEntity.setRequestScheduleId(requestScheduleId);
     //TODO set all fields
 
     return requestEntity;
@@ -262,6 +265,14 @@ public class Request {
 
   public void setCommandName(String commandName) {
     this.commandName = commandName;
+  }
+
+  public Long getRequestScheduleId() {
+    return requestScheduleId;
+  }
+
+  public void setRequestScheduleId(Long requestScheduleId) {
+    this.requestScheduleId = requestScheduleId;
   }
 
   public List<HostRoleCommand> getCommands() {

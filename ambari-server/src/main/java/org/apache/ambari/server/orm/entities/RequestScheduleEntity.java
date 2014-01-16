@@ -31,6 +31,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import java.util.Collection;
+import java.util.List;
 
 @Table(name = "requestschedule")
 @Entity
@@ -115,6 +116,9 @@ public class RequestScheduleEntity {
   @OneToMany(mappedBy = "requestScheduleEntity", cascade = CascadeType.ALL)
   private Collection<RequestScheduleBatchRequestEntity>
     requestScheduleBatchRequestEntities;
+
+  @OneToMany(mappedBy = "requestScheduleEntity")
+  private List<RequestEntity> requestEntities;
 
   public long getScheduleId() {
     return scheduleId;
@@ -283,6 +287,14 @@ public class RequestScheduleEntity {
   public void setRequestScheduleBatchRequestEntities(
     Collection<RequestScheduleBatchRequestEntity> requestScheduleBatchRequestEntities) {
     this.requestScheduleBatchRequestEntities = requestScheduleBatchRequestEntities;
+  }
+
+  public List<RequestEntity> getRequestEntities() {
+    return requestEntities;
+  }
+
+  public void setRequestEntities(List<RequestEntity> requestEntities) {
+    this.requestEntities = requestEntities;
   }
 
   @Override

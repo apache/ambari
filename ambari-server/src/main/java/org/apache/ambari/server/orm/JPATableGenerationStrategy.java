@@ -21,6 +21,8 @@ package org.apache.ambari.server.orm;
 public enum JPATableGenerationStrategy {
   //create tables which don't exist
   CREATE("create"),
+  //creates tables which not exist, add missing columns
+  CREATE_OR_EXTEND("createOrExtend"),
   //drop and create all tables
   DROP_AND_CREATE("dropAndCreate"),
   //don't create tables

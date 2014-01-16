@@ -36,7 +36,7 @@ CREATE TABLE ambari.execution_command (command bytea, task_id BIGINT NOT NULL, P
 CREATE TABLE ambari.host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, event VARCHAR(32000) NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, status VARCHAR(255), std_error BYTEA, std_out BYTEA, structured_out BYTEA, role_command VARCHAR(255), PRIMARY KEY (task_id));
 CREATE TABLE ambari.role_success_criteria (role VARCHAR(255) NOT NULL, request_id BIGINT NOT NULL, stage_id BIGINT NOT NULL, success_factor FLOAT NOT NULL, PRIMARY KEY (role, request_id, stage_id));
 CREATE TABLE ambari.stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, log_info VARCHAR(255) NOT NULL, request_context VARCHAR(255), PRIMARY KEY (stage_id, request_id));
-CREATE TABLE ambari.request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, inputs VARCHAR(32000), request_context VARCHAR(255), request_type VARCHAR(255), start_time BIGINT NOT NULL, status VARCHAR(255), target_component VARCHAR(255), target_hosts TEXT, target_service VARCHAR(255), PRIMARY KEY (request_id));
+CREATE TABLE ambari.request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, inputs VARCHAR(32000), request_context VARCHAR(255), request_type VARCHAR(255), request_schedule_id BIGINT, start_time BIGINT NOT NULL, status VARCHAR(255), target_component VARCHAR(255), target_hosts TEXT, target_service VARCHAR(255), PRIMARY KEY (request_id));
 CREATE TABLE ambari.ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
 CREATE TABLE ambari.user_roles (role_name VARCHAR(255) NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (role_name, user_id));
 CREATE TABLE ambari.key_value_store ("key" VARCHAR(255), "value" VARCHAR, PRIMARY KEY("key"));
@@ -67,6 +67,7 @@ ALTER TABLE ambari.role_success_criteria ADD CONSTRAINT FK_role_success_criteria
 ALTER TABLE ambari.stage ADD CONSTRAINT FK_stage_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.stage ADD CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id);
 ALTER TABLE ambari.request ADD CONSTRAINT FK_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
+ALTER TABLE ambari.request ADD CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES ambari.requestschedule (schedule_id);
 ALTER TABLE ambari.ClusterHostMapping ADD CONSTRAINT FK_ClusterHostMapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 ALTER TABLE ambari.ClusterHostMapping ADD CONSTRAINT FK_ClusterHostMapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.user_roles ADD CONSTRAINT FK_user_roles_user_id FOREIGN KEY (user_id) REFERENCES ambari.users (user_id);
@@ -109,7 +110,7 @@ COMMIT;
 
 -- Quartz tables
 
-CREATE TABLE qrtz_job_details
+CREATE TABLE ambari.qrtz_job_details
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     JOB_NAME  VARCHAR(200) NOT NULL,
@@ -124,7 +125,7 @@ CREATE TABLE qrtz_job_details
     PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
 );
 
-CREATE TABLE qrtz_triggers
+CREATE TABLE ambari.qrtz_triggers
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     TRIGGER_NAME VARCHAR(200) NOT NULL,
@@ -144,10 +145,10 @@ CREATE TABLE qrtz_triggers
     JOB_DATA BYTEA NULL,
     PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
     FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
-	REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP)
+	REFERENCES ambari.QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP)
 );
 
-CREATE TABLE qrtz_simple_triggers
+CREATE TABLE ambari.qrtz_simple_triggers
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     TRIGGER_NAME VARCHAR(200) NOT NULL,
@@ -157,10 +158,10 @@ CREATE TABLE qrtz_simple_triggers
     TIMES_TRIGGERED BIGINT NOT NULL,
     PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
     FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-	REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+	REFERENCES ambari.QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
 );
 
-CREATE TABLE qrtz_cron_triggers
+CREATE TABLE ambari.qrtz_cron_triggers
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     TRIGGER_NAME VARCHAR(200) NOT NULL,
@@ -169,10 +170,10 @@ CREATE TABLE qrtz_cron_triggers
     TIME_ZONE_ID VARCHAR(80),
     PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
     FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-	REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+	REFERENCES ambari.QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
 );
 
-CREATE TABLE qrtz_simprop_triggers
+CREATE TABLE ambari.qrtz_simprop_triggers
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     TRIGGER_NAME VARCHAR(200) NOT NULL,
@@ -190,10 +191,10 @@ CREATE TABLE qrtz_simprop_triggers
     BOOL_PROP_2 BOOL NULL,
     PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
     FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-    REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+    REFERENCES ambari.QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
 );
 
-CREATE TABLE qrtz_blob_triggers
+CREATE TABLE ambari.qrtz_blob_triggers
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     TRIGGER_NAME VARCHAR(200) NOT NULL,
@@ -201,10 +202,10 @@ CREATE TABLE qrtz_blob_triggers
     BLOB_DATA BYTEA NULL,
     PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
     FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+        REFERENCES ambari.QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
 );
 
-CREATE TABLE qrtz_calendars
+CREATE TABLE ambari.qrtz_calendars
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     CALENDAR_NAME  VARCHAR(200) NOT NULL,
@@ -213,14 +214,14 @@ CREATE TABLE qrtz_calendars
 );
 
 
-CREATE TABLE qrtz_paused_trigger_grps
+CREATE TABLE ambari.qrtz_paused_trigger_grps
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     TRIGGER_GROUP  VARCHAR(200) NOT NULL,
     PRIMARY KEY (SCHED_NAME,TRIGGER_GROUP)
 );
 
-CREATE TABLE qrtz_fired_triggers
+CREATE TABLE ambari.qrtz_fired_triggers
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     ENTRY_ID VARCHAR(95) NOT NULL,
@@ -238,7 +239,7 @@ CREATE TABLE qrtz_fired_triggers
     PRIMARY KEY (SCHED_NAME,ENTRY_ID)
 );
 
-CREATE TABLE qrtz_scheduler_state
+CREATE TABLE ambari.qrtz_scheduler_state
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     INSTANCE_NAME VARCHAR(200) NOT NULL,
@@ -247,35 +248,35 @@ CREATE TABLE qrtz_scheduler_state
     PRIMARY KEY (SCHED_NAME,INSTANCE_NAME)
 );
 
-CREATE TABLE qrtz_locks
+CREATE TABLE ambari.qrtz_locks
   (
     SCHED_NAME VARCHAR(120) NOT NULL,
     LOCK_NAME  VARCHAR(40) NOT NULL,
     PRIMARY KEY (SCHED_NAME,LOCK_NAME)
 );
 
-create index idx_qrtz_j_req_recovery on qrtz_job_details(SCHED_NAME,REQUESTS_RECOVERY);
-create index idx_qrtz_j_grp on qrtz_job_details(SCHED_NAME,JOB_GROUP);
+create index idx_qrtz_j_req_recovery on ambari.qrtz_job_details(SCHED_NAME,REQUESTS_RECOVERY);
+create index idx_qrtz_j_grp on ambari.qrtz_job_details(SCHED_NAME,JOB_GROUP);
 
-create index idx_qrtz_t_j on qrtz_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
-create index idx_qrtz_t_jg on qrtz_triggers(SCHED_NAME,JOB_GROUP);
-create index idx_qrtz_t_c on qrtz_triggers(SCHED_NAME,CALENDAR_NAME);
-create index idx_qrtz_t_g on qrtz_triggers(SCHED_NAME,TRIGGER_GROUP);
-create index idx_qrtz_t_state on qrtz_triggers(SCHED_NAME,TRIGGER_STATE);
-create index idx_qrtz_t_n_state on qrtz_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-create index idx_qrtz_t_n_g_state on qrtz_triggers(SCHED_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-create index idx_qrtz_t_next_fire_time on qrtz_triggers(SCHED_NAME,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_st on qrtz_triggers(SCHED_NAME,TRIGGER_STATE,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_misfire on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME);
-create index idx_qrtz_t_nft_st_misfire on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_STATE);
-create index idx_qrtz_t_nft_st_misfire_grp on qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_GROUP,TRIGGER_STATE);
+create index idx_qrtz_t_j on ambari.qrtz_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
+create index idx_qrtz_t_jg on ambari.qrtz_triggers(SCHED_NAME,JOB_GROUP);
+create index idx_qrtz_t_c on ambari.qrtz_triggers(SCHED_NAME,CALENDAR_NAME);
+create index idx_qrtz_t_g on ambari.qrtz_triggers(SCHED_NAME,TRIGGER_GROUP);
+create index idx_qrtz_t_state on ambari.qrtz_triggers(SCHED_NAME,TRIGGER_STATE);
+create index idx_qrtz_t_n_state on ambari.qrtz_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_STATE);
+create index idx_qrtz_t_n_g_state on ambari.qrtz_triggers(SCHED_NAME,TRIGGER_GROUP,TRIGGER_STATE);
+create index idx_qrtz_t_next_fire_time on ambari.qrtz_triggers(SCHED_NAME,NEXT_FIRE_TIME);
+create index idx_qrtz_t_nft_st on ambari.qrtz_triggers(SCHED_NAME,TRIGGER_STATE,NEXT_FIRE_TIME);
+create index idx_qrtz_t_nft_misfire on ambari.qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME);
+create index idx_qrtz_t_nft_st_misfire on ambari.qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_STATE);
+create index idx_qrtz_t_nft_st_misfire_grp on ambari.qrtz_triggers(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_GROUP,TRIGGER_STATE);
 
-create index idx_qrtz_ft_trig_inst_name on qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME);
-create index idx_qrtz_ft_inst_job_req_rcvry on qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME,REQUESTS_RECOVERY);
-create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
-create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
-create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
-create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
+create index idx_qrtz_ft_trig_inst_name on ambari.qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME);
+create index idx_qrtz_ft_inst_job_req_rcvry on ambari.qrtz_fired_triggers(SCHED_NAME,INSTANCE_NAME,REQUESTS_RECOVERY);
+create index idx_qrtz_ft_j_g on ambari.qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROUP);
+create index idx_qrtz_ft_jg on ambari.qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
+create index idx_qrtz_ft_t_g on ambari.qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
+create index idx_qrtz_ft_tg on ambari.qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
 
 commit;
 

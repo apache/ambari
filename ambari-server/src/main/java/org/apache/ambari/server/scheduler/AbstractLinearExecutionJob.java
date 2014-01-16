@@ -87,8 +87,12 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
     try {
       doWork(properties);
     } catch (AmbariException e) {
-      LOG.error("Exception caught on job execution. Exiting linear chain...", e);
+      LOG.error("Exception caught on execution of job " + jobKey + ". Exiting linear chain...", e);
       throw new JobExecutionException(e);
+    } catch (RuntimeException e) {
+      LOG.error("Unexpected exception caught on execution of job " + jobKey + ". " +
+          "Exiting linear chain...", e);
+      throw e;
     }
 
     LOG.debug("Finished linear job: " + jobKey);
