@@ -23,10 +23,9 @@ def escape_yaml_propetry(value):
     unquouted = True
   except ValueError:
     pass
-
-  value = value.replace("'","''")
   
   if not unquouted:
+    value = value.replace("'","''")
     value = "'"+value+"'"
     
   return value
