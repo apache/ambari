@@ -24,15 +24,19 @@ App.TableView = Em.View.extend({
 
   /**
    * Shows if all data is loaded and filtered
+   * @type {Boolean}
    */
   filteringComplete: false,
 
   /**
    * Loaded from local storage startIndex value
+   * @type {Number}
    */
   startIndexOnLoad: null,
+
   /**
    * Loaded from server persist value
+   * @type {Number}
    */
   displayLengthOnLoad: null,
 
@@ -81,7 +85,7 @@ App.TableView = Em.View.extend({
   /**
    * Load user preference value on hosts page from server
    */
-  dataLoading: function () {
+  dataLoading: function() {
     var dfd = $.Deferred();
     var self = this;
     this.getUserPref(this.displayLengthKey()).done(function () {
@@ -91,10 +95,15 @@ App.TableView = Em.View.extend({
     });
     return dfd.promise();
   },
+
+  /**
+   * Persist-key of current table displayLength property
+   * @param {String} loginName current user login name
+   * @returns {String}
+   */
   displayLengthKey: function (loginName) {
-    if (!loginName)
-      loginName = App.router.get('loginName');
-    return 'hosts-pagination-displayLength-' + loginName;
+    loginName = loginName ? loginName : App.router.get('loginName');
+    return this.get('controller.name') + '-pagination-displayLength-' + loginName;
   },
 
   /**
@@ -111,40 +120,48 @@ App.TableView = Em.View.extend({
       error: 'getDisplayLengthErrorCallback'
     });
   },
-  getDisplayLengthSuccessCallback: function (response, request, data) {
-    if (response != null) {
-      console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
-      this.set('displayLengthOnLoad', response);
-      return response;
-    }
-  },
-  getDisplayLengthErrorCallback: function (request, ajaxOptions, error) {
-    // this user is first time login
-    if (request.status == 404) {
-      console.log('Persist did NOT find the key');
-      var displayLengthDefault = 10;
-      this.set('displayLengthOnLoad', displayLengthDefault);
-      this.postUserPref(this.displayLengthKey(), displayLengthDefault);
-      return displayLengthDefault;
-    }
-  },
+
   /**
-   * post display length persist key/value to server, value is object
+   * Set received from server value to <code>displayLengthOnLoad</code>
+   * @param {Number} response
+   * @param {Object} request
+   * @param {Object} data
+   * @returns {*}
+   */
+  getDisplayLengthSuccessCallback: function (response, request, data) {
+    console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
+    this.set('displayLengthOnLoad', response);
+    return response;
+  },
+
+  /**
+   * Set default value to <code>displayLengthOnLoad</code> (and send it on server) if value wasn't found on server
+   * @returns {Number}
+   */
+  getDisplayLengthErrorCallback: function () {
+    // this user is first time login
+    console.log('Persist did NOT find the key');
+    var displayLengthDefault = 10;
+    this.set('displayLengthOnLoad', displayLengthDefault);
+    this.postUserPref(this.displayLengthKey(), displayLengthDefault);
+    return displayLengthDefault;
+  },
+
+  /**
+   * Post display length persist key/value to server
+   * @param {String} key
+   * @param {Object} value
    */
   postUserPref: function (key, value) {
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
     App.ajax.send({
-      'name': 'settings.post.user_pref',
-      'sender': this,
-      'beforeSend': 'postUserPrefBeforeSend',
-      'data': {
-        'keyValuePair': keyValuePair
+      name: 'settings.post.user_pref',
+      sender: this,
+      data: {
+        keyValuePair: keyValuePair
       }
     });
-  },
-  postUserPrefBeforeSend: function(request, ajaxOptions, data){
-    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
   },
 
   /**
@@ -163,7 +180,8 @@ App.TableView = Em.View.extend({
   },
 
   /**
-   * return pagination information displayed on the page
+   * Return pagination information displayed on the page
+   * @type {String}
    */
   paginationInfo: function () {
     return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
@@ -201,6 +219,10 @@ App.TableView = Em.View.extend({
     }
   }),
 
+  /**
+   * Select View with list of "rows-per-page" options
+   * @type {Ember.View}
+   */
   rowsPerPageSelectView: Em.Select.extend({
     content: ['10', '25', '50'],
     change: function () {
@@ -208,27 +230,28 @@ App.TableView = Em.View.extend({
     }
   }),
 
-  // start index for displayed content on the page
+  /**
+   * Start index for displayed content on the page
+   */
   startIndex: 1,
 
-  // calculate end index for displayed content on the page
+  /**
+   * Calculate end index for displayed content on the page
+   */
   endIndex: function () {
     return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
   }.property('startIndex', 'displayLength', 'filteredContent.length'),
 
   /**
-   * onclick handler for previous page button on the page
+   * Onclick handler for previous page button on the page
    */
   previousPage: function () {
     var result = this.get('startIndex') - parseInt(this.get('displayLength'));
-    if (result < 2) {
-      result = 1;
-    }
-    this.set('startIndex', result);
+    this.set('startIndex', (result < 2) ? 1 : result);
   },
 
   /**
-   * onclick handler for next page button on the page
+   * Onclick handler for next page button on the page
    */
   nextPage: function () {
     var result = this.get('startIndex') + parseInt(this.get('displayLength'));
@@ -237,10 +260,15 @@ App.TableView = Em.View.extend({
     }
   },
 
-  // the number of rows to show on every page
+  /**
+   * The number of rows to show on every page
+   * @type {Number}
+   */
   displayLength: null,
 
-  // calculates default value for startIndex property after applying filter or changing displayLength
+  /**
+   * Calculates default value for startIndex property after applying filter or changing displayLength
+   */
   updatePaging: function () {
     this.set('startIndex', Math.min(1, this.get('filteredContent.length')));
   }.observes('displayLength', 'filteredContent.length'),
@@ -248,9 +276,9 @@ App.TableView = Em.View.extend({
   /**
    * Apply each filter to each row
    *
-   * @param iColumn number of column by which filter
-   * @param value
-   * @param type
+   * @param {Number} iColumn number of column by which filter
+   * @param {Object} value
+   * @param {String} type
    */
   updateFilter: function (iColumn, value, type) {
     var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
@@ -299,19 +327,27 @@ App.TableView = Em.View.extend({
   },
 
   /**
-   * contain filter conditions for each column
+   * Contain filter conditions for each column
+   * @type {Array}
    */
   filterConditions: [],
 
+  /**
+   * Contains content after implementing filters
+   * @type {Array}
+   */
   filteredContent: [],
 
-  // contain content to show on the current page of data page view
+  /**
+   * Contains content to show on the current page of data page view
+   * @type {Array}
+   */
   pageContent: function () {
     return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex'));
   }.property('filteredContent.length', 'startIndex', 'endIndex'),
 
   /**
-   * filter table by filterConditions
+   * Filter table by filterConditions
    */
   filter: function () {
     var content = this.get('content');
@@ -335,8 +371,16 @@ App.TableView = Em.View.extend({
     }
   }.observes('content'),
 
+  /**
+   * Does any filter is used on the page
+   * @type {Boolean}
+   */
   filtersUsed: false,
 
+  /**
+   * Determine if some filters are used on the page
+   * Set <code>filtersUsed</code> value
+   */
   filtersUsedCalc: function() {
     var filterConditions = this.get('filterConditions');
     if (!filterConditions.length) {
@@ -352,6 +396,9 @@ App.TableView = Em.View.extend({
     this.set('filtersUsed', filtersUsed);
   },
 
+  /**
+   * Run <code>clearFilter</code> in the each child filterView
+   */
   clearFilters: function() {
     this.set('filterConditions', []);
     this.get('_childViews').forEach(function(childView) {

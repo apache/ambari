@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+require('models/rack');
 require('controllers/main/charts/heatmap');
 
 describe('MainChartsHeatmapController', function () {
@@ -30,15 +31,15 @@ describe('MainChartsHeatmapController', function () {
     it('should set maximumValue if inputMaximum consists only of digits', function () {
       controller.set("inputMaximum", 5);
       expect(controller.get('selectedMetric.maximumValue')).to.equal(5);
-    })
+    });
     it('should not set maximumValue if inputMaximum consists not only of digits', function () {
       controller.set("inputMaximum", 'qwerty');
       expect(controller.get('selectedMetric.maximumValue')).to.equal(5);
-    })
+    });
     it('should not set maximumValue if inputMaximum consists not only of digits', function () {
       controller.set("inputMaximum", '100%');
       expect(controller.get('selectedMetric.maximumValue')).to.equal(5);
-    })
+    });
     it('should set maximumValue if inputMaximum consists only of digits', function () {
       controller.set("inputMaximum", 1000);
       expect(controller.get('selectedMetric.maximumValue')).to.equal(1000);
@@ -56,11 +57,11 @@ describe('MainChartsHeatmapController', function () {
     it('should not set selectedMetric event.context if it is not defined', function () {
       controller.showHeatMapMetric({});
       expect(controller.get('selectedMetric')).to.equal(100);
-    })
+    });
     it('should set selectedMetric event.context if it is defined', function () {
       controller.showHeatMapMetric({context: 5});
       expect(controller.get('selectedMetric')).to.equal(5);
-    })
+    });
   });
 
   describe('#loadMetrics()', function () {
@@ -74,32 +75,32 @@ describe('MainChartsHeatmapController', function () {
       refreshHostSlots: function () {
         controller.set('testPassed', true);
       }
-    }))
+    }));
     controller.loadMetrics();
     it('should set inputMaximum as selectedMetric.maximumValue', function () {
       expect(controller.get('inputMaximum')).to.equal(100);
-    })
+    });
     it('should call refreshHostSlots from selectedMetric', function () {
       expect(controller.get('testPassed')).to.equal(true);
-    })
+    });
   });
 
   describe('#rackClass', function () {
     var controller = App.MainChartsHeatmapController.create({
       allMetrics: [],
-      cluster: {racks: [1]}
+      racks: [1]
     });
     it('should return "span12" for 1 cluster rack', function () {
       expect(controller.get('rackClass')).to.equal('span12');
-    })
+    });
     it('should return "span6" for 2 cluster racks', function () {
-      controller.set('cluster', {racks: [1, 2]});
+      controller.set('racks', [1, 2]);
       expect(controller.get('rackClass')).to.equal('span6');
-    })
+    });
     it('should return "span4" for 3 cluster racks', function () {
-      controller.set('cluster', {racks: [1, 2, 3]});
+      controller.set('racks', [1, 2, 3]);
       expect(controller.get('rackClass')).to.equal('span4');
-    })
+    });
   });
 });
 
