@@ -32,55 +32,43 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True
+      recursive = True,
     )
-
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo.cfg',
       owner = 'zookeeper',
       content = Template('zoo.cfg.j2'),
-      group = 'hadoop'
+      group = 'hadoop',
     )
-
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
       content = Template('zookeeper-env.sh.j2'),
-      group = 'hadoop'
+      group = 'hadoop',
     )
-
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',
       owner = 'zookeeper',
       content = Template('configuration.xsl.j2'),
-      group = 'hadoop'
+      group = 'hadoop',
     )
-
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True
+      recursive = True,
     )
-
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True
+      recursive = True,
     )
-
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True
+      recursive = True,
     )
-
-    self.assertResourceCalled('File', '/etc/zookeeper/conf/log4j.properties',
-      owner = 'zookeeper',
-      content = Template('log4j.properties.j2'),
-      group = 'hadoop'
-    )
-
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo_sample.cfg',
       owner = 'zookeeper',
-      group = 'hadoop'
+      group = 'hadoop',
     )
+    self.assertNoMoreResources()
 
   def test_configure_secured(self):
 
@@ -91,52 +79,47 @@ class TestZookeeperClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
-      owner='zookeeper',
-      group='hadoop',
-      recursive=True
+      owner = 'zookeeper',
+      group = 'hadoop',
+      recursive = True,
     )
-
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo.cfg',
-      owner='zookeeper',
-      content=Template('zoo.cfg.j2'),
-      group='hadoop',
+      owner = 'zookeeper',
+      content = Template('zoo.cfg.j2'),
+      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
-      owner='zookeeper',
-      content=Template('zookeeper-env.sh.j2'),
-      group='hadoop',
+      owner = 'zookeeper',
+      content = Template('zookeeper-env.sh.j2'),
+      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',
-      owner='zookeeper',
-      content=Template('configuration.xsl.j2'),
-      group='hadoop',
+      owner = 'zookeeper',
+      content = Template('configuration.xsl.j2'),
+      group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
-      owner='zookeeper',
-      group='hadoop',
-      recursive=True,
+      owner = 'zookeeper',
+      group = 'hadoop',
+      recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
-      owner='zookeeper',
-      group='hadoop',
-      recursive=True,
+      owner = 'zookeeper',
+      group = 'hadoop',
+      recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
-      owner='zookeeper',
-      group='hadoop',
-      recursive=True,
-    )
-    self.assertResourceCalled('File', '/etc/zookeeper/conf/log4j.properties',
-      owner='zookeeper',
-      content=Template('log4j.properties.j2'),
-      group='hadoop',
+      owner = 'zookeeper',
+      group = 'hadoop',
+      recursive = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper_client_jaas.conf',
-      owner='zookeeper',
-      content=Template('zookeeper_client_jaas.conf.j2'),
-      group='hadoop',
+      owner = 'zookeeper',
+      content = Template('zookeeper_client_jaas.conf.j2'),
+      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo_sample.cfg',
-      owner='zookeeper',
-      group='hadoop',
+      owner = 'zookeeper',
+      group = 'hadoop',
     )
+    self.assertNoMoreResources()

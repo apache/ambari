@@ -28,7 +28,6 @@ class TestZookeeperServer(RMFTestCase):
                    command = "configure",
                    config_file="default.json"
     )
-
     self.assert_configure_default()
     self.assertNoMoreResources()
 
@@ -65,7 +64,6 @@ class TestZookeeperServer(RMFTestCase):
                   command = "configure",
                   config_file="secured.json"
     )
-
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
@@ -98,7 +96,6 @@ class TestZookeeperServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
@@ -138,16 +135,10 @@ class TestZookeeperServer(RMFTestCase):
       content = '1',
       mode = 420,
     )
-    self.assertResourceCalled('File', '/etc/zookeeper/conf/log4j.properties',
-      owner = 'zookeeper',
-      content = Template('log4j.properties.j2'),
-      group = 'hadoop',
-    )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo_sample.cfg',
       owner = 'zookeeper',
       group = 'hadoop',
     )
-
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
@@ -189,11 +180,6 @@ class TestZookeeperServer(RMFTestCase):
       content = '1',
       mode = 420,
     )
-    self.assertResourceCalled('File', '/etc/zookeeper/conf/log4j.properties',
-      owner = 'zookeeper',
-      content = Template('log4j.properties.j2'),
-      group = 'hadoop',
-    )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper_jaas.conf',
       owner = 'zookeeper',
       content = Template('zookeeper_jaas.conf.j2'),
@@ -208,3 +194,4 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
     )
+

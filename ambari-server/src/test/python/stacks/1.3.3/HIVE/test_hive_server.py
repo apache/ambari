@@ -155,14 +155,6 @@ class TestHiveServer(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-exec-log4j.properties.template',
-      owner = 'hive',
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-log4j.properties.template',
-      owner = 'hive',
-      group = 'hadoop',
-    )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
@@ -217,14 +209,6 @@ class TestHiveServer(RMFTestCase):
       group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-      owner = 'hive',
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-exec-log4j.properties.template',
-      owner = 'hive',
-      group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-log4j.properties.template',
       owner = 'hive',
       group = 'hadoop',
     )
