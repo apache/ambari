@@ -194,7 +194,7 @@ class TestHiveServer(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
       creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', 'usr/bin/'],
+      path = ['/bin', '/usr/bin/'],
       not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
@@ -277,9 +277,10 @@ class TestHiveServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               action = ['create'],
                               )
+
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
       creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', 'usr/bin/'],
+      path = ['/bin', '/usr/bin/'],
       not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',

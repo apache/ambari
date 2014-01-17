@@ -156,7 +156,7 @@ def jdbc_connector():
     Execute(cmd,
             not_if=format("test -f {target}"),
             creates=params.target,
-            path=["/bin", "usr/bin/"])
+            path=["/bin", "/usr/bin/"])
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
     cmd = format(
@@ -165,4 +165,4 @@ def jdbc_connector():
 
     Execute(cmd,
             not_if=format("test -f {target}"),
-            path=["/bin", "usr/bin/"])
+            path=["/bin", "/usr/bin/"])
