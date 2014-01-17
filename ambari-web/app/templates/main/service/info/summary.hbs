@@ -66,7 +66,7 @@
               {{template "templates/main/service/info/summary/falcon"}}
             {{/if}}
             {{#if view.serviceStatus.storm}}
-              {{template "templates/main/service/info/summary/storm"}}
+              {{view App.MainDashboardServiceStormView showOnlyRows=true serviceBinding="view.service"}}
             {{/if}}
           </tbody>
         </table>

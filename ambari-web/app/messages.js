@@ -945,6 +945,8 @@ Em.I18n.translations = {
   'services.service.summary.TrackersLive':'Trackers Live',
   'services.service.summary.RegionServersLIVE':'RegionServers Live',
   'services.service.summary.GangliaMonitorsLIVE':'Ganglia Monitors Live',
+  'services.service.summary.SuperVisorsLIVE':'SuperVisors Live',
+  'services.service.summary.SuperVisorLIVE':'SuperVisor Lives',
   'services.service.summary.nameNode':'NameNode Web UI',
   'services.service.summary.nameNodeUptime':'NameNode Uptime',
   'services.service.summary.nameNodeHeap':'NameNode Heap',
@@ -1644,6 +1646,8 @@ Em.I18n.translations = {
 
   'dashboard.services.oozie.clients':'Oozie Clients',
   'dashboard.services.oozie.client':'Oozie Client',
+  'dashboard.services.storm.supervisor': 'SuperVisor',
+  'dashboard.services.storm.supervisors': 'SuperVisors',
 
   'dashboard.services.configs.popup.stopService.header':'Stop service',
   'dashboard.services.configs.popup.stopService.body' : 'Service needs to be stopped for reconfiguration',

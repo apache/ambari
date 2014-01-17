@@ -93,6 +93,7 @@ require('views/main/admin/security/add/step1');
 require('views/main/admin/security/add/step2');
 require('views/main/admin/security/add/step3');
 require('views/main/admin/security/add/step4');
+
 require('views/main/dashboard');
 require('views/main/dashboard/service');
 require('views/main/dashboard/service/hdfs');
@@ -104,6 +105,8 @@ require('views/main/dashboard/service/hive');
 require('views/main/dashboard/service/zookeeper');
 require('views/main/dashboard/service/oozie');
 require('views/main/dashboard/service/flume');
+require('views/main/dashboard/service/storm');
+
 require('views/main/dashboard/cluster_metrics/cpu');
 require('views/main/dashboard/cluster_metrics/load');
 require('views/main/dashboard/cluster_metrics/memory');

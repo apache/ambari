@@ -15,5 +15,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{!<!-- @todo create correct view after api implementing-->}}
-{{view view.sumMasterComponentView}}
+
+{{view view.parentView.sumMasterComponentView}}
+<tr>
+  <td>
+    <a href="#" {{action filterHosts view.superVisorComponents.[0]}}>
+      {{pluralize view.superVisorComponents.length singular="t:dashboard.services.storm.supervisor" plural="t:dashboard.services.storm.supervisors"}}
+    </a>
+  </td>
+  <td>
+    <span>
+      {{#view view.superVisorsLiveTextView}}
+        {{view.liveComponents}}/{{view.totalComponents}}
+      {{/view}}
+    </span> {{pluralize view.superVisorComponents.length singular="t:services.service.summary.SuperVisorLIVE" plural="t:services.service.summary.SuperVisorsLIVE"}}
+  </td>
+</tr>

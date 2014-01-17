@@ -16,15 +16,22 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
+App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
+  templateName: require('templates/main/dashboard/service/storm'),
+  serviceName: 'storm',
 
-// load templates here
+  superVisorComponents: function() {
+    return this.get('service.hostComponents').filterProperty('componentName', 'SUPERVISOR');
+  }.property('service.hostComponents.@each'),
 
-require('templates/main/service/info/summary/ganglia');
-require('templates/main/service/info/summary/oozie');
-require('templates/main/service/info/summary/zookeeper');
-require('templates/main/service/info/summary/mapreduce2');
-require('templates/main/service/info/summary/hive');
-require('templates/main/service/info/summary/hue');
-require('templates/main/service/info/summary/falcon');
-require('templates/main/admin/highAvailability/progress');
+  superVisorsLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function () {
+      return this.get('parentView.superVisorComponents').filterProperty('workStatus','STARTED').length;
+    }.property('parentView.superVisorComponents.@each.workStatus'),
+    totalComponents: function() {
+      return this.get('parentView.superVisorComponents').length;
+    }.property('parentView.superVisorComponents.length')
+  })
+});
