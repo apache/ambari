@@ -23,15 +23,16 @@ from resource_management import *
 def oozie(is_server=False # TODO: see if see can remove this
               ):
   import params
-
+  #TODO hack for falcon el
+  oozie_site = dict(params.config['configurations']['oozie-site'])
+  oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
   XmlConfig( "oozie-site.xml",
     conf_dir = params.conf_dir, 
-    configurations = params.config['configurations']['oozie-site'],
+    configurations = oozie_site,
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0664
   )
-  
   Directory( params.conf_dir,
     owner = params.oozie_user,
     group = params.user_group
@@ -104,7 +105,9 @@ def oozie_server_specific(
   cmd3 = format("cd /usr/lib/oozie && chown {oozie_user}:{user_group} {oozie_tmp_dir} && mkdir -p {oozie_libext_dir} && cp {ext_js_path} {oozie_libext_dir}")
   if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
     cmd3 += format(" && cp {jdbc_driver_jar} {oozie_libext_dir}")
-    
+  #falcon el extension
+  if params.has_falcon_host:
+    Execute(format('cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-0.4.0.2.0.6.0-76.jar {oozie_libext_dir}'))
   # this is different for HDP1
   cmd4 = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh prepare-war")
   

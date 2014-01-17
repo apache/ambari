@@ -71,6 +71,9 @@ elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
 else:
   jdbc_driver_jar = ""
 
-
+hostname = config["hostname"]
+falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
+has_falcon_host = not len(falcon_host)  == 0
+falcon_home = '/usr/lib/falcon'
 
 

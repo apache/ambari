@@ -130,8 +130,12 @@ def create_app_directories():
                    mode="1777"
     )
 
-  pass
-
+  if params.has_falcon_host:
+    if params.falcon_store_uri[0:4] == "hdfs":
+      hdfs_directory(name=params.store_uri,
+                     owner=params.falcon_user,
+                     mode="755"
+      )
 
 def create_user_directories():
   import params

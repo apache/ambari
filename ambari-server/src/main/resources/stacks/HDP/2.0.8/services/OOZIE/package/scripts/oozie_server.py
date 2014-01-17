@@ -19,6 +19,8 @@ class OozieServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
+    #TODO remove this when config command will be implemented
+    self.configure(env)
     oozie_service(action='start')
     
   def stop(self, env):

@@ -32,6 +32,7 @@ dfs_datanode_keytab_file =  config['configurations']['hdfs-site']['dfs.datanode.
 dfs_namenode_keytab_file =  config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+falcon_user = config['configurations']['global']['falcon_user']
 
 dfs_datanode_kerberos_principal = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
 dfs_journalnode_kerberos_principal = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.principal']
@@ -62,6 +63,7 @@ nm_host = default("/clusterHostInfo/nm_host", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", [])
 zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
+falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_namenodes = not len(namenode_host) == 0
@@ -76,6 +78,7 @@ has_hcat_server_host = not len(hcat_server_hosts)  == 0
 has_hive_server_host = not len(hive_server_host)  == 0
 has_journalnode_hosts = not len(journalnode_hosts)  == 0
 has_zkfc_hosts = not len(zkfc_hosts)  == 0
+has_falcon_host = not len(falcon_host)  == 0
 
 
 is_namenode_master = hostname in namenode_host
@@ -182,3 +185,4 @@ journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-ad
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
 
+falcon_store_uri = default('configurations/global/falcon_store_uri', None)
