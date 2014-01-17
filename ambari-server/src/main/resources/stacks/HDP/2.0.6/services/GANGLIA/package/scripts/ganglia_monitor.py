@@ -97,6 +97,19 @@ class GangliaMonitor(Script):
                       owner = "root",
                       group = params.user_group)
 
+    if params.is_nimbus_host:
+      generate_daemon("gmond",
+                      name = "HDPNimbus",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+    if params.is_supervisor_host:
+      generate_daemon("gmond",
+                      name = "HDPSupervisor",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
     if params.is_hbase_master:
       generate_daemon("gmond",
                       name = "HDPHBaseMaster",

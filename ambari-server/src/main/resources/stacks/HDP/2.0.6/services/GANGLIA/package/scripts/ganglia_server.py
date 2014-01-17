@@ -35,7 +35,6 @@ class GangliaServer(Script):
 
   def start(self, env):
     import params
-
     env.set_params(params)
     ganglia_server_service.server("start")
 
@@ -120,6 +119,21 @@ class GangliaServer(Script):
                       role = "server",
                       owner = "root",
                       group = params.user_group)
+
+    if params.has_nimbus_server:
+      generate_daemon("gmond",
+                      name = "HDPNimbus",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_supervisor_server:
+      generate_daemon("gmond",
+                      name = "HDPSupervisor",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
 
     if params.has_flume:
       generate_daemon("gmond",

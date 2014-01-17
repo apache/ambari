@@ -49,6 +49,8 @@ nm_hosts = default("/clusterHostInfo/nm_hosts", [])
 hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", [])
 flume_hosts = default("/clusterHostInfo/flume_hosts", [])
 jn_hosts = default("/clusterHostInfo/journalnode_hosts", [])
+nimbus_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
+supervisor_server_hosts = default("/clusterHostInfo/supervisor_hosts", [])
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
@@ -61,6 +63,8 @@ is_nodemanager = hostname in nm_hosts
 is_hbase_rs = hostname in hbase_rs_hosts
 is_flume = hostname in flume_hosts
 is_jn_host = hostname in jn_hosts
+is_nimbus_host = hostname in nimbus_server_hosts
+is_supervisor_host = hostname in supervisor_server_hosts
 
 has_namenodes = not len(namenode_host) == 0
 has_jobtracker = not len(jtnode_host) == 0
@@ -73,6 +77,8 @@ has_nodemanager = not len(nm_hosts) == 0
 has_hbase_rs = not len(hbase_rs_hosts) == 0
 has_flume = not len(flume_hosts) == 0
 has_journalnode = not len(jn_hosts) == 0
+has_nimbus_server = not len(nimbus_server_hosts) == 0
+has_supervisor_server = not len(supervisor_server_hosts) == 0
 
 if System.get_instance().os_family == "suse":
   rrd_py_path = '/srv/www/cgi-bin'
