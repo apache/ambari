@@ -45,6 +45,7 @@ define service {
         max_check_attempts      2
 }
 
+<%if scope.function_hdp_nagios_members_exist('namenode')-%>
 # NAGIOS SERVER HDFS Checks
 define service {
         hostgroup_name          nagios-server
@@ -67,6 +68,7 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      3
 }
+<%end-%> #end HDFS if
 <% if scope.function_hdp_nagios_members_exist('namenode') &&
         (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2) &&
         (scope.function_hdp_template_var("::hdp::params::dfs_ha_enabled"))%>
@@ -80,7 +82,8 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      5
 }
-<%end-%>
+<%end-%> #end HDFS if
+
 
 # AMBARI AGENT Checks
 <%scope.function_hdp_template_var("all_hosts").each_with_index do |hostname, index|-%>
@@ -95,7 +98,7 @@ define service {
         max_check_attempts      4
 }
 
-<%end-%>
+<%end-%> #end do loop
 
 # NAGIOS SERVER ZOOKEEPER Checks
 <%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
@@ -124,7 +127,7 @@ define service {
         max_check_attempts      3
 }
 <%end-%>
-<%end-%>
+<%end-%> #end if nagios-server
 
 
 
@@ -215,7 +218,7 @@ define service {
 }
 <%end-%>
 
-<%end-%>
+<%end-%> #end if ganglia
 
 <%if scope.function_hdp_nagios_members_exist('snamenode')-%>
 # Secondary namenode checks
@@ -230,6 +233,7 @@ define service {
         max_check_attempts      3
 }
 <%end-%>
+
 <%if scope.function_hdp_nagios_members_exist('namenode')-%>
 # HDFS Checks
 <% @namenodes = scope.function_hdp_template_var("::hdp::params::namenode_host"); @namenodes.each do |namenode| -%>
@@ -256,7 +260,7 @@ define service {
         retry_check_interval    2
         max_check_attempts      5
 }
-<% end %>
+<% end %> #end os type
 
 define service {
         host_name               <%= namenode %>
@@ -291,7 +295,6 @@ define service {
         max_check_attempts      5
 }
 
-  <% end -%>
 
 define service {
         hostgroup_name          nagios-server
@@ -314,8 +317,8 @@ define service {
         retry_check_interval    1 
         max_check_attempts      1
 }
-
-<%end-%>
+<% end -%> #end do loop
+<% end -%> #end if HDFS (namenode)
 
 # MAPREDUCE Checks
 <%if scope.function_hdp_nagios_members_exist('jobtracker')-%>
@@ -376,7 +379,7 @@ define service {
         max_check_attempts      5
 }
 
-<%end-%>
+<%end-%> #end if MapReduce
 
 <%if scope.function_hdp_nagios_members_exist('tasktracker-servers')-%>
 define service {
@@ -669,7 +672,7 @@ define service {
         retry_check_interval    2 
         max_check_attempts      5
 }
-<% end %>
+<% end %> #end if suse
 define service {
         host_name               <%= hbasemaster %>
         use                     hadoop-service
@@ -680,8 +683,8 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
-<%end-%>
-<%end-%>
+<%end-%> #end do loop
+<%end-%> #end if Hbase
 
 <%if scope.function_hdp_nagios_members_exist('hiveserver')-%>
 # HIVE Metastore check
