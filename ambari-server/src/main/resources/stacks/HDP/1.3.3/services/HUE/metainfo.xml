@@ -25,6 +25,7 @@
         <component>
             <name>HUE_SERVER</name>
             <category>MASTER</category>
+            <cardinality>1</cardinality>
         </component>
     </components>
 

@@ -24,6 +24,7 @@
         <component>
             <name>FLUME_SERVER</name>
             <category>MASTER</category>
+            <cardinality>1</cardinality>
         </component>
     </components>
 
