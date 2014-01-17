@@ -658,7 +658,7 @@ var urls = {
   },
   'settings.get.user_pref': {
     'real': '/persist/{key}',
-    'mock': '',
+    'mock': '/data/user_settings/user_pref.json',
     'type': 'GET',
     'format': function (data, opt) {
       return {

@@ -110,17 +110,24 @@ App.BackgroundOperationsController = Em.Controller.extend({
   callBackFilteredByRequest: function (data, ajaxQuery, params) {
     var hostsMap = {};
     var request = this.get('services').findProperty('id', data.Requests.id);
+    var previousTaskStatusMap = request.get('previousTaskStatusMap');
+    var currentTaskStatusMap = {};
     data.tasks.forEach(function (task) {
-      if (hostsMap[task.Tasks.host_name]) {
-        hostsMap[task.Tasks.host_name].logTasks.push(task);
+      var host = hostsMap[task.Tasks.host_name];
+      if (host) {
+        host.logTasks.push(task);
+        host.isModified = (host.isModified) ? true : previousTaskStatusMap[task.Tasks.id] !== task.Tasks.status;
       } else {
         hostsMap[task.Tasks.host_name] = {
           name: task.Tasks.host_name,
           publicName: task.Tasks.host_name,
-          logTasks: [task]
+          logTasks: [task],
+          isModified: previousTaskStatusMap[task.Tasks.id] !== task.Tasks.status
         };
       }
+      currentTaskStatusMap[task.Tasks.id] = task.Tasks.status;
     }, this);
+    request.set('previousTaskStatusMap', currentTaskStatusMap);
     request.set('hostsMap', hostsMap);
     this.set('serviceTimestamp', new Date().getTime());
   },
@@ -170,7 +177,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
           isRunning: isRunning,
           hostsMap: {},
           tasks: [],
-          dependentService: requestParams.dependentService
+          dependentService: requestParams.dependentService,
+          previousTaskStatusMap: {}
         });
         self.get("services").unshift(rq);
       }
