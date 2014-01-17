@@ -33,4 +33,4 @@ sqoop_user = "sqoop"
 
 keytab_path = config['configurations']['global']['keytab_path']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

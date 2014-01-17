@@ -20,8 +20,8 @@ Ambari Agent
 
 """
 
-from resource_management import *
 from functions import get_port_from_url
+from resource_management import *
 import status_params
 
 # server configurations
@@ -82,7 +82,7 @@ java64_home = config['hostLevelParams']['java_home']
 security_enabled = config['configurations']['global']['security_enabled']
 
 nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
-kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)

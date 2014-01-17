@@ -38,30 +38,3 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   
   result_xmn_val = xmn_max if xmn_val > xmn_max else xmn_val
   return str(result_xmn_val) + heapsize_unit
-
-def get_unique_id_and_date():
-    code, out = checked_call("hostid")
-    id = out.strip()
-    
-    now = datetime.datetime.now()
-    date = now.strftime("%M%d%y")
-
-    return "id{id}_date{date}".format(id=id, date=date)
-  
-def get_kinit_path(pathes_list):
-  """
-  @param pathes: comma separated list
-  """
-  kinit_path = ""
-  
-  for x in pathes_list:
-    if not x:
-      continue
-    
-    path = os.path.join(x,"kinit")
-
-    if os.path.isfile(path):
-      kinit_path = path
-      break
-    
-  return kinit_path

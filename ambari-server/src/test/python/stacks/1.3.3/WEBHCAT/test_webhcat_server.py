@@ -167,12 +167,12 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('Execute', ' -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
       path = ['/bin'],
       user = 'hcat',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
-      not_if = ' -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
+      not_if = '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
       user = 'hcat',
       conf_dir = '/etc/hadoop/conf',
     )

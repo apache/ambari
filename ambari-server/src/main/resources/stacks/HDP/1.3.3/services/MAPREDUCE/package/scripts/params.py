@@ -46,7 +46,7 @@ hadoop_jar_location = "/usr/lib/hadoop/"
 smokeuser = config['configurations']['global']['smokeuser']
 security_enabled = config['configurations']['global']['security_enabled']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #exclude file
 mr_exclude_hosts = default("/clusterHostInfo/decom_tt_hosts", [])

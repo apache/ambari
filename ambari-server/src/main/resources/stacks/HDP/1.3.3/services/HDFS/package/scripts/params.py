@@ -50,7 +50,7 @@ dfs_journalnode_kerberos_internal_spnego_principal = config['configurations']['h
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
 
-kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 #hosts
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])

@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 
+from functions import calc_xmn_from_xms
 from resource_management import *
 import functions
 import status_params
@@ -43,7 +44,7 @@ log_dir = config['configurations']['global']['hbase_log_dir']
 master_heapsize = config['configurations']['global']['hbase_master_heapsize']
 
 regionserver_heapsize = config['configurations']['global']['hbase_regionserver_heapsize']
-regionserver_xmn_size = functions.calc_xmn_from_xms(regionserver_heapsize, 0.2, 512)
+regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, 0.2, 512)
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']

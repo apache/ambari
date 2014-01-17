@@ -35,8 +35,12 @@ PATH_TO_STACKS = os.path.normpath("main/resources/stacks/HDP")
 PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
 
 class RMFTestCase(TestCase):
-  def executeScript(self, path, classname=None, command=None, config_file=None, 
-                    shell_mock_value = (0, "OK."), os_type=('Suse','11','Final')):
+  def executeScript(self, path, classname=None, command=None, config_file=None,
+                    # common mocks for all the scripts 
+                    shell_mock_value = (0, "OK."), 
+                    os_type=('Suse','11','Final'),
+                    kinit_path_local="/usr/bin/kinit"
+                    ):
     norm_path = os.path.normpath(path)
     src_dir = RMFTestCase._getSrcFolder()
     stack_version = norm_path.split(os.sep)[0]
@@ -75,7 +79,8 @@ class RMFTestCase(TestCase):
       with patch('resource_management.core.shell.checked_call', return_value=shell_mock_value): # we must always mock any shell calls
         with patch.object(Script, 'get_config', return_value=self.config_dict): # mocking configurations
           with patch.object(Script, 'install_packages'):
-            method(RMFTestCase.env)
+            with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
+              method(RMFTestCase.env)
   
   def getConfig(self):
     return self.config_dict
