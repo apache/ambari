@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 
 /**
  * View content of the rolling restart dialog.
@@ -53,21 +54,18 @@ App.RollingRestartView = Em.View.extend({
     if (totalCount < 1) {
       errors.push(Em.I18n.t('rollingrestart.dialog.msg.noRestartHosts').format(displayName));
     } else {
-      if (!bs) {
-        errors.push(Em.I18n.t('rollingrestart.dialog.err.empty.batchsize'));
-      } else if (bs > totalCount || bs < 0) {
-        errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.batchsize').format(totalCount));
+      var bsError = numberUtils.validateInteger(bs, 1, totalCount);
+      var tsError = numberUtils.validateInteger(ts, 0, totalCount);
+      if (bsError != null) {
+        errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.batchsize').format(bsError));
       }
-      if (!ts) {
-        errors.push(Em.I18n.t('rollingrestart.dialog.err.empty.waittime'));
-      } else if (ts < 0) {
-        errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.toleratesize'));
+      if (tsError != null) {
+        errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.toleratesize').format(tsError));
       }
     }
-    if (!wait) {
-      errors.push(Em.I18n.t('rollingrestart.dialog.err.empty.tolerate'));
-    } else if (wait < 0) {
-      errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.waitTime'));
+    var waitError = numberUtils.validateInteger(wait, 0, NaN);
+    if (waitError != null) {
+      errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.waitTime').format(waitError));
     }
     if (errors.length < 1) {
       errors = null;

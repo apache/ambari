@@ -1785,12 +1785,9 @@ Em.I18n.translations = {
   'rollingrestart.dialog.msg.timegap.suffix': 'seconds between batches ',
   'rollingrestart.dialog.msg.toleration.prefix': 'Tolerate up to ',
   'rollingrestart.dialog.msg.toleration.suffix': 'failures',
-  'rollingrestart.dialog.err.empty.batchsize': 'Restart batch size cannot be empty',
-  'rollingrestart.dialog.err.empty.waittime': 'Wait interval cannot be empty',
-  'rollingrestart.dialog.err.empty.tolerate': 'Failure toleration size cannot be empty',
-  'rollingrestart.dialog.err.invalid.batchsize': 'Restart batch size should be between 1 and {0}',
-  'rollingrestart.dialog.err.invalid.waitTime': 'Wait time cannot be negative',
-  'rollingrestart.dialog.err.invalid.toleratesize': 'Failure toleration cannot be negative',
+  'rollingrestart.dialog.err.invalid.batchsize': 'Invalid restart batch size: {0}',
+  'rollingrestart.dialog.err.invalid.waitTime': 'Invalid wait time between batches: {0}',
+  'rollingrestart.dialog.err.invalid.toleratesize': 'Invalid failure toleration count: {0}',
   'rollingrestart.dialog.msg.staleConfigsOnly': 'Only restart {0}s with stale configs',
   'rollingrestart.rest.context': 'Rolling Restart of {0}s - batch {1} of {2}',
 
@@ -1808,6 +1805,11 @@ Em.I18n.translations = {
   'menu.item.mirroring':'Mirroring',
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
+
+  'number.validate.empty': 'cannot be empty',
+  'number.validate.notValidNumber': 'not a valid number',
+  'number.validate.lessThanMinumum': 'value less than {0}',
+  'number.validate.moreThanMaximum': 'value greater than {0}',
 
   'common.combobox.placeholder': 'Filter...',
   'common.combobox.dropdown.1': 'Overridden properties',

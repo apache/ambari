@@ -52,5 +52,34 @@ module.exports = {
       var parsedValue = window[parseType](value);
       return parsedValue.toFixed(precision) + " " + sizes[posttxt];
     }
+  },
+
+  /**
+   * Validates if the given string or number is an integer between the
+   * values of min and max (inclusive). The minimum and maximum
+   * checks are ignored if their valid is NaN.
+   */
+  validateInteger : function(str, min, max) {
+    if (!str || (str + "").trim().length < 1) {
+      return Em.I18n.t('number.validate.empty');
+    } else {
+      str = (str + "").trim();
+      var number = parseInt(str);
+      if (isNaN(number)) {
+        return Em.I18n.t('number.validate.notValidNumber');
+      } else {
+        if (str.length != (number + "").length) {
+          // parseInt("1abc") returns 1 as integer
+          return Em.I18n.t('number.validate.notValidNumber');
+        }
+        if (!isNaN(min) && number < min) {
+          return Em.I18n.t('number.validate.lessThanMinumum').format(min);
+        }
+        if (!isNaN(max) && number > max) {
+          return Em.I18n.t('number.validate.moreThanMaximum').format(max);
+        }
+      }
+    }
+    return null;
   }
 };
