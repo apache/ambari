@@ -29,7 +29,6 @@ class HbaseServiceCheck(Script):
     
     output_file = "/apps/hbase/data/ambarismoketest"
     test_cmd = format("fs -test -e {output_file}")
-    kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smoke_test_user};") if params.security_enabled else ""
     hbase_servicecheck_file = '/tmp/hbase-smoke.sh'
   
     File( '/tmp/hbaseSmokeVerify.sh',
@@ -44,8 +43,7 @@ class HbaseServiceCheck(Script):
     
     if params.security_enabled:    
       hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
-      hbase_kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
-      grantprivelegecmd = format("{hbase_kinit_cmd} hbase shell {hbase_grant_premissions_file}")
+      grantprivelegecmd = format("{kinit_cmd} hbase shell {hbase_grant_premissions_file}")
   
       File( hbase_grant_premissions_file,
         owner   = params.hbase_user,
