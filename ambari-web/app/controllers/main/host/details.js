@@ -793,6 +793,9 @@ App.MainHostDetailsController = Em.Controller.extend({
       case "stopAllComponents":
         this.doStopAllComponents();
         break;
+      case "restartAllComponents":
+        this.doRestartAllComponents();
+        break;
       default:
         break;
     }
@@ -818,6 +821,17 @@ App.MainHostDetailsController = Em.Controller.extend({
       App.showConfirmationPopup(function() {
         self.sendStopComponentCommand(null, 
             Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'));
+      });
+    }
+  },
+
+  doRestartAllComponents: function() {
+    var self = this;
+    var components = this.get('content.hostComponents');
+    var componentsLength = components == null ? 0 : components.get('length');
+    if (componentsLength > 0) {
+      App.showConfirmationPopup(function() {
+        batchUtils.restartHostComponents(components);
       });
     }
   },

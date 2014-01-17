@@ -30,6 +30,7 @@ App.MainHostDetailsView = Em.View.extend({
     var options = [
          {action: 'startAllComponents', 'label': this.t('hosts.host.details.startAllComponents')},
          {action: 'stopAllComponents', 'label': this.t('hosts.host.details.stopAllComponents')},
+         {action: 'restartAllComponents', 'label': this.t('hosts.host.details.restartAllComponents')},
          {action: 'deleteHost', 'label': this.t('hosts.host.details.deleteHost')}];
     return options;
   }.property('controller.content'),

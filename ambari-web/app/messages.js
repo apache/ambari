@@ -1382,6 +1382,7 @@ Em.I18n.translations = {
   'hosts.host.details.deleteHost':'Delete Host',
   'hosts.host.details.startAllComponents':'Start All Components',
   'hosts.host.details.stopAllComponents':'Stop All Components',
+  'hosts.host.details.restartAllComponents':'Restart All Components',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',
