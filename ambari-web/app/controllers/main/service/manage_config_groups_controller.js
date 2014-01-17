@@ -453,7 +453,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       toSetHosts: groupsToSetHosts,
       toCreate: groupsToCreate
     };
-  }.property('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
+  }.property('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.hosts.length', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
 
   isHostsModified: function () {
     var modifiedGroups = this.get('hostsModifiedConfigGroups');
