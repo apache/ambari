@@ -102,6 +102,9 @@ App.TableView = Em.View.extend({
    * @returns {String}
    */
   displayLengthKey: function (loginName) {
+    if (App.get('testMode')) {
+      return 'pagination_displayLength';
+    }
     loginName = loginName ? loginName : App.router.get('loginName');
     return this.get('controller.name') + '-pagination-displayLength-' + loginName;
   },

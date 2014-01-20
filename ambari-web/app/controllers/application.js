@@ -52,6 +52,9 @@ App.ApplicationController = Em.Controller.extend({
     return dfd.promise();
   },
   persistKey: function (loginName) {
+    if (App.get('testMode')) {
+      return 'admin_settings_show_bg';
+    }
     if (!loginName)
       loginName = App.router.get('loginName');
     return 'admin-settings-show-bg-' + loginName;

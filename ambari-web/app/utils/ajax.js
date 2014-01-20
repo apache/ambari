@@ -658,7 +658,7 @@ var urls = {
   },
   'settings.get.user_pref': {
     'real': '/persist/{key}',
-    'mock': '/data/user_settings/user_pref.json'
+    'mock': '/data/user_settings/{key}.json'
   },
   'settings.post.user_pref': {
     'real': '/persist',
