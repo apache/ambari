@@ -23,6 +23,11 @@ import os
 
 config = Script.get_config()
 
+if System.get_instance().platform == "oracle":
+  ulimit_cmd = ''
+else:
+  ulimit_cmd = "ulimit -c unlimited && if [ `ulimit -c` != 'unlimited' ]; then exit 77; fi && "
+
 #security params
 security_enabled = config['configurations']['global']['security_enabled']
 dfs_journalnode_keytab_file = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']

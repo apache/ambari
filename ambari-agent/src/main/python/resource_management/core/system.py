@@ -96,12 +96,20 @@ class System(object):
     if operatingsystem == "linux":
       lsb = self.lsb
       if not lsb:
-        if os.path.exists("/etc/redhat-release"):
-          return "redhat"
         if os.path.exists("/etc/fedora-release"):
           return "fedora"
         if os.path.exists("/etc/centos-release"):
           return "centos"
+        if os.path.exists("/etc/oracle-release"):
+          return "oracle"        
+        if os.path.exists("/etc/redhat-release"):
+          with file('/etc/redhat-release') as f:
+           release = f.read().lower() 
+           if 'centos' in release:
+             return 'centos'
+           elif 'fedora' in release:
+             return 'fedora'
+          return 'redhat'
         if os.path.exists("/etc/SuSE-release"):
           return "suse"
         if os.path.exists("/etc/system-release"):
