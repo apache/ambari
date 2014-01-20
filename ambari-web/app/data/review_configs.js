@@ -232,6 +232,18 @@ module.exports = [
             component_value: ''
           }),
           Ember.Object.create({
+            display_name: 'Storm UI Server',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'DRPC Server',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'Logviewer Server',
+            component_value: ''
+          }),
+          Ember.Object.create({
             display_name: 'SuperVisor',
             component_value: ''
           })

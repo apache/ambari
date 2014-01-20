@@ -918,7 +918,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     stormObj.get('service_components').forEach(function(component) {
       switch (component.get('display_name')) {
         case 'Nimbus':
-          this.loadNimbusValue(component);
+        case 'Logviewer Server':
+        case 'Storm UI Server':
+        case 'DRPC Server':
+          this.loadMasterComponentHostValue(component);
           break;
         case 'SuperVisor':
           this.loadSuperVisorValue(component);
@@ -929,9 +932,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('services').pushObject(stormObj);
   },
 
-  loadNimbusValue: function(component) {
-    var nimbusHost = this.get('content.masterComponentHosts').filterProperty('display_name', component.get('display_name'));
-    component.set('component_value', nimbusHost[0].hostName);
+  /**
+   * Load master component host value
+   * @method loadMasterComponentHostValue
+   * @param {Object} component - component object which value should be set
+   * @param {String} componentName - (optional) display_name of component
+   */
+  loadMasterComponentHostValue: function(component, componentName) {
+    var component_name = componentName || component.get('display_name');
+    var masterHost = this.get('content.masterComponentHosts').findProperty('display_name', component_name);
+    component.set('component_value', masterHost.hostName);
   },
 
   loadSuperVisorValue: function(component) {
