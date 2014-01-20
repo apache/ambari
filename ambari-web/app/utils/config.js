@@ -704,8 +704,14 @@ App.config = Em.Object.create({
         item.isVisible = item.type !== 'global.xml';
         var serviceName = item.service_name;
         var fileName = item.type;
-        // If condition makes sure that mapred-queue-acls.xml configs are not shown in Mapreduce or Mapreduce2 service page Advanced section
-        if (fileName !== 'mapred-queue-acls.xml' || App.supports.capacitySchedulerUi === true) {
+        var isHDP2 = App.get('isHadoop2Stack');
+        /**
+         * Properties from mapred-queue-acls.xml are ignored unless App.supports.capacitySchedulerUi is true
+         * Properties from capacity-scheduler.xml are ignored unless HDP stack version is 2.x or
+         * HDP stack version is 1.x and App.supports.capacitySchedulerUi is true.
+          */
+        if ((fileName !== 'mapred-queue-acls.xml' || App.supports.capacitySchedulerUi) &&
+            (fileName !== 'capacity-scheduler.xml' || isHDP2 || App.supports.capacitySchedulerUi)) {
           properties.push({
             serviceName: serviceName,
             name: item.property_name,
