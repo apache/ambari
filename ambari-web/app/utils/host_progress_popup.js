@@ -317,7 +317,8 @@ App.HostPopup = Em.Object.create({
       if (existedHosts && (existedHosts.length > 0) && this.get('currentServiceId') === this.get('previousServiceId')) {
         existedHosts.forEach(function (host) {
           var newHostInfo = hostsMap[host.get('name')];
-          if (newHostInfo && newHostInfo.isModified) {
+          //update only hosts with changed tasks or currently opened tasks of host
+          if (newHostInfo && (newHostInfo.isModified || this.get('currentHostName') === host.get('name'))) {
             var hostStatus = self.getStatus(newHostInfo.logTasks);
             var hostProgress = self.getProgress(newHostInfo.logTasks);
             host.set('status', App.format.taskStatus(hostStatus[0]));
@@ -327,13 +328,14 @@ App.HostPopup = Em.Object.create({
             host.set('progress', hostProgress);
             host.set('barWidth', "width:" + hostProgress + "%;");
             host.set('logTasks', newHostInfo.logTasks);
-            //update only currently opened tasks of host
-            if (this.get('currentHostName') === host.get('name')) {
-              var existTasks = host.get('tasks');
+            var existTasks = host.get('tasks');
+            if (existTasks) {
               newHostInfo.logTasks.forEach(function (_task) {
                 var existTask = existTasks.findProperty('id', _task.Tasks.id);
                 if (existTask) {
                   existTask.set('status', App.format.taskStatus(_task.Tasks.status));
+                  existTask.set('stdout', _task.Tasks.stdout);
+                  existTask.set('stderr', _task.Tasks.stderr);
                 } else {
                   existTasks.pushObject(this.createTask(_task));
                 }
