@@ -353,7 +353,7 @@
                   <location>src/main/python/UpgradeHelper_HDP2.py</location>
                 </source>
                 <source>
-                  <location>src/main/resources/scripts/relocate_resources.py</location>
+                  <location>src/main/resources/scripts/relocate_host_components.py</location>
                 </source>
               </sources>
             </mapping>
