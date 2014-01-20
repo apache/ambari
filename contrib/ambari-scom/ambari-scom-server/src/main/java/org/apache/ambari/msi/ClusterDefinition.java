@@ -283,8 +283,8 @@ public class ClusterDefinition {
         state.equals("INSTALLED") ? StateProvider.State.Stopped : StateProvider.State.Unknown;
 
     int requestId = -1;
-
-    if (s != StateProvider.State.Unknown) {
+    // if the state is already set to the desired state or state is unknown then skip it
+    if (s != StateProvider.State.Unknown && !state.equals(getServiceState(serviceName))) {
       Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
       if (serviceHostComponents != null) {
 
@@ -293,6 +293,7 @@ public class ClusterDefinition {
           Set<String> componentNames = entry.getValue();
 
           for (String componentName : componentNames) {
+            if(state.equals(getHostComponentState(hostName, componentName))) continue;
             requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
                 "Set service " + serviceName + " state to " + s);
           }
@@ -356,6 +357,7 @@ public class ClusterDefinition {
 
           for (String name : componentNames) {
             if (name.equals(componentName)) {
+              if(state.equals(getHostComponentState(hostName, componentName))) continue;
               requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
                   "Set component " + componentName + " state to " + s);
             }
@@ -394,7 +396,7 @@ public class ClusterDefinition {
 
     int requestId = -1;
 
-    if (s != StateProvider.State.Unknown) {
+    if (s != StateProvider.State.Unknown && !state.equals(getHostComponentState(hostName, componentName))) {
       requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), -1,
           "Set host component " + componentName + " state to " + s);
     }

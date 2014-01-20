@@ -18,12 +18,15 @@
 
 package org.apache.ambari.msi;
 
+import org.apache.ambari.scom.ClusterDefinitionProvider;
+import org.apache.ambari.scom.HostInfoProvider;
 import org.apache.ambari.scom.TestClusterDefinitionProvider;
 import org.apache.ambari.scom.TestHostInfoProvider;
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Set;
+
+import static org.easymock.EasyMock.*;
 
 /**
  */
@@ -114,5 +117,170 @@ public class ClusterDefinitionTest {
     hostComponents = clusterDefinition.getHostComponents("HDFS", "slave2.acme.com");
 
     Assert.assertTrue(hostComponents.contains("DATANODE"));
+  }
+
+  @Test
+  public void testSetServiceState_IfStateAlreadySetToDesired() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Running).times(5);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(-1, clusterDefinition.setServiceState("HDFS", "STARTED"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetServiceState_IfStateUnknown() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(-1, clusterDefinition.setServiceState("HDFS", "UNKNOWN"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetServiceState_FromInstalledToStarted() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+    //checking if a service state already set
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    //checking if a component state not set yet
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(1, clusterDefinition.setServiceState("HDFS", "STARTED"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetServiceStateFromInstalledToStartedWhenOneOfTheComponentsAlreadyStarted() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+    //checking if a service state already set
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    //checking if a component state not set yet
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Running).times(4);
+    expect(mockStateProvider.getRunningState(anyObject(String.class), anyObject(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(1, clusterDefinition.setServiceState("HDFS", "STARTED"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetHostComponentState_IfStateUnknown() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(-1, clusterDefinition.setHostComponentState("hostName", "DATANODE", "UNKNOWN"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetHostComponentState_IfStateAlreadySetToDesired() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    expect(mockStateProvider.getRunningState(isA(String.class), isA(String.class))).andReturn(StateProvider.State.Running);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(-1, clusterDefinition.setHostComponentState("hostName", "DATANODE", "STARTED"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetHostComponentState_FromInstalledToStarted() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    expect(mockStateProvider.getRunningState(isA(String.class), isA(String.class))).andReturn(StateProvider.State.Stopped);
+    expect(mockStateProvider.setRunningState(anyObject(String.class), anyObject(String.class), eq(StateProvider.State.Running))).andReturn(null);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(1, clusterDefinition.setHostComponentState("hostName", "DATANODE", "STARTED"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
   }
 }
