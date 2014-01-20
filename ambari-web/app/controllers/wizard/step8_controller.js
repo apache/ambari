@@ -945,7 +945,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadSuperVisorValue: function(component) {
-    var hostsCount = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts.length;
+    var hostsCount = this.get('content.slaveComponentHosts').findProperty('componentName', 'SUPERVISOR').hosts.length;
     var hostsText = hostsCount > 1 ? hostsCount + ' hosts' : hostsCount + ' host'
     component.set('component_value', hostsText);
   },

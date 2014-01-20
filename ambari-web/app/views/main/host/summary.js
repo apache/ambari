@@ -224,6 +224,7 @@ App.MainHostSummaryView = Em.View.extend({
     var zookeeperServerExists = false;
     var nodeManagerExists = false;
     var hbaseMasterExists = false;
+    var supervisorExists = false;
     
     var installableClients = this.get('installableClientComponents');
     
@@ -247,6 +248,9 @@ App.MainHostSummaryView = Em.View.extend({
         case 'HBASE_MASTER':
           hbaseMasterExists = true;
           break;
+        case 'SUPERVISOR':
+          supervisorExists = true;
+          break;
       }
     }, this);
 
@@ -267,6 +271,9 @@ App.MainHostSummaryView = Em.View.extend({
     }
     if (!nodeManagerExists && services.findProperty('serviceName', 'YARN')) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'NODEMANAGER' }));
+    }
+    if (!supervisorExists && services.findProperty('serviceName', 'STORM')) {
+      components.pushObject(this.addableComponentObject.create({ 'componentName': 'SUPERVISOR' }));
     }
     if (installableClients.length > 0) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'CLIENTS', subComponentNames: installableClients }));

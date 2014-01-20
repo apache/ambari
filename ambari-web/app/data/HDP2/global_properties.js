@@ -1332,7 +1332,7 @@ module.exports =
       "displayType": "masterHost",
       "isReconfigurable": false,
       "isVisible": true,
-      "isRequiredByAgent": true,
+      "isRequiredByAgent": false,
       "serviceName": "STORM",
       "category": "StormUIServer"
     },
@@ -1345,7 +1345,7 @@ module.exports =
       "displayType": "masterHost",
       "isReconfigurable": false,
       "isVisible": true,
-      "isRequiredByAgent": true,
+      "isRequiredByAgent": false,
       "serviceName": "STORM",
       "category": "LogviewerServer"
     },
@@ -1358,9 +1358,23 @@ module.exports =
       "displayType": "masterHost",
       "isReconfigurable": false,
       "isVisible": true,
-      "isRequiredByAgent": true,
+      "isRequiredByAgent": false,
       "serviceName": "STORM",
       "category": "DRPCServer"
+    },
+    {
+      "id": "puppet var",
+      "name": "supervisor_hosts",
+      "displayName": "Supervisor hosts",
+      "description": "",
+      "defaultValue": "",
+      "displayType": "masterHosts",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": false,
+      "serviceName": "STORM",
+      "isOverridable": false,
+      "category": "Supervisor"
     },
   /**********************************************MISC***************************************/
     {

@@ -234,6 +234,12 @@ App.WizardStep6Controller = Em.Controller.extend({
           label: self.getComponentDisplayName('HBASE_REGIONSERVER')
         }));
       }
+      if (this.isServiceSelected('STORM')) {
+        headers.pushObject(Em.Object.create({
+          name: 'SUPERVISOR',
+          label: self.getComponentDisplayName('SUPERVISOR')
+        }));
+      }
       headers.pushObject(Ember.Object.create({
         name: 'CLIENT',
         label: self.getComponentDisplayName('CLIENT')

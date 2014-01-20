@@ -351,8 +351,8 @@ module.exports = new Ember.Set([
     component_name: 'SUPERVISOR',
     display_name: 'Supervisor',
     isMaster: false,
-    isClient: true,
-    description: 'Client component for STORM'
+    isClient: false,
+    description: 'Slave component for STORM'
   },
   {
     service_name: 'STORM',

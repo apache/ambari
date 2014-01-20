@@ -1717,9 +1717,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         hiveMetastoreHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
         break;
+      case 'STORM':
+        var stormUIServerHost = this.getMasterComponentHostValue('STORM_UI_SERVER');
+        var logviewerServerHost = this.getMasterComponentHostValue('LOGVIEWER_SERVER');
+        var drpcServerHost = this.getMasterComponentHostValue('DRPC_SERVER');
+
+        var stormUIServerHostConfig = serviceConfigs.findProperty('name','stormuiserver_host');
+        var logviewerServerHostConfig = serviceConfigs.findProperty('name','logviewerserver_host');
+        var drpcServerHostConfig = serviceConfigs.findProperty('name','drpcserver_host');
+
+        stormUIServerHostConfig.defaultValue = stormUIServerHost;
+        logviewerServerHostConfig.defaultValue = logviewerServerHost;
+        drpcServerHostConfig.defaultValue = drpcServerHost;
+
+        globalConfigs.push(stormUIServerHostConfig);
+        globalConfigs.push(logviewerServerHostConfig);
+        globalConfigs.push(drpcServerHostConfig);
+
+        var supervisorHosts = this.get('content.hostComponents').filterProperty('componentName','SUPERVISOR').mapProperty('host.hostName');
+        if (supervisorHosts.length > 0) {
+          var supervisorHostsConfig = serviceConfigs.findProperty('name', 'supervisor_hosts');
+          supervisorHostsConfig.defaultValue = supervisorHosts;
+          globalConfigs.push(supervisorHostsConfig);
+        }
+        break;
     }
   },
 
+  getMasterComponentHostValue: function(componentName) {
+    return this.get('content.hostComponents').findProperty('componentName', componentName).get('host.hostName')
+  },
   /**
    * Provides service component name and display-name information for
    * the current selected service.

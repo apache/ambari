@@ -31,7 +31,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {bool}
    */
   isClient:function () {
-    if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT','SUPERVISOR'].contains(this.get('componentName'))){
+    if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
       return true;
     }
 
@@ -101,6 +101,7 @@ App.HostComponent = DS.Model.extend({
       case 'GANGLIA_MONITOR':
       case 'NODEMANAGER':
       case 'ZKFC':
+      case 'SUPERVISOR':
         return true;
       default:
         return false;
