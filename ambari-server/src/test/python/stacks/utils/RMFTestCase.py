@@ -17,6 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate"]
+
 from unittest import TestCase
 import json
 import os
@@ -44,8 +46,9 @@ class RMFTestCase(TestCase):
       raise RuntimeError("Can not read config file: "+ config_file_path)
     
     # append basedir to PYTHONPATH
-    basedir = os.path.dirname(script_path)
-    sys.path.append(basedir)
+    scriptsdir = os.path.dirname(script_path)
+    basedir = os.path.dirname(scriptsdir)
+    sys.path.append(scriptsdir)
     
     # get method to execute
     try:
@@ -61,10 +64,10 @@ class RMFTestCase(TestCase):
       del(sys.modules["params"]) 
     
     # run
-    with Environment(basedir, test_mode=True) as self.env:
+    with Environment(basedir, test_mode=True) as RMFTestCase.env:
       with patch.object(Script, 'install_packages', return_value=MagicMock()):
         with patch.object(Script, 'get_config', return_value=self.config_dict):
-          method(self.env)
+          method(RMFTestCase.env)
   
   def getConfig(self):
     return self.config_dict
@@ -93,24 +96,40 @@ class RMFTestCase(TestCase):
     return val
   
   def printResources(self):
-    for resource in self.env.resource_list:
+    for resource in RMFTestCase.env.resource_list:
       print "'{0}', {1},".format(resource.__class__.__name__, self._ppformat(resource.name))
       for k,v in resource.arguments.iteritems():
         print "  {0} = {1},".format(k, self._ppformat(v))
       print
   
   def assertResourceCalled(self, resource_type, name, **kwargs):
-    resource = self.env.resource_list.pop(0)
+    resource = RMFTestCase.env.resource_list.pop(0)
     self.assertEquals(resource_type, resource.__class__.__name__)
     self.assertEquals(name, resource.name)
     self.assertEquals(kwargs, resource.arguments)
     
   def assertNoMoreResources(self):
-    self.assertEquals(len(self.env.resource_list), 0, "There was other resources executed!")
+    self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
     
   def assertResourceCalledByIndex(self, index, resource_type, name, **kwargs):
-    resource = self.env.resource_list[index]
+    resource = RMFTestCase.env.resource_list[index]
     self.assertEquals(resource_type, resource.__class__.__name__)
     self.assertEquals(name, resource.name)
     self.assertEquals(kwargs, resource.arguments)
+    
+# HACK: This is used to check Templates, StaticFile, InlineTemplate in testcases    
+def Template(name, **kwargs):
+  with RMFTestCase.env:
+    from resource_management.core.source import Template
+    return Template(name, kwargs)
+  
+def StaticFile(name, **kwargs):
+  with RMFTestCase.env:
+    from resource_management.core.source import StaticFile
+    return StaticFile(name, kwargs)
+  
+def InlineTemplate(name, **kwargs):
+  with RMFTestCase.env:
+    from resource_management.core.source import InlineTemplate
+    return InlineTemplate(name, kwargs)
 

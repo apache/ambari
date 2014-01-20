@@ -48,6 +48,10 @@ class Source(object):
   
   def __repr__(self):
     return self.__class__.__name__+"('"+self.name+"')"
+  
+  def __eq__(self, other):
+    return (isinstance(other, self.__class__)
+        and self.get_content() == other.get_content())
 
 
 class StaticFile(Source):

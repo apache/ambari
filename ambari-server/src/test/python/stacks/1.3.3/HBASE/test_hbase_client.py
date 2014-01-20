@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import RMFTestCase
+from stacks.utils.RMFTestCase import *
 
 class TestHBaseClient(RMFTestCase):
   
