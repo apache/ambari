@@ -1794,6 +1794,10 @@ Em.I18n.translations = {
   'rollingrestart.dialog.msg.staleConfigsOnly': 'Only restart {0}s with stale configs',
   'rollingrestart.rest.context': 'Rolling Restart of {0}s - batch {1} of {2}',
 
+  'rolling.command.context': 'Rolling set {0} to state "{1}" - batch {2} of {3}',
+  'rolling.nothingToDo.header': 'Nothing to do',
+  'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state.',
+
   'restart.service.all': 'Restart All',
   'restart.service.rest.context': 'Restart {1}s ({0})',
 

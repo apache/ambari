@@ -19,6 +19,7 @@
 var App = require('app');
 var validator = require('utils/validator');
 var componentHelper = require('utils/component');
+var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
@@ -137,12 +138,155 @@ App.MainHostController = Em.ArrayController.extend({
   },
 
   /**
-   * Do bulk operation for selected hosts or hostComponents
+   * Bulk operation wrapper
    * @param {Object} operationData - data about bulk operation (action, hosts or hostComponents etc)
-   * @param {Array} hostNames - list of affected hostNames
+   * @param {Array} hosts - list of affected hosts
    */
-  bulkOperation: function(operationData, hostNames) {
+  bulkOperation: function(operationData, hosts) {
+    if (operationData.componentNameFormatted) {
+      if (operationData.action === 'RESTART') {
+        this.bulkOperationForHostComponentsRestart(operationData, hosts);
+      }
+      else {
+        if (operationData.action.indexOf('DECOMMISSION') != -1) {
+          this.bulkOperationForHostComponentsDecommission(operationData, hosts);
+        }
+        else {
+          this.bulkOperationForHostComponents(operationData, hosts);
+        }
+      }
+    }
+  },
 
+  /**
+   * Do bulk operation for selected hostComponents
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Array} hosts - list of affected hosts
+   */
+  bulkOperationForHostComponents: function(operationData, hosts) {
+    var hostsWithSelectedComponent = [];
+    hosts.forEach(function(host) {
+      var components = host.get('hostComponents');
+      if (components.findProperty('componentName', operationData.componentName)) {
+        hostsWithSelectedComponent.push(host);
+      }
+    });
+    var service = App.Service.find(operationData.serviceName);
+    var components = service.get('hostComponents').filter(function(hc) {
+      if (hc.get('componentName') != operationData.componentName) {
+        return false;
+      }
+      if(hc.get('workStatus') == operationData.action) {
+        return false;
+      }
+      return hosts.contains(hc.get('host'));
+    });
+
+    if (components.length) {
+      var hostsWithComponentInProperState = components.mapProperty('host.hostName');
+      App.ajax.send({
+        name: 'bulk_request.host_components',
+        sender: this,
+        data: {
+          hostNames: hostsWithComponentInProperState.join(','),
+          state: operationData.action,
+          requestInfo: operationData.message + ' ' + operationData.componentNameFormatted,
+          componentName: operationData.componentName
+        },
+        success: 'bulkOperationForHostComponentsSuccessCallback'
+      });
+    }
+    else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+        secondary: false
+      });
+    }
+  },
+
+  /**
+   * Bulk decommission for selected hostComponents
+   * @param {Object} operationData
+   * @param {Array} hosts
+   */
+  bulkOperationForHostComponentsDecommission: function(operationData, hosts) {
+    var service = App.Service.find(operationData.serviceName);
+    var components = service.get('hostComponents').filter(function(hc) {
+      if (hc.get('componentName') != operationData.realComponentName) {
+        return false;
+      }
+      return hosts.contains(hc.get('host'));
+    });
+
+    if (components.length) {
+      var hostsWithComponentInProperState = components.mapProperty('host.hostName');
+      var turn_off = operationData.action.indexOf('OFF') !== -1;
+      var parameters = {
+        "slave_type": operationData.realComponentName
+      };
+      if (turn_off) {
+        parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
+      }
+      else {
+        parameters['excluded_hosts'] = hostsWithComponentInProperState.join(',');
+      }
+      App.ajax.send({
+        name: 'bulk_request.decommission',
+        sender: this,
+        data: {
+          context: turn_off ? Em.I18n.t('hosts.host.datanode.recommission') : Em.I18n.t('hosts.host.datanode.decommission'),
+          serviceName: service.get('serviceName'),
+          componentName: operationData.componentName,
+          parameters: parameters
+        },
+        success: 'bulkOperationForHostComponentsSuccessCallback'
+      });
+    }
+    else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+        secondary: false
+      });
+    }
+  },
+
+  /**
+   * Bulk restart for selected hostComponents
+   * @param {Object} operationData
+   * @param {Array} hosts
+   */
+  bulkOperationForHostComponentsRestart: function(operationData, hosts) {
+    var service = App.Service.find(operationData.serviceName);
+    var components = service.get('hostComponents').filter(function(hc) {
+      if (hc.get('componentName') != operationData.componentName) {
+        return false;
+      }
+      return hosts.contains(hc.get('host'));
+    });
+
+    if (components.length) {
+      batchUtils._doPostBatchRollingRestartRequest(components, components.length, 1, 1);
+    }
+    else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+        secondary: false
+      });
+    }
+  },
+
+  /**
+   * Show BO popup after bulk request
+   */
+  bulkOperationForHostComponentsSuccessCallback: function() {
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
   }
 
 });

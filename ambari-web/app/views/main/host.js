@@ -122,7 +122,7 @@ App.MainHostView = App.TableView.extend({
         hosts = this.get('filteredContent');
         break;
       case 'a':
-        hosts = this.get('content');
+        hosts = this.get('content').toArray();
         break;
     }
     // no hosts - no actions

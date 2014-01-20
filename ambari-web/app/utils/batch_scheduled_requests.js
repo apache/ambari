@@ -70,7 +70,7 @@ module.exports = {
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly) {
     var service = App.Service.find(serviceName);
     if (service) {
-      var hostComponents = service.get('hostComponents').filterProperty('isClient', false);
+      var hostComponents = service.get('hostComponents');
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
@@ -129,9 +129,10 @@ module.exports = {
    * @param {Function} errorCallback
    */
   _doPostBatchRollingRestartRequest: function(restartHostComponents, batchSize, intervalTimeSeconds, tolerateSize, successCallback, errorCallback) {
+    successCallback = successCallback ? successCallback : defaultSuccessCallback;
     errorCallback = errorCallback ? errorCallback : defaultErrorCallback;
     if (!restartHostComponents.length) {
-      console.log('No batch rolling restart if restartHostComponents is empty!');
+      console.log('No batch rolling restart if no restartHostComponents provided!');
       return;
     }
     App.ajax.send({
@@ -149,6 +150,7 @@ module.exports = {
       error: 'errorCallback'
     });
   },
+
   /**
    * Create list of batches for rolling restart request
    * @param {Array} restartHostComponents list host components should be restarted

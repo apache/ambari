@@ -16,77 +16,61 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 App.HostTableMenuView = Em.View.extend({
 
   templateName: require('templates/main/host/bulk_operation_menu'),
 
   /**
-   * Get third-level menu items for slave components (but not for DataNode!)
+   * Get third-level menu items for slave components
    * @returns {Array}
    */
-  getSlaveItemsTemplate: function() {
+  getSlaveItemsTemplate: function(componentNameForDecommission, componentNameForOtherActions) {
     return Em.A([
       Em.Object.create({
         label: Em.I18n.t('common.start'),
         operationData: Em.Object.create({
-          action: 'start',
-          message: Em.I18n.t('common.start')
+          action: App.HostComponentStatus.started,
+          message: Em.I18n.t('common.start'),
+          componentName: componentNameForOtherActions
         })
       }),
       Em.Object.create({
         label: Em.I18n.t('common.stop'),
         operationData: Em.Object.create({
-          action: 'stop',
-          message: Em.I18n.t('common.stop')
+          action: App.HostComponentStatus.stopped,
+          message: Em.I18n.t('common.stop'),
+          componentName: componentNameForOtherActions
         })
       }),
       Em.Object.create({
         label: Em.I18n.t('common.restart'),
         operationData: Em.Object.create({
-          action: 'restart',
-          message: Em.I18n.t('common.restart')
+          action: 'RESTART',
+          message: Em.I18n.t('common.restart'),
+          componentName: componentNameForOtherActions
         })
       }),
       Em.Object.create({
-        label: Em.I18n.t('maintenance.turnOn'),
+        label: Em.I18n.t('common.decommission'),
         operationData: Em.Object.create({
-          action: 'turn_on_maintenance',
-          message: Em.I18n.t('maintenance.turnOnFor')
+          action: 'DECOMMISSION',
+          message: Em.I18n.t('common.decommission'),
+          componentName: componentNameForDecommission,
+          realComponentName: componentNameForOtherActions
         })
       }),
       Em.Object.create({
-        label: Em.I18n.t('maintenance.turnOff'),
+        label: Em.I18n.t('common.recommission'),
         operationData: Em.Object.create({
-          action: 'turn_off_maintenance',
-          message: Em.I18n.t('maintenance.turnOffFor')
+          action: 'DECOMMISSION_OFF',
+          message: Em.I18n.t('common.recommission'),
+          componentName: componentNameForDecommission,
+          realComponentName: componentNameForOtherActions
         })
       })
     ]);
-  },
-
-  /**
-   * Get third-level menu items for DataNode
-   * @returns {Array}
-   */
-  getDataNodeItemsTemplate: function() {
-    var dataNodesItems = this.getSlaveItemsTemplate();
-    dataNodesItems.push(Em.Object.create({
-      label: Em.I18n.t('common.decommission'),
-      operationData: Em.Object.create({
-        action: 'decommission',
-        message: Em.I18n.t('common.decommission')
-      })
-    }));
-    dataNodesItems.push(Em.Object.create({
-      label: Em.I18n.t('common.recommission'),
-      operationData: Em.Object.create({
-        action: 'recommission',
-        message: Em.I18n.t('common.recommission')
-      })
-    }));
-    dataNodesItems.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.hdfs.datanodes'));
-    dataNodesItems.setEach('operationData.componentName', 'DATANODE');
-    return dataNodesItems;
   },
 
   /**
@@ -142,26 +126,29 @@ App.HostTableMenuView = Em.View.extend({
     var submenu = [{label: Em.I18n.t('common.hosts'), submenu: this.getHostItemsTemplate()}];
 
     if (!!App.HDFSService.find().content.length) {
-      submenu.push({label: Em.I18n.t('dashboard.services.hdfs.datanodes'), submenu: this.getDataNodeItemsTemplate()});
+      var slaveItemsForHdfs = this.getSlaveItemsTemplate('NAMENODE', 'DATANODE');
+      slaveItemsForHdfs.setEach('operationData.serviceName', 'HDFS');
+      slaveItemsForHdfs.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.hdfs.datanodes'));
+      submenu.push({label: Em.I18n.t('dashboard.services.hdfs.datanodes'), submenu: slaveItemsForHdfs});
     }
 
     if (!!App.YARNService.find().content.length) {
-      var slaveItemsForYarn = this.getSlaveItemsTemplate();
-      slaveItemsForYarn.setEach('operationData.componentName', 'NODEMANAGER');
+      var slaveItemsForYarn = this.getSlaveItemsTemplate('RESOURCEMANAGER', 'NODEMANAGER');
+      slaveItemsForYarn.setEach('operationData.serviceName', 'YARN');
       slaveItemsForYarn.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.yarn.nodeManagers'));
       submenu.push({label: Em.I18n.t('dashboard.services.yarn.nodeManagers'), submenu: slaveItemsForYarn});
     }
 
     if (!!App.HBaseService.find().content.length) {
-      var slaveItemsForHBase = this.getSlaveItemsTemplate();
-      slaveItemsForHBase.setEach('operationData.componentName', 'HBASE_REGIONSERVER');
+      var slaveItemsForHBase = this.getSlaveItemsTemplate('HBASE_REGIONSERVER', 'HBASE_REGIONSERVER'); // @todo provide proper component for decommission
+      slaveItemsForHBase.setEach('operationData.serviceName', 'HBASE');
       slaveItemsForHBase.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.hbase.regionServers'));
       submenu.push({label: Em.I18n.t('dashboard.services.hbase.regionServers'), submenu: slaveItemsForHBase});
     }
 
     if (!!App.MapReduceService.find().content.length) {
-      var slaveItemsForMapReduce = this.getSlaveItemsTemplate();
-      slaveItemsForMapReduce.setEach('operationData.componentName', 'TASKTRACKER');
+      var slaveItemsForMapReduce = this.getSlaveItemsTemplate('JOBTRACKER', 'TASKTRACKER');
+      slaveItemsForMapReduce.setEach('operationData.serviceName', 'MAPREDUCE');
       slaveItemsForMapReduce.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.mapreduce.taskTrackers'));
       submenu.push({label: Em.I18n.t('dashboard.services.mapreduce.taskTrackers'), submenu: slaveItemsForMapReduce});
     }

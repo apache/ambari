@@ -658,12 +658,7 @@ var urls = {
   },
   'settings.get.user_pref': {
     'real': '/persist/{key}',
-    'mock': '/data/user_settings/user_pref.json',
-    'type': 'GET',
-    'format': function (data, opt) {
-      return {
-      };
-    }
+    'mock': '/data/user_settings/user_pref.json'
   },
   'settings.post.user_pref': {
     'real': '/persist',
@@ -1338,6 +1333,46 @@ var urls = {
   'mirroring.dataset.get_all_instances': {
     'real': 'falcon/instance/status/feed/{dataset}',
     'mock': '/data/mirroring/{dataset}_instances.json'
+  },
+
+  'bulk_request.host_components': {
+    'real': '/clusters/{clusterName}/host_components',
+    'mock': '',
+    'format': function(data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            context: data.requestInfo,
+            query: 'HostRoles/component_name=' + data.componentName + '&HostRoles/host_name.in(' + data.hostNames + ')'
+          },
+          Body: {
+            HostRoles: {
+              state: data.state
+            }
+          }
+        })
+      }
+    }
+  },
+
+  'bulk_request.decommission': {
+    'real' : '/clusters/{clusterName}/requests',
+    'mock' : '',
+    'format': function(data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          'RequestInfo': {
+            'context': data.context,
+            'command': 'DECOMMISSION',
+            'service_name': data.serviceName,
+            'component_name': data.componentName,
+            'parameters': data.parameters
+          }
+        })
+      }
+    }
   },
 
   'mirroring.create_new_dataset': {
