@@ -19,8 +19,10 @@
 var App = require('app');
 require('models/service_config');
 require('utils/configs/defaults_providers/yarn_defaults_provider');
+require('utils/configs/defaults_providers/storm_defaults_provider');
 require('utils/configs/validators/yarn_configs_validator');
 require('utils/configs/validators/mapreduce2_configs_validator');
+require('utils/configs/validators/storm_configs_validator');
 
 module.exports = [
   {
@@ -229,6 +231,8 @@ module.exports = [
   {
     serviceName: 'STORM',
     displayName: 'Storm',
+    configsValidator: App.STORMConfigsValidator,
+    defaultsProviders: [App.STORMDefaultsProvider],
     filename: 'storm-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Nimbus', displayName : 'Nimbus'}),

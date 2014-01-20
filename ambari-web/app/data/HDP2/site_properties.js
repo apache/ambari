@@ -1359,6 +1359,19 @@ module.exports =
       "defaultValue": "A1",
       "displayType": "string"
     },
+    {
+      "id": "site property",
+      "description": "",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "STORM",
+      "category": "Advanced",
+      "displayName": "worker.childopts",
+      "name": "worker.childopts",
+      "defaultValue": "-Xmx768m",
+      "displayType": "string"
+    },
 
   /**********************************************webhcat-site***************************************/
     {
