@@ -110,7 +110,7 @@ require('controllers/main/charts/heatmap');
 require('controllers/main/apps_controller');
 require('controllers/main/apps/item_controller');
 require('controllers/main/mirroring_controller');
-require('controllers/main/mirroring/dataset_controller');
+require('controllers/main/mirroring/edit_dataset_controller');
 require('controllers/main/mirroring/datasets_controller');
 require('controllers/main/mirroring/jobs_controller');
 require('controllers/main/mirroring/targetClusterController');

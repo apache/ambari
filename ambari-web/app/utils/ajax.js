@@ -1338,6 +1338,18 @@ var urls = {
   'mirroring.dataset.get_all_instances': {
     'real': 'falcon/instance/status/feed/{dataset}',
     'mock': '/data/mirroring/{dataset}_instances.json'
+  },
+
+  'mirroring.create_new_dataset': {
+    'real': '/falcon/entities/submitAndSchedule/feed',
+    'mock': '/data/mirroring/succeeded.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        contentType: 'text/xml',
+        data: data.dataset
+      }
+    }
   }
 };
 /**

@@ -117,7 +117,6 @@ App.MainMirroringController = Em.ArrayController.extend({
     this.get('datasetsData').findProperty('name', opts.dataset).set('instances', datasetJobs);
     this.set('datasetCount', this.get('datasetCount') - 1);
     if (this.get('datasetCount') < 1) {
-      App.Dataset.find().clear();
       App.dataSetMapper.map(this.get('datasetsData'));
       this.set('datasets', App.Dataset.find().toArray().sort(function(a,b){
         return a.get('name') - b.get('name');
@@ -144,6 +143,11 @@ App.MainMirroringController = Em.ArrayController.extend({
       secondary: null,
       onPrimary: function () {
         this.hide();
+        App.router.transitionTo('main.mirroring.index');
+      },
+      onClose: function () {
+        this.hide();
+        App.router.transitionTo('main.mirroring.index');
       },
       didInsertElement: function () {
         this._super();

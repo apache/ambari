@@ -137,7 +137,7 @@ App.TestConnectionResultsController = Ember.Controller.extend({
       mainMirroringController.notifyPropertyChange("targetClusters");
 
       // refresh add/edit dataset model
-      var addDataSetController = App.router.get('mainMirroringDataSetController');
+      var addDataSetController = App.router.get('mainMirroringEditDataSetController');
       var dataSet = addDataSetController.get('model.newDataSet');
       if (dataSet)  // this may be undefined or null if we try to add cluster from main page. Hence the if check.
         dataSet.set('targetCluster', targetClusterRecord);
