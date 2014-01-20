@@ -1577,6 +1577,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
+          coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
+        }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
       console.log("STEP8: value of the property is: " + _coreSiteObj.value);
     }, this);

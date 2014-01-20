@@ -97,12 +97,20 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-        "name": "fs.AbstractFileSystem.glusterfs.impl",
-        "templateName": ["fs_AbstractFileSystem_glusterfs_impl"],
+    "name": "fs.AbstractFileSystem.glusterfs.impl",
+    "templateName": ["fs_AbstractFileSystem_glusterfs_impl"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },
+  {
+    "name": "gluster.daemon.user",
+    "templateName": ["gluster_daemon_user"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+
 /**********************************************hbase-site***************************************/
   {
     "name": "hbase.zookeeper.quorum",
