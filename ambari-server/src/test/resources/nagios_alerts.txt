@@ -102,7 +102,7 @@
             "current_attempt": "1",
             "current_state": "0",
             "plugin_output": "1 CPU, load 7.0% &lt; 200% : OK",
-            "last_hard_state_change": "1389125423",
+            "last_hard_state_change": "",
             "last_hard_state": "0",
             "last_time_ok": "1389288443",
             "last_time_warning": "0",

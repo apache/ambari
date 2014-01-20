@@ -123,16 +123,16 @@ public class NagiosAlert {
     try {
       switch (getStatus()) {
         case 0:
-          l = Long.parseLong (last_time_ok);
+          l = getLong (last_time_ok);
           break;
         case 1:
-          l = Long.parseLong(last_time_warning);
+          l = getLong(last_time_warning);
           break;
         case 2:
-          l = Long.parseLong(last_time_critical);
+          l = getLong(last_time_critical);
           break;
         default:
-          l = Long.parseLong(last_time_unknown);
+          l = getLong(last_time_unknown);
           break;
       }
     } catch (Exception e) {
@@ -146,8 +146,16 @@ public class NagiosAlert {
    * @return the last status timestamp
    */
   public long getLastStatusTime() {
-    return Long.parseLong(last_hard_state_change);
-  }  
+    return getLong(last_hard_state_change);
+  }
+  
+  private long getLong(String str) {
+    try {
+      return Long.parseLong(str);
+    } catch (Exception e) {
+      return 0L;
+    }
+  }
   
   @Override
   public String toString() {
