@@ -1289,6 +1289,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
     var configController = App.router.get('configurationController');
+    var filenameExceptions = App.config.get('filenameExceptions');
 
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
@@ -1316,7 +1317,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
         }
       } else {
-        var siteConfigs = this.get('uiConfigs').filterProperty('filename', _serviceTags.siteName + '.xml');
+        var filename = (filenameExceptions.contains(_serviceTags.siteName)) ? _serviceTags.siteName : _serviceTags.siteName + '.xml';
+        var siteConfigs = this.get('uiConfigs').filterProperty('filename', filename);
         var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName, siteConfigs);
         siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
         var loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);

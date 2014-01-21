@@ -1506,6 +1506,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createStormSiteObj('STORM'));
     }
     if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
+      this.get('serviceConfigTags').pushObject(this.createZooCfgObj());
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('ZOOKEEPER'));
     }
 
@@ -1830,6 +1831,16 @@ App.WizardStep8Controller = Em.Controller.extend({
       this._recordHostOverrideFromObj(_configProperty, 'webhcat-site', 'version1', this);
     }, this);
     return {type: 'webhcat-site', tag: 'version1', properties: webHCatProperties};
+  },
+
+  createZooCfgObj: function () {
+    var configs = this.get('configs').filterProperty('filename', 'zoo.cfg');
+    var csProperties = {};
+    configs.forEach(function (_configProperty) {
+      csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, 'zoo.cfg', 'version1', this);
+    }, this);
+    return {type: 'zoo.cfg', tag: 'version1', properties: csProperties};
   },
 
   createStormSiteObj: function (s) {

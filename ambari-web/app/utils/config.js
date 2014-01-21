@@ -46,6 +46,11 @@ App.config = Em.Object.create({
   CONFIG_GROUP_NAME_MAX_LENGTH: 40,
 
   /**
+   * filename exceptions used to support substandard sitenames which don't have "xml" extension
+   */
+  filenameExceptions: ['zoo.cfg'],
+
+  /**
    * Since values end up in XML files (core-sit.xml, etc.), certain
    * XML sensitive characters should be escaped. If not we will have
    * an invalid XML document, and services will fail to start. 
@@ -230,6 +235,7 @@ App.config = Em.Object.create({
     var globalConfigs = [];
     var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties'));
     var mappingConfigs = [];
+    var filenameExceptions = this.get('filenameExceptions');
     tags.forEach(function (_tag) {
       var isAdvanced = null;
       var properties = configGroups.filter(function (serviceConfigProperties) {
@@ -243,7 +249,7 @@ App.config = Em.Object.create({
           name: index,
           value: properties[index],
           defaultValue: properties[index],
-          filename: _tag.siteName + ".xml",
+          filename: (filenameExceptions.contains(_tag.siteName)) ? _tag.siteName : _tag.siteName + ".xml",
           isUserProperty: false,
           isOverridable: true,
           serviceName: serviceName,

@@ -156,9 +156,10 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName : 'ZooKeeper Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedZooLog4j', displayName : 'Custom zoo-log4j.xml', siteFileName: 'zoo-log4j.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedZooLog4j', displayName : 'Custom zoo-log4j.xml', siteFileName: 'zoo-log4j.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedZooCfg', displayName : 'Custom zoo.cfg', siteFileName: 'zoo.cfg', canAddProperty: true})
     ],
-    sites: ['global', 'zoo-log4j'],
+    sites: ['global', 'zoo-log4j', 'zoo.cfg'],
     configs: []
   },
 
