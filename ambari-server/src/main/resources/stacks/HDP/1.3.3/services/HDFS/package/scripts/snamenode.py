@@ -35,7 +35,7 @@ class SNameNode(Script):
 
     env.set_params(params)
 
-    self.config(env)
+    self.configure(env)
     snamenode(action="start")
 
   def stop(self, env):
@@ -45,7 +45,7 @@ class SNameNode(Script):
 
     snamenode(action="stop")
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
     env.set_params(params)

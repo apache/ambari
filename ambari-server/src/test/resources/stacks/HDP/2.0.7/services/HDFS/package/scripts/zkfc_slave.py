@@ -32,7 +32,7 @@ class ZkfcSlave(Script):
     import params
 
     env.set_params(params)
-    self.config(env)
+    self.configure(env)
     service(
       action="start", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
       create_log_dir=True
@@ -47,7 +47,7 @@ class ZkfcSlave(Script):
       create_log_dir=True
     )
 
-  def config(self, env):
+  def configure(self, env):
     pass
 
   def status(self, env):

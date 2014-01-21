@@ -32,7 +32,7 @@ class JournalNode(Script):
     import params
 
     env.set_params(params)
-    self.config(env)
+    self.configure(env)
     service(
       action="start", name="journalnode", user=params.hdfs_user,
       create_pid_dir=True,
@@ -53,7 +53,7 @@ class JournalNode(Script):
       principal=params.dfs_journalnode_kerberos_principal
     )
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
     Directory(params.jn_edits_dir,

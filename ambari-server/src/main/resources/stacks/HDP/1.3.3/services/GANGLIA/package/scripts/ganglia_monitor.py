@@ -31,7 +31,7 @@ class GangliaMonitor(Script):
 
     self.install_packages(env)
     env.set_params(params)
-    self.config(env)
+    self.configure(env)
 
   def start(self, env):
     ganglia_monitor_service.monitor("start")
@@ -56,7 +56,7 @@ class GangliaMonitor(Script):
       raise ComponentIsNotRunning()
 
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
     ganglia.groups_and_users()
@@ -104,37 +104,14 @@ class GangliaMonitor(Script):
                       owner = "root",
                       group = params.user_group)
 
-    if params.is_hsnode_master:
+    pure_slave = not (params.is_namenode_master and
+                      params.is_jtnode_master and
+                      params.is_rmnode_master and
+                      params.is_hsnode_master and
+                      params.is_hbase_master) and params.is_slave
+    if pure_slave:
       generate_daemon("gmond",
-                      name = "HDPHistoryServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_slave:
-      generate_daemon("gmond",
-                      name = "HDPDataNode",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_tasktracker:
-      generate_daemon("gmond",
-                      name = "HDPTaskTracker",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_hbase_rs:
-      generate_daemon("gmond",
-                      name = "HDPHBaseRegionServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_flume:
-      generate_daemon("gmond",
-                      name = "HDPFlumeServer",
+                      name = "HDPSlaves",
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
