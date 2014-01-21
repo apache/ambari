@@ -468,16 +468,9 @@ App.MainHostSummaryView = Em.View.extend({
      * Shows whether we need to show Delete button
      */
     isDeletableComponent: function () {
-      var canDelete = false;
-      switch (this.get('content.componentName')) {
-        case 'HBASE_MASTER':
-        case 'SUPERVISOR':
-          canDelete = true;
-          break;
-        default:
-      }
-      return canDelete;
+      return App.deletableComponents.contains(this.get('content.componentName'));
     }.property('content'),
+
     isDeleteComponentDisabled: function () {
       return !(this.get('workStatus') == App.HostComponentStatus.stopped || this.get('workStatus') == App.HostComponentStatus.unknown ||
         this.get('workStatus') == App.HostComponentStatus.install_failed || this.get('workStatus') == App.HostComponentStatus.upgrade_failed);
@@ -485,7 +478,16 @@ App.MainHostSummaryView = Em.View.extend({
 
     isReassignable: function () {
       return App.supports.reassignMaster && App.reassignableComponents.contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
-    }.property('content.componentName')
+    }.property('content.componentName'),
+
+    isRestartableComponent: function() {
+      return App.restartableComponents.contains(this.get('content.componentName'));
+    }.property('content'),
+
+    isRestartComponentDisabled: function() {
+      var allowableStates = [App.HostComponentStatus.started];
+      return !allowableStates.contains(this.get('workStatus'));
+    }.property('workStatus')
 
   }),
   timeSinceHeartBeat: function () {

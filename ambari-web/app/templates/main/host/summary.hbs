@@ -97,6 +97,13 @@
                       </a>
                     </li>
                   {{/if}}
+                  {{#if view.isRestartableComponent}}
+                    <li {{bindAttr class="view.isRestartComponentDisabled:disabled"}}>
+                      <a href="javascript:void(null)" data-toggle="modal" {{action "restartComponent" view.content target="controller"}}>
+                        {{t common.restart}}
+                      </a>
+                    </li>
+                  {{/if}}
                   {{#unless view.isInstalling}}
                     {{#unless view.isInMaintenance}}
                       {{#if view.isStart}}

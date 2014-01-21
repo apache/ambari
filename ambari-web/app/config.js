@@ -39,6 +39,8 @@ App.pageReloadTime=3600000;
 App.singleNodeInstall = false;
 App.singleNodeAlias = document.location.hostname;
 App.reassignableComponents = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
+App.restartableComponents = ['APP_TIMELINE_SERVER'];
+App.deletableComponents = ['SUPERVISOR', 'HBASE_MASTER'];
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;

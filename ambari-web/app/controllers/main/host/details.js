@@ -360,6 +360,12 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  restartComponent: function(event) {
+    var component = event.context;
+    App.showConfirmationPopup(function(){
+      batchUtils.restartHostComponents([component]);
+    });
+  },
   /**
    * send command to server to install selected host component
    * @param event
