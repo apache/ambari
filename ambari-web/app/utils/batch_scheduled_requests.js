@@ -143,7 +143,7 @@ module.exports = {
       },
       data: {
         intervalTimeSeconds: intervalTimeSeconds,
-        toleratePercentage : String(Math.round((100 * tolerateSize) / restartHostComponents.length)),
+        tolerateSize: tolerateSize,
         batches: this.getBatchesForRollingRestartRequest(restartHostComponents, batchSize)
       },
       success: 'successCallback',
