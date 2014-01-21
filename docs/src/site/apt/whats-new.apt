@@ -16,13 +16,13 @@
 
 What's New with Ambari?
 
- * The current Ambari 1.4.2 features:
+ * The current Ambari 1.4.3 features:
 
-   * Ability to deploy and manage the Hadoop 2.0 stack using Ambari
+   * Ability to create varying cluster configurations for a heterogeneous cluster using <Config Groups>
 
-   * Ability to move Masters
-    
-   * Ability to delete hosts/host  components and services
+   * Ability to view which services and hosts have stale configurations
+
+   * Ability to view effective configurations at a host level
 
 Getting Ambari Source
 
@@ -37,7 +37,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.1+bits} how to install a Hadoop cluster using Ambari 1.4.1}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.3+bits} how to install a Hadoop cluster using Ambari 1.4.3}}.
 
 Stay Tuned
 
