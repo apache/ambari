@@ -1140,7 +1140,7 @@ Em.I18n.translations = {
   'services.service.config.failSaveConfigHostOverrides':'Failure in saving service configuration overrides',
   'services.service.config.addPropertyWindow.errorMessage':'This is required',
   'services.service.config.addPropertyWindow.error.derivedKey':'This property is already defined',
-  'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are still running',
+  'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are running',
   'services.service.config.stopService.unknownHostComponents':'{0} components on {1} hosts are in unknown state.  These components might actually be running and need restarting later to make the changes effective.',
   'services.service.config.confirmDirectoryChange':'You are about to make changes to service directories that are core to {0}. Before you proceed, be absolutely certain of the implications and that you have taken necessary manual steps, if any, for the changes. Are you sure you want to proceed?',
   'services.service.config.configOverride.head':'Config Override',
@@ -1374,7 +1374,7 @@ Em.I18n.translations = {
 
   'hosts.host.summary.header':'Summary',
   'hosts.host.summary.hostname':'Hostname',
-  'hosts.host.summary.agentHeartbeat':'Agent <br/> Heartbeat',
+  'hosts.host.summary.agentHeartbeat':'Heartbeat',
   'hosts.host.summary.hostMetrics':'Host Metrics',
   'hosts.host.summary.addComponent':'Add Component',
 
@@ -1410,7 +1410,7 @@ Em.I18n.translations = {
   'hosts.host.healthStatusCategory.green': "Healthy",
   'hosts.host.healthStatusCategory.red': "Master Down",
   'hosts.host.healthStatusCategory.orange': "Slave Down",
-  'hosts.host.healthStatusCategory.yellow': "No Heartbeat",
+  'hosts.host.healthStatusCategory.yellow': "Lost Heartbeat",
   'hosts.host.alerts.label': 'Alerts',
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
@@ -1430,7 +1430,7 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.masterList.body':'This host cannot be deleted since it has the following master components:',
   'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move all the master components listed above to another host.',
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
-  'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since the following components are still running:',
+  'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since the following components are running:',
   'hosts.cant.do.popup.runningList.body.end':'To delete this host, you must first stop all the running components listed above. ' +
     'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
