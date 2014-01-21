@@ -371,32 +371,14 @@ App.WizardStep8Controller = Em.Controller.extend({
     } else { // from install wizard
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
       var allRepos = [];
+      var supportedOs = ['redhat5', 'redhat6', 'sles11'];
       if (selectedStack && selectedStack.operatingSystems) {
-        selectedStack.operatingSystems.forEach (function(os){
-          if (os.selected) {
-            switch (os.osType) {
-              case 'redhat6':
-                var repo = Em.Object.create({
-                  base_url: os.baseUrl,
-                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat6")
-                });
-                allRepos.push(repo);
-                break;
-              case 'redhat5':
-                var repo = Em.Object.create({
-                  base_url: os.baseUrl,
-                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat5")
-                });
-                allRepos.push(repo);
-                break;
-              case 'sles11':
-                var repo = Em.Object.create({
-                  base_url: os.baseUrl,
-                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.sles11")
-                });
-                allRepos.push(repo);
-                break;
-            }
+        selectedStack.operatingSystems.forEach(function (os) {
+          if (os.selected && supportedOs.contains(os.osType)) {
+            allRepos.push(Em.Object.create({
+              base_url: os.baseUrl,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType." + os.osType)
+            }));
           }
         }, this);
       }
@@ -426,31 +408,15 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   loadRepoInfoSuccessCallback: function (data) {
     var allRepos = [];
-    data.items.forEach(function(item) {
+    var supportedOs = ['redhat5', 'redhat6', 'sles11'];
+    data.items.forEach(function (item) {
       var os = item.repositories[0].Repositories;
-        switch (os.os_type) {
-          case 'redhat6':
-            var repo = Em.Object.create({
-              base_url: os.base_url,
-              os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat6")
-            });
-            allRepos.push(repo);
-            break;
-          case 'redhat5':
-            var repo = Em.Object.create({
-              base_url: os.base_url,
-              os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat5")
-            });
-            allRepos.push(repo);
-            break;
-          case 'sles11':
-            var repo = Em.Object.create({
-              base_url: os.base_url,
-              os_type: Em.I18n.t("installer.step8.repoInfo.osType.sles11")
-            });
-            allRepos.push(repo);
-            break;
-        }
+      if (supportedOs.contains(os.osType)) {
+        allRepos.push(Em.Object.create({
+          base_url: os.base_url,
+          os_type: Em.I18n.t("installer.step8.repoInfo.osType." + os.os_type)
+        }));
+      }
     }, this);
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
@@ -467,238 +433,37 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Load all info about services to <code>services</code> variable
    */
   loadServices: function () {
-    var selectedServices = this.get('selectedServices');
-    this.set('services', selectedServices.mapProperty('serviceName'));
+    var reviewService = this.rawContent.findProperty('config_name', 'services');
 
-    selectedServices.forEach(function (_service) {
+    this.get('selectedServices').forEach(function (_service) {
       console.log('INFO: step8: Name of the service from getService function: ' + _service.serviceName);
-      var reviewService = this.rawContent.findProperty('config_name', 'services');
       var serviceObj = reviewService.config_value.findProperty('service_name', _service.serviceName);
-
       if (serviceObj) {
-        switch (serviceObj.service_name) {
-          case 'HDFS':
-            this.loadHDFS(serviceObj);
-            break;
-          case 'GLUSTERFS':
-            this.loadGLUSTERFS(serviceObj);
-            break;
-          case 'MAPREDUCE':
-            this.loadMapReduce(serviceObj);
-            break;
-          case 'MAPREDUCE2':
-            this.loadMapReduce2(serviceObj);
-            break;
-          case 'YARN':
-            this.loadYARN(serviceObj);
-            break;
-          case 'HIVE':
-            this.loadHive(serviceObj);
-            break;
-          case 'HBASE':
-            this.loadHbase(serviceObj);
-            break;
-          case 'ZOOKEEPER':
-            this.loadZk(serviceObj);
-            break;
-          case 'OOZIE':
-            this.loadOozie(serviceObj);
-            break;
-          case 'NAGIOS':
-            this.loadNagios(serviceObj);
-            break;
-          case 'GANGLIA':
-            this.loadGanglia(serviceObj);
-            break;
-          case 'HUE':
-            this.loadHue(serviceObj);
-            break;
-          case 'FALCON':
-            this.loadFalcon(serviceObj);
-            break;
-          /* case 'TEZ':
-           break;
-           case 'PIG':
-           this.loadPig(serviceObj);
-           break;
-           case 'SQOOP':
-           this.loadSqoop(serviceObj);
-           break;
-           */
-          case 'STORM':
-            this.loadSTORM(serviceObj);
-          case 'HCATALOG':
-            break;
-          default:
-        }
+        serviceObj.get('service_components').forEach(function (_component) {
+          this.assignComponentHosts(_component);
+        }, this);
+        this.get('services').pushObject(serviceObj);
       }
     }, this);
   },
 
-  /**
-   * load all info about HDFS service
-   * @param hdfsObj
-   */
-  loadHDFS: function (hdfsObj) {
-    hdfsObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'NameNode':
-          this.loadNnValue(_component);
-          break;
-        case 'SecondaryNameNode':
-          this.loadSnnValue(_component);
-          break;
-        case 'DataNodes':
-          this.loadDnValue(_component);
-          break;
-        default:
+  assignComponentHosts: function (component) {
+    var componentValue;
+    if (component.get('customHandler')) {
+      this[component.get('customHandler')].call(this, component);
+    } else {
+      if (component.get('isMaster')) {
+        componentValue = this.get('content.masterComponentHosts')
+          .findProperty('component', component.component_name).hostName;
+      } else {
+        var hostsLength = this.get('content.slaveComponentHosts')
+          .findProperty('componentName', component.component_name)
+          .hosts.length;
+        componentValue = hostsLength + Em.I18n.t('installer.step8.host' + ((hostsLength > 1) ? 's' : ''));
       }
-    }, this);
-    //var
-    this.get('services').pushObject(hdfsObj);
+      component.set('component_value', componentValue);
+    }
   },
-  
-  /**
-   * load all info about GLUSTERFS service
-   * @param glusterfsObj
-   */
-  loadGLUSTERFS: function (glusterfsObj) {
-    glusterfsObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'GLUSTERFS Client':
-          this.loadGLUSTERFSClientValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(glusterfsObj);
-  },
-  
-  loadGLUSTERFSClientValue: function (glusterfsComponent) {
-    var glusterfsClientHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'Client');
-    var totalGLUSTERFSHosts = glusterfsClientHosts.hosts.length;
-    glusterfsComponent.set('component_value', totalGLUSTERFSHosts + ' hosts');  
-  },
-
-  loadNnValue: function (nnComponent) {
-    var nnHostName = this.get('content.masterComponentHosts').findProperty('display_name', nnComponent.display_name);
-    nnComponent.set('component_value', nnHostName.hostName);
-  },
-
-  loadSnnValue: function (snnComponent) {
-    var snnHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'SNameNode');
-    snnComponent.set('component_value', snnHostName.hostName);
-  },
-
-  loadDnValue: function (dnComponent) {
-    var dnHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'DataNode');
-    var totalDnHosts = dnHosts.hosts.length;
-    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'DATANODE').groups.length;
-     var groupLabel;
-     if (totalGroups == 1) {
-     groupLabel = 'group';
-     } else {
-     groupLabel = 'groups';
-     }
-     */
-    dnComponent.set('component_value', totalDnHosts + Em.I18n.t('installer.step8.hosts'));
-  },
-
-
-  /**
-   * Load all info about mapReduce service
-   * @param mrObj
-   */
-  loadMapReduce: function (mrObj) {
-    mrObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'JobTracker':
-          this.loadJtValue(_component);
-          break;
-        case 'TaskTrackers':
-          this.loadTtValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(mrObj);
-  },
-
-  loadMapReduce2: function(mrObj){
-    mrObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'History Server':
-          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'HISTORYSERVER').hostName);
-          break;
-      }
-    }, this);
-    this.get('services').pushObject(mrObj);
-  },
-
-  loadYARN: function(mrObj){
-    var setComponentHost = function(component, componentName) {
-      component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', componentName).hostName);
-    }.bind(this);
-    mrObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'NodeManager':
-          this.loadNMValue(_component);
-          break;
-        case 'ResourceManager':
-          setComponentHost(_component, 'RESOURCEMANAGER');
-          break;
-        case 'History Server':
-          setComponentHost(_component, 'HISTORYSERVER');
-          break;
-        case 'App Timeline Server':
-          setComponentHost(_component, 'APP_TIMELINE_SERVER');
-          break;
-      }
-    }, this);
-    this.get('services').pushObject(mrObj);
-  },
-
-  loadNMValue: function (nmComponent) {
-    var nmHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'NODEMANAGER');
-    nmComponent.set('component_value', nmHosts.hosts.length + Em.I18n.t('installer.step8.hosts'));
-  },
-
-  loadJtValue: function (jtComponent) {
-    var jtHostName = this.get('content.masterComponentHosts').findProperty('display_name', jtComponent.display_name);
-    jtComponent.set('component_value', jtHostName.hostName);
-  },
-
-  loadTtValue: function (ttComponent) {
-    var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
-    var totalTtHosts = ttHosts.hosts.length;
-    ttComponent.set('component_value', totalTtHosts + Em.I18n.t('installer.step8.hosts'));
-  },
-
-  /**
-   * Load all info about Hive service
-   * @param hiveObj
-   */
-  loadHive: function (hiveObj) {
-    hiveObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'Hive Metastore':
-          this.loadHiveMetaStoreValue(_component);
-          break;
-        case 'Database':
-          this.loadHiveDbValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(hiveObj);
-
-  },
-
-  loadHiveMetaStoreValue: function (metaStoreComponent) {
-    var hiveHostName = this.get('content.masterComponentHosts').findProperty('display_name', 'HiveServer2');
-    metaStoreComponent.set('component_value', hiveHostName.hostName);
-  },
-
   loadHiveDbValue: function (dbComponent) {
     var hiveDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
@@ -711,66 +476,16 @@ App.WizardStep8Controller = Em.Controller.extend({
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
     }
   },
-
-  /**
-   * Load all info about Hbase
-   * @param hbaseObj
-   */
-  loadHbase: function (hbaseObj) {
-    hbaseObj.service_components.forEach(function (_component) {
-      switch (_component.display_name) {
-        case 'Master':
-          this.loadMasterValue(_component);
-          break;
-        case 'RegionServers':
-          this.loadRegionServerValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(hbaseObj);
-  },
-
-  loadMasterValue: function (hbaseMaster) {
-    var hbaseHostName = this.get('content.masterComponentHosts').filterProperty('display_name', 'HBase Master');
+  loadHbaseMasterValue: function (hbaseMaster) {
+    var hbaseHostName = this.get('content.masterComponentHosts').filterProperty('component', hbaseMaster.component_name);
     if (hbaseHostName.length == 1) {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName);
     } else {
       hbaseMaster.set('component_value', hbaseHostName[0].hostName + Em.I18n.t('installer.step8.other').format(hbaseHostName.length - 1));
     }
   },
-
-  loadRegionServerValue: function (rsComponent) {
-    var rsHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'RegionServer');
-    var totalRsHosts = rsHosts.hosts.length;
-    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'HBASE_REGIONSERVER').groups.length;
-     var groupLabel;
-     if (totalGroups == 1) {
-     groupLabel = 'group';
-     } else {
-     groupLabel = 'groups';
-     } */
-    rsComponent.set('component_value', totalRsHosts + Em.I18n.t('installer.step8.hosts'));
-  },
-
-  /**
-   * Load all info about ZooKeeper service
-   * @param zkObj
-   */
-  loadZk: function (zkObj) {
-    zkObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'Servers':
-          this.loadZkServerValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(zkObj);
-  },
-
   loadZkServerValue: function (serverComponent) {
-    var zkHostNames = this.get('content.masterComponentHosts').filterProperty('display_name', 'ZooKeeper').length;
+    var zkHostNames = this.get('content.masterComponentHosts').filterProperty('component', serverComponent.component_name).length;
     var hostSuffix;
     if (zkHostNames === 1) {
       hostSuffix = Em.I18n.t('installer.step8.host');
@@ -779,53 +494,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     serverComponent.set('component_value', zkHostNames + ' ' + hostSuffix);
   },
-
-  /**
-   * Load all info about Hue services
-   * @param hueObj
-   */
-  loadHue: function (hueObj) {
-    hueObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'Server':
-          this.loadHueServerValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(hueObj);
-  },
-
-  loadHueServerValue: function (hueServer) {
-    var hueServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Hue Server');
-    hueServer.set('component_value', hueServerName.hostName);
-  },
-
-  /**
-   * Load all info about Oozie services
-   * @param oozieObj
-   */
-  loadOozie: function (oozieObj) {
-    oozieObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'Server':
-          this.loadOozieServerValue(_component);
-          break;
-        case 'Database':
-          // TODO: uncomment when ready to integrate with Oozie Database other than Derby
-          this.loadOozieDbValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(oozieObj);
-  },
-
-  loadOozieServerValue: function (oozieServer) {
-    var oozieServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Oozie Server');
-    oozieServer.set('component_value', oozieServerName.hostName);
-  },
-
   loadOozieDbValue: function (dbComponent) {
     var oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
     if (oozieDb.value === 'New Derby Database'){
@@ -842,120 +510,12 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
 
   },
-
-
-  /**
-   * Load all info about Nagios service
-   * @param nagiosObj
-   */
-  loadNagios: function (nagiosObj) {
-    nagiosObj.service_components.forEach(function (_component) {
-      switch (_component.display_name) {
-        case 'Server':
-          this.loadNagiosServerValue(_component);
-          break;
-        case 'Administrator':
-          this.loadNagiosAdminValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(nagiosObj);
-  },
-
-  loadNagiosServerValue: function (nagiosServer) {
-    var nagiosServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Nagios Server');
-    nagiosServer.set('component_value', nagiosServerName.hostName);
-  },
-
   loadNagiosAdminValue: function (nagiosAdmin) {
     var config = this.get('content.serviceConfigProperties');
     var adminLoginName = config.findProperty('name', 'nagios_web_login');
     var adminEmail = config.findProperty('name', 'nagios_contact');
     nagiosAdmin.set('component_value', adminLoginName.value + ' / (' + adminEmail.value + ')');
   },
-
-  /**
-   * Load all info about ganglia
-   * @param gangliaObj
-   */
-  loadGanglia: function (gangliaObj) {
-    gangliaObj.get('service_components').forEach(function (_component) {
-      switch (_component.get('display_name')) {
-        case 'Server':
-          this.loadGangliaServerValue(_component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(gangliaObj);
-  },
-
-  loadGangliaServerValue: function (gangliaServer) {
-    var gangliaServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Ganglia Server');
-    gangliaServer.set('component_value', gangliaServerName.hostName);
-  },
-
-  loadSqoop: function (sqoopObj) {
-    this.get('services').pushObject(sqoopObj);
-  },
-
-  loadPig: function (pigObj) {
-    this.get('services').pushObject(pigObj);
-  },
-
-  loadFalcon: function (falconObj) {
-    falconObj.get('service_components').forEach(function(component) {
-      switch (component.get('display_name')) {
-        case 'Server':
-          this.loadFalconValue(component);
-          break;
-      }
-    }, this);
-    this.get('services').pushObject(falconObj);
-  },
-
-  loadFalconValue: function(component) {
-    var falconHost = this.get('content.masterComponentHosts').filterProperty('display_name', 'Falcon Server');
-    component.set('component_value', falconHost[0].hostName);
-  },
-
-  loadSTORM: function (stormObj) {
-    stormObj.get('service_components').forEach(function(component) {
-      switch (component.get('display_name')) {
-        case 'Nimbus':
-        case 'Logviewer Server':
-        case 'Storm UI Server':
-        case 'DRPC Server':
-          this.loadMasterComponentHostValue(component);
-          break;
-        case 'SuperVisor':
-          this.loadSuperVisorValue(component);
-          break;
-        default:
-      }
-    }, this);
-    this.get('services').pushObject(stormObj);
-  },
-
-  /**
-   * Load master component host value
-   * @method loadMasterComponentHostValue
-   * @param {Object} component - component object which value should be set
-   * @param {String} componentName - (optional) display_name of component
-   */
-  loadMasterComponentHostValue: function(component, componentName) {
-    var component_name = componentName || component.get('display_name');
-    var masterHost = this.get('content.masterComponentHosts').findProperty('display_name', component_name);
-    component.set('component_value', masterHost.hostName);
-  },
-
-  loadSuperVisorValue: function(component) {
-    var hostsCount = this.get('content.slaveComponentHosts').findProperty('componentName', 'SUPERVISOR').hosts.length;
-    var hostsText = hostsCount > 1 ? hostsCount + ' hosts' : hostsCount + ' host'
-    component.set('component_value', hostsText);
-  },
-
   /**
    * Onclick handler for <code>next</code> button
    */

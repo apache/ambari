@@ -48,15 +48,21 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'NameNode',
-            component_value: ''
+            component_name: 'NAMENODE',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'SecondaryNameNode',
-            component_value: ''
+            component_name: 'SECONDARY_NAMENODE',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'DataNodes',
-            component_value: ''
+            component_name: 'DATANODE',
+            component_value: '',
+            isMaster: false
           })
         ]
       }),
@@ -66,7 +72,9 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'GLUSTERFS Client',
-            component_value: ''
+            component_name: 'GLUSTERFS_CLIENT',
+            component_value: '',
+            isMaster: false
           })
         ]
       }),
@@ -76,11 +84,21 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'JobTracker',
-            component_value: ''
+            component_name: 'JOBTRACKER',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'TaskTrackers',
-            component_value: ''
+            component_name: 'TASKTRACKER',
+            component_value: '',
+            isMaster: false
+          }),
+          Ember.Object.create({
+            display_name: 'History Server',
+            component_name: 'HISTORYSERVER',
+            component_value: '',
+            isMaster: true
           })
         ]
       }),
@@ -90,15 +108,21 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'NodeManager',
-            component_value: ''
+            component_name: 'NODEMANAGER',
+            component_value: '',
+            isMaster: false
           }),
           Ember.Object.create({
             display_name: 'ResourceManager',
-            component_value: ''
+            component_name: 'RESOURCEMANAGER',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'History Server',
-            component_value: ''
+            component_name: 'HISTORYSERVER',
+            component_value: '',
+            isMaster: true
           })
           // @todo uncomment after Application Timeline Server API implementation
 //          Ember.Object.create({
@@ -113,11 +137,14 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Hive Metastore',
-            component_value: ''
+            component_name: 'HIVE_METASTORE',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'Database',
-            component_value: ''
+            component_value: '',
+            customHandler: 'loadHiveDbValue'
           })
         ]
       }),
@@ -127,11 +154,15 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Master',
-            component_value: ''
+            component_name: 'HBASE_MASTER',
+            component_value: '',
+            customHandler: 'loadHbaseMasterValue'
           }),
           Ember.Object.create({
             display_name: 'RegionServers',
-            component_value: ''
+            component_name: 'HBASE_REGIONSERVER',
+            component_value: '',
+            isMaster: false
           })
         ]
       }),
@@ -141,7 +172,9 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Servers',
-            component_value: ''
+            component_name: 'ZOOKEEPER_SERVER',
+            component_value: '',
+            customHandler: 'loadZkServerValue'
           })
         ]
       }),
@@ -151,12 +184,15 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Server',
-            component_value: ''
+            component_name: 'OOZIE_SERVER',
+            component_value: '',
+            isMaster: true
           }),
           // TODO: uncomment when ready to integrate with database other than Derby
           Ember.Object.create({
-             display_name: 'Database',
-             component_value: ''
+            display_name: 'Database',
+            component_value: '',
+            customHandler: 'loadOozieDbValue'
           })
         ]
       }),
@@ -166,11 +202,14 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Server',
-            component_value: ''
+            component_name: 'NAGIOS_SERVER',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'Administrator',
-            component_value: ''
+            component_value: '',
+            customHandler: 'loadNagiosAdminValue'
           })
         ]
       }),
@@ -180,11 +219,13 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Server',
-            component_value: ''
+            component_name: 'GANGLIA_SERVER',
+            component_value: '',
+            isMaster: true
           })
         ]
       }),
-      Ember.Object.create({
+     /* Ember.Object.create({
         service_name: 'TEZ',
         display_name: 'TEZ',
         service_components: []
@@ -202,19 +243,17 @@ module.exports = [
       Ember.Object.create({
         service_name: 'HCATALOG',
         display_name: 'HCatalog',
-        service_components: [
-          Ember.Object.create({
-
-          })
-        ]
-      }),
+        service_components: []
+      }),*/
       Ember.Object.create({
         service_name: 'HUE',
         display_name: 'Hue',
         service_components: [
           Ember.Object.create({
             display_name: 'Server',
-            component_value: ''
+            component_name: 'HUE_SERVER',
+            component_value: '',
+            isMaster: true
           })
         ]
       }),
@@ -224,7 +263,9 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Server',
-            component_value: ''
+            component_name: 'FALCON_SERVER',
+            component_value: '',
+            isMaster: true
           })
         ]
       }),
@@ -234,23 +275,33 @@ module.exports = [
         service_components: [
           Ember.Object.create({
             display_name: 'Nimbus',
-            component_value: ''
+            component_name: 'NIMBUS',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'Storm UI Server',
-            component_value: ''
+            component_name: 'STORM_UI_SERVER',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'DRPC Server',
-            component_value: ''
+            component_name: 'DRPC_SERVER',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'Logviewer Server',
-            component_value: ''
+            component_name: 'LOGVIEWER_SERVER',
+            component_value: '',
+            isMaster: true
           }),
           Ember.Object.create({
             display_name: 'SuperVisor',
-            component_value: ''
+            component_name: 'SUPERVISOR',
+            component_value: '',
+            isMaster: false
           })
         ]
       })
