@@ -68,6 +68,8 @@ App.MainAlertsController = Em.Controller.extend({
       } else {
         console.warn("GET Alerts error: unknown resourceType");
       }
+    } else {
+      this.set('isLoaded', true);
     }
   },
 
