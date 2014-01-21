@@ -270,6 +270,8 @@ App.format = {
         return 'MapReduce2 Client';
       case 'YARN_CLIENT':
         return 'YARN Client';
+      case 'APP_TIMELINE_SERVER':
+        return 'App Timeline Server';
       case 'JAVA_JCE':
         return 'Java JCE';
       case 'KERBEROS_SERVER':

@@ -66,6 +66,7 @@ App.supports = {
   highAvailability: true,
   deleteHost: true,
   autoRollbackHA: false,
+  appTimelineServer: false,
   storm: false
 };
 

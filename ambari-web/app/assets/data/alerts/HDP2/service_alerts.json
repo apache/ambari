@@ -125,6 +125,26 @@
         "status" : "OK",
         "status_time" : 1389793060,
         "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+      },
+      {
+        "description" : "App Timeline Server Web UI",
+        "host_name" : "dev01.hortonworks.com",
+        "last_status" : "WARNING",
+        "last_status_time" : 1389636534,
+        "service_name" : "YARN",
+        "status" : "WARNING",
+        "status_time" : 1389793060,
+        "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+      },
+      {
+        "description" : "App Timeline Server process",
+        "host_name" : "dev01.hortonworks.com",
+        "last_status" : "CRITICAL",
+        "last_status_time" : 1389636534,
+        "service_name" : "HDFS",
+        "status" : "CRITICAL",
+        "status_time" : 1389793060,
+        "output" : "1 CPU, load 19.0% &lt; 200% : OK"
       }
     ],
     "summary" : {
