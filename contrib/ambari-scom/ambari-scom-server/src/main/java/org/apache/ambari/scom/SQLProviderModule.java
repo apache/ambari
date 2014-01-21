@@ -100,49 +100,42 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
-    switch (type) {
-      case Component:
+    if (type.equals(Resource.Type.Component)) {
+      providers.add(new JMXPropertyProvider(
+          PropertyHelper.getJMXPropertyIds(type),
+          urlStreamProvider,
+          this,
+          PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+          null,
+          PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+          PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+          Collections.singleton("STARTED")));
 
-        providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type),
-            urlStreamProvider,
-            this,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            null,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
-            Collections.singleton("STARTED")));
+      providers.add(new SQLPropertyProvider(
+          PropertyHelper.getGangliaPropertyIds(type),
+          this,
+          PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+          null,
+          PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+          connectionFactory));
+    } else if (type.equals(Resource.Type.HostComponent)) {
+      providers.add(new JMXPropertyProvider(
+          PropertyHelper.getJMXPropertyIds(type),
+          urlStreamProvider,
+          this,
+          PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+          PropertyHelper.getPropertyId("HostRoles", "host_name"),
+          PropertyHelper.getPropertyId("HostRoles", "component_name"),
+          PropertyHelper.getPropertyId("HostRoles", "state"),
+          Collections.singleton("STARTED")));
 
-        providers.add(new SQLPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type),
-            this,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            null,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-            connectionFactory));
-        break;
-      case HostComponent:
-
-        providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type),
-            urlStreamProvider,
-            this,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name"),
-            PropertyHelper.getPropertyId("HostRoles", "state"),
-            Collections.singleton("STARTED")));
-
-        providers.add(new SQLPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type),
-            this,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name"),
-            connectionFactory));
-        break;
-      default:
-        break;
+      providers.add(new SQLPropertyProvider(
+          PropertyHelper.getGangliaPropertyIds(type),
+          this,
+          PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+          PropertyHelper.getPropertyId("HostRoles", "host_name"),
+          PropertyHelper.getPropertyId("HostRoles", "component_name"),
+          connectionFactory));
     }
     putPropertyProviders(type, providers);
   }

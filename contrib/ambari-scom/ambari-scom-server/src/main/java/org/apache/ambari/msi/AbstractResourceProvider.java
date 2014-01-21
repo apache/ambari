@@ -252,23 +252,22 @@ public abstract class AbstractResourceProvider implements ResourceProvider {
    */
   public static ResourceProvider getResourceProvider(Resource.Type type,
                                                      ClusterDefinition clusterDefinition) {
-    switch (type) {
-      case Cluster:
-        return new ClusterProvider(clusterDefinition);
-      case Service:
-        return new ServiceProvider(clusterDefinition);
-      case Component:
-        return new ComponentProvider(clusterDefinition);
-      case Host:
-        return new HostProvider(clusterDefinition);
-      case HostComponent:
-        return new HostComponentProvider(clusterDefinition);
-      case Request:
-        return new RequestProvider(clusterDefinition);
-      case Task:
-        return new TaskProvider(clusterDefinition);
-      default:
-        return new NoOpProvider(type, clusterDefinition);
+    if (type.equals(Resource.Type.Cluster)) {
+      return new ClusterProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.Service)) {
+      return new ServiceProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.Component)) {
+      return new ComponentProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.Host)) {
+      return new HostProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.HostComponent)) {
+      return new HostComponentProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.Request)) {
+      return new RequestProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.Task)) {
+      return new TaskProvider(clusterDefinition);
+    } else {
+      return new NoOpProvider(type, clusterDefinition);
     }
   }
 }
