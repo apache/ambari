@@ -83,6 +83,7 @@ App.HostComponent = DS.Model.extend({
       case 'LOGVIEWER_SERVER':
       case 'DRPC_SERVER':
       case 'RESOURCEMANAGER':
+      case 'APP_TIMELINE_SERVER':
         return true;
       default:
         return false;

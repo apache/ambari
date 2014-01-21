@@ -447,6 +447,13 @@ App.WizardStep5Controller = Em.Controller.extend({
         return this.getNagiosServer(noOfHosts);
       case 'HUE_SERVER':
         return this.getHueServer(noOfHosts);
+      case 'APP_TIMELINE_SERVER':
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
       case 'FALCON_SERVER':
         return this.getOozieServer(noOfHosts);
       case 'STORM_UI_SERVER':

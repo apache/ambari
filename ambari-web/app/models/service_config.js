@@ -312,6 +312,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'rm_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
         break;
+      case 'ats_host':
+        if (!App.supports.appTimelineServer) return; // @todo remove test mode check after App Timeline service integration
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName);
+        break;
       case 'yarn.resourcemanager.hostname':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
         this.set('defaultValue',rmHost);

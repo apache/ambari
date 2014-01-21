@@ -191,6 +191,7 @@ App.QuickDataMapper.componentServiceMap = function () {
     'RESOURCEMANAGER': 'YARN',
     'YARN_CLIENT': 'YARN',
     'NODEMANAGER': 'YARN',
+    'APP_TIMELINE_SERVER': 'YARN',
     'ZOOKEEPER_SERVER': 'ZOOKEEPER',
     'ZOOKEEPER_CLIENT': 'ZOOKEEPER',
     'HBASE_MASTER': 'HBASE',

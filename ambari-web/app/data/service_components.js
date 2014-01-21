@@ -122,6 +122,15 @@ module.exports = new Ember.Set([
     isClient: true,
     description: ''
   },
+  // @todo uncomment after Application Timeline Server API implementation
+//  {
+//    service_name: 'YARN',
+//    component_name: 'APP_TIMELINE_SERVER',
+//    display_name: 'App Timeline Server',
+//    isMaster: true,
+//    isClient: false,
+//    description: ''
+//  },
   {
     service_name: 'YARN',
     component_name: 'NODEMANAGER',
@@ -379,3 +388,16 @@ module.exports = new Ember.Set([
     description: 'Master component for STORM'
   }
 ]);
+
+// @todo remove after Application Timeline Server API implementation
+if (App.supports.appTimelineServer) {
+  var appTimelineServerObj = {
+    service_name: 'YARN',
+    component_name: 'APP_TIMELINE_SERVER',
+    display_name: 'App Timeline Server',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  };
+  module.exports.push(appTimelineServerObj);
+}

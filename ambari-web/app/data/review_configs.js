@@ -100,6 +100,11 @@ module.exports = [
             display_name: 'History Server',
             component_value: ''
           })
+          // @todo uncomment after Application Timeline Server API implementation
+//          Ember.Object.create({
+//            display_name: 'App Timeline Server',
+//            component_value: ''
+//          })
         ]
       }),
       Ember.Object.create({
@@ -253,3 +258,14 @@ module.exports = [
     ]
   }
 ];
+
+// @todo remove after Application Timeline Server API implementation
+if (App.supports.appTimelineServer) {
+  var yarnServiceComponents = module.exports.findProperty('config_name', 'services').config_value.findProperty('service_name','YARN').get('service_components');
+  yarnServiceComponents.push(
+    Ember.Object.create({
+      display_name: 'App Timeline Server',
+      component_value: ''
+    })
+  )
+}

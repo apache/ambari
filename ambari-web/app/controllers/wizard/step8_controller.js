@@ -636,16 +636,22 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadYARN: function(mrObj){
+    var setComponentHost = function(component, componentName) {
+      component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', componentName).hostName);
+    }.bind(this);
     mrObj.get('service_components').forEach(function (_component) {
       switch (_component.get('display_name')) {
         case 'NodeManager':
           this.loadNMValue(_component);
           break;
         case 'ResourceManager':
-          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'RESOURCEMANAGER').hostName);
+          setComponentHost(_component, 'RESOURCEMANAGER');
           break;
         case 'History Server':
-          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'HISTORYSERVER').hostName);
+          setComponentHost(_component, 'HISTORYSERVER');
+          break;
+        case 'App Timeline Server':
+          setComponentHost(_component, 'APP_TIMELINE_SERVER');
           break;
       }
     }, this);

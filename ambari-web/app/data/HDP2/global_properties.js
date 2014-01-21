@@ -331,6 +331,34 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "ats_host",
+      "displayName": "App Timeline Server",
+      "description": "Application Timeline Server Host",
+      "defaultValue": "",
+      "isOverridable": false,
+      "displayType": "masterHost",
+      "isRequiredByAgent": false,
+      "isVisible": App.supports.appTimelineServer, // @todo remove test mode check after App Timeline service integration
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "ats_server_port",
+      "displayName": "Server port",
+      "description": "Application Timeline Server port",
+      "defaultValue": "9292", // @todo add correct value APP_TIMELINE_SERVER.port
+      "isOverridable": false,
+      "displayType": "int",
+      "isRequiredByAgent": true,
+      "isVisible": App.supports.appTimelineServer, // @todo remove test mode check after App Timeline service integration
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
       "name": "resourcemanager_heapsize",
       "displayName": "ResourceManager Java heap size",
       "description": "Max heapsize for ResourceManager",
