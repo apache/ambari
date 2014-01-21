@@ -32,6 +32,9 @@ from threading import Thread
 from mock.mock import patch, MagicMock, call
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
+from ambari_agent.PythonExecutor import PythonExecutor
+from ambari_agent.CommandStatusDict import CommandStatusDict
+from ambari_agent.ActualConfigHandler import ActualConfigHandler
 
 
 class TestActionQueue(TestCase):
@@ -125,6 +128,18 @@ class TestActionQueue(TestCase):
     'configurations':{}
   }
 
+  datanode_restart_command = {
+    'commandType': 'EXECUTION_COMMAND',
+    'role': u'DATANODE',
+    'roleCommand': u'CUSTOM_COMMAND',
+    'commandId': '1-1',
+    'taskId': 9,
+    'clusterName': u'cc',
+    'serviceName': u'HDFS',
+    'configurations':{'global' : {}},
+    'configurationTags':{'global' : { 'tag': 'v123' }},
+    'hostLevelParams':{'custom_command': 'RESTART'}
+  }
 
   @patch.object(ActionQueue, "process_command")
   @patch.object(Queue, "get")
@@ -352,6 +367,46 @@ class TestActionQueue(TestCase):
     report = actionQueue.result()
     self.assertEqual(len(report['reports']), 0)
 
+
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(ActionQueue, "determine_command_format_version")
+  def test_store_configuration_tags(self, determine_command_format_version_mock,
+                                    status_update_callback_mock,
+                                    command_status_dict_mock,
+                                    cso_runCommand_mock):
+    determine_command_format_version_mock.return_value = 2
+    custom_service_orchestrator_execution_result_dict = {
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut' : '',
+      'exitcode' : 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    config = AmbariConfig().getConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    actionQueue = ActionQueue(config, 'dummy_controller')
+    actionQueue.execute_command(self.datanode_restart_command)
+    report = actionQueue.result()
+    expected = {'actionId': '1-1',
+                'clusterName': u'cc',
+                'configurationTags': {'global' : { 'tag': 'v123' }},
+                'exitCode': 0,
+                'role': u'DATANODE',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'HDFS',
+                'status': 'COMPLETED',
+                'stderr': 'stderr',
+                'stdout': 'out',
+                'structuredOut': '',
+                'taskId': 9
+    }
+    # Agent caches configurationTags if custom_command RESTART completed
+    self.assertEqual(len(report['reports']), 1)
+    self.assertEqual(expected, report['reports'][0])
 
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(ActionQueue, "determine_command_format_version")
