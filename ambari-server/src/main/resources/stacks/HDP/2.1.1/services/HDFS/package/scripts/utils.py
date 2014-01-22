@@ -81,7 +81,7 @@ def hdfs_directory(name=None, owner=None, group=None,
   dir_absent_in_stub = format(
     "grep -q '^{name}$' {stub_dir}/{stub_filename} > /dev/null 2>&1; test $? -ne 0")
   record_dir_in_stub = format("echo '{name}' >> {stub_dir}/{stub_filename}")
-  tries = 3
+  tries = 30
   try_sleep = 10
   dfs_check_nn_status_cmd = "true"
 

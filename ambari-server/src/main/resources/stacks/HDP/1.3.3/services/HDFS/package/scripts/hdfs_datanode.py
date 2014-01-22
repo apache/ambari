@@ -30,14 +30,15 @@ def datanode(action=None):
               mode=0750,
               owner=params.hdfs_user,
               group=params.user_group)
-    Directory(os.path.dirname(params.dfs_data_dir),
-              recursive=True,
-              mode=0755)
-    Directory(params.dfs_data_dir,
-              recursive=False,
-              mode=0750,
-              owner=params.hdfs_user,
-              group=params.user_group)
+    for data_dir in params.dfs_data_dir.split(","):
+      Directory(os.path.dirname(data_dir),
+                recursive=True,
+                mode=0755)
+      Directory(data_dir,
+                recursive=False,
+                mode=0750,
+                owner=params.hdfs_user,
+                group=params.user_group)
 
   if action == "start":
     service(
