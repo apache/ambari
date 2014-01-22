@@ -89,7 +89,7 @@ def set_web_permisssions():
     mode  = 0640
   )
 
-  if System.get_instance().platform == "suse":
+  if System.get_instance().os_family == "suse":
     command = format("usermod -G {nagios_group} wwwrun")
   else:
     command = format("usermod -a -G {nagios_group} apache")

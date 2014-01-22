@@ -26,7 +26,7 @@ import subprocess
 import grp
 
 
-@patch.object(System, "platform", new = 'redhat')
+@patch.object(System, "os_family", new = 'redhat')
 class TestGroupResource(TestCase):
 
   @patch.object(grp, "getgrnam")

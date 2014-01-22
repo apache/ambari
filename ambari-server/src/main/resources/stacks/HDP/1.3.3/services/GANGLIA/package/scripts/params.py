@@ -68,7 +68,7 @@ has_tasktracker = not len(tt_hosts) == 0
 has_hbase_rs = not len(hbase_rs_hosts) == 0
 has_flume = not len(flume_hosts) == 0
 
-if System.get_instance().platform == "suse":
+if System.get_instance().os_family == "suse":
   rrd_py_path = '/srv/www/cgi-bin'
 else:
   rrd_py_path = '/var/www/cgi-bin'

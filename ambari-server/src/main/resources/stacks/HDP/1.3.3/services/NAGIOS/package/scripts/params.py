@@ -103,7 +103,7 @@ ganglia_collector_hs_port = "8666"
   
 all_ping_ports = config['clusterHostInfo']['all_ping_ports']
 
-if System.get_instance().platform == "suse":
+if System.get_instance().os_family == "suse":
   nagios_p1_pl = "/usr/lib/nagios/p1.pl"
   htpasswd_cmd = "htpasswd2"
 else:

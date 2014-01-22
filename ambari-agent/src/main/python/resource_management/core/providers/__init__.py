@@ -46,17 +46,8 @@ PROVIDERS = dict(
   redhat=dict(
     Package="resource_management.core.providers.package.yumrpm.YumProvider",
   ),
-  centos=dict(
-    Package="resource_management.core.providers.package.yumrpm.YumProvider",
-  ),
   suse=dict(
     Package="resource_management.core.providers.package.zypper.ZypperProvider",
-  ),
-  fedora=dict(
-    Package="resource_management.core.providers.package.yumrpm.YumProvider",
-  ),
-  amazon=dict(
-    Package="resource_management.core.providers.package.yumrpm.YumProvider",
   ),
   default=dict(
     File="resource_management.core.providers.system.FileProvider",
@@ -76,8 +67,8 @@ def find_provider(env, resource, class_path=None):
   if not class_path:
     providers = [PROVIDERS, LIBRARY_PROVIDERS]
     for provider in providers:
-      if resource in provider[env.system.platform]:
-        class_path = provider[env.system.platform][resource]
+      if resource in provider[env.system.os_family]:
+        class_path = provider[env.system.os_family][resource]
         break
       if resource in provider["default"]:
         class_path = provider["default"][resource]

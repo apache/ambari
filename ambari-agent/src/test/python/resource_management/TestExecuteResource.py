@@ -31,7 +31,7 @@ import grp
 import pwd
 
 
-@patch.object(System, "platform", new='redhat')
+@patch.object(System, "os_family", new='redhat')
 class TestExecuteResource(TestCase):
   @patch.object(logging.Logger, "info")
   @patch.object(subprocess, "Popen")

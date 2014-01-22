@@ -235,7 +235,7 @@ define service {
         max_check_attempts      3
 }
 
-{% if env.system.platform != "suse" %}
+{% if env.system.os_family != "suse" %}
 define service {
         host_name               {{ namenode_hostname }}
         use                     hadoop-service
@@ -323,7 +323,7 @@ define service {
         max_check_attempts      3
 }
 
-{% if env.system.platform != "suse" %}
+{% if env.system.os_family != "suse" %}
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
@@ -407,7 +407,7 @@ define service {
         max_check_attempts      3
 }
 
-{% if env.system.platform != "suse" %}
+{% if env.system.os_family != "suse" %}
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
@@ -551,7 +551,7 @@ define service {
 #         max_check_attempts      3
 # #}
 {%  for hbasemaster in hbase_master_hosts  %}
-{% if env.system.platform != "suse" %}
+{% if env.system.os_family != "suse" %}
 define service {
         host_name               {{ hbasemaster }}
         use                     hadoop-service

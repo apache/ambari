@@ -28,7 +28,7 @@ import resource_management.core.providers.system
 import resource_management
 
 
-@patch.object(System, "platform", new = 'redhat')
+@patch.object(System, "os_family", new = 'redhat')
 class TestFileResource(TestCase):
   @patch.object(os.path, "dirname")
   @patch.object(os.path, "isdir")

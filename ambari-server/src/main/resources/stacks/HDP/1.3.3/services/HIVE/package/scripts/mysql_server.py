@@ -25,7 +25,7 @@ from mysql_service import mysql_service
 
 class MysqlServer(Script):
 
-  if System.get_instance().platform == "suse":
+  if System.get_instance().os_family == "suse":
     daemon_name = 'mysql'
   else:
     daemon_name = 'mysqld'

@@ -25,7 +25,7 @@ from resource_management.core.resources.system import Link
 
 import os
 
-@patch.object(System, "platform", new = 'redhat')
+@patch.object(System, "os_family", new = 'redhat')
 class TestLinkResource(TestCase):
 
   @patch.object(os.path, "realpath")

@@ -32,7 +32,7 @@ import urllib2
 import os
 
 
-@patch.object(System, "platform", new = 'redhat')
+@patch.object(System, "os_family", new = 'redhat')
 class TestContentSources(TestCase):
 
   @patch("__builtin__.open")

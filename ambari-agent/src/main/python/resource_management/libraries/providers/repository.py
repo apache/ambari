@@ -26,7 +26,7 @@ class RepositoryProvider(Provider):
   def action_create(self):
     with Environment.get_instance_copy() as env:
       repo_file_name = self.resource.repo_file_name
-      repo_dir = repos_dirs[env.system.platform]
+      repo_dir = repos_dirs[env.system.os_family]
       
       File(format("{repo_dir}/{repo_file_name}.repo"),
         content = InlineTemplate("""[{{repo_id}}]
@@ -40,14 +40,13 @@ gpgcheck=0""", repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_
   def action_remove(self):
     with Environment.get_instance_copy() as env:
       repo_file_name = self.resource.repo_file_name
-      repo_dir = repos_dirs[env.system.platform]
+      repo_dir = repos_dirs[env.system.os_family]
         
       File(format("{repo_dir}/{repo_file_name}.repo"),
            action = "delete")
     
   
 repos_dirs = {
-  'centos': '/etc/yum.repos.d',
   'redhat': '/etc/yum.repos.d',
   'suse': '/etc/zypp/repos.d'
 }

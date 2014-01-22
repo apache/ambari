@@ -40,7 +40,7 @@ def nagios_server_config():
   nagios_server_configfile( 'hadoop-commands.cfg')
   nagios_server_configfile( 'contacts.cfg')
   
-  if System.get_instance().platform != "suse":
+  if System.get_instance().os_family != "suse":
     nagios_server_configfile( 'nagios',
                               config_dir = '/etc/init.d/', 
                               mode = 0755, 

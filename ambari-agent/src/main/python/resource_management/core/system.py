@@ -24,7 +24,9 @@ __all__ = ["System"]
 
 import os
 import sys
+import platform
 from resource_management.core import shell
+from resource_management.core.exceptions import Fail
 from functools import wraps
 
 def lazy_property(undecorated):
@@ -45,90 +47,80 @@ def lazy_property(undecorated):
 class System(object):
   @lazy_property
   def os(self):
+    """
+    Return values:
+    linux, unknown
+    
+    In case cannot detect raises 'unknown'
+    """
     platform = sys.platform
     if platform.startswith('linux'):
       return "linux"
-    elif platform == "darwin":
-      return "darwin"
     else:
       return "unknown"
-
-  def unquote(self, val):
-    if val[0] == '"':
-      val = val[1:-1]
-    return val
-
-  @lazy_property
-  def arch(self):
-    machine = self.machine
-    if machine in ("i386", "i486", "i686"):
-      return "x86_32"
-    return machine
-
-  @lazy_property
-  def machine(self):
-    code, out = shell.call(["/bin/uname", "-m"])
-    return out.strip()
-
-  @lazy_property
-  def lsb(self):
-    if os.path.exists("/usr/bin/lsb_release"):
-      code, out = shell.call(["/usr/bin/lsb_release", "-a"])
-      lsb = {}
-      for l in out.split('\n'):
-        v = l.split(':', 1)
-        if len(v) != 2:
-          continue
-        lsb[v[0].strip().lower()] = self.unquote(v[1].strip().lower())
-      
-      # failsafe
-      if not 'distributor id' in lsb:
-        return None
-        
-      lsb['id'] = lsb.pop('distributor id')
-      return lsb
     
-    return None
-
   @lazy_property
-  def platform(self):
-    operatingsystem = self.os
-    if operatingsystem == "linux":
-      lsb = self.lsb
-      if not lsb:
-        if os.path.exists("/etc/fedora-release"):
-          return "fedora"
-        if os.path.exists("/etc/centos-release"):
-          return "centos"
-        if os.path.exists("/etc/oracle-release"):
-          return "oracle"        
-        if os.path.exists("/etc/redhat-release"):
-          with file('/etc/redhat-release') as f:
-           release = f.read().lower() 
-           if 'centos' in release:
-             return 'centos'
-           elif 'fedora' in release:
-             return 'fedora'
-          return 'redhat'
-        if os.path.exists("/etc/SuSE-release"):
-          return "suse"
-        if os.path.exists("/etc/system-release"):
-          with open("/etc/system-release", "rb") as fp:
-            release = fp.read()
-          if "Amazon Linux" in release:
-            return "amazon"
-        return "unknown"
+  def os_version(self):
+    """
+    Example return value:
+    "6.3" for "Centos 6.3"
+    
+    In case cannot detect raises 'unknown'
+    """
+    dist = platform.linux_distribution()
+    if dist[1] != '':
+      return dist[1]
+    else:
+      return 'unknown'
+    
+  @lazy_property
+  def os_type(self):
+    """
+    Return values:
+    redhat, fedora, centos, oraclelinux, ascendos,
+    amazon, xenserver, oel, ovs, cloudlinux, slc, scientific, psbm,
+    ubuntu, debian, sles, sled, opensuse, suse ... and others
+    
+    In case cannot detect raises exception.
+    """
+    dist = platform.linux_distribution()
+    operatingSystem = dist[0].lower()
+
+    # special cases
+    if os.path.exists('/etc/oracle-release'):
+      return 'oraclelinux'
+    elif operatingSystem.startswith('suse linux enterprise server'):
+      return 'sles'
+    elif operatingSystem.startswith('red hat enterprise linux server'):
+      return 'redhat'
+    
+    # in general
+    if operatingSystem:
+      return operatingSystem
+    else:
+      raise Fail("Cannot detect os type")
+    
+  @lazy_property
+  def os_family(self):
+    """
+    Return values:
+    redhat, debian, suse
+    
+    In case cannot detect raises exception
+    """
+    os_type = self.os_type
+    if os_type in ['redhat', 'centos', 'fedora', 'oraclelinux', 'ascendos',
+                     'amazon', 'xenserver', 'oel', 'ovs', 'cloudlinux',
+                     'slc', 'scientific', 'psbm']:
+      os_family = 'redhat'
+    elif os_type in ['ubuntu', 'debian']:
+      os_family = 'debian'
+    elif os_type in ['sles', 'sled', 'opensuse', 'suse']:
+      os_family = 'suse'
+    else:
+      raise Fail("Cannot detect os family for os: {0}".format(os_type))
       
-      lsb_id = lsb['id'].lower()
-      if lsb_id =="suse linux":
-        return "suse"
-      return lsb_id
-    return "unknown"
-
-  @lazy_property
-  def locales(self):
-    code, out = shell.call("locale -a")
-    return out.strip().split("\n")
+    return os_family
 
   @lazy_property
   def ec2(self):
@@ -148,6 +140,23 @@ class System(object):
     elif os.path.exists("/proc/xen"):
       return "xen"
     return None
+  
+  @lazy_property
+  def arch(self):
+    machine = self.machine
+    if machine in ("i386", "i486", "i686"):
+      return "x86_32"
+    return machine
+
+  @lazy_property
+  def machine(self):
+    code, out = shell.call(["/bin/uname", "-m"])
+    return out.strip()
+
+  @lazy_property
+  def locales(self):
+    code, out = shell.call("locale -a")
+    return out.strip().split("\n")
 
   @classmethod
   def get_instance(cls):
@@ -156,3 +165,8 @@ class System(object):
     except AttributeError:
       cls._instance = cls()
     return cls._instance
+  
+  def unquote(self, val):
+    if val[0] == '"':
+      val = val[1:-1]
+    return val

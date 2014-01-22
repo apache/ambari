@@ -20,7 +20,7 @@
 #
 #
 
-{% if env.system.platform != "suse" %}
+{% if env.system.os_family != "suse" %}
 # 'check_cpu' check remote cpu load
 define command {
         command_name    check_cpu

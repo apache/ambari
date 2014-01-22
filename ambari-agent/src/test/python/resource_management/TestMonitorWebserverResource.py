@@ -26,8 +26,8 @@ from resource_management.libraries.resources.monitor_webserver\
 
 
 class TestMonitorWebserverResource(TestCase):
-  @patch.object(System, "platform", new='centos')
-  def test_setup_centos(self):
+  @patch.object(System, "os_family", new='redhat')
+  def test_setup_redhat(self):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("start")).action_start()
     defined_resources = env.resource_list
@@ -38,7 +38,7 @@ class TestMonitorWebserverResource(TestCase):
                          " Execute['/etc/init.d/httpd start']]"
     self.assertEqual(str(defined_resources), expected_resources)
 
-  @patch.object(System, "platform", new='suse')
+  @patch.object(System, "os_family", new='suse')
   def test_setup_suse(self):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("start")).action_start()
@@ -50,8 +50,8 @@ class TestMonitorWebserverResource(TestCase):
                          " Execute['/etc/init.d/apache2 start']]"
     self.assertEqual(str(defined_resources), expected_resources)
 
-  @patch.object(System, "platform", new='centos')
-  def test_stop_centos(self):
+  @patch.object(System, "os_family", new='redhat')
+  def test_stop_redhat(self):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("stop")).action_stop()
     defined_resources = env.resource_list
@@ -59,7 +59,7 @@ class TestMonitorWebserverResource(TestCase):
                          "Execute['/etc/init.d/httpd stop']]"
     self.assertEqual(str(defined_resources), expected_resources)
 
-  @patch.object(System, "platform", new='suse')
+  @patch.object(System, "os_family", new='suse')
   def test_stop_suse(self):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("stop")).action_stop()

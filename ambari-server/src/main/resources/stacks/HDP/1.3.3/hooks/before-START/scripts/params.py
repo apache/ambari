@@ -124,7 +124,7 @@ else:
 
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
-if System.get_instance().platform == "suse":
+if System.get_instance().os_family == "suse":
   jsvc_path = "/usr/lib/bigtop-utils"
 else:
   jsvc_path = "/usr/libexec/bigtop-utils"
