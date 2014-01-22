@@ -610,6 +610,15 @@ public class ExecutionScheduleManager {
     return convertToBatchRequestResponse(response);
   }
 
+  /**
+   * Check if the allowed threshold for failed tasks has exceeded.
+   * This needs to be an absolute value of tasks.
+   * @param executionId
+   * @param clusterName
+   * @param taskCounts
+   * @return
+   * @throws AmbariException
+   */
   public boolean hasToleranceThresholdExceeded(Long executionId,
       String clusterName, Map<String, Integer> taskCounts) throws AmbariException {
 
@@ -621,14 +630,11 @@ public class ExecutionScheduleManager {
         + executionId);
     }
 
-    int percentageFailed =
-      (int) ((taskCounts.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY) * 100.0f) /
-      taskCounts.get(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY));
-
     BatchSettings batchSettings = requestExecution.getBatch().getBatchSettings();
     if (batchSettings != null
         && batchSettings.getTaskFailureToleranceLimit() != null) {
-      return percentageFailed > batchSettings.getTaskFailureToleranceLimit();
+      return taskCounts.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY) >
+        batchSettings.getTaskFailureToleranceLimit();
     }
 
     return false;

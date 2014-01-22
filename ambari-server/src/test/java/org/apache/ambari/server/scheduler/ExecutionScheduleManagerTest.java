@@ -487,12 +487,10 @@ public class ExecutionScheduleManagerTest {
     String clusterName = "c1";
 
     BatchSettings batchSettings = new BatchSettings();
-    batchSettings.setTaskFailureToleranceLimit(10);
+    batchSettings.setTaskFailureToleranceLimit(1);
 
     Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
     executionMap.put(executionId, requestExecutionMock);
-
-
 
     expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
     expect(clusterMock.getAllRequestExecutions()).andReturn(executionMap).anyTimes();
@@ -502,8 +500,9 @@ public class ExecutionScheduleManagerTest {
     replay(clustersMock, clusterMock, configurationMock, requestExecutionMock,
       executionSchedulerMock, batchMock);
 
-    ExecutionScheduleManager scheduleManager = new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
-      tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
+    ExecutionScheduleManager scheduleManager =
+      new ExecutionScheduleManager(configurationMock, executionSchedulerMock,
+        tokenStorageMock, clustersMock, actionDBAccessorMock, gson);
 
     HashMap<String, Integer> taskCounts = new HashMap<String, Integer>() {{
       put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 2);
@@ -527,6 +526,7 @@ public class ExecutionScheduleManagerTest {
     Configuration configurationMock = createNiceMock(Configuration.class);
     ExecutionScheduler executionSchedulerMock = createMock(ExecutionScheduler.class);
     InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
+    ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
     Gson gson = new Gson();
     RequestExecution requestExecutionMock = createMock(RequestExecution.class);
     Batch batchMock = createMock(Batch.class);
@@ -542,9 +542,10 @@ public class ExecutionScheduleManagerTest {
     Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
     executionMap.put(executionId, requestExecutionMock);
 
-    ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).
-      withConstructor(configurationMock, executionSchedulerMock,
-        tokenStorageMock, clustersMock, gson).createMock();
+    ExecutionScheduleManager scheduleManager =
+      createMockBuilder(ExecutionScheduleManager.class).withConstructor
+        (configurationMock, executionSchedulerMock, tokenStorageMock,
+          clustersMock, actionDBAccessorMock, gson).createMock();
 
     expectLastCall().anyTimes();
 
@@ -568,14 +569,12 @@ public class ExecutionScheduleManagerTest {
 
     replay(clustersMock, clusterMock, configurationMock, requestExecutionMock,
       executionSchedulerMock, scheduleManager, batchMock, batchRequestMock,
-      triggerMock, jobDetailMock);
-
+      triggerMock, jobDetailMock, actionDBAccessorMock);
 
     scheduleManager.finalizeBatch(executionId, clusterName);
 
-
     verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
       executionSchedulerMock, scheduleManager, batchMock, batchRequestMock,
-      triggerMock, jobDetailMock);
+      triggerMock, jobDetailMock, actionDBAccessorMock);
   }
 }
