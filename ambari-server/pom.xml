@@ -29,6 +29,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
+    <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
   </properties>
   <build>
@@ -455,9 +456,10 @@
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
+                <argument>${custom.tests}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
