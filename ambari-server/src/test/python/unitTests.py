@@ -103,8 +103,7 @@ def stack_test_executor(base_folder, stack, service, custom_tests, executor_resu
   executor_result.put({'exit_code':exit_code,
                   'tests_run':textRunner.testsRun,
                   'errors':[(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors],
-                  'failures':[(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures],
-                  'skipped':[(str(item[0]),str(item[1]),"SKIPPED") for item in textRunner.skipped]})
+                  'failures':[(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures]})
   executor_result.put(0) if textRunner.wasSuccessful() else executor_result.put(1)
 
 def main():
@@ -138,7 +137,6 @@ def main():
   test_runs = 0
   test_failures = []
   test_errors = []
-  test_skipped = []
   for variant in test_variants:
     executor_result = multiprocessing.Queue()
     sys.stderr.write( "Running tests for stack:{0} service:{1}\n"
@@ -159,7 +157,6 @@ def main():
     test_runs += variant_result['tests_run']
     test_errors.extend(variant_result['errors'])
     test_failures.extend(variant_result['failures'])
-    test_skipped.extend(variant_result['skipped'])
 
     if variant_result['exit_code'] != 0:
       has_failures = True
@@ -181,13 +178,12 @@ def main():
   test_runs += textRunner.testsRun
   test_errors.extend([(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors])
   test_failures.extend([(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures])
-  test_skipped.extend([(str(item[0]),str(item[1]),"SKIPPED") for item in textRunner.skipped])
   tests_status = textRunner.wasSuccessful() and not has_failures
 
   if not tests_status:
     sys.stderr.write("----------------------------------------------------------------------\n")
     sys.stderr.write("Failed tests:\n")
-  for failed_tests in [test_errors,test_failures,test_skipped]:
+  for failed_tests in [test_errors,test_failures]:
     for err in failed_tests:
       sys.stderr.write("{0}: {1}\n".format(err[2],err[0]))
       sys.stderr.write("----------------------------------------------------------------------\n")
@@ -196,7 +192,6 @@ def main():
   sys.stderr.write("Total run:{0}\n".format(test_runs))
   sys.stderr.write("Total errors:{0}\n".format(len(test_errors)))
   sys.stderr.write("Total failures:{0}\n".format(len(test_failures)))
-  sys.stderr.write("Total skipped:{0}\n".format(len(test_skipped)))
 
   if tests_status:
     sys.stderr.write("OK\n")
