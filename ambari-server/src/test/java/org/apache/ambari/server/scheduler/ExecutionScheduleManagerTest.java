@@ -519,7 +519,6 @@ public class ExecutionScheduleManagerTest {
       executionSchedulerMock, batchMock);
   }
 
-  @Ignore
   @SuppressWarnings("unchecked")
   @Test
   public void testFinalizeBatch() throws Exception {
