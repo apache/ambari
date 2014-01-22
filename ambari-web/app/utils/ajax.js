@@ -1356,6 +1356,27 @@ var urls = {
     }
   },
 
+  'bulk_request.hosts.all_components': {
+    'real': '/clusters/{clusterName}/host_components',
+    'mock': '',
+    'format': function(data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            context: data.requestInfo,
+            query: data.query
+          },
+          Body: {
+            HostRoles: {
+              state: data.state
+            }
+          }
+        })
+      }
+    }
+  },
+
   'bulk_request.decommission': {
     'real' : '/clusters/{clusterName}/requests',
     'mock' : '',

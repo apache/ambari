@@ -333,6 +333,12 @@ App.MainHostView = App.TableView.extend({
     hostsCount: 0,
 
     /**
+     * Determine if category has hosts
+     * @type {Boolean}
+     */
+    hasHosts: false,
+
+    /**
      * Add "active" class for category span-wrapper if current category is selected
      * @type {String}
      */
@@ -362,6 +368,7 @@ App.MainHostView = App.TableView.extend({
       else {
         this.set('hostsCount', this.get('view.content').filterProperty(this.get('hostProperty')).get('length'));
       }
+      this.set('hasHosts', !!this.get('hostsCount'));
     },
 
     /**

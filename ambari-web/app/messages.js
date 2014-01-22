@@ -1412,6 +1412,7 @@ Em.I18n.translations = {
   'hosts.host.healthStatusCategory.orange': "Slave Down",
   'hosts.host.healthStatusCategory.yellow': "Lost Heartbeat",
   'hosts.host.alerts.label': 'Alerts',
+  'hosts.host.maintainance.allComponents.context': 'All Host Components',
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
   'hosts.host.alerts.st':'&nbsp;!&nbsp;',

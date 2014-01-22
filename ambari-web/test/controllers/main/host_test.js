@@ -16,70 +16,221 @@
  * limitations under the License.
  */
 
-/*
 var App = require('app');
-require('models/cluster');
-require('models/service');
-require('models/pagination');
+var validator = require('utils/validator');
+require('utils/component');
+require('utils/batch_scheduled_requests');
 require('controllers/main/host');
 
 describe('MainHostController', function () {
-    describe('#sortByName()', function () {
-        it('should change isSort value to true', function () {
-            var mainHostController = App.MainHostController.create();
-            mainHostController.set('isSort', false);
-            mainHostController.sortByName();
-            expect(mainHostController.get('isSort')).to.equal(true);
-        });
 
+  var hostController;
 
-        it('should inverse sortingAsc ', function () {
-            var mainHostController = App.MainHostController.create();
-            mainHostController.set('sortingAsc', false);
-            mainHostController.sortByName();
-            expect(mainHostController.get('sortingAsc')).to.equal(true);
-            mainHostController.sortByName();
-            expect(mainHostController.get('sortingAsc')).to.equal(false);
-        })
+  describe('#bulkOperation', function() {
+
+    beforeEach(function() {
+      hostController = App.MainHostController.create({
+        bulkOperationForHostsRestart: function(){},
+        bulkOperationForHosts: function(){},
+        bulkOperationForHostComponentsRestart: function(){},
+        bulkOperationForHostComponentsDecommission: function(){},
+        bulkOperationForHostComponents: function(){}
+      });
+      sinon.spy(hostController, 'bulkOperationForHostsRestart');
+      sinon.spy(hostController, 'bulkOperationForHosts');
+      sinon.spy(hostController, 'bulkOperationForHostComponentsRestart');
+      sinon.spy(hostController, 'bulkOperationForHostComponentsDecommission');
+      sinon.spy(hostController, 'bulkOperationForHostComponents');
     });
 
-
-    describe('#showNextPage, #showPreviousPage()', function () {
-        it('should change rangeStart according to page', function () {
-            var mainHostController = App.MainHostController.create();
-            mainHostController.set('pageSize', 3);
-            mainHostController.showNextPage();
-            expect(mainHostController.get('rangeStart')).to.equal(3);
-            mainHostController.showPreviousPage();
-            expect(mainHostController.get('rangeStart')).to.equal(0);
-        })
+    afterEach(function() {
+      hostController.bulkOperationForHosts.restore();
+      hostController.bulkOperationForHostsRestart.restore();
+      hostController.bulkOperationForHostComponentsRestart.restore();
+      hostController.bulkOperationForHostComponentsDecommission.restore();
+      hostController.bulkOperationForHostComponents.restore();
     });
 
-
-    describe('#sortClass()', function () {
-        it('should return \'icon-arrow-down\' if sortingAsc is true', function () {
-            var mainHostController = App.MainHostController.create({});
-            mainHostController.set('sortingAsc', true);
-            expect(mainHostController.get('sortClass')).to.equal('icon-arrow-down');
-        });
-        it('should return \'icon-arrow-up\' if sortingAsc is false', function () {
-            var mainHostController = App.MainHostController.create({});
-            mainHostController.set('sortingAsc', false);
-            expect(mainHostController.get('sortClass')).to.equal('icon-arrow-up');
-        })
+    it('RESTART for hosts', function() {
+      var operationData = {
+        action: 'RESTART'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostsRestart.calledOnce).to.be.true;
     });
 
-
-    describe('#allChecked', function () {
-        it('should fill selectedhostsids array', function () {
-            var mainHostController = App.MainHostController.create();
-            mainHostController.set('allChecked', false);
-            expect(mainHostController.get('selectedHostsIds').length).to.equal(0);
-            mainHostController.set('allChecked', true);
-            expect(!!(mainHostController.get('selectedHostsIds').length)).to.equal(true);
-        })
+    it('START for hosts', function() {
+      var operationData = {
+        action: 'STARTED'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHosts.calledOnce).to.be.true;
     });
 
+    it('STOP for hosts', function() {
+      var operationData = {
+        action: 'INSTALLED'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHosts.calledOnce).to.be.true;
+    });
+
+    it('RESTART for hostComponents', function() {
+      var operationData = {
+        action: 'RESTART',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponentsRestart.calledOnce).to.be.true;
+    });
+
+    it('START for hostComponents', function() {
+      var operationData = {
+        action: 'STARTED',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponents.calledOnce).to.be.true;
+    });
+
+    it('STOP for hostComponents', function() {
+      var operationData = {
+        action: 'INSTALLED',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponents.calledOnce).to.be.true;
+    });
+
+    it('DECOMMISSION for hostComponents', function() {
+      var operationData = {
+        action: 'DECOMMISSION',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponentsDecommission.calledOnce).to.be.true;
+    });
+
+    it('RECOMMISSION for hostComponents', function() {
+      var operationData = {
+        action: 'DECOMMISSION_OFF',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponentsDecommission.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#bulkOperationForHosts', function() {
+
+    beforeEach(function(){
+      hostController = App.MainHostController.create({});
+      sinon.spy($, 'ajax');
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+    });
+
+    var tests = [
+      {
+        operationData: {},
+        hosts: [],
+        m: 'no hosts',
+        e: false
+      },
+      {
+        operationData: {
+          actionToCheck: 'STARTED'
+        },
+        hosts: [
+          Em.Object.create({
+            hostComponents: Em.A([
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE'})
+            ])
+          })
+        ],
+        m: '1 host. components are in proper state',
+        e: true
+      },
+      {
+        operationData: {
+          actionToCheck: 'INSTALLED'
+        },
+        hosts: [
+          Em.Object.create({
+            hostComponents: Em.A([
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE'})
+            ])
+          })
+        ],
+        m: '1 host. components are not in proper state',
+        e: false
+      },
+      {
+        operationData: {
+          actionToCheck: 'INSTALLED'
+        },
+        hosts: [
+          Em.Object.create({
+            hostComponents: Em.A([
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'INSTALLED', componentName: 'NAMENODE'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE'})
+            ])
+          })
+        ],
+        m: '1 host. some components are in proper state',
+        e: true
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        hostController.bulkOperationForHosts(test.operationData, test.hosts);
+        expect($.ajax.called).to.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#bulkOperationForHostsRestart', function() {
+
+    beforeEach(function(){
+      hostController = App.MainHostController.create({});
+      sinon.spy($, 'ajax');
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+    });
+
+    var tests = [
+      {
+        hosts: Em.A([]),
+        m: 'No hosts',
+        e: false
+      },
+      {
+        hosts: Em.A([
+          Em.Object.create({
+            hostComponents: Em.A([Em.Object.create({}), Em.Object.create({})])
+          })
+        ]),
+        m: 'One host',
+        e: true
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        hostController.bulkOperationForHostsRestart({}, test.hosts);
+        expect($.ajax.calledOnce).to.equal(test.e)
+      });
+    });
+
+  });
 
 });
-*/

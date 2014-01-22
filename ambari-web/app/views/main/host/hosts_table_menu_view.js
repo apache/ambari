@@ -24,6 +24,20 @@ App.HostTableMenuView = Em.View.extend({
 
   /**
    * Get third-level menu items for slave components
+   * @param {String} componentNameForDecommission for decommission and recommission used another component name
+   * @param {String} componentNameForOtherActions host component name that should be processed
+   * operationData format:
+   * <code>
+   *  {
+   *    action: 'STARTED|INSTALLED|RESTART|DECOMMISSION|DECOMMISSION_OFF', // action for selected host components
+   *    message: 'some text', // just text to BG popup
+   *    componentName: 'DATANODE|NODEMANAGER...', //component name that should be processed
+   *    realComponentName: 'DATANODE|NODEMANAGER...', // used only for decommission(_off) actions
+   *    serviceName: 'HDFS|YARN|HBASE...', // service name of the processed component
+   *    componentNameFormatted: 'DataNodes|NodeManagers...' // "user-friendly" string with component name (used in BG popup)
+   *  }
+   *  </code>
+   *
    * @returns {Array}
    */
   getSlaveItemsTemplate: function(componentNameForDecommission, componentNameForOtherActions) {
@@ -75,6 +89,14 @@ App.HostTableMenuView = Em.View.extend({
 
   /**
    * Get third-level menu items for Hosts
+   * operationData format:
+   * <code>
+   *  {
+   *    action: 'STARTED|INSTALLED|RESTART', // action for selected hosts (will be applied for each host component in selected hosts)
+   *    actionToCheck: 'INSTALLED|STARTED' // state to filter host components should be processed
+   *    message: 'some text', // just text to BG popup
+   *  }
+   *  </code>
    * @returns {Array}
    */
   getHostItemsTemplate: function() {
@@ -82,25 +104,28 @@ App.HostTableMenuView = Em.View.extend({
       Em.Object.create({
         label: Em.I18n.t('hosts.host.details.startAllComponents'),
         operationData: Em.Object.create({
-          action: 'start_all',
+          action: 'STARTED',
+          actionToCheck: 'INSTALLED',
           message: Em.I18n.t('hosts.host.details.startAllComponents')
         })
       }),
       Em.Object.create({
         label: Em.I18n.t('hosts.host.details.stopAllComponents'),
         operationData: Em.Object.create({
-          action: 'stop_all',
+          action: 'INSTALLED',
+          actionToCheck: 'STARTED',
           message: Em.I18n.t('hosts.host.details.stopAllComponents')
         })
       }),
       Em.Object.create({
         label: Em.I18n.t('hosts.table.menu.l2.restartAllComponents'),
         operationData: Em.Object.create({
-          action: 'restart_all',
+          action: 'RESTART',
           message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
         })
-      }),
-      Em.Object.create({
+      })
+      //@todo uncomment when API will be ready
+      /*Em.Object.create({
         label: Em.I18n.t('maintenance.turnOn'),
         operationData: Em.Object.create({
           action: 'turn_on_maintenance',
@@ -113,13 +138,18 @@ App.HostTableMenuView = Em.View.extend({
           action: 'turn_off_maintenance',
           message: Em.I18n.t('maintenance.turnOff')
         })
-      })
+      })*/
     ]);
   },
 
   /**
    * Get second-level menu
    * @param {String} selection
+   * <code>
+   *   "s" - selected hosts
+   *   "a" - all hosts
+   *   "f" - filtered hosts
+   * </code>
    * @returns {Array}
    */
   getSubMenuItemsTemplate: function(selection) {

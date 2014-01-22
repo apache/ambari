@@ -156,6 +156,70 @@ App.MainHostController = Em.ArrayController.extend({
         }
       }
     }
+    else {
+      if (operationData.action === 'RESTART') {
+        this.bulkOperationForHostsRestart(operationData, hosts);
+      }
+      else {
+        this.bulkOperationForHosts(operationData, hosts);
+      }
+    }
+  },
+
+  /**
+   * Do bulk operation for selected hosts
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Array} hosts - list of affected hosts
+   */
+  bulkOperationForHosts: function(operationData, hosts) {
+    var query = [];
+    hosts.forEach(function(host) {
+      var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + host.get('hostName') + ')';
+      var components = [];
+      host.get('hostComponents').forEach(function(hostComponent) {
+        if (hostComponent.get('isMaster') || hostComponent.get('isSlave')) {
+          if (hostComponent.get('workStatus') === operationData.actionToCheck) {
+            components.push(hostComponent.get('componentName'));
+          }
+        }
+      });
+      if (components.length) {
+        query.push(subQuery.fmt(components.join(',')));
+      }
+    });
+    if (query.length) {
+      query = query.join('|');
+      App.ajax.send({
+        name: 'bulk_request.hosts.all_components',
+        sender: this,
+        data: {
+          query: query,
+          state: operationData.action,
+          requestInfo: operationData.message
+        },
+        success: 'bulkOperationForHostComponentsSuccessCallback'
+      });
+    }
+    else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('rolling.nothingToDo.body').format(Em.I18n.t('hosts.host.maintainance.allComponents.context')),
+        secondary: false
+      });
+    }
+  },
+
+  /**
+   * Bulk restart for selected hosts
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Array} hosts - list of affected hosts
+   */
+  bulkOperationForHostsRestart: function(operationData, hosts) {
+    var hostComponents = [];
+    hosts.forEach(function(host) {
+      hostComponents.pushObjects(host.get('hostComponents').toArray());
+    });
+    batchUtils.restartHostComponents(hostComponents);
   },
 
   /**

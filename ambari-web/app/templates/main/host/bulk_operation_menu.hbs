@@ -22,7 +22,7 @@
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
         ({{view.parentView.parentView.selectedCategory.hostsCount}})</a>
-      <ul class="dropdown-menu">
+      <ul {{bindAttr class="view.parentView.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
         {{#each subMenuItem in view.menuItems.s.submenu}}
           <li class="dropdown-submenu">
             <a href="javascript:void(null);">{{subMenuItem.label}}</a>
@@ -40,7 +40,7 @@
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.f.label}}
         ({{view.parentView.parentView.filteredContent.length}})</a>
-      <ul class="dropdown-menu">
+      <ul {{bindAttr class="view.parentView.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
         {{#each subMenuItem in view.menuItems.f.submenu}}
           <li class="dropdown-submenu">
             <a href="javascript:void(null);">{{subMenuItem.label}}</a>

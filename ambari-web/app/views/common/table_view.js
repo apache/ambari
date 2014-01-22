@@ -342,6 +342,14 @@ App.TableView = Em.View.extend({
   filteredContent: [],
 
   /**
+   * Determine if <code>filteredContent</code> is empty or not
+   * @type {Boolean}
+   */
+  hasFilteredItems: function() {
+    return !!this.get('filteredContent.length');
+  }.property('filteredContent.length'),
+
+  /**
    * Contains content to show on the current page of data page view
    * @type {Array}
    */
