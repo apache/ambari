@@ -257,7 +257,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         }
         break;
       case 'JOBTRACKER':
-        configs['mapred-site']['mapreduce.history.server.http.address'] = targetHostName + ':51111';
         configs['mapred-site']['mapred.job.tracker.http.address'] = targetHostName + ':50030';
         configs['mapred-site']['mapred.job.tracker'] = targetHostName + ':50300';
         if (securityEnabled) {
