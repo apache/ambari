@@ -43,6 +43,7 @@ import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.quartz.CronTrigger;
 import org.quartz.JobDetail;
@@ -518,6 +519,7 @@ public class ExecutionScheduleManagerTest {
       executionSchedulerMock, batchMock);
   }
 
+  @Ignore
   @SuppressWarnings("unchecked")
   @Test
   public void testFinalizeBatch() throws Exception {
