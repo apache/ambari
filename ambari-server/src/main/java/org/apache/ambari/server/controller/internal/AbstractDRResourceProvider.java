@@ -77,7 +77,7 @@ public abstract class AbstractDRResourceProvider extends AbstractResourceProvide
                                                      Set<String> propertyIds,
                                                      Map<Resource.Type, String> keyPropertyIds,
                                                      IvoryService service) {
-    switch (type) {
+    switch (type.getInternalType()) {
       case DRFeed:
         return new FeedResourceProvider(service, propertyIds, keyPropertyIds);
       case DRTargetCluster:

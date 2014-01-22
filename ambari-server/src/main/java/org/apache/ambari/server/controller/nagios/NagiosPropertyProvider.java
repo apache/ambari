@@ -179,7 +179,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     for (NagiosAlert alert : allAlerts) {
       boolean match = false;
       
-      switch (resourceType) {
+      switch (resourceType.getInternalType()) {
         case Service:
           match = alert.getService().equals(matchValue);
           break;

@@ -54,7 +54,7 @@ public class DefaultProviderModule extends AbstractProviderModule {
     Set<String>               propertyIds    = PropertyHelper.getPropertyIds(type);
     Map<Resource.Type,String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(type);
 
-    switch (type) {
+    switch (type.getInternalType()) {
       case Workflow:
         return new WorkflowResourceProvider(propertyIds, keyPropertyIds);
       case Job:

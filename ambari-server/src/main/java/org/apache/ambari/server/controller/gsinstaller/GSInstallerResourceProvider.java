@@ -216,7 +216,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
    */
   public static ResourceProvider getResourceProvider(Resource.Type type,
                                                      ClusterDefinition clusterDefinition) {
-    switch (type) {
+    switch (type.getInternalType()) {
       case Cluster:
         return new GSInstallerClusterProvider(clusterDefinition);
       case Service:

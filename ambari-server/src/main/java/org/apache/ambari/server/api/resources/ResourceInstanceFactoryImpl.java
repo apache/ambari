@@ -53,7 +53,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
     ResourceDefinition resourceDefinition;
 
     //todo: consider ResourceDependencyManager : Map<Resource.Type, ResourceDefinition>
-    switch (type) {
+    switch (type.getInternalType()) {
       case Cluster:
         resourceDefinition = new ClusterResourceDefinition();
         break;

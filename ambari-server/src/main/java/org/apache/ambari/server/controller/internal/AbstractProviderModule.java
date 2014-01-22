@@ -330,104 +330,106 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT,
         configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
 
-    switch (type){
-      case Cluster :
-        providers.add(createGangliaReportPropertyProvider(
-            type,
-            streamProvider,
-            ComponentSSLConfiguration.instance(),
-            this,
-            PropertyHelper.getPropertyId("Clusters", "cluster_name")));
-        break;
-      case Service:
-        providers.add(new NagiosPropertyProvider(type,
-            streamProvider,
-            "ServiceInfo/cluster_name",
-            "ServiceInfo/service_name"));
-        break;
-      case Host :
-        providers.add(createGangliaHostPropertyProvider(
-            type,
-            streamProvider,
-            ComponentSSLConfiguration.instance(),
-            this,
-            PropertyHelper.getPropertyId("Hosts", "cluster_name"),
-            PropertyHelper.getPropertyId("Hosts", "host_name")
-        ));
-        providers.add(new NagiosPropertyProvider(type,
-            streamProvider,
-            "Hosts/cluster_name",
-            "Hosts/host_name"));
-        break;
-      case Component : {
-        // TODO as we fill out stack metric definitions, these can be phased out
-        PropertyProvider jpp = createJMXPropertyProvider(
-            type,
-            streamProvider,
-            this,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            null,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
-            Collections.singleton("STARTED"));
+    if (type.isInternalType()) {
+      switch (type.getInternalType()) {
+        case Cluster:
+          providers.add(createGangliaReportPropertyProvider(
+              type,
+              streamProvider,
+              ComponentSSLConfiguration.instance(),
+              this,
+              PropertyHelper.getPropertyId("Clusters", "cluster_name")));
+          break;
+        case Service:
+          providers.add(new NagiosPropertyProvider(type,
+              streamProvider,
+              "ServiceInfo/cluster_name",
+              "ServiceInfo/service_name"));
+          break;
+        case Host:
+          providers.add(createGangliaHostPropertyProvider(
+              type,
+              streamProvider,
+              ComponentSSLConfiguration.instance(),
+              this,
+              PropertyHelper.getPropertyId("Hosts", "cluster_name"),
+              PropertyHelper.getPropertyId("Hosts", "host_name")
+          ));
+          providers.add(new NagiosPropertyProvider(type,
+              streamProvider,
+              "Hosts/cluster_name",
+              "Hosts/host_name"));
+          break;
+        case Component: {
+          // TODO as we fill out stack metric definitions, these can be phased out
+          PropertyProvider jpp = createJMXPropertyProvider(
+              type,
+              streamProvider,
+              this,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+              null,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+              Collections.singleton("STARTED"));
 
-        PropertyProvider gpp = createGangliaComponentPropertyProvider(
-            type,
-            streamProvider,
-            ComponentSSLConfiguration.instance(),
-            this,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
-        
-        providers.add(new StackDefinedPropertyProvider(
-            type,
-            this,
-            this,
-            streamProvider,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            null,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
-            jpp,
-            gpp));
-        }
-        break;
-      case HostComponent: {
-        // TODO as we fill out stack metric definitions, these can be phased out
-        PropertyProvider jpp = createJMXPropertyProvider(
-            type,
-            streamProvider,
-            this,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name"),
-            PropertyHelper.getPropertyId("HostRoles", "state"),
-            Collections.singleton("STARTED"));
+          PropertyProvider gpp = createGangliaComponentPropertyProvider(
+              type,
+              streamProvider,
+              ComponentSSLConfiguration.instance(),
+              this,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
 
-        PropertyProvider gpp = createGangliaHostComponentPropertyProvider(
-            type,
-            streamProvider,
-            ComponentSSLConfiguration.instance(),
-            this,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name"));
-        
-        providers.add(new StackDefinedPropertyProvider(
-            type,
-            this,
-            this,
-            streamProvider,
-            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-            PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name"),
-            PropertyHelper.getPropertyId("HostRoles", "state"),
-            jpp,
-            gpp));
-        }
-        break;
-      default :
-        break;
+          providers.add(new StackDefinedPropertyProvider(
+              type,
+              this,
+              this,
+              streamProvider,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+              null,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+              jpp,
+              gpp));
+          }
+          break;
+        case HostComponent: {
+          // TODO as we fill out stack metric definitions, these can be phased out
+          PropertyProvider jpp = createJMXPropertyProvider(
+              type,
+              streamProvider,
+              this,
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"),
+              PropertyHelper.getPropertyId("HostRoles", "state"),
+              Collections.singleton("STARTED"));
+
+          PropertyProvider gpp = createGangliaHostComponentPropertyProvider(
+              type,
+              streamProvider,
+              ComponentSSLConfiguration.instance(),
+              this,
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"));
+
+          providers.add(new StackDefinedPropertyProvider(
+              type,
+              this,
+              this,
+              streamProvider,
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"),
+              PropertyHelper.getPropertyId("HostRoles", "state"),
+              jpp,
+              gpp));
+          }
+          break;
+        default:
+          break;
+      }
     }
     putPropertyProviders(type, providers);
   }

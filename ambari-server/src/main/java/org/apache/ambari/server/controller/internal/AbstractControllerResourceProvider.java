@@ -90,7 +90,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
                                                      Map<Resource.Type, String> keyPropertyIds,
                                                      AmbariManagementController managementController) {
 
-    switch (type) {
+    switch (type.getInternalType()) {
       case Cluster:
         return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Service:

@@ -46,10 +46,10 @@ public class PropertyHelper {
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
   private static final char EXTERNAL_PATH_SEP = '/';
 
-  private static final Map<Resource.Type, Set<String>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
+  private static final Map<Resource.InternalType, Set<String>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
+  private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
+  private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
+  private static final Map<Resource.InternalType, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
   /**
    * Regular expression to check for replacement arguments (e.g. $1) in a property id.
@@ -58,7 +58,7 @@ public class PropertyHelper {
 
   public static String getPropertyId(String category, String name) {
     String propertyId =  (category == null || category.isEmpty())? name :
-           (name == null || name.isEmpty()) ? category : category + EXTERNAL_PATH_SEP + name;
+        (name == null || name.isEmpty()) ? category : category + EXTERNAL_PATH_SEP + name;
 
     if (propertyId.endsWith("/")) {
       propertyId = propertyId.substring(0, propertyId.length() - 1);
@@ -68,7 +68,7 @@ public class PropertyHelper {
 
 
   public static Set<String> getPropertyIds(Resource.Type resourceType) {
-    Set<String> propertyIds = PROPERTY_IDS.get(resourceType);
+    Set<String> propertyIds = PROPERTY_IDS.get(resourceType.getInternalType());
     return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
   }
 
@@ -89,15 +89,15 @@ public class PropertyHelper {
   }
 
   public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType) {
-    return GANGLIA_PROPERTY_IDS.get(resourceType);
+    return GANGLIA_PROPERTY_IDS.get(resourceType.getInternalType());
   }
 
   public static Map<String, Map<String, PropertyInfo>> getJMXPropertyIds(Resource.Type resourceType) {
-    return JMX_PROPERTY_IDS.get(resourceType);
+    return JMX_PROPERTY_IDS.get(resourceType.getInternalType());
   }
 
   public static Map<Resource.Type, String> getKeyPropertyIds(Resource.Type resourceType) {
-    return KEY_PROPERTY_IDS.get(resourceType);
+    return KEY_PROPERTY_IDS.get(resourceType.getInternalType());
   }
 
   /**
@@ -302,18 +302,18 @@ public class PropertyHelper {
     return new RequestImpl(null, Collections.singleton(properties), requestInfoProperties, null);
   }
 
-  private static Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> readPropertyProviderIds(String filename) {
+  private static Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> readPropertyProviderIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      Map<Resource.Type, Map<String, Map<String, Metric>>> resourceMetricMap =
+      Map<Resource.InternalType, Map<String, Map<String, Metric>>> resourceMetricMap =
           mapper.readValue(ClassLoader.getSystemResourceAsStream(filename),
-              new TypeReference<Map<Resource.Type, Map<String, Map<String, Metric>>>>() {});
+              new TypeReference<Map<Resource.InternalType, Map<String, Map<String, Metric>>>>() {});
 
-      Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> resourceMetrics =
-          new HashMap<Resource.Type, Map<String, Map<String, PropertyInfo>>>();
+      Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> resourceMetrics =
+          new HashMap<Resource.InternalType, Map<String, Map<String, PropertyInfo>>>();
 
-      for (Map.Entry<Resource.Type, Map<String, Map<String, Metric>>> resourceEntry : resourceMetricMap.entrySet()) {
+      for (Map.Entry<Resource.InternalType, Map<String, Map<String, Metric>>> resourceEntry : resourceMetricMap.entrySet()) {
         Map<String, Map<String, PropertyInfo>> componentMetrics = new HashMap<String, Map<String, PropertyInfo>>();
 
         for (Map.Entry<String, Map<String, Metric>> componentEntry : resourceEntry.getValue().entrySet()) {
@@ -335,23 +335,38 @@ public class PropertyHelper {
     }
   }
 
-  private static Map<Resource.Type, Set<String>> readPropertyIds(String filename) {
+  private static Map<Resource.InternalType, Set<String>> readPropertyIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Set<String>>>() {
+      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.InternalType, Set<String>>>() {
       });
     } catch (IOException e) {
       throw new IllegalStateException("Can't read properties file " + filename, e);
     }
   }
 
-  private static Map<Resource.Type, Map<Resource.Type, String>> readKeyPropertyIds(String filename) {
+  private static Map<Resource.InternalType, Map<Resource.Type, String>> readKeyPropertyIds(String filename) {
     ObjectMapper mapper = new ObjectMapper();
 
     try {
-      return mapper.readValue(ClassLoader.getSystemResourceAsStream(filename), new TypeReference<Map<Resource.Type, Map<Resource.Type, String>>>() {
-      });
+      Map<Resource.InternalType, Map<Resource.InternalType, String>> map =
+          mapper.readValue(ClassLoader.getSystemResourceAsStream(filename),
+              new TypeReference<Map<Resource.InternalType, Map<Resource.InternalType, String>>>() {});
+
+      Map<Resource.InternalType, Map<Resource.Type, String>> returnMap =
+          new HashMap<Resource.InternalType, Map<Resource.Type, String>>();
+
+      // convert inner maps from InternalType to Type
+      for (Map.Entry<Resource.InternalType, Map<Resource.InternalType, String>> entry : map.entrySet()) {
+        Map<Resource.Type, String> innerMap = new HashMap<Resource.Type, String>();
+
+        for (Map.Entry<Resource.InternalType, String> entry1 : entry.getValue().entrySet()) {
+          innerMap.put(Resource.Type.values()[entry1.getKey().ordinal()], entry1.getValue());
+        }
+        returnMap.put(entry.getKey(), innerMap);
+      }
+      return returnMap;
     } catch (IOException e) {
       throw new IllegalStateException("Can't read properties file " + filename, e);
     }

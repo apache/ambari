@@ -38,7 +38,7 @@ public class TestIvoryProviderModule extends DefaultProviderModule{
     Set<String> propertyIds = PropertyHelper.getPropertyIds(type);
     Map<Resource.Type,String> keyPropertyIds = PropertyHelper.getKeyPropertyIds(type);
 
-    switch (type) {
+    switch (type.getInternalType()) {
       case DRFeed:
         return new FeedResourceProvider(service, propertyIds, keyPropertyIds);
       case DRTargetCluster:
