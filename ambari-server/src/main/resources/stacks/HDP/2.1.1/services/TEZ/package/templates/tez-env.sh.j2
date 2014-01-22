@@ -13,9 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_HOME={{java64_home}}
-HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+# Tez specific configuration
+export TEZ_LOG_DIR={{log_dir}}
+export TEZ_PID_DIR={{pid_dir}}
+export TEZ_CONF_DIR={{conf_dir}}
 
-if [ -d "/usr/lib/tez" ]; then
-  PIG_OPTS="-Dmapreduce.framework.name=yarn"
-fi
+# Set HADOOP_HOME to point to a specific hadoop install directory
+export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+
+# The java implementation to use.
+export JAVA_HOME={{java64_home}}

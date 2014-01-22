@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<configuration>
+
+  <property>
+    <name>tez.lib.uris</name>
+    <value>file:///usr/lib/tez/,file:///usr/lib/tez/lib/</value>
+  </property>
+
+  <property>
+    <name>tez.am.log.level</name>
+    <value>INFO</value>
+  </property>
+
+  <property>
+    <name>tez.staging-dir</name>
+    <value>/tmp/${user.name}/staging</value>
+  </property>
+
+  <property>
+    <name>tez.slowstart-vertex-scheduler.min-src-fraction</name>
+    <value>0.1</value>
+  </property>
+
+  <property>
+    <name>tez.slowstart-vertex-scheduler.max-src-fraction</name>
+    <value>0.1</value>
+  </property>
+
+  <property>
+    <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
+    <value>250</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.broadcast.data-via-events.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.broadcast.data-via-events.max-size</name>
+    <value>614400</value>
+  </property>
+
+    <property>
+    <name>tez.am.aggressive.scheduling</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>tez.am.resource.memory.mb</name>
+    <value>1024</value>
+  </property>
+
+  <property>
+    <name>tez.am.java.opts</name>
+    <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC</value>
+  </property>
+
+  <property>
+    <name>tez.am.grouping.split-waves</name>
+    <value>1.7</value>
+  </property>
+
+  <property>
+    <name>tez.am.container.reuse.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>tez.am.container.reuse.rack-fallback.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>tez.am.container.reuse.non-local-fallback.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>tez.am.container.session.delay-allocation-millis</name>
+    <value>300000</value>
+  </property>
+
+  <property>
+    <name>tez.am.container.reuse.locality.delay-allocation-millis</name>
+    <value>250</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.intermediate-output.should-compress</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.intermediate-output.compress.codec</name>
+    <value>org.apache.hadoop.io.compress.DefaultCodec</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.intermdiate-input.is-compressed</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.intermediate-input.compress.codec</name>
+    <value>org.apache.hadoop.io.compress.DefaultCodec</value>
+  </property>
+
+  <property>
+    <name>tez.task.get-task.sleep.interval-ms.max</name>
+    <value>100</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.job.counters.max</name>
+    <value>5000</value>
+  </property>
+
+  <property>
+    <name>tez.runtime.job.counters.groups.max</name>
+    <value>5000</value>
+  </property>
+
+</configuration>
