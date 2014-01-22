@@ -202,6 +202,9 @@ Em.I18n.translations = {
   'hostPopup.status.category.aborted':'Aborted ({0})',
   'hostPopup.status.category.timedout':'Timedout ({0})',
   'hostPopup.header.postFix':' Background Operations Running',
+  'hostPopup.bgop.sourceRequestSchedule.running': 'Future operations of this batch request can be aborted',
+  'hostPopup.bgop.sourceRequestSchedule.aborted': 'Future operations of this batch request have been aborted',
+  'hostPopup.bgop.abort.rollingRestart': 'Abort Rolling Restart',
 
   'question.sure':'Are you sure?',
 

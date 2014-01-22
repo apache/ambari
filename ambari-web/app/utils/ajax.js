@@ -1294,6 +1294,19 @@ var urls = {
       }
     }
   },
+  'request_schedule.delete': {
+    'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
+    'mock': '',
+    'format' : function(data) {
+      return {
+        type : 'DELETE',
+      }
+    }
+  },
+  'request_schedule.get': {
+    'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
+    'mock': '',
+  },
   'restart.service.hostComponents' : {
     'real' : '/clusters/{clusterName}/requests',
     'mock' : '',

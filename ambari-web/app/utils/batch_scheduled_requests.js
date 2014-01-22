@@ -163,7 +163,6 @@ module.exports = {
         batchCount = Math.ceil(restartHostComponents.length / batchSize),
         sampleHostComponent = restartHostComponents.objectAt(0),
         componentName = sampleHostComponent.get('componentName'),
-        componentDisplayName = App.format.role(componentName),
         serviceName = sampleHostComponent.get('service.serviceName');
 
     for ( var count = 0; count < batchCount; count++) {
@@ -178,7 +177,7 @@ module.exports = {
           "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
           "RequestBodyInfo" : {
             "RequestInfo" : {
-              "context" : Em.I18n.t('rollingrestart.rest.context').format(componentDisplayName, (count + 1), batchCount),
+              "context" : "_PARSE_.ROLLING-RESTART." + componentName + "." + (count + 1) + "." + batchCount,
               "command" : "RESTART",
               "service_name" : serviceName,
               "component_name" : componentName,
@@ -257,6 +256,78 @@ module.exports = {
           template : Ember.Handlebars.compile('<div class="alert alert-warning">{{msg}}</div>')
         })
       });
+    }
+  },
+
+  /**
+   * Retrieves the latest information about a specific request schedule
+   * identified by 'requestScheduleId'
+   *
+   * @param {Number}
+   *          requestScheduleId ID of the request schedule to get
+   * @param {Function}
+   *          successCallback Called with request_schedule data from server. An
+   *          empty object returned for invalid ID.
+   * @param {Function}
+   *          errorCallback Optional error callback. Default behavior is to
+   *          popup default error dialog.
+   */
+  getRequestSchedule: function(requestScheduleId, successCallback, errorCallback) {
+    if (requestScheduleId != null && !isNaN(requestScheduleId) && requestScheduleId > -1) {
+      errorCallback = errorCallback ? errorCallback : defaultErrorCallback;
+      App.ajax.send({
+        name : 'request_schedule.get',
+        sender : {
+          successCallbackFunction : function(data) {
+            successCallback(data);
+          },
+          errorCallbackFunction : function(xhr, textStatus, error, opt) {
+            errorCallback(xhr, textStatus, error, opt);
+          }
+        },
+        data : {
+          request_schedule_id : requestScheduleId,
+        },
+        success : 'successCallbackFunction',
+        error : 'errorCallbackFunction'
+      });
+    } else {
+      successCallback({});
+    }
+  },
+
+  /**
+   * Attempts to abort a specific request schedule identified by 'requestScheduleId'
+   *
+   * @param {Number}
+   *          requestScheduleId ID of the request schedule to get
+   * @param {Function}
+   *          successCallback Called when request schedule successfully aborted
+   * @param {Function}
+   *          errorCallback Optional error callback. Default behavior is to
+   *          popup default error dialog.
+   */
+  doAbortRequestSchedule: function(requestScheduleId, successCallback, errorCallback) {
+    if (requestScheduleId != null && !isNaN(requestScheduleId) && requestScheduleId > -1) {
+      errorCallback = errorCallback ? errorCallback : defaultErrorCallback;
+      App.ajax.send({
+        name : 'request_schedule.delete',
+        sender : {
+          successCallbackFunction : function(data) {
+            successCallback(data);
+          },
+          errorCallbackFunction : function(xhr, textStatus, error, opt) {
+            errorCallback(xhr, textStatus, error, opt);
+          }
+        },
+        data : {
+          request_schedule_id : requestScheduleId,
+        },
+        success : 'successCallbackFunction',
+        error : 'errorCallbackFunction'
+      });
+    } else {
+      successCallback({});
     }
   }
 };

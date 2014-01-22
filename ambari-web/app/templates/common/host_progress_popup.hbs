@@ -82,6 +82,24 @@
         }}
       </div>
     </div>
+    {{#if view.isRequestSchedule}}
+      {{#if view.sourceRequestScheduleRunning}}
+        <div class="alert alert-info request-schedule-abort">
+          {{t hostPopup.bgop.sourceRequestSchedule.running}}
+          <button type="button" class="btn btn-warning pull-right"
+            {{action doAbortRequestSchedule view.sourceRequestScheduleId target="view"}}>
+            {{view.requestScheduleAbortLabel}}
+          </button>
+        </div>
+      {{/if}}
+      {{#if view.sourceRequestScheduleAborted}}
+        <div class="alert alert-info request-schedule-abort">
+          {{t hostPopup.bgop.sourceRequestSchedule.aborted}}
+        </div>
+      {{/if}}
+    {{/if}}
+    </div>
+    </div>
     <div id="host-info">
       {{#if view.isHostEmptyList}}
         <div class="log-list-wrap">{{t hostPopup.noHostsToShow}}</div>

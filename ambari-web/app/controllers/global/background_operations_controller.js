@@ -178,7 +178,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
           hostsMap: {},
           tasks: [],
           dependentService: requestParams.dependentService,
-          previousTaskStatusMap: {}
+          sourceRequestScheduleId: request.Requests.source_schedule_id,
+          previousTaskStatusMap: {},
+          contextCommand: requestParams.contextCommand
         });
         self.get("services").unshift(rq);
       }
@@ -202,15 +204,24 @@ App.BackgroundOperationsController = Em.Controller.extend({
   parseRequestContext: function (requestContext) {
     var parsedRequestContext;
     var service;
-    var command;
+    var contextCommand;
     if (requestContext) {
-      if (requestContext.indexOf("_PARSE_") !== -1) {
-        command = requestContext.split('.')[1];
-        service = requestContext.split('.')[2];
-        if (service === 'ALL_SERVICES') {
-          parsedRequestContext = Em.I18n.t("requestInfo." + command.toLowerCase()).format(Em.I18n.t('common.allServices'));
-        } else {
-          parsedRequestContext = Em.I18n.t("requestInfo." + command.toLowerCase()).format(App.Service.DisplayNames[service]);
+      if (requestContext.indexOf(App.BackgroundOperationsController.CommandContexts.PREFIX) !== -1) {
+        var contextSplits = requestContext.split('.');
+        contextCommand = contextSplits[1];
+        service = contextSplits[2];
+        switch(contextCommand){
+        case "STOP":
+        case "START":
+          if (service === 'ALL_SERVICES') {
+            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(Em.I18n.t('common.allServices'));
+          } else {
+            parsedRequestContext = Em.I18n.t("requestInfo." + contextCommand.toLowerCase()).format(App.Service.DisplayNames[service]);
+          }
+          break;
+        case "ROLLING-RESTART":
+          parsedRequestContext = Em.I18n.t("rollingrestart.rest.context").format(App.format.role(service), contextSplits[3], contextSplits[4]);
+          break;
         }
       } else {
         parsedRequestContext = requestContext;
@@ -220,7 +231,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }
     return {
       requestContext: parsedRequestContext,
-      dependentService: service
+      dependentService: service,
+      contextCommand: contextCommand
     }
   },
 
@@ -246,3 +258,46 @@ App.BackgroundOperationsController = Em.Controller.extend({
   }
 
 });
+
+/**
+ * Each background operation has a context in which it operates.
+ * Generally these contexts are fixed messages. However, we might
+ * want to associate semantics to this context - like showing, disabling
+ * buttons when certain operations are in progress.
+ *
+ * To make this possible we have command contexts where the context
+ * is not a human readable string, but a pattern indicating the command
+ * it is running. When UI shows these, they are translated into human
+ * readable strings.
+ *
+ * General pattern of context names is "_PARSE_.{COMMAND}.{ID}[.{Additional-Data}...]"
+ */
+App.BackgroundOperationsController.CommandContexts = {
+  PREFIX : "_PARSE_",
+  /**
+   * Stops all services
+   */
+  STOP_ALL_SERVICES : "_PARSE_.STOP.ALL_SERVICES",
+  /**
+   * Starts all services
+   */
+  START_ALL_SERVICES : "_PARSE_.START.ALL_SERVICES",
+  /**
+   * Starts service indicated by serviceID.
+   * @param {String} serviceID Parameter {0}. Example: HDFS
+   */
+  START_SERVICE : "_PARSE_.START.{0}",
+  /**
+   * Stops service indicated by serviceID.
+   * @param {String} serviceID Parameter {0}. Example: HDFS
+   */
+  STOP_SERVICE : "_PARSE_.STOP.{0}",
+  /**
+   * Performs rolling restart of componentID in batches.
+   * This context is the batchNumber batch out of totalBatchCount batches.
+   * @param {String} componentID Parameter {0}. Example "DATANODE"
+   * @param {Number} batchNumber Parameter {1}. Batch number of this batch. Example 3.
+   * @param {Number} totalBatchCount Parameter {2}. Total number of batches. Example 10.
+   */
+  ROLLING_RESTART : "_PARSE_.ROLLING-RESTART.{0}.{1}.{2}"
+}

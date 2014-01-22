@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var batchUtils = require('utils/batch_scheduled_requests');
 
 /**
  * App.HostPopup is for the popup that shows up upon clicking already-performed or currently-in-progress operations
@@ -244,7 +245,9 @@ App.HostPopup = Em.Object.create({
           icon: status[1],
           barColor: status[2],
           isInProgress: status[3],
-          barWidth: "width:" + service.progress + "%;"
+          barWidth: "width:" + service.progress + "%;",
+          sourceRequestScheduleId: service.get('sourceRequestScheduleId'),
+          contextCommand: service.get('contextCommand')
         });
         allNewServices.push(newService);
       });
@@ -467,6 +470,10 @@ App.HostPopup = Em.Object.create({
         isHostEmptyList: true,
         isTasksEmptyList: true,
         controller: this,
+        sourceRequestScheduleId: -1,
+        sourceRequestScheduleRunning: false,
+        sourceRequestScheduleAborted: false,
+        sourceRequestScheduleCommand: null,
         hosts: self.get('hosts'),
         services: self.get('servicesInfo'),
 
@@ -722,7 +729,67 @@ App.HostPopup = Em.Object.create({
               this.set('hosts', this.get('hosts').concat(servicesInfo.slice(50, servicesInfo.length)));
             });
           }
+          // Determine if source request schedule is present
+          this.set('sourceRequestScheduleId', event.context.get("sourceRequestScheduleId"));
+          this.set('sourceRequestScheduleCommand', event.context.get('contextCommand'));
+          this.refreshRequestScheduleInfo();
         },
+
+        isRequestSchedule : function() {
+          var id = this.get('sourceRequestScheduleId');
+          return id != null && !isNaN(id) && id > -1;
+        }.property('sourceRequestScheduleId'),
+
+        refreshRequestScheduleInfo : function() {
+          var self = this;
+          var id = this.get('sourceRequestScheduleId');
+          batchUtils.getRequestSchedule(id, function(data) {
+            if (data != null && data.RequestSchedule.status != null) {
+              switch (data.RequestSchedule.status) {
+              case 'DISABLED':
+                self.set('sourceRequestScheduleRunning', false);
+                self.set('sourceRequestScheduleAborted', true);
+                break;
+              case 'COMPLETED':
+                self.set('sourceRequestScheduleRunning', false);
+                self.set('sourceRequestScheduleAborted', false);
+                break;
+              case 'SCHEDULED':
+                self.set('sourceRequestScheduleRunning', true);
+                self.set('sourceRequestScheduleAborted', false);
+                break;
+              }
+            } else {
+              self.set('sourceRequestScheduleRunning', false);
+              self.set('sourceRequestScheduleAborted', false);
+            }
+          }, function(xhr, textStatus, error, opt) {
+            console.log("Error getting request schedule information: ", textStatus, error, opt);
+            self.set('sourceRequestScheduleRunning', false);
+            self.set('sourceRequestScheduleAborted', false);
+          });
+        }.observes('sourceRequestScheduleId'),
+
+        /**
+         * Attempts to abort the current request schedule
+         */
+        doAbortRequestSchedule: function(event){
+          var self = this;
+          var id = event.context;
+          console.log("Aborting request schedule: ", id);
+          batchUtils.doAbortRequestSchedule(id, function(){
+            self.refreshRequestScheduleInfo();
+          });
+        },
+
+        requestScheduleAbortLabel : function() {
+          var label = Em.I18n.t("common.abort");
+          var command = this.get('sourceRequestScheduleCommand');
+          if (command != null && "ROLLING-RESTART" == command) {
+            label = Em.I18n.t("hostPopup.bgop.abort.rollingRestart");
+          }
+          return label;
+        }.property('sourceRequestScheduleCommand'),
 
         /**
          * Onclick handler for selected Host
