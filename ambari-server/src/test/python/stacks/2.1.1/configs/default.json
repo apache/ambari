@@ -21,7 +21,7 @@
     "role": "OOZIE_SERVICE_CHECK", 
     "commandParams": {
         "command_timeout": "300", 
-        "service_metadata_folder": "OOZIE", 
+        "service_package_folder": "OOZIE",
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/service_check.py",

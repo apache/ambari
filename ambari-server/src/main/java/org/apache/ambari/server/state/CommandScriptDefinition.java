@@ -19,6 +19,9 @@
 package org.apache.ambari.server.state;
 
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
@@ -60,4 +63,30 @@ public class CommandScriptDefinition {
     PUPPET // TODO: Not supported yet. Do we really need it?
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (obj == this) {
+      return true;
+    }
+    if (! (obj instanceof CommandScriptDefinition)) {
+      return false;
+    }
+
+    CommandScriptDefinition rhs = (CommandScriptDefinition) obj;
+    return new EqualsBuilder().
+            append(script, rhs.script).
+            append(scriptType, rhs.scriptType).
+            append(timeout, rhs.timeout).isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 31).
+            append(script).
+            append(scriptType).
+            append(timeout).toHashCode();
+  }
 }

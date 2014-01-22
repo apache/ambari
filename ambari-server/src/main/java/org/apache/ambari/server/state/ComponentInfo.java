@@ -63,6 +63,23 @@ public class ComponentInfo {
   @XmlElement(name="auto-deploy")
   private AutoDeployInfo m_autoDeploy;
 
+  public ComponentInfo() {
+  }
+
+  /**
+   * Copy constructor.
+   */
+  public ComponentInfo(ComponentInfo prototype) {
+    name = prototype.name;
+    category = prototype.category;
+    deleted = prototype.deleted;
+    cardinality = prototype.cardinality;
+    commandScript = prototype.commandScript;
+    customCommands = prototype.customCommands;
+    dependencies = prototype.dependencies;
+    m_autoDeploy = prototype.m_autoDeploy;
+  }
+
   public String getName() {
     return name;
   }
@@ -103,11 +120,19 @@ public class ComponentInfo {
     return commandScript;
   }
 
+  public void setCommandScript(CommandScriptDefinition commandScript) {
+    this.commandScript = commandScript;
+  }
+
   public List<CustomCommandDefinition> getCustomCommands() {
     if (customCommands == null) {
       customCommands = new ArrayList<CustomCommandDefinition>();
     }
     return customCommands;
+  }
+
+  public void setCustomCommands(List<CustomCommandDefinition> customCommands) {
+    this.customCommands = customCommands;
   }
 
   public boolean isCustomCommand(String commandName) {

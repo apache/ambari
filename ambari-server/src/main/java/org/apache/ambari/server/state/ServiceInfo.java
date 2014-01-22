@@ -95,12 +95,13 @@ public class ServiceInfo {
 
 
   /**
-   * Directory, that contains service metadata. Since schema ver 2,
+   * Meaning: stores subpath from stack root to exact directory, that contains
+   * service scripts and templates. Since schema ver 2,
    * we may have multiple service metadata inside folder.
    * Added at schema ver 2
    */
   @XmlTransient
-  private String serviceMetadataFolder;
+  private String servicePackageFolder;
 
   public boolean isDeleted() {
     return isDeleted;
@@ -286,12 +287,12 @@ public class ServiceInfo {
   }
 
 
-  public String getServiceMetadataFolder() {
-    return serviceMetadataFolder;
+  public String getServicePackageFolder() {
+    return servicePackageFolder;
   }
 
-  public void setServiceMetadataFolder(String serviceMetadataFolder) {
-    this.serviceMetadataFolder = serviceMetadataFolder;
+  public void setServicePackageFolder(String servicePackageFolder) {
+    this.servicePackageFolder = servicePackageFolder;
   }
 
   /**
@@ -316,6 +317,10 @@ public class ServiceInfo {
     return serviceOsSpecificsMap;
   }
 
+  public void setOsSpecifics(Map<String, ServiceOsSpecific> serviceOsSpecificsMap) {
+    this.serviceOsSpecificsMap = serviceOsSpecificsMap;
+  }
+
   public List<CustomCommandDefinition> getCustomCommands() {
     if (customCommands == null) {
       customCommands = new ArrayList<CustomCommandDefinition>();
@@ -323,8 +328,16 @@ public class ServiceInfo {
     return customCommands;
   }
 
+  public void setCustomCommands(List<CustomCommandDefinition> customCommands) {
+    this.customCommands = customCommands;
+  }
+
   public CommandScriptDefinition getCommandScript() {
     return commandScript;
+  }
+
+  public void setCommandScript(CommandScriptDefinition commandScript) {
+    this.commandScript = commandScript;
   }
 
   /**

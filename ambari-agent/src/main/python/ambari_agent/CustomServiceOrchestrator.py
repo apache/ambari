@@ -98,12 +98,9 @@ class CustomServiceOrchestrator():
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
           command_name = command['hostLevelParams']['custom_command']
-        stack_name = command['hostLevelParams']['stack_name']
-        stack_version = command['hostLevelParams']['stack_version']
-        hook_dir = self.file_cache.get_hook_base_dir(stack_name, stack_version)
-        metadata_folder = command['commandParams']['service_metadata_folder']
-        base_dir = self.file_cache.get_service_base_dir(
-          stack_name, stack_version, metadata_folder, component_name)
+        hook_dir = self.file_cache.get_hook_base_dir(command)
+        service_subpath = command['commandParams']['service_package_folder']
+        base_dir = self.file_cache.get_service_base_dir(service_subpath)
         script_path = self.resolve_script_path(base_dir, script, script_type)
         script_tuple = (script_path, base_dir)
 

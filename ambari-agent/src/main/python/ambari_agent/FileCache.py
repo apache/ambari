@@ -42,32 +42,30 @@ class FileCache():
     self.cache_dir = config.get('agent', 'cache_dir')
 
 
-  def get_service_base_dir(self, stack_name, stack_version, service, component):
+  def get_service_base_dir(self, service_subpath):
     """
     Returns a base directory for service
     """
-    metadata_path = os.path.join(self.cache_dir, "stacks", str(stack_name),
-                                 str(stack_version), "services", str(service),
-                                 "package")
-    if not os.path.isdir(metadata_path):
+    service_base_dir = os.path.join(self.cache_dir, "stacks", service_subpath)
+    if not os.path.isdir(service_base_dir):
       # TODO: Metadata downloading will be implemented at Phase 2
       # As of now, all stack definitions are packaged and distributed with
       # agent rpm
-      message = "Metadata dir for not found for a service " \
-                "(stackName = {0}, stackVersion = {1}, " \
-                "service = {2}, " \
-                "component = {3}".format(stack_name, stack_version,
-                                                 service, component)
+      message = "Service base dir not found at expected location {0}".\
+        format(service_base_dir)
       raise AgentException(message)
-    return metadata_path
+    return service_base_dir
 
 
-  def get_hook_base_dir(self, stack_name, stack_version):
+  def get_hook_base_dir(self, command):
     """
-    Returns a base directory for service
+    Returns a base directory for hooks
     """
-    hook_base_path = os.path.join(self.cache_dir, "stacks", str(stack_name),
-                                 str(stack_version), "hooks")
+    try:
+      hooks_subpath = command['commandParams']['hooks_folder']
+    except KeyError:
+      return None
+    hook_base_path = os.path.join(self.cache_dir, "stacks", hooks_subpath)
     if not os.path.isdir(hook_base_path):
       # TODO: Metadata downloading will be implemented at Phase 2
       # As of now, all stack definitions are packaged and distributed with

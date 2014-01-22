@@ -22,7 +22,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +84,8 @@ public class StackExtensionHelperTest {
         assertEquals("hive-site", configDependencies.get(1));
       } else if (serviceInfo.getName().equals("HBASE")) {
         assertEquals("HBASE", serviceInfo.getName());
-        assertEquals("HBASE", serviceInfo.getServiceMetadataFolder());
+        assertEquals("HDP/2.0.7/services/HBASE/package",
+                serviceInfo.getServicePackageFolder());
         assertEquals("2.0", serviceInfo.getSchemaVersion());
         assertTrue(serviceInfo.getComment().startsWith("Non-relational distr"));
         assertEquals("0.96.0.2.0.6.0", serviceInfo.getVersion());

@@ -58,15 +58,14 @@ class TestFileCache(TestCase):
     fileCache = FileCache(self.config)
     # Check existing dir case
     isdir_mock.return_value = True
-    base = fileCache.get_service_base_dir("HDP", "2.0.7",
-                                          "HBASE", "REGION_SERVER")
-    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.0.7/"
-                           "services/HBASE/package")
+    service_subpath = "HDP/2.1.1/services/ZOOKEEPER/package"
+    base = fileCache.get_service_base_dir(service_subpath)
+    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.1.1/"
+                           "services/ZOOKEEPER/package")
     # Check absent dir case
     isdir_mock.return_value = False
     try:
-      fileCache.get_service_base_dir("HDP", "2.0.7",
-                                          "HBASE", "REGION_SERVER")
+      fileCache.get_service_base_dir(service_subpath)
       self.fail("Should throw an exception")
     except AgentException:
       pass # Expected
@@ -77,14 +76,28 @@ class TestFileCache(TestCase):
   @patch("os.path.isdir")
   def test_get_hook_base_dir(self, isdir_mock):
     fileCache = FileCache(self.config)
+    # Check missing parameter
+    command = {
+      'commandParams' : {
+      }
+    }
+    base = fileCache.get_hook_base_dir(command)
+    self.assertEqual(base, None)
+
     # Check existing dir case
     isdir_mock.return_value = True
-    base = fileCache.get_hook_base_dir("HDP", "2.0.7")
-    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.0.7/hooks")
+    command = {
+      'commandParams' : {
+        'hooks_folder' : 'HDP/2.1.1/hooks'
+      }
+    }
+    base = fileCache.get_hook_base_dir(command)
+    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.1.1/hooks")
+
     # Check absent dir case
     isdir_mock.return_value = False
     try:
-      fileCache.get_hook_base_dir("HDP", "2.0.7")
+      fileCache.get_hook_base_dir(command)
       self.fail("Should throw an exception")
     except AgentException:
       pass # Expected

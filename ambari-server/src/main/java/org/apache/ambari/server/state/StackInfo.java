@@ -23,7 +23,7 @@ import java.util.List;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 
-public class StackInfo {
+public class StackInfo implements Comparable<StackInfo>{
   private String name;
   private String version;
   private String minUpgradeVersion;
@@ -32,6 +32,12 @@ public class StackInfo {
   private List<RepositoryInfo> repositories;
   private List<ServiceInfo> services;
   private String parentStackVersion;
+
+  /**
+   * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
+   * applied to all commands for services in current stack.
+   */
+  private String stackHooksFolder;
 
   public String getName() {
     return name;
@@ -144,5 +150,20 @@ public class StackInfo {
 
   public void setRcoFileLocation(String rcoFileLocation) {
     this.rcoFileLocation = rcoFileLocation;
+  }
+
+  public String getStackHooksFolder() {
+    return stackHooksFolder;
+  }
+
+  public void setStackHooksFolder(String stackHooksFolder) {
+    this.stackHooksFolder = stackHooksFolder;
+  }
+
+  @Override
+  public int compareTo(StackInfo o) {
+    String myId = name + "-" + version;
+    String oId = o.name + "-" + o.version;
+    return myId.compareTo(oId);
   }
 }

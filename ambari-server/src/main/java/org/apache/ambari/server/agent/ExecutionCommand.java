@@ -239,7 +239,8 @@ public class ExecutionCommand extends AgentCommand {
     String COMMAND_TIMEOUT = "command_timeout";
     String SCRIPT = "script";
     String SCRIPT_TYPE = "script_type";
-    String SERVICE_METADATA_FOLDER = "service_metadata_folder";
+    String SERVICE_PACKAGE_FOLDER = "service_package_folder";
+    String HOOKS_FOLDER = "hooks_folder";
     String STACK_NAME = "stack_name";
     String STACK_VERSION = "stack_version";
     String SERVICE_REPO_INFO = "service_repo_info";

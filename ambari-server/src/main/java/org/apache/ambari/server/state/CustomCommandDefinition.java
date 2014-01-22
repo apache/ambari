@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.state;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import javax.xml.bind.annotation.*;
 
 /**
@@ -36,4 +39,28 @@ public class CustomCommandDefinition {
     return commandScript;
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (obj == this) {
+      return true;
+    }
+    if (! (obj instanceof CustomCommandDefinition)) {
+      return false;
+    }
+
+    CustomCommandDefinition rhs = (CustomCommandDefinition) obj;
+    return new EqualsBuilder().
+            append(name, rhs.name).
+            append(commandScript, rhs.commandScript).isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 31).
+            append(name).
+            append(commandScript).toHashCode();
+  }
 }

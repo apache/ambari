@@ -198,6 +198,8 @@ public class HeartbeatMonitor implements Runnable {
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
             stackId.getStackName(), stackId.getStackVersion(),
             serviceName, componentName);
+    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+            stackId.getStackVersion());
 
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
 
@@ -260,8 +262,9 @@ public class HeartbeatMonitor implements Runnable {
       }
     }
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-    commandParams.put(SERVICE_METADATA_FOLDER,
-       serviceInfo.getServiceMetadataFolder());
+    commandParams.put(SERVICE_PACKAGE_FOLDER,
+       serviceInfo.getServicePackageFolder());
+    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
     // Fill host level params
     Map<String, String> hostLevelParams = statusCmd.getHostLevelParams();
     hostLevelParams.put(STACK_NAME, stackId.getStackName());

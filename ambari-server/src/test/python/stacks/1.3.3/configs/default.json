@@ -25,7 +25,7 @@
     "role": "DATANODE", 
     "commandParams": {
         "command_timeout": "600", 
-        "service_metadata_folder": "HDFS", 
+        "service_package_folder": "HDFS",
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/datanode.py",

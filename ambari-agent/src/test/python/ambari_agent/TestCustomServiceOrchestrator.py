@@ -149,7 +149,7 @@ class TestCustomServiceOrchestrator(TestCase):
         'script_type': 'PYTHON',
         'script': 'scripts/hbase_regionserver.py',
         'command_timeout': '600',
-        'service_metadata_folder' : 'HBASE'
+        'service_package_folder' : 'HBASE'
       },
       'taskId' : '3',
       'roleCommand': 'INSTALL'

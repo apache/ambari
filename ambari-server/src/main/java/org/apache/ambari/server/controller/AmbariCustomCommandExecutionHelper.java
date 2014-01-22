@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -64,6 +65,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
@@ -75,7 +77,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_METADATA_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
@@ -221,6 +223,8 @@ public class AmbariCustomCommandExecutionHelper {
     ServiceInfo serviceInfo =
         ambariMetaInfo.getServiceInfo(stackId.getStackName(),
             stackId.getStackVersion(), serviceName);
+    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+            stackId.getStackVersion());
 
     long nowTimestamp = System.currentTimeMillis();
 
@@ -281,8 +285,9 @@ public class AmbariCustomCommandExecutionHelper {
       }
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
 
-      commandParams.put(SERVICE_METADATA_FOLDER,
-          serviceInfo.getServiceMetadataFolder());
+      commandParams.put(SERVICE_PACKAGE_FOLDER,
+          serviceInfo.getServicePackageFolder());
+      commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
       execCmd.setCommandParams(commandParams);
     }
@@ -360,6 +365,8 @@ public class AmbariCustomCommandExecutionHelper {
     ServiceInfo serviceInfo =
         ambariMetaInfo.getServiceInfo(stackId.getStackName(),
             stackId.getStackVersion(), serviceName);
+    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+            stackId.getStackVersion());
 
 
     stage.addHostRoleExecutionCommand(hostname,
@@ -414,8 +421,9 @@ public class AmbariCustomCommandExecutionHelper {
     }
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
 
-    commandParams.put(SERVICE_METADATA_FOLDER,
-        serviceInfo.getServiceMetadataFolder());
+    commandParams.put(SERVICE_PACKAGE_FOLDER,
+        serviceInfo.getServicePackageFolder());
+    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     execCmd.setCommandParams(commandParams);
 
@@ -570,6 +578,8 @@ public class AmbariCustomCommandExecutionHelper {
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
         stackId.getStackName(), stackId.getStackVersion(),
         serviceName, componentName);
+    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
+            stackId.getStackVersion());
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
         scHost.getServiceComponentName()).getExecutionCommand();
@@ -612,8 +622,9 @@ public class AmbariCustomCommandExecutionHelper {
       }
     }
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-    commandParams.put(SERVICE_METADATA_FOLDER,
-        serviceInfo.getServiceMetadataFolder());
+    commandParams.put(SERVICE_PACKAGE_FOLDER,
+        serviceInfo.getServicePackageFolder());
+    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
     execCmd.setCommandParams(commandParams);
 

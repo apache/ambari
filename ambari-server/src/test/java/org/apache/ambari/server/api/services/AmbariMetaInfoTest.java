@@ -27,6 +27,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -1058,4 +1059,194 @@ public class AmbariMetaInfoTest {
       }
     }
   }
+
+
+  @Test
+  public void testHooksDirInheritance() throws Exception {
+    // Test hook dir determination in parent
+    StackInfo stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, "2.0.6");
+    Assert.assertEquals("HDP/2.0.6/hooks", stackInfo.getStackHooksFolder());
+    // Test hook dir inheritance
+    stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, "2.0.7");
+    Assert.assertEquals("HDP/2.0.6/hooks", stackInfo.getStackHooksFolder());
+    // Test hook dir override
+    stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, "2.0.8");
+    Assert.assertEquals("HDP/2.0.8/hooks", stackInfo.getStackHooksFolder());
+  }
+
+
+  @Test
+  public void testServicePackageDirInheritance() throws Exception {
+    // Test service package dir determination in parent
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HBASE");
+    Assert.assertEquals("HDP/2.0.7/services/HBASE/package",
+            service.getServicePackageFolder());
+
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HDFS");
+    Assert.assertEquals("HDP/2.0.7/services/HDFS/package",
+            service.getServicePackageFolder());
+    // Test service package dir inheritance
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HBASE");
+    Assert.assertEquals("HDP/2.0.7/services/HBASE/package",
+            service.getServicePackageFolder());
+    // Test service package dir override
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+    Assert.assertEquals("HDP/2.0.8/services/HDFS/package",
+            service.getServicePackageFolder());
+  }
+
+
+  @Test
+  public void testServiceCommandScriptInheritance() throws Exception {
+    // Test command script determination in parent
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HDFS");
+    Assert.assertEquals("scripts/service_check_1.py",
+            service.getCommandScript().getScript());
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HBASE");
+    Assert.assertEquals("scripts/service_check.py",
+            service.getCommandScript().getScript());
+    // Test command script inheritance
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HBASE");
+    Assert.assertEquals("scripts/service_check.py",
+            service.getCommandScript().getScript());
+    // Test command script override
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+    Assert.assertEquals("scripts/service_check_2.py",
+            service.getCommandScript().getScript());
+  }
+
+    @Test
+  public void testComponentCommandScriptInheritance() throws Exception {
+    // Test command script determination in parent
+    ComponentInfo component = metaInfo.getComponent(STACK_NAME_HDP,
+            "2.0.7", "HDFS", "HDFS_CLIENT");
+    Assert.assertEquals("scripts/hdfs_client.py",
+            component.getCommandScript().getScript());
+    component = metaInfo.getComponent(STACK_NAME_HDP,
+            "2.0.7", "HBASE", "HBASE_MASTER");
+    Assert.assertEquals("scripts/hbase_master.py",
+            component.getCommandScript().getScript());
+    // Test command script inheritance
+    component = metaInfo.getComponent(STACK_NAME_HDP,
+            "2.0.8", "HBASE", "HBASE_MASTER");
+    Assert.assertEquals("scripts/hbase_master.py",
+            component.getCommandScript().getScript());
+    // Test command script override
+    component = metaInfo.getComponent(STACK_NAME_HDP,
+            "2.0.8", "HDFS", "HDFS_CLIENT");
+    Assert.assertEquals("scripts/hdfs_client_overridden.py",
+            component.getCommandScript().getScript());
+  }
+
+
+  @Test
+  public void testServiceCustomCommandScriptInheritance() throws Exception {
+    // Test custom command script determination in parent
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HDFS");
+
+    CustomCommandDefinition ccd = findCustomCommand("RESTART", service);
+    Assert.assertEquals("scripts/restart_parent.py",
+            ccd.getCommandScript().getScript());
+
+    ccd = findCustomCommand("YET_ANOTHER_PARENT_SRV_COMMAND", service);
+    Assert.assertEquals("scripts/yet_another_parent_srv_command.py",
+            ccd.getCommandScript().getScript());
+
+    Assert.assertEquals(2, service.getCustomCommands().size());
+
+    // Test custom command script inheritance
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+    Assert.assertEquals(3, service.getCustomCommands().size());
+
+    ccd = findCustomCommand("YET_ANOTHER_PARENT_SRV_COMMAND", service);
+    Assert.assertEquals("scripts/yet_another_parent_srv_command.py",
+            ccd.getCommandScript().getScript());
+
+    // Test custom command script override
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+
+    ccd = findCustomCommand("RESTART", service);
+    Assert.assertEquals("scripts/restart_child.py",
+            ccd.getCommandScript().getScript());
+
+    ccd = findCustomCommand("YET_ANOTHER_CHILD_SRV_COMMAND", service);
+    Assert.assertEquals("scripts/yet_another_child_srv_command.py",
+            ccd.getCommandScript().getScript());
+  }
+
+
+  @Test
+  public void testChildCustomCommandScriptInheritance() throws Exception {
+    // Test custom command script determination in parent
+    ComponentInfo component = metaInfo.getComponent(STACK_NAME_HDP, "2.0.7",
+            "HDFS", "NAMENODE");
+
+    CustomCommandDefinition ccd = findCustomCommand("DECOMMISSION", component);
+    Assert.assertEquals("scripts/namenode_dec.py",
+            ccd.getCommandScript().getScript());
+
+    ccd = findCustomCommand("YET_ANOTHER_PARENT_COMMAND", component);
+    Assert.assertEquals("scripts/yet_another_parent_command.py",
+            ccd.getCommandScript().getScript());
+
+    Assert.assertEquals(2, component.getCustomCommands().size());
+
+    // Test custom command script inheritance
+    component = metaInfo.getComponent(STACK_NAME_HDP, "2.0.8",
+            "HDFS", "NAMENODE");
+    Assert.assertEquals(3, component.getCustomCommands().size());
+
+    ccd = findCustomCommand("YET_ANOTHER_PARENT_COMMAND", component);
+    Assert.assertEquals("scripts/yet_another_parent_command.py",
+            ccd.getCommandScript().getScript());
+
+    // Test custom command script override
+    ccd = findCustomCommand("DECOMMISSION", component);
+    Assert.assertEquals("scripts/namenode_dec_overr.py",
+            ccd.getCommandScript().getScript());
+
+    ccd = findCustomCommand("YET_ANOTHER_CHILD_COMMAND", component);
+    Assert.assertEquals("scripts/yet_another_child_command.py",
+            ccd.getCommandScript().getScript());
+  }
+
+
+  @Test
+  public void testServiceOsSpecificsInheritance() throws Exception {
+    // Test command script determination in parent
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HDFS");
+    Assert.assertEquals("parent-package-def",
+            service.getOsSpecifics().get("any").getPackages().get(0).getName());
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HBASE");
+    Assert.assertEquals(2, service.getOsSpecifics().keySet().size());
+    // Test command script inheritance
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HBASE");
+    Assert.assertEquals(2, service.getOsSpecifics().keySet().size());
+    // Test command script override
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+    Assert.assertEquals("child-package-def",
+            service.getOsSpecifics().get("any").getPackages().get(0).getName());
+  }
+
+
+  private CustomCommandDefinition findCustomCommand(String ccName,
+                                                    ServiceInfo service) {
+    for (CustomCommandDefinition ccd: service.getCustomCommands()) {
+      if (ccd.getName().equals(ccName)) {
+        return ccd;
+      }
+    }
+    return null;
+  }
+
+  private CustomCommandDefinition findCustomCommand(String ccName,
+                                                    ComponentInfo component) {
+    for (CustomCommandDefinition ccd: component.getCustomCommands()) {
+      if (ccd.getName().equals(ccName)) {
+        return ccd;
+      }
+    }
+    return null;
+  }
+
 }

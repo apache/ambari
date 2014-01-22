@@ -26,7 +26,7 @@
     "role": "YARN_CLIENT", 
     "commandParams": {
         "command_timeout": "600", 
-        "service_metadata_folder": "YARN", 
+        "service_package_folder": "YARN",
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/yarn_client.py",

@@ -50,6 +50,14 @@ import org.xml.sax.SAXException;
 /**
  * Helper methods for providing stack extension behavior -
  * Apache Jira: AMBARI-2819
+ *
+ * Stack extension processing is done in two steps. At first step, we parse
+ * all information for every stack from stack files. At second step, we
+ * go through parent and perform inheritance where needed. At both steps,
+ * stacks are processed at random order, that's why extension implementation
+ * for any new stack/service/component property should also consist of two
+ * separate steps (otherwise child may happen to be processed before parent's
+ * properties are populated).
  */
 public class StackExtensionHelper {
   private File stackRoot;
@@ -58,6 +66,8 @@ public class StackExtensionHelper {
   private final Map<String, StackInfo> stackVersionMap = new HashMap<String,
     StackInfo>();
   private Map<String, List<StackInfo>> stackParentsMap = null;
+  public final static String HOOKS_FOLDER_NAME = "hooks";
+  private static final String PACKAGE_FOLDER_NAME = "package";
 
   private static final Map<Class<?>, JAXBContext> _jaxbContexts =
       new HashMap<Class<?>, JAXBContext> ();
@@ -111,39 +121,50 @@ public class StackExtensionHelper {
 
   private ServiceInfo mergeServices(ServiceInfo parentService,
                                     ServiceInfo childService) {
-    // TODO: Allow extending stack with custom services
     ServiceInfo mergedServiceInfo = new ServiceInfo();
     mergedServiceInfo.setName(childService.getName());
     mergedServiceInfo.setComment(childService.getComment());
     mergedServiceInfo.setUser(childService.getUser());
     mergedServiceInfo.setVersion(childService.getVersion());
     mergedServiceInfo.setConfigDependencies(childService.getConfigDependencies());
+
+    Map<String, ServiceOsSpecific> osSpecific = childService.getOsSpecifics();
+    if (! osSpecific.isEmpty()) {
+      mergedServiceInfo.setOsSpecifics(childService.getOsSpecifics());
+    } else {
+      mergedServiceInfo.setOsSpecifics(parentService.getOsSpecifics());
+    }
+
+    CommandScriptDefinition commandScript = childService.getCommandScript();
+    if (commandScript != null) {
+       mergedServiceInfo.setCommandScript(childService.getCommandScript());
+    } else {
+      mergedServiceInfo.setCommandScript(parentService.getCommandScript());
+    }
+
+    String servicePackageFolder = childService.getServicePackageFolder();
+    if (servicePackageFolder != null) {
+      mergedServiceInfo.setServicePackageFolder(servicePackageFolder);
+    } else {
+      mergedServiceInfo.setServicePackageFolder(
+              parentService.getServicePackageFolder());
+    }
+
+    // Merge custom command definitions for service
+    List<CustomCommandDefinition> mergedCustomCommands =
+            mergeCustomCommandLists(parentService.getCustomCommands(),
+                    childService.getCustomCommands());
+    mergedServiceInfo.setCustomCommands(mergedCustomCommands);
     
     // metrics
     if (null == childService.getMetricsFile() && null != parentService.getMetricsFile())
       mergedServiceInfo.setMetricsFile(parentService.getMetricsFile());
-    
-    // Add all child components to service
+
+    populateComponents(mergedServiceInfo, parentService, childService);
+
+    // Add child properties not deleted
     List<String> deleteList = new ArrayList<String>();
     List<String> appendList = new ArrayList<String>();
-    for (ComponentInfo childComponentInfo : childService.getComponents()) {
-      if (!childComponentInfo.isDeleted()) {
-        mergedServiceInfo.getComponents().add(childComponentInfo);
-        appendList.add(childComponentInfo.getName());
-      } else {
-        deleteList.add(childComponentInfo.getName());
-      }
-    }
-    // Add remaining parent components
-    for (ComponentInfo parentComponent : parentService.getComponents()) {
-      if (!deleteList.contains(parentComponent.getName()) && !appendList
-          .contains(parentComponent.getName())) {
-        mergedServiceInfo.getComponents().add(parentComponent);
-      }
-    }
-    // Add child properties not deleted
-    deleteList = new ArrayList<String>();
-    appendList = new ArrayList<String>();
     for (PropertyInfo propertyInfo : childService.getProperties()) {
       if (!propertyInfo.isDeleted()) {
         mergedServiceInfo.getProperties().add(propertyInfo);
@@ -170,7 +191,92 @@ public class StackExtensionHelper {
     }
     return mergedServiceInfo;
   }
-  
+
+
+  /**
+   * Merges component sets of parentService and childService and writes result
+   * to mergedServiceInfo
+   */
+  private void populateComponents(ServiceInfo mergedServiceInfo, ServiceInfo parentService,
+                                  ServiceInfo childService) {
+    // Add all child components to service
+    List<String> deleteList = new ArrayList<String>();
+    List<String> appendList = new ArrayList<String>();
+
+    for (ComponentInfo childComponent : childService.getComponents()) {
+      if (!childComponent.isDeleted()) {
+        ComponentInfo parentComponent = getComponent(parentService,
+                childComponent.getName());
+        if (parentComponent != null) { // If parent has similar component
+          ComponentInfo mergedComponent = mergeComponents(parentComponent,
+                  childComponent);
+          mergedServiceInfo.getComponents().add(mergedComponent);
+          appendList.add(mergedComponent.getName());
+        } else {
+          mergedServiceInfo.getComponents().add(childComponent);
+          appendList.add(childComponent.getName());
+        }
+      } else {
+        deleteList.add(childComponent.getName());
+      }
+    }
+    // Add remaining parent components
+    for (ComponentInfo parentComponent : parentService.getComponents()) {
+      if (!deleteList.contains(parentComponent.getName()) && !appendList
+              .contains(parentComponent.getName())) {
+        mergedServiceInfo.getComponents().add(parentComponent);
+      }
+    }
+  }
+
+
+  private ComponentInfo getComponent(ServiceInfo service, String componentName) {
+    for (ComponentInfo component : service.getComponents()) {
+      if (component.getName().equals(componentName)) {
+        return component;
+      }
+    }
+    return null;
+  }
+
+
+  private ComponentInfo mergeComponents(ComponentInfo parent, ComponentInfo child) {
+    ComponentInfo result = new ComponentInfo(child); // cloning child
+    CommandScriptDefinition commandScript = child.getCommandScript();
+    if (commandScript != null) {
+      result.setCommandScript(child.getCommandScript());
+    } else {
+      result.setCommandScript(parent.getCommandScript());
+    }
+
+    // Merge custom command definitions for service
+    List<CustomCommandDefinition> mergedCustomCommands =
+            mergeCustomCommandLists(parent.getCustomCommands(),
+                    child.getCustomCommands());
+    result.setCustomCommands(mergedCustomCommands);
+
+    return result;
+  }
+
+
+  private List<CustomCommandDefinition> mergeCustomCommandLists(
+          List<CustomCommandDefinition> parentList,
+          List<CustomCommandDefinition> childList) {
+    List<CustomCommandDefinition> mergedList =
+            new ArrayList<CustomCommandDefinition>(childList);
+    List<String> existingNames = new ArrayList<String>();
+    for (CustomCommandDefinition childCCD : childList) {
+      existingNames.add(childCCD.getName());
+    }
+    for (CustomCommandDefinition parentsCCD : parentList) {
+      if (! existingNames.contains(parentsCCD.getName())) {
+        mergedList.add(parentsCCD);
+        existingNames.add(parentsCCD.getName());
+      }
+    }
+    return mergedList;
+  }
+
 
   public List<ServiceInfo> getAllApplicableServices(StackInfo stackInfo) {
     LinkedList<StackInfo> parents = (LinkedList<StackInfo>)
@@ -208,6 +314,37 @@ public class StackExtensionHelper {
     return new ArrayList<ServiceInfo>(serviceInfoMap.values());
   }
 
+
+  /**
+   * Determines exact hooks folder (subpath from stackRoot to hooks directory)
+   * to use for a given stack. If given stack
+   * has not hooks folder, inheritance hierarhy is queried.
+   * @param stackInfo stack to work with
+   */
+  public String resolveHooksFolder(StackInfo stackInfo) throws AmbariException {
+    // Determine hooks folder for stack
+    String stackId = String.format("%s-%s",
+            stackInfo.getName(), stackInfo.getVersion());
+    String hooksFolder = stackInfo.getStackHooksFolder();
+    if (hooksFolder == null) {
+      // Try to get parent's
+      List<StackInfo> parents = getParents(stackInfo);
+      for (StackInfo parent : parents) {
+        hooksFolder = parent.getStackHooksFolder();
+        if (hooksFolder != null) {
+          break;
+        }
+      }
+    }
+    if (hooksFolder == null) {
+      String message = String.format(
+              "Can not determine hooks dir for stack %s",
+              stackId);
+      LOG.debug(message);
+    }
+    return hooksFolder;
+  }
+
   void populateServicesForStack(StackInfo stackInfo) throws
           ParserConfigurationException, SAXException,
           XPathExpressionException, IOException, JAXBException {
@@ -218,7 +355,6 @@ public class StackExtensionHelper {
     if (!servicesFolder.exists()) {
       LOG.info("No services defined for stack: " + stackInfo.getName() +
       "-" + stackInfo.getVersion());
-
     } else {
       try {
         File[] servicesFolders = servicesFolder.listFiles(AmbariMetaInfo
@@ -267,9 +403,14 @@ public class StackExtensionHelper {
             List<ServiceInfo> serviceInfos = smiv2x.getServices();
             for (ServiceInfo serviceInfo : serviceInfos) {
               serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
-              serviceInfo.setServiceMetadataFolder(serviceFolder.getName());
-              // TODO: allow repository overriding when extending stack
 
+              // Find service package folder
+              String servicePackageDir = resolveServicePackageFolder(
+                      stackRoot.getAbsolutePath(), stackInfo,
+                      serviceFolder.getName(), serviceInfo.getName());
+              serviceInfo.setServicePackageFolder(servicePackageDir);
+
+              // process metrics.json
               if (metricsJson.exists())
                 serviceInfo.setMetricsFile(metricsJson);
 
@@ -290,8 +431,47 @@ public class StackExtensionHelper {
   }
 
 
+  /**
+   * Determines exact service directory that contains scripts and templates
+   * for service. If given stack has not this folder, inheritance hierarhy is
+   * queried.
+   */
+  String resolveServicePackageFolder(String stackRoot,
+                                     StackInfo stackInfo, String serviceFolderName,
+                                     String serviceName) throws AmbariException {
+    String stackId = String.format("%s-%s",
+            stackInfo.getName(), stackInfo.getVersion());
+    String expectedSubPath = stackInfo.getName() + File.separator +
+                    stackInfo.getVersion() + File.separator +
+                    AmbariMetaInfo.SERVICES_FOLDER_NAME +
+                    File.separator + serviceFolderName + File.separator +
+                    PACKAGE_FOLDER_NAME;
+    File packageDir = new File(stackRoot + File.separator + expectedSubPath);
+    String servicePackageFolder = null;
+    if (packageDir.isDirectory()) {
+      servicePackageFolder = expectedSubPath;
+      String message = String.format(
+              "Service package folder for service %s" +
+                      "for stack %s has been resolved to %s",
+              serviceName, stackId, servicePackageFolder);
+      LOG.debug(message);
+    } else {
+        String message = String.format(
+                "Service package folder %s for service %s " +
+                        "for stack %s does not exist.",
+                packageDir.getAbsolutePath(), serviceName, stackId);
+        LOG.debug(message);
+    }
+    return servicePackageFolder;
+  }
+
+
   public List<StackInfo> getAllAvailableStacks() {
     return new ArrayList<StackInfo>(stackVersionMap.values());
+  }
+
+  public List<StackInfo> getParents(StackInfo stackInfo) {
+    return stackParentsMap.get(stackInfo.getVersion());
   }
 
   private Map<String, List<StackInfo>> getParentStacksInOrder(
@@ -372,7 +552,22 @@ public class StackExtensionHelper {
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
-      String rcoFileLocation = stackVersionFolder.getAbsolutePath() + File.separator + AmbariMetaInfo.RCO_FILE_NAME;
+
+      // Populating hooks dir for stack
+      String hooksSubPath = stackInfo.getName() + File.separator +
+              stackInfo.getVersion() + File.separator + HOOKS_FOLDER_NAME;
+      String hooksAbsPath = stackVersionFolder.getAbsolutePath() +
+              File.separator + HOOKS_FOLDER_NAME;
+      if (new File(hooksAbsPath).exists()) {
+        stackInfo.setStackHooksFolder(hooksSubPath);
+      } else {
+        String message = String.format("Hooks folder %s does not exist",
+                hooksAbsPath);
+        LOG.debug(message);
+      }
+
+      String rcoFileLocation = stackVersionFolder.getAbsolutePath() +
+              File.separator + AmbariMetaInfo.RCO_FILE_NAME;
       if (new File(rcoFileLocation).exists())
         stackInfo.setRcoFileLocation(rcoFileLocation);
     }

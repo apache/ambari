@@ -25,7 +25,7 @@
     "role": "MYSQL_SERVER", 
     "commandParams": {
         "command_timeout": "600", 
-        "service_metadata_folder": "HIVE", 
+        "service_package_folder": "HIVE",
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/mysql_server.py",

@@ -93,7 +93,7 @@ public class AmbariMetaInfo {
     @Override
     public boolean accept(File dir, String s) {
       if (s.equals(".svn") || s.equals(".git") ||
-          s.equals(HOOKS_DIR)) // Hooks dir is not a service
+          s.equals(StackExtensionHelper.HOOKS_FOLDER_NAME)) // Hooks dir is not a service
       {
         return false;
       }
@@ -108,7 +108,6 @@ public class AmbariMetaInfo {
   private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
       "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
       "oraclelinux6", "suse11", "sles11", "ubuntu12");
-  private final static String HOOKS_DIR = "hooks";
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
   private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
@@ -657,15 +656,16 @@ public class AmbariMetaInfo {
   }
 
   private void getConfigurationInformation(File stackRoot) throws Exception {
+    String stackRootAbsPath = stackRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Loading stack information"
-        + ", stackRoot = " + stackRoot.getAbsolutePath());
+        + ", stackRoot = " + stackRootAbsPath);
     }
 
     if (!stackRoot.isDirectory() && !stackRoot.exists())
       throw new IOException("" + Configuration.METADETA_DIR_PATH
         + " should be a directory with stack"
-        + ", stackRoot = " + stackRoot.getAbsolutePath());
+        + ", stackRoot = " + stackRootAbsPath);
 
     StackExtensionHelper stackExtensionHelper = new StackExtensionHelper
       (stackRoot);
@@ -674,7 +674,7 @@ public class AmbariMetaInfo {
     List<StackInfo> stacks = stackExtensionHelper.getAllAvailableStacks();
     if (stacks.isEmpty()) {
       throw new AmbariException("Unable to find stack definitions under " +
-        "stackRoot = " + stackRoot.getAbsolutePath());
+        "stackRoot = " + stackRootAbsPath);
     }
 
     for (StackInfo stack : stacks) {
@@ -684,9 +684,11 @@ public class AmbariMetaInfo {
 
       stacksResult.add(stack);
 
+      String stackPath = stackRootAbsPath + File.separator +
+              stack.getName() + File.separator + stack.getVersion();
+
       // get repository data for current stack of techs
-      File repositoryFolder = new File(stackRoot.getAbsolutePath()
-        + File.separator + stack.getName() + File.separator + stack.getVersion()
+      File repositoryFolder = new File(stackPath
         + File.separator + REPOSITORY_FOLDER_NAME + File.separator
         + REPOSITORY_FILE_NAME);
 
@@ -707,12 +709,18 @@ public class AmbariMetaInfo {
           + ", repoFolder=" + repositoryFolder.getPath());
       }
 
+      // Populate services
       List<ServiceInfo> services = stackExtensionHelper
         .getAllApplicableServices(stack);
-
       stack.setServices(services);
+
+      // Resolve hooks folder
+      String stackHooksToUse = stackExtensionHelper.
+              resolveHooksFolder(stack);
+      stack.setStackHooksFolder(stackHooksToUse);
     }
   }
+
 
   public String getServerVersion() {
     return serverVersion;
