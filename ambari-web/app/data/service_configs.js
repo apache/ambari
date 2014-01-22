@@ -238,7 +238,7 @@ module.exports = [
     filename: 'storm-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Nimbus', displayName : 'Nimbus'}),
-      App.ServiceConfigCategory.create({ name: 'Supervisor', displayName : 'SuperVisor'}),
+      App.ServiceConfigCategory.create({ name: 'Supervisor', displayName : 'Supervisor'}),
       App.ServiceConfigCategory.create({ name: 'StormUIServer', displayName : 'Storm UI Server'}),
       App.ServiceConfigCategory.create({ name: 'DRPCServer', displayName : 'DRPC Server'}),
       App.ServiceConfigCategory.create({ name: 'LogviewerServer', displayName : 'Logviewer Server'}),

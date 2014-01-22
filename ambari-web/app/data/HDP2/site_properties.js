@@ -947,7 +947,7 @@ module.exports =
     {
       "id": "site property",
       "name": "nimbus.host",
-      "displayName": "nimbus.host",
+      "displayName": "Nimbus Host",
       "description": "",
       "defaultValue": "",
       "displayType": "masterHost",

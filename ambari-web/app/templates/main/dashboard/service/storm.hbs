@@ -20,7 +20,7 @@
 <tr>
   <td>
     <a href="#" {{action filterHosts view.superVisorComponents.[0]}}>
-      {{pluralize view.superVisorComponents.length singular="t:dashboard.services.storm.supervisor" plural="t:dashboard.services.storm.supervisors"}}
+      {{t dashboard.services.storm.supervisors}}
     </a>
   </td>
   <td>
@@ -28,6 +28,6 @@
       {{#view view.superVisorsLiveTextView}}
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
-    </span> {{pluralize view.superVisorComponents.length singular="t:services.service.summary.SuperVisorLIVE" plural="t:services.service.summary.SuperVisorsLIVE"}}
+    </span> {{t services.service.summary.SupervisorsLIVE}}
   </td>
 </tr>

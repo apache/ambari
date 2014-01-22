@@ -298,7 +298,7 @@ module.exports = [
             isMaster: true
           }),
           Ember.Object.create({
-            display_name: 'SuperVisor',
+            display_name: 'Supervisor',
             component_name: 'SUPERVISOR',
             component_value: '',
             isMaster: false
