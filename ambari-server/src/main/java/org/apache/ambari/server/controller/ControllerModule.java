@@ -18,12 +18,19 @@
 
 package org.apache.ambari.server.controller;
 
-import java.security.SecureRandom;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
-import org.apache.ambari.server.actionmanager.*;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.name.Names;
+import com.google.inject.persist.jpa.JpaPersistModule;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -64,14 +71,24 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Scopes;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.name.Names;
-import com.google.inject.persist.jpa.JpaPersistModule;
+import java.security.SecureRandom;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.*;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
 /**
  * Used for injection purposes.
@@ -108,7 +125,6 @@ public class ControllerModule extends AbstractModule {
     bind(Clusters.class).to(ClustersImpl.class);
     bind(AmbariCustomCommandExecutionHelper.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
-    bind(CustomActionDBAccessor.class).to(CustomActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
 
     // This time is added to summary timeout time of all tasks in stage
@@ -141,13 +157,13 @@ public class ControllerModule extends AbstractModule {
 
     // custom jdbc properties
     Map<String, String> custom = configuration.getDatabaseCustomProperties();
-    
+
     if (0 != custom.size()) {
       for (Entry<String, String> entry : custom.entrySet()) {
         properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
-           entry.getValue());
+            entry.getValue());
       }
-    }    
+    }
 
     switch (persistenceType) {
       case IN_MEMORY:
@@ -202,16 +218,16 @@ public class ControllerModule extends AbstractModule {
         Host.class, HostImpl.class).build(HostFactory.class));
     install(new FactoryModuleBuilder().implement(
         Service.class, ServiceImpl.class).build(ServiceFactory.class));
-   
-    
+
+
     install(new FactoryModuleBuilder()
         .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("service"), ServiceResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("component"), ComponentResourceProvider.class)
-        .build(ResourceProviderFactory.class)); 
+        .build(ResourceProviderFactory.class));
 
-    
+
     install(new FactoryModuleBuilder().implement(
         ServiceComponent.class, ServiceComponentImpl.class).build(
         ServiceComponentFactory.class));
@@ -221,9 +237,9 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         Config.class, ConfigImpl.class).build(ConfigFactory.class));
     install(new FactoryModuleBuilder().implement(
-      ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
+        ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
     install(new FactoryModuleBuilder().implement(RequestExecution.class,
-      RequestExecutionImpl.class).build(RequestExecutionFactory.class));
+        RequestExecutionImpl.class).build(RequestExecutionFactory.class));
     install(new FactoryModuleBuilder().build(StageFactory.class));
     install(new FactoryModuleBuilder().build(RequestFactory.class));
 

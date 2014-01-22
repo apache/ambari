@@ -20,15 +20,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.ActionDefinition;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.ActionType;
-import org.apache.ambari.server.actionmanager.CustomActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ActionRequest;
 import org.apache.ambari.server.controller.ActionResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -40,6 +36,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.customactions.ActionDefinition;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -67,20 +64,11 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       .getPropertyId("Actions", "default_timeout");
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[]{ACTION_NAME_PROPERTY_ID}));
-  private Boolean enableExperimental = false;
 
   public ActionResourceProvider(Set<String> propertyIds,
                                 Map<Type, String> keyPropertyIds,
                                 AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
-  }
-
-  public Boolean getEnableExperimental() {
-    return enableExperimental;
-  }
-
-  public void setEnableExperimental(Boolean enabled) {
-    enableExperimental = enabled;
   }
 
   @Override
@@ -90,29 +78,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
-    if (!getEnableExperimental()) {
-      throw new UnsupportedOperationException("Not currently supported.");
-    }
+    throw new UnsupportedOperationException("Not currently supported.");
 
-    for (final Map<String, Object> properties : request.getProperties()) {
-      createResources(new Command<Void>() {
-        @Override
-        public Void invoke() throws AmbariException {
-          ActionRequest actionReq = getRequest(properties);
-          LOG.info("Received a create request for Action with"
-              + ", actionName = " + actionReq.getActionName()
-              + ", actionType = " + actionReq.getActionType()
-              + ", description = " + actionReq.getDescription()
-              + ", service = " + actionReq.getTargetService());
-
-          createActionDefinition(actionReq);
-          return null;
-        }
-      });
-    }
-    notifyCreate(Type.Action, request);
-
-    return getRequestStatus(null);
   }
 
   @Override
@@ -120,34 +87,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    if (!getEnableExperimental()) {
-      throw new UnsupportedOperationException("Not currently supported.");
-    }
+    throw new UnsupportedOperationException("Not currently supported.");
 
-    final Set<ActionRequest> requests = new HashSet<ActionRequest>();
-    RequestStatusResponse response;
-
-    for (Map<String, Object> requestPropertyMap : request.getProperties()) {
-      Set<Map<String, Object>> propertyMaps = getPropertyMaps(requestPropertyMap, predicate);
-      for (Map<String, Object> propertyMap : propertyMaps) {
-        ActionRequest actionReq = getRequest(propertyMap);
-        LOG.info("Received a update request for Action with"
-            + ", actionName = " + actionReq.getActionName()
-            + ", actionType = " + actionReq.getActionType()
-            + ", description = " + actionReq.getDescription()
-            + ", timeout = " + actionReq.getDefaultTimeout());
-
-        requests.add(actionReq);
-      }
-    }
-    response = modifyResources(new Command<RequestStatusResponse>() {
-      @Override
-      public RequestStatusResponse invoke() throws AmbariException {
-        return updateActionDefinitions(requests, request.getRequestInfoProperties());
-      }
-    });
-    notifyUpdate(Type.Action, request, predicate);
-    return getRequestStatus(response);
   }
 
   @Override
@@ -205,23 +146,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    if (!getEnableExperimental()) {
-      throw new UnsupportedOperationException("Not currently supported.");
-    }
-
-    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      final ActionRequest request = getRequest(propertyMap);
-      try {
-        LOG.info("Received a delete request for Action with"
-            + ", actionName = " + request.getActionName());
-
-        deleteActionDefinition(request);
-      } catch (AmbariException ex) {
-        throw new NoSuchResourceException(ex.getMessage());
-      }
-    }
-    notifyDelete(Type.Action, predicate);
-    return getRequestStatus(null);
+    throw new UnsupportedOperationException("Not currently supported.");
   }
 
   private ActionRequest getRequest(Map<String, Object> properties) {
@@ -247,28 +172,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
     return getManagementController().getActionManager();
   }
 
-  protected synchronized void createActionDefinition(ActionRequest request)
-      throws AmbariException {
-    if (request.getActionName() == null
-        || request.getActionName().isEmpty()) {
-      throw new IllegalArgumentException("Action name should be provided");
-    }
-
-    LOG.info("Received a createActionDefinition request = " + request.toString());
-    if (request.getTargetType() == null || request.getActionType() == null) {
-      throw new AmbariException("Both target_type and action_type must be specified.");
-    }
-    TargetHostType targetType = TargetHostType.valueOf(request.getTargetType());
-    ActionType actionType = ActionType.valueOf(request.getActionType());
-
-    Short defaultTimeout = CustomActionDBAccessorImpl.MIN_TIMEOUT;
-    if (request.getDefaultTimeout() != null && !request.getDefaultTimeout().isEmpty()) {
-      defaultTimeout = Short.parseShort(request.getDefaultTimeout());
-    }
-
-    getActionManager().createActionDefinition(request.getActionName(), actionType, request.getInputs(),
-        request.getDescription(), request.getTargetService(), request.getTargetComponent(),
-        targetType, defaultTimeout);
+  private AmbariMetaInfo getAmbariMetaInfo() {
+    return getManagementController().getAmbariMetaInfo();
   }
 
   protected synchronized Set<ActionResponse> getActionDefinitions(Set<ActionRequest> requests)
@@ -276,45 +181,18 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
     Set<ActionResponse> responses = new HashSet<ActionResponse>();
     for (ActionRequest request : requests) {
       if (request.getActionName() == null) {
-        List<ActionDefinition> ads = getActionManager().getAllActionDefinition();
+        List<ActionDefinition> ads = getAmbariMetaInfo().getAllActionDefinition();
         for (ActionDefinition ad : ads) {
-          responses.add(new ActionResponse(ad));
+          responses.add(ad.convertToResponse());
         }
       } else {
-        ActionDefinition ad = getActionManager().getActionDefinition(request.getActionName());
+        ActionDefinition ad = getAmbariMetaInfo().getActionDefinition(request.getActionName());
         if (ad != null) {
-          responses.add(new ActionResponse(ad));
+          responses.add(ad.convertToResponse());
         }
       }
     }
 
     return responses;
-  }
-
-  protected synchronized RequestStatusResponse updateActionDefinitions(Set<ActionRequest> requests,
-                                                                       Map<String, String> requestProperties)
-      throws AmbariException {
-    RequestStatusResponse response = null;
-    for (ActionRequest request : requests) {
-      if (null != request.getInputs() || null != request.getTargetService()
-          || null != request.getTargetComponent()) {
-        throw new AmbariException("Cannot update inputs, target_service, or target_component");
-      }
-      TargetHostType targetType = request.getTargetType() == null ? null
-          : TargetHostType.valueOf(request.getTargetType());
-      ActionType actionType = request.getActionType() == null ? null : ActionType.valueOf(request.getActionType());
-      Short defaultTimeout = null;
-      if (request.getDefaultTimeout() != null && !request.getDefaultTimeout().isEmpty()) {
-        defaultTimeout = Short.parseShort(request.getDefaultTimeout());
-      }
-      getActionManager().updateActionDefinition(request.getActionName(), actionType,
-          request.getDescription(), targetType, defaultTimeout);
-    }
-    return response;
-  }
-
-  protected synchronized void deleteActionDefinition(ActionRequest request)
-      throws AmbariException {
-    getActionManager().deleteActionDefinition(request.getActionName());
   }
 }

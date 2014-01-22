@@ -62,7 +62,6 @@ public class TestActionDBAccessorImpl {
   private Injector injector;
   ActionDBAccessor db;
   ActionManager am;
-  CustomActionDBAccessor cdb;
 
   @Inject
   private Clusters clusters;
@@ -80,10 +79,9 @@ public class TestActionDBAccessorImpl {
     clusters.getHost(hostName).persist();
     clusters.addCluster(clusterName);
     db = injector.getInstance(ActionDBAccessorImpl.class);
-    cdb = injector.getInstance(CustomActionDBAccessor.class);
 
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), cdb, 
+        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class),
 		injector.getInstance(RequestFactory.class), null);
   }
 

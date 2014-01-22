@@ -39,6 +39,8 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -67,14 +69,38 @@ import com.google.inject.Singleton;
 @Singleton
 public class AmbariMetaInfo {
 
-  private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
-
   public static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";
   public static final String SERVICES_FOLDER_NAME = "services";
   public static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
   public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
   public static final String RCO_FILE_NAME = "role_command_order.json";
+  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
+  /**
+   * This string is used in placeholder in places that are common for
+   * all operating systems or in situations where os type is not important.
+   */
+  public static final String ANY_OS = "any";
+  /**
+   * Value for legacy xml files that don't contain schema property
+   */
+  public static final String SCHEMA_VERSION_LEGACY = "1.0";
+  /**
+   * Version of XML files with support of custom services and custom commands
+   */
+  public static final String SCHEMA_VERSION_2 = "2.0";
+  public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
+    @Override
+    public boolean accept(File dir, String s) {
+      if (s.equals(".svn") || s.equals(".git") ||
+          s.equals(HOOKS_DIR)) // Hooks dir is not a service
+      {
+        return false;
+      }
+      return true;
+    }
+  };
+  private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
@@ -82,42 +108,13 @@ public class AmbariMetaInfo {
   private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
       "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
       "oraclelinux6", "suse11", "sles11", "ubuntu12");
-  
-  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
   private final static String HOOKS_DIR = "hooks";
-
-  /**
-   * This string is used in placeholder in places that are common for
-   * all operating systems or in situations where os type is not important.
-   */
-  public static final String ANY_OS = "any";
-
-  /**
-   * Value for legacy xml files that don't contain schema property
-   */
-  public static final String SCHEMA_VERSION_LEGACY = "1.0";
-
-  /**
-   * Version of XML files with support of custom services and custom commands
-   */
-  public static final String SCHEMA_VERSION_2 = "2.0";
-
-
-  public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
-    @Override
-    public boolean accept(File dir, String s) {
-      if (s.equals(".svn") || s.equals(".git") ||
-              s.equals(HOOKS_DIR)) // Hooks dir is not a service
-        return false;
-      return true;
-    }
-  };
-
+  private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
   private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
   private File stackRoot;
   private File serverVersionFile;
-
+  private File customActionRoot;
   @Inject
   private MetainfoDAO metainfoDAO;
 
@@ -133,6 +130,7 @@ public class AmbariMetaInfo {
     String serverVersionFilePath = conf.getServerVersionFilePath();
     this.stackRoot = new File(stackPath);
     this.serverVersionFile = new File(serverVersionFilePath);
+    this.customActionRoot = new File(conf.getCustomActionDefinitionPath());
   }
 
   public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
@@ -150,6 +148,7 @@ public class AmbariMetaInfo {
     stacksResult = new ArrayList<StackInfo>();
     readServerVersion();
     getConfigurationInformation(stackRoot);
+    getCustomActionDefinitions(customActionRoot);
   }
 
   /**
@@ -464,11 +463,11 @@ public class AmbariMetaInfo {
   }
 
   public List<ServiceInfo> getSupportedServices(String stackName, String version) throws AmbariException {
-    List<ServiceInfo> servicesResulr = null;
+    List<ServiceInfo> servicesResult = null;
     StackInfo stack = getStackInfo(stackName, version);
     if (stack != null)
-      servicesResulr = stack.getServices();
-    return servicesResulr;
+      servicesResult = stack.getServices();
+    return servicesResult;
   }
 
   public List<StackInfo> getSupportedStacks() {
@@ -620,6 +619,41 @@ public class AmbariMetaInfo {
       throw new AmbariException("Server version file does not exist.");
     }
     serverVersion = new Scanner(versionFile).useDelimiter("\\Z").next();
+  }
+
+  private void getCustomActionDefinitions(File customActionDefinitionRoot) throws JAXBException, AmbariException {
+    if (customActionDefinitionRoot != null) {
+      LOG.debug("Loading custom action definitions from "
+          + customActionDefinitionRoot.getAbsolutePath());
+
+      if (customActionDefinitionRoot.exists() && customActionDefinitionRoot.isDirectory()) {
+        adManager.readCustomActionDefinitions(customActionDefinitionRoot);
+      } else {
+        LOG.debug("No action definitions found at " + customActionDefinitionRoot.getAbsolutePath());
+      }
+    }
+  }
+
+  /**
+   * Get all action definitions
+   */
+  public List<ActionDefinition> getAllActionDefinition(){
+    return adManager.getAllActionDefinition();
+  }
+
+  /**
+   * Get action definitions based on the supplied name
+   */
+  public ActionDefinition getActionDefinition(String name){
+    return adManager.getActionDefinition(name);
+  }
+
+
+  /**
+   * Used for test purposes
+   */
+  public void addActionDefinition(ActionDefinition ad) throws AmbariException {
+    adManager.addActionDefinition(ad);
   }
 
   private void getConfigurationInformation(File stackRoot) throws Exception {

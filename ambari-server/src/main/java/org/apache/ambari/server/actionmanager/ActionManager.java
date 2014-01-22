@@ -50,7 +50,6 @@ public class ActionManager {
   private final ActionDBAccessor db;
   private final ActionQueue actionQueue;
   private final AtomicLong requestCounter;
-  private final CustomActionDBAccessor cdb;
   private final RequestFactory requestFactory;
 
 
@@ -58,7 +57,7 @@ public class ActionManager {
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
                        @Named("actionTimeout") long actionTimeout,
                        ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
-                       ServerActionManager serverActionManager, UnitOfWork unitOfWork, CustomActionDBAccessor cdb,
+                       ServerActionManager serverActionManager, UnitOfWork unitOfWork,
                        RequestFactory requestFactory, Configuration configuration) {
     this.actionQueue = aq;
     this.db = db;
@@ -66,7 +65,6 @@ public class ActionManager {
         actionQueue, fsm, 2, hostsMap, serverActionManager, unitOfWork, configuration);
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
-    this.cdb = cdb;
     this.requestFactory = requestFactory;
   }
 
@@ -206,36 +204,5 @@ public class ActionManager {
 
   public String getRequestContext(long requestId) {
     return db.getRequestContext(requestId);
-  }
-
-  /** CRUD operations of Action resources **/
-
-  public ActionDefinition getActionDefinition(String actionName)
-      throws AmbariException {
-    return cdb.getActionDefinition(actionName);
-  }
-
-  public List<ActionDefinition> getAllActionDefinition()
-      throws AmbariException {
-    return cdb.getActionDefinitions();
-  }
-
-  public void deleteActionDefinition(String actionName)
-      throws AmbariException {
-    cdb.deleteActionDefinition(actionName);
-  }
-
-  public void updateActionDefinition(String actionName, ActionType actionType, String description,
-                                     TargetHostType targetType, Short defaultTimeout)
-      throws AmbariException {
-    cdb.updateActionDefinition(actionName, actionType, description, targetType, defaultTimeout);
-  }
-
-  public void createActionDefinition(String actionName, ActionType actionType, String inputs, String description,
-                                     String serviceType, String componentType, TargetHostType targetType,
-                                     Short defaultTimeout)
-      throws AmbariException {
-    cdb.createActionDefinition(actionName, actionType, inputs, description, targetType, serviceType,
-        componentType, defaultTimeout);
   }
 }

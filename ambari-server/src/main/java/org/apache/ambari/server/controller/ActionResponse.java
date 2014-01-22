@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.actionmanager.ActionDefinition;
-
 /**
  * Used to respond to GET requests for actions
  */
@@ -45,15 +43,6 @@ public class ActionResponse {
     setDescription(description);
     setTargetType(targetType);
     setDefaultTimeout(defaultTimeout);
-  }
-
-  public ActionResponse(ActionDefinition ad) {
-    this(ad.getActionName(), ad.getActionType().toString(), ad.getInputs(),
-        null == ad.getTargetService() ? "" : ad.getTargetService().toString(),
-        null == ad.getTargetComponent() ? "" : ad.getTargetComponent().toString(),
-        ad.getDescription(),
-        null == ad.getTargetType() ? "" : ad.getTargetType().toString(),
-        ad.getDefaultTimeout().toString());
   }
 
   public String getActionName() {

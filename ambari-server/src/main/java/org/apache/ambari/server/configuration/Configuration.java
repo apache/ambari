@@ -52,7 +52,7 @@ public class Configuration {
   public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
-  public static final String BOOTSTRAP_SCRIPT_DEFAULT =  "/usr/bin/ambari_bootstrap";
+  public static final String BOOTSTRAP_SCRIPT_DEFAULT = "/usr/bin/ambari_bootstrap";
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
@@ -81,7 +81,6 @@ public class Configuration {
   public static final String JAVA_HOME_KEY = "java.home";
   public static final String JDK_NAME_KEY = "jdk.name";
   public static final String JCE_NAME_KEY = "jce.name";
-
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
   public static final String CLIENT_API_SSL_PORT_KEY = "client.api.ssl.port";
@@ -96,7 +95,6 @@ public class Configuration {
   public static final String POSTGRES_DB_NAME = "postgres";
   public static final String ORACLE_DB_NAME = "oracle";
   public static final String MYSQL_DB_NAME = "mysql";
-
   public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
   public static final String MYSQL_JAR_NAME_KEY = "db.mysql.jdbc.name";
@@ -128,99 +126,119 @@ public class Configuration {
       "authorization.ldap.adminGroupMappingRules";
   public static final String LDAP_GROUP_SEARCH_FILTER_KEY =
       "authorization.ldap.groupSearchFilter";
-
   public static final String USER_ROLE_NAME_KEY =
       "authorization.userRoleName";
   public static final String ADMIN_ROLE_NAME_KEY =
       "authorization.adminRoleName";
-
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
-  private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
-
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
-
-//  public static final String SERVER_RCA_PERSISTENCE_TYPE_KEY = "server.rca.persistence.type";
+  //  public static final String SERVER_RCA_PERSISTENCE_TYPE_KEY = "server.rca.persistence.type";
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
   public static final String SERVER_JDBC_RCA_URL_KEY = "server.jdbc.rca.url";
-
   public static final String SERVER_JDBC_GENERATE_TABLES_KEY = "server.jdbc.generateTables";
-
   public static final String JDBC_UNIT_NAME = "ambari-server";
-
   public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/";
   public static final String JDBC_LOCAL_DRIVER = "org.postgresql.Driver";
-
   public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
   public static final String JDBC_IN_MEMROY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
-
   public static final String HOSTNAME_MACRO = "{hostname}";
   public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
   public static final String JDBC_RCA_LOCAL_DRIVER = "org.postgresql.Driver";
-
-  private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari-server";
-  private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
-
-  private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
-  private static final String SERVER_JDBC_RCA_USER_PASSWD_DEFAULT = "mapred";
-
   public static final String OS_VERSION_KEY =
       "server.os_type";
-
   public static final String SRVR_HOSTS_MAPPING =
       "server.hosts.mapping";
-
   // Command parameter names
   public static final String UPGRADE_FROM_STACK = "source_stack_version";
   public static final String UPGRADE_TO_STACK = "target_stack_version";
-
   public static final String SSL_TRUSTSTORE_PATH_KEY = "ssl.trustStore.path";
   public static final String SSL_TRUSTSTORE_PASSWORD_KEY = "ssl.trustStore.password";
   public static final String SSL_TRUSTSTORE_TYPE_KEY = "ssl.trustStore.type";
   public static final String JAVAX_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
   public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
-
   public static final String GANGLIA_HTTPS_KEY = "ganglia.https";
-  public static final String NAGIOS_HTTPS_KEY  = "nagios.https";
-
-  private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
+  public static final String NAGIOS_HTTPS_KEY = "nagios.https";
   public static final String SRVR_TWO_WAY_SSL_PORT_DEFAULT = "8441";
   public static final String SRVR_ONE_WAY_SSL_PORT_DEFAULT = "8440";
-  private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
-
   public static final String CLIENT_API_SSL_KSTR_NAME_DEFAULT = "https.keystore.p12";
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT = "https.pass.txt";
   public static final String CLIENT_API_SSL_KEY_NAME_DEFAULT = "https.key";
   public static final String CLIENT_API_SSL_CRT_NAME_DEFAULT = "https.crt";
+  public static final String GLOBAL_CONFIG_TAG = "global";
+  public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
+  public static final String HIVE_CONFIG_TAG = "hive-site";
+  public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
+      "javax.jdo.option.ConnectionPassword";
+  public static final String MASTER_KEY_PERSISTED = "security.master" +
+      ".key.ispersisted";
+  public static final String MASTER_KEY_LOCATION = "security.master.key" +
+      ".location";
+  public static final String MASTER_KEY_ENV_PROP =
+      "AMBARI_SECURITY_MASTER_KEY";
+  public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
+  /**
+   * Key for repo validation suffixes.
+   */
+  public static final String REPO_SUFFIX_KEY = "repo.validation.suffixes";
+  public static final String EXECUTION_SCHEDULER_CLUSTERED =
+      "server.execution.scheduler.isClustered";
+  public static final String EXECUTION_SCHEDULER_THREADS =
+      "server.execution.scheduler.maxThreads";
+  public static final String EXECUTION_SCHEDULER_CONNECTIONS =
+      "server.execution.scheduler.maxDbConnections";
+  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION =
+      "server.execution.scheduler.misfire.toleration.minutes";
+  public static final String EXECUTION_SCHEDULER_START_DELAY =
+      "server.execution.scheduler.start.delay.seconds";
+  public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
+  public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
+  public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
+  public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
+  /**
+   * This key defines whether stages of parallel requests are executed in
+   * parallel or sequentally. Only stages from different requests
+   * running on not interfering host sets may be executed in parallel.
+   */
+  public static final String PARALLEL_STAGE_EXECUTION_KEY =
+      "server.stages.parallel";
+  public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
+  public static final String AGENT_TASK_TIMEOUT_DEFAULT = "600";
 
+  public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
+  private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE =
+      "/var/lib/ambari-server/resources/custom_action_definitions";
+
+  private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
+  private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari-server";
+  private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
+  private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
+  private static final String SERVER_JDBC_RCA_USER_PASSWD_DEFAULT = "mapred";
+  private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
+  private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   private static final String API_CSRF_PREVENTION_DEFAULT = "true";
-
-  private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
+  private static final String SRVR_CRT_PASS_FILE_DEFAULT = "pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/share/ambari/resources/";
-  
-  private static final String  ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
-      
+  private static final String ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
   private static final String CLIENT_SECURITY_DEFAULT = "local";
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
   private static final int CLIENT_API_SSL_PORT_DEFAULT = 8443;
-
   private static final String USER_ROLE_NAME_DEFAULT = "user";
   private static final String ADMIN_ROLE_NAME_DEFAULT = "admin";
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
-
   //TODO For embedded server only - should be removed later
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
@@ -233,75 +251,22 @@ public class Configuration {
   private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT =
       "Ambari Administrators";
   private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
-
   //TODO for development purposes only, should be changed to 'false'
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
-
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
-    "server.connection.max.idle.millis";
-
-  public static final String GLOBAL_CONFIG_TAG = "global";
-  public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
-  public static final String HIVE_CONFIG_TAG = "hive-site";
-  public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
-    "javax.jdo.option.ConnectionPassword";
-
-  public static final String MASTER_KEY_PERSISTED = "security.master" +
-    ".key.ispersisted";
-  public static final String MASTER_KEY_LOCATION = "security.master.key" +
-    ".location";
-  public static final String MASTER_KEY_ENV_PROP =
-    "AMBARI_SECURITY_MASTER_KEY";
-  public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
-  
-  /**
-   * Key for repo validation suffixes.
-   */
-  public static final String REPO_SUFFIX_KEY = "repo.validation.suffixes";
+      "server.connection.max.idle.millis";
   /**
    * Default for repo validation suffixes.
    */
   private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
-
-  public static final String EXECUTION_SCHEDULER_CLUSTERED =
-    "server.execution.scheduler.isClustered";
-  public static final String EXECUTION_SCHEDULER_THREADS =
-    "server.execution.scheduler.maxThreads";
-  public static final String EXECUTION_SCHEDULER_CONNECTIONS =
-    "server.execution.scheduler.maxDbConnections";
-  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION =
-    "server.execution.scheduler.misfire.toleration.minutes";
-  public static final String EXECUTION_SCHEDULER_START_DELAY =
-    "server.execution.scheduler.start.delay.seconds";
-
-  public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
-  public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
-  public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
-  public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
-
-
-  /**
-   * This key defines whether stages of parallel requests are executed in
-   * parallel or sequentally. Only stages from different requests
-   * running on not interfering host sets may be executed in parallel.
-   */
-  public static final String PARALLEL_STAGE_EXECUTION_KEY =
-          "server.stages.parallel";
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
-
-  public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
-  public static final String AGENT_TASK_TIMEOUT_DEFAULT = "600";
-
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
-
   private Properties properties;
-
   private Map<String, String> configsMap;
-
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
-  private Map<String,String> customDbProperties = null;
+  private Map<String, String> customDbProperties = null;
 
   public Configuration() {
     this(readConfigFile());
@@ -929,18 +894,26 @@ public class Configuration {
     return "true".equalsIgnoreCase(configsMap.get(PARALLEL_STAGE_EXECUTION_KEY));
   }
 
+  public String getCustomActionDefinitionPath() {
+    String value = configsMap.get(CUSTOM_ACTION_DEFINITION_KEY);
+    if (value == null) {
+      value = CUSTOM_ACTION_DEFINITION_DEF_VALUE;
+    }
+    return value;
+  }
+
   /**
    * @return default task timeout in seconds (string representation). This value
-   * is used at python (agent) code.
+   *         is used at python (agent) code.
    */
   public String getDefaultAgentTaskTimeout() {
-    String value =  properties.getProperty(AGENT_TASK_TIMEOUT_KEY, AGENT_TASK_TIMEOUT_DEFAULT);
+    String value = properties.getProperty(AGENT_TASK_TIMEOUT_KEY, AGENT_TASK_TIMEOUT_DEFAULT);
     if (StringUtils.isNumeric(value)) {
       return value;
     } else {
       LOG.warn(String.format("Value of %s (%s) should be a number, " +
-              "falling back to default value (%s)",
-              AGENT_TASK_TIMEOUT_KEY, value, AGENT_TASK_TIMEOUT_DEFAULT));
+          "falling back to default value (%s)",
+          AGENT_TASK_TIMEOUT_KEY, value, AGENT_TASK_TIMEOUT_DEFAULT));
       return AGENT_TASK_TIMEOUT_DEFAULT;
     }
   }

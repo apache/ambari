@@ -426,6 +426,14 @@
                 </source>
               </sources>
             </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/custom_action_definitions</directory>
+              <sources>
+                <source>
+                  <location>src/main/resources/custom_action_definitions</location>
+                </source>
+              </sources>
+            </mapping>
           </mappings>
         </configuration>
       </plugin>

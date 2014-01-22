@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.actionmanager;
+package org.apache.ambari.server.customactions;
 
-import org.apache.ambari.server.orm.entities.ActionEntity;
+import org.apache.ambari.server.actionmanager.ActionType;
+import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.controller.ActionResponse;
 
 /**
  * The resource describing the definition of an action
@@ -35,6 +37,7 @@ public class ActionDefinition {
 
   /**
    * Create an instance of ActionDefinition
+   *
    * @param actionName      The name of the action
    * @param actionType      The type fo the action
    * @param inputs          Expected input of the action
@@ -55,21 +58,6 @@ public class ActionDefinition {
     setDescription(description);
     setTargetType(targetType);
     setDefaultTimeout(defaultTimeout);
-  }
-
-  /**
-   * Create an instance of ActionDefinition
-   * @param entity  The entity corresponding to the action
-   */
-  public ActionDefinition(ActionEntity entity) {
-    setActionName(entity.getActionName());
-    setActionType(entity.getActionType());
-    setInputs(entity.getInputs());
-    setTargetService(entity.getTargetService());
-    setTargetComponent(entity.getTargetComponent());
-    setDescription(entity.getDescription());
-    setTargetType(entity.getTargetType());
-    setDefaultTimeout(entity.getDefaultTimeout());
   }
 
   public String getActionName() {
@@ -134,5 +122,11 @@ public class ActionDefinition {
 
   public void setDefaultTimeout(Short defaultTimeout) {
     this.defaultTimeout = defaultTimeout;
+  }
+
+  public ActionResponse convertToResponse() {
+    return new ActionResponse(getActionName(), getActionType().name(), getInputs(),
+        getTargetService(), getTargetComponent(), getDescription(), getTargetType().name(),
+        getDefaultTimeout().toString());
   }
 }

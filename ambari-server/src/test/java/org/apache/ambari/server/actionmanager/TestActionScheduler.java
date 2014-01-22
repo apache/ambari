@@ -466,7 +466,7 @@ public class TestActionScheduler {
 
     ActionManager am = new ActionManager(
             2, 2, aq, fsm, db, new HostsMap((String) null),
-            new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
+            new ServerActionManagerImpl(fsm), unitOfWork, requestFactory, conf);
 
     scheduler.doWork();
 
@@ -538,7 +538,7 @@ public class TestActionScheduler {
 
     ActionManager am = new ActionManager(
             2, 2, aq, fsm, db, new HostsMap((String) null),
-            new ServerActionManagerImpl(fsm), unitOfWork, null,
+            new ServerActionManagerImpl(fsm), unitOfWork,
             requestFactory, conf);
 
     scheduler.doWork();
@@ -643,7 +643,7 @@ public class TestActionScheduler {
         new HostsMap((String) null), new ServerActionManagerImpl(fsm),
         unitOfWork, conf);
     ActionManager am = new ActionManager(
-        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
+        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, requestFactory, conf);
 
     scheduler.doWork();
 
@@ -790,7 +790,7 @@ public class TestActionScheduler {
         new HostsMap((String) null), new ServerActionManagerImpl(fsm),
         unitOfWork, conf);
     ActionManager am = new ActionManager(
-        2, 10000, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
+        2, 10000, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, requestFactory, conf);
 
     scheduler.doWork();
 
@@ -962,7 +962,7 @@ public class TestActionScheduler {
         new HostsMap((String) null),
         new ServerActionManagerImpl(fsm), unitOfWork, conf);
     ActionManager am = new ActionManager(
-        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, null, requestFactory, conf);
+        2, 2, aq, fsm, db, new HostsMap((String) null), new ServerActionManagerImpl(fsm), unitOfWork, requestFactory, conf);
 
     scheduler.doWork();
 

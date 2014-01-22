@@ -51,6 +51,7 @@ import org.apache.ambari.server.controller.internal.ActionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
+import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -3669,13 +3670,13 @@ public class AmbariManagementControllerTest {
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h1").persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h2").persist();
 
-    controller.getActionManager().createActionDefinition(
-        "a1", ActionType.SYSTEM, "test,[optional1]", "Does file exist", "", "",
-        TargetHostType.SPECIFIC, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        "a1", ActionType.SYSTEM, "test,[optional1]", "", "", "Does file exist",
+        TargetHostType.SPECIFIC, Short.valueOf("100")));
 
-    controller.getActionManager().createActionDefinition(
-        "a2", ActionType.SYSTEM, "", "Does file exist", "HDFS", "DATANODE",
-        TargetHostType.ALL, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        "a2", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
+        TargetHostType.ALL, Short.valueOf("100")));
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -3843,21 +3844,21 @@ public class AmbariManagementControllerTest {
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
         "Component DATANODE on host h1 cannot be decommissioned as its not in STARTED state");
 
-    controller.getActionManager().createActionDefinition(
-        "a1", ActionType.SYSTEM, "test,dirName", "Does file exist", "", "",
-        TargetHostType.SPECIFIC, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        "a1", ActionType.SYSTEM, "test,dirName", "", "", "Does file exist",
+        TargetHostType.SPECIFIC, Short.valueOf("100")));
 
-    controller.getActionManager().createActionDefinition(
-        "a2", ActionType.SYSTEM, "", "Does file exist", "HDFS", "DATANODE",
-        TargetHostType.ANY, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        "a2", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
+        TargetHostType.ANY, Short.valueOf("100")));
 
-    controller.getActionManager().createActionDefinition(
-        "a3", ActionType.SYSTEM, "", "Does file exist", "MAPREDUCE", "MAPREDUCE_CLIENT",
-        TargetHostType.ANY, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        "a3", ActionType.SYSTEM, "", "MAPREDUCE", "MAPREDUCE_CLIENT", "Does file exist",
+        TargetHostType.ANY, Short.valueOf("100")));
 
-    controller.getActionManager().createActionDefinition(
-        "a4", ActionType.SYSTEM, "", "Does file exist", "HIVE", "",
-        TargetHostType.ANY, Short.valueOf("100"));
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+        "a4", ActionType.SYSTEM, "", "HIVE", "", "Does file exist",
+        TargetHostType.ANY, Short.valueOf("100")));
 
     actionRequest = new ExecuteActionRequest("c1", null, "a1", null, null, null, null);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
@@ -8525,129 +8526,6 @@ public class AmbariManagementControllerTest {
       org.junit.Assert.assertEquals(1, namenodes2.size());
     } finally {
       injector.getInstance(PersistService.class).stop();
-    }
-  }
-
- @Test
- public void testActionDefinitionLifeCycle() throws Exception {
-   ActionRequest createRequest1 =
-       new ActionRequest("a1", "SYSTEM", "fileName", "HDFS", "DATANODE", "Does file exist", "ANY", "100");
-   ActionResourceProviderTest.createAction(controller, createRequest1);
-
-   ActionRequest getAllRequest = ActionRequest.getAllRequest();
-   Set<ActionResponse> responses = ActionResourceProviderTest.getActions(controller,
-       Collections.singleton(getAllRequest));
-   Assert.assertEquals(1, responses.size());
-
-   ActionRequest createRequest2 =
-       new ActionRequest("a2", "USER", "fileName", "YARN", "NODEMANAGER", "Does file exist", "ANY", "100");
-   ActionResourceProviderTest.createAction(controller, createRequest2);
-
-   responses = ActionResourceProviderTest.getActions(controller, Collections.singleton
-       (getAllRequest));
-   Assert.assertEquals(2, responses.size());
-
-   ActionRequest updateRequest =
-       new ActionRequest("a2", "USER", null, null, null, "Does file really exist", "ANY", "100");
-   RequestStatusResponse response = ActionResourceProviderTest.updateAction(controller,
-       Collections.singleton(updateRequest), null);
-   Assert.assertNull(response);
-
-   ActionRequest getOneRequest =
-       new ActionRequest("a2", null, null, null, null, null, null, null);
-   responses = ActionResourceProviderTest.getActions(controller, Collections.singleton
-       (getOneRequest));
-   Assert.assertEquals(1, responses.size());
-   Assert.assertEquals("Does file really exist", responses.iterator().next().getDescription());
-
-   ActionResourceProviderTest.deleteAction(controller, getOneRequest);
-   responses = ActionResourceProviderTest.getActions(controller, Collections.singleton
-       (getOneRequest));
-   Assert.assertEquals(0, responses.size());
- }
-
-  @Test
-  public void testActionDefinitionErrors() throws Exception {
-    ActionRequest createRequest =
-        new ActionRequest(null, "SYSTEM", "fileName", "HDFS", "DATANODE", "Does file exist", "ANY", "100");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("Action name should be provided"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "SYSTEM", "fileName", "HDFS", "DATANODE", "Does file exist", "ANY", "10000");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("Default timeout should be between 60 and 600"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "Favorite", "", "HDFS", "", "Does file exist", "ANY", "100");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("No enum const class"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "SYSTEM", "", "HDFS", "", "", "ANY", "100");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("Action description cannot be empty"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "SYSTEM", "", "", "", "SS", "ANY", "10");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("Default timeout should be between 60 and 600"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "SYSTEM", "", "HDFS", "", "SS", "ANY", "100");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("Action definition a1 already exists"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "SYSTEM", "", "HDFS", "", "SS", "Any", "100");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("No enum const class"));
-    }
-
-    createRequest =
-        new ActionRequest("a1", "SYSTEM", "", "", "DATANODE", "SS", "SPECIFIC", "100");
-    try {
-      ActionResourceProviderTest.createAction(controller, createRequest);
-      Assert.fail("Exception must be thrown");
-    } catch (Exception ex) {
-      LOG.info(ex.getMessage());
-      Assert.assertTrue(ex.getMessage().contains("Target component cannot be specified unless target service is " +
-          "specified"));
     }
   }
 

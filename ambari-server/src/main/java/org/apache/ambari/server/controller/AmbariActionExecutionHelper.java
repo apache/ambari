@@ -22,13 +22,13 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionDefinition;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -41,9 +41,15 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 
 /**
  * Helper class containing logic to process custom action execution requests
@@ -51,13 +57,12 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 public class AmbariActionExecutionHelper {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariActionExecutionHelper.class);
+  private static final String TYPE_PYTHON = "PYTHON";
   private ActionMetadata actionMetadata;
   private Clusters clusters;
   private AmbariManagementControllerImpl amcImpl;
   private ActionManager actionManager;
   private AmbariMetaInfo ambariMetaInfo;
-
-  private static final String TYPE_PYTHON = "PYTHON";
 
   public AmbariActionExecutionHelper(ActionMetadata actionMetadata, Clusters clusters,
                                      AmbariManagementControllerImpl amcImpl) {
@@ -82,7 +87,7 @@ public class AmbariActionExecutionHelper {
       throw new AmbariException("Action name must be specified");
     }
 
-    ActionDefinition actionDef = actionManager.getActionDefinition(actionRequest.getActionName());
+    ActionDefinition actionDef = ambariMetaInfo.getActionDefinition(actionRequest.getActionName());
     if (actionDef == null) {
       throw new AmbariException("Action " + actionRequest.getActionName() + " does not exist");
     }
@@ -164,7 +169,7 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-    if (actionDef.getTargetType() == TargetHostType.SPECIFIC
+    if (TargetHostType.SPECIFIC.name().equals(actionDef.getTargetType())
         || (targetService.isEmpty() && targetService.isEmpty())) {
       if (actionRequest.getHosts().size() == 0) {
         throw new AmbariException("Action " + actionRequest.getActionName() + " requires explicit target host(s)" +
