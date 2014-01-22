@@ -307,7 +307,7 @@ module.exports =
       "displayName": "YARN Java heap size",
       "description": "Max heapsize for all YARN components",
       "defaultValue": "1024",
-      "isOverridable": false,
+      "isOverridable": true,
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
@@ -450,8 +450,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "isOverridable": false,
-      
+      "isOverridable": true,
       "isVisible": true,
       "serviceName": "HBASE",
       "category": "HBase Master",

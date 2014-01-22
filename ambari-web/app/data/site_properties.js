@@ -117,7 +117,7 @@ module.exports =
       "description": "",
       "defaultValue": "",
       "displayType": "int",
-      "isVisible": false,
+      "isVisible": true,
       "category": "DataNode",
       "serviceName": "HDFS"
     },

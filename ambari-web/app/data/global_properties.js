@@ -483,7 +483,7 @@ module.exports =
       "defaultValue": "1024",
       "displayType": "int",
       "unit": "MB",
-      "isOverridable": false,
+      "isOverridable": true,
       "isVisible": true,
       "serviceName": "HBASE",
       "category": "HBase Master",
