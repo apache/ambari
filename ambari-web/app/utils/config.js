@@ -509,19 +509,19 @@ App.config = Em.Object.create({
    * and wrap each in ServiceConfigProperty object
    * @param configs
    * @param storedConfigs
-   * @param allInstalledServiceNames
-   * @param selectedServiceNames
+   * @param allSelectedServiceNames
+   * @param installedServiceNames
    * @param localDB
    * @return {Array}
    */
-  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames, localDB) {
+  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB) {
     var renderedServiceConfigs = [];
     var services = [];
 
     this.get('preDefinedServiceConfigs').forEach(function (serviceConfig) {
-      if (allInstalledServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+      if (allSelectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
         console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
-        if (selectedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+        if (!installedServiceNames.contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
           serviceConfig.showConfig = true;
         }
         services.push(serviceConfig);

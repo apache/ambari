@@ -55,6 +55,10 @@ App.WizardStep7Controller = Em.Controller.extend({
   groupsToDelete: [],
 
   selectedConfigGroup: null,
+  /**
+   * config tags of actually installed services
+   */
+  serviceConfigTags: [],
 
   serviceConfigsData: require('data/service_configs'),
 
@@ -66,8 +70,12 @@ App.WizardStep7Controller = Em.Controller.extend({
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
-  allInstalledServiceNames: function () {
-    return this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+  allSelectedServiceNames: function () {
+    return this.get('content.services').filterProperty('isSelected').mapProperty('serviceName');
+  }.property('content.services').cacheable(),
+
+  installedServiceNames: function () {
+    return this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
   }.property('content.services').cacheable(),
 
   masterComponentHosts: function () {
@@ -81,6 +89,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   customData: [],
 
   clearStep: function () {
+    this.get('serviceConfigTags').clear();
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -111,7 +120,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = params.serviceName;
     var service = this.get('stepConfigs').findProperty('serviceName', serviceName);
-    console.debug("loadServiceConfigs(): data=", data);
     // Create default configuration group
     var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
     var selectedConfigGroup;
@@ -319,7 +327,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     //STEP 5: Add custom configs
     App.config.addCustomConfigs(configs);
     //put properties from capacity-scheduler.xml into one config with textarea view
-    if(this.get('allInstalledServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi){
+    if (this.get('allSelectedServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
@@ -328,8 +336,12 @@ App.WizardStep7Controller = Em.Controller.extend({
       masterComponentHosts: this.get('wizardController').getDBProperty('masterComponentHosts'),
       slaveComponentHosts: this.get('wizardController').getDBProperty('slaveComponentHosts')
     };
+    if (this.get('wizardController.name') === 'addServiceController') {
+      this.getConfigTags();
+      this.setInstalledServiceConfigs(this.get('serviceConfigTags'), configs);
+    }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'), localDB);
+    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB);
     if (this.get('wizardController.name') === 'addServiceController') {
       serviceConfigs.setEach('showConfig', true);
       serviceConfigs.setEach('selected', false);
@@ -362,6 +374,53 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (this.get('content.skipConfigStep')) {
       App.router.send('next');
     }
+  },
+  getConfigTags: function() {
+    App.ajax.send({
+      name: 'config.tags.sync',
+      sender: this,
+      success: 'getConfigTagsSuccess'
+    });
+  },
+
+  getConfigTagsSuccess: function (data, opt, params) {
+    var installedServiceSites = [];
+    this.get('serviceConfigsData').filter(function (service) {
+      if (this.get('installedServiceNames').contains(service.serviceName)){
+        installedServiceSites = installedServiceSites.concat(service.sites);
+      }
+    }, this);
+    installedServiceSites = installedServiceSites.uniq();
+    var serviceConfigTags = [];
+    for (var site in data.Clusters.desired_configs) {
+      if (installedServiceSites.contains(site)) {
+        serviceConfigTags.push({
+          siteName: site,
+          tagName: data.Clusters.desired_configs[site].tag,
+          newTagName: null
+        });
+      }
+    }
+    this.set('serviceConfigTags', serviceConfigTags);
+  },
+
+  /**
+   * set configs actual values from server
+   * @param serviceConfigTags
+   * @param configs
+   */
+  setInstalledServiceConfigs: function (serviceConfigTags, configs) {
+    var configsMap = {};
+    App.router.get('configurationController').getConfigsByTags(serviceConfigTags).forEach(function(configSite){
+      $.extend(configsMap, configSite.properties);
+    });
+    configs.forEach(function (_config) {
+      if (configsMap[_config.name] !== undefined) {
+        _config.value = configsMap[_config.name];
+        _config.defaultValue = configsMap[_config.name];
+        App.config.handleSpecialProperties(_config);
+      }
+    })
   },
 
   setGroupsToDelete: function(groups) {
@@ -443,6 +502,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceConfigs = this.get('selectedService.configs');
     var selectedGroup = this.get('selectedConfigGroup');
     var overrideToAdd = this.get('overrideToAdd');
+    var isServiceInstalled = this.get('installedServiceNames').contains(this.get('selectedService.serviceName'));
     if(!selectedGroup) return;
     var displayedConfigGroups = (selectedGroup.get('isDefault')) ?
         this.get('selectedService.configGroups').filterProperty('isDefault', false) :
@@ -454,7 +514,13 @@ App.WizardStep7Controller = Em.Controller.extend({
     });
     serviceConfigs.forEach(function (config) {
       var configOverrides = overrides.filterProperty('name', config.get('name'));
-      config.set('isEditable', selectedGroup.get('isDefault'));
+      var isEditable = config.get('isEditable');
+      if (isServiceInstalled) {
+        isEditable = (!isEditable && !config.get('isReconfigurable')) ? false : selectedGroup.get('isDefault');
+      } else {
+        isEditable = selectedGroup.get('isDefault');
+      }
+      config.set('isEditable', isEditable);
       if (overrideToAdd && overrideToAdd.get('name') === config.get('name')) {
         configOverrides.push(this.addOverrideProperty(config));
         this.set('overrideToAdd', null);
