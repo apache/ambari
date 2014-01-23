@@ -24,22 +24,22 @@ UPDATE ambari.clusters
 
 UPDATE ambari.clusterstate
   SET current_stack_version = replace(current_stack_version, 'HDPLocal', 'HDP')
-  WHERE INSTR('HDPLocal' in current_stack_version) > 0;
+  WHERE INSTR(current_stack_version, 'HDPLocal') > 0;
 
 UPDATE ambari.hostcomponentdesiredstate
   SET desired_stack_version = replace(desired_stack_version, 'HDPLocal', 'HDP')
-  WHERE INSTR('HDPLocal' in desired_stack_version) > 0;
+  WHERE INSTR(desired_stack_version, 'HDPLocal') > 0;
 
 UPDATE ambari.hostcomponentstate
   SET current_stack_version = replace(current_stack_version, 'HDPLocal', 'HDP')
-  WHERE INSTR('HDPLocal' in current_stack_version) > 0;
+  WHERE INSTR(current_stack_version, 'HDPLocal') > 0;
 
 UPDATE ambari.servicecomponentdesiredstate
   SET desired_stack_version = replace(desired_stack_version, 'HDPLocal', 'HDP')
-  WHERE INSTR('HDPLocal' in desired_stack_version) > 0;
+  WHERE INSTR(desired_stack_version, 'HDPLocal') > 0;
 
 UPDATE ambari.servicedesiredstate
   SET desired_stack_version = replace(desired_stack_version, 'HDPLocal', 'HDP')
-  WHERE INSTR('HDPLocal' in desired_stack_version) > 0;
+  WHERE INSTR(desired_stack_version, 'HDPLocal') > 0;
 
 commit;

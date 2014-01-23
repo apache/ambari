@@ -20,5 +20,7 @@
 -- &1 - metainfo_key
 -- &2 - metainfo_value
 
-INSERT INTO ambari.metainfo (metainfo_key, metainfo_value) SELECT "&1", "&2" FROM dual WHERE
-  NOT EXISTS (SELECT metainfo_key FROM ambari.metainfo WHERE metainfo_key = "&1")
+INSERT INTO ambari.metainfo ("metainfo_key", "metainfo_value") SELECT '&1', '&2' FROM dual WHERE
+  NOT EXISTS (SELECT "metainfo_key" FROM ambari.metainfo WHERE "metainfo_key" = '&1');
+
+commit;
