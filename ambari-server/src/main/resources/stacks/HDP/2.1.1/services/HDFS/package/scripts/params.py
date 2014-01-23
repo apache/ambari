@@ -190,4 +190,4 @@ journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-ad
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
 
-falcon_store_uri = default('configurations/global/falcon_store_uri', None)
+falcon_store_uri = config['configurations']['global']['falcon_store_uri']

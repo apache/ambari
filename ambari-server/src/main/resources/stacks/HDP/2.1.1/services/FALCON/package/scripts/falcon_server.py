@@ -54,7 +54,7 @@ class FalconServer(Script):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.falcon_pid_dir)
+    check_process_status(status_params.server_pid_file)
 
 
 if __name__ == "__main__":

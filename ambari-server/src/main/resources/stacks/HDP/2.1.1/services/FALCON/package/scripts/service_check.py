@@ -31,7 +31,9 @@ class FalconServiceCheck(Script):
                    "FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR={falcon_data_dir} "
                    "{falcon_home}/bin/falcon admin -version"),
             user=params.smoke_user,
-            logoutput=True
+            logoutput=True,
+            tries = 3,
+            try_sleep = 20
     )
 
 if __name__ == "__main__":
