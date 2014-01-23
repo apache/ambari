@@ -73,6 +73,7 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
   public void execute(JobExecutionContext context) throws JobExecutionException {
     JobKey jobKey = context.getJobDetail().getKey();
     LOG.debug("Executing linear job: " + jobKey);
+    JobDataMap jobDataMap = context.getMergedJobDataMap();
 
     if (!executionScheduleManager.continueOnMisfire(context)) {
       throw new JobExecutionException("Canceled execution based on misfire"
@@ -80,29 +81,43 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
         + ", scheduleTime = " + context.getScheduledFireTime());
     }
 
-    Map<String, Object> properties = context.getMergedJobDataMap()
-      .getWrappedMap();
+    Map<String, Object> properties = jobDataMap.getWrappedMap();
+    boolean finalize = false;
 
     // Perform work and exit if failure reported
     try {
       doWork(properties);
     } catch (AmbariException e) {
-      LOG.error("Exception caught on execution of job " + jobKey + ". Exiting linear chain...", e);
+      LOG.error("Exception caught on execution of job " + jobKey +
+        ". Exiting linear chain...", e);
+
+      finalize = true;
       throw new JobExecutionException(e);
+
     } catch (RuntimeException e) {
       LOG.error("Unexpected exception caught on execution of job " + jobKey + ". " +
           "Exiting linear chain...", e);
+
+      finalize = true;
       throw e;
+
+    } finally {
+      // Finalize before exiting chain
+      if (finalize) {
+        try {
+          finalizeExecution(properties);
+        } catch (AmbariException e) {
+          LOG.warn("Unable to finalize execution for job: " + jobKey);
+        }
+      }
     }
 
     LOG.debug("Finished linear job: " + jobKey);
 
-    JobDataMap jobDataMap = context.getMergedJobDataMap();
-
     String nextJobName = jobDataMap.getString(NEXT_EXECUTION_JOB_NAME_KEY);
     String nextJobGroup = jobDataMap.getString(NEXT_EXECUTION_JOB_GROUP_KEY);
 
-    // If no more jobs left, update status and return
+    // If no more jobs left, finalize and return
     if (nextJobName == null || nextJobName.isEmpty()) {
       LOG.debug("End of linear job chain. Returning with success.");
       try {
@@ -125,5 +140,4 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
 
     executionScheduleManager.scheduleJob(trigger);
   }
-
 }

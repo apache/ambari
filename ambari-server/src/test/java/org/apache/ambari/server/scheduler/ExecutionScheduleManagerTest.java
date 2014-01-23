@@ -27,6 +27,7 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
 import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -46,8 +47,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.quartz.CronTrigger;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -577,5 +580,42 @@ public class ExecutionScheduleManagerTest {
     verify(clustersMock, clusterMock, configurationMock, requestExecutionMock,
       executionSchedulerMock, scheduleManager, batchMock, batchRequestMock,
       triggerMock, jobDetailMock, actionDBAccessorMock);
+  }
+
+  @Test
+  public void testFinalizeBeforeExit() throws Exception {
+    ExecutionScheduleManager scheduleManagerMock = createMock(ExecutionScheduleManager.class);
+    AbstractLinearExecutionJob executionJob =
+      createMockBuilder(AbstractLinearExecutionJob.class)
+      .addMockedMethods("finalizeExecution", "doWork")
+      .withConstructor(scheduleManagerMock)
+      .createMock();
+    JobExecutionContext context = createMock(JobExecutionContext.class);
+    JobDetail jobDetail = createMock(JobDetail.class);
+    JobDataMap jobDataMap = createMock(JobDataMap.class);
+
+    expect(context.getJobDetail()).andReturn(jobDetail).anyTimes();
+    expect(context.getMergedJobDataMap()).andReturn(jobDataMap).anyTimes();
+    expect(jobDetail.getKey()).andReturn(new JobKey("TestJob"));
+    expect(jobDataMap.getWrappedMap()).andReturn(new HashMap<String,Object>());
+    expect(scheduleManagerMock.continueOnMisfire(context)).andReturn(true);
+
+    executionJob.doWork((Map<String, Object>) anyObject());
+    expectLastCall().andThrow(new AmbariException("Test Exception")).anyTimes();
+
+    executionJob.finalizeExecution((Map<String, Object>) anyObject());
+    expectLastCall().once();
+
+    replay(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);
+
+    try {
+      executionJob.execute(context);
+    } catch (Exception ae) {
+      assertThat(ae, instanceOf(JobExecutionException.class));
+      JobExecutionException je = (JobExecutionException) ae;
+      Assert.assertEquals("Test Exception", je.getUnderlyingException().getMessage());
+    }
+
+    verify(scheduleManagerMock, executionJob, context, jobDataMap, jobDetail);
   }
 }

@@ -18,12 +18,16 @@
 
 package org.apache.ambari.server.state.scheduler;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.scheduler.AbstractLinearExecutionJob;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
