@@ -21,6 +21,7 @@ from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
 class TestHbaseRegionServer(RMFTestCase):
+  
   def test_configure_default(self):
     self.executeScript("1.3.3/services/HBASE/package/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",

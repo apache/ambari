@@ -114,10 +114,12 @@ def main():
   pwd = os.path.abspath(os.path.dirname(__file__))
 
   ambari_server_folder = get_parent_path(pwd,'ambari-server')
-  ambari_agent_folder = os.path.join(ambari_server_folder,"../ambari-agent")
-  ambari_common_folder = os.path.join(ambari_server_folder,"../ambari-common")
-  sys.path.append(ambari_common_folder + "/src/main/python/jinja2")
-  sys.path.append(ambari_agent_folder + "/src/main/python")
+  ambari_agent_folder = os.path.join(ambari_server_folder,os.path.normpath("../ambari-agent"))
+  ambari_common_folder = os.path.join(ambari_server_folder,os.path.normpath("../ambari-common"))
+  # append pythonpath (for running from IDE)
+  sys.path.append(ambari_common_folder + os.path.normpath("/src/test/python"))
+  sys.path.append(ambari_common_folder + os.path.normpath("/src/main/python/jinja2"))
+  sys.path.append(ambari_agent_folder + os.path.normpath("/src/main/python"))
 
   stacks_folder = pwd+'/stacks'
   #generate test variants(path, service, stack)

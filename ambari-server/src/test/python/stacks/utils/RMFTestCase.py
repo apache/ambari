@@ -29,14 +29,20 @@ from mock.mock import MagicMock, patch
 from resource_management.core.environment import Environment
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.script import Script
+import platform
+
+PATH_TO_STACKS = os.path.normpath("main/resources/stacks/HDP")
+PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
 
 class RMFTestCase(TestCase):
-  def executeScript(self, path, classname=None, command=None, config_file=None):
+  def executeScript(self, path, classname=None, command=None, config_file=None, 
+                    shell_mock_value = (0, "OK."), os_type=('Suse','11','Final')):
+    norm_path = os.path.normpath(path)
     src_dir = RMFTestCase._getSrcFolder()
-    stack_version = path.split(os.sep)[0]
-    stacks_path = os.path.join(src_dir,"main/resources/stacks/HDP")
-    configs_path = os.path.join(src_dir, "test/python/stacks/", stack_version, "configs")
-    script_path = os.path.join(stacks_path, path)
+    stack_version = norm_path.split(os.sep)[0]
+    stacks_path = os.path.join(src_dir, PATH_TO_STACKS)
+    configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
+    script_path = os.path.join(stacks_path, norm_path)
     config_file_path = os.path.join(configs_path, config_file)
     
     try:
@@ -52,9 +58,10 @@ class RMFTestCase(TestCase):
     
     # get method to execute
     try:
-      script_module = imp.load_source(classname, script_path)
+      with patch.object(platform, 'linux_distribution', return_value=os_type):
+        script_module = imp.load_source(classname, script_path)
     except IOError:
-      raise RuntimeError("Cannot load class %s from %s",classname, path)
+      raise RuntimeError("Cannot load class %s from %s",classname, norm_path)
     
     script_class_inst = RMFTestCase._get_attr(script_module, classname)()
     method = RMFTestCase._get_attr(script_class_inst, command)
@@ -65,16 +72,17 @@ class RMFTestCase(TestCase):
     
     # run
     with Environment(basedir, test_mode=True) as RMFTestCase.env:
-      with patch.object(Script, 'install_packages', return_value=MagicMock()):
-        with patch.object(Script, 'get_config', return_value=self.config_dict):
-          method(RMFTestCase.env)
+      with patch('resource_management.core.shell.checked_call', return_value=shell_mock_value): # we must always mock any shell calls
+        with patch.object(Script, 'get_config', return_value=self.config_dict): # mocking configurations
+          with patch.object(Script, 'install_packages'):
+            method(RMFTestCase.env)
   
   def getConfig(self):
     return self.config_dict
           
   @staticmethod
   def _getSrcFolder():
-    return os.path.join(os.path.abspath(os.path.dirname(__file__)),"../../../../")
+    return os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
       
   @staticmethod
   def _get_attr(module, attr):

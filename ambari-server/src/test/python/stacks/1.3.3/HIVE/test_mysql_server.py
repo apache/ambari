@@ -21,7 +21,6 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestMySqlServer(RMFTestCase):
-
   def test_configure_default(self):
     self.executeScript("2.1.1/services/HIVE/package/scripts/mysql_server.py",
                        classname = "MysqlServer",
@@ -38,7 +37,7 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysqld start',
+    self.assertResourceCalled('Execute', 'service mysql start',
                        logoutput = True,
                        path = ['/usr/local/bin/:/bin/:/sbin/'],
                        tries = 1,
@@ -52,7 +51,7 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysqld stop',
+    self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
                               path = ['/usr/local/bin/:/bin/:/sbin/'],
                               tries = 1,
@@ -76,7 +75,7 @@ class TestMySqlServer(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysqld start',
+    self.assertResourceCalled('Execute', 'service mysql start',
                               logoutput = True,
                               path = ['/usr/local/bin/:/bin/:/sbin/'],
                               tries = 1,
@@ -90,7 +89,7 @@ class TestMySqlServer(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysqld stop',
+    self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
                               path = ['/usr/local/bin/:/bin/:/sbin/'],
                               tries = 1,
@@ -98,7 +97,7 @@ class TestMySqlServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Execute', 'service mysqld start',
+    self.assertResourceCalled('Execute', 'service mysql start',
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
       tries = 1,
@@ -107,20 +106,20 @@ class TestMySqlServer(RMFTestCase):
       content = StaticFile('addMysqlUser.sh'),
       mode = 493,
     )
-    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysqld', u'hive', 'asd', u'c6402.ambari.apache.org'),
+    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysql', u'hive', 'asd', u'c6402.ambari.apache.org'),
       logoutput = True,
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', 'service mysqld stop',
+    self.assertResourceCalled('Execute', 'service mysql stop',
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
       tries = 1,
     )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Execute', 'service mysqld start',
+    self.assertResourceCalled('Execute', 'service mysql start',
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
       tries = 1,
@@ -129,13 +128,13 @@ class TestMySqlServer(RMFTestCase):
       content = StaticFile('addMysqlUser.sh'),
       mode = 493,
     )
-    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysqld', u'hive', 'asd', u'c6402.ambari.apache.org'),
+    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysql', u'hive', 'asd', u'c6402.ambari.apache.org'),
       logoutput = True,
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', 'service mysqld stop',
+    self.assertResourceCalled('Execute', 'service mysql stop',
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
       tries = 1,

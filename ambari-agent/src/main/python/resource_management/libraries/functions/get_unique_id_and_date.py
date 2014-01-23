@@ -22,10 +22,10 @@ Ambari Agent
 
 __all__ = ["get_unique_id_and_date"]
 import datetime
-from resource_management.core.shell import checked_call
+from resource_management.core import shell
 
 def get_unique_id_and_date():
-    code, out = checked_call("hostid")
+    out = shell.checked_call("hostid")[1]
     id = out.strip()
 
     now = datetime.datetime.now()
