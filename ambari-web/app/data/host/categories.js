@@ -45,17 +45,17 @@ module.exports = [
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'),
     isHealthStatus: true,
+    class: 'icon-question-sign',
     healthStatusValue: 'health-status-DEAD-YELLOW',
     observes: 'view.content.@each.healthClass'
   },
   {
     value: Em.I18n.t('hosts.host.alerts.label'),
     hostProperty: 'criticalAlertsCount',
-    class: 'label label-important alerts-status',
+    class: 'icon-exclamation-sign',
     isHealthStatus: false,
     healthStatusValue: 'health-status-WITH-ALERTS',
     column: 7,
-    separator: true,
     type: 'number',
     filterValue: '>0',
     observes: 'view.content.@each.criticalAlertsCount'

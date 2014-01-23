@@ -233,6 +233,10 @@ h1 {
   color: #999;
 }
 
+.icon-exclamation-sign {
+  color:#B94A48;
+}
+
 .tooltip {
   z-index: 1050;
 }
@@ -2670,11 +2674,17 @@ table.graphs {
       }
     }
   }
+  .icon-question-sign {
+    color:#FFD13D;
+  }
   .status-dot-position {
     background-position: center;
     background-repeat: no-repeat;
     height: 20px;
     width: 13px;
+    display: block;
+    float: left;
+    margin-right:4px;
   }
   .health-status-HEALTHY{
     background-image: @status-live-marker;
@@ -2693,8 +2703,6 @@ table.graphs {
     .status-dot-position;
   }
   .health-status-DEAD-YELLOW {
-    background-image: @status-dead-yellow-marker;
-    .status-dot-position;
   }
   .maintenance {
     color: #000;
@@ -2729,7 +2737,8 @@ table.graphs {
     .health-status-bar {
       font-size: 0.9em;
       margin-left: 0;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
+      margin-top: -7px;
       min-width: 790px;
       color: #b4b4b4;
       .health-status {
@@ -2737,23 +2746,19 @@ table.graphs {
         margin-right: 3px;
       }
       a {
-        padding: 6px 4px 6px 4px;
+        padding: 5px 4px 5px 4px;
         text-decoration: none;
       }
       .category-item {
-        padding: 3px 0px;
         margin-right: 3px;
         border:1px solid transparent;
         -webkit-border-radius: 4px;
         border-radius: 4px;
       }
-      .category-item .label-important {
-        padding: 0px 2px;
-      }
       .category-item:hover {
         cursor: pointer;
         a {
-          color: #005580;
+          color: #ffffff;
         }
         border:1px solid #d3d3d3;
       }

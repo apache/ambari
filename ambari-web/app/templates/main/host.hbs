@@ -20,30 +20,33 @@
 
   <div class="box-header row">
     <div class="health-status-bar pull-left">
-      <div class="pull-left">
-        <span {{bindAttr class=":category-item view.filtersUsed::active"}}><a {{action clearFilters target="view"}} href="#">{{t common.all}} ({{content.length}})</a></span>
-      </div>
-      {{view view.alertFilter}}
       {{#view view.statusFilter categoriesBinding="view.categories"}}
-        {{#each category in view.categories}}
-          {{#if category.isVisible}}
-            {{#if category.separator}}
-              <br /><br />
-            {{else}}
-              |
-            {{/if}}
-            <span {{bindAttr class="aaa :category-item category.itemClass"}}>
-              <a {{action selectCategory category target="view"}} href="#">
-                {{#if category.isHealthStatus}}
-                  <span {{bindAttr class=":health-status category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
-                {{else}}
-                  <span {{bindAttr class="category.class"}}></span>
-                {{/if}}
-                {{category.label}}
-              </a>
-            </span>
-          {{/if}}
-        {{/each}}
+        <div class="btn-group display-inline-block">
+          <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+            <span {{bindAttr class="view.class"}}></span>
+              {{view.comboBoxLabel}}
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li {{bindAttr class=":category-item view.filtersUsed::active"}}>
+              <a {{action clearFilter target="view"}} href="#">{{t common.all}} ({{content.length}})</a>
+            </li>
+            {{#each category in view.categories}}
+              {{#if category.isVisible}}
+                <li {{bindAttr class="aaa :category-item category.itemClass"}}>
+                  <a {{action selectCategory category target="view"}} href="#">
+                    {{#if category.isHealthStatus}}
+                      <span {{bindAttr class=":health-status category.healthStatusValue category.class"}}></span>
+                    {{else}}
+                      <span {{bindAttr class="category.class"}}></span>
+                    {{/if}}
+                    {{category.label}}
+                  </a>
+               </li>
+             {{/if}}
+           {{/each}}
+         </ul>
+       </div>
       {{/view}}
     </div>
 

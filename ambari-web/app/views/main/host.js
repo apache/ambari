@@ -315,12 +315,6 @@ App.MainHostView = App.TableView.extend({
      */
     filterValue: null,
     /**
-     * Should new line be inserted after this category
-     * @type {Boolean}
-     */
-    separator: false,
-
-    /**
      * <code>App.Host</code> property that should be used to calculate <code>hostsCount</code> (used if <code>isHealthStatus</code> is false)
      * @type {String}
      */
@@ -413,12 +407,23 @@ App.MainHostView = App.TableView.extend({
     column: 0,
     categories: [],
     value: null,
+    class: "",
+    comboBoxLabel: function(){
+      var selected = this.get('categories').findProperty('isActive',true);
+      if (!this.get('value') || !selected) {
+        return "%@ (%@)".fmt(Em.I18n.t('common.all'), this.get('parentView.content.length'));
+      } else {
+        return "%@ (%@)".fmt(selected.get('value'), selected.get('hostsCount'))
+      }
+    }.property('value'),
     /**
      * switch active category label
      */
     onCategoryChange: function() {
       this.get('categories').setEach('isActive', false);
-      this.get('categories').findProperty('healthStatusValue', this.get('value')).set('isActive', true);
+      var selected = this.get('categories').findProperty('healthStatusValue', this.get('value'));
+      selected.set('isActive', true);
+      this.set('class', selected.get('class') || this.get('value'));
     }.observes('value'),
 
     showClearFilter: function(){
@@ -455,6 +460,7 @@ App.MainHostView = App.TableView.extend({
     clearFilter: function() {
       this.get('categories').setEach('isActive', false);
       this.set('value', '');
+      this.set('class', '');
       this.showClearFilter();
     }
   }),
