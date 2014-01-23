@@ -31,6 +31,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
+import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -166,6 +167,8 @@ public class AmbariServer {
 
       ServletContextHandler root = new ServletContextHandler(server, CONTEXT_PATH,
           ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
+
+      root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
 
       //Changing session cookie name to avoid conflicts
       root.getSessionHandler().getSessionManager().setSessionCookie("AMBARISESSIONID");

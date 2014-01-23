@@ -76,6 +76,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import com.google.gson.GsonBuilder;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
@@ -98,6 +99,7 @@ public class ControllerModule extends AbstractModule {
   private final Configuration configuration;
   private final HostsMap hostsMap;
   private boolean dbInitNeeded;
+  private final Gson prettyGson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
 
   public ControllerModule() throws Exception {
     configuration = new Configuration();
@@ -116,6 +118,7 @@ public class ControllerModule extends AbstractModule {
     bind(Configuration.class).toInstance(configuration);
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
+    bind(Gson.class).annotatedWith(Names.named("prettyGson")).toInstance(prettyGson);
 
     install(buildJpaPersistModule());
 
