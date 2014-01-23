@@ -233,7 +233,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     configs['mapreduce.reduce.memory.mb'] = Math.round(this.get('reduceMemory'));
     configs['mapreduce.map.java.opts'] = "-Xmx" + Math.round(0.8 * this.get('mapMemory')) + "m";
     configs['mapreduce.reduce.java.opts'] = "-Xmx" + Math.round(0.8 * this.get('reduceMemory')) + "m";
-    configs['mapreduce.task.io.sort.mb'] = Math.round(0.4 * this.get('mapMemory'));
+    configs['mapreduce.task.io.sort.mb'] = Math.round(Math.min(0.4 * this.get('mapMemory'), 1024));
     return configs;
   },
 
