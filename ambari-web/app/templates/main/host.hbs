@@ -19,6 +19,9 @@
 <div id="hosts">
 
   <div class="box-header row">
+    <div class="hosts-actions pull-left">
+      {{view App.HostTableMenuView}}
+    </div>
     <div class="health-status-bar pull-left">
       {{#view view.statusFilter categoriesBinding="view.categories"}}
         <div class="btn-group display-inline-block">
@@ -49,23 +52,12 @@
        </div>
       {{/view}}
     </div>
-
-    {{#if App.isAdmin}}
-    <div class="pull-right">
-      <button class="btn btn-inverse add-host-button" {{action addHost}}>
-        <i class="icon-plus icon-white"></i>
-        {{t hosts.host.add}}
-      </button>
-    </div>
-    {{/if}}
   </div>
 
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        <th class="first">
-          {{view App.HostTableMenuView}}
-        </th>
+        <th class="first"> </th>
         <th> </th>
         {{view view.parentView.nameSort}}
         <th> </th>

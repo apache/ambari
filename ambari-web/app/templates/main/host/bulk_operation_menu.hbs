@@ -17,19 +17,23 @@
 }}
 
 <div class="dropdown">
-  <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="icon-asterisk"></span></a>
+  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">{{t common.actions}} <span class="caret"></span></a>
   <ul class="dropdown-menu">
+    {{#if App.isAdmin}}
+      <li><a href="#" {{action addHost}}><i class="icon-plus icon-white"></i> {{t hosts.host.add}}</a></li>
+      <li class="divider"></li>
+    {{/if}}
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
-        ({{view.parentView.parentView.selectedCategory.hostsCount}})</a>
-      <ul {{bindAttr class="view.parentView.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
+        ({{view.parentView.selectedCategory.hostsCount}})</a>
+      <ul {{bindAttr class="view.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
         {{#each subMenuItem in view.menuItems.s.submenu}}
           <li class="dropdown-submenu">
             <a href="javascript:void(null);">{{subMenuItem.label}}</a>
             <ul class="dropdown-menu">
               {{#each menuL3Item in subMenuItem.submenu}}
                 <li>
-                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView.parentView"}} href="#">{{menuL3Item.label}}</a>
+                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView"}} href="#">{{menuL3Item.label}}</a>
                 </li>
               {{/each}}
             </ul>
@@ -39,15 +43,15 @@
     </li>
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.f.label}}
-        ({{view.parentView.parentView.filteredContent.length}})</a>
-      <ul {{bindAttr class="view.parentView.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
+        ({{view.parentView.filteredContent.length}})</a>
+      <ul {{bindAttr class="view.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
         {{#each subMenuItem in view.menuItems.f.submenu}}
           <li class="dropdown-submenu">
             <a href="javascript:void(null);">{{subMenuItem.label}}</a>
             <ul class="dropdown-menu">
               {{#each menuL3Item in subMenuItem.submenu}}
                 <li>
-                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView.parentView"}} href="#">{{menuL3Item.label}}</a>
+                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView"}} href="#">{{menuL3Item.label}}</a>
                 </li>
               {{/each}}
             </ul>
@@ -57,7 +61,7 @@
     </li>
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.a.label}}
-        ({{view.parentView.parentView.content.length}})</a>
+        ({{view.parentView.content.length}})</a>
       <ul class="dropdown-menu">
         {{#each subMenuItem in view.menuItems.a.submenu}}
           <li class="dropdown-submenu">
@@ -65,7 +69,7 @@
             <ul class="dropdown-menu">
               {{#each menuL3Item in subMenuItem.submenu}}
                 <li>
-                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView.parentView"}} href="#">{{menuL3Item.label}}</a>
+                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView"}} href="#">{{menuL3Item.label}}</a>
                 </li>
               {{/each}}
             </ul>
