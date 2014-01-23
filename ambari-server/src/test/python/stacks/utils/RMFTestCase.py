@@ -121,15 +121,15 @@ class RMFTestCase(TestCase):
 def Template(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import Template
-    return Template(name, kwargs)
+    return Template(name, **kwargs)
   
 def StaticFile(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import StaticFile
-    return StaticFile(name, kwargs)
+    return StaticFile(name, **kwargs)
   
 def InlineTemplate(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import InlineTemplate
-    return InlineTemplate(name, kwargs)
+    return InlineTemplate(name, **kwargs)
 
