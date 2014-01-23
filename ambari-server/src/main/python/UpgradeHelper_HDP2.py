@@ -468,7 +468,7 @@ GLOBAL = {
   "dfs_namenode_checkpoint_dir": "REPLACE_WITH_fs_checkpoint_dir",
   "dfs_namenode_checkpoint_period": "REPLACE_WITH_fs_checkpoint_period",
   "dfs_namenode_name_dir": "REPLACE_WITH_dfs_name_dir",
-  "fs_checkpoint_size": "0.5",
+  "fs_checkpoint_size": "DELETE_OLD",
   "io_sort_spill_percent": "DELETE_OLD",
   "hadoop_conf_dir": "/etc/hadoop/conf",
   "hdfs_support_append": "DELETE_OLD",
@@ -531,7 +531,7 @@ HDFS_SITE = {
 }
 
 CORE_SITE = {
-  "fs.checkpoint.size": "0.5",
+  "fs.checkpoint.size": "DELETE_OLD",
   "hadoop.security.auth_to_local": "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT\n    ",
   "hadoop.security.authentication": "simple",
   "hadoop.security.authorization": "false",
