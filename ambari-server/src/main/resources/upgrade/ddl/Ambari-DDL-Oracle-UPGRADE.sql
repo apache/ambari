@@ -44,10 +44,10 @@ CREATE TABLE action (action_name VARCHAR2(255) NOT NULL, action_type VARCHAR2(25
 
 
 ALTER TABLE configgroup ADD CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
-ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclusterconfigmapping_config_tag FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id);
-ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclusterconfigmapping_group_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_configgroup_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
+ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cg_cluster_cm_config_tag FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id);
+ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cg_cluster_cm_group_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
+ALTER TABLE confgrouphostmapping ADD CONSTRAINT FK_cghostm_configgroup_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
+ALTER TABLE confgrouphostmapping ADD CONSTRAINT FK_cghostm_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 
 
 UPDATE
