@@ -23,16 +23,15 @@ App.DashboardWidgetView = Em.View.extend({
   title: null,
   templateName: null, // each has specific template
 
+  /**
+   * Setup model for widget by `model_type`. Usually `model_type` is a lowercase service name,
+   * for example `hdfs`, `yarn`, etc. You need to set `model_type` in extended object View, for example
+   * look App.DataNodeUpView.
+   * @return {Object} - model that set up in App.MainDashboardView.setWidgetsDataModel()
+   */
   model : function () {
-    if (this.get('model_type') == 'hdfs') {
-      return this.get('parentView').get('hdfs_model');
-    } else if (this.get('model_type') == 'mapreduce') {
-      return this.get('parentView').get('mapreduce_model');
-    } else if (this.get('model_type') == 'hbase') {
-      return this.get('parentView').get('hbase_model');
-    } else if (this.get('model_type') == 'yarn') {
-      return this.get('parentView').get('yarn_model');
-    }
+    if (!this.get('model_type')) return {};
+    return this.get('parentView').get(this.get('model_type') + '_model');
   }.property(), //data bind from parent view
 
   id: null, // id 1-10 used to identify
@@ -49,8 +48,8 @@ App.DashboardWidgetView = Em.View.extend({
   hiddenInfo: null, // more info details
   hiddenInfoClass: "hidden-info-two-line",
 
-  thresh1: null, //num not string
-  thresh2: null,
+  thresh1: null, //@type {Number}
+  thresh2: null, //@type {Number}
 
   didInsertElement: function () {
     App.tooltip(this.$("[rel='ZoomInTooltip']"), {placement : 'left'});

@@ -1514,6 +1514,7 @@ Em.I18n.translations = {
   'dashboard.widgets.JobTrackerCapacity': 'JobTracker Capacity',
   'dashboard.widgets.DataNodeUp': 'DataNodes Live',
   'dashboard.widgets.TaskTrackerUp': 'TaskTrackers Live',
+  'dashboard.widgets.SuperVisorUp': 'Supervisors Live',
   'dashboard.widgets.NameNodeRpc': 'NameNode RPC',
   'dashboard.widgets.JobTrackerRpc': 'JobTracker RPC',
   'dashboard.widgets.MapReduceSlots': 'MapReduce Slots',

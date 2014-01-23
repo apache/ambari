@@ -82,9 +82,13 @@ App.MainDashboardView = Em.View.extend({
         case "HBASE":
           self.set('hbase_model', App.HBaseService.find(item.get('id')) || item);
           break;
+        case "STORM":
+          self.set('storm_model', item);
+          break;
       }
     }, this);
   },
+
   setInitPrefObject: function() {
     //in case of some service not installed
     var visibleFull = [
@@ -93,7 +97,8 @@ App.MainDashboardView = Em.View.extend({
       '18', '1', '6', '5', '9',
       '3', '7', '15', '16', '20',
       '19', '21', '23',
-      '24', '25', '26', '27'// all yarn
+      '24', '25', '26', '27',// all yarn
+      '28' // storm
     ]; // all in order
     var hiddenFull = [['22','Region In Transition']];
     if (this.get('hdfs_model') == null) {
@@ -114,9 +119,16 @@ App.MainDashboardView = Em.View.extend({
         visibleFull = visibleFull.without(item);
       }, this);
       hiddenFull = [];
-    }if (this.get('yarn_model') == null) {
+    }
+    if (this.get('yarn_model') == null) {
       var yarn = ['24', '25', '26', '27'];
       yarn.forEach ( function (item) {
+        visibleFull = visibleFull.without(item);
+      }, this);
+    }
+    if (this.get('storm_model') == null) {
+      var storm = ['28'];
+      storm.forEach(function(item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
@@ -130,6 +142,7 @@ App.MainDashboardView = Em.View.extend({
   mapreduce2_model: null,
   yarn_model: null,
   hbase_model: null,
+  storm_model: null,
   visibleWidgets: [],
   hiddenWidgets: [], // widget child view will push object in this array if deleted
 
@@ -313,6 +326,18 @@ App.MainDashboardView = Em.View.extend({
         toAdd = toAdd.concat(yarn);
       }
     }
+    if (this.get('storm_model') != null) {
+      var storm = ['28'];
+      var flag = self.containsWidget(toDelete, storm[0]);
+      var self = this;
+      if (flag) {
+        storm.forEach ( function (item) {
+          toDelete = self.removeWidget(toDelete, item);
+        }, this);
+      } else {
+        toAdd = toAdd.concat(storm);
+      }
+    }
     var value = currentPrefObject;
     if (toDelete.visible.length || toDelete.hidden.length) {
       toDelete.visible.forEach ( function (item) {
@@ -362,6 +387,7 @@ App.MainDashboardView = Em.View.extend({
       case '25': return App.ResourceManagerUptimeView;
       case '26': return App.NodeManagersLiveView;
       case '27': return App.YARNMemoryPieChartView;
+      case '28': return App.SuperVisorUpView;
     }
   },
 
@@ -372,7 +398,7 @@ App.MainDashboardView = Em.View.extend({
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
-      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75]} // id:[thresh1, thresh2]
+      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95]} // id:[thresh1, thresh2]
   }),
   persistKey: function () {
     var loginName = App.router.get('loginName');
@@ -413,7 +439,6 @@ App.MainDashboardView = Em.View.extend({
    * post persist key/value to server, value is object
    */
   postUserPref: function (key, value) {
-    var url = App.apiPrefix + '/persist/';
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
 
@@ -453,6 +478,7 @@ App.MainDashboardView = Em.View.extend({
     }
     this.translateToReal(oldValue);
   },
+
   switchToNew: function () {
     if(!App.testMode){
       this.getUserPref(this.get('persistKey'));
@@ -486,6 +512,7 @@ App.MainDashboardView = Em.View.extend({
       }
     }, this);
   }.observes('App.router.updateController.isUpdate'),
+
   services: function () {
     var services = App.Service.find();
     if (this.get('content').length > 0) {
