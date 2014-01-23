@@ -151,7 +151,7 @@ App.AddServiceController = App.WizardController.extend({
     this.setDBProperty('selectedServiceNames',serviceNames);
     console.log('AddServiceController.selectedServiceNames:', serviceNames);
 
-    this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE') && !serviceNames.contains('STORM') && !serviceNames.contains('YARN'));
     if (this.get('content.skipSlavesStep')) {
       this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
     }
@@ -264,6 +264,10 @@ App.AddServiceController = App.WizardController.extend({
     {
       name: 'HBASE_REGIONSERVER',
       service: 'HBASE'
+    },
+    {
+      name: 'SUPERVISOR',
+      service: 'STORM'
     }];
 
     if (App.get('isHadoop2Stack')) {
