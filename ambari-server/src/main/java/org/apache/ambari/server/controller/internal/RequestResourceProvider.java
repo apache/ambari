@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Clusters;
 
 import java.util.ArrayList;
@@ -56,8 +57,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
   protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
   protected static final String REQUEST_CONTEXT_ID = "Requests/request_context";
-  public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/source_schedule_href";
-  public static final String REQUEST_SOURCE_SCHEDULE_ID = "Requests/source_schedule_id";
+  public static final String REQUEST_SOURCE_SCHEDULE = "Requests/request_schedule";
+  public static final String REQUEST_SOURCE_SCHEDULE_ID = "Requests/request_schedule/schedule_id";
+  public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/request_schedule/href";
   protected static final String REQUEST_TYPE_ID = "Requests/type";
   protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
   protected static final String REQUEST_TARGET_SERVICE_ID = "Requests/target_service";
@@ -275,7 +277,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     return resourceMap.values();
   }
 
-  private Resource getRequestResource(org.apache.ambari.server.actionmanager.Request request,
+  private Resource getRequestResource(final org.apache.ambari.server.actionmanager.Request request,
                                       Set<String> requestedPropertyIds) {
     Resource resource = new ResourceImpl(Resource.Type.Request);
 
@@ -290,7 +292,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE_ID, request.getRequestScheduleId(), requestedPropertyIds);
+    if (request.getRequestScheduleId() != null) {
+      setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE_ID, request.getRequestScheduleId(), requestedPropertyIds);
+    } else {
+      setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
+    }
 
     List<HostRoleCommand> commands = request.getCommands();
 

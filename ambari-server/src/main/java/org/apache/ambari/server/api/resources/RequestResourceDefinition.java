@@ -86,6 +86,7 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
 
   private class RequestSourceScheduleHrefPostProcessor implements PostProcessor {
 
+    @SuppressWarnings("unchecked")
     @Override
     public void process(Request request, TreeNode<Resource> resultNode, String href) {
       StringBuilder sb = new StringBuilder();

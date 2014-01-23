@@ -147,6 +147,126 @@ public class RequestResourceProviderTest {
   }
 
   @Test
+  public void testGetResourcesWithRequestSchedule() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    HostRoleCommand hostRoleCommand = createNiceMock(HostRoleCommand.class);
+
+
+    List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    hostRoleCommands.add(hostRoleCommand);
+
+    org.apache.ambari.server.actionmanager.Request requestMock =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
+    expect(requestMock.getRequestScheduleId()).andReturn(11L).anyTimes();
+
+
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+
+    // set expectations
+    expect(managementController.getActionManager()).andReturn(actionManager);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock)).anyTimes();
+    expect(hostRoleCommand.getRequestId()).andReturn(100L).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS);
+
+    // replay
+    replay(managementController, actionManager, hostRoleCommand, requestMock);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_SOURCE_SCHEDULE);
+
+
+    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals(100L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
+      Assert.assertEquals("IN_PROGRESS", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertEquals(11L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_SOURCE_SCHEDULE_ID));
+    }
+
+    // verify
+    verify(managementController, actionManager, hostRoleCommand);
+  }
+
+  @Test
+  public void testGetResourcesWithoutRequestSchedule() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    HostRoleCommand hostRoleCommand = createNiceMock(HostRoleCommand.class);
+
+
+    List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    hostRoleCommands.add(hostRoleCommand);
+
+    org.apache.ambari.server.actionmanager.Request requestMock =
+        createNiceMock(org.apache.ambari.server.actionmanager.Request.class);
+    expect(requestMock.getCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
+    expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
+    expect(requestMock.getRequestScheduleId()).andReturn(null).anyTimes();
+
+
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+
+    // set expectations
+    expect(managementController.getActionManager()).andReturn(actionManager);
+    expect(actionManager.getRequests(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock)).anyTimes();
+    expect(hostRoleCommand.getRequestId()).andReturn(100L).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS);
+
+    // replay
+    replay(managementController, actionManager, hostRoleCommand, requestMock);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_SOURCE_SCHEDULE);
+
+
+    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals(100L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
+      Assert.assertEquals("IN_PROGRESS", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertEquals(null, resource.getPropertyValue(RequestResourceProvider.REQUEST_SOURCE_SCHEDULE));
+    }
+
+    // verify
+    verify(managementController, actionManager, hostRoleCommand);
+  }
+
+  @Test
   public void testGetResourcesWithCluster() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
