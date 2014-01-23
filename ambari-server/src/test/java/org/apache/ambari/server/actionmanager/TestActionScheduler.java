@@ -23,9 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -215,6 +213,9 @@ public class TestActionScheduler {
     }
     assertEquals(stages.get(0).getHostRoleStatus(hostname, "NAMENODE"),
         HostRoleStatus.TIMEDOUT);
+
+    verify(db, times(1)).startRequest(eq(1L));
+    verify(db, times(1)).abortOperation(1L);
 
     scheduler.stop();
   }
@@ -587,21 +588,29 @@ public class TestActionScheduler {
     doAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) throws Throwable {
-        String host = (String) invocation.getArguments()[0];
-        Long requestId = (Long) invocation.getArguments()[1];
-        Long stageId = (Long) invocation.getArguments()[2];
-        String role = (String) invocation.getArguments()[3];
-        CommandReport commandReport = (CommandReport) invocation.getArguments()[4];
-        for (Stage stage : stages) {
-          if (requestId.equals(stage.getRequestId()) && stageId.equals(stage.getStageId())) {
-            HostRoleCommand command = stage.getHostRoleCommand(host, role);
-            command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
+        List<CommandReport> reports = (List<CommandReport>) invocation.getArguments()[0];
+        for (CommandReport report : reports) {
+          String actionId = report.getActionId();
+          long[] requestStageIds = StageUtils.getRequestStage(actionId);
+          Long requestId = requestStageIds[0];
+          Long stageId = requestStageIds[1];
+          String role = report.getRole();
+          Long id = report.getTaskId();
+          for (Stage stage : stages) {
+            if (requestId.equals(stage.getRequestId()) && stageId.equals(stage.getStageId())) {
+              for (HostRoleCommand hostRoleCommand : stage.getOrderedHostRoleCommands()) {
+                if (hostRoleCommand.getTaskId() == id) {
+                  hostRoleCommand.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+                }
+              }
+            }
           }
+
         }
 
         return null;
       }
-    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+    }).when(db).updateHostRoleStates(anyCollectionOf(CommandReport.class));
 
     when(db.getTask(anyLong())).thenAnswer(new Answer<Object>() {
       @Override
@@ -906,21 +915,29 @@ public class TestActionScheduler {
     doAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) throws Throwable {
-        String host = (String) invocation.getArguments()[0];
-        Long requestId = (Long) invocation.getArguments()[1];
-        Long stageId = (Long) invocation.getArguments()[2];
-        String role = (String) invocation.getArguments()[3];
-        CommandReport commandReport = (CommandReport) invocation.getArguments()[4];
-        for (Stage stage : stages) {
-          if (requestId.equals(stage.getRequestId()) && stageId.equals(stage.getStageId())) {
-            HostRoleCommand command = stage.getHostRoleCommand(host, role);
-            command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
+        List<CommandReport> reports = (List<CommandReport>) invocation.getArguments()[0];
+        for (CommandReport report : reports) {
+          String actionId = report.getActionId();
+          long[] requestStageIds = StageUtils.getRequestStage(actionId);
+          Long requestId = requestStageIds[0];
+          Long stageId = requestStageIds[1];
+          String role = report.getRole();
+          Long id = report.getTaskId();
+          for (Stage stage : stages) {
+            if (requestId.equals(stage.getRequestId()) && stageId.equals(stage.getStageId())) {
+              for (HostRoleCommand hostRoleCommand : stage.getOrderedHostRoleCommands()) {
+                if (hostRoleCommand.getTaskId() == id) {
+                  hostRoleCommand.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+                }
+              }
+            }
           }
+
         }
 
         return null;
       }
-    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+    }).when(db).updateHostRoleStates(anyCollectionOf(CommandReport.class));
 
     when(db.getTask(anyLong())).thenAnswer(new Answer<Object>() {
       @Override

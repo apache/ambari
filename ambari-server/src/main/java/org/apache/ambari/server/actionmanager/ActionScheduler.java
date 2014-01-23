@@ -79,6 +79,8 @@ class ActionScheduler implements Runnable {
   private final ServerActionManager serverActionManager;
   private final Configuration configuration;
 
+  private final Set<String> requestsInProgress = new HashSet<String>();
+
   /**
    * true if scheduler should run ASAP.
    * We need this flag to avoid sleep in situations, when
@@ -145,8 +147,10 @@ class ActionScheduler implements Runnable {
         shouldRun = false;
       } catch (Exception ex) {
         LOG.warn("Exception received", ex);
+        requestsInProgress.clear();
       } catch (Throwable t) {
         LOG.warn("ERROR", t);
+        requestsInProgress.clear();
       }
     }
   }
@@ -179,8 +183,11 @@ class ActionScheduler implements Runnable {
           continue;
         } else {
           runningRequestIds.add(requestIdStr);
+          if (!requestsInProgress.contains(requestIdStr)) {
+            requestsInProgress.add(requestIdStr);
+            db.startRequest(requestId);
+          }
         }
-
 
         List<String> stageHosts = s.getHosts();
         boolean conflict = false;
@@ -250,6 +257,8 @@ class ActionScheduler implements Runnable {
           return;
         }
       }
+
+      requestsInProgress.retainAll(runningRequestIds);
 
     } finally {
       unitOfWork.end();

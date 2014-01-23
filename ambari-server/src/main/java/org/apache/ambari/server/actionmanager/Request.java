@@ -45,6 +45,7 @@ public class Request {
   private long createTime;
   private long startTime;
   private long endTime;
+  private HostRoleStatus status; // not persisted yet
   private String inputs;
   private String targetService;
   private String targetComponent;
@@ -142,6 +143,7 @@ public class Request {
     this.targetHosts = entity.getTargetHosts();
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
+    this.status = entity.getStatus();
     if (entity.getRequestScheduleEntity() !=null) {
       this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
     }
@@ -302,5 +304,13 @@ public class Request {
         ", requestType=" + requestType +
         ", stages=" + stages +
         '}';
+  }
+
+  public HostRoleStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(HostRoleStatus status) {
+    this.status = status;
   }
 }

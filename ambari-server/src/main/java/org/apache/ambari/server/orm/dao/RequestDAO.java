@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.dao;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 
 import javax.persistence.EntityManager;
@@ -44,6 +45,25 @@ public class RequestDAO {
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
         "WHERE request.requestId IN ?1", RequestEntity.class);
     return daoUtils.selectList(query, requestIds);
+  }
+
+  @Transactional
+  public boolean isAllTasksCompleted(long requestId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(
+        "SELECT task.taskId FROM HostRoleCommandEntity task WHERE task.requestId = ?1 AND " +
+          "task.stageId=(select max(stage.stageId) FROM StageEntity stage WHERE stage.requestId=?1) " +
+          "AND task.status NOT IN ?2",
+        Long.class
+    );
+    query.setMaxResults(1); //we don't need all
+    return daoUtils.selectList(query, requestId, HostRoleStatus.getCompletedStates()).isEmpty();
+  }
+
+  @Transactional
+  public Long getLastStageId(long requestId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT max(stage.stageId) " +
+      "FROM StageEntity stage WHERE stage.requestId=?1", Long.class);
+    return daoUtils.selectSingle(query, requestId);
   }
 
   @Transactional

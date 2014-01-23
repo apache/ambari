@@ -18,9 +18,7 @@
 package org.apache.ambari.server.actionmanager;
 
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.controller.ExecuteActionRequest;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,6 +36,13 @@ public interface ActionDBAccessor {
    * Get all stages associated with a single request id
    */
   public List<Stage> getAllStages(long requestId);
+
+  /**
+   * Get request object by id
+   * @param requestId
+   * @return
+   */
+  Request getRequest(long requestId);
 
   /**
    * Abort all outstanding operations associated with the given request
@@ -73,6 +78,11 @@ public interface ActionDBAccessor {
    */
   @Transactional
   void setSourceScheduleForRequest(long requestId, long scheduleId);
+
+  /**
+   * Update tasks according to command reports
+   */
+  void updateHostRoleStates(Collection<CommandReport> reports);
 
   /**
    * For the given host, update all the tasks based on the command report

@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public enum HostRoleStatus {
   PENDING(0), //Not queued for a host
   QUEUED(1), //Queued for a host
@@ -26,6 +30,10 @@ public enum HostRoleStatus {
   TIMEDOUT(5), //Host did not respond in time
   ABORTED(6); //Operation was abandoned
   private final int status;
+
+  private static List<HostRoleStatus> COMPLETED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED, COMPLETED);
+  private static List<HostRoleStatus> FAILED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED);
+
 
   private HostRoleStatus(int status) {
     this.status = status;
@@ -37,14 +45,7 @@ public enum HostRoleStatus {
    * @return true if this is a valid failure state.
    */
   public boolean isFailedState() {
-    switch (HostRoleStatus.values()[this.status]) {
-      case FAILED:
-      case TIMEDOUT:
-      case ABORTED:
-        return true;
-      default:
-        return false;
-    }
+    return FAILED_STATES.contains(this);
   }
 
   /**
@@ -56,14 +57,24 @@ public enum HostRoleStatus {
    * @return true if this is a completed state.
    */
   public boolean isCompletedState() {
-    switch (HostRoleStatus.values()[this.status]) {
-      case COMPLETED:
-      case FAILED:
-      case TIMEDOUT:
-      case ABORTED:
-        return true;
-      default:
-        return false;
-    }
+    return COMPLETED_STATES.contains(this);
   }
+
+  /**
+   *
+   * @return list of completed states
+   */
+  public static List<HostRoleStatus> getCompletedStates() {
+    return Collections.unmodifiableList(COMPLETED_STATES);
+  }
+
+  /**
+   *
+   * @return list of failed states
+   */
+  public static List<HostRoleStatus> getFailedStates() {
+    return Collections.unmodifiableList(FAILED_STATES);
+  }
+
+
 }

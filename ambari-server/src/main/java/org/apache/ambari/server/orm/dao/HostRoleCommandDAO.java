@@ -22,7 +22,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -31,10 +30,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Singleton
 public class HostRoleCommandDAO {
@@ -53,10 +55,13 @@ public class HostRoleCommandDAO {
 
   @Transactional
   public List<HostRoleCommandEntity> findByPKs(Collection<Long> taskIds) {
+    if (taskIds == null || taskIds.isEmpty()) {
+      return Collections.emptyList();
+    }
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
-            "ORDER BY task.taskId",
-        HostRoleCommandEntity.class);
+      "SELECT task FROM HostRoleCommandEntity task WHERE task.taskId IN ?1 " +
+        "ORDER BY task.taskId",
+      HostRoleCommandEntity.class);
     return daoUtils.selectList(query, taskIds);
   }
 
@@ -204,7 +209,15 @@ public class HostRoleCommandDAO {
   public HostRoleCommandEntity merge(HostRoleCommandEntity stageEntity) {
     HostRoleCommandEntity entity = entityManagerProvider.get().merge(stageEntity);
     return entity;
+  }
 
+  @Transactional
+  public List<HostRoleCommandEntity> mergeAll(Collection<HostRoleCommandEntity> entities) {
+    List<HostRoleCommandEntity> managedList = new ArrayList<HostRoleCommandEntity>(entities.size());
+    for (HostRoleCommandEntity entity : entities) {
+      managedList.add(entityManagerProvider.get().merge(entity));
+    }
+    return managedList;
   }
 
   @Transactional

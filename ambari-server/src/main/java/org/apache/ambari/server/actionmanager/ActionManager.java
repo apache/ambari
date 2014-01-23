@@ -33,6 +33,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -123,15 +124,13 @@ public class ActionManager {
     if (reports == null) {
       return;
     }
+
+    List<CommandReport> reportsToProcess = new ArrayList<CommandReport>();
     //persist the action response into the db.
     for (CommandReport report : reports) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Processing command report : " + report.toString());
       }
-      String actionId = report.getActionId();
-      long[] requestStageIds = StageUtils.getRequestStage(actionId);
-      long requestId = requestStageIds[0];
-      long stageId = requestStageIds[1];
       HostRoleCommand command = db.getTask(report.getTaskId());
       if (command == null) {
         LOG.warn("The task " + report.getTaskId()
@@ -144,9 +143,10 @@ public class ActionManager {
             + " is not in progress, ignoring update");
         continue;
       }
-      db.updateHostRoleState(hostname, requestId, stageId, report.getRole(),
-          report);
+      reportsToProcess.add(report);
     }
+
+    db.updateHostRoleStates(reportsToProcess);
   }
 
   public void handleLostHost(String host) {

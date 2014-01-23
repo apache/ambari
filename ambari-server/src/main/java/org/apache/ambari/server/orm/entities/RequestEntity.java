@@ -18,9 +18,21 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestType;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.Collection;
 
 @Table(name = "request")
@@ -68,7 +80,8 @@ public class RequestEntity {
   private RequestType requestType;
 
   @Column(name = "status")
-  private String status;
+  @Enumerated(value = EnumType.STRING)
+  private HostRoleStatus status;
 
   @Basic
   @Column(name = "create_time", nullable = false)
@@ -205,11 +218,11 @@ public class RequestEntity {
     this.commandName = commandName;
   }
 
-  public String getStatus() {
+  public HostRoleStatus getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(HostRoleStatus status) {
     this.status = status;
   }
 
