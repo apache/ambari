@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -250,6 +249,38 @@ public class GangliaPropertyProviderTest {
     
   }
 
+  @Test
+  public void testPopulateResources_checkHost() throws Exception {
+    TestStreamProvider streamProvider  = new TestStreamProvider("host_temporal_ganglia_data.txt");
+    TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+
+    GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.Host),
+        streamProvider,
+        configuration,
+        hostProvider,
+        CLUSTER_NAME_PROPERTY_ID,
+        HOST_NAME_PROPERTY_ID
+    );
+
+    // host
+    Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "corp-hadoopda05.client.ext");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put("metrics/process/proc_total", new TemporalInfoImpl(10L, 20L, 1L));
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton("metrics/process/proc_total"), temporalInfoMap);
+
+    Set<Resource> populateResources = propertyProvider.populateResources(Collections.singleton(resource), request, null);
+
+    Assert.assertEquals(1, populateResources.size());
+
+    Resource res = populateResources.iterator().next();
+
+    Number[][] val = (Number[][]) res.getPropertyValue("metrics/process/proc_total");
+    Assert.assertEquals(226, val.length);
+  }
 
   @Test
   public void testPopulateManyResources() throws Exception {

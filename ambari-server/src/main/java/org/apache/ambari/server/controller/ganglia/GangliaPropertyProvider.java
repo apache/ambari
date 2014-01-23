@@ -337,11 +337,11 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
   private static Object getValue(GangliaMetric metric, boolean isTemporal) {
     Number[][] dataPoints = metric.getDatapoints();
 
+    int length = dataPoints.length;
     if (isTemporal) {
-      return dataPoints;
+      return length > 0 ? dataPoints : null;
     } else {
       // return the value of the last data point
-      int length = dataPoints.length;
       return length > 0 ? dataPoints[length - 1][0] : 0;
     }
   }
@@ -604,7 +604,10 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
                     ++i;
                   }
                 }
-                resource.setProperty(propertyId, getValue(gangliaMetric, temporalInfo != null));
+                Object value = getValue(gangliaMetric, temporalInfo != null);
+                if (value != null) {
+                  resource.setProperty(propertyId, value);
+                }
               }
             }
           }
