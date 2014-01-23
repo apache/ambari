@@ -27,6 +27,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
@@ -53,6 +54,7 @@ public class ConfigGroupTest {
   private ConfigFactory configFactory;
   private HostDAO hostDAO;
   private ConfigGroupDAO configGroupDAO;
+  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   @Before
   public void setup() throws Exception {
@@ -64,6 +66,8 @@ public class ConfigGroupTest {
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
     hostDAO = injector.getInstance(HostDAO.class);
     configGroupDAO = injector.getInstance(ConfigGroupDAO.class);
+    configGroupHostMappingDAO = injector.getInstance
+      (ConfigGroupHostMappingDAO.class);
 
     metaInfo.init();
     clusterName = "foo";
@@ -185,6 +189,22 @@ public class ConfigGroupTest {
 
     Assert.assertNull(configGroupDAO.findById(id));
     Assert.assertNull(cluster.getConfigGroups().get(id));
+  }
+
+  @Test
+  public void testRemoveHost() throws Exception {
+    ConfigGroup configGroup = createConfigGroup();
+    Assert.assertNotNull(configGroup);
+    Long id = configGroup.getId();
+
+    configGroup = cluster.getConfigGroups().get(id);
+    Assert.assertNotNull(configGroup);
+
+    clusters.unmapHostFromCluster("h1", clusterName);
+
+    Assert.assertNull(clusters.getHostsForCluster(clusterName).get("h1"));
+    Assert.assertTrue(configGroupHostMappingDAO.findByHost("h1").isEmpty());
+    Assert.assertNull(configGroup.getHosts().get("h1"));
   }
 
   @Test
