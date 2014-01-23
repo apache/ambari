@@ -193,7 +193,6 @@ public class ConfigGroupTest {
     Assert.assertNull(cluster.getConfigGroups().get(id));
   }
 
-  @Ignore
   @Test
   public void testRemoveHost() throws Exception {
     ConfigGroup configGroup = createConfigGroup();

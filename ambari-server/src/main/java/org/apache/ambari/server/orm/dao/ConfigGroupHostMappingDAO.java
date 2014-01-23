@@ -105,29 +105,19 @@ public class ConfigGroupHostMappingDAO {
     }
     
   }
-  
+
+  /**
+   * Return entity object which can be used for operations like remove
+   * directly.
+   * @param configGroupHostMappingEntityPK
+   * @return
+   */
   @Transactional
-  public ConfigGroupHostMapping findByPK(final ConfigGroupHostMappingEntityPK
+  public ConfigGroupHostMappingEntity findByPK(final ConfigGroupHostMappingEntityPK
         configGroupHostMappingEntityPK) {
     
-    populateCache();
-    
-    if (!configGroupHostMappingByHost.containsKey(configGroupHostMappingEntityPK.getHostname()))
-      return null;
-    
-    Set<ConfigGroupHostMapping> set = 
-        new HashSet<ConfigGroupHostMapping>(configGroupHostMappingByHost.get(configGroupHostMappingEntityPK.getHostname()));
-    
-    ConfigGroupHostMapping itemByPk = (ConfigGroupHostMapping) CollectionUtils.find(set, new Predicate() {
-      
-      @Override
-      public boolean evaluate(Object arg0) {
-        return ((ConfigGroupHostMapping) arg0).getConfigGroupId().
-            equals(configGroupHostMappingEntityPK.getConfigGroupId());
-      }
-    });
-    
-    return itemByPk;
+    return entityManagerProvider.get()
+      .find(ConfigGroupHostMappingEntity.class, configGroupHostMappingEntityPK);
   }
 
   @Transactional
@@ -247,10 +237,10 @@ public class ConfigGroupHostMappingDAO {
                          configGroupHostMappingEntityPK) {
     populateCache();
     
-    entityManagerProvider.get().remove(findByPK
-      (configGroupHostMappingEntityPK));
+    entityManagerProvider.get().remove(findByPK(configGroupHostMappingEntityPK));
     
-    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(configGroupHostMappingEntityPK.getHostname());
+    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost
+      .get(configGroupHostMappingEntityPK.getHostname());
     
     if (setByHost != null) {
       CollectionUtils.filter(setByHost, new Predicate() {
