@@ -363,7 +363,7 @@ App.config = Em.Object.create({
       if (a.name < b.name) return -1;
       if (a.name > b.name) return 1;
       return 0;
-    }
+    };
 
 
     return {
@@ -382,15 +382,12 @@ App.config = Em.Object.create({
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs) {
     var mergedConfigs = [];
     var preDefinedConfigs = $.extend(true, [], this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')));
-    var preDefinedNames = [];
-    var storedNames = [];
-    var names = [];
     var categoryMetaData = null;
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
-    preDefinedNames = preDefinedConfigs.mapProperty('name');
-    storedNames = storedConfigs.mapProperty('name');
-    names = preDefinedNames.concat(storedNames).uniq();
+    var preDefinedNames = preDefinedConfigs.mapProperty('name');
+    var storedNames = storedConfigs.mapProperty('name');
+    var names = preDefinedNames.concat(storedNames).uniq();
     names.forEach(function (name) {
       var stored = storedConfigs.findProperty('name', name);
       var preDefined = preDefinedConfigs.findProperty('name', name);
@@ -528,13 +525,11 @@ App.config = Em.Object.create({
       }
     });
     services.forEach(function (service) {
-      var serviceConfig = {};
       var configsByService = [];
       var serviceConfigs = configs.filterProperty('serviceName', service.serviceName);
       serviceConfigs.forEach(function (_config) {
-        var serviceConfigProperty = {};
         _config.isOverridable = (_config.isOverridable === undefined) ? true : _config.isOverridable;
-        serviceConfigProperty = App.ServiceConfigProperty.create(_config);
+        var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         if (!storedConfigs) {
           serviceConfigProperty.initialValue(localDB);
@@ -543,7 +538,7 @@ App.config = Em.Object.create({
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);
       }, this);
-      serviceConfig = this.createServiceConfig(service.serviceName);
+      var serviceConfig = this.createServiceConfig(service.serviceName);
       serviceConfig.set('showConfig', service.showConfig);
 
       // Use calculated default values for some configs
@@ -994,7 +989,8 @@ App.config = Em.Object.create({
    * trim both trailing and leading spaces for host displayType and hive/oozie datebases url.
    * for directory or directories displayType format string for further using.
    * for password and values with spaces only do nothing.
-   * @param property
+   * @param {Object} property
+   * @param {Boolean} isEmberObject
    * @returns {*}
    */
   trimProperty: function (property, isEmberObject) {
@@ -1040,7 +1036,7 @@ App.config = Em.Object.create({
    * of {id:2, name:'New hardware group'}. In the case of dialog being cancelled,
    * the callback is provided <code>null</code>
    *
-   * @param callback  Callback function which is invoked when dialog
+   * @param {String} groupName
    *  is closed, cancelled or OK is pressed.
    */
 
@@ -1299,7 +1295,9 @@ App.config = Em.Object.create({
    * Changes possible here are the name, description and
    * host memberships of the configuration-group.
    * 
-   * @param configGroup  (App.ConfigGroup) Configuration group to update
+   * @param {App.ConfigGroup} configGroup Configuration group to update
+   * @param {Function} successCallback
+   * @param {Function} errorCallback
    */
   updateConfigurationGroup: function (configGroup, successCallback, errorCallback) {
     var putConfigGroup = {
@@ -1381,7 +1379,6 @@ App.config = Em.Object.create({
    * 
    * @param serviceId
    *          (string) ID of the service. Ex: HDFS
-   * @return Array of App.ConfigGroups
    */
   getConfigGroupsForService: function (serviceId) {
 
@@ -1392,7 +1389,6 @@ App.config = Em.Object.create({
    *
    * @param hostName
    *          (string) host name used to register
-   * @return Array of App.ConfigGroups
    */
   getConfigGroupsForHost: function (hostName) {
 

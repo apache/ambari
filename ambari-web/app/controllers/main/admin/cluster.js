@@ -40,17 +40,14 @@ App.MainAdminClusterController = Em.Controller.extend({
 
   updateUpgradeVersionSuccessCallback: function(data) {
     var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
-    var currentStack = {};
-    var upgradeStack = {};
     var currentVersion = App.get('currentStackVersionNumber');
-    var minUpgradeVersion = currentVersion;
     upgradeVersion = upgradeVersion.replace(/HDP-/, '');
     data.items.mapProperty('Versions.stack_version').forEach(function(version){
       upgradeVersion = (stringUtils.compareVersions(upgradeVersion, version) === -1) ? version : upgradeVersion;
     });
-    currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
-    upgradeStack = data.items.findProperty('Versions.stack_version', upgradeVersion);
-    minUpgradeVersion = upgradeStack.Versions.min_upgrade_version;
+    var currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
+    var upgradeStack = data.items.findProperty('Versions.stack_version', upgradeVersion);
+    var minUpgradeVersion = upgradeStack.Versions.min_upgrade_version;
     if(minUpgradeVersion && (stringUtils.compareVersions(minUpgradeVersion, currentVersion) === 1)){
       upgradeVersion = currentVersion;
       upgradeStack = currentStack;

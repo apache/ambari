@@ -31,12 +31,14 @@ App.DataSetJob = DS.Model.extend({
     if (this.get('startDate')) {
       return $.timeago(this.get('startDate'));
     }
+    return '';
   }.property('startDate'),
 
   endFormatted: function () {
     if (this.get('endDate')) {
       return $.timeago(this.get('endDate'));
     }
+    return '';
   }.property('endDate'),
 
   healthClass: function () {

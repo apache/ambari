@@ -21,4 +21,4 @@ var App = require('app');
 App.MainAdminUserEditController = App.MainAdminUserController.extend({
   name:'mainAdminUserEditController',
   content:false
-})
+});

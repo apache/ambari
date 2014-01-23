@@ -51,4 +51,4 @@ App.MainAdminAdvancedController = Em.Controller.extend({
       }
     })
   }
-})
+});

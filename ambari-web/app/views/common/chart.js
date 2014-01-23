@@ -174,8 +174,6 @@ App.ChartView = Em.View.extend({
           if (renderer.getDate(point).getTime() <= selectedDate.getTime()) {
             prevVal = nextVal;
             nextVal = point;
-          } else {
-            return;
           }
         });
 
@@ -200,7 +198,7 @@ App.ChartView = Em.View.extend({
     vis.append("svg:g")
       .attr("class", "axis")
       .attr("transform", "translate(0," + this.get('p') + ")")
-      .call(renderer.axis)
+      .call(renderer.axis);
 
     $.each(this.get('nodeAttributes'), function (i, v) {
       var element = $('<div></div>').addClass(v).addClass("stateValue").html("");

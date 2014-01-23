@@ -339,7 +339,7 @@ App.db.setWizardCurrentStep = function (wizardType, currentStep) {
  */
 App.db.setLocalStorage = function () {
   localStorage.setObject('ambari', App.db.data);
-}
+};
 
 App.db.setSecurityWizardStatus = function (status) {
   App.db.data = localStorage.getObject('ambari');

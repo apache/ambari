@@ -177,4 +177,4 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
     });
   }
 
-})
+});

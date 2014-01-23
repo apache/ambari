@@ -78,6 +78,7 @@ App.ServiceConfigCategory = Ember.Object.extend({
       case 'RegionServer':
         return 'HBASE_REGIONSERVER';
     }
+    return null;
   }.property('name'),
 
 
@@ -89,7 +90,7 @@ App.ServiceConfigCategory = Ember.Object.extend({
   }.property('name'),
 
   isForSlaveComponent: function () {
-    var slaveComponents = ['DataNode', 'TaskTracker', 'RegionServer']
+    var slaveComponents = ['DataNode', 'TaskTracker', 'RegionServer'];
     return (slaveComponents.contains(this.get('name')));
   }.property('name'),
 

@@ -337,7 +337,7 @@ App.MainAppsController = Em.ArrayController.extend({
             filtersUsed = true;
           }
         }
-      };
+      }
 
       link = link.slice(0,link.length-1);
 
@@ -501,5 +501,4 @@ App.MainAppsController = Em.ArrayController.extend({
     ]
   })
 
-
-})
+});

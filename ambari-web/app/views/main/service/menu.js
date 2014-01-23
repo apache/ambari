@@ -22,10 +22,7 @@ var misc = require('utils/misc');
 App.MainServiceMenuView = Em.CollectionView.extend({
   content:function () {
     var items = App.router.get('mainServiceController.content').filter(function(item){
-      if(['PIG', 'SQOOP', 'HCATALOG', 'TEZ'].contains(item.get('id'))){
-        return false;
-      }
-      return true;
+      return !['PIG', 'SQOOP', 'HCATALOG', 'TEZ'].contains(item.get('id'));
     });
     return misc.sortByOrder(App.Service.servicesSortOrder, items);
   }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),

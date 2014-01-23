@@ -47,7 +47,7 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
         }else{
           item.set('color','grey');
         }
-      })
+      });
 
       mappingObject = Ember.Object.create({
         host_name:item,
@@ -106,7 +106,7 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
         isAddNameNode: true,
         zId: 1
       }
-    )
+    );
 
     masterComponents.forEach(function (item) {
       var componentObj = Ember.Object.create(item);

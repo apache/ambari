@@ -796,7 +796,7 @@ App.ChartLinearTimeView = Ember.View.extend({
  * A formatter which will turn a number into computer storage sizes of the
  * format '23 GB' etc.
  * 
- * @type Function
+ * @type {Function}
  */
 App.ChartLinearTimeView.BytesFormatter = function (y) {
   if (y == 0) return '0 B';
@@ -825,7 +825,7 @@ App.ChartLinearTimeView.BytesFormatter = function (y) {
 /**
  * A formatter which will turn a number into percentage display like '42%'
  * 
- * @type Function
+ * @type {Function}
  */
 App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
   var value = percentage;
@@ -841,7 +841,7 @@ App.ChartLinearTimeView.PercentageFormatter = function (percentage) {
  * A formatter which will turn elapsed time into display time like '50 ms',
  * '5s', '10 m', '3 hr' etc. Time is expected to be provided in milliseconds.
  * 
- * @type Function
+ * @type {Function}
  */
 App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
   var value = millis;
@@ -873,7 +873,7 @@ App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
  * The default formatter which uses Rickshaw.Fixtures.Number.formatKMBT 
  * which shows 10K, 300M etc.
  *
- * @type Function
+ * @type {Function}
  */
 App.ChartLinearTimeView.DefaultFormatter = function(y) {
   if(isNaN(y)){
@@ -903,7 +903,7 @@ App.ChartLinearTimeView.DefaultFormatter = function(y) {
  * @param valueFormatter  Value itself will need further processing 
  *        via provided formatter. Ex: '10M requests/s'. Generally
  *        should be App.ChartLinearTimeView.DefaultFormatter. 
- * @return Function
+ * @return {Function}
  */
 App.ChartLinearTimeView.CreateRateFormatter = function (unitsPrefix, valueFormatter) {
   var suffix = " "+unitsPrefix+"/s";

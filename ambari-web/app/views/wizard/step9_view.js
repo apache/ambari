@@ -34,8 +34,7 @@ App.WizardStep9View = Em.View.extend({
 
   barWidth:function () {
     var controller = this.get('controller');
-    var barWidth = 'width: ' + controller.get('progress') + '%;';
-    return barWidth;
+    return 'width: ' + controller.get('progress') + '%;';
   }.property('controller.progress'),
 
   progressMessage: function() {
@@ -81,8 +80,7 @@ App.HostStatusView = Em.View.extend({
   },
 
   barWidth:function () {
-    var barWidth = 'width: ' + this.get('obj.progress') + '%;';
-    return barWidth;
+    return 'width: ' + this.get('obj.progress') + '%;';
   }.property('obj.progress'),
 
   onStatus:function () {
@@ -246,15 +244,14 @@ App.HostStatusView = Em.View.extend({
         },
 
         getStartedTasks:function (host) {
-          var startedTasks = host.logTasks.filter(function (task) {
+          return host.logTasks.filter(function (task) {
             return task.Tasks.status;
           });
-          return startedTasks;
         },
 
         openTaskLogInDialog: function(){
-          newwindow=window.open();
-          newdocument=newwindow.document;
+          var newwindow=window.open();
+          var newdocument=newwindow.document;
           newdocument.write($(".task-detail-log-info").html());
           newdocument.close();
         },

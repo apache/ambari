@@ -23,120 +23,120 @@ describe('validator', function () {
   describe('#isValidEmail(value)', function () {
     it('should return false if value is null', function () {
       expect(validator.isValidEmail(null)).to.equal(false);
-    })
+    });
     it('should return false if value is ""', function () {
       expect(validator.isValidEmail('')).to.equal(false);
-    })
+    });
     it('should return false if value is "a.com"', function () {
       expect(validator.isValidEmail('a.com')).to.equal(false);
-    })
+    });
     it('should return false if value is "@a.com"', function () {
       expect(validator.isValidEmail('@a.com')).to.equal(false);
-    })
+    });
     it('should return false if value is "a@.com"', function () {
       expect(validator.isValidEmail('a@.com')).to.equal(false);
-    })
+    });
     it('should return true if value is "a@a.com"', function () {
       expect(validator.isValidEmail('a@a.com')).to.equal(true);
-    })
+    });
     it('should return true if value is "user@a.b.com"', function () {
       expect(validator.isValidEmail('user@a.b.com')).to.equal(true);
     })
-  })
+  });
 
   describe('#isValidInt(value)', function () {
     it('should return false if value is null', function () {
       expect(validator.isValidInt(null)).to.equal(false);
-    })
+    });
     it('should return false if value is ""', function () {
       expect(validator.isValidInt('')).to.equal(false);
-    })
+    });
     it('should return false if value is "abc"', function () {
       expect(validator.isValidInt('abc')).to.equal(false);
-    })
+    });
     it('should return false if value is "0xff"', function () {
       expect(validator.isValidInt('0xff')).to.equal(false);
-    })
+    });
     it('should return false if value is " 1""', function () {
       expect(validator.isValidInt(' 1')).to.equal(false);
-    })
+    });
     it('should return false if value is "1 "', function () {
       expect(validator.isValidInt('1 ')).to.equal(false);
-    })
+    });
     it('should return true if value is "10"', function () {
       expect(validator.isValidInt('10')).to.equal(true);
-    })
+    });
     it('should return true if value is "-123"', function () {
       expect(validator.isValidInt('-123')).to.equal(true);
-    })
+    });
     it('should return true if value is "0"', function () {
       expect(validator.isValidInt('0')).to.equal(true);
-    })
+    });
     it('should return true if value is 10', function () {
       expect(validator.isValidInt(10)).to.equal(true);
-    })
+    });
     it('should return true if value is -123', function () {
       expect(validator.isValidInt(10)).to.equal(true);
-    })
+    });
     it('should return true if value is 0', function () {
       expect(validator.isValidInt(10)).to.equal(true);
     })
-  })
+  });
 
   describe('#isValidFloat(value)', function () {
     it('should return false if value is null', function () {
       expect(validator.isValidFloat(null)).to.equal(false);
-    })
+    });
     it('should return false if value is ""', function () {
       expect(validator.isValidFloat('')).to.equal(false);
-    })
+    });
     it('should return false if value is "abc"', function () {
       expect(validator.isValidFloat('abc')).to.equal(false);
-    })
+    });
     it('should return false if value is "0xff"', function () {
       expect(validator.isValidFloat('0xff')).to.equal(false);
-    })
+    });
     it('should return false if value is " 1""', function () {
       expect(validator.isValidFloat(' 1')).to.equal(false);
-    })
+    });
     it('should return false if value is "1 "', function () {
       expect(validator.isValidFloat('1 ')).to.equal(false);
-    })
+    });
     it('should return true if value is "10"', function () {
       expect(validator.isValidFloat('10')).to.equal(true);
-    })
+    });
     it('should return true if value is "-123"', function () {
       expect(validator.isValidFloat('-123')).to.equal(true);
-    })
+    });
     it('should return true if value is "0"', function () {
       expect(validator.isValidFloat('0')).to.equal(true);
-    })
+    });
     it('should return true if value is 10', function () {
       expect(validator.isValidFloat(10)).to.equal(true);
-    })
+    });
     it('should return true if value is -123', function () {
       expect(validator.isValidFloat(10)).to.equal(true);
-    })
+    });
     it('should return true if value is 0', function () {
       expect(validator.isValidFloat(10)).to.equal(true);
-    })
+    });
     it('should return true if value is "0.0"', function () {
       expect(validator.isValidFloat("0.0")).to.equal(true);
-    })
+    });
     it('should return true if value is "10.123"', function () {
       expect(validator.isValidFloat("10.123")).to.equal(true);
-    })
+    });
     it('should return true if value is "-10.123"', function () {
       expect(validator.isValidFloat("-10.123")).to.equal(true);
-    })
+    });
     it('should return true if value is 10.123', function () {
       expect(validator.isValidFloat(10.123)).to.equal(true);
-    })
+    });
     it('should return true if value is -10.123', function () {
       expect(validator.isValidFloat(-10.123)).to.equal(true);
     })
 
-  })
+  });
   /*describe('#isIpAddress(value)', function () {
     it('"127.0.0.1" - valid IP', function () {
       expect(validator.isIpAddress('127.0.0.1')).to.equal(true);
@@ -184,20 +184,20 @@ describe('validator', function () {
   describe('#isDomainName(value)', function () {
     it('"google.com" - valid Domain Name', function () {
       expect(validator.isDomainName('google.com')).to.equal(true);
-    })
+    });
     it('"google" - invalid Domain Name', function () {
       expect(validator.isDomainName('google')).to.equal(false);
-    })
+    });
     it('"123.123" - invalid Domain Name', function () {
       expect(validator.isDomainName('123.123')).to.equal(false);
-    })
+    });
     it('"4goog.le" - valid Domain Name', function () {
       expect(validator.isDomainName('4goog.le')).to.equal(true);
-    })
+    });
     it('"55454" - invalid Domain Name', function () {
       expect(validator.isDomainName('55454')).to.equal(false);
     })
-  })
+  });
   describe('#isValidUserName(value)', function() {
     var tests = [
       {m:'"" - invalid',i:'',e:false},
@@ -218,7 +218,7 @@ describe('validator', function () {
         expect(validator.isValidUserName(test.i)).to.equal(test.e);
       })
     });
-  })
+  });
   describe('#isValidUNIXUser(value)', function() {
     var tests = [
       {m:'"" - invalid',i:'',e:false},
@@ -239,7 +239,7 @@ describe('validator', function () {
         expect(validator.isValidUNIXUser(test.i)).to.equal(test.e);
       })
     });
-  })
+  });
   describe('#isValidDir(value)', function() {
     var tests = [
       {m:'"dir" - invalid',i:'dir',e:false},
@@ -255,7 +255,7 @@ describe('validator', function () {
         expect(validator.isValidDir(test.i)).to.equal(test.e);
       })
     });
-  })
+  });
   describe('#isAllowedDir(value)', function() {
     var tests = [
       {m:'"/home" - not allowed',i:'/home',e:false},
@@ -273,7 +273,7 @@ describe('validator', function () {
         expect(validator.isAllowedDir(test.i)).to.equal(test.e);
       })
     });
-  })
+  });
   describe('#isValidConfigKey(value)', function() {
     var tests = [
       {m:'"123" - valid',i:'123',e:true},
@@ -292,4 +292,4 @@ describe('validator', function () {
       })
     });
   })
-})
+});

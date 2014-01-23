@@ -222,9 +222,7 @@ App.Host = DS.Model.extend({
    */
   healthToolTip: function(){
     var hostComponents = this.get('hostComponents').filter(function(item){
-      if(item.get('workStatus') !== App.HostComponentStatus.started){
-        return true;
-      }
+      return item.get('workStatus') !== App.HostComponentStatus.started;
     });
     var output = '';
     switch (this.get('healthClass')){

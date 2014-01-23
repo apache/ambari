@@ -62,7 +62,7 @@ describe('App.InstallerController', function () {
           }
         }
       ]
-    }
+    };
     it ('Correct data', function() {
       installerController.loadStacksVersionsSuccessCallback(test_data);
       expect(installerController.get('stacks.length')).to.equal(2);

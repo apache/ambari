@@ -84,8 +84,8 @@ module.exports = {
    * @param reduceOffSwitch
    * @param startTime
    * @param endTime
-   * @param w
-   * @param h
+   * @param svgw
+   * @param svgh
    * @param element
    */
   drawJobTasks:function (mapNodeLocal, mapRackLocal, mapOffSwitch, reduceOffSwitch, startTime, endTime, svgw, svgh, element) {
@@ -155,12 +155,12 @@ module.exports = {
       .text("Task Attempt Duration");
 
 
-    var dotInfo = new Array();
+    var dotInfo = [];
     var mapDotInfo = function(d) {
       var thisx = Math.round(x(d.x));
       var thisy = Math.round(y(d.y));
       if (!(thisx in dotInfo))
-        dotInfo[thisx] = new Array();
+        dotInfo[thisx] = [];
       var existing = dotInfo[thisx][thisy];
       var newInfo = d.label + "  \n" +
           'Run-time: ' + self.durationFormatter(d.y) + '  \nWait-time: ' + self.durationFormatter(d.x-startTime) +
@@ -181,4 +181,4 @@ module.exports = {
     this.addSeries(svgg, mapOffSwitch, 'brown', x, y, axisHeight+rmax, startTime, dotInfo);
     this.addSeries(svgg, reduceOffSwitch, 'steelblue', x, y, axisHeight+rmax, startTime, dotInfo);
   }
-}
+};

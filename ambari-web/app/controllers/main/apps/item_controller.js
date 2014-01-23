@@ -46,4 +46,4 @@ App.MainAppsItemController = Em.Controller.extend({
     });
   }.observes('content')
 
-})
+});

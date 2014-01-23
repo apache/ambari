@@ -49,7 +49,6 @@ module.exports = {
       dialogMessage: popupDescription.dialogMessage,
       warningMessage: null,
       onPrimary: function () {
-        console.debug('(old-selectedHosts)=', selectedHosts);
         this.set('warningMessage', null);
         var arrayOfSelectedHosts = [];
         var selectedHosts = availableHosts.filterProperty('selected', true);

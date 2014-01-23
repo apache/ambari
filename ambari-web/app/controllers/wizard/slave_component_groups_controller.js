@@ -163,6 +163,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     if(hosts){
       return hosts.mapProperty('group').uniq();
     }
+    return [];
   }.property('hosts'),
 
   componentGroups: function () {
@@ -287,6 +288,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     if(hosts){
       return hosts.filterProperty('group', group.name);
     }
+    return [];
   },
 
   /**

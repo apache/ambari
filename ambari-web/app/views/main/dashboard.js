@@ -61,8 +61,7 @@ App.MainDashboardView = Em.View.extend({
           //self.translateToReal(newValue);
         }
       }
-    });
-    $( "#sortable" ).disableSelection();
+    }).disableSelection();
   },
 
   setWidgetsDataModel: function () {

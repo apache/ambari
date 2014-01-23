@@ -605,7 +605,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @return {Boolean}
    */
   removeComponent:function (componentName, zId) {
-    var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName)
+    var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName);
 
     //work only if the Zookeeper service is selected in previous step
     if (!currentZooKeepers.length) {
@@ -650,7 +650,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     currentComponents.forEach(function (item) {
       preparedAvailableHosts = availableComponentHosts.slice(0);
-      preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("selectedHost")))
+      preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("selectedHost")));
       preparedAvailableHosts.sort(this.sortHostsByConfig, this);
       item.set("availableHosts", preparedAvailableHosts);
     }, this);

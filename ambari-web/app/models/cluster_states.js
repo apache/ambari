@@ -53,7 +53,8 @@ App.clusterStatus = Ember.Object.create({
   }.property('clusterState'),
   /**
    * get cluster data from server and update cluster status
-   * @param isAsync: set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
+   * @param {Boolean} isAsync set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
+   * @param {Boolean} overrideLocaldb
    * @return promise object for the get call
    */
   updateFromServer: function(isAsync, overrideLocaldb) {

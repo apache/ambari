@@ -72,8 +72,9 @@ module.exports = {
   
   /**
    * Gets value of property path.
-   * 
-   * @param propertyPath
+   *
+   * @param {Object} object
+   * @param {String} propertyPath
    *          Format is 'a.b.c'
    * @return Returns <code>undefined</code> when path does not exist.
    */

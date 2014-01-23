@@ -20,4 +20,4 @@ var App = require('app');
 
 App.MainChartsController = Em.ArrayController.extend({
   name:'mainChartsController'
-})
+});

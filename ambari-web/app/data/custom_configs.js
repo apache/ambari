@@ -202,4 +202,4 @@ module.exports =
       "filename": 'capacity-scheduler.xml',
       "index": 12
     }
-  ]
+  ];

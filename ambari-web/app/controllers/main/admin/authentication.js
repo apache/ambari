@@ -39,4 +39,4 @@ App.MainAdminAuthenticationController = Em.Controller.extend({
     }
   },
   content:App.Authentication.find(1)
-})
+});

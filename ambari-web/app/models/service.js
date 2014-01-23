@@ -131,10 +131,10 @@ App.Service = DS.Model.extend({
       restartHC[host].forEach(function(c){
         hcCount++;
         hostsMsg += "<li>"+c+"</li>";       
-      })
+      });
       hostsMsg += "</ul>";
     }
-    hostsMsg += "</ul>"
+    hostsMsg += "</ul>";
     return this.t('services.service.config.restartService.TooltipMessage').format(hcCount, hostCount, hostsMsg);
   }.property('restartRequiredHostsAndComponents')
 });

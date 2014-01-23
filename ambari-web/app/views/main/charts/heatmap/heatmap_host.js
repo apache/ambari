@@ -27,8 +27,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
   /**
    * show Host details block and move it near the cursor
    * 
-   * @param {Object}
-   *          e
+   * @param {Object} e
    * @this App.MainChartsHeatmapHostView
    */
   mouseEnter: function (e) {
@@ -95,8 +94,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
   /**
    * hide Host details block
    * 
-   * @param {Object}
-   *          e
+   * @param {Object} e
    * @this App.MainChartsHeatmapHostView
    */
   mouseLeave: function (e) {

@@ -30,13 +30,13 @@ describe('App.ChartLinearTimeView', function () {
     var result = chartLinearTimeView.transformData(data, name);
     it('"name" should be "abc" ', function () {
       expect(result.name).to.equal('abc');
-    })
+    });
     it('data size should be 3 ', function () {
       expect(result.data.length).to.equal(3);
-    })
+    });
     it('data[0].x should be 2 ', function () {
       expect(result.data[0].x).to.equal(2);
-    })
+    });
     it('data[0].y should be 1 ', function () {
       expect(result.data[0].y).to.equal(1);
     })
@@ -109,7 +109,7 @@ describe('App.ChartLinearTimeView', function () {
         expect(App.ChartLinearTimeView.PercentageFormatter(test.i)).to.equal(test.e);
       });
     });
-  }),
+  });
   describe('#TimeElapsedFormatter', function() {
     var tests = [
       {m:'undefined to "0 ms"',i:undefined,e:'0 ms'},
@@ -128,4 +128,4 @@ describe('App.ChartLinearTimeView', function () {
       });
     });
   })
-})
+});

@@ -113,6 +113,7 @@ App.showReloadPopup = function () {
  *
  * @param {Function} primary - "OK" button click handler
  * @param {String} body - additional text constant. Will be placed in the popup-body
+ * @param {Function} secondary
  * @return {*}
  */
 App.showConfirmationPopup = function (primary, body, secondary) {

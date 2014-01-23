@@ -35,12 +35,12 @@ describe('App.WizardStep2Controller', function () {
 
       it('should push to hostNameArr only new host names', function(){
         expect(controller.get('hostNameArr').length).to.equal(0);
-      })
+      });
 
       it('should push to inputtedAgainHostNames already installed host names', function(){
         expect(controller.get('inputtedAgainHostNames').length).to.equal(1);
       })
-  })
+  });
 
   describe('#isAllHostNamesValid()', function () {
 
@@ -51,7 +51,7 @@ describe('App.WizardStep2Controller', function () {
     it('should return true if all host names are valid', function(){
       controller.set('hostNames', 'amache.org ambari.com');
       expect(controller.isAllHostNamesValid()).to.equal(true);
-    })
+    });
 
     var tests = [
       'hostname',
@@ -68,7 +68,7 @@ describe('App.WizardStep2Controller', function () {
         expect(controller.isAllHostNamesValid()).to.equal(false);
       });
     });
-  })
+  });
 
   describe('#checkHostError()', function () {
 
@@ -78,7 +78,7 @@ describe('App.WizardStep2Controller', function () {
       controller.set('content', {'installOptions': {'hostNames': ''}});
       controller.checkHostError();
       expect(controller.get('hostsError').length).to.be.above(2);
-    })
+    });
 
     /*it('should set hostsError if hostNames is invalid', function () {
       controller.set('content', {'installOptions': {'hostNames': '@#$%'}});
@@ -91,7 +91,7 @@ describe('App.WizardStep2Controller', function () {
       controller.checkHostError();
       expect(controller.get('hostsError')).to.equal(null);
     })
-  })
+  });
 
   describe('#checkHostAfterSubmitHandler()', function () {
 
@@ -102,7 +102,7 @@ describe('App.WizardStep2Controller', function () {
         }
       });
       controller.set('hasSubmitted', true);
-    })
+    });
 
     it('should be called after changing hostNames', function (done) {
       var controller = App.WizardStep2Controller.create({
@@ -113,7 +113,7 @@ describe('App.WizardStep2Controller', function () {
       });
       controller.set('content', {'installOptions': {'hostNames': 'ambari'}});
     })
-  })
+  });
 
   describe('#sshKeyError', function () {
 
@@ -125,13 +125,13 @@ describe('App.WizardStep2Controller', function () {
 
     it('should return error message if hasSubmitted is true, manualInstall is false and sshKey is ""', function () {
       expect(controller.get('sshKeyError').length).to.be.above(2);
-    })
+    });
 
     it('should return null if hasSubmitted is false', function () {
       controller.set('hasSubmitted', false);
       expect(controller.get('sshKeyError')).to.equal(null);
     })
-  })
+  });
 
   describe('#getHostInfo()', function () {
 
@@ -147,7 +147,7 @@ describe('App.WizardStep2Controller', function () {
         'ambari':{'name':'ambari', 'installType': 'manualDriven', 'bootStatus': 'PENDING'}
       });
     })
-  })
+  });
 
   describe('#setSshKey()', function () {
 
@@ -158,7 +158,7 @@ describe('App.WizardStep2Controller', function () {
       controller.setSshKey('222');
       expect(controller.get('content.installOptions.sshKey')).to.equal('222');
     })
-  })
+  });
 
   describe('#evaluateStep()', function () {
 
@@ -168,7 +168,7 @@ describe('App.WizardStep2Controller', function () {
       });
       controller.set('isSubmitDisabled', true);
       expect(controller.evaluateStep()).to.equal(false);
-    })
+    });
 
     it('should return false if hostsError is not empty', function () {
       var controller = App.WizardStep2Controller.create({
@@ -176,7 +176,7 @@ describe('App.WizardStep2Controller', function () {
       });
       controller.set('hostsError', 'error');
       expect(controller.evaluateStep()).to.equal(false);
-    })
+    });
 
     it('should return false if sshKeyError is not empty', function () {
       var controller = App.WizardStep2Controller.create({
@@ -184,14 +184,14 @@ describe('App.WizardStep2Controller', function () {
       });
       controller.set('sshKeyError', 'error');
       expect(controller.evaluateStep()).to.equal(false);
-    })
+    });
 
     it('should return false if hostNameArr is empty', function () {
       var controller = App.WizardStep2Controller.create({
         hostNames: ''
       });
       expect(controller.evaluateStep()).to.equal(false);
-    })
+    });
 
     it('should return false if isPattern is false', function () {
       var controller = App.WizardStep2Controller.create({
@@ -200,7 +200,7 @@ describe('App.WizardStep2Controller', function () {
       });
       expect(controller.evaluateStep()).to.equal(false);
     })
-  })
+  });
 
   describe('#patternExpression()', function () {
 
@@ -219,7 +219,7 @@ describe('App.WizardStep2Controller', function () {
       }
       expect(result).to.equal(true);
     })
-  })
+  });
 
   describe('#proceedNext()', function () {
 
@@ -233,7 +233,7 @@ describe('App.WizardStep2Controller', function () {
       });
       controller.proceedNext(true);
     })
-  })
+  });
 
   describe('#isSubmitDisabled', function () {
 
@@ -245,14 +245,14 @@ describe('App.WizardStep2Controller', function () {
     it('should return value if hostsError is not empty', function () {
       controller.set('hostsError', 'error');
       expect(controller.get('isSubmitDisabled').length).to.above(0);
-    })
+    });
 
     it('should return value if sshKeyError is not empty', function () {
       controller.set('sshKeyError', 'error');
       controller.set('hostsError', '');
       expect(controller.get('isSubmitDisabled').length).to.above(0);
     })
-  })
+  });
 
   /*describe('#saveHosts()', function () {
     var controller = App.WizardStep2Controller.create({
@@ -269,4 +269,4 @@ describe('App.WizardStep2Controller', function () {
       expect(controller.get('content.hosts')).to.not.be.empty;
     })
   })*/
-})
+});

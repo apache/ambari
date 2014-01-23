@@ -103,9 +103,7 @@ App.Alert = Em.Object.extend({
     var diff = new Date().getTime() - d.getTime();
     if (diff < 60000) {
       diff = 60000 - diff;
-      var newD = new Date(d.getTime() - diff );
-      //console.log("Making time more than 1 minute. New time=",newD,", Old time=",d);
-      return newD;
+      return new Date(d.getTime() - diff );
     }
     return d;
   },

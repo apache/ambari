@@ -72,5 +72,5 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
     }
   }
 
-})
+});
 

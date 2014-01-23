@@ -61,7 +61,7 @@ describe('App.MainAdminClusterController', function () {
       });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);
       expect(controller.get('upgradeVersion')).to.equal('HDP-1.3.1');
-    })
+    });
     it('if min upgrade version less then current then upgrade version equal current', function(){
       data.items[0].Versions.min_upgrade_version = "1.2.3";
       var controller = App.MainAdminClusterController.create({
@@ -71,4 +71,4 @@ describe('App.MainAdminClusterController', function () {
       expect(controller.get('upgradeVersion')).to.equal('HDP-1.2.2');
     })
   })
-})
+});

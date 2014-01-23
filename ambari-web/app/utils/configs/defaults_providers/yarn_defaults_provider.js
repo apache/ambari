@@ -293,8 +293,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
    */
   clusterDataIsValid: function () {
     if (!this.get('clusterData')) return false;
-    if (this.get('clusterData.ram') == null || this.get('clusterData.cpu') == null || this.get('clusterData.disk') == null || this.get('clusterData.hBaseInstalled') == null) return false;
-    return true;
+    return !(this.get('clusterData.ram') == null || this.get('clusterData.cpu') == null || this.get('clusterData.disk') == null || this.get('clusterData.hBaseInstalled') == null);
   }
 
 });

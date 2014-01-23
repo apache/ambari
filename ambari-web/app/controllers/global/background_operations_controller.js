@@ -228,7 +228,6 @@ App.BackgroundOperationsController = Em.Controller.extend({
 
   /**
    * Onclick handler for background operations number located right to logo
-   * @return PopupObject For testing purposes
    */
   showPopup: function(){
     // load the checkbox on footer first, then show popup.

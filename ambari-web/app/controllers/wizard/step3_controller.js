@@ -296,7 +296,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   disablePreviousSteps: function () {
     App.router.get('installerController.isStepDisabled').filter(function (step) {
-      if (step.step >= 0 && step.step <= 2) return true;
+      return step.step >= 0 && step.step <= 2;
     }).setEach('value', this.get('isRegistrationInProgress'));
     if (this.get('isRegistrationInProgress')) {
       this.set('isSubmitDisabled', true);
@@ -780,7 +780,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       var host = {
         name: _host.Hosts.host_name,
         warnings: []
-      }
+      };
       if (!_host.Hosts.last_agent_env) {
         // in some unusual circumstances when last_agent_env is not available from the _host,
         // skip the _host and proceed to process the rest of the hosts.
@@ -804,7 +804,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             hosts: [_host.Hosts.host_name],
             category: 'fileFolders',
             onSingleHost: true
-          }
+          };
           warnings.push(warning);
         }
         host.warnings.push(warning);
@@ -824,7 +824,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               hosts: [_host.Hosts.host_name],
               category: 'packages',
               onSingleHost: true
-            }
+            };
             warnings.push(warning);
           }
           host.warnings.push(warning);
@@ -852,7 +852,7 @@ App.WizardStep3Controller = Em.Controller.extend({
                     '<p style="text-align: center">................</p>' +
                     '...' + process.command.substr(-230)) + '</td></tr></table>',
             onSingleHost: true
-          }
+          };
           warnings.push(warning);
         }
         host.warnings.push(warning);
@@ -875,7 +875,7 @@ App.WizardStep3Controller = Em.Controller.extend({
                 hosts: [_host.Hosts.host_name],
                 category: 'services',
                 onSingleHost: true
-              }
+              };
               warnings.push(warning);
             }
             host.warnings.push(warning);
@@ -898,7 +898,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               hosts: [_host.Hosts.host_name],
               category: 'users',
               onSingleHost: true
-            }
+            };
             warnings.push(warning);
           }
           host.warnings.push(warning);
@@ -919,7 +919,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             hosts: [_host.Hosts.host_name],
             category: 'misc',
             onSingleHost: true
-          }
+          };
           warnings.push(warning);
         }
         host.warnings.push(warning);
@@ -938,7 +938,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             hosts: [_host.Hosts.host_name],
             category: 'firewall',
             onSingleHost: true
-          }
+          };
           warnings.push(warning);
         }
         host.warnings.push(warning);

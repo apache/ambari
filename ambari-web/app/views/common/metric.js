@@ -89,7 +89,7 @@ App.MetricFilteringWidget = Em.View.extend({
     Em.Object.create({ label:Em.I18n.t('metric.more.process'), code:'process',
       items:[
         Em.Object.create({value:'proc_run'}),
-        Em.Object.create({value:'proc_total'}),
+        Em.Object.create({value:'proc_total'})
       ]
     })
 
@@ -168,4 +168,4 @@ App.MetricFilteringWidget = Em.View.extend({
   },
 
   templateName:require('templates/common/metric')
-})
+});

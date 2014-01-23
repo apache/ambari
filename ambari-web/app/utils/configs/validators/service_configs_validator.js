@@ -37,9 +37,7 @@ App.ServiceConfigsValidator = Em.Object.extend({
   
   /**
    * Validate the given config property with the available  
-   * {@param recommendedDefaults}. This can do cross-property
-   * validations also. 
-   * 
+   *
    * @param config  {App.ServiceConfigProperty}
    * @return {string}  No validation issues when <code>null</code> returned.
    */
@@ -100,10 +98,7 @@ App.ServiceConfigsValidator = Em.Object.extend({
       return false;
     }
     // "-Xmx" can be only one
-    if (value.match(/\-Xmx/ig).length != 1) {
-      return false;
-    }
-    return true;
+    return value.match(/\-Xmx/ig).length == 1;
   },
   /**
    * Parse Xmx size from raw value

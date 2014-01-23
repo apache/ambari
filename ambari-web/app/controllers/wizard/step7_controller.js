@@ -191,8 +191,7 @@ App.WizardStep7Controller = Em.Controller.extend({
           loadedGroupToOverrideSiteToTagMap[groupName] = {};
           item.get('configSiteTags').forEach(function (siteTag) {
             var site = siteTag.get('site');
-            var tag = siteTag.get('tag');
-            loadedGroupToOverrideSiteToTagMap[groupName][site] = tag;
+            loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
           }, this);
         }, this);
       }
@@ -579,7 +578,8 @@ App.WizardStep7Controller = Em.Controller.extend({
   },
 
   /**
-   * @param: An array of display names
+   * @param {String} siteProperty
+   * @param {Array} displayNames An array of display names
    */
   setDisplayMessage: function (siteProperty, displayNames) {
     var displayMsg = null;
@@ -607,9 +607,9 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   /**
    * Set display names of the property tfrom he puppet/global names
-   * @param displayNames: a field to be set with displayNames
-   * @param names: array of property puppet/global names
-   * @param configProperties: array of config properties of the respective service to the name param
+   * @param {Array} displayNames a field to be set with displayNames
+   * @param {Array} names array of property puppet/global names
+   * @param {Array} configProperties array of config properties of the respective service to the name param
    */
   setPropertyDisplayNames: function (displayNames, names, configProperties) {
     names.forEach(function (_name, index) {
@@ -621,7 +621,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   /**
    * Display Error Message with service name, its custom configuration name and displaynames on the page
-   * @param customConfig: array with custom configuration, serviceName and displayNames relative to custom configuration
+   * @param {Array} customConfig array with custom configuration, serviceName and displayNames relative to custom configuration
    */
   showCustomConfigErrMsg: function (customConfig) {
 
@@ -660,7 +660,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var validComponents = Ember.A([]);
     var seenComponents = {};
     masterComponents.forEach(function(component){
-      var cn = component.component
+      var cn = component.component;
       var cdn = component.display_name;
       if(component.serviceId===selectedServiceName && !seenComponents[cn]){
         validComponents.pushObject(Ember.Object.create({
@@ -672,7 +672,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     });
     slaveComponents.forEach(function(component){
-      var cn = component.componentName
+      var cn = component.componentName;
       var cdn = component.displayName;
       var componentDef = scMaps.findProperty('component_name', cn);
       if(componentDef!=null && selectedServiceName===componentDef.service_name && !seenComponents[cn]){

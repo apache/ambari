@@ -35,7 +35,7 @@ App.ExperimentalView = Em.View.extend({
     supports.forEach(function(s){
       var propName = 'App.supports.' + s.get('name');
       var propValue = s.get('selected');
-      console.log(">>>>>>>> " + propName + " = "+ propValue)
+      console.log(">>>>>>>> " + propName + " = "+ propValue);
       Ember.set(propName, propValue);
     });
     App.router.transitionTo('root.index');

@@ -56,7 +56,7 @@
   // [https://gist.github.com/1020396] by [https://github.com/atk]
   object.atob || (
     object.atob = function (input) {
-      input = input.replace(/=+$/, '')
+      input = input.replace(/=+$/, '');
       if (input.length % 4 == 1) throw INVALID_CHARACTER_ERR;
       for (
         // initialize result and counters

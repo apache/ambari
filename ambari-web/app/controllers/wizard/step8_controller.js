@@ -247,13 +247,17 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Set all site property that are derived from other puppet-variable
-   * @return {
+   * @param {String} templateName
+   * @param {String} expression
+   * @param {String} name
+   * @return {Object}
+   * example: <code>{
    *   value: '...',
    *   overrides: {
    *    'value1': [h1, h2],
    *    'value2': [h3]
    *   }
-   * }
+   * }</code>
    */
 
   getGlobConfigValueWithOverrides: function (templateName, expression, name) {
@@ -787,7 +791,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services?ServiceInfo/service_name=' + _service;
       var data = {
         "components": componentsData
-      }
+      };
 
       this.ajax({
         type: 'POST',
@@ -1550,7 +1554,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
       self.set('ajaxBusy', false);
       self.doNextAjaxCall();
-    }
+    };
 
     params.error = function (xhr, status, error) {
       var responseText = JSON.parse(xhr.responseText);
@@ -1563,7 +1567,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       App.router.get(self.get('content.controllerName')).setStepsEnable();
       self.get('ajaxQueue').clear();
       self.set('ajaxBusy', false);
-    }
+    };
     this.get('ajaxQueue').pushObject(params);
   }
 

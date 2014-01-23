@@ -61,7 +61,7 @@ App.MainAdminUserController = Em.Controller.extend({
             } catch (err) {
 
             }
-          })
+          });
         this.hide();
       },
       onSecondary:function () {
@@ -106,4 +106,4 @@ App.MainAdminUserController = Em.Controller.extend({
       statusCode: require('data/statusCodes')
     });
   }
-})
+});

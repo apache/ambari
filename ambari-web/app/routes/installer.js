@@ -405,17 +405,13 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step9'),
     complete: function (router, context) {
-      if (true) {   // this function will be moved to installerController where it will validate
-        var controller = router.get('installerController');
-        controller.finish();
+      var controller = router.get('installerController');
+      controller.finish();
 
-        // We need to do recovery based on whether we are in Add Host or Installer wizard
-        controller.saveClusterState('DEFAULT');
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
+      controller.saveClusterState('DEFAULT');
 
-        router.transitionTo('main.index');
-      } else {
-        console.log('cluster installation failure');
-      }
+      router.transitionTo('main.index');
     }
   }),
 

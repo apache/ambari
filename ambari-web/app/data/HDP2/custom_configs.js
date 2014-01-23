@@ -124,4 +124,4 @@ module.exports =
       "isQueue": true,
       "filename": 'capacity-scheduler.xml'
     }
-  ]
+  ];

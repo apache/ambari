@@ -62,16 +62,16 @@ describe('App.WizardStep0Controller', function () {
       wizardStep0Controller.set('hasSubmitted', true);
       wizardStep0Controller.set('content', {'cluster':{'name':''}});
       expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
-    })
+    });
     it('should return true if cluster name contains white spaces', function () {
       wizardStep0Controller.set('hasSubmitted', true);
       wizardStep0Controller.set('content', {'cluster':{'name':'the cluster'}});
       expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
-    })
+    });
     it('should return true if cluster name contains special chars', function () {
       wizardStep0Controller.set('hasSubmitted', true);
       wizardStep0Controller.set('content', {'cluster':{'name':'$cluster'}});
       expect(wizardStep0Controller.get('invalidClusterName')).to.equal(true);
     })
   })
-})
+});

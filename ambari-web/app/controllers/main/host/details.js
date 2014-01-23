@@ -370,7 +370,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * send command to server to install selected host component
    * @param event
    */
-  addComponent: function (event, context) {
+  addComponent: function (event) {
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase().toString();
@@ -683,7 +683,8 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * Performs either Decommission or Recommission by updating the hosts list on
    * server.
-   * @param decommission defines context for request (true for decommission and false for recommission)
+   * @param {Array} decommissionHostNames
+   * @param {Boolean} decommission defines context for request (true for decommission and false for recommission)
    */
   doDatanodeDecommission: function(decommissionHostNames, decommission){
     var self = this;

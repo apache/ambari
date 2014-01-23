@@ -38,8 +38,7 @@ App.Poll = Em.Object.extend({
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
 
   barWidth: function () {
-    var barWidth = 'width: ' + this.get('progress') + '%;';
-    return barWidth;
+    return 'width: ' + this.get('progress') + '%;';
   }.property('progress'),
 
   isCompleted: function () {

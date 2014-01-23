@@ -81,9 +81,7 @@ App.RollingRestartView = Em.View.extend({
   nonMaintainanceHostComponents : function() {
     var hostComponents = this.get('allHostComponents');
     hostComponents = hostComponents.filter(function(item) {
-      if (item.get('workStatus') !== App.HostComponentStatus.maintenance) {
-        return true;
-      }
+      return item.get('workStatus') !== App.HostComponentStatus.maintenance;
     });
     return hostComponents;
   }.property('allHostComponents', 'allHostComponents.@each.workStatus'),

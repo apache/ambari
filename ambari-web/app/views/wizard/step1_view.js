@@ -261,6 +261,7 @@ App.WizardStep1View = Em.View.extend({
       case 2:
         return ['sles11', 'suse11'];
     }
+    return [];
   },
   osTypeToGroup: function (osType) {
     switch(osType) {
@@ -276,5 +277,6 @@ App.WizardStep1View = Em.View.extend({
       case 'suse11':
         return 2;
     }
+    return -1;
   }
 });

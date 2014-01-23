@@ -59,7 +59,7 @@ App.ChartLinearView = Em.View.extend({
       .attr("x1", thisChart.x(0))
       .attr("y1", -1 * thisChart.y(0))
       .attr("x2", thisChart.x(this.get('data').length))
-      .attr("y2", -1 * thisChart.y(0))
+      .attr("y2", -1 * thisChart.y(0));
 
     this.get('g').append("svg:line")
       .attr("x1", thisChart.x(0))

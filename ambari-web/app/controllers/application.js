@@ -29,8 +29,7 @@ App.ApplicationController = Em.Controller.extend({
 
   clusterDisplayName: function () {
     var name = this.get('clusterName');
-    var displayName = name.length > 13 ? name.substr(0, 10) + "..." : name;
-    return displayName;
+    return name.length > 13 ? name.substr(0, 10) + "..." : name;
   }.property('clusterName'),
 
   isClusterDataLoaded: function() {

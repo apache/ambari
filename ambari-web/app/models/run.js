@@ -109,6 +109,7 @@ App.Run = DS.Model.extend({
     if (this.get('id').indexOf('mr_') === 0) {
       return 'MapReduce';
     }
+    return '';
   }.property('id')
 });
 

@@ -19,17 +19,16 @@ module.exports = {
   /**
    * Convert byte size to other metrics.
    * 
-   * @param {Number} Bytes to convert to string
-   * @param {Number} Precision Number to adjust precision of return value. Default is 0.
-   * @param {String}
-   *          parseType JS method name for parse string to number. Default is
-   *          "parseInt".
-   * @param {Number} Multiplies bytes by this number if given. This is needed
+   * @param {Number} bytes to convert to string
+   * @param {Number} precision Number to adjust precision of return value. Default is 0.
+   * @param {String} parseType
+   *           JS method name for parse string to number. Default is "parseInt".
+   * @param {Number} multiplyBy bytes by this number if given. This is needed
    *          as <code>null * 1024 = 0</null>
    * @remarks The parseType argument can be "parseInt" or "parseFloat".
-   * @return {String) Returns converted value with abbreviation.
+   * @return {String} Returns converted value with abbreviation.
    */
-  bytesToSize: function (bytes, precision, parseType/* = 'parseInt' */, multiplyBy) {
+  bytesToSize: function (bytes, precision, parseType, multiplyBy) {
     if (bytes === null || bytes === undefined) {
       return 'n/a';
     } else {

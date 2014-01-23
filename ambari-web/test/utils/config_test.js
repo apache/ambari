@@ -33,14 +33,14 @@ describe('App.config', function () {
       data = {
         serviceName: 'HDFS',
         filename: 'core-site.xml'
-      }
+      };
       expect(App.config.identifyCategory(data).name).to.equal('AdvancedCoreSite');
     });
     it('should return "CapacityScheduler" if filename "capacity-scheduler.xml" and serviceName "YARN"', function () {
       data = {
         serviceName: 'YARN',
         filename: 'capacity-scheduler.xml'
-      }
+      };
       expect(App.config.identifyCategory(data).name).to.equal('CapacityScheduler');
     });
   });

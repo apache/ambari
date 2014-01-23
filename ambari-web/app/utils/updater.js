@@ -47,7 +47,7 @@ function update(obj, name, isWorking, interval){
 
   state.timeout = setTimeout(state.func, interval);
   return true;
-};
+}
 
 function rerun(name){
   var state = states[name];
@@ -55,7 +55,7 @@ function rerun(name){
     clearTimeout(state.timeout);
     state.func();
   }
-};
+}
 
 App.updater = {
 
@@ -126,4 +126,4 @@ App.updater = {
     return rerun(name);
   }
 
-}
+};

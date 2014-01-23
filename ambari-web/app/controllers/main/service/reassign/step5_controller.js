@@ -20,4 +20,4 @@ var App = require('app');
 
 App.ReassignMasterWizardStep5Controller = Em.Controller.extend({
 
-})
+});

@@ -1187,7 +1187,7 @@ var urls = {
       var statusCode = jQuery.extend({}, require('data/statusCodes'));
       statusCode['403'] = function () {
         console.log("Error code 403: Forbidden.");
-      }
+      };
       return {
         statusCode: statusCode
       };
@@ -1594,7 +1594,6 @@ if ($.mocho) {
   ajax.reopen({
     /**
      * Don't use it anywhere except tests!
-     * @deprecated
      * @returns {Array}
      */
     fakeGetUrlNames: function() {
@@ -1607,7 +1606,6 @@ if ($.mocho) {
 
     /**
      * Don't use it anywhere except tests!
-     * @deprecated
      * @param name
      * @returns {*}
      */
@@ -1617,7 +1615,6 @@ if ($.mocho) {
 
     /**
      * Don't use it anywhere except tests!
-     * @deprecated
      * @param url
      * @param data
      * @returns {String}
@@ -1628,7 +1625,6 @@ if ($.mocho) {
 
     /**
      * Don't use it anywhere except tests!
-     * @deprecated
      * @param urlObj
      * @param data
      * @returns {Object}

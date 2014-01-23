@@ -52,4 +52,4 @@ module.exports = {
 	503: function () {
 		console.log("Error code 503: Gateway timeout.");
 	}
-}
+};

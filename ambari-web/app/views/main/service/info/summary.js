@@ -29,7 +29,7 @@ App.AlertItemView = Em.View.extend({
     App.tooltip($("div[rel=tooltip]"));
     $(".tooltip").remove();
   }
-})
+});
 
 App.MainServiceInfoSummaryView = Em.View.extend({
   templateName: require('templates/main/service/info/summary'),
@@ -66,11 +66,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   noTemplateService: function () {
     var serviceName = this.get("service.serviceName");
     //services with only master components
-    if(serviceName == "WEBHCAT" || serviceName == "NAGIOS"){
-      return true;
-    }else{
-      return false;
-    }
+    return serviceName == "WEBHCAT" || serviceName == "NAGIOS";
   }.property('controller.content'),
 
   clients: function () {
@@ -82,10 +78,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('controller.content'),
 
   hasManyServers: function () {
-    if (this.get('servers').length > 1) {
-      return true;
-    }
-    return false;
+    return this.get('servers').length > 1;
   }.property('servers'),
 
   clientsHostText: function () {
@@ -99,10 +92,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property("hasManyClients"),
 
   hasManyClients: function () {
-    if (this.get('clients').length > 1) {
-      return true;
-    }
-    return false;
+    return this.get('clients').length > 1;
   }.property('clients'),
 
   servers: function () {

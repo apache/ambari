@@ -28,7 +28,7 @@ App.HttpClient = Em.Object.create({
    * @param jqXHR
    * @param textStatus
    * @param errorThrown
-   * @url api that invoked this callback function
+   * @param url api that invoked this callback function
    */
   defaultErrorHandler: function (jqXHR, textStatus, errorThrown, url) {
     try {
@@ -107,7 +107,7 @@ App.HttpClient = Em.Object.create({
    * @param {number} interval - frequency request
    */
   get: function (url, mapper, data, errorHandler, interval) {
-    var eHandler = data.complete
+    var eHandler = data.complete;
     if (!errorHandler && data.error) {
       errorHandler = data.error;
     }
@@ -118,7 +118,7 @@ App.HttpClient = Em.Object.create({
       data = null;
       mapper = null;
       errorHandler = null;
-    }
+    };
 
     interval = "" + interval;
     if (interval.match(/\d+/)) {

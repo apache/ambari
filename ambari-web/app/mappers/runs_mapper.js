@@ -32,7 +32,7 @@ App.runsMapper = App.QuickDataMapper.create({
         iTotalRecords:json.iTotalRecords,
         startIndex:parseInt(json.startIndex)+1,
         endIndex:parseInt(json.endIndex)+1
-      }
+      };
 
       json.aaData.forEach(function(item, index) {
         result.push(this.generateWorkflow(item, index));

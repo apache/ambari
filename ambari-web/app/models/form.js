@@ -67,7 +67,7 @@ App.Form = Em.View.extend({
         isValid = false;
         console.warn(this.get('name') + " IS INVALID : " + this.get('errorMessage'));
       }
-    })
+    });
 
     return isValid;
   },

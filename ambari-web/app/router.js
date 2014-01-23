@@ -39,7 +39,7 @@ App.Router = Em.Router.extend({
     this.get('addHostController').clear();
     this.get('addServiceController').clear();
     this.get('stackUpgradeController').clear();
-    for (i = 1; i < 11; i++) {
+    for (var i = 1; i < 11; i++) {
       this.set('wizardStep' + i + 'Controller.hasSubmitted', false);
       this.set('wizardStep' + i + 'Controller.isDisabled', true);
     }

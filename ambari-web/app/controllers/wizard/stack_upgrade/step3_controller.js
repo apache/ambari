@@ -346,10 +346,9 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
     var tasks = data.tasks || [];
     var process = this.get('processes').findProperty('isRunning', true);
     // if process was finished then it terminates next poll
-    var continuePolling = true;
 
     this.progressOnProcess(tasks, process);
-    continuePolling = this.statusOnProcess(tasks, process);
+    var continuePolling = this.statusOnProcess(tasks, process);
     if(process.get('hosts').length && tasks.length){
       process.get('hosts').forEach(function (host) {
         var tasksPerHost = tasks.filterProperty('Tasks.host_name', host.name);
@@ -367,7 +366,6 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * @param process
    */
   progressOnProcess: function(actions, process){
-    var progress = 0;
     var actionsNumber = actions.length;
     var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
       + actions.filterProperty('Tasks.status', 'FAILED').length
@@ -375,7 +373,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
       + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
     var queuedActions = actions.filterProperty('Tasks.status', 'QUEUED').length;
     var inProgressActions = actions.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-    progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsNumber * 100);
+    var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsNumber * 100);
     console.log('INFO: progress is: ' + progress);
     process.set('progress', progress);
   },

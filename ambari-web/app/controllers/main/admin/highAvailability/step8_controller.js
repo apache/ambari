@@ -22,5 +22,5 @@ App.HighAvailabilityWizardStep8Controller = Em.Controller.extend({
 
   name:"highAvailabilityWizardStep8Controller"
 
-})
+});
 

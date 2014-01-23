@@ -43,7 +43,7 @@ App.Authentication.FIXTURES = [
     search_base_dn:"",
     username_attribute:""
   }
-]
+];
 
 App.AuthenticationForm = App.Form.extend({
   testResult:false,

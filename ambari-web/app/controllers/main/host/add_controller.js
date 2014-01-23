@@ -287,7 +287,6 @@ App.AddHostController = App.WizardController.extend({
 
   /**
    * Generate clients list for selected services and save it to model
-   * @param stepController step4WizardController
    */
   saveClients: function () {
     var clients = [];

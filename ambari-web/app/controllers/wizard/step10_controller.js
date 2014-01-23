@@ -185,7 +185,7 @@ App.WizardStep10Controller = Em.Controller.extend({
           this.loadOozieServer(component);
           break;
         case 'GANGLIA_SERVER':
-          this.loadGanglia(component)
+          this.loadGanglia(component);
           break;
         case 'NAGIOS_SERVER':
           this.loadNagios(component);

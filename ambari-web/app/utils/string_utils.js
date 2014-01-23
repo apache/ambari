@@ -37,7 +37,8 @@ module.exports = {
           break;
 
         case STR_PAD_BOTH:
-          var right = Math.ceil((padlen = len - str.length) / 2);
+          var padlen = len - str.length;
+          var right = Math.ceil((padlen) / 2);
           var left = padlen - right;
           str = Array(left+1).join(pad) + str + Array(right+1).join(pad);
           break;
@@ -53,12 +54,10 @@ module.exports = {
 
   },
   underScoreToCamelCase: function(name){
-    var new_name = name.replace(/_\w/g,replacer);
-    function replacer(str, p1, p2, offset, s)
-    {
+    function replacer(str, p1, p2, offset, s) {
       return str[1].toUpperCase();
     }
-    return new_name;
+    return name.replace(/_\w/g,replacer);
   },
   /**
    * Compare two versions by following rules:
@@ -147,4 +146,4 @@ module.exports = {
     var last_slash = path.lastIndexOf('/');
     return (last_slash!=0)?path.substr(0,last_slash):'/';
   }
-}
+};

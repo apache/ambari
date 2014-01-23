@@ -90,4 +90,4 @@ App.MainController = Em.Controller.extend({
     );
   }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled")
 
-})
+});

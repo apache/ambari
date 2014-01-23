@@ -443,10 +443,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
         if (component.host_components[0].metrics && component.host_components[0].metrics.yarn) {
           var root = component.host_components[0].metrics.yarn.Queue.root;
-          var queue = JSON.stringify({
+          component.queue = JSON.stringify({
             'root': self.parseObject(root)
           });
-          component.queue = queue;
         }
         // extend config
         finalConfig = jQuery.extend(finalConfig, yarnConfig);

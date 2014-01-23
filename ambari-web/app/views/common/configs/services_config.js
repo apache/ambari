@@ -380,7 +380,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     });
     // remove undefined elements from array
     sortedConfigs = sortedConfigs.filter(function (config) {
-      if (config !== undefined) return true;
+      return config !== undefined;
     });
     return sortedConfigs.concat(unSorted);
   },

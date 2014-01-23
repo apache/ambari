@@ -89,10 +89,7 @@ App.WizardStep6Controller = Em.Controller.extend({
             isError |= host.get('checkboxes').findProperty('title', header.get('label')).checked;
           });
           isError = !isError;
-          if (isError) {
-            return;
-          }
-          else {
+          if (!isError) {
             self.set('errorMessage', '');
           }
         });

@@ -90,12 +90,7 @@ App.MainJobsView = App.TableView.extend({
     canActionBeTaken: function () {
       var job_status = this.get('content.status');
 
-      if (job_status == "RUNNING" || job_status == "SUSPENDED") {
-        return true;
-      }
-
-      return false;
-
+      return job_status == "RUNNING" || job_status == "SUSPENDED";
     }.property('content.status'),
 
     isKilled: function () {
@@ -121,7 +116,6 @@ App.MainJobsView = App.TableView.extend({
         case 'WAITING' :
           return "label";
           break;
-        case 'KILLED' :
         case 'FAILED' :
         case 'ERROR' :
           return "label label-important";

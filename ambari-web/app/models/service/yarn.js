@@ -86,7 +86,7 @@ App.YARNService = App.Service.extend({
           }
         }
         return names;
-      }
+      };
       allQueueNames = addQueues(queues, '');
     }
     this.set('allQueueNames', allQueueNames);

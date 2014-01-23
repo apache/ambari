@@ -235,7 +235,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    */
   deleteHosts: function () {
     if (this.get('isDeleteHostsDisabled')) {
-      return false;
+      return;
     }
     var groupHosts = this.get('selectedConfigGroup.hosts');
     var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts');
@@ -249,11 +249,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   isDeleteHostsDisabled: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
     if (selectedConfigGroup) {
-      if (selectedConfigGroup.isDefault || this.get('selectedHosts').length === 0) {
-        return true;
-      } else {
-        return false;
-      }
+      return selectedConfigGroup.isDefault || this.get('selectedHosts').length === 0;
     }
     return true;
   }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.length', 'selectedHosts.length'),
@@ -335,7 +331,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
-          return false;
+          return;
         }
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
         self.set('selectedConfigGroup.description', this.get('configGroupDesc'));

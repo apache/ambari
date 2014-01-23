@@ -64,8 +64,6 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   setCommandsAndTasks: function(tmpTasks) {
     console.warn('func: setCommandsAndTasks');
     var fTask = this.get('failedTask');
-    var newCommands = [];
-    var newTasks = [];
     var index = [
       'deleteSNameNode',
       'startAllServices',
@@ -86,12 +84,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     if(index > 6){
       --index;
     }
-    newCommands = this.get('commands').splice(index);
+    var newCommands = this.get('commands').splice(index);
     this.set('commands', newCommands);
-    newTasks = tmpTasks.splice(index);
+    var newTasks = tmpTasks.splice(index);
     for (var i = 0; i < newTasks.length; i++) {
       newTasks[i].id = i;
-    };
+    }
     this.set('tasks', newTasks);
     var hbaseTask = this.get('tasks').findProperty('command', 'restoreHBaseConfigs');
     if (!App.Service.find().someProperty('serviceName', 'HBASE') && hbaseTask) {
@@ -243,7 +241,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   stopStandbyNameNode: function(){
     console.warn('func: stopStandbyNameNode');
-    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;;
+    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
     this.stopComponent('NAMENODE', hostName);
   },
   stopNameNode: function(){

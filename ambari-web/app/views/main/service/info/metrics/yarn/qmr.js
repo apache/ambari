@@ -56,7 +56,7 @@ App.ChartServiceMetricsYARN_QMR = App.ChartLinearTimeView.extend({
     }
     if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue) {
       queueNames.forEach(function (qName) {
-        var qPath = qName.replace(/\//g, '.')
+        var qPath = qName.replace(/\//g, '.');
         var displayName;
         var allocatedData = objUtils.getProperty(jsonData.metrics.yarn.Queue, qPath + '.AllocatedMB');
         var availableData = objUtils.getProperty(jsonData.metrics.yarn.Queue, qPath + '.AvailableMB');

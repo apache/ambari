@@ -65,4 +65,4 @@ App.App.FIXTURES = [
     execution_time: '134762957834',
     runs: []
   }
-]
+];

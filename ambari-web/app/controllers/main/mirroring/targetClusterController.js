@@ -27,16 +27,14 @@ App.MainMirroringTargetClusterController = Ember.Controller.extend({
         return value;
       }
       var controller = App.router.get('mainMirroringTargetClusterController');
-      var isNameNodeWebUrlError = controller.checkNameNodeWebUrlErrors();
-      return isNameNodeWebUrlError;
+      return controller.checkNameNodeWebUrlErrors();
     }.property('targetCluster.nameNodeWebUrl', 'model.targetCluster.nameNodeWebUrl'),
     isNameNodeRpcUrlError: function (key, value) {
       if (value) {
         return value;
       }
       var controller = App.router.get('mainMirroringTargetClusterController');
-      var isNameNodeRpcUrlError = controller.checkNameNodeRpcUrlErrors();
-      return isNameNodeRpcUrlError;
+      return controller.checkNameNodeRpcUrlErrors();
     }.property('targetCluster.nameNodeRpcUrl', 'model.targetCluster.nameNodeRpcUrl'),
 
     isOozieServerUrlError: function (key, value) {
@@ -44,8 +42,7 @@ App.MainMirroringTargetClusterController = Ember.Controller.extend({
         return value;
       }
       var controller = App.router.get('mainMirroringTargetClusterController');
-      var isOozieServerUrlError = controller.checkOozieServerUrlErrors();
-      return isOozieServerUrlError;
+      return controller.checkOozieServerUrlErrors();
     }.property('targetCluster.oozieServerUrl', 'model.targetCluster.oozieServerUrl'),
 
     isClusterNameError: function (key, value) {
@@ -53,8 +50,7 @@ App.MainMirroringTargetClusterController = Ember.Controller.extend({
         return value;
       }
       var controller = App.router.get('mainMirroringTargetClusterController');
-      var isClusterNameError = controller.checkClusterNameErrors();
-      return isClusterNameError;
+      return controller.checkClusterNameErrors();
     }.property('targetCluster.clusterName', 'model.targetCluster.clusterName'),
 
     nameNodeWebUrlErrorMessage: null,
@@ -71,19 +67,11 @@ App.MainMirroringTargetClusterController = Ember.Controller.extend({
     var isNameNodeRpcUrlError = this.checkNameNodeRpcUrlErrors();
     var isOozieServerUrlError = this.checkOozieServerUrlErrors();
 
-    if (isNameNodeWebUrlError || isNameNodeRpcUrlError || isOozieServerUrlError) {
-      return false;
-    }
-    return true;
+    return !(isNameNodeWebUrlError || isNameNodeRpcUrlError || isOozieServerUrlError);
   },
 
   validate2: function () {
-    var isClusterNameError = this.checkClusterNameErrors();
-
-    if (isClusterNameError) {
-      return false;
-    }
-    return true;
+    return !this.checkClusterNameErrors();
   },
 
   checkNameNodeWebUrlErrors: function () {

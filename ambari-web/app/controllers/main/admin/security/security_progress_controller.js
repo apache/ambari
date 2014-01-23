@@ -243,9 +243,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
 
   /**
    * gets site config properties from server and sets it for every configuration
-   * @param serviceConfigTags
    */
-
   getAllConfigurations: function () {
     var urlParams = [];
     this.get('serviceConfigTags').forEach(function (_tag) {

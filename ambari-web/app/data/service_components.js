@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 module.exports = new Ember.Set([
 
   {

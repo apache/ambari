@@ -21,4 +21,4 @@ var App = require('app');
 App.MainAdminUserCreateController = Em.Controller.extend({
   name:'mainAdminUserCreateController',
   content:false
-})
+});

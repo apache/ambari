@@ -806,14 +806,15 @@ App.HostPopup = Em.Object.create({
          * Create Clip Board
          */
         createClipBoard: function () {
+          var logElement = $(".task-detail-log-maintext");
           $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
           $(".task-detail-log-clipboard")
             .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
             .css("display", "block")
-            .width($(".task-detail-log-maintext").width())
-            .height($(".task-detail-log-maintext").height())
+            .width(logElement.width())
+            .height(logElement.height())
             .select();
-          $(".task-detail-log-maintext").css("display", "none")
+          logElement.css("display", "none")
         },
 
         /**

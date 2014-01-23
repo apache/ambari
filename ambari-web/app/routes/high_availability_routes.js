@@ -140,7 +140,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('highAvailabilityWizardController');
       var highAvailabilityWizardStep2Controller = router.get('highAvailabilityWizardStep2Controller');
       var addNN = highAvailabilityWizardStep2Controller.get('selectedServicesMasters').findProperty('isAddNameNode', true).get('selectedHost');
-      var sNN = highAvailabilityWizardStep2Controller.get('selectedServicesMasters').findProperty('component_name','SECONDARY_NAMENODE').get('selectedHost')
+      var sNN = highAvailabilityWizardStep2Controller.get('selectedServicesMasters').findProperty('component_name','SECONDARY_NAMENODE').get('selectedHost');
       if(addNN){
         App.db.setRollBackHighAvailabilityWizardAddNNHost(addNN);
       }

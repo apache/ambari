@@ -40,10 +40,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   dashboardMasterComponentView: Em.View.extend({
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp : function() {
-      var masters = this.get('parentView.service.hostComponents').filter(function(comp){
+      return this.get('parentView.service.hostComponents').filter(function(comp){
         return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
       });
-      return masters;
     }.property('parentView.service.hostComponents')
   }),
 

@@ -41,4 +41,4 @@ describe('App.LoginController', function () {
     })
     */
   })
-})
+});

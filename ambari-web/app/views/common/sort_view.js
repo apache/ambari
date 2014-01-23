@@ -76,7 +76,7 @@ var wrapperView = Em.View.extend({
   /**
    * sort content by property
    * @param property
-   * @param order: true - DESC, false - ASC
+   * @param order true - DESC, false - ASC
    */
   sort: function(property, order){
     var content = this.get('content').toArray();
@@ -120,7 +120,7 @@ var wrapperView = Em.View.extend({
           } else {
             return a - b;
           }
-        }
+        };
         break;
       default:
         func = function(a,b){

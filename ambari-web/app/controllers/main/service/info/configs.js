@@ -370,8 +370,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
         item.get('configSiteTags').forEach(function (siteTag) {
           var site = siteTag.get('site');
-          var tag = siteTag.get('tag');
-          this.loadedGroupToOverrideSiteToTagMap[groupName][site] = tag;
+          this.loadedGroupToOverrideSiteToTagMap[groupName][site] = siteTag.get('tag');
         }, this);
       }, this);
     }
@@ -692,7 +691,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Determines which host components are running on each host.
-   * @param status 'running' or 'unknown'
+   * @param {Array} services
+   * @param {String} status 'running' or 'unknown'
    * @return Returned in the following format:
    * {
    *  runningHosts: {
@@ -1206,13 +1206,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param templateName
    * @param expression
    * @param name
-   * @return {
+   * @return {Object}
+   * example: <code>{
    *   value: '...',
    *   overrides: {
    *    'value1': [h1, h2],
    *    'value2': [h3]
    *   }
-   * }
+   * }</code>
    */
   getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
@@ -1493,7 +1494,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * create global site object
-   * @param tagName
+   * @param {String} tagName
+   * @param {Array} globalConfigs
    * @return {Object}
    */
   createGlobalSiteObj: function (tagName, globalConfigs) {
@@ -1580,6 +1582,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * create site object
    * @param siteName
    * @param tagName
+   * @param siteObj
    * @return {Object}
    */
   createSiteObj: function (siteName, tagName, siteObj) {
@@ -1593,8 +1596,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Set display names of the property from the puppet/global names
-   * @param: displayNames: a field to be set with displayNames
-   * @param names: array of property puppet/global names
+   * @param {Array} displayNames a field to be set with displayNames
+   * @param {Array} names array of property puppet/global names
    */
   setPropertyDisplayNames: function (displayNames, names) {
     var stepConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).configs;
@@ -2025,7 +2028,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * If some configs are changed and user navigates away or select another config-group, show this popup with propose to save changes
-   * @param {object} event - triggered event for seleting another config-group
+   * @param {String} path
+   * @param {object} event - triggered event for selecting another config-group
    */
   showSavePopup: function (path, event) {
     var _this = this;

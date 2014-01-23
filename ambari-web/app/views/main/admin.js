@@ -40,7 +40,7 @@ App.MainAdminView = Em.View.extend({
         url: 'adminSecurity.index',
         label: Em.I18n.t('common.security')
       });
-    };
+    }
     items.push({
       name: 'cluster',
       url: 'adminCluster',

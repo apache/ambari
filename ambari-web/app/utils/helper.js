@@ -41,7 +41,6 @@ String.prototype.ip2long = function () {
   // *     returns 2: 11259375
   // *     example 3: ip2long('255.255.255.256');
   // *     returns 3: false
-  var i = 0;
   // PHP allows decimal, octal, and hexadecimal IP components.
   // PHP allows between 1 (e.g. 127) to 4 (e.g 127.0.0.1) components.
   var IP = this.match(/^([1-9]\d*|0[0-7]*|0x[\da-f]+)(?:\.([1-9]\d*|0[0-7]*|0x[\da-f]+))?(?:\.([1-9]\d*|0[0-7]*|0x[\da-f]+))?(?:\.([1-9]\d*|0[0-7]*|0x[\da-f]+))?$/i); // Verify IP format.
@@ -50,7 +49,7 @@ String.prototype.ip2long = function () {
   }
   // Reuse IP variable for component counter.
   IP[0] = 0;
-  for (i = 1; i < 5; i += 1) {
+  for (var i = 1; i < 5; i += 1) {
     IP[0] += !!((IP[i] || '').length);
     IP[i] = parseInt(IP[i]) || 0;
   }
@@ -67,7 +66,7 @@ String.prototype.ip2long = function () {
 
 String.prototype.capitalize = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
-}
+};
 
 Em.CoreObject.reopen({
   t:function (key, attrs) {
@@ -101,7 +100,7 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
   });
 
   return new Em.Handlebars.SafeString(property);
-})
+});
 
 /**
  * Replace {i} with argument. where i is number of argument to replace with
@@ -150,12 +149,12 @@ Number.prototype.toDaysHoursMinutes = function () {
   formatted.m = (dateDiff / minK).toFixed(2);
 
   return formatted;
-}
+};
 
 Number.prototype.countPercentageRatio = function (maxValue) {
   var usedValue = this;
   return Math.round((usedValue / maxValue) * 100) + "%";
-}
+};
 
 Number.prototype.long2ip = function () {
   // http://kevin.vanzonneveld.net
@@ -166,7 +165,7 @@ Number.prototype.long2ip = function () {
     return false;
 
   return [this >>> 24, this >>> 16 & 0xFF, this >>> 8 & 0xFF, this & 0xFF].join('.');
-}
+};
 
 /**
  * Formats the given URL template by replacing keys in 'substitutes'
@@ -203,7 +202,7 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
         hostName:App.test_hostname
       };
       jQuery.extend(allSubstitutes, substitutes);
-      for (key in allSubstitutes) {
+      for (var key in allSubstitutes) {
         var useKey = '{' + key + '}';
         formatted = formatted.replace(new RegExp(useKey, 'g'), allSubstitutes[key]);
       }
@@ -212,7 +211,7 @@ App.formatUrl = function (urlTemplate, substitutes, testUrl) {
     }
   }
   return formatted;
-}
+};
 
 /**
  * Certain variables can have JSON in string
@@ -369,6 +368,7 @@ App.format = {
       case 'LOGVIEWER_SERVER':
         return 'Logviewer Server';
     }
+    return '';
   },
 
   /**
@@ -396,7 +396,7 @@ App.popover = function(self, options) {
   self.on("remove", function () {
     $(this).trigger('mouseleave');
   });
-}
+};
 
 /**
  * wrapper to bootstrap tooltip
@@ -409,7 +409,7 @@ App.tooltip = function(self, options) {
   self.on("remove", function () {
     $(this).trigger('mouseleave');
   });
-}
+};
 
 /*
  * Helper function for bound property helper registration
@@ -421,7 +421,7 @@ App.registerBoundHelper = function(name, view) {
     options.hash.contentBinding = property;
     return Em.Handlebars.helpers.view.call(this, view, options);
   });
-}
+};
 
 /*
  * Return singular or plural word based on Em.I18n property key.
@@ -466,4 +466,4 @@ App.registerBoundHelper('pluralize', Em.View.extend({
     }
   }
   })
-)
+);

@@ -197,15 +197,16 @@ App.DashboardWidgetView = Em.View.extend({
               colorstops += colors[i+1] + " " + handlers[i]*100/max_tmp + "%,";
             }
             colorstops += colors[colors.length - 1];
+            var sliderElement = $('#slider-range');
             var css1 = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari
-            $('#slider-range').css('background-image', css1);
+            sliderElement.css('background-image', css1);
             var css2 = '-ms-linear-gradient(left,' + colorstops + ')'; // IE 10+
-            $('#slider-range').css('background-image', css2);
+            sliderElement.css('background-image', css2);
             //$('#slider-range').css('filter', 'progid:DXImageTransform.Microsoft.gradient( startColorStr= ' + colors[0] + ', endColorStr= ' + colors[2] +',  GradientType=1 )' ); // IE 10-
             var css3 = '-moz-linear-gradient(left,' + colorstops + ')'; // Firefox
-            $('#slider-range').css('background-image', css3);
+            sliderElement.css('background-image', css3);
 
-            $('#slider-range .ui-widget-header').css({'background-color': '#FF8E00', 'background-image': 'none'}); // change the  original ranger color
+            sliderElement.find('.ui-widget-header').css({'background-color': '#FF8E00', 'background-image': 'none'}); // change the  original ranger color
           }
         } else {
           configObj.set('isIE9', true);

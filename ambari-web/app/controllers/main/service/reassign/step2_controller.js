@@ -70,7 +70,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       }
     }, this);
     if (availableComponentHosts.length == 0) {
-      return false;
+      return;
     }
     currentComponents.forEach(function (item) {
       preparedAvailableHosts = availableComponentHosts.slice(0);

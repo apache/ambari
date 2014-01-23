@@ -43,7 +43,7 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
   checkNnCheckPointStatus: function (data) {
     var self = this;
     var journalTransactionInfo =  $.parseJSON(data.metrics.dfs.namenode.JournalTransactionInfo);
-    var isInSafeMode = data.metrics.dfs.namenode.Safemode != "" ? true : false;
+    var isInSafeMode = (data.metrics.dfs.namenode.Safemode != "");
     journalTransactionInfo = parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId) - parseInt(journalTransactionInfo.MostRecentCheckpointTxId);
     if(journalTransactionInfo <= 1 && isInSafeMode){
       this.set("isNextEnabled", true);
@@ -61,7 +61,5 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
     }
   }
 
-
-
-})
+});
 

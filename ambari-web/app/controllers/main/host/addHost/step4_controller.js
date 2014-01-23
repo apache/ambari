@@ -53,13 +53,5 @@ App.AddHostStep4Controller= Em.Controller.extend({
     return df.promise();
   }
 
-
-
-
-
-
-
-
-
-})
+});
 

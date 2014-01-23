@@ -174,4 +174,4 @@ module.exports = [
     isHidden: !App.supports.storm,
     description: Em.I18n.t('services.storm.description')
   }
-]
+];

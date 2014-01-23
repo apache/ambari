@@ -41,8 +41,7 @@ App.clusterMapper = App.QuickDataMapper.create({
               var hostOverridesArray = {};
               json.Clusters.desired_configs[site].host_overrides.forEach(function(override){
                 var hostname = override.host_name;
-                var tag = override.tag;
-                hostOverridesArray[hostname] = tag;
+                hostOverridesArray[hostname] = override.tag;
               });
               configObj.set('hostOverrides', hostOverridesArray);
             }

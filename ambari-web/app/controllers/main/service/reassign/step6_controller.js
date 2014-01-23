@@ -113,4 +113,4 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
       this.onTaskError();
     }
   }
-})
+});

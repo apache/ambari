@@ -143,7 +143,7 @@ App.GridPager = Em.View.extend({
 
   init:function () {
     this._super();
-    this.clearPages()
+    this.clearPages();
     this.pushPages();
   },
 
@@ -203,7 +203,7 @@ App.Grid = Em.View.extend({
 
     var collection = this.get('_collection.className');
     collection = collection.find();
-    arrayCollection = collection.filter(function(data) {
+    var arrayCollection = collection.filter(function(data) {
       var oneFilterFail = false;
       $.each(filters, function(fieldname, values){
         if(values.length && values.indexOf(data.get(fieldname)) == -1) {
@@ -270,7 +270,7 @@ App.Grid = Em.View.extend({
             options[field].push(filter);
           }
         });
-      })
+      });
 
       thisGrid.set('_filters', options);
     }
