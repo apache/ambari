@@ -103,13 +103,6 @@ def yarn():
        content=Template('yarn-env.sh.j2')
   )
 
-  File(format("{config_dir}/hadoop-env.sh"),
-       owner=params.hdfs_user,
-       group=params.user_group,
-       mode=0755,
-       content=StaticFile(format('{hadoop_conf_dir}/hadoop-env.sh'))
-  )
-
   if params.security_enabled:
     container_executor = format("{yarn_container_bin}/container-executor")
     File(container_executor,

@@ -38,6 +38,7 @@ class Historyserver(Script):
   def start(self, env):
     import params
     env.set_params(params)
+    self.configure(env)
     service('historyserver',
             action='start'
     )
