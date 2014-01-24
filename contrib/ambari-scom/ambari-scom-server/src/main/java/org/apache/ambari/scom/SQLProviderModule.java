@@ -104,7 +104,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
       case Component:
 
         providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type, PropertyHelper.MetricsVersion.HDP1),
+            PropertyHelper.getJMXPropertyIds(type),
             urlStreamProvider,
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
@@ -114,7 +114,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
             Collections.singleton("STARTED")));
 
         providers.add(new SQLPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type, PropertyHelper.MetricsVersion.HDP1),
+            PropertyHelper.getGangliaPropertyIds(type),
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
             null,
@@ -124,7 +124,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
       case HostComponent:
 
         providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type, PropertyHelper.MetricsVersion.HDP1),
+            PropertyHelper.getJMXPropertyIds(type),
             urlStreamProvider,
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -134,7 +134,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
             Collections.singleton("STARTED")));
 
         providers.add(new SQLPropertyProvider(
-            PropertyHelper.getGangliaPropertyIds(type, PropertyHelper.MetricsVersion.HDP1),
+            PropertyHelper.getGangliaPropertyIds(type),
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),

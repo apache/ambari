@@ -85,7 +85,7 @@ public class SQLPropertyProviderTest {
     replay(connectionFactory, connection, statement, resultSet);
 
     SQLPropertyProvider provider = new SQLPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         new TestHostInfoProvider(),
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -151,7 +151,7 @@ public class SQLPropertyProviderTest {
     TestHostInfoProvider hostProvider = new TestHostInfoProvider();
 
     SQLPropertyProvider provider = new SQLPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -217,7 +217,7 @@ public class SQLPropertyProviderTest {
     TestHostInfoProvider hostProvider = new TestHostInfoProvider();
 
     SQLPropertyProvider provider = new SQLPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -278,7 +278,7 @@ public class SQLPropertyProviderTest {
     TestHostInfoProvider hostProvider = new TestHostInfoProvider();
 
     SQLPropertyProvider provider = new SQLPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         null,
@@ -336,7 +336,7 @@ public class SQLPropertyProviderTest {
     replay(connectionFactory, connection, statement, resultSet);
 
     SQLPropertyProvider provider = new SQLPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         new TestHostInfoProvider(),
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -397,7 +397,7 @@ public class SQLPropertyProviderTest {
     replay(connectionFactory, connection, statement, resultSet);
 
     SQLPropertyProvider provider = new SQLPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
         new TestHostInfoProvider(),
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,

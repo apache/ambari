@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -385,21 +384,19 @@ public class AmbariServer {
         databaseDriver = configuration.getLocalDatabaseUrl();
         databaseUrl    = Configuration.JDBC_LOCAL_DRIVER;
 
-      } else {
-        databaseDriver = configuration.getDatabaseDriver();
-        databaseUrl    = configuration.getDatabaseUrl();
-
+      }
+      else {
         if (persistenceType == PersistenceType.IN_MEMORY) {
-          if(databaseDriver == null){
-            databaseDriver = Configuration.JDBC_IN_MEMROY_DRIVER;
-          }
-          if (databaseUrl == null) {
-            databaseUrl = Configuration.JDBC_IN_MEMORY_URL;
-          }
+          databaseDriver = Configuration.JDBC_IN_MEMROY_DRIVER;
+          databaseUrl = Configuration.JDBC_IN_MEMORY_URL;
+        }
+        else {
+          databaseDriver = configuration.getDatabaseDriver();
+          databaseUrl    = configuration.getDatabaseUrl();
         }
       }
-      if (databaseDriver != null && databaseUrl != null) {
 
+      if (databaseDriver != null && databaseUrl != null) {
         properties.setProperty("javax.persistence.jdbc.url",    databaseUrl);
         properties.setProperty("javax.persistence.jdbc.driver", databaseDriver);
 
