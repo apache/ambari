@@ -96,7 +96,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osType>centos6</osType>
+          <osType>any</osType>
           <packages>
             <package>
               <type>rpm</type>

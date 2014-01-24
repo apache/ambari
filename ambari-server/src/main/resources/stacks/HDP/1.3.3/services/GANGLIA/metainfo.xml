@@ -94,6 +94,13 @@
           </package>
         </osSpecific>
         <osSpecific>
+          <osType>centos5</osType>
+          <package>
+            <type>rpm</type>
+            <name>httpd</name>
+          </package>
+        </osSpecific>
+        <osSpecific>
           <osType>centos6</osType>
           <package>
             <type>rpm</type>
