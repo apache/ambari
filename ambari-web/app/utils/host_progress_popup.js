@@ -744,7 +744,8 @@ App.HostPopup = Em.Object.create({
           var self = this;
           var id = this.get('sourceRequestScheduleId');
           batchUtils.getRequestSchedule(id, function(data) {
-            if (data != null && data.RequestSchedule.status != null) {
+            if (data != null && data.RequestSchedule != null &&
+                data.RequestSchedule.status != null) {
               switch (data.RequestSchedule.status) {
               case 'DISABLED':
                 self.set('sourceRequestScheduleRunning', false);
