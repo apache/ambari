@@ -29,6 +29,8 @@ import java.util.List;
 @Singleton
 class DaoUtils {
 
+  public static final int ORACLE_LIST_LIMIT = 999;
+
   public <T> List<T> selectList(TypedQuery<T> query, Object... parameters) {
     setParameters(query, parameters);
     try {
@@ -63,7 +65,7 @@ class DaoUtils {
 
   public void setParameters(Query query, Object... parameters) {
     for (int i = 0; i < parameters.length; i++) {
-      query.setParameter(i+1, parameters[i]);
+      query.setParameter(i + 1, parameters[i]);
     }
   }
 }
