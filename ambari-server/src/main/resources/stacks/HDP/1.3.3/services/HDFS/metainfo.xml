@@ -140,6 +140,7 @@
         <config-type>global</config-type>
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-policy</config-type>
+        <config-type>hdfs-log4j</config-type>
       </configuration-dependencies>
     </service>
   </services>

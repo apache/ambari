@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 
 from resource_management import *
 import sys
@@ -78,7 +79,22 @@ def hbase(type=None # 'master' or 'regionserver' or 'client'
     Directory ( [params.tmp_dir, params.log_dir],
       owner = params.hbase_user,
       recursive = True
-    )    
+    )
+
+  if (params.log4j_props != None):
+    PropertiesFile('log4j.properties',
+                   dir=params.conf_dir,
+                   properties=params.log4j_props,
+                   mode=0664,
+                   owner=params.hbase_user,
+                   group=params.user_group,
+    )
+  elif (os.path.exists(format("{params.conf_dir}/log4j.properties"))):
+    File(format("{params.conf_dir}/log4j.properties"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hbase_user
+    )
 
 def hbase_TemplateConfig(name, 
                          tag=None

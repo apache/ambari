@@ -69,3 +69,9 @@ security_enabled = config['configurations']['global']['security_enabled']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 smokeuser = config['configurations']['global']['smokeuser']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
+#log4j.properties
+if ('zookeeper-log4j' in config['configurations']):
+  log4j_props = config['configurations']['zookeeper-log4j']
+else:
+  log4j_props = None

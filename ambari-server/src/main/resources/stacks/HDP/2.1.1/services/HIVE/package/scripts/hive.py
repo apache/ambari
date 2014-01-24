@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import sys
+import os
 
 
 def hive(name=None):
@@ -78,8 +79,40 @@ def hive(name=None):
 
   crt_file(format("{hive_conf_dir}/hive-default.xml.template"))
   crt_file(format("{hive_conf_dir}/hive-env.sh.template"))
-  crt_file(format("{hive_conf_dir}/hive-exec-log4j.properties.template"))
-  crt_file(format("{hive_conf_dir}/hive-log4j.properties.template"))
+
+  log4j_exec_filename = 'hive-exec-log4j.properties'
+  if (params.log4j_exec_props != None):
+    PropertiesFile(log4j_exec_filename,
+                   dir=params.hive_conf_dir,
+                   properties=params.log4j_exec_props,
+                   mode=0664,
+                   owner=params.hive_user,
+                   group=params.user_group
+    )
+  elif (os.path.exists("{params.hive_conf_dir}/{log4j_exec_filename}.template")):
+    File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=StaticFile(format("{params.hive_conf_dir}/{log4j_exec_filename}.template"))
+    )
+
+  log4j_filename = 'hive-log4j.properties'
+  if (params.log4j_props != None):
+    PropertiesFile(log4j_filename,
+                   dir=params.hive_conf_dir,
+                   properties=params.log4j_props,
+                   mode=0664,
+                   owner=params.hive_user,
+                   group=params.user_group
+    )
+  elif (os.path.exists("{params.hive_conf_dir}/{log4j_filename}.template")):
+    File(format("{params.hive_conf_dir}/{log4j_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=StaticFile(format("{params.hive_conf_dir}/{log4j_filename}.template"))
+    )
 
 
 def crt_directory(name):

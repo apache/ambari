@@ -121,3 +121,15 @@ hcat_pid_dir = status_params.hcat_pid_dir
 hcat_log_dir = config['configurations']['global']['hcat_log_dir']   #hcat_log_dir
 
 hadoop_conf_dir = '/etc/hadoop/conf'
+
+#hive-log4j.properties.template
+if ('hive-log4j' in config['configurations']):
+  log4j_props = config['configurations']['hive-log4j']
+else:
+  log4j_props = None
+
+#hive-exec-log4j.properties.template
+if ('hive-exec-log4j' in config['configurations']):
+  log4j_exec_props = config['configurations']['hive-exec-log4j']
+else:
+  log4j_exec_props = None

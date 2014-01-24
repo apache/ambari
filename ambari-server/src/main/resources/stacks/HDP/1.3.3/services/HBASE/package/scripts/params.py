@@ -83,3 +83,9 @@ regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regions
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
 kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
+#log4j.properties
+if ('hbase-log4j' in config['configurations']):
+  log4j_props = config['configurations']['hbase-log4j']
+else:
+  log4j_props = None

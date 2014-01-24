@@ -95,6 +95,7 @@
         <config-type>global</config-type>
         <config-type>mapred-site</config-type>
         <config-type>mapred-queue-acls</config-type>
+        <config-type>mapreduce-log4j</config-type>
       </configuration-dependencies>
     </service>
 

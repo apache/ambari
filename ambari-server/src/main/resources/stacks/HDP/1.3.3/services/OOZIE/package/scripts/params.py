@@ -62,3 +62,9 @@ if lzo_enabled and jdbc_driver_name:
     jar_path = format("{lzo_jar_suffix}:{jdbc_driver_jar}")        
 else:
     jar_path = "{lzo_jar_suffix}{jdbc_driver_jar}"
+
+#oozie-log4j.properties
+if ('oozie-log4j' in config['configurations']):
+  log4j_props = config['configurations']['oozie-log4j']
+else:
+  log4j_props = None

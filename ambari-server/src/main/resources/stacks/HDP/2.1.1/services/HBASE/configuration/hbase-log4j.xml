@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+
+  <property>
+    <name>hbase.root.logger</name>
+    <value>INFO,console</value>
+  </property>
+  <property>
+    <name>hbase.security.logger</name>
+    <value>INFO,console</value>
+  </property>
+  <property>
+    <name>hbase.log.dir</name>
+    <value>.</value>
+  </property>
+  <property>
+    <name>hbase.log.file</name>
+    <value>hbase.log</value>
+  </property>
+  <property>
+    <name>log4j.rootLogger</name>
+    <value>${hbase.root.logger}</value>
+  </property>
+  <property>
+    <name>log4j.threshold</name>
+    <value>ALL</value>
+  </property>
+  <property>
+    <name>log4j.appender.DRFA</name>
+    <value>org.apache.log4j.DailyRollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.DRFA.File</name>
+    <value>${hbase.log.dir}/${hbase.log.file}</value>
+  </property>
+  <property>
+    <name>log4j.appender.DRFA.DatePattern</name>
+    <value>.yyyy-MM-dd</value>
+  </property>
+  <property>
+    <name>log4j.appender.DRFA.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.DRFA.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %-5p [%t] %c{2}: %m%n</value>
+  </property>
+  <property>
+    <name>hbase.log.maxfilesize</name>
+    <value>256MB</value>
+  </property>
+  <property>
+    <name>hbase.log.maxbackupindex</name>
+    <value>20</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFA</name>
+    <value>org.apache.log4j.RollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFA.File</name>
+    <value>${hbase.log.dir}/${hbase.log.file}</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFA.MaxFileSize</name>
+    <value>${hbase.log.maxfilesize}</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFA.MaxBackupIndex</name>
+    <value>${hbase.log.maxbackupindex}</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFA.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFA.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %-5p [%t] %c{2}: %m%n</value>
+  </property>
+  <property>
+    <name>hbase.security.log.file</name>
+    <value>SecurityAuth.audit</value>
+  </property>
+  <property>
+    <name>hbase.security.log.maxfilesize</name>
+    <value>256MB</value>
+  </property>
+  <property>
+    <name>hbase.security.log.maxbackupindex</name>
+    <value>20</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFAS</name>
+    <value>org.apache.log4j.RollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFAS.File</name>
+    <value>${hbase.log.dir}/${hbase.security.log.file}</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFAS.MaxFileSize</name>
+    <value>${hbase.security.log.maxfilesize}</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFAS.MaxBackupIndex</name>
+    <value>${hbase.security.log.maxbackupindex}</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFAS.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.RFAS.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %p %c: %m%n</value>
+  </property>
+  <property>
+    <name>log4j.category.SecurityLogger</name>
+    <value>${hbase.security.logger}</value>
+  </property>
+  <property>
+    <name>log4j.additivity.SecurityLogger</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>log4j.appender.NullAppender</name>
+    <value>org.apache.log4j.varia.NullAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.console</name>
+    <value>org.apache.log4j.ConsoleAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.console.target</name>
+    <value>System.err</value>
+  </property>
+  <property>
+    <name>log4j.appender.console.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.console.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %-5p [%t] %c{2}: %m%n</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.zookeeper</name>
+    <value>INFO</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.hadoop.hbase</name>
+    <value>DEBUG</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil</name>
+    <value>INFO</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher</name>
+    <value>INFO</value>
+  </property>
+
+
+</configuration>

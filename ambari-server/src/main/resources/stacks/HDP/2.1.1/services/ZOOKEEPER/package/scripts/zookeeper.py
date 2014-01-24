@@ -19,6 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 
 from resource_management import *
 import sys
@@ -63,7 +64,20 @@ def zookeeper(type = None):
          content = myid
     )
 
-  configFile("log4j.properties", template_name="log4j.properties.j2")
+  if (params.log4j_props != None):
+    PropertiesFile('log4j.properties',
+                   dir=params.config_dir,
+                   properties=params.log4j_props,
+                   mode=0664,
+                   owner=params.zk_user,
+                   group=params.user_group,
+    )
+  elif (os.path.exists(format("{params.config_dir}/log4j.properties"))):
+    File(format("{params.config_dir}/log4j.properties"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.zk_user
+    )
 
   if params.security_enabled:
     if type == "server":

@@ -76,4 +76,8 @@ falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 has_falcon_host = not len(falcon_host)  == 0
 falcon_home = '/usr/lib/falcon'
 
-
+#oozie-log4j.properties
+if ('oozie-log4j' in config['configurations']):
+  log4j_props = config['configurations']['oozie-log4j']
+else:
+  log4j_props = None

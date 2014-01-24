@@ -141,12 +141,22 @@ def setup_hadoop():
        content=Template(health_check_template + ".j2")
   )
 
-  File(os.path.join(params.hadoop_conf_dir, "log4j.properties"),
-       owner=params.hdfs_user,
-       content=Template("log4j.properties.j2")
-  )
+  log4j_filename = os.path.join(params.hadoop_conf_dir, "log4j.properties")
+  if (params.log4j_props != None):
+    PropertiesFile(log4j_filename,
+                   properties=params.log4j_props,
+                   mode=0664,
+                   owner=params.hdfs_user,
+                   group=params.user_group,
+    )
+  elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
+    File(log4j_filename,
+         mode=0644,
+         group=params.user_group,
+         owner=params.hdfs_user,
+    )
 
-  update_log4j_props(os.path.join(params.hadoop_conf_dir, "log4j.properties"))
+  update_log4j_props(log4j_filename)
 
   File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
        owner=params.hdfs_user,
@@ -270,26 +280,11 @@ def setup_configs():
 def update_log4j_props(file):
   import params
 
-  property_map = {
-    'ambari.jobhistory.database': params.ambari_db_rca_url,
-    'ambari.jobhistory.driver': params.ambari_db_rca_driver,
-    'ambari.jobhistory.user': params.ambari_db_rca_username,
-    'ambari.jobhistory.password': params.ambari_db_rca_password,
-    'ambari.jobhistory.logger': 'DEBUG,JHA',
-
-    'log4j.appender.JHA': 'org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender',
-    'log4j.appender.JHA.database': '${ambari.jobhistory.database}',
-    'log4j.appender.JHA.driver': '${ambari.jobhistory.driver}',
-    'log4j.appender.JHA.user': '${ambari.jobhistory.user}',
-    'log4j.appender.JHA.password': '${ambari.jobhistory.password}',
-
-    'log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger': '${ambari.jobhistory.logger}',
-    'log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger': 'true'
-  }
-  for key in property_map:
-    value = property_map[key]
+  for key in params.rca_property_map:
+    value = params.rca_property_map[key]
     Execute(format(
-      "sed -i 's~\\({rca_disabled_prefix}\\)\\?{key}=.*~{rca_prefix}{key}={value}~' {file}"))
+      "sed -i 's~\\({rca_disabled_prefix}\\)\\?{key}=.*~{rca_prefix}{key}={value}~' {file}")
+    )
 
 
 def generate_include_file():

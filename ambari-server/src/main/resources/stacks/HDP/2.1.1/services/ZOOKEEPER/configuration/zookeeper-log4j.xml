@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  <property>
+    <name>log4j.appender.CONSOLE</name>
+    <value>org.apache.log4j.ConsoleAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.CONSOLE.Threshold</name>
+    <value>INFO</value>
+  </property>
+  <property>
+    <name>log4j.appender.CONSOLE.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.CONSOLE.layout.ConversionPattern</name>
+    <value>%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n</value>
+  </property>
+  <property>
+    <name>log4j.appender.ROLLINGFILE</name>
+    <value>org.apache.log4j.RollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.ROLLINGFILE.Threshold</name>
+    <value>DEBUG</value>
+  </property>
+  <property>
+    <name>log4j.appender.ROLLINGFILE.File</name>
+    <value>zookeeper.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.ROLLINGFILE.MaxFileSize</name>
+    <value>10MB</value>
+  </property>
+  <property>
+    <name>log4j.appender.ROLLINGFILE.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.ROLLINGFILE.layout.ConversionPattern</name>
+    <value>%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n</value>
+  </property>
+  <property>
+    <name>log4j.appender.TRACEFILE</name>
+    <value>org.apache.log4j.FileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.TRACEFILE.Threshold</name>
+    <value>TRACE</value>
+  </property>
+  <property>
+    <name>log4j.appender.TRACEFILE.File</name>
+    <value>zookeeper_trace.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.TRACEFILE.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.TRACEFILE.layout.ConversionPattern</name>
+    <value>%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n</value>
+  </property>
+</configuration>

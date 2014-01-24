@@ -34,3 +34,9 @@ user_group = config['configurations']['global']['user_group']
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
 hadoop_home = "/usr"
+
+#log4j.properties
+if ('pig-log4j' in config['configurations']):
+  log4j_props = config['configurations']['pig-log4j']
+else:
+  log4j_props = None

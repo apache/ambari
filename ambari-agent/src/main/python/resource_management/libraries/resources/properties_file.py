@@ -20,17 +20,18 @@ Ambari Agent
 
 """
 
-PROVIDERS = dict(
-  redhat=dict(
-  ),
-  suse=dict(
-  ),
-  default=dict(
-    ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
-    TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",
-    XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
-    PropertiesFile="resource_management.libraries.providers.properties_file.PropertiesFileProvider",
-    MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
-    Repository="resource_management.libraries.providers.repository.RepositoryProvider"
-  ),
-)
+_all__ = ["PropertiesFile"]
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+
+class PropertiesFile(Resource):
+  action = ForcedListArgument(default="create")
+  filename = ResourceArgument(default=lambda obj: obj.name)
+
+  properties = ResourceArgument()
+  dir = ResourceArgument()
+
+  mode = ResourceArgument()
+  owner = ResourceArgument()
+  group = ResourceArgument()
+
+  actions = Resource.actions + ["create"]

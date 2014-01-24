@@ -66,6 +66,7 @@
 
       <configuration-dependencies>
         <config-type>global</config-type>
+        <config-type>zookeeper-log4j</config-type>
       </configuration-dependencies>
     </service>
   </services>
