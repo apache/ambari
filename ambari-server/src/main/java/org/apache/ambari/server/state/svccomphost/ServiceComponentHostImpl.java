@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -480,7 +481,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          new ServiceComponentHostOpStartedTransition())
 
      .installTopology();
-
 
   private final StateMachine<State,
       ServiceComponentHostEventType, ServiceComponentHostEvent> stateMachine;
@@ -1367,8 +1367,37 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
   
+  @Override
+  public void setPassiveState(PassiveState state) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        desiredStateEntity.setPassiveState(state);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public PassiveState getPassiveState() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return desiredStateEntity.getPassiveState();
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
   
 }

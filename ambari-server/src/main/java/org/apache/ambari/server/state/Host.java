@@ -329,4 +329,17 @@ public interface Host {
    * @throws AmbariException
    */
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
+  
+  /**
+   * Sets the passive state for the host.
+   * @param clusterId the cluster id
+   * @param state the state
+   */
+  public void setPassiveState(long clusterId, PassiveState state);
+  
+  /**
+   * @param clusterId the cluster id
+   * @return the passive state
+   */
+  public PassiveState getPassiveState(long clusterId);
 }

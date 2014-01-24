@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.state;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
 
@@ -32,11 +33,15 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class ServiceTest {
 
@@ -279,4 +284,31 @@ public class ServiceTest {
     }
   }
 
+  @Test
+  public void testServicePassive() throws Exception {
+    String serviceName = "HDFS";
+    Service s = serviceFactory.createNew(cluster, serviceName);
+    cluster.addService(s);
+    s.persist();
+
+    Service service = cluster.getService(serviceName);
+    Assert.assertNotNull(service);
+
+    ClusterServiceDAO dao = injector.getInstance(ClusterServiceDAO.class);
+    ClusterServiceEntity entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
+    Assert.assertNotNull(entity);
+    Assert.assertEquals(PassiveState.ACTIVE, entity.getServiceDesiredStateEntity().getPassiveState());
+    Assert.assertEquals(PassiveState.ACTIVE, service.getPassiveState());
+    
+    service.setPassiveState(PassiveState.PASSIVE);
+    Assert.assertEquals(PassiveState.PASSIVE, service.getPassiveState());
+
+    entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
+    Assert.assertNotNull(entity);
+    Assert.assertEquals(PassiveState.PASSIVE, entity.getServiceDesiredStateEntity().getPassiveState());
+    
+    
+  }
+  
+  
 }

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
@@ -52,6 +53,10 @@ public class HostStateEntity {
   @Column(name = "current_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private HostState currentState = HostState.INIT;
+  
+  @Column(name="passive_state", nullable = true, insertable = true, updatable = true)
+  private String passiveState = null;
+  
 
   @OneToOne
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
@@ -103,6 +108,14 @@ public class HostStateEntity {
 
   public void setCurrentState(HostState currentState) {
     this.currentState = currentState;
+  }
+
+  public String getPassiveState() {
+    return passiveState;
+  }  
+  
+  public void setPassiveState(String state) {
+    passiveState = state;
   }
 
   @Override

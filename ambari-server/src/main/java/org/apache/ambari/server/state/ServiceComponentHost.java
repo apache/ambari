@@ -113,4 +113,16 @@ public interface ServiceComponentHost {
   public Map<String, HostConfig> getActualConfigs();
 
   public HostState getHostState();
+
+  /**
+   * @param state the passive state
+   */
+  public void setPassiveState(PassiveState state);
+  
+  /**
+   * @return the passive state
+   */
+  public PassiveState getPassiveState();
+
+  
 }

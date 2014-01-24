@@ -134,6 +134,7 @@ ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmappi
 
 -- add decommission state
 ALTER TABLE ambari.hostcomponentdesiredstate ADD COLUMN admin_state VARCHAR(32);
+ALTER TABLE ambari.hostcomponentdesiredstate ADD COLUMN passive_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE'
 
 --Move cluster host info for old execution commands to stage table
 UPDATE ambari.stage sd
@@ -420,3 +421,6 @@ create index idx_qrtz_ft_j_g on ambari.qrtz_fired_triggers(SCHED_NAME,JOB_NAME,J
 create index idx_qrtz_ft_jg on ambari.qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on ambari.qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on ambari.qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
+
+ALTER TABLE ambari.hoststate ADD COLUMN passive_state VARCHAR(512);
+ALTER TABLE ambari.servicedesiredstate ADD COLUMN passive_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE';

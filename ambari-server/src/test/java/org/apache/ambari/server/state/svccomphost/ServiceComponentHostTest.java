@@ -30,12 +30,16 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -795,6 +799,46 @@ public class ServiceComponentHostTest {
     config.persist();
     cluster.addConfig(config);
     cluster.addDesiredConfig("user", config);
+  }
+  
+  @Test
+  public void testPassive() throws Exception {
+    String stackVersion="HDP-2.0.6";
+    String clusterName = "c2";
+    String hostName = "h3";
+    
+    clusters.addCluster(clusterName);
+    clusters.addHost(hostName);
+    clusters.getHost(hostName).setOsType("centos5");
+    clusters.getHost(hostName).persist();
+    clusters.getCluster(clusterName).setDesiredStackVersion(
+        new StackId(stackVersion));
+    metaInfo.init();
+    clusters.mapHostToCluster(hostName, clusterName);    
+    
+    Cluster cluster = clusters.getCluster(clusterName);
+    
+    ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
+    ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
+    ServiceComponentHost sch3 = createNewServiceComponentHost(cluster, "MAPREDUCE2", "HISTORYSERVER", hostName);
+
+    HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
+    pk.setClusterId(Long.valueOf(cluster.getClusterId()));
+    pk.setComponentName(sch1.getServiceComponentName());
+    pk.setServiceName(sch1.getServiceName());
+    pk.setHostName(hostName);
+    
+    HostComponentDesiredStateDAO dao = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentDesiredStateEntity entity = dao.findByPK(pk);
+    Assert.assertEquals(PassiveState.ACTIVE, entity.getPassiveState());
+    Assert.assertEquals(PassiveState.ACTIVE, sch1.getPassiveState());
+    
+    sch1.setPassiveState(PassiveState.PASSIVE);
+    Assert.assertEquals(PassiveState.PASSIVE, sch1.getPassiveState());
+    
+    entity = dao.findByPK(pk);
+    Assert.assertEquals(PassiveState.PASSIVE, entity.getPassiveState());
+
   }
 
   

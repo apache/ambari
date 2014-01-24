@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -54,6 +55,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -78,6 +80,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   protected static final String SERVICE_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "cluster_name");
   protected static final String SERVICE_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
   protected static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
+  protected static final String SERVICE_PASSIVE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "passive_state");
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -172,6 +175,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
           calculateServiceState(response.getClusterName(), response.getServiceName()),
           requestedIds);
+      setResourceProperty(resource, SERVICE_PASSIVE_STATE_PROPERTY_ID,
+          response.getPassiveState(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -270,6 +275,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID));
+    
+    Object o = properties.get(SERVICE_PASSIVE_STATE_PROPERTY_ID);
+    if (null != o)
+      svcRequest.setPassiveState(o.toString());
 
     return svcRequest;
   }
@@ -541,6 +550,18 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + " desired state, desiredState=" + newState);
         }
       }
+      
+      if (null != request.getPassiveState()) {
+        PassiveState newPassive = PassiveState.valueOf(request.getPassiveState());
+        if (newPassive  != s.getPassiveState()) {
+          if (newPassive.equals(PassiveState.IMPLIED)) {
+            throw new IllegalArgumentException("Invalid arguments, can only set " +
+              "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
+          } else {
+            s.setPassiveState(newPassive);
+          }
+        }
+      }
 
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
@@ -551,6 +572,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
         continue;
       }
+      
+      if (requests.size() > 1 && PassiveState.ACTIVE != s.getPassiveState()) {
+        LOG.info("Operations cannot be applied to service " + s.getName() +
+            " in the passive state of " + s.getPassiveState());
+        continue;
+      }
+      
 
       seenNewStates.add(newState);
 
@@ -619,6 +647,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             }
             continue;
           }
+          
           if (newState == oldSchState) {
             ignoredScHosts.add(sch);
             if (LOG.isDebugEnabled()) {
@@ -632,6 +661,21 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             }
             continue;
           }
+          
+          PassiveState schPassive = controller.getEffectivePassiveState(cluster, s, sch);
+          if (PassiveState.ACTIVE != schPassive) {
+            ignoredScHosts.add(sch);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Ignoring " + schPassive + " ServiceComponentHost"
+                  + ", clusterName=" + request.getClusterName()
+                  + ", serviceName=" + s.getName()
+                  + ", componentName=" + sc.getName()
+                  + ", hostname=" + sch.getHostName());
+            }
+            continue;
+          }
+          
+          
           if (sc.isClientComponent() &&
               !newState.isValidClientComponentState()) {
             continue;

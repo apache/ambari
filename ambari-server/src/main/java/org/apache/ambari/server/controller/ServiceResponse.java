@@ -18,30 +18,28 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Map;
+import org.apache.ambari.server.state.PassiveState;
 
 public class ServiceResponse {
 
   private Long clusterId;
-
   private String clusterName;
-
   private String serviceName;
-
   private String desiredStackVersion;
-
   private String desiredState;
+  private String passiveState;
 
   public ServiceResponse(Long clusterId, String clusterName,
                          String serviceName,
                          String desiredStackVersion, String desiredState) {
-    super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.setDesiredStackVersion(desiredStackVersion);
     this.setDesiredState(desiredState);
   }
+  
+  
 
   /**
    * @return the serviceName
@@ -134,6 +132,14 @@ public class ServiceResponse {
     }
 
     return true;
+  }
+  
+  public void setPassiveState(String state) {
+    passiveState = state;
+  }
+  
+  public String getPassiveState() {
+    return passiveState;
   }
 
   @Override

@@ -20,7 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,13 +33,10 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
-import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -52,16 +49,13 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -106,7 +100,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   
   protected static final String HOST_HOST_STATUS_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_status");
-  
+  protected static final String HOST_PASSIVE_STATE_PROPERTY_ID = 
+      PropertyHelper.getPropertyId("Hosts", "passive_state");
   
   protected static final String HOST_HOST_HEALTH_REPORT_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_health_report");
@@ -232,6 +227,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           response.getHostState(), requestedIds);
       setResourceProperty(resource, HOST_DESIRED_CONFIGS_PROPERTY_ID,
           response.getDesiredHostConfigs(), requestedIds);
+      
+      // only when a cluster request
+      if (null != response.getPassiveState()) {
+        setResourceProperty(resource, HOST_PASSIVE_STATE_PROPERTY_ID,
+            response.getPassiveState(), requestedIds);
+      }
+      
       resources.add(resource);
     }
     return resources;
@@ -318,6 +320,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         null);
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
     hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
+    
+    Object o = properties.get(HOST_PASSIVE_STATE_PROPERTY_ID);
+    if (null != o)
+      hostRequest.setPassiveState(o.toString());
     
     ConfigurationRequest cr = getConfigurationRequest("Hosts", properties);
     
@@ -488,8 +494,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       if (clusterName != null) {
         if (clusters.getClustersForHost(h.getHostName()).contains(cluster)) {
           HostResponse r = h.convertToResponse();
+          
           r.setClusterName(clusterName);
           r.setDesiredHostConfigs(h.getDesiredHostConfigs(cluster));
+          r.setPassiveState(h.getPassiveState(cluster.getClusterId()));
 
           response.add(r);
         } else if (hostName != null) {
@@ -554,6 +562,20 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
       if (null != request.getPublicHostName()) {
         h.setPublicHostName(request.getPublicHostName());
+      }
+      
+      if (null != request.getClusterName() && null != request.getPassiveState()) {
+        Cluster c = clusters.getCluster(request.getClusterName());
+        PassiveState newStatus = PassiveState.valueOf(request.getPassiveState());
+        PassiveState oldStatus = h.getPassiveState(c.getClusterId());
+        if (!newStatus.equals(oldStatus)) {
+          if (newStatus.equals(PassiveState.IMPLIED)) {
+            throw new IllegalArgumentException("Invalid arguments, can only set " +
+              "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
+          } else {
+            h.setPassiveState(c.getClusterId(), newStatus);
+          }
+        }
       }
 
       if (null != request.getClusterName() && null != request.getDesiredConfig()) {

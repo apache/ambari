@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.PassiveState;
 
 public class HostResponse {
 
@@ -144,6 +145,8 @@ public class HostResponse {
    */
   private String status;
 
+  private PassiveState passiveState = null;
+
   public HostResponse(String hostname, String clusterName,
                       String ipv4, String ipv6, int cpuCount, int phCpuCount, String osArch, String osType,
                       String osInfo, long availableMemBytes, long totalMemBytes,
@@ -151,7 +154,6 @@ public class HostResponse {
                       long lastRegistrationTime, String rackInfo,
                       Map<String, String> hostAttributes, AgentVersion agentVersion,
                       HostHealthStatus healthStatus, String hostState, String status) {
-    super();
     this.hostname = hostname;
     this.clusterName = clusterName;
     this.ipv4 = ipv4;
@@ -518,5 +520,19 @@ public class HostResponse {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  /**
+   * @param state
+   */
+  public void setPassiveState(PassiveState state) {
+    passiveState = state;
+  }
+  
+  /**
+   * @return the passive state
+   */
+  public PassiveState getPassiveState() {
+    return passiveState;
   }
 }

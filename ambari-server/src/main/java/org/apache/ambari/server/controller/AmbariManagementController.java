@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -518,5 +519,16 @@ public interface AmbariManagementController {
    * Get Execution Schedule Manager
    */
   public ExecutionScheduleManager getExecutionScheduleManager();
+
+  /**
+   * Gets the effective passive state for a host component
+   * @param cluster the cluster
+   * @param service the service
+   * @param sch the service component host
+   * @return the passive state
+   * @throws AmbariException
+   */
+  public PassiveState getEffectivePassiveState(Cluster cluster, Service service,
+      ServiceComponentHost sch) throws AmbariException;
 }
   

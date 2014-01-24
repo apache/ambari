@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -30,6 +29,7 @@ public class HostRequest {
   private Map<String, String> hostAttributes; // CREATE/UPDATE
   private String rackInfo;
   private ConfigurationRequest desiredConfig; // UPDATE
+  private String passiveState; // UPDATE
 
   public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
     this.hostname = hostname;
@@ -83,6 +83,14 @@ public class HostRequest {
   
   public ConfigurationRequest getDesiredConfig() {
     return desiredConfig;
+  }
+  
+  public void setPassiveState(String state) {
+    passiveState = state;
+  }
+  
+  public String getPassiveState() {
+    return passiveState;
   }
 
   public String toString() {

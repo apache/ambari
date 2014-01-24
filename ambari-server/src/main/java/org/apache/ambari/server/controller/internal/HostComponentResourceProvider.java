@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -37,6 +38,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.PassiveState;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -75,6 +77,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "stale_configs");
   protected static final String HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
+  protected static final String HOST_COMPONENT_PASSIVE_STATE_PROPERTY_ID
+      = "HostRoles/passive_state";
+  
   //Component name mappings
   private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
   private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT = 1500;   //milliseconds
@@ -192,9 +197,15 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
           Boolean.valueOf(response.isStaleConfig()), requestedIds);
+      
       if (response.getAdminState() != null) {
         setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
             response.getAdminState(), requestedIds);
+      }
+      
+      if (null != response.getPassiveState()) {
+        setResourceProperty(resource, HOST_COMPONENT_PASSIVE_STATE_PROPERTY_ID,
+            response.getPassiveState(), requestedIds);
       }
 
       String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
@@ -302,9 +313,15 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       serviceComponentHostRequest.setStaleConfig(
           properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
     }
+    
     if (properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setAdminState(
           properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
+    }
+    
+    Object o = properties.get(HOST_COMPONENT_PASSIVE_STATE_PROPERTY_ID);
+    if (null != o) {
+      serviceComponentHostRequest.setPassiveState (o.toString());
     }
 
     return serviceComponentHostRequest;

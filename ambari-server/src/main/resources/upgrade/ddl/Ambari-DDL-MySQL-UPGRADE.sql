@@ -24,7 +24,6 @@ UPDATE metainfo SET "metainfo_value" = '${ambariVersion}' WHERE metainfo_key = '
 
 ALTER TABLE hostcomponentdesiredstate ADD admin_state VARCHAR(32);
 
-
 --1.5.0
 CREATE TABLE request (request_id BIGINT NOT NULL, cluster_id BIGINT, request_schedule_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, inputs LONGTEXT, request_context VARCHAR(255), request_type VARCHAR(255), start_time BIGINT NOT NULL, status VARCHAR(255), target_component VARCHAR(255), target_hosts LONGTEXT, target_service VARCHAR(255), PRIMARY KEY (request_id));
 CREATE TABLE requestschedule (schedule_id bigint, cluster_id BIGINT NOT NULL, description varchar(255), status varchar(255), batch_separation_seconds smallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime varchar(50), endTime varchar(50), last_execution_status varchar(255), PRIMARY KEY(schedule_id));
@@ -80,3 +79,7 @@ create index idx_qrtz_ft_j_g on QRTZ_FIRED_TRIGGERS(SCHED_NAME,JOB_NAME,JOB_GROU
 create index idx_qrtz_ft_jg on QRTZ_FIRED_TRIGGERS(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
+
+ALTER TABLE hostcomponentdesiredstate ADD passive_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE';
+ALTER TABLE servicedesiredstate ADD passive_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE';
+ALTER TABLE hoststate ADD passive_state VARCHAR(512);

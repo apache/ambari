@@ -23,20 +23,14 @@ package org.apache.ambari.server.controller;
 public class ServiceComponentHostRequest {
 
   private String clusterName; // REF
-
   private String serviceName;
-
   private String componentName;
-
   private String hostname;
-
   private String desiredState; // CREATE/UPDATE
-
   private String desiredStackId; // UPDATE
-
   private String staleConfig; // GET - predicate
-
   private String adminState; // GET - predicate
+  private String passiveState; // UPDATE
   
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceName,
@@ -176,5 +170,19 @@ public class ServiceComponentHostRequest {
         + ", adminState=" + adminState
         + "}");
     return sb.toString();
+  }
+
+  /**
+   * @param state the passive state
+   */
+  public void setPassiveState(String state) {
+    passiveState = state;
+  }
+  
+  /**
+   * @return the passive state
+   */
+  public String getPassiveState() {
+    return passiveState;
   }
 }

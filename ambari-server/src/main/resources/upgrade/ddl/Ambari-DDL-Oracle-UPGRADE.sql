@@ -27,6 +27,7 @@ ALTER TABLE stage ADD (cluster_host_info BLOB DEFAULT NULL);
 
 -- add decommission state
 ALTER TABLE hostcomponentdesiredstate ADD (admin_state VARCHAR2 (32) DEFAULT NULL);
+ALTER TABLE hostcomponentdesiredstate ADD (passive_state VARCHAR2 (32) NOT NULL DEFAULT 'ACTIVE');
 
 -- DML
 --Upgrade version to current
@@ -400,5 +401,8 @@ create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROU
 create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
+
+ALTER TABLE hoststate ADD (passive_state VARCHAR2(512) DEFAULT NULL);
+ALTER TABLE servicedesiredstate ADD (passive_state VARCHAR2(32) NOT NULL DEFAULT 'ACTIVE');
 
 commit;

@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -409,5 +411,36 @@ public class HostTest {
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertEquals("Expect no mapping configs", 0, map.size());
     
+  }
+  
+  @Test
+  public void testHostPassive() throws Exception {
+    AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    metaInfo.init();
+    
+    clusters.addCluster("c1");
+    Cluster c1 = clusters.getCluster("c1");
+    Assert.assertEquals("c1", c1.getClusterName());
+    Assert.assertEquals(1, c1.getClusterId());
+    clusters.addHost("h1");
+    Host host = clusters.getHost("h1");
+    host.setIPv4("ipv4");
+    host.setIPv6("ipv6");
+    host.setOsType("centos5");
+    host.persist();
+    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.mapHostToCluster("h1", "c1");
+
+    HostEntity entity = hostDAO.findByName("h1");
+    HostStateEntity stateEntity = entity.getHostStateEntity();
+    Assert.assertNull(stateEntity.getPassiveState());
+    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(c1.getClusterId()));
+    
+    host.setPassiveState(c1.getClusterId(), PassiveState.PASSIVE);
+
+    entity = hostDAO.findByName("h1");
+    stateEntity = entity.getHostStateEntity();
+    Assert.assertNotNull(stateEntity.getPassiveState());
+    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(c1.getClusterId()));
   }
 }

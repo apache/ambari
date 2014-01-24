@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
 
@@ -87,6 +88,17 @@ public interface Service {
    * @return cluster-global lock
    */
   ReadWriteLock getClusterGlobalLock();
+  
+  /**
+   * Sets the passive state for the service
+   * @param state the status
+   */
+  public void setPassiveState(PassiveState state);
+  
+  /**
+   * @return the passive state
+   */
+  public PassiveState getPassiveState();
 
   public enum Type {
     HDFS,

@@ -18,17 +18,16 @@
 package org.apache.ambari.server.controller;
 
 
+
 public class ServiceRequest {
 
   private String clusterName; // REF
-
   private String serviceName; // GET/CREATE/UPDATE/DELETE
-
   private String desiredState; // CREATE/UPDATE
+  private String passiveState; // UPDATE
 
   public ServiceRequest(String clusterName, String serviceName,
                         String desiredState) {
-    super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
@@ -74,6 +73,17 @@ public class ServiceRequest {
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+  
+  /**
+   * @param state the new passive state
+   */
+  public void setPassiveState(String state) {
+    passiveState = state;
+  }
+  
+  public String getPassiveState() {
+    return passiveState;
   }
 
   public String toString() {

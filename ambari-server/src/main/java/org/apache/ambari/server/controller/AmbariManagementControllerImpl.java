@@ -25,6 +25,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,6 +79,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 
 @Singleton
@@ -666,7 +668,7 @@ public class AmbariManagementControllerImpl implements
       }
       checkDesiredState = true;
     }
-
+    
     for (Service s : services) {
       // filter on component name if provided
       Set<ServiceComponent> components = new HashSet<ServiceComponent>();
@@ -705,6 +707,7 @@ public class AmbariManagementControllerImpl implements
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
             }
+            r.setPassiveState(getEffectivePassiveState(cluster, s, sch).name());
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
@@ -736,6 +739,8 @@ public class AmbariManagementControllerImpl implements
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
             }
+            
+            r.setPassiveState(getEffectivePassiveState(cluster, s, sch).name());
             response.add(r);
           }
         }
@@ -743,6 +748,30 @@ public class AmbariManagementControllerImpl implements
     }
     return response;
   }
+  
+  @Override
+  public PassiveState getEffectivePassiveState(Cluster cluster, Service service,
+      ServiceComponentHost sch) throws AmbariException
+      {
+    
+    Map<String, Host> map = clusters.getHostsForCluster(cluster.getClusterName());
+    if (null == map)
+      return PassiveState.ACTIVE;
+    
+    Host host = clusters.getHostsForCluster(cluster.getClusterName()).get(sch.getHostName());
+    if (null == host) // better not
+      throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
+    
+    if (PassiveState.PASSIVE == sch.getPassiveState())
+      return PassiveState.PASSIVE;
+
+    if (PassiveState.ACTIVE != service.getPassiveState() ||
+        PassiveState.ACTIVE != host.getPassiveState(cluster.getClusterId()))
+      return PassiveState.IMPLIED;
+    
+    return sch.getPassiveState();
+  }
+  
 
   private Set<ConfigurationResponse> getConfigurations(
       ConfigurationRequest request) throws AmbariException {
@@ -1469,6 +1498,20 @@ public class AmbariManagementControllerImpl implements
         if (!newState.isValidDesiredState()) {
           throw new IllegalArgumentException("Invalid arguments, invalid"
               + " desired state, desiredState=" + newState.toString());
+        }
+      }
+      
+      if (null != request.getPassiveState()) {
+        PassiveState newPassive = PassiveState.valueOf(request.getPassiveState());
+        PassiveState oldPassive = getEffectivePassiveState(cluster, s, sch);
+        
+        if (newPassive != oldPassive) {
+          if (newPassive.equals(PassiveState.IMPLIED)) {
+            throw new IllegalArgumentException("Invalid arguments, can only set " +
+              "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
+          } else {
+            sch.setPassiveState(newPassive);
+          }
         }
       }
 

@@ -34,7 +34,6 @@ import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMappingImpl;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
@@ -53,6 +52,7 @@ import org.apache.ambari.server.state.HostEventType;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -71,33 +71,6 @@ import com.google.inject.persist.Transactional;
 public class HostImpl implements Host {
 
   private static final Log LOG = LogFactory.getLog(HostImpl.class);
-  private final Gson gson;
-
-  private static final Type diskInfoType =
-      new TypeToken<List<DiskInfo>>() {}.getType();
-  private static final Type hostAttributesType =
-      new TypeToken<Map<String, String>>() {}.getType();
-
-  ReadWriteLock rwLock;
-  private final Lock readLock;
-  private final Lock writeLock;
-
-  private HostEntity hostEntity;
-  private HostStateEntity hostStateEntity;
-  private Injector injector;
-  private HostDAO hostDAO;
-  private HostStateDAO hostStateDAO;
-  private ClusterDAO clusterDAO;
-  private Clusters clusters;
-  private HostConfigMappingDAO hostConfigMappingDAO;
-  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
-
-  private long lastHeartbeatTime = 0L;
-  private AgentEnv lastAgentEnv = null;
-  private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
-  private boolean persisted = false;
-  private Integer currentPingPort = null;
-
   private static final String HARDWAREISA = "hardware_isa";
   private static final String HARDWAREMODEL = "hardware_model";
   private static final String INTERFACES = "interfaces";
@@ -108,13 +81,42 @@ public class HostImpl implements Host {
   private static final String MACADDRESS = "mac_address";
   private static final String NETMASK = "netmask";
   private static final String OSFAMILY = "os_family";
-  private static final String PHYSICALPROCESSORCOUNT =
-      "physicalprocessors_count";
+  private static final String PHYSICALPROCESSORCOUNT = "physicalprocessors_count";
   private static final String PROCESSORCOUNT = "processors_count";
   private static final String SELINUXENABLED = "selinux_enabled";
   private static final String SWAPSIZE = "swap_size";
   private static final String SWAPFREE = "swap_free";
   private static final String TIMEZONE = "timezone";
+
+  
+  private final Gson gson;
+
+  private static final Type hostAttributesType =
+      new TypeToken<Map<String, String>>() {}.getType();
+  private static final Type passiveMapType =
+      new TypeToken<Map<Long, PassiveState>>() {}.getType();
+
+  ReadWriteLock rwLock;
+  private final Lock readLock;
+  private final Lock writeLock;
+
+  private HostEntity hostEntity;
+  private HostStateEntity hostStateEntity;
+  private HostDAO hostDAO;
+  private HostStateDAO hostStateDAO;
+  private ClusterDAO clusterDAO;
+  private Clusters clusters;
+  private HostConfigMappingDAO hostConfigMappingDAO;
+
+  private long lastHeartbeatTime = 0L;
+  private AgentEnv lastAgentEnv = null;
+  private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
+  private boolean persisted = false;
+  private Integer currentPingPort = null;
+  
+  private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
+  private Map<Long, PassiveState> passiveMap = null;
+
   
   
   //In-memory status, based on host components states
@@ -205,8 +207,6 @@ public class HostImpl implements Host {
 
    .installTopology();
 
-  private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
-
   @Inject
   public HostImpl(@Assisted HostEntity hostEntity,
       @Assisted boolean persisted, Injector injector) {
@@ -216,7 +216,6 @@ public class HostImpl implements Host {
     this.writeLock = rwLock.writeLock();
 
     this.hostEntity = hostEntity;
-    this.injector = injector;
     this.persisted = persisted;
     this.hostDAO = injector.getInstance(HostDAO.class);
     this.hostStateDAO = injector.getInstance(HostStateDAO.class);
@@ -224,8 +223,6 @@ public class HostImpl implements Host {
     this.clusterDAO = injector.getInstance(ClusterDAO.class);
     this.clusters = injector.getInstance(Clusters.class);
     this.hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
-    this.configGroupHostMappingDAO = injector.getInstance
-      (ConfigGroupHostMappingDAO.class);
 
     hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
@@ -241,16 +238,6 @@ public class HostImpl implements Host {
     }
 
   }
-
-//  //TODO delete
-//  public HostImpl(String hostname) {
-//    this.stateMachine = stateMachineFactory.make(this);
-//    ReadWriteLock rwLock = new ReentrantReadWriteLock();
-//    this.readLock = rwLock.readLock();
-//    this.writeLock = rwLock.writeLock();
-//    setHostName(hostname);
-//    setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
-//  }
 
   static class HostRegistrationReceived
       implements SingleArcTransition<HostImpl, HostEvent> {
@@ -1239,6 +1226,60 @@ public class HostImpl implements Host {
     HostConfigMapping findSelectedByType = hostConfigMappingDAO.findSelectedByType(clusterId,
         hostEntity.getHostName(), type);
     
+    
     return findSelectedByType;
   }
+  
+  private void ensurePassiveMap() {
+    if (null == passiveMap) {
+      String entity = hostStateEntity.getPassiveState();
+      if (null == entity) {
+        passiveMap = new HashMap<Long, PassiveState>();
+      } else {
+        try {
+          passiveMap = gson.fromJson(entity, passiveMapType);
+        } catch (Exception e) {
+          passiveMap = new HashMap<Long, PassiveState>();
+        }
+      }
+    }
+  }
+  
+  @Override
+  public void setPassiveState(long clusterId, PassiveState state) {
+    try {
+      writeLock.lock();
+      
+      ensurePassiveMap();
+      
+      passiveMap.put(Long.valueOf(clusterId), state);
+      String json = gson.toJson(passiveMap, passiveMapType);
+      
+      hostStateEntity.setPassiveState(json);
+      saveIfPersisted();
+    } finally {
+      writeLock.unlock();
+    }
+  }
+  
+  @Override
+  public PassiveState getPassiveState(long clusterId) {
+    try {
+      readLock.lock();
+
+      ensurePassiveMap();
+      
+      Long id = Long.valueOf(clusterId);
+      
+      if (!passiveMap.containsKey(id))
+        passiveMap.put(id, PassiveState.ACTIVE);
+        
+      return passiveMap.get(id);
+    } finally {
+      readLock.unlock();
+    }
+  }
+  
 }
+
+  

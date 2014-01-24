@@ -18,14 +18,37 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.lang.reflect.Type;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -47,7 +70,6 @@ import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.ActionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
@@ -72,6 +94,7 @@ import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -102,33 +125,13 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import java.io.File;
-import java.lang.reflect.Type;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
 
 public class AmbariManagementControllerTest {
 
@@ -146,7 +149,6 @@ public class AmbariManagementControllerTest {
   private static final int STACK_VERSIONS_CNT = 10;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
-  private static final int STACK_SERVICES_CNT = 5 ;
   private static final int STACK_PROPERTIES_CNT = 81;
   private static final int STACK_COMPONENTS_CNT = 3;
   private static final int OS_CNT = 2;
@@ -8867,6 +8869,260 @@ public class AmbariManagementControllerTest {
     }
   }
 
+  @Test
+  public void testPassiveStates() throws Exception {
+    String clusterName = "c1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+    createServiceComponent(clusterName, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+        State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h2").persist();
+    
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host2, null);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put("context", "Called from a test");
+    
+    
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service service = cluster.getService(serviceName);
+    Map<String, Host> hosts = clusters.getHostsForCluster(clusterName);
+    
+    // test updating a service
+    ServiceRequest sr = new ServiceRequest(clusterName, serviceName, null);
+    sr.setPassiveState(PassiveState.PASSIVE.name());
+    ServiceResourceProviderTest.updateServices(controller, Collections.singleton(sr),
+        requestProperties, false, false);
+    Assert.assertEquals(PassiveState.PASSIVE, service.getPassiveState());
+    
+    // check the host components implied state vs desired state
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(PassiveState.IMPLIED,
+            controller.getEffectivePassiveState(cluster, service, sch));
+        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+      }
+    }
+    
+    // reset
+    sr.setPassiveState(PassiveState.ACTIVE.name());
+    ServiceResourceProviderTest.updateServices(controller, Collections.singleton(sr),
+        requestProperties, false, false);
+    Assert.assertEquals(PassiveState.ACTIVE, service.getPassiveState());
+    
+    // check the host components implied state vs desired state
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(PassiveState.ACTIVE,
+            controller.getEffectivePassiveState(cluster, service, sch));
+        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+      }
+    }
+    
+    // passivate a host
+    HostRequest hr = new HostRequest(host1, clusterName, requestProperties);
+    hr.setPassiveState(PassiveState.PASSIVE.name());
+    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr));
+    
+    Host host = hosts.get(host1);
+    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
+    
+    // check the host components implied state vs desired state, only for affected hosts
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        PassiveState implied = controller.getEffectivePassiveState(cluster, service, sch);
+        if (sch.getHostName().equals(host1)) {
+          Assert.assertEquals(PassiveState.IMPLIED, implied);
+        } else {
+          Assert.assertEquals(PassiveState.ACTIVE, implied);
+        }
+        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+      }
+    }
+    
+    // reset
+    hr.setPassiveState(PassiveState.ACTIVE.name());
+    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr));
+    
+    host = hosts.get(host1);
+    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));
+    
+    // check the host components active state vs desired state
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(PassiveState.ACTIVE,
+            controller.getEffectivePassiveState(cluster, service, sch));
+        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+      }
+    }
+    
+    // only do one SCH
+    ServiceComponentHost targetSch = service.getServiceComponent(
+        componentName2).getServiceComponentHosts().get(host2);
+    Assert.assertNotNull(targetSch);
+    targetSch.setPassiveState(PassiveState.PASSIVE);
+
+    // check the host components active state vs desired state
+    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    
+    // update the service
+    service.setPassiveState(PassiveState.PASSIVE);
+    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    
+    // make SCH active
+    targetSch.setPassiveState(PassiveState.ACTIVE);
+    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(cluster, service, targetSch));
+    
+    // update the service
+    service.setPassiveState(PassiveState.ACTIVE);
+    Assert.assertEquals(PassiveState.ACTIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    
+    host = hosts.get(host2);
+    // update host
+    host.setPassiveState(cluster.getClusterId(), PassiveState.PASSIVE);
+    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(cluster, service, targetSch));
+    
+    targetSch.setPassiveState(PassiveState.PASSIVE);
+    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+
+  }
+
+  @Test
+  public void testPassiveSkipServices() throws Exception {
+    String clusterName = "c1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-0.1"));
+    
+    String serviceName1 = "HDFS";
+    String serviceName2 = "MAPREDUCE";
+    createService(clusterName, serviceName1, null);
+    createService(clusterName, serviceName2, null);
+    
+    String componentName1_1 = "NAMENODE";
+    String componentName1_2 = "DATANODE";
+    String componentName1_3 = "HDFS_CLIENT";
+    createServiceComponent(clusterName, serviceName1, componentName1_1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName1, componentName1_2,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName1, componentName1_3,
+        State.INIT);
+    
+    String componentName2_1 = "JOBTRACKER";
+    String componentName2_2 = "TASKTRACKER";
+    createServiceComponent(clusterName, serviceName2, componentName2_1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName2, componentName2_2,
+        State.INIT);
+    
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h2").persist();
+    
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName1, componentName1_1, host1, null);
+    createServiceComponentHost(clusterName, serviceName1, componentName1_2, host1, null);
+    createServiceComponentHost(clusterName, serviceName1, componentName1_2, host2, null);
+    
+    createServiceComponentHost(clusterName, serviceName2, componentName2_1, host1, null);
+    createServiceComponentHost(clusterName, serviceName2, componentName2_2, host2, null);
+    
+    installService(clusterName, serviceName1, false, false);
+    installService(clusterName, serviceName2, false, false);
+    
+    startService(clusterName, serviceName1, false, false);
+    startService(clusterName, serviceName2, false, false);
+    
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put("context", "Called from a test");
+    
+    Cluster cluster = clusters.getCluster(clusterName);
+    
+    for (Service service : cluster.getServices().values()) {
+      Assert.assertEquals(State.STARTED, service.getDesiredState());
+    }
+    
+    Service service2 = cluster.getService(serviceName2);
+    service2.setPassiveState(PassiveState.PASSIVE);
+    
+    Set<ServiceRequest> srs = new HashSet<ServiceRequest>();
+    srs.add(new ServiceRequest(clusterName, serviceName1, State.INSTALLED.name()));
+    srs.add(new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name()));
+    RequestStatusResponse rsr = ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
+    
+    for (ShortTaskStatus sts : rsr.getTasks()) {
+      String role = sts.getRole();
+      Assert.assertFalse(role.equals(componentName2_1));
+      Assert.assertFalse(role.equals(componentName2_2));
+    }
+
+    for (Service service : cluster.getServices().values()) {
+      if (service.getName().equals(serviceName2))
+        Assert.assertEquals(State.STARTED, service.getDesiredState());
+      else
+        Assert.assertEquals(State.INSTALLED, service.getDesiredState());
+    }
+    
+    service2.setPassiveState(PassiveState.ACTIVE);
+    ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
+    for (Service service : cluster.getServices().values()) {
+      Assert.assertEquals(State.INSTALLED, service.getDesiredState());
+    }
+    
+    startService(clusterName, serviceName1, false, false);
+    startService(clusterName, serviceName2, false, false);
+    
+    // test host
+    Host h1 = clusters.getHost(host1);
+    h1.setPassiveState(cluster.getClusterId(), PassiveState.PASSIVE);
+    
+    srs = new HashSet<ServiceRequest>();
+    srs.add(new ServiceRequest(clusterName, serviceName1, State.INSTALLED.name()));
+    srs.add(new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name()));
+    
+    rsr = ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
+    
+    for (ShortTaskStatus sts : rsr.getTasks()) {
+      Assert.assertFalse(sts.getHostName().equals(host1));
+    }
+    
+  }  
 }
 
   
