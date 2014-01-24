@@ -20,7 +20,7 @@
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-scom-project</artifactId>
     <packaging>pom</packaging>
-    <version>0.9.0</version>
+    <version>1.0.0</version>
     <name>Ambari SCOM Project</name>
     <modules>
         <module>ambari-scom-server</module>

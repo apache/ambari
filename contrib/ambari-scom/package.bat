@@ -16,7 +16,7 @@
 @echo on
 
 IF dummy==dummy%1 (
-SET SCOM_VERSION="0.9.0-99"
+SET SCOM_VERSION="1.0.0"
 ) ELSE (
 SET SCOM_VERSION=%1
 )
