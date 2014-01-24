@@ -583,6 +583,11 @@
   </profiles>
   <dependencies>
     <dependency>
+      <groupId>${pom.groupId}</groupId>
+      <artifactId>ambari-views</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
