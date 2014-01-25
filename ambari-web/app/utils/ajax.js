@@ -327,6 +327,105 @@ var urls = {
       }
     }
   },
+  'host.host_component.slave_desired_admin_state': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
+    'mock': '',
+    'type': 'GET',
+    'format': function (data, opt) {
+      return {
+      };
+    }
+  },
+  'host.host_component.datanodes_decommission_status': {
+    'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE/?fields=ServiceComponentInfo',
+    'mock': '',
+    'type': 'GET',
+    'format': function (data, opt) {
+      return {
+      };
+    }
+  },
+  'host.host_component.nodemanager_decommission_status': {
+    'real': '/clusters/{clusterName}/services/YARN/components/RESOURCEMANAGER/?fields=ServiceComponentInfo',
+    'mock': '',
+    'type': 'GET',
+    'format': function (data, opt) {
+      return {
+      };
+    }
+  },
+  'host.host_component.tasktracker_decommission_status': {
+    'real': '/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER/?fields=ServiceComponentInfo',
+    'mock': '',
+    'type': 'GET',
+    'format': function (data, opt) {
+      return {
+      };
+    }
+  },
+  'host.host_component.decommission_slave': {
+    'real' : '/clusters/{clusterName}/requests',
+    'mock' : '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          RequestInfo: {
+            'context': data.context,
+            'command': data.command,
+            'service_name': data.serviceName,
+            'component_name': data.componentName,
+            'parameters': {
+              'slave_type': data.slaveType,
+              'excluded_hosts': data.hostName
+            }
+          }
+        })
+      }
+    }
+  },
+  'host.host_component.recommission_and_restart': {
+    'real': '/clusters/{clusterName}/request_schedules',
+    'mock': '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify([ {
+          "RequestSchedule" : {
+            "batch" : [ {
+              "requests" : data.batches
+            }, {
+              "batch_settings" : {
+                "batch_separation_in_seconds" : data.intervalTimeSeconds,
+                "task_failure_tolerance" : data.toleratePercentage
+              }
+            } ]
+          }
+        } ])
+      }
+    }
+  },
+  'host.host_component.recommission_slave' : {
+    'real' : '/clusters/{clusterName}/requests',
+    'mock' : '',
+    'format' : function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          RequestInfo: {
+            context: data.context,
+            command: data.command,
+            service_name: data.serviceName,
+            component_name: data.componentName,
+            parameters: {
+              slave_type: data.slaveType,
+              included_hosts: data.hostName
+            }
+          }
+        })
+      }
+    }
+  },
   'host.stale_host_components.start_stop': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components?HostRoles/stale_configs=true&' +
             'HostRoles/component_name.in({componentNames})',

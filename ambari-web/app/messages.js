@@ -1401,6 +1401,17 @@ Em.I18n.translations = {
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.datanode.decommission':'Decommission DataNode',
   'hosts.host.datanode.recommission':'Recommission DataNode',
+  'hosts.host.nodemanager.decommission':'Decommission NodeManager',
+  'hosts.host.nodemanager.recommission':'Recommission NodeManager',
+  'hosts.host.tasktracker.decommission':'Decommission TaskTracker',
+  'hosts.host.tasktracker.recommission':'Recommission TaskTracker',
+  'hosts.host.tasktracker.restart':'Restart TaskTracker',
+  'hosts.host.regionserver.decommission.batch1':'Decommission RegionServer - Turn drain mode on',
+  'hosts.host.regionserver.decommission.batch2':'Decommission RegionServer - Stop RegionServer',
+  'hosts.host.regionserver.decommission.batch3':'Decommission RegionServer - Turn drain mode off',
+  'hosts.host.regionserver.recommission':'Recommission HBase RegionServer',
+  'hosts.host.decommissioned':'Decommissioned',
+  'hosts.host.decommissioning':'Decommissioning...',
 
 
   'hosts.host.alert.noAlerts':'No alerts',

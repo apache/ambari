@@ -649,137 +649,34 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     });
   },
+
   /**
-   * send command to server to run decommission on DATANODE
+   * send command to server to run decommission on DATANODE, TASKTRACKER, NODEMANAGER, REGIONSERVER
    * @param event
    */
   decommission: function(event){
     var self = this;
-    var decommissionHostNames = this.get('view.decommissionDataNodeHostNames');
-    if (decommissionHostNames == null) {
-      decommissionHostNames = [];
-    }
     App.showConfirmationPopup(function(){
       var component = event.context;
-      // Only HDFS service as of now
       var svcName = component.get('service.serviceName');
+      var hostName = self.get('content.hostName');
+      // HDFS service, decommission DataNode
       if (svcName === "HDFS") {
-        var hostName = self.get('content.hostName');
-        var index = decommissionHostNames.indexOf(hostName);
-        if (index < 0) {
-          decommissionHostNames.push(hostName);
-        }
-        self.doDatanodeDecommission(decommissionHostNames, true);
+        self.doDecommission(hostName, svcName, "NAMENODE", "DATANODE");
       }
-      // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
-        if (initValue) {
-          App.router.get('backgroundOperationsController').showPopup();
-        }
-      });
-    });
-  },
+      // YARN service, decommission NodeManager
+      if (svcName === "YARN") {
+        self.doDecommission(hostName, svcName, "RESOURCEMANAGER", "NODEMANAGER");
+      }
+      // MAPREDUCE service, decommission TaskTracker
+      if (svcName === "MAPREDUCE") {
+        self.doDecommission(hostName, svcName, "JOBTRACKER", "TASKTRACKER");
+      }
+      // HBASE service, decommission RegionServer
+      if (svcName === "HBASE") {
+        self.doDecommissionRegionServer(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
+      }
 
-  /**
-   * Performs either Decommission or Recommission by updating the hosts list on
-   * server.
-   * @param {Array} decommissionHostNames
-   * @param {Boolean} decommission defines context for request (true for decommission and false for recommission)
-   */
-  doDatanodeDecommission: function(decommissionHostNames, decommission){
-    var self = this;
-    if (decommissionHostNames == null) {
-      decommissionHostNames = [];
-    }
-    var invocationTag = String(new Date().getTime());
-    var context = decommission ? Em.I18n.t('hosts.host.datanode.decommission') : Em.I18n.t('hosts.host.datanode.recommission');
-    var clusterName = App.router.get('clusterController.clusterName');
-    var clusterUrl = App.apiPrefix + '/clusters/' + clusterName;
-    var configsUrl = clusterUrl + '/configurations';
-    var configsData = {
-      type: "hdfs-exclude-file",
-      tag: invocationTag,
-      properties: {
-        datanodes: decommissionHostNames.join(',')
-      }
-    };
-    var configsAjax = {
-      type: 'POST',
-      url: configsUrl,
-      dataType: 'json',
-      data: JSON.stringify(configsData),
-      timeout: App.timeout,
-      success: function(){
-        var actionsUrl = clusterUrl + '/requests';
-        var actionsData = {
-          RequestInfo: {
-            context: context,
-            command: 'DECOMMISSION_DATANODE',
-            service_name: 'HDFS',
-            parameters: {
-              excludeFileTag: invocationTag
-            }
-          }
-        };
-        var actionsAjax = {
-          type: 'POST',
-          url: actionsUrl,
-          dataType: 'json',
-          data: JSON.stringify(actionsData),
-          timeout: App.timeout,
-          success: function(){
-            var persistUrl = App.apiPrefix + '/persist';
-            var persistData = {
-              "decommissionDataNodesTag": invocationTag
-            };
-            var persistPutAjax = {
-              type: 'POST',
-              url: persistUrl,
-              dataType: 'json',
-              data: JSON.stringify(persistData),
-              timeout: App.timeout,
-              success: function(){
-                var view = self.get('view');
-                view.loadDecommissionNodesList();
-              }
-            };
-            jQuery.ajax(persistPutAjax);
-          },
-          error: function(xhr, textStatus, errorThrown){
-            console.log(textStatus);
-            console.log(errorThrown);
-          }
-        };
-        jQuery.ajax(actionsAjax);
-      },
-      error: function(xhr, textStatus, errorThrown){
-        console.log(textStatus);
-        console.log(errorThrown);
-      }
-    };
-    jQuery.ajax(configsAjax);
-  },
-
-  /**
-   * send command to server to run recommission on DATANODE
-   * @param event
-   */
-  recommission: function(event){
-    var self = this;
-    var decommissionHostNames = this.get('view.decommissionDataNodeHostNames');
-    if (decommissionHostNames == null) {
-      decommissionHostNames = [];
-    }
-    App.showConfirmationPopup(function(){
-      var component = event.context;
-      // Only HDFS service as of now
-      var svcName = component.get('service.serviceName');
-      if (svcName === "HDFS") {
-        var hostName = self.get('content.hostName');
-        var index = decommissionHostNames.indexOf(hostName);
-        decommissionHostNames.splice(index, 1);
-        self.doDatanodeDecommission(decommissionHostNames, false);
-      }
       // load data (if we need to show this background operations popup) from persist
       App.router.get('applicationController').dataLoading().done(function (initValue) {
         if (initValue) {
@@ -789,6 +686,245 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
   
+  /**
+   * send command to server to run recommission on DATANODE, TASKTRACKER, NODEMANAGER
+   * @param event
+   */
+  recommission: function(event){
+    var self = this;
+    App.showConfirmationPopup(function(){
+      var component = event.context;
+      var svcName = component.get('service.serviceName');
+      var hostName = self.get('content.hostName');
+      var start_context = Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('displayName');
+      // HDFS service, Recommission datanode
+      if (svcName === "HDFS") {
+        self.doRecommissionAndStart(hostName, svcName, "NAMENODE", "DATANODE", start_context);
+      }
+      // YARN service, Recommission nodeManager
+      if (svcName === "YARN") {
+        self.doRecommissionAndStart(hostName, svcName, "RESOURCEMANAGER", "NODEMANAGER", start_context);
+      }
+      // MAPREDUCE service, Recommission taskTracker
+      if (svcName === "MAPREDUCE") {
+        self.doRecommissionAndRestart(hostName, svcName, "JOBTRACKER", "TASKTRACKER");
+      }
+      // HBASE service, Recommission RegionServer
+      if (svcName === "HBASE") {
+        self.doRecommissionAndStart(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER", start_context);
+      }
+
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
+    });
+  },
+
+  /**
+   * Performs Decommission (for DN, TT and NM)
+   */
+  doDecommission: function(hostName, serviceName, componentName, slaveType){
+    var contextNameString = 'hosts.host.' + slaveType.toLowerCase() + '.decommission';
+    var context = Em.I18n.t(contextNameString);
+    App.ajax.send({
+      name: 'host.host_component.decommission_slave',
+      sender: this,
+      data: {
+        context: context,
+        command: 'DECOMMISSION',
+        hostName: hostName,
+        serviceName: serviceName ,
+        componentName: componentName,
+        slaveType: slaveType
+      },
+      success: 'decommissionSuccessCallback',
+      error: 'decommissionErrorCallback'
+    });
+  },
+
+  /**
+   * Performs Decommission (for RegionServer)
+   */
+  doDecommissionRegionServer: function(hostName, serviceName, componentName, slaveType){
+
+    App.ajax.send({
+      name: 'host.host_component.recommission_and_restart',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        toleratePercentage : 50,
+        batches:[
+          {
+            "order_id" : 1,
+            "type" : "POST",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
+                "command" : "DECOMMISSION",
+                "service_name" : serviceName,
+                "component_name" : componentName,
+                "parameters" : {
+                  "slave_type": slaveType,
+                  "excluded_hosts": hostName
+                }
+              }
+            }
+          },
+          {
+            "order_id" : 2,
+            "type" : "PUT",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + slaveType.toUpperCase(),
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : Em.I18n.t('hosts.host.regionserver.decommission.batch2')
+              },
+              "Body": {
+                "HostRoles": {
+                  "state": 'INSTALLED'
+                }
+              }
+            }
+          },
+          {
+            "order_id" : 3,
+            "type" : "POST",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : Em.I18n.t('hosts.host.regionserver.decommission.batch3'),
+                "command" : "DECOMMISSION",
+                "service_name" : serviceName,
+                "component_name" : componentName,
+                "parameters" : {
+                  "slave_type": slaveType,
+                  "excluded_hosts": hostName,
+                  "mark_draining_only": "true"
+                }
+              }
+            }
+          }
+        ]
+      },
+      success: 'decommissionSuccessCallback',
+      error: 'decommissionErrorCallback'
+    });
+  },
+
+  decommissionAndStartSuccessCallback: function (response, request, data) {
+    console.log('Success in decommission callback:' + response);
+    if (!App.testMode) {
+      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+    }
+  },
+  decommissionSuccessCallback: function (response, request, data) {
+    console.log('Success in decommission callback:' + response);
+  },
+  decommissionErrorCallback: function (request, ajaxOptions, error) {
+    console.log('ERROR: '+ error);
+  },
+
+  doRecommissionAndStart:  function(hostName, serviceName, componentName, slaveType, startContext){
+    var contextNameString_1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
+    var context_1 = Em.I18n.t(contextNameString_1);
+    App.ajax.send({
+      name: 'host.host_component.recommission_and_restart',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        toleratePercentage : 50,
+        batches:[
+          {
+            "order_id" : 1,
+            "type" : "POST",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : context_1,
+                "command" : "DECOMMISSION",
+                "service_name" : serviceName,
+                "component_name" : componentName,
+                "parameters" : {
+                  "slave_type": slaveType,
+                  "included_hosts": hostName
+                }
+              }
+            }
+          },
+          {
+            "order_id" : 2,
+            "type" : "PUT",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + slaveType.toUpperCase(),
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : startContext
+              },
+              "Body": {
+                "HostRoles": {
+                  "state": 'STARTED'
+                }
+              }
+            }
+          }
+        ]
+      },
+      success: 'decommissionAndStartSuccessCallback',
+      error: 'decommissionErrorCallback'
+    });
+  },
+  doRecommissionAndRestart:  function(hostName, serviceName, componentName, slaveType){
+    var contextNameString_1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
+    var context_1 = Em.I18n.t(contextNameString_1);
+    var contextNameString_2 = 'hosts.host.' + slaveType.toLowerCase() + '.restart';
+    var context_2 = Em.I18n.t(contextNameString_2);
+    App.ajax.send({
+      name: 'host.host_component.recommission_and_restart',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        toleratePercentage : 50,
+        batches:[
+          {
+            "order_id" : 1,
+            "type" : "POST",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : context_1,
+                "command" : "DECOMMISSION",
+                "service_name" : serviceName,
+                "component_name" : componentName,
+                "parameters" : {
+                  "slave_type": slaveType,
+                  "included_hosts": hostName
+                }
+              }
+            }
+          },
+          {
+            "order_id" : 2,
+            "type" : "POST",
+            "uri" : App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+            "RequestBodyInfo" : {
+              "RequestInfo" : {
+                "context" : context_2,
+                "command" : "RESTART",
+                "service_name" : serviceName,
+                "component_name" : slaveType,
+                "hosts" : hostName
+              }
+            }
+          }
+        ]
+      },
+      success: 'decommissionSuccessCallback',
+      error: 'decommissionErrorCallback'
+    });
+  },
+
   doAction: function(option) {
     switch (option.context.action) {
       case "deleteHost":
