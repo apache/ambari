@@ -49,3 +49,6 @@ require('models/dataset_job');
 require('classes/run_class');
 require('classes/job_class');
 require('models/config_group');
+require('models/jobs/tez_dag');
+require('models/jobs/job');
+require('models/jobs/hive_job');

@@ -93,5 +93,26 @@ module.exports = {
       time = (time / oneDayMs).toFixed(2);
       return time + ' days';
     }
+  },
+  /**
+   * Provides the duration between the given start and end time. If start time
+   * is not given, duration will be 0. If end time is not given, duration will
+   * be till now.
+   *
+   * @param {Number}
+   *          startTime Start time from epoch
+   * @param {Number}
+   *          endTime End time from epoch
+   * @return {Number} duration
+   */
+  duration : function(startTime, endTime) {
+    var duration = 0;
+    if (startTime && startTime > 0) {
+      if (!endTime || endTime < 1) {
+        endTime = new Date().getTime();
+      }
+      duration = endTime - startTime;
+    }
+    return duration;
   }
 };
