@@ -400,13 +400,15 @@ module.exports =
     {
       "id": "site property",
       "name": "oozie.service.JPAService.jdbc.driver",
-      "displayName": "JDBC driver class",
+      "displayName": "JDBC Driver Class",
       "defaultValue": "",
       "value": "",     // the value is overwritten in code
-      "isVisible": false,
+      "isVisible": true,
+      "isOverridable": false,
       "description": "Database name used for the Oozie",
-      "category": "Advanced",
-      "serviceName": "OOZIE"
+      "category": "Oozie Server",
+      "serviceName": "OOZIE",
+      "index": 6
     },
     {
       "id": "site property",
@@ -418,20 +420,22 @@ module.exports =
       "displayType": "advanced",
       "category": "Oozie Server",
       "serviceName": "OOZIE",
-      "index": 6
+      "index": 7
     },
 
   /**********************************************hive-site***************************************/
     {
       "id": "site property",
       "name": "javax.jdo.option.ConnectionDriverName",
-      "displayName": "JDBC driver class",
+      "displayName": "JDBC Driver Class",
       "defaultValue": "",
       "value": "",     // the value is overwritten in code
-      "isVisible": false,
+      "isVisible": true,
+      "isOverridable": false,
       "description": "Driver class name for a JDBC metastore",
-      "category": "Advanced",
-      "serviceName": "HIVE"
+      "category": "Hive Metastore",
+      "serviceName": "HIVE",
+      "index": 7
     },
     {
       "id": "site property",
@@ -470,7 +474,7 @@ module.exports =
       "isVisible": true,
       "category": "Hive Metastore",
       "serviceName": "HIVE",
-      "index": 7
+      "index": 8
     },
     {
       "id": "site property",

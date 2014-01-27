@@ -199,34 +199,40 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     // The following if condition will be satisfied only for installer wizard flow
     if (this.get('configs').length) {
       var connectionUrl = this.get('connectionUrl');
+      var dbClass = this.get('dbClass');
       if (connectionUrl) {
         if (this.get('serviceConfig.serviceName') === 'HIVE') {
           switch (this.get('serviceConfig.value')) {
             case 'New MySQL Database':
             case 'Existing MySQL Database':
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
+              dbClass.set('value', "com.mysql.jdbc.Driver");
               break;
             case 'Existing Oracle Database':
               connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
+              dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
               break;
           }
         } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
           switch (this.get('serviceConfig.value')) {
             case 'New Derby Database':
               connectionUrl.set('value', "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true");
+              dbClass.set('value', "org.apache.derby.jdbc.EmbeddedDriver");
               break;
             case 'Existing MySQL Database':
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName'));
+              dbClass.set('value', "com.mysql.jdbc.Driver");
               break;
             case 'Existing Oracle Database':
               connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
+              dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
               break;
           }
         }
         connectionUrl.set('defaultValue', connectionUrl.get('value'));
       }
     }
-  }.observes('databaseName', 'hostName', 'connectionUrl'),
+  }.observes('databaseName', 'hostName', 'connectionUrl','dbClass'),
 
   nameBinding: 'serviceConfig.radioName',
 
@@ -290,6 +296,14 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
       return this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionURL');
     } else {
       return this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.url');
+    }
+  }.property('serviceConfig.serviceName'),
+
+  dbClass: function () {
+    if (this.get('serviceConfig.serviceName') === 'HIVE') {
+      return this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionDriverName');
+    } else {
+      return this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.driver');
     }
   }.property('serviceConfig.serviceName'),
 
