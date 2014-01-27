@@ -63,6 +63,7 @@
                       optionLabelPath="content.host_info"
                       selectedHostBinding="selectedHost"
                       componentNameBinding="component_name"
+                      class="host-select"
                       zIdBinding="zId"
                       disabledBinding="isInstalled"
                     }}
@@ -87,7 +88,7 @@
     <div class="mapping-box round-corners well">
       <div class="hostString"><span>{{hostInfo}}</span></div>
       {{#each masterServices}}
-      <span {{bindAttr class="color :assignedService :round-corners"}}>{{display_name}}</span>
+      <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
       {{/each}}
     </div>
     {{/each}}

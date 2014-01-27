@@ -3335,12 +3335,22 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
     padding: 2px 8px;
     border: solid 1px #cccccc;
     margin: 2px;
-    background-color: @green;
+    background-color: #969696;
     color: white;
     white-space: nowrap;
     font-size: 0.9em;
     display: inline-block;
   }
+  .host-assignments .newService {
+     padding: 2px 8px;
+     border: solid 1px #cccccc;
+     margin: 2px;
+     background-color: @green;
+     color: white;
+     white-space: nowrap;
+     font-size: 0.9em;
+     display: inline-block;
+   }
 
   .host-assignments .grey {
     background-color: #808080;
@@ -5216,4 +5226,9 @@ i.icon-asterisks {
       }
     }
   }
+}
+
+.host-select[disabled] {
+  background-color: #848484;
+  color: #FFF;
 }
