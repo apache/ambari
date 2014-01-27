@@ -336,22 +336,7 @@
               <filemode>755</filemode>
               <sources>
                 <source>
-                  <location>src/main/resources/scripts/install_flume.sh</location>
-                </source>
-                <source>
-                  <location>src/main/resources/scripts/configs.sh</location>
-                </source>
-                <source>
-                  <location>src/main/resources/scripts/keytabs.sh</location>
-                </source>
-                <source>
-                  <location>src/main/resources/scripts/distribute_keytabs.py</location>
-                </source>
-                <source>
-                  <location>src/main/python/UpgradeHelper_HDP2.py</location>
-                </source>
-                <source>
-                  <location>src/main/resources/scripts/relocate_host_components.py</location>
+                  <location>src/main/resources/scripts</location>
                 </source>
               </sources>
             </mapping>
