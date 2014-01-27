@@ -118,10 +118,11 @@
   </property>
 
   <property>
-    <name>fs.checkpoint.size</name>
-    <value>67108864</value>
-    <description>The size of the current edit log (in bytes) that triggers
-      a periodic checkpoint even if the maximum checkpoint delay is not reached
+    <name>dfs.namenode.checkpoint.txns</name>
+    <value>1000000</value>
+    <description>The Secondary NameNode or CheckpointNode will create a checkpoint
+      of the namespace every 'dfs.namenode.checkpoint.txns' transactions,
+      regardless of whether 'dfs.namenode.checkpoint.period' has expired.
     </description>
   </property>
 

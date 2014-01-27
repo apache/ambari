@@ -48,19 +48,6 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "fs.checkpoint.size",
-      "displayName": "HDFS Maximum Edit Log Size for Checkpointing",
-      "description": "Maximum size of the edits log file that forces an urgent checkpoint even if the maximum checkpoint delay is not reached",
-      "defaultValue": "",
-      "displayType": "int",
-      "unit": "bytes",
-      "isVisible": true,
-      "serviceName": "HDFS",
-      "category": "General",
-      "index": 4
-    },
-    {
-      "id": "site property",
       "name": "dfs.namenode.name.dir",
       "displayName": "NameNode directories",
       "description": "NameNode directories for HDFS to store the file system image",
