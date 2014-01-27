@@ -77,13 +77,17 @@ public class URLStreamProvider implements StreamProvider {
   
   @Override
   public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
+    return processURL(spec, requestMethod, params).getInputStream();
+  }
+
+  public HttpURLConnection processURL(String spec, String requestMethod, String params) throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("readFrom spec:" + spec);
     }
-    
-    HttpURLConnection connection = spec.startsWith("https") ? 
-        (HttpURLConnection)getSSLConnection(spec)
-        : (HttpURLConnection)getConnection(spec);
+
+    HttpURLConnection connection = spec.startsWith("https") ?
+            (HttpURLConnection)getSSLConnection(spec)
+            : (HttpURLConnection)getConnection(spec);
 
     String appCookie = appCookieManager.getCachedAppCookie(spec);
     if (appCookie != null) {
@@ -94,39 +98,40 @@ public class URLStreamProvider implements StreamProvider {
     connection.setReadTimeout(readTimeout);
     connection.setDoOutput(true);
     connection.setRequestMethod(requestMethod);
-    
-    if (params != null)
+
+    if (params != null) {
       connection.getOutputStream().write(params.getBytes());
-    
+    }
+
     int statusCode = connection.getResponseCode();
     if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
       String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
       if (LOG.isInfoEnabled()) {
         LOG.info("Received WWW-Authentication header:" + wwwAuthHeader + ", for URL:" + spec);
       }
-      if (wwwAuthHeader != null && 
-          wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
+      if (wwwAuthHeader != null &&
+        wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
         //connection.getInputStream().close();
-        connection = spec.startsWith("https") ? 
-            (HttpURLConnection)getSSLConnection(spec)
-            : (HttpURLConnection)getConnection(spec);
+        connection = spec.startsWith("https") ?
+           (HttpURLConnection)getSSLConnection(spec)
+           : (HttpURLConnection)getConnection(spec);
         appCookie = appCookieManager.getAppCookie(spec, true);
         connection.setRequestProperty(COOKIE, appCookie);
         connection.setConnectTimeout(connTimeout);
         connection.setReadTimeout(readTimeout);
         connection.setDoOutput(true);
-        
-        return connection.getInputStream();
+
+        return connection;
       } else {
         // no supported authentication type found
         // we would let the original response propogate
         LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" + spec);
-        return connection.getInputStream();
+        return connection;
       }
     } else {
-      // not a 401 Unauthorized status code
-      // we would let the original response propogate
-      return connection.getInputStream();
+        // not a 401 Unauthorized status code
+        // we would let the original response propogate
+        return connection;
     }
   }
   
