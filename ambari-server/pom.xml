@@ -338,6 +338,9 @@
                 <source>
                   <location>src/main/resources/scripts</location>
                 </source>
+                <source>
+                  <location>src/main/python/UpgradeHelper_HDP2.py</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
