@@ -21,19 +21,19 @@
   {{t admin.highAvailability.wizard.step2.body}}
 </div>
 <div class="assign-masters">
-  <div class="select-hosts">
+  <div class="select-hosts span7">
     <form class="form-horizontal" autocomplete="off">
       <!-- View for array controller -->
       {{#each servicesMasters}}
       <div class="control-group">
         <label class="control-label">
           {{#if isCurNameNode}}
-            Current
+          Current
           {{/if}}
           {{#if isAddNameNode}}
-            Additional
+          Additional
           {{/if}}
-            {{display_name}}:
+          {{display_name}}:
         </label>
         <div class="controls">
           {{view App.SelectHostView
@@ -42,14 +42,15 @@
             optionLabelPath="content.host_info"
             selectedHostBinding="selectedHost"
             componentNameBinding="component_name"
+            class="host-select"
             zIdBinding="zId"
             disabledBinding="isInstalled"
           }}
           {{#if showAddControl}}
-            {{view App.AddControlView componentNameBinding="component_name"}}
+          {{view App.AddControlView componentNameBinding="component_name"}}
           {{/if}}
           {{#if showRemoveControl}}
-            {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
+          {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
           {{/if}}
         </div>
       </div>
@@ -57,12 +58,12 @@
     </form>
   </div>
 
-  <div class="host-assignments">
+  <div class="host-assignments span5">
     {{#each masterHostMapping}}
     <div class="mapping-box round-corners well">
       <div class="hostString"><span>{{hostInfo}}</span></div>
       {{#each masterServices}}
-        <span {{bindAttr class="color :assignedService :round-corners"}}>{{display_name}}</span>
+      <span {{bindAttr class="isInstalled:assignedService:newService :round-corners"}}>{{display_name}}</span>
       {{/each}}
     </div>
     {{/each}}
