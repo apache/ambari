@@ -26,7 +26,7 @@ config = Script.get_config()
 if System.get_instance().os_type == "oraclelinux":
   ulimit_cmd = ''
 else:
-  ulimit_cmd = "ulimit -c unlimited && if [ `ulimit -c` != 'unlimited' ]; then exit 77; fi && "
+  ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
 security_enabled = config['configurations']['global']['security_enabled']
