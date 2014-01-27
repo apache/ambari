@@ -31,7 +31,7 @@ class GangliaServer(Script):
 
     self.install_packages(env)
     env.set_params(params)
-    self.config(env)
+    self.configure(env)
 
   def start(self, env):
     import params
@@ -52,7 +52,7 @@ class GangliaServer(Script):
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
     ganglia.groups_and_users()

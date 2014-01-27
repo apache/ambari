@@ -26,12 +26,12 @@ class FalconServer(Script):
 
     self.install_packages(env)
     env.set_params(params)
-    self.config(env)
 
   def start(self, env):
     import params
 
     env.set_params(params)
+    self.configure(env)
 
     falcon('server', action='start')
 
@@ -43,7 +43,7 @@ class FalconServer(Script):
     falcon('server', action='stop')
 
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
     env.set_params(params)

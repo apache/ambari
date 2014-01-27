@@ -63,7 +63,7 @@ def shell_file(name):
   )
 
 
-def ganglia_TemplateConfig(name, mode=755, tag=None):
+def ganglia_TemplateConfig(name, mode=0755, tag=None):
   import params
 
   TemplateConfig(format("{params.ganglia_shell_cmds_dir}/{name}"),

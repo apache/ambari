@@ -114,12 +114,13 @@ def main():
   pwd = os.path.abspath(os.path.dirname(__file__))
 
   ambari_server_folder = get_parent_path(pwd,'ambari-server')
-  ambari_agent_folder = os.path.join(ambari_server_folder,os.path.normpath("../ambari-agent"))
-  ambari_common_folder = os.path.join(ambari_server_folder,os.path.normpath("../ambari-common"))
-  # append pythonpath (for running from IDE)
-  sys.path.append(ambari_common_folder + os.path.normpath("/src/test/python"))
-  sys.path.append(ambari_common_folder + os.path.normpath("/src/main/python/jinja2"))
-  sys.path.append(ambari_agent_folder + os.path.normpath("/src/main/python"))
+  ambari_agent_folder = os.path.join(ambari_server_folder,"../ambari-agent")
+  ambari_common_folder = os.path.join(ambari_server_folder,"../ambari-common")
+  sys.path.append(ambari_common_folder + "/src/main/python/jinja2")
+  sys.path.append(ambari_common_folder + "/src/test/python")
+  sys.path.append(ambari_agent_folder + "/src/main/python")
+  sys.path.append(ambari_server_folder + "/src/test/python")
+  sys.path.append(ambari_server_folder + "/src/main/python")
 
   stacks_folder = pwd+'/stacks'
   #generate test variants(path, service, stack)
@@ -130,9 +131,15 @@ def main():
       for service in os.listdir(current_stack_dir):
         current_service_dir = current_stack_dir+"/"+service
         if os.path.isdir(current_service_dir) and service not in SERVICE_EXCLUDE:
-          test_variants.append({'directory':current_service_dir,
-                                'service':service,
-                                'stack':stack})
+          if service == 'hooks':
+            for hook in os.listdir(current_service_dir):
+              test_variants.append({'directory':current_service_dir + "/" + hook,
+                                    'service':hook,
+                                    'stack':stack})
+          else:
+            test_variants.append({'directory':current_service_dir,
+                                  'service':service,
+                                  'stack':stack})
 
   #run tests for every service in every stack in separate process
   has_failures = False

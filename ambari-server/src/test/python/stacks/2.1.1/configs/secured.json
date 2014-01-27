@@ -17,7 +17,8 @@
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45", 
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "db_name": "ambari"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
@@ -382,7 +383,12 @@
             "resourcemanager_heapsize": "1024", 
             "hbase_regionserver_keytab": "/etc/security/keytabs/hbase.service.keytab", 
             "hbase_principal_name": "hbase", 
-            "hdfs_principal_name": "hdfs"
+            "hdfs_principal_name": "hdfs",
+            "falcon_user": "falcon",
+            "falcon_port": "15000",
+            "falcon_local_dir": "/hadoop/falcon",
+            "falcon_store_uri": "file:///hadoop/falcon/store",
+            "rca_enabled": "false"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 
@@ -722,6 +728,9 @@
             "c6402.ambari.apache.org"
         ], 
         "hive_mysql_host": [
+            "c6402.ambari.apache.org"
+        ],
+        "falcon_server_hosts": [
             "c6402.ambari.apache.org"
         ]
     }

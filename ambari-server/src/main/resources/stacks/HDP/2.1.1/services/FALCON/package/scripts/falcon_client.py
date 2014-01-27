@@ -22,15 +22,13 @@ from falcon import falcon
 
 class FalconClient(Script):
   def install(self, env):
-    import params
-
     self.install_packages(env)
-    env.set_params(params)
-    self.config(env)
+    self.configure(env)
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
+    env.set_params(params)
     falcon('client', action='config')
 
   def status(self, env):

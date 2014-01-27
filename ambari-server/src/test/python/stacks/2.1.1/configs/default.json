@@ -12,7 +12,8 @@
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
         "ambari_db_rca_username": "mapred", 
-        "java_home": "/usr/jdk64/jdk1.7.0_45"
+        "java_home": "/usr/jdk64/jdk1.7.0_45",
+        "db_name": "ambari"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
@@ -285,7 +286,12 @@
             "hadoop_heapsize": "1024", 
             "hadoop_pid_dir_prefix": "/var/run/hadoop", 
             "nagios_user": "nagios", 
-            "hbase_log_dir": "/var/log/hbase"
+            "hbase_log_dir": "/var/log/hbase",
+            "falcon_user": "falcon",
+            "falcon_port": "15000",
+            "falcon_local_dir": "/hadoop/falcon",
+            "falcon_store_uri": "file:///hadoop/falcon/store",
+            "rca_enabled": "false"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 
@@ -540,7 +546,7 @@
         ], 
         "logviewer_server_hosts": [
             "c6402.ambari.apache.org"
-        ], 
+        ],
         "hive_metastore_hosts": [
             "c6402.ambari.apache.org"
         ], 
@@ -595,6 +601,9 @@
             "c6402.ambari.apache.org"
         ], 
         "hive_mysql_host": [
+            "c6402.ambari.apache.org"
+        ],
+        "falcon_server_hosts": [
             "c6402.ambari.apache.org"
         ]
     }

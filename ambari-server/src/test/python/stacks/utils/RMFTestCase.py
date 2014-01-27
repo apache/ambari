@@ -80,7 +80,8 @@ class RMFTestCase(TestCase):
         with patch.object(Script, 'get_config', return_value=self.config_dict): # mocking configurations
           with patch.object(Script, 'install_packages'):
             with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
-              method(RMFTestCase.env)
+              with patch.object(platform, 'linux_distribution', return_value=os_type):
+                method(RMFTestCase.env)
   
   def getConfig(self):
     return self.config_dict
@@ -107,7 +108,7 @@ class RMFTestCase(TestCase):
       return val[1:]
     
     return val
-  
+
   def printResources(self):
     for resource in RMFTestCase.env.resource_list:
       print "'{0}', {1},".format(resource.__class__.__name__, self._ppformat(resource.name))
