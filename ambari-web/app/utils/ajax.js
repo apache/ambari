@@ -24,7 +24,7 @@ var App = require('app');
  *  mock - testMode url
  *  real - real url (without API prefix)
  *  type - request type (also may be defined in the format method)
- *  format - function for processing ajax params after default formatRequest. Return ajax-params object
+ *  format - function for processing ajax params after default formatRequest. May be called with one or two parameters (data, opt). Return ajax-params object
  *  testInProduction - can this request be executed on production tests (used only in tests)
  *
  * @type {Object}
@@ -66,7 +66,7 @@ var urls = {
   'service.item.start_stop': {
     'real': '/clusters/{clusterName}/services/{serviceName}',
     'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -102,7 +102,7 @@ var urls = {
     'real': '/clusters/{clusterName}/host_components?' +
             'HostRoles/stale_configs=true&HostRoles/component_name.in({componentNames})',
     'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -125,7 +125,7 @@ var urls = {
   'reassign.stop_services': {
     'real': '/clusters/{clusterName}/services',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -144,7 +144,7 @@ var urls = {
   'reassign.start_services': {
     'real': '/clusters/{clusterName}/services?params/run_smoke_test=true',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -211,7 +211,7 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
     'type': 'PUT',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         data: JSON.stringify({
           RequestInfo: {
@@ -230,7 +230,7 @@ var urls = {
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -239,7 +239,7 @@ var urls = {
   'config.advanced.global': {
     'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/type',
     'mock': '/data/wizard/stack/hdp/version1.3.0/global.json',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -256,7 +256,7 @@ var urls = {
   'config.tags.sync': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -293,7 +293,7 @@ var urls = {
   'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/cluster_level_configs.json?{params}',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -302,7 +302,7 @@ var urls = {
   'config.host_overrides': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/host_level_overrides_configs.json?{params}',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -330,38 +330,22 @@ var urls = {
   'host.host_component.slave_desired_admin_state': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
     'mock': '',
-    'type': 'GET',
-    'format': function (data, opt) {
-      return {
-      };
-    }
+    'type': 'GET'
   },
   'host.host_component.datanodes_decommission_status': {
     'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE/?fields=ServiceComponentInfo',
     'mock': '',
-    'type': 'GET',
-    'format': function (data, opt) {
-      return {
-      };
-    }
+    'type': 'GET'
   },
   'host.host_component.nodemanager_decommission_status': {
     'real': '/clusters/{clusterName}/services/YARN/components/RESOURCEMANAGER/?fields=ServiceComponentInfo',
     'mock': '',
-    'type': 'GET',
-    'format': function (data, opt) {
-      return {
-      };
-    }
+    'type': 'GET'
   },
   'host.host_component.tasktracker_decommission_status': {
     'real': '/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER/?fields=ServiceComponentInfo',
     'mock': '',
-    'type': 'GET',
-    'format': function (data, opt) {
-      return {
-      };
-    }
+    'type': 'GET'
   },
   'host.host_component.decommission_slave': {
     'real' : '/clusters/{clusterName}/requests',
@@ -450,11 +434,19 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'mock': '',
     'type': 'DELETE',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       }
     }
+  },
+  'hosts.metrics': {
+    'real': '/clusters/{clusterName}/hosts?fields={metricName}',
+    'mock': '/data/cluster_metrics/cpu_1hr.json'
+  },
+  'hosts.metrics.host_component': {
+    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}',
+    'mock': '/data/cluster_metrics/cpu_1hr.json'
   },
   'service.metrics.flume.channel_fill_percent': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_SERVER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
@@ -614,7 +606,7 @@ var urls = {
   'service.start_stop': {
     'real': '/clusters/{clusterName}/services?params/run_smoke_test=true',
     'mock': '/data/mirroring/poll/poll_6.json',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         type: 'PUT',
         async: false,
@@ -739,7 +731,7 @@ var urls = {
   'host.service_config_hosts_overrides': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false,
         timeout: 10000
@@ -749,7 +741,7 @@ var urls = {
   'admin.security_status': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         timeout: 10000
       };
@@ -772,7 +764,7 @@ var urls = {
   'cluster.load_cluster_name': {
     'real': '/clusters',
     'mock': '/data/clusters/info.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -782,7 +774,7 @@ var urls = {
     'type': 'POST',
     'real': '/persist/',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function(data) {
       return {
         async: false,
         data: JSON.stringify(data.keyValuePair)
@@ -792,7 +784,7 @@ var urls = {
   'cluster.update_upgrade_version': {
     'real': '/stacks2/HDP/versions?fields=stackServices/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -802,7 +794,7 @@ var urls = {
     'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems?fields=repositories/*',
     'mock': '',
     'type': 'GET',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         data: data.data
       };
@@ -811,7 +803,7 @@ var urls = {
   'admin.high_availability.stop_all_services': {
     'real': '/clusters/{clusterName}/services',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -830,7 +822,7 @@ var urls = {
   'admin.high_availability.start_all_services': {
     'real': '/clusters/{clusterName}/services',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         type: 'PUT',
         data: JSON.stringify({
@@ -886,7 +878,7 @@ var urls = {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
     'mock': '',
     'type': 'POST',
-    'format': function (data) {
+    'format': function() {
       return {
         data: JSON.stringify({
           "components": [
@@ -904,7 +896,7 @@ var urls = {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
     'mock': '',
     'type': 'POST',
-    'format': function (data) {
+    'format': function() {
       return {
         data: JSON.stringify({
           "components": [
@@ -1026,7 +1018,7 @@ var urls = {
   'admin.security.cluster_configs': {
     'real': '/clusters/{clusterName}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         timeout: 10000
       };
@@ -1040,7 +1032,7 @@ var urls = {
   'admin.get.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         timeout: 10000
       };
@@ -1049,7 +1041,7 @@ var urls = {
   'admin.security.apply_configurations': {
     'real': '/clusters/{clusterName}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         type: 'PUT',
         timeout: 10000,
@@ -1060,7 +1052,7 @@ var urls = {
   'admin.security.apply_configuration': {
     'real': '/clusters/{clusterName}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function(data) {
       return {
         type: 'PUT',
         async: false,
@@ -1072,7 +1064,7 @@ var urls = {
   'admin.security.add.cluster_configs': {
     'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         timeout: 10000
       };
@@ -1081,7 +1073,7 @@ var urls = {
   'admin.stack_upgrade.run_upgrade': {
     'real': '/clusters/{clusterName}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function () {
       return {
         type: 'PUT',
         async: false,
@@ -1092,7 +1084,7 @@ var urls = {
   'admin.stack_upgrade.stop_services': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function () {
       return {
         type: 'PUT',
         async: false,
@@ -1118,7 +1110,7 @@ var urls = {
   'wizard.install_services.add_host_controller.is_retry': {
     'real': '/clusters/{cluster}/host_components',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         type: 'PUT',
         async: false,
@@ -1129,7 +1121,7 @@ var urls = {
   'wizard.install_services.add_host_controller.not_is_retry': {
     'real': '/clusters/{cluster}/host_components',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function(data) {
       return {
         type: 'PUT',
         async: false,
@@ -1141,7 +1133,7 @@ var urls = {
     'real': '/clusters/{cluster}/host_components?HostRoles/state=INSTALLED',
     'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
     'type': 'PUT',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         async: false,
         data: data.data
@@ -1152,7 +1144,7 @@ var urls = {
     'real': '/clusters/{cluster}/services?ServiceInfo/state=INIT',
     'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
     'type': 'PUT',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         async: false,
         data: data.data
@@ -1162,7 +1154,7 @@ var urls = {
   'wizard.install_services.add_service_controller.get_failed_host_components': {
     'real': '/clusters/{clusterName}/host_components?fields=HostRoles/state,component/ServiceComponentInfo/service_name',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -1171,7 +1163,7 @@ var urls = {
   'wizard.service_components': {
     'real': '{stackUrl}/stackServices?fields=StackServices',
     'mock': '/data/wizard/stack/hdp/version/{stackVersion}.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         timeout: 10000,
         async: false
@@ -1181,22 +1173,22 @@ var urls = {
   'wizard.step9.installer.launch_start_services': {
     'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true&params/reconfigure_client=false',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
-    'format': function (data, opt) {
-      var data = {
+    'format': function (data) {
+      var d = {
         type: 'PUT',
         async: false,
         data: data.data
       };
       if (App.testMode) {
-        data.type = 'GET';
+        d.type = 'GET';
       }
-      return data;
+      return d;
     }
   },
   'wizard.step9.add_host.launch_start_services': {
     'real': '/clusters/{cluster}/host_components',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',
-    'format': function (data, opt) {
+    'format': function (data) {
       return {
         type: 'PUT',
         async: false,
@@ -1207,7 +1199,7 @@ var urls = {
   'wizard.step8.delete_cluster': {
     'real': '/clusters/{name}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         type: 'DELETE',
         async: false
@@ -1217,7 +1209,7 @@ var urls = {
   'wizard.step8.existing_cluster_names': {
     'real': '/clusters',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -1226,7 +1218,7 @@ var urls = {
   'wizard.step3.host_info': {
     'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/ip',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         contentType: 'application/json'
       };
@@ -1235,7 +1227,7 @@ var urls = {
   'wizard.step3.rerun_checks': {
     'real': '/hosts?fields=Hosts/last_agent_env',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         contentType: 'application/json'
       };
@@ -1252,7 +1244,7 @@ var urls = {
   'wizard.stacks': {
     'real': '/stacks2',
     'mock': '/data/wizard/stack/stacks2.json',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -1261,7 +1253,7 @@ var urls = {
   'wizard.stacks_versions': {
     'real': '/stacks2/{stackName}/versions?fields=Versions,operatingSystems/repositories/Repositories',
     'mock': '/data/wizard/stack/{stackName}_versions.json',
-    'format': function (data) {
+    'format': function() {
       return {
         async: false
       };
@@ -1282,7 +1274,7 @@ var urls = {
   'router.login': {
     'real': '/users/{loginName}',
     'mock': '/data/users/user_{usr}.json',
-    'format': function (data, opt) {
+    'format': function (data) {
       var statusCode = jQuery.extend({}, require('data/statusCodes'));
       statusCode['403'] = function () {
         console.log("Error code 403: Forbidden.");
@@ -1303,7 +1295,7 @@ var urls = {
   'router.set_ambari_stacks': {
     'real': '/stacks',
     'mock': '/data/wizard/stack/stacks.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -1312,7 +1304,7 @@ var urls = {
   'router.authentication': {
     'real': '/clusters',
     'mock': '/data/clusters/info.json',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -1325,7 +1317,7 @@ var urls = {
   'dashboard.get.user_pref': {
     'real': '/persist/{key}',
     'mock': '',
-    'format': function (data, opt) {
+    'format': function() {
       return {
         async: false
       };
@@ -1396,15 +1388,15 @@ var urls = {
   'request_schedule.delete': {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'mock': '',
-    'format' : function(data) {
+    'format' : function() {
       return {
-        type : 'DELETE',
+        type : 'DELETE'
       }
     }
   },
   'request_schedule.get': {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
-    'mock': '',
+    'mock': ''
   },
   'restart.service.hostComponents' : {
     'real' : '/clusters/{clusterName}/requests',
@@ -1435,7 +1427,7 @@ var urls = {
   'mirroring.get_dataset_definition': {
     'real': 'falcon/entities/definition/feed/{dataset}',
     'mock': '/data/mirroring/{dataset}_definition.xml',
-    'format': function (data) {
+    'format': function () {
       return {
         dataType: 'xml'
       }
@@ -1627,7 +1619,7 @@ var ajax = Em.Object.extend({
         config.sender[config.beforeSend](opt, xhr, params);
       }
     };
-    opt.success = function (data, textStatus, xhr) {
+    opt.success = function (data) {
       console.log("TRACE: The url is: " + opt.url);
       if (config.success) {
         config.sender[config.success](data, opt, params);
@@ -1709,11 +1701,7 @@ if ($.mocho) {
      * @returns {Array}
      */
     fakeGetUrlNames: function() {
-      var names = [];
-      for (var name in urls) {
-        names.push(name);
-      }
-      return names;
+      return Em.keys(urls);
     },
 
     /**

@@ -39,7 +39,9 @@ App.HttpClient = Em.Object.create({
     if (json) {
       Em.assert("HttpClient:", json);
     } else {
-      Em.assert("HttpClient:", errorThrown);
+      if (!$.mocho) { // don't use this assert on tests
+        Em.assert("HttpClient:", errorThrown);
+      }
     }
   },
 
@@ -50,7 +52,7 @@ App.HttpClient = Em.Object.create({
    * @param {string} url
    * @param {Object} ajaxOptions
    * @param {App.ServerDataMapper} mapper - json processor
-   * @param {function} errorHandler
+   * @param {callback} errorHandler
    */
   request: function (url, ajaxOptions, mapper, errorHandler) {
 
@@ -103,11 +105,10 @@ App.HttpClient = Em.Object.create({
    * @param {string} url
    * @param {App.ServerDataMapper} mapper - json processor
    * @param {Object} data - ajax data property
-   * @param {function} errorHandler
+   * @param {callback} errorHandler
    * @param {number} interval - frequency request
    */
   get: function (url, mapper, data, errorHandler, interval) {
-    var eHandler = data.complete;
     if (!errorHandler && data.error) {
       errorHandler = data.error;
     }
@@ -132,7 +133,7 @@ App.HttpClient = Em.Object.create({
    * @param {string} url
    * @param {Object} data - ajax data property
    * @param {App.ServerDataMapper} mapper - json processor
-   * @param {function} errorHandler
+   * @param {callback} errorHandler
    * @param {number} interval - frequecy request
    */
   post: function (url, data, mapper, errorHandler, interval) {

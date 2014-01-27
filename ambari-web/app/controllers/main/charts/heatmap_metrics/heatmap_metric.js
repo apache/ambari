@@ -121,16 +121,16 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
     var labelSuffix = this.get('slotDefinitionLabelSuffix');
     var delta = (max - min) / slotCount;
     var defs = [];
-    var fractions = max < 5;
     var slotColors = this.get('slotColors');
     var slotColorIndex = 0;
     for ( var c = 0; c < slotCount - 1; c++) {
       var from = this.formatLegendNumber(c * delta);
       var to = this.formatLegendNumber((c + 1) * delta);
+      var label;
       if ($.trim(labelSuffix) == 'ms') {
-      	var label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
+      	label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
       } else {
-	      var label = from + labelSuffix + " - " + to + labelSuffix;
+	      label = from + labelSuffix + " - " + to + labelSuffix;
       }
       var slotColor = slotColors[slotColorIndex++];
       defs.push(Em.Object.create({
@@ -144,9 +144,9 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
     to = this.formatLegendNumber(max);
 
     if ($.trim(labelSuffix) == 'ms') {
-      var label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
+      label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
     } else {
-      var label = from + labelSuffix + " - " + to + labelSuffix;
+      label = from + labelSuffix + " - " + to + labelSuffix;
     }
 
     slotColor = slotColors[slotColorIndex++];
@@ -189,34 +189,27 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
    */
   slotDefinitionLabelSuffix: '',
 
-  /**
-   * URL template from which metrics will be gotten for all hosts. The
-   * {metricName} param will be replaced by the 'defaultMetric' value.
-   */
-  metricUrlTemplate: "/clusters/{clusterName}/hosts?fields={metricName}",
-
-  /**
-   * URL from which data for this metric can be gotten from. This should be
-   * extended by classes to provide correct value.
-   */
-  metricUrl: function () {
-    var clusterName = App.router.get('clusterController.clusterName');
-    var fixedMetricName = this.get('defaultMetric');
-    fixedMetricName = fixedMetricName.replace(/\./g, "/");
-    return App.formatUrl(App.apiPrefix + this.get('metricUrlTemplate'), {
-      clusterName: App.router.get('clusterController.clusterName'),
-      metricName: fixedMetricName
-    }, "/data/cluster_metrics/cpu_1hr.json");
-  }.property('App.router.clusterController.clusterName', 'defaultMetric'),
-
   defaultMetric: '',
+
+  /**
+   * Name in the <code>App.ajax</code>
+   * @type {String}
+   */
+  ajaxIndex: 'hosts.metrics',
+
+  /**
+   * Additional data for ajax-request
+   * May be redeclared in child-objects
+   * @type {Object}
+   */
+  ajaxData: {},
 
   /**
    * Maps server JSON into an object where keys are hostnames and values are the
    * true metric values. This function by default will map 'defaultMetric' into
    * its corresponding value.
    * 
-   * @type Function
+   * @Function
    */
   metricMapper: function (json) {
     var hostToValueMap = {};
@@ -249,7 +242,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
     var allHosts = App.Host.find();
     var hostToSlotMap = {};
     if (hostToValueMap && allHosts) {
-      allHosts.forEach(function(host, index, list){
+      allHosts.forEach(function(host){
         var slot = -1;
         var key = host.get('hostName');
         if (key in hostToValueMap) {
@@ -286,18 +279,30 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
    */
   refreshHostSlots: function () {
     this.set('loading', true);
-    jQuery.ajax({
-      url: this.get('metricUrl'),
-      dataType: 'json',
-      error: jQuery.proxy(function () {
-        this.set('loading', false);
-      }, this),
-      success: jQuery.proxy(function (data) {
-        var hostToValueMap = this.metricMapper(data);
-        this.set('hostToValueMap', hostToValueMap);
-        this.set('loading', false);
-      }, this)
+    var fixedMetricName = this.get('defaultMetric');
+    fixedMetricName = fixedMetricName.replace(/\./g, "/");
+    var ajaxData = {
+      metricName: fixedMetricName
+    };
+    jQuery.extend(ajaxData, this.get('ajaxData'));
+
+    App.ajax.send({
+      name: this.get('ajaxIndex'),
+      sender: this,
+      data: ajaxData,
+      success: 'refreshHostSlotsSuccessCallback',
+      error: 'refreshHostSlotsErrorCallback'
     });
+  },
+
+  refreshHostSlotsSuccessCallback: function (data) {
+    var hostToValueMap = this.metricMapper(data);
+    this.set('hostToValueMap', hostToValueMap);
+    this.set('loading', false);
+  },
+
+  refreshHostSlotsErrorCallback: function () {
+    this.set('loading', false);
   },
 
   /**

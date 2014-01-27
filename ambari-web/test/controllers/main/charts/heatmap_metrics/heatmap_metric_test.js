@@ -37,8 +37,34 @@ describe('MainChartHeatmapMetric', function () {
     it('NaN to NaN' + ' ', function () {
       expect(isNaN(mainChartHeatmapMetric.formatLegendNumber(NaN))).to.equal(true);
     });
-  })
+  });
 
+  describe('#refreshHostSlots', function() {
+    beforeEach(function() {
+      App.set('apiPrefix', '/api/v1');
+      App.set('clusterName', 'tdk');
+      App.testMode = false;
+      sinon.spy($, 'ajax');
+    });
 
+    afterEach(function() {
+      $.ajax.restore();
+      App.testMode = true;
+    });
+
+    mainChartHeatmapMetric  = App.MainChartHeatmapMetric.create({});
+    mainChartHeatmapMetric.set('ajaxIndex', 'hosts.metrics.host_component');
+    mainChartHeatmapMetric.set('ajaxData', {
+      serviceName: 'SERVICE',
+      componentName: 'COMPONENT'
+    });
+    mainChartHeatmapMetric.set('defaultMetric', 'default.metric');
+
+    it('Should load proper URL', function() {
+      mainChartHeatmapMetric.refreshHostSlots();
+      expect($.ajax.args[0][0].url.endsWith('/api/v1/clusters/tdk/services/SERVICE/components/COMPONENT?fields=host_components/default/metric')).to.equal(true);
+    });
+
+  });
 
 });

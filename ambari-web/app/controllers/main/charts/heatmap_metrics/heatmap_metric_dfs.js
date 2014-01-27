@@ -21,7 +21,13 @@ var App = require('app');
  * Base class for any HDFS metric.
  */
 App.MainChartHeatmapDFSMetrics = App.MainChartHeatmapMetric.extend({
-  metricUrlTemplate: "/clusters/{clusterName}/services/HDFS/components/DATANODE?fields=host_components/{metricName}",
+
+  ajaxIndex: 'hosts.metrics.host_component',
+
+  ajaxData: {
+    serviceName: 'HDFS',
+    componentName: 'DATANODE'
+  },
 
   /**
    * Custom mapper for DFS metrics
@@ -33,7 +39,7 @@ App.MainChartHeatmapDFSMetrics = App.MainChartHeatmapMetric.extend({
    * Utility function which allows extending classes to transform the value
    * assigned to a host.
    * 
-   * @type Function
+   * @Function
    */
   transformValue: null
 });

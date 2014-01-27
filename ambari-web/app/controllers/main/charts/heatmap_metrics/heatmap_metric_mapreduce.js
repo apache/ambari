@@ -21,7 +21,13 @@ var App = require('app');
  * Base class for any MapReduce metric.
  */
 App.MainChartHeatmapMapreduceMetrics = App.MainChartHeatmapMetric.extend({
-  metricUrlTemplate: "/clusters/{clusterName}/services/MAPREDUCE/components/TASKTRACKER?fields=host_components/{metricName}",
+
+  ajaxIndex: 'hosts.metrics.host_component',
+
+  ajaxData: {
+    serviceName: 'MAPREDUCE',
+    componentName: 'TASKTRACKER'
+  },
 
   /**
    * Custom mapper for MapReduce metrics
@@ -34,7 +40,7 @@ App.MainChartHeatmapMapreduceMetrics = App.MainChartHeatmapMetric.extend({
    * Utility function which allows extending classes to transform the value
    * assigned to a host.
    * 
-   * @type Function
+   * @Function
    */
   transformValue: null
 });

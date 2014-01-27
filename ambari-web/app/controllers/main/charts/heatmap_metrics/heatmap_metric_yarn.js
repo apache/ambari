@@ -21,12 +21,17 @@ var App = require('app');
  * Base class for any YARN metric.
  */
 App.MainChartHeatmapYarnMetrics = App.MainChartHeatmapMetric.extend({
-  metricUrlTemplate: "/clusters/{clusterName}/services/YARN/components/NODEMANAGER?fields=host_components/{metricName}",
+
+  ajaxIndex: 'hosts.metrics.host_component',
+
+  ajaxData: {
+    serviceName: 'YARN',
+    componentName: 'NODEMANAGER'
+  },
 
   /**
    * Custom mapper for YARN metrics
    */
-
   metricMapper: function(json) {
     return this.metricMapperWithTransform(json, this.get('defaultMetric'), this.get('transformValue'));
   },
@@ -35,7 +40,7 @@ App.MainChartHeatmapYarnMetrics = App.MainChartHeatmapMetric.extend({
    * Utility function which allows extending classes to transform the value
    * assigned to a host.
    *
-   * @type Function
+   * @Function
    */
   transformValue: null
 });

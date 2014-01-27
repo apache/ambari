@@ -21,7 +21,13 @@ var App = require('app');
  * Base class for any HDFS metric.
  */
 App.MainChartHeatmapHbaseMetrics = App.MainChartHeatmapMetric.extend({
-  metricUrlTemplate: "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=host_components/{metricName}",
+
+  ajaxIndex: 'hosts.metrics.host_component',
+
+  ajaxData: {
+    serviceName: 'HBASE',
+    componentName: 'HBASE_REGIONSERVER'
+  },
 
   /**
    * Custom mapper for HBase metrics
@@ -34,7 +40,7 @@ App.MainChartHeatmapHbaseMetrics = App.MainChartHeatmapMetric.extend({
    * Utility function which allows extending classes to transform the value
    * assigned to a host.
    *
-   * @type Function
+   * @Function
    */
   transformValue: null
 });
