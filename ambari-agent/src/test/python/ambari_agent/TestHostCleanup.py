@@ -170,6 +170,7 @@ created = 2013-07-02 20:39:22.162757"""
     read_host_check_file_mock.assert_called_with('/someinputfile')
     self.assertFalse(get_yn_input_mock.called)
 
+  @patch.object(HostCleanup.HostCleanup, 'get_additional_dirs')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
   @patch.object(HostCleanup.HostCleanup, 'get_os_type')
@@ -182,9 +183,10 @@ created = 2013-07-02 20:39:22.162757"""
                       do_erase_dir_silent_method,
                       do_erase_files_silent_method, do_kill_processes_method,
                       get_os_type_method, find_repo_files_for_repos_method,
-                      do_erase_alternatives_method):
+                      do_erase_alternatives_method, get_additional_dirs_method):
     out = StringIO.StringIO()
     sys.stdout = out
+    get_additional_dirs_method.return_value = ['/tmp/hadoop-nagios','/tmp/hsperfdata_007']
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
                    REPO_SECTION:['abcd', 'pqrst'], DIR_SECTION:['abcd', 'pqrst'],
                    PROCESS_SECTION:['abcd', 'pqrst'],
@@ -201,7 +203,7 @@ created = 2013-07-02 20:39:22.162757"""
     self.assertTrue(do_erase_packages_method.called)
     self.assertTrue(do_kill_processes_method.called)
     self.assertTrue(do_erase_alternatives_method.called)
-    calls = [call(['decf']), call(['abcd', 'pqrst'])]
+    calls = [call(['decf']), call(['abcd', 'pqrst']), call(['/tmp/hadoop-nagios','/tmp/hsperfdata_007'])]
     do_erase_dir_silent_method.assert_has_calls(calls)
     do_erase_packages_method.assert_called_once_with(['abcd', 'pqrst'])
     do_erase_files_silent_method.assert_called_once_with(['abcd', 'pqrst'])

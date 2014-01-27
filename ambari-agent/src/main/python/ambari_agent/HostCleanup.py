@@ -58,6 +58,7 @@ USER_HOMEDIR_SECTION = "usr_homedir"
 REPO_SECTION = "repositories"
 REPOS_KEY = "repo_list"
 DIR_SECTION = "directories"
+ADDITIONAL_DIRS = "additional_directories"
 DIR_KEY = "dir_list"
 PROCESS_SECTION = "processes"
 PROCESS_KEY = "proc_list"
@@ -65,6 +66,10 @@ ALT_SECTION = "alternatives"
 ALT_KEYS = ["symlink_list", "target_list"]
 HADOOP_GROUP = "hadoop"
 FOLDER_LIST = ["/tmp"]
+# Additional path patterns to find existing directory
+DIRNAME_PATTERNS = [
+    "/tmp/hadoop-", "/tmp/hsperfdata_"
+]
 
 # resources that should not be cleaned
 REPOSITORY_BLACK_LIST = ["ambari.repo"]
@@ -85,6 +90,20 @@ class HostCleanup:
       logger.warn(err)
     return config
 
+  def get_additional_dirs(self):
+    resultList = []
+    dirList = set()
+    for patern in DIRNAME_PATTERNS:
+      dirList.add(os.path.dirname(patern))
+
+    for folder in dirList:  
+      for dirs in os.walk(folder):
+        for dir in dirs:
+          for patern in DIRNAME_PATTERNS:
+            if patern in dir:
+             resultList.append(dir)
+    return resultList         
+
   def do_cleanup(self, argMap=None):
     if argMap:
       packageList = argMap.get(PACKAGE_SECTION)
@@ -94,6 +113,7 @@ class HostCleanup:
       repoList = argMap.get(REPO_SECTION)
       procList = argMap.get(PROCESS_SECTION)
       alt_map = argMap.get(ALT_SECTION)
+      additionalDirList = self.get_additional_dirs()
 
       if userList and not USER_SECTION in SKIP_LIST:
         userIds = self.get_user_ids(userList)
@@ -111,6 +131,9 @@ class HostCleanup:
       if dirList and not DIR_SECTION in SKIP_LIST:
         logger.info("\n" + "Deleting directories: " + str(dirList))
         self.do_erase_dir_silent(dirList)
+      if additionalDirList and not ADDITIONAL_DIRS in SKIP_LIST:
+        logger.info("\n" + "Deleting additional directories: " + str(dirList))
+        self.do_erase_dir_silent(additionalDirList)        
       if repoList and not REPO_SECTION in SKIP_LIST:
         repoFiles = self.find_repo_files_for_repos(repoList)
         logger.info("\n" + "Deleting repo files: " + str(repoFiles))
