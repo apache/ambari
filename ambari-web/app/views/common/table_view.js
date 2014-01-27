@@ -144,7 +144,7 @@ App.TableView = Em.View.extend({
   getDisplayLengthErrorCallback: function () {
     // this user is first time login
     console.log('Persist did NOT find the key');
-    var displayLengthDefault = 10;
+    var displayLengthDefault = "10";
     this.set('displayLengthOnLoad', displayLengthDefault);
     this.postUserPref(this.displayLengthKey(), displayLengthDefault);
     return displayLengthDefault;
