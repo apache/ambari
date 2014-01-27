@@ -71,10 +71,10 @@ ALTER TABLE ClusterHostMapping ADD CONSTRAINT ClusterHostMapping_host_name FOREI
 ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
 ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_role_name FOREIGN KEY (role_name) REFERENCES roles (role_name);
 ALTER TABLE configgroup ADD CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
-ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cg_cluster_cm_config_tag FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id);
-ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cg_cluster_cm_group_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE confgrouphostmapping ADD CONSTRAINT FK_cghostm_configgroup_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE confgrouphostmapping ADD CONSTRAINT FK_cghostm_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
+ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confg FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id);
+ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
+ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_cgid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
+ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_hname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE requestschedulebatchrequest ADD CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id);
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
