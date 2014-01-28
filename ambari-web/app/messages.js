@@ -476,6 +476,8 @@ Em.I18n.translations = {
   'installer.step4.zooKeeperCheck.popup.body':'You did not select ZooKeeper, but it is needed by other services you selected. We will automatically add ZooKeeper. Is this OK?',
   'installer.step4.oozieCheck.popup.header':'Oozie Needed',
   'installer.step4.oozieCheck.popup.body':'You did not select Oozie, but it is needed by other services you selected. We will automatically add Oozie. Is this OK?',
+  'installer.step4.tezCheck.popup.header':'Tez Needed',
+  'installer.step4.tezCheck.popup.body':'You did not select Tez, but it is needed by other services you selected. We will automatically add Tez. Is this OK?',
   'installer.step4.monitoringCheck.popup.header':'Limited Functionality Warning',
   'installer.step4.monitoringCheck.popup.body':'You did not select Nagios and/or Ganglia. If both are not selected, monitoring and alerts will not function properly. Is this OK?',
 
@@ -1309,6 +1311,9 @@ Em.I18n.translations = {
   'services.mapReduce.description.queue.submit.group':'Comma separated list of group names that are allowed to submit jobs to the queue.',
   'services.mapReduce.description.queue.admin.group':"Comma separated list of group names that are allowed to delete jobs or modify job's priority " +
     "for jobs not owned by the current user in the queue.",
+
+  'services.tez.client': 'Tez client',
+  'services.tez.clients': 'Tez clients',
 
   'services.hbase.master.error':'None of the HBase masters is active',
 

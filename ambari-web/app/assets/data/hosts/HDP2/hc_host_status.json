@@ -190,6 +190,15 @@
           }
         },
         {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/TEZ_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "perf",
+            "component_name" : "TEZ_CLIENT",
+            "host_name" : "dev01.hortonworks.com",
+            "state" : "STARTED"
+          }
+        },
+        {
           "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/ZOOKEEPER_CLIENT",
           "HostRoles" : {
             "cluster_name" : "perf",

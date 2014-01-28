@@ -38,6 +38,9 @@
       "storm-site" : {
         "tag" : "version1"
       },
+      "tez-site" : {
+        "tag": "version1"
+      },
       "capacity-scheduler" : {
         "tag" : "version1"
       },

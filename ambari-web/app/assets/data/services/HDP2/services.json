@@ -182,6 +182,20 @@
           "WARNING" : 0
         }
       }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/TEZ",
+      "ServiceInfo" : {
+        "cluster_name" : "cl",
+        "service_name" : "TEZ"
+      },
+      "alerts" : {
+        "summary" : {
+          "CRITICAL" : 0,
+          "OK" : 0,
+          "WARNING" : 0
+        }
+      }
     }
   ]
 }

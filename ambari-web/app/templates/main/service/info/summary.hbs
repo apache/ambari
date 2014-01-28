@@ -68,6 +68,9 @@
             {{#if view.serviceStatus.storm}}
               {{view App.MainDashboardServiceStormView showOnlyRows=true serviceBinding="view.service"}}
             {{/if}}
+            {{#if view.serviceStatus.tez}}
+              {{template "templates/main/service/info/summary/tez"}}
+            {{/if}}
           </tbody>
         </table>
       </div>

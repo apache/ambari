@@ -144,6 +144,9 @@ App.MainHostSummaryView = Em.View.extend({
         case 'MAPREDUCE2':
           installableClients.push('MAPREDUCE2_CLIENT');
           break;
+        case 'TEZ':
+          installableClients.push('TEZ_CLIENT');
+          break;
       }
     });
     this.get('content.hostComponents').forEach(function (component) {

@@ -229,7 +229,7 @@ module.exports = [
     sites: ['falcon-site'],
     configs: []
   },
-  // @todo change to actual info
+
   {
     serviceName: 'STORM',
     displayName: 'Storm',
@@ -246,6 +246,17 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['global', 'storm-site'],
+    configs: []
+  },
+  {
+    serviceName: 'TEZ',
+    displayName: 'TEZ',
+    filename: 'tez-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedTezSite', displayName : 'Custom tez-site.xml', siteFileName: 'tez-site.xml', canAddProperty: true})
+    ],
+    sites: ['global', 'tez-site'],
     configs: []
   },
   {

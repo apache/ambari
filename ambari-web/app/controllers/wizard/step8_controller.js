@@ -1073,7 +1073,10 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
     }
     if (selectedServices.someProperty('serviceName', 'STORM')) {
-      this.get('serviceConfigTags').pushObject(this.createStormSiteObj('STORM'));
+      this.get('serviceConfigTags').pushObject(this.createStormSiteObj());
+    }
+    if (selectedServices.someProperty('serviceName', 'TEZ')) {
+      this.get('serviceConfigTags').pushObject(this.createTezSiteObj());
     }
     if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
       this.get('serviceConfigTags').pushObject(this.createZooCfgObj());
@@ -1388,7 +1391,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'zoo.cfg', tag: 'version1', properties: csProperties};
   },
 
-  createStormSiteObj: function (s) {
+  createStormSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
     var stormProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1401,6 +1404,17 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     return {type: 'storm-site', tag: 'version1', properties: stormProperties};
   },
+
+  createTezSiteObj: function () {
+    var configs = this.get('configs').filterProperty('filename', 'tez-site.xml');
+    var tezProperty = {};
+    configs.forEach(function (_configProperty) {
+      tezProperty[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, 'tez-site', 'version1', this);
+    }, this);
+    return {type: 'tez-site', tag: 'version1', properties: tezProperty};
+  },
+
   ajaxQueueFinished: function () {
     //do something
   },

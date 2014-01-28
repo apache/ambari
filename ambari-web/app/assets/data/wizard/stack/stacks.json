@@ -895,6 +895,17 @@
             "stack_version" : "2.0.5",
             "user_name" : "root"
           }
+        },
+        {
+          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.5/stackServices/STORM",
+          "StackServices" : {
+            "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN",
+            "service_name" : "TEZ",
+            "service_version" : "0.4.0.2.1.1.0",
+            "stack_name" : "HDP",
+            "stack_version" : "2.0.5",
+            "user_name" : "root"
+          }
         }
       ]
     }

@@ -119,7 +119,14 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    */
   needToAddYarnMapReduce2: function() {
-    return this.needAddService('YARN', ['PIG', 'OOZIE', 'HIVE']);
+    return this.needAddService('YARN', ['PIG', 'OOZIE', 'HIVE','TEZ']);
+  },
+  /**
+   * Check whether we should turn on <code>Tez</code> service
+   * @return {Boolean}
+   */
+  needToAddTez: function() {
+    return this.needAddService('TEZ', ['YARN']);
   },
   /**
    * Check whether we should turn on <code>ZooKeeper</code> service
@@ -200,6 +207,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
                 if(this.needToAddOozie()) {
                   this.oozieCheckPopup();
                 }
+                else if (this.needToAddTez()) {
+                  this.tezCheckPopup();
+                }
                 else {
                   this.validateMonitoring();
                 }
@@ -260,6 +270,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   mapReduce2CheckPopup: function () {
     this.needToAddServicePopup({serviceName:'YARN', selected:true}, 'yarnCheck');
+  },
+
+  tezCheckPopup: function() {
+    this.needToAddServicePopup({serviceName:'TEZ', selected: true}, 'tezCheck');
   },
 
   zooKeeperCheckPopup: function () {

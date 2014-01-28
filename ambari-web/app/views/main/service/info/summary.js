@@ -48,8 +48,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     hue: false,
     flume: false,
     falcon: false,
-    storm: false
+    storm: false,
+    tez: false
   },
+
+  servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ"],
 
   sumMasterComponentView : Em.View.extend({
     templateName: require('templates/main/service/info/summary/master_components'),
@@ -71,7 +74,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   clients: function () {
     var service = this.get('controller.content');
-    if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
+    if (this.get('servicesHaveClients').contains(service.get("id"))) {
       return service.get('hostComponents').filterProperty('isClient');
     }
     return [];
@@ -221,7 +224,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   clientObj: function() {
     var service = this.get('controller.content');
-    if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
+    if (this.get('servicesHaveClients').contains(service.get("id"))) {
       var clients = service.get('hostComponents').filterProperty('isClient', true);
       if (clients.length > 0) {
         return clients[0];
