@@ -28,6 +28,11 @@ config = Script.get_config()
 
 conf_dir = "/etc/hbase/conf"
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
+region_mover = "/usr/lib/hbase/bin/region_mover.rb"
+region_drainer = "/usr/lib/hbase/bin/region_drainer.rb"
+hbase_cmd = "/usr/lib/hbase/bin/hbase"
+hbase_excluded_hosts = default("/commandParams/excluded_hosts", "")
+hbase_drain_only = default("/commandParams/mark_draining_only", "")
 
 hbase_user = config['configurations']['global']['hbase_user']
 smokeuser = config['configurations']['global']['smokeuser']

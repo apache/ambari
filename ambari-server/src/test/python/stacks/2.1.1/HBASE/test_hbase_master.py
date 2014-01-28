@@ -57,7 +57,24 @@ class TestHBaseMaster(RMFTestCase):
       user = 'hbase',
     )
     self.assertNoMoreResources()
-    
+
+  def test_decom_default(self):
+    self.executeScript("2.1.1/services/HBASE/package/scripts/hbase_master.py",
+                       classname = "HbaseMaster",
+                       command = "decommission",
+                       config_file="default.json"
+    )
+
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+                              logoutput = True,
+                              user = 'hbase',
+                              )
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host2',
+                              logoutput = True,
+                              user = 'hbase',
+                              )
+    self.assertNoMoreResources()
+
   def test_configure_secured(self):
     self.executeScript("2.1.1/services/HBASE/package/scripts/hbase_master.py",
                    classname = "HbaseMaster",
@@ -93,6 +110,19 @@ class TestHBaseMaster(RMFTestCase):
       not_if = None,
       user = 'hbase',
     )
+    self.assertNoMoreResources()
+
+  def test_decom_secure(self):
+    self.executeScript("2.1.1/services/HBASE/package/scripts/hbase_master.py",
+                       classname = "HbaseMaster",
+                       command = "decommission",
+                       config_file="secured.json"
+    )
+
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/region_mover.rb unload host1',
+                              logoutput = True,
+                              user = 'hbase',
+                              )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

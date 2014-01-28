@@ -28,7 +28,8 @@
         "service_metadata_folder": "HDFS", 
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
-        "script": "scripts/datanode.py"
+        "script": "scripts/datanode.py",
+        "excluded_hosts": "host1,host2"
     }, 
     "taskId": 18, 
     "public_hostname": "c6402.ambari.apache.org", 

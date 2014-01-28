@@ -23,6 +23,7 @@ from resource_management import *
 
 from hbase import hbase
 from hbase_service import hbase_service
+from hbase_decommission import hbase_decommission
 
          
 class HbaseMaster(Script):
@@ -58,6 +59,12 @@ class HbaseMaster(Script):
     env.set_params(status_params)
     pid_file = format("{pid_dir}/hbase-hbase-master.pid")
     check_process_status(pid_file)
+
+  def decommission(self, env):
+    import params
+    env.set_params(params)
+
+    hbase_decommission(env)
 
 def main():
   command_type = sys.argv[1] if len(sys.argv)>1 else "install"

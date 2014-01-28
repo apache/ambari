@@ -28,7 +28,8 @@
         "service_metadata_folder": "HIVE", 
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
-        "script": "scripts/mysql_server.py"
+        "script": "scripts/mysql_server.py",
+        "excluded_hosts": "host1"
     }, 
     "taskId": 117, 
     "public_hostname": "c6402.ambari.apache.org", 

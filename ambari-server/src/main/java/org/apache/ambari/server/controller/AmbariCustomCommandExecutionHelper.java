@@ -47,6 +47,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,6 +102,7 @@ public class AmbariCustomCommandExecutionHelper {
   private static String DECOM_INCLUDED_HOSTS = "included_hosts";
   private static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
   private static String DECOM_SLAVE_COMPONENT = "slave_type";
+  private static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
   @Inject
   private ActionMetadata actionMetadata;
   @Inject
@@ -192,14 +194,15 @@ public class AmbariCustomCommandExecutionHelper {
     } else if (actionRequest.getCommandName().equals("DECOMMISSION")) {
       addDecommissionAction(actionRequest, stage, hostLevelParams);
     } else if (isValidCustomCommand(actionRequest)) {
-      addCustomCommandAction(actionRequest, stage, hostLevelParams);
+      addCustomCommandAction(actionRequest, stage, hostLevelParams, null);
     } else {
       throw new AmbariException("Unsupported action " + actionRequest.getCommandName());
     }
   }
 
   private void addCustomCommandAction(ExecuteActionRequest actionRequest,
-                                      Stage stage, Map<String, String> hostLevelParams)
+                                      Stage stage, Map<String, String> hostLevelParams,
+                                      Map<String, String> additionalCommandParams)
       throws AmbariException {
 
     if (actionRequest.getHosts().isEmpty()) {
@@ -246,6 +249,11 @@ public class AmbariCustomCommandExecutionHelper {
 
       Map<String, String> commandParams = new TreeMap<String, String>();
       commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
+      if (additionalCommandParams != null) {
+        for (String key : additionalCommandParams.keySet()) {
+          commandParams.put(key, additionalCommandParams.get(key));
+        }
+      }
 
       String commandTimeout = configs.getDefaultAgentTaskTimeout();
 
@@ -268,7 +276,7 @@ public class AmbariCustomCommandExecutionHelper {
                   "this service", componentName);
           throw new AmbariException(message);
         }
-        // We don't need package/repo infomation to perform service check
+        // We don't need package/repo information to perform service check
       }
       commandParams.put(COMMAND_TIMEOUT, commandTimeout);
 
@@ -495,9 +503,11 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     // Set/reset decommissioned flag on all components
+    List<String> listOfExcludedHosts = new ArrayList<String>();
     for (ServiceComponentHost sch : svcComponents.get(slaveCompType).getServiceComponentHosts().values()) {
       if (excludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
+        listOfExcludedHosts.add(sch.getHostName());
         LOG.info("Adding " + slaveCompType + " host to decommissioned list : " + sch.getHostName());
       }
       if (includedHosts.contains(sch.getHostName())) {
@@ -517,7 +527,19 @@ public class AmbariCustomCommandExecutionHelper {
     // Reset cluster host info as it has changed
     stage.setClusterHostInfo(clusterHostInfoJson);
 
-    addCustomCommandAction(commandRequest, stage, hostLevelParams);
+    Map<String, String> commandParams = null;
+    if (serviceName.equals(Service.Type.HBASE.name()) && listOfExcludedHosts.size() > 0) {
+      commandParams = new HashMap<String, String>();
+      commandParams.put(DECOM_EXCLUDED_HOSTS, StringUtils.join(listOfExcludedHosts, ','));
+      String isDrainOnlyRequest = request.getParameters().get(HBASE_MARK_DRAINING_ONLY);
+      if (isDrainOnlyRequest != null) {
+        if (isDrainOnlyRequest.equals("true") || isDrainOnlyRequest.equals("false")) {
+          commandParams.put(HBASE_MARK_DRAINING_ONLY, isDrainOnlyRequest);
+        }
+      }
+    }
+
+    addCustomCommandAction(commandRequest, stage, hostLevelParams, commandParams);
   }
 
   /**
