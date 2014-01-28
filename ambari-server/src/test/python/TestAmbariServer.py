@@ -2727,7 +2727,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(configure_postgres_username_password_mock.called)
     self.assertTrue(run_os_command_mock.called)
 
-    # Test remote
+    # Test remote oracle/mysql
     configure_postgres_username_password_mock.reset_mock()
     run_os_command_mock.reset_mock()
     args.persistence_type = "remote"
@@ -2742,6 +2742,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(remote_stack_upgrade_mock.called)
     self.assertFalse(run_os_command_mock.called)
 
+    get_db_cli_tool_mock.reset_mock()
+    remote_stack_upgrade_mock.reset_mock()
+    run_os_command_mock.reset_mock()
+
+    args.database = "mysql"
+    get_db_cli_tool_mock.return_value = "mysql"
+    remote_stack_upgrade_mock.return_value = (0, "test_mysql_stack_upgrade", "test_mysql_stack_upgrade")
+    ambari_server.upgrade_stack(args, 'HDP-2.0')
+
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertTrue(remote_stack_upgrade_mock.called)
+    self.assertFalse(run_os_command_mock.called)
 
 
   @patch("__builtin__.open")

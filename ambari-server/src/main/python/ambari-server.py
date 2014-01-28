@@ -346,6 +346,8 @@ ORACLE_EXEC_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2}
 MYSQL_EXEC_ARGS_WITH_USER_VARS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
 MYSQL_EXEC_ARGS_WO_USER_VARS = "--force --host={0} --port={1} --user={2} --password={3} --database={4} < {5} 2> /dev/null"
+MYSQL_UPGRADE_STACK_ARGS = "--host={0} --port={1} --user={2} --password={3} --database={4} " \
+                 "-e\"set @stackName=\'{6}\'; set @stackVersion=\'{7}\'; source {5};\""
 
 ORACLE_UPGRADE_STACK_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {7} {8}"
 
@@ -1336,6 +1338,7 @@ def remote_stack_upgrade(args, scriptPath, stackId):
     return -1, "Client wasn't found", "Client wasn't found"
 
   #TODO add support of other databases with scripts
+  stack_name, stack_version = stackId.split(STACK_NAME_VER_SEP)
   if args.database == "oracle":
     sid_or_sname = "sid"
     if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
@@ -1343,7 +1346,6 @@ def remote_stack_upgrade(args, scriptPath, stackId):
       print_info_msg("using SERVICE_NAME instead of SID for Oracle")
       sid_or_sname = "service_name"
 
-    stack_name, stack_version = stackId.split(STACK_NAME_VER_SEP)
     retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
       args.database_username,
       args.database_password,
@@ -1352,6 +1354,18 @@ def remote_stack_upgrade(args, scriptPath, stackId):
       args.database_name,
       scriptPath,
       sid_or_sname,
+      stack_name,
+      stack_version
+    )))
+    return retcode, out, err
+  elif args.database == "mysql":
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_UPGRADE_STACK_ARGS.format(
+      args.database_host,
+      args.database_port,
+      args.database_username,
+      args.database_password,
+      args.database_name,
+      scriptPath,
       stack_name,
       stack_version
     )))
@@ -2510,7 +2524,7 @@ def upgrade_stack(args, stack_id):
     client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_STACK_UPGRADE_SCRIPTS[DATABASE_INDEX], args.database_username,
                                                                        BLIND_PASSWORD, args.database_name)
     #TODO temporarty code
-    if not args.database == "oracle":
+    if not args.database in ["oracle", "mysql"]:
       raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
 
     if get_db_cli_tool(args):
