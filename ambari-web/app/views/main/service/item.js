@@ -29,12 +29,12 @@ App.MainServiceItemView = Em.View.extend({
     var disabled = this.get('controller.isStopDisabled');
     var serviceName = service.get('serviceName');
     // Restart All action
-    options.push({action:'restartAllHostComponents', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
+    options.push({action:'restartAllHostComponents', cssClass: 'icon-forward', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
     // Rolling Restart action
     var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
     if (rrComponentName) {
       var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
-      options.push({action:'rollingRestart', context: rrComponentName, 'label': label, disabled: false});
+      options.push({action:'rollingRestart', cssClass: 'icon-time', context: rrComponentName, 'label': label, disabled: false});
     }
     // Service Check and Reassign Master actions
     switch (serviceName) {
@@ -47,13 +47,13 @@ App.MainServiceItemView = Em.View.extend({
         if (App.supports.reassignMaster && hosts > 1) {
           allMasters.forEach(function (hostComponent) {
             if (App.reassignableComponents.contains(hostComponent)) {
-              options.push({action: 'reassignMaster', context: hostComponent,
+              options.push({action: 'reassignMaster', context: hostComponent, cssClass: 'icon-share-alt', 
                 'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
             }
           })
         }
       default:
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
+        options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
     }
     return options;
   }.property('controller.content', 'controller.isStopDisabled'),

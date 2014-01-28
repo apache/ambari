@@ -28,10 +28,10 @@ App.MainHostDetailsView = Em.View.extend({
 
   maintenance: function(){
     return [
-         {action: 'startAllComponents', 'label': this.t('hosts.host.details.startAllComponents')},
-         {action: 'stopAllComponents', 'label': this.t('hosts.host.details.stopAllComponents')},
-         {action: 'restartAllComponents', 'label': this.t('hosts.host.details.restartAllComponents')},
-         {action: 'deleteHost', 'label': this.t('hosts.host.details.deleteHost')}];
+      {action: 'startAllComponents', cssClass: 'icon-play enabled', 'label': this.t('hosts.host.details.startAllComponents')},
+      {action: 'stopAllComponents', cssClass: 'icon-stop enabled', 'label': this.t('hosts.host.details.stopAllComponents')},
+      {action: 'restartAllComponents', cssClass: 'icon-forward enabled', 'label': this.t('hosts.host.details.restartAllComponents')},
+      {action: 'deleteHost', cssClass: 'icon-remove enabled', 'label': this.t('hosts.host.details.deleteHost')}];
   }.property('controller.content'),
   didInsertElement: function() {
     App.tooltip($("[rel='HealthTooltip']"));

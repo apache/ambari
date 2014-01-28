@@ -38,7 +38,8 @@
 				        <!-- dropdown menu links -->
 				        {{#each option in view.maintenance}}
 				        <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
-				          <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
+				          <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass"}}></i>
+{{option.label}}</a>
 				        </li>
 				        {{/each}}
 				      </ul>
