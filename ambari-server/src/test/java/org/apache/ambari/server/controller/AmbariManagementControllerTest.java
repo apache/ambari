@@ -5715,6 +5715,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
     HostRoleCommand command =  storedTasks.get(0);
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
@@ -5741,6 +5742,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
     cInfo = execCmd.getClusterHostInfo();
     Assert.assertTrue(cInfo.containsKey("decom_dn_hosts"));
     Assert.assertEquals("0,1", cInfo.get("decom_dn_hosts").iterator().next());
@@ -5775,6 +5777,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     scHost = s.getServiceComponent("DATANODE").getServiceComponentHost("h2");
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.ACTIVE, scHost.getPassiveState());
     execCmd = storedTasks.get(0).getExecutionCommandWrapper
         ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
@@ -5785,6 +5788,7 @@ public class AmbariManagementControllerTest {
     // Slave components will have admin state as INSERVICE even if the state in DB is null
     scHost.setComponentAdminState(null);
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.ACTIVE, scHost.getPassiveState());
   }
 
   @Test

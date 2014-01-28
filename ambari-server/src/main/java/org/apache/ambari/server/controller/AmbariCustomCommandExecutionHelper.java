@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -421,7 +422,6 @@ public class AmbariCustomCommandExecutionHelper {
     if (actionParameters != null) { // If defined
       execCmd.setRoleParams(actionParameters);
     }
-
   }
 
   private Set<String> getHostList(Map<String, String> cmdParameters, String key) {
@@ -508,11 +508,13 @@ public class AmbariCustomCommandExecutionHelper {
       if (excludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
         listOfExcludedHosts.add(sch.getHostName());
-        LOG.info("Adding " + slaveCompType + " host to decommissioned list : " + sch.getHostName());
+        sch.setPassiveState(PassiveState.PASSIVE);
+        LOG.info("Decommissioning " + slaveCompType + " and marking it PASSIVE on " + sch.getHostName());
       }
       if (includedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
-        LOG.info("Removing " + slaveCompType + " host from the decommissioned list: " + sch.getHostName());
+        sch.setPassiveState(PassiveState.ACTIVE);
+        LOG.info("Recommissioning " + slaveCompType + " and marking it ACTIVE on " + sch.getHostName());
       }
     }
 
