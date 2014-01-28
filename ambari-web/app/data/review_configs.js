@@ -304,8 +304,31 @@ module.exports = [
             isMaster: false
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'PIG',
+        display_name: 'Pig',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Clients',
+            component_name: 'CLIENT',
+            component_value: '',
+            isMaster: false
+          })
+        ]
+      }),
+      Ember.Object.create({
+        service_name: 'SQOOP',
+        display_name: 'Sqoop',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Clients',
+            component_name: 'CLIENT',
+            component_value: '',
+            isMaster: false
+          })
+        ]
       })
-
     ]
   }
 ];
