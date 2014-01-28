@@ -31,7 +31,7 @@ ALTER TABLE hostcomponentdesiredstate ADD (passive_state VARCHAR2 (32) NOT NULL 
 
 -- DML
 --Upgrade version to current
-UPDATE metainfo SET "metainfo_key" = 'version', "metainfo_value" = '${ambariVersion}';
+UPDATE metainfo SET "metainfo_value" = '${ambariVersion}' WHERE "metainfo_key" = 'version';
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('configgroup_id_seq', 1);
 
