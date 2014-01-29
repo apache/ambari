@@ -628,15 +628,8 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     currentComponents.forEach(function (item) {
       preparedAvailableHosts = availableComponentHosts.slice(0);
-      if (this.get('content.controllerName') != 'reassignMasterController') {
-        preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("selectedHost")));
-      } else {
-        if(item.get("host_name") != this.get('content.currentHostId')) {
-          preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("host_name")));
-        }
-        item.set("selectedHost", preparedAvailableHosts.objectAt(0).host_name);
-      }
-      preparedAvailableHosts.sort(this.sortHostsByName, this);
+      preparedAvailableHosts.pushObject(this.get("hosts").findProperty("host_name", item.get("selectedHost")))
+      preparedAvailableHosts.sort(this.sortHostsByConfig, this);
       item.set("availableHosts", preparedAvailableHosts);
     }, this);
   },

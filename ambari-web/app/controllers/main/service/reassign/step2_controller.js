@@ -21,10 +21,17 @@ var App = require('app');
 App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
 
   currentHostId: null,
+  showCurrentHost: true,
 
   loadStep: function() {
     this._super();
-    this.rebalanceComponentHosts(this.get('content.reassign.component_name'));
+    if(this.get('content.reassign.component_name') == "NAMENODE" && !this.get('content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE")){
+      this.set('showCurrentHost', false);
+      this.rebalanceComponentHosts('NAMENODE');
+    }else{
+      this.set('showCurrentHost', true);
+      this.rebalanceSingleComponentHosts(this.get('content.reassign.component_name'));
+    }
   },
 
   loadComponents: function () {
@@ -52,7 +59,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
     return result;
   },
 
-  rebalanceComponentHosts:function (componentName) {
+  rebalanceSingleComponentHosts:function (componentName) {
     var currentComponents = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
       componentHosts = currentComponents.mapProperty("selectedHost"),
       availableComponentHosts = [],
