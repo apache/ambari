@@ -396,7 +396,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
       case 'storm.zookeeper.servers':
-        if (!App.supports.storm) return;
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
