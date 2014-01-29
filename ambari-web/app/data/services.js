@@ -62,7 +62,7 @@ module.exports = [
   },
   {
     serviceName: 'TEZ',
-    displayName: 'TEZ',
+    displayName: 'Tez',
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,

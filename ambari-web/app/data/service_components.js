@@ -103,7 +103,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'TEZ',
     component_name: 'TEZ_CLIENT',
-    display_name: 'TEZ Client',
+    display_name: 'Tez Client',
     isMaster: false,
     isClient: true,
     description: ''
