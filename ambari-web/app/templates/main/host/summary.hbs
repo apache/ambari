@@ -92,34 +92,50 @@
                   {{/if}}
                   {{#if view.isNodeManager}}
                     {{#if view.isNodeManagerDecommissionAvailable}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                              {{t common.decommission}}
-                            </a>
-                        </li>
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
+                          {{t common.decommission}}
+                        </a>
+                      </li>
                     {{/if}}
                     {{#if view.isNodeManagerRecommissionAvailable}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                              {{t common.recommission}}
-                            </a>
-                        </li>
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
+                          {{t common.recommission}}
+                        </a>
+                      </li>
                     {{/if}}
                   {{/if}}
                   {{#if view.isTaskTracker}}
                     {{#if view.isTaskTrackerDecommissionAvailable}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                              {{t common.decommission}}
-                            </a>
-                        </li>
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
+                          {{t common.decommission}}
+                        </a>
+                      </li>
                     {{/if}}
                     {{#if view.isTaskTrackerRecommissionAvailable}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                              {{t common.recommission}}
-                            </a>
-                        </li>
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
+                          {{t common.recommission}}
+                        </a>
+                      </li>
+                    {{/if}}
+                  {{/if}}
+                  {{#if view.isRegionServer}}
+                    {{#if view.isRegionServerDecommissionAvailable}}
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
+                          {{t common.decommission}}
+                        </a>
+                      </li>
+                    {{/if}}
+                    {{#if view.isRegionServerRecommissionAvailable}}
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
+                          {{t common.recommission}}
+                        </a>
+                      </li>
                     {{/if}}
                   {{/if}}
                   {{#if view.isDeletableComponent}}

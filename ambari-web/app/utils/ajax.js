@@ -381,7 +381,7 @@ var urls = {
             }, {
               "batch_settings" : {
                 "batch_separation_in_seconds" : data.intervalTimeSeconds,
-                "task_failure_tolerance" : data.toleratePercentage
+                "task_failure_tolerance" : data.tolerateSize
               }
             } ]
           }

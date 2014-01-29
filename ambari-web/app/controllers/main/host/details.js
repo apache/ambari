@@ -755,7 +755,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       sender: this,
       data: {
         intervalTimeSeconds: 1,
-        toleratePercentage : 50,
+        tolerateSize : 0,
         batches:[
           {
             "order_id" : 1,
@@ -835,7 +835,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       sender: this,
       data: {
         intervalTimeSeconds: 1,
-        toleratePercentage : 50,
+        tolerateSize : 1,
         batches:[
           {
             "order_id" : 1,
@@ -885,7 +885,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       sender: this,
       data: {
         intervalTimeSeconds: 1,
-        toleratePercentage : 50,
+        tolerateSize : 1,
         batches:[
           {
             "order_id" : 1,

@@ -46,9 +46,6 @@ App.MainHostSummaryView = Em.View.extend({
   }.property('content.componentsWithStaleConfigsCount'),
 
   didInsertElement: function () {
-    //if (this.get('content.hostComponents').someProperty('componentName', 'DATANODE')) {
-      //this.loadDecommissionNodesList();
-    //}
     this.addToolTip();
   },
   addToolTip: function() {
@@ -239,6 +236,9 @@ App.MainHostSummaryView = Em.View.extend({
       if (this.get('isTaskTracker')){
         this.loadTaskTrackerDecommissionStatus();
       }
+      if (this.get('isRegionServer')){
+        this.loadRegionServerDecommissionStatus();
+      }
     },
     hostComponent: function () {
       var hostComponent = null;
@@ -280,9 +280,17 @@ App.MainHostSummaryView = Em.View.extend({
         if(this.get("isTaskTracker") && this.get('isTaskTrackerRecommissionAvailable')){
           componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
         }
+        if(this.get("isRegionServer") && this.get('isRegionServerRecommissionAvailable')){
+          if(this.get('isRegionServerDecommissioning')){
+            componentTextStatus = Em.I18n.t('hosts.host.decommissioning');
+          } else {
+            componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
+          }
+        }
       }
       return componentTextStatus;
-    }.property('workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable','isTaskTrackerRecommissionAvailable'),
+    }.property('workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable',
+      'isTaskTrackerRecommissionAvailable', 'isRegionServerRecommissionAvailable', 'isRegionServerDecommissioning'),
 
     statusClass: function () {
       //If the component is DataNode
@@ -306,6 +314,13 @@ App.MainHostSummaryView = Em.View.extend({
         }
       }
 
+      //If the component is RegionServer
+      if (this.get('isRegionServer')) {
+        if (this.get('isRegionServerRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
+          return 'health-status-DEAD-ORANGE';
+        }
+      }
+
       //Class when install failed
       if (this.get('workStatus') === App.HostComponentStatus.install_failed) {
         return 'health-status-color-red icon-cog';
@@ -323,7 +338,8 @@ App.MainHostSummaryView = Em.View.extend({
 
       //For all other cases
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
-    }.property('content.passiveState','workStatus', 'isDataNodeRecommissionAvailable', 'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable'),
+
+    }.property('content.passiveState','workStatus', 'isDataNodeRecommissionAvailable', 'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable', 'isRegionServerRecommissionAvailable'),
 
     disabled: function () {
       return (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") ? 'disabled' : '';
@@ -347,9 +363,9 @@ App.MainHostSummaryView = Em.View.extend({
       var workStatus = this.get('workStatus');
       var self = this;
       var pulsate = [ App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.installing].contains(workStatus);
-      if (!pulsate && this.get('isDataNode')) {
-        var dataNodeComponent = this.get('content');
-        if (dataNodeComponent && workStatus != "INSTALLED") {
+      if (!pulsate && (this.get('isDataNode') || this.get('isRegionServer'))) {
+        var component = this.get('content');
+        if (component && workStatus != "INSTALLED") {
           pulsate = this.get('isDecommissioning');
         }
       }
@@ -368,7 +384,7 @@ App.MainHostSummaryView = Em.View.extend({
       this.$('.components-health').stop(true, true);
       this.$('.components-health').css({opacity: 1.0});
       this.doBlinking();
-    }.observes('workStatus','isDataNodeRecommissionAvailable', 'isDecommissioning'),
+    }.observes('workStatus','isDataNodeRecommissionAvailable', 'isDecommissioning', 'isRegionServerRecommissionAvailable'),
 
     isStart: function () {
       return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
@@ -418,14 +434,12 @@ App.MainHostSummaryView = Em.View.extend({
 
 
     isDecommissioning: function () {
-      //the slaves is decommissioning.
-      return this.get('isDataNode') && this.get("isDataNodeDecommissioning");
-    }.property("workStatus", "isDataNodeDecommissioning"),
+      return (this.get('isDataNode') && this.get("isDataNodeDecommissioning")) || (this.get('isRegionServer') && this.get("isRegionServerDecommissioning"));
+    }.property("workStatus", "isDataNodeDecommissioning", "isRegionServerDecommissioning"),
 
     isDataNodeDecommissioning: null,
     isDataNodeDecommissionAvailable: null,
     isDataNodeRecommissionAvailable: null,
-
     /**
      * load Recommission/Decommission status from adminState of each live node
      */
@@ -593,7 +607,6 @@ App.MainHostSummaryView = Em.View.extend({
 
     isNodeManagerDecommissionAvailable: null,
     isNodeManagerRecommissionAvailable: null,
-
     /**
      * load Recommission/Decommission status for nodeManager from nodeManagers list
      */
@@ -659,7 +672,6 @@ App.MainHostSummaryView = Em.View.extend({
 
     isTaskTrackerDecommissionAvailable: null,
     isTaskTrackerRecommissionAvailable: null,
-
     /**
      * load Recommission/Decommission status for TaskTracker from JobTracker/AliveNodes list
      */
@@ -725,6 +737,37 @@ App.MainHostSummaryView = Em.View.extend({
       });
     },
 
+    isRegionServerDecommissioning: null,
+    isRegionServerDecommissionAvailable: null,
+    isRegionServerRecommissionAvailable: null,
+    /**
+     * load Recommission/Decommission status of RegionServer
+     */
+    loadRegionServerDecommissionStatus: function () {
+      var clusterName = App.router.get('clusterController.clusterName');
+      var hostName = App.router.get('mainHostDetailsController.content.hostName');
+      var slaveType = 'HBASE_REGIONSERVER';
+      var self = this;
+      var deferred = $.Deferred();
+      self.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
+        var desired_admin_state = self.get('desiredAdminState');
+        self.set('desiredAdminState', null);
+        switch(desired_admin_state) {
+          case "INSERVICE":
+            self.set('isRegionServerRecommissionAvailable', false);
+            self.set('isRegionServerDecommissioning', false);
+            self.set('isRegionServerDecommissionAvailable', self.get('isStart'));
+            break;
+          case "DECOMMISSIONED":
+            self.set('isRegionServerRecommissionAvailable', true);
+            self.set('isRegionServerDecommissioning', self.get('isStart'));
+            self.set('isRegionServerDecommissionAvailable', false);
+            break;
+        }
+        deferred.resolve(desired_admin_state);
+      });
+      return deferred.promise();
+    }.observes('App.router.mainHostDetailsController.content'),
 
     /**
      * Shows whether we need to show Delete button
