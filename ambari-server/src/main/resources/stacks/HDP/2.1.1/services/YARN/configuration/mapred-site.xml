@@ -151,6 +151,9 @@
   <property>
     <name>mapreduce.map.output.compress</name>
     <value>false</value>
+    <description>
+      Should the outputs of the maps be compressed before being sent across the network. Uses SequenceFile compression.
+    </description>
   </property>
 
   <property>
@@ -296,11 +299,13 @@
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
     <value>-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+    <description>This property stores Java options for map tasks.</description>
   </property>
 
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <value>-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+    <description>This property stores Java options for reduce tasks.</description>
   </property>
 
   <property>

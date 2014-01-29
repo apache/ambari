@@ -32,6 +32,7 @@
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
+    <description> The address of ResourceManager. </description>
   </property>
 
   <property>
@@ -84,11 +85,13 @@
   <property>
     <name>yarn.acl.enable</name>
     <value>true</value>
+    <description> Are acls enabled. </description>
   </property>
 
   <property>
     <name>yarn.admin.acl</name>
     <value>*</value>
+    <description> ACL of who can be admin of the YARN cluster. </description>
   </property>
 
   <!-- NodeManager -->
@@ -144,6 +147,7 @@
   <property>
     <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
     <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    <description>The auxiliary service class to use </description>
   </property>
 
   <property>
@@ -211,12 +215,13 @@
   <property>
     <name>yarn.log-aggregation-enable</name>
     <value>true</value>
-    <description>Whether to enable log aggregation</description>
+    <description>Whether to enable log aggregation. </description>
   </property>
 
   <property>
     <name>yarn.nodemanager.remote-app-log-dir</name>
     <value>/app-logs</value>
+    <description>Location to aggregate logs to. </description>
   </property>
 
   <property>

@@ -120,7 +120,10 @@
     <name>yarn.scheduler.capacity.node-locality-delay</name>
     <value>40</value>
     <description>
-      No description
+      Number of missed scheduling opportunities after which the CapacityScheduler
+      attempts to schedule rack-local containers.
+      Typically this should be set to number of nodes in the cluster, By default is setting
+      approximately number of nodes in one rack which is 40.
     </description>
   </property>
 

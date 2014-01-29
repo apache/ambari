@@ -35,7 +35,9 @@
   <property>
     <name>io.sort.record.percent</name>
     <value>.2</value>
-    <description>No description</description>
+    <description>The percentage of io.sort.mb dedicated to tracking record boundaries. Let this value be r, io.sort.mb be x.
+      The maximum number of records collected before the collection thread must block is equal to (r * x) / 4
+    </description>
   </property>
 
   <property>
@@ -47,7 +49,8 @@
   <property>
     <name>io.sort.factor</name>
     <value>100</value>
-    <description>No description</description>
+    <description>The number of streams to merge at once while sorting files. This determines the number of open file handles.
+    </description>
   </property>
 
   <!-- map/reduce properties -->
@@ -99,36 +102,44 @@
     <!-- cluster specific -->
     <name>mapred.local.dir</name>
     <value>/hadoop/mapred</value>
-    <description>No description</description>
+    <description>The local directory where MapReduce stores intermediate data files. May be a comma-separated list of
+      directories on different devices in order to spread disk i/o. Directories that do not exist are ignored.
+    </description>
     <final>true</final>
   </property>
 
   <property>
     <name>mapreduce.cluster.administrators</name>
     <value> hadoop</value>
+    <description>Cluster administrators. Irrespective of the job ACLs configured, cluster administrators always have
+      access to view and modify a job.
+    </description>
   </property>
 
   <property>
     <name>mapred.reduce.parallel.copies</name>
     <value>30</value>
-    <description>No description</description>
+    <description>The default number of parallel transfers run by reduce
+      during the copy(shuffle) phase.
+    </description>
   </property>
 
   <property>
     <name>mapred.tasktracker.map.tasks.maximum</name>
     <value>4</value>
-    <description>No description</description>
+    <description>The maximum number of map tasks that will be run simultaneously by a task tracker.</description>
   </property>
 
   <property>
     <name>mapred.tasktracker.reduce.tasks.maximum</name>
     <value>2</value>
-    <description>No description</description>
+    <description>The maximum number of reduce tasks that will be run simultaneously by a task tracker.</description>
   </property>
 
   <property>
     <name>tasktracker.http.threads</name>
     <value>50</value>
+    <description>The number of worker threads that for the http server. This is used for map output fetching.</description>
   </property>
 
   <property>
@@ -148,6 +159,7 @@
   <property>
     <name>mapred.reduce.slowstart.completed.maps</name>
     <value>0.05</value>
+    <description>Fraction of the number of maps in the job which should be complete before reduces are scheduled for the job.</description>
   </property>
 
   <property>
@@ -199,11 +211,13 @@
   <property>
     <name>mapred.jobtracker.completeuserjobs.maximum</name>
     <value>0</value>
+    <description>The maximum number of complete jobs per user to keep around before delegating them to the job history.</description>
   </property>
 
   <property>
     <name>mapred.jobtracker.taskScheduler</name>
     <value>org.apache.hadoop.mapred.CapacityTaskScheduler</value>
+    <description>The class responsible for scheduling the tasks.</description>
   </property>
 
   <property>
@@ -253,7 +267,7 @@
   <property>
     <name>jetty.connector</name>
     <value>org.mortbay.jetty.nio.SelectChannelConnector</value>
-    <description>No description</description>
+    <description>The connector to be used by Jetty server.</description>
   </property>
 
   <property>
@@ -267,12 +281,12 @@
   <property>
     <name>mapred.child.root.logger</name>
     <value>INFO,TLA</value>
+    <description>Logger configuration for the TaskTracker child processes</description>
   </property>
 
   <property>
     <name>ambari.mapred.child.java.opts.memory</name>
     <value>768</value>
-
     <description>Java options Memory for the TaskTracker child processes</description>
   </property>
 
@@ -369,11 +383,13 @@
   <property>
     <name>mapred.healthChecker.interval</name>
     <value>135000</value>
+    <description>Frequency of the node health script to be run, in milliseconds</description>
   </property>
 
   <property>
     <name>mapred.healthChecker.script.timeout</name>
     <value>60000</value>
+    <description>Time after node health script should be killed if unresponsive and considered that the script has failed.</description>
   </property>
 
   <property>
@@ -406,17 +422,19 @@
   <property>
     <name>mapred.jobtracker.retirejob.check</name>
     <value>10000</value>
+    <description>Interval for the check for jobs to be retired. </description>
   </property>
 
   <property>
     <name>mapred.jobtracker.retirejob.interval</name>
     <value>21600000</value>
+    <description> Completed Job retirement interval. </description>
   </property>
 
   <property>
     <name>mapred.job.tracker.history.completed.location</name>
     <value>/mapred/history/done</value>
-    <description>No description</description>
+    <description>The completed job history files are stored at this single well known location.</description>
   </property>
 
   <property>
@@ -437,6 +455,7 @@
   <property>
     <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
     <value>false</value>
+    <description>Enable this flag to create _SUCCESS file for successful job. </description>
   </property>
 
   <property>
@@ -476,6 +495,9 @@
   <property>
     <name>hadoop.job.history.user.location</name>
     <value>none</value>
+    <description> Location to store the history files of a particular job. If set to none, then the job histories are
+      not collected to anywhere outside the master node.
+    </description>
     <final>true</final>
   </property>
 
