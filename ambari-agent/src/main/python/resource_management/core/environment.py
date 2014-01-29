@@ -125,12 +125,37 @@ class Environment(object):
 
     raise Exception("Unknown condition type %r" % cond)
 
+  def _get_resource_repr(self, resource):
+    arguments_str = ""
+    for x,y in resource.arguments.iteritems():
+      
+      # strip unicode 'u' sign
+      if isinstance(y, unicode):
+        val = repr(y).lstrip('u')
+      # don't show dicts of configurations
+      # usually too long  
+      elif isinstance(y, dict):
+        val = "..."
+      # correctly output 'mode' (as they are octal values like 0755)
+      elif y and x == 'mode':
+        val = oct(y)
+      else:
+        val = repr(y)
+      
+      
+      arguments_str += "'{0}': {1}, ".format(x, val)
+      
+    if arguments_str:  
+      arguments_str = arguments_str[:-2]
+    
+    return "{0} {{{1}}}".format(resource, arguments_str)  
+    
   def run(self):
     with self:
       # Run resource actions
       while self.resource_list:
         resource = self.resource_list.pop(0)
-        self.log.info("%s %s" % (resource, repr(resource.arguments).replace("': u'","': '")))
+        self.log.info(self._get_resource_repr(resource))
         
         if resource.initial_wait:
           time.sleep(resource.initial_wait)

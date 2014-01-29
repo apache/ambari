@@ -40,7 +40,7 @@ def default(name, default_value):
       curr_dict = curr_dict[x]
     else:
       if not isinstance(default_value, UnknownConfiguration):
-        log.info("Cannot find configuration: '%s'. Using '%s' value as default" % (name, default_value))
+        log.debug("Cannot find configuration: '%s'. Using '%s' value as default" % (name, default_value))
       return default_value
 
   return curr_dict
