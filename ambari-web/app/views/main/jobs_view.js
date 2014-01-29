@@ -19,7 +19,7 @@
 var App = require('app');
 var filters = require('views/common/filter_view');
 
-App.MainJobsView = App.MainAppsView.extend({
+App.MainJobsView = Em.View.extend({
   templateName: require('templates/main/jobs'),
 
   showNumberOfJobs: Em.Select.extend({
@@ -37,6 +37,50 @@ App.MainJobsView = App.MainAppsView.extend({
    */
   jobsIdFilterView: filters.createTextView({
     valueBinding: "controller.filterObject.id"
+  }),
+
+  wrapSorting: Ember.View.extend({
+    tagName: 'tr'
+  }),
+
+  sortingColumns: Ember.View.extend({
+    tagName: 'th',
+    classNameBindings: ['class', 'widthClass'],
+    class: "sorting",
+    widthClass: "",
+    content: null,
+    defaultColumn: 8,
+
+    didInsertElement: function () {
+      this.set("widthClass", "col" + this.get('content.index'));
+      if (this.get('content.index') == this.get('defaultColumn')) {
+        this.setControllerObj(this.content.index, "DESC");
+        this.set("class", "sorting_desc");
+      }
+    },
+    click: function (event) {
+      console.log(this.get('class'));
+      if (this.get('class') == "sorting") {
+        this.resetSortClass();
+        this.setControllerObj(this.get('content.index'), "ASC");
+        this.set("class", "sorting_asc");
+      } else if (this.get('class') == "sorting_asc") {
+        this.setControllerObj(this.get('content.index'), "DESC");
+        this.set("class", "sorting_desc");
+      } else if (this.get('class') == "sorting_desc") {
+        this.setControllerObj(this.get('content.index'), "ASC");
+        this.set("class", "sorting_asc");
+      }
+    },
+    resetSortClass: function () {
+      this.get("parentView.childViews").map(function (a, e) {
+        a.get("childViews")[0].set("class", "sorting")
+      });
+    },
+    setControllerObj: function (col, dir) {
+      this.set("controller.filterObject.iSortCol_0", col);
+      this.set("controller.filterObject.sSortDir_0", dir);
+    }
   }),
 
   /**

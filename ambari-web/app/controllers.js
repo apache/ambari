@@ -118,6 +118,7 @@ require('controllers/main/mirroring/targetClusterController');
 require('controllers/main/mirroring/testConnection_controller');
 require('controllers/main/mirroring/testConnectionResults_controller');
 require('controllers/main/mirroring/manage_clusters_controller');
+require('controllers/main/jobs_controller');
 require('controllers/wizard/slave_component_groups_controller');
 require('controllers/wizard/step0_controller');
 require('controllers/wizard/step1_controller');

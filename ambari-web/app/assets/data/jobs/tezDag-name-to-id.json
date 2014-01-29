@@ -1,0 +1,13 @@
+{
+  "entities": [
+    {
+      "ts": 1390516133120,
+      "info": {
+        "dagName": "HIVE-Q2:1"
+      },
+      "entity": "dag_1390516007863_0001_1",
+      "eventtype": "DAG_SUBMITTED"
+    }
+  ],
+  "entitytype": "TEZ_DAG_ID"
+}

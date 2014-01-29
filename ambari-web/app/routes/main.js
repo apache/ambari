@@ -114,8 +114,14 @@ module.exports = Em.Route.extend({
   jobs: Em.Route.extend({
     route: '/jobs',
     connectOutlets: function (router) {
-      router.get('mainJobsController').loadRuns();
-      router.get('mainController').connectOutlet('mainJobs');
+      if (!App.get('isHadoop2Stack')) {
+        Em.run.next(function () {
+          router.transitionTo('main.dashboard');
+        });
+      } else {
+        router.get('mainJobsController').loadJobs();
+        router.get('mainController').connectOutlet('mainJobs');
+      }
     }
   }),
 

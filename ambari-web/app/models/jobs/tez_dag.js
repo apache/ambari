@@ -20,14 +20,19 @@ var dateUtils = require('utils/date');
 
 App.TezDag = DS.Model.extend({
   id : DS.attr('string'),
+  /**
+   * When DAG is actually running on server, a unique ID is assigned.
+   */
+  insanceId : DS.attr('string'),
   name : DS.attr('string'),
   stage : DS.attr('string'),
   vertices : DS.hasMany('App.TezDagVertex'),
-  edges: DS.hasMany('App.TezDagEdge')
+  edges : DS.hasMany('App.TezDagEdge')
 });
 
 App.TezDagEdge = DS.Model.extend({
   id : DS.attr('string'),
+  insanceId : DS.attr('string'),
   fromVertex : DS.belongsTo('App.TezDagVertex'),
   toVertex : DS.belongsTo('App.TezDagVertex'),
   /**
@@ -39,6 +44,10 @@ App.TezDagEdge = DS.Model.extend({
 
 App.TezDagVertex = DS.Model.extend({
   id : DS.attr('string'),
+  /**
+   * When DAG vertex is actually running on server, a unique ID is assigned.
+   */
+  insanceId : DS.attr('string'),
   name : DS.attr('string'),
 
   /**
@@ -55,12 +64,12 @@ App.TezDagVertex = DS.Model.extend({
   /**
    * A vertex can have multiple incoming edges.
    */
-  incomingEdges: DS.hasMany('App.TezDagEdge'),
+  incomingEdges : DS.hasMany('App.TezDagEdge'),
 
   /**
    * This vertex can have multiple outgoing edges.
    */
-  outgoingEdges: DS.hasMany('App.TezDagEdge'),
+  outgoingEdges : DS.hasMany('App.TezDagEdge'),
 
   startTime : DS.attr('number'),
   endTime : DS.attr('number'),
@@ -89,7 +98,7 @@ App.TezDagVertex = DS.Model.extend({
   operationPlan : DS.attr('string'),
 
   /**
-   * Number of tasks in this vertex
+   * Number of actual Map/Reduce tasks in this vertex
    */
   tasksCount : DS.attr('number'),
 

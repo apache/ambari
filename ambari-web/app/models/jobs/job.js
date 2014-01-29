@@ -30,15 +30,38 @@ App.AbstractJob = DS.Model.extend({
   startTime : DS.attr('number'),
   endTime : DS.attr('number'),
 
+  startTimeDisplay : function() {
+    var startTime = this.get('startTime');
+    if (startTime > 0) {
+      return dateUtils.dateFormat(startTime);
+    } else {
+      return "";
+    }
+  }.property('startTime'),
+
+  endTimeDisplay : function() {
+    var endTime = this.get('endTime');
+    if (endTime > 0) {
+      return dateUtils.dateFormat(endTime);
+    } else {
+      return "";
+    }
+  }.property('endTime'),
+
   /**
    * Provides the duration of this job. If the job has not started, duration
    * will be given as 0. If the job has not ended, duration will be till now.
-   *
+   * 
    * @return {Number} Duration in milliseconds.
    */
   duration : function() {
     return dateUtils.duration(this.get('startTime'), this.get('endTime'))
   }.property('startTime', 'endTime'),
+
+  durationDisplay : function() {
+    var duration = this.get('duration');
+    return dateUtils.timingFormat(duration, true);
+  }.property('duration'),
 
   /**
    * Type of this job. Should be one of constants defined in App.JobType

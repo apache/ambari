@@ -48,6 +48,8 @@ require('mappers/service_metrics_mapper');
 require('mappers/target_cluster_mapper');
 require('mappers/dataset_mapper');
 require('mappers/component_config_mapper');
+require('mappers/jobs/hive_jobs_mapper');
+require('mappers/jobs/hive_job_mapper');
 require('utils/http_client');
 require('utils/host_progress_popup');
 

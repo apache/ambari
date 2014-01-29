@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.MainJobsController = App.MainAppsController.extend({
+App.MainJobsController = Em.ArrayController.extend({
 
   name:'mainJobsController',
 
@@ -26,6 +26,11 @@ App.MainJobsController = App.MainAppsController.extend({
 
   loaded : false,
   loading : false,
+  /**
+   * The number of jobs to be shown by last submitted time.
+   */
+  jobsLimit : -1,
+
 
   clearFilters: function () {
     var obj=this.get("filterObject");
@@ -60,6 +65,30 @@ App.MainJobsController = App.MainAppsController.extend({
       { name: Em.I18n.t('jobs.column.end.time'), index: 3 },
       { name: Em.I18n.t('jobs.column.duration'), index: 4 }
     ]
-  })
+  }),
 
+  loadJobs : function() {
+    var self = this;
+    var jobsLimit = this.get('jobsLimit');
+    var yarnService = App.YARNService.find().objectAt(0);
+    if (yarnService != null) {
+      this.set('loading', true);
+      var historyServerHostName = yarnService.get('resourceManagerNode.hostName')
+      var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : App.apiPrefix + "/proxy?url=http://" + historyServerHostName
+          + ":8188/ws/v1/apptimeline/HIVE_QUERY_ID?fields=events,primaryfilters";
+      if (jobsLimit > 0) {
+        hiveQueriesUrl += ("?limit=" + jobsLimit);
+      }
+      App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
+        complete : function(jqXHR, textStatus) {
+          self.set('loading', false);
+          self.set('loaded', true);
+        }
+      });
+    }
+  },
+
+  refreshLoadedJobs : function() {
+    this.loadJobs();
+  }.observes('jobsLimit', 'App.router.clusterController.isLoaded')
 })

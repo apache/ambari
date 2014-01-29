@@ -1,0 +1,64 @@
+{
+  "relatedentities": {
+    "TEZ_TASK_ID": [
+      "task_1390516007863_0001_1_00_000000"
+    ]
+  },
+  "primaryfilters": {},
+  "secondaryfilters": {},
+  "otherinfo": {
+    "startTime": 1390516133853,
+    "initTime": 1390516133853,
+    "numTasks": 1,
+    "status": "SUCCEEDED",
+    "vertexName": "Map 1",
+    "timeTaken": 8110,
+    "processorClassName": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+    "endTime": 1390516141963,
+    "counters": {
+      "counterGroups": [
+        {
+          "counterGroupName": "org.apache.tez.common.counters.DAGCounter",
+          "counterGroupDisplayName": "org.apache.tez.common.counters.DAGCounter",
+          "counters": {
+            "counterName": "DATA_LOCAL_TASKS",
+            "counterDisplayName": "DATA_LOCAL_TASKS",
+            "counterValue": 1
+          }
+        },
+        {
+          "counterGroupName": "org.apache.tez.common.counters.TaskCounter",
+          "counterGroupDisplayName": "org.apache.tez.common.counters.TaskCounter",
+          "counters": {
+            "counterName": "MAP_INPUT_RECORDS",
+            "counterDisplayName": "MAP_INPUT_RECORDS",
+            "counterValue": 500
+          }
+        },
+        {
+          "counterGroupName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+          "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+          "counters": {
+            "counterName": "DESERIALIZE_ERRORS",
+            "counterDisplayName": "DESERIALIZE_ERRORS",
+            "counterValue": 0
+          }
+        },
+        {
+          "counterGroupName": "org.apache.hadoop.mapreduce.lib.input.FileInputFormatCounter",
+          "counterGroupDisplayName": "File Input Format Counters ",
+          "counters": {
+            "counterName": "BYTES_READ",
+            "counterDisplayName": "Bytes Read",
+            "counterValue": 0
+          }
+        }
+      ]
+    },
+    "diagnostics": "",
+    "initRequestedTime": 1390516133331,
+    "startRequestedTime": 1390516133415
+  },
+  "entity": "vertex_1390516007863_0001_1_00",
+  "entitytype": "TEZ_VERTEX_ID"
+}

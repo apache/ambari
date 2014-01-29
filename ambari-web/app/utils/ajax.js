@@ -1510,6 +1510,18 @@ var urls = {
         data: data.dataset
       }
     }
+  },
+  'jobs.tezDag.NametoID': {
+    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
+    'mock': '/data/jobs/tezDag-name-to-id.json'
+  },
+  'jobs.tezDag.tezDagId': {
+    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID/{tezDagId}',
+    'mock': '/data/jobs/tezDag.json'
+  },
+  'jobs.tezDag.tezDagVertexId': {
+    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_VERTEX_ID/{tezDagVertexId}',
+    'mock': '/data/jobs/tezDagVertex.json'
   }
 };
 /**
