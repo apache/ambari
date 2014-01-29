@@ -128,7 +128,7 @@ def determine_domain():
 
 # log the TVI msg to the syslog
 def log_tvi_msg(msg):
-    syslog.openlog('Hadoop', syslog.LOG_PID)
+    syslog.openlog('nagios', syslog.LOG_PID)
     syslog.syslog(msg)
 
 
