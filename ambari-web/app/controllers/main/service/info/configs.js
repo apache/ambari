@@ -1970,7 +1970,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               App.config.updateConfigurationGroup(cg, finishFunction, finishFunction);
             }, this);
             modifiedConfigGroups.toCreate.forEach(function (cg) {
-              App.config.createNewConfigurationGroup(cg.get('service.id'), cg.get('name'), cg.get('description'), cg.get('hosts'),  false, finishFunction);
+              App.config.postNewConfigurationGroup(cg, finishFunction);
             }, this);
           }
         };

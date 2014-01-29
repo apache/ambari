@@ -188,21 +188,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properies);
     }
   },
-  /**
-   * add hosts to group
-   * @return {Array}
-   */
-  componentsForFilter: function() {
-    var components = componentHelper.getInstalledComponents().filterProperty('serviceName', this.get('serviceName'));
-    return components.map(function(component) {
-      return Em.Object.create({
-        displayName: component.displayName,
-        componentName: component.id,
-        selected: false
-      });
-    });
-  }.property('serviceName'),
-
   addHosts: function () {
     if (this.get('selectedConfigGroup.isAddHostsDisabled')){
       return false;
@@ -267,7 +252,10 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       self.deleteConfigGroup();
     });
   },
-
+  /**
+   * add hosts to group
+   * @return {Array}
+   */
   componentsForFilter: function () {
     return serviceComponents.filterProperty('service_name', this.get('serviceName')).map(function (component) {
       return Em.Object.create({

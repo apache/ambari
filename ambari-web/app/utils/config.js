@@ -1083,7 +1083,18 @@ App.config = Em.Object.create({
           callback(selectedConfigGroup);
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
-          var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName, null, [], isInstaller);
+          var newConfigGroup = App.ConfigGroup.create({
+            id: null,
+            name: newConfigGroupName,
+            description: Em.I18n.t('config.group.description.default').format(new Date().toDateString()),
+            isDefault: false,
+            parentConfigGroup: null,
+            service: (isInstaller) ? Em.Object.create({id: serviceId}) : App.Service.find().findProperty('serviceName', serviceId),
+            hosts: [],
+            configSiteTags: [],
+            properties: []
+          });
+          self.postNewConfigurationGroup(newConfigGroup);
           if (newConfigGroup) {
             newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
             configGroups.pushObject(newConfigGroup);
@@ -1192,32 +1203,13 @@ App.config = Em.Object.create({
     });
   },
   /**
-   * Creates a new config-group for a service.
+   * Create a new config-group for a service.
    *
-   * @param serviceId   Service for which this group has to be created
-   * @param configGroupName    Name of the new config-group
-   * @param description    Description of the new config-group
-   * @param hosts    Hosts for the new config-group
-   * @param isInstaller    Determines whether send data to server or not
+   * @param newConfigGroupData   config group to post to server
    * @param callback    Callback function for Success or Error handling
    * @return  Returns the created config-group
    */
-  createNewConfigurationGroup: function (serviceId, configGroupName, description, hosts, isInstaller, callback) {
-    var newConfigGroupData = App.ConfigGroup.create({
-      id: null,
-      name: configGroupName,
-      description: description || "New configuration group created on " + new Date().toDateString(),
-      isDefault: false,
-      parentConfigGroup: null,
-      service: App.Service.find().findProperty('serviceName', serviceId),
-      hosts: hosts || [],
-      configSiteTags: [],
-      properties: []
-    });
-    if (isInstaller) {
-      newConfigGroupData.set('service', Em.Object.create({id: serviceId}));
-      return newConfigGroupData;
-    }
+  postNewConfigurationGroup: function (newConfigGroupData, callback) {
     var dataHosts = [];
     newConfigGroupData.get('hosts').forEach(function (_host) {
       dataHosts.push({
@@ -1227,25 +1219,22 @@ App.config = Em.Object.create({
     var sendData = {
       name: 'config_groups.create',
       data: {
-        'group_name': configGroupName,
-        'service_id': serviceId,
-        'description': newConfigGroupData.description,
+        'group_name': newConfigGroupData.get('name'),
+        'service_id': newConfigGroupData.get('service.id'),
+        'description': newConfigGroupData.get('description'),
         'hosts': dataHosts
       },
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (response) {
+        newConfigGroupData.set('id', response.resources[0].ConfigGroup.id);
         if (callback) {
           callback();
-        } else {
-          newConfigGroupData.id = response.resources[0].ConfigGroup.id;
         }
       },
       errorFunction: function (xhr, text, errorThrown) {
         if (callback) {
           callback(xhr, text, errorThrown);
-        } else {
-          newConfigGroupData = null;
         }
         console.error('Error in creating new Config Group');
       }

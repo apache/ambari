@@ -1748,6 +1748,7 @@ Em.I18n.translations = {
   'config.group.save.confirmation.configGroup': 'Configuration Group',
   'config.group.save.confirmation.saved': 'has been successfully saved',
   'config.group.save.confirmation.manage.button': 'Manage Hosts',
+  'config.group.description.default': 'New configuration group created on {0}',
 
   'utils.ajax.errorMessage': 'Error message'
 };
