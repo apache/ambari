@@ -104,7 +104,8 @@ insert into user_roles(role_name, user_id)
 insert into metainfo(`metainfo_key`, `metainfo_value`)
   select 'version','${ambariVersion}';
 
-
+CREATE DATABASE ambarirca;
+USE ambarirca;
 
 CREATE TABLE workflow (
   workflowId VARCHAR(255), workflowName TEXT,
