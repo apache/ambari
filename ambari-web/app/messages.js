@@ -1336,6 +1336,7 @@ Em.I18n.translations = {
   'hosts.table.menu.l1.selectedHosts':'Selected Hosts',
   'hosts.table.menu.l1.filteredHosts':'Filtered Hosts',
   'hosts.table.menu.l1.allHosts':'All Hosts',
+  'hosts.table.menu.l2.allComponents':'All Components',
   'hosts.table.menu.l2.restartAllComponents':'Restart All Components',
 
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',

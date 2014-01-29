@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="dropdown">
+<div class="dropdown bulk-menu">
   <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">{{t common.actions}} <span class="caret"></span></a>
   <ul class="dropdown-menu">
     {{#if App.isAdmin}}
@@ -24,7 +24,7 @@
       <li class="divider"></li>
     {{/if}}
     <li class="dropdown-submenu">
-      <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
+      <a {{bindAttr class="view.parentView.selectedCategory.hasHosts::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
         ({{view.parentView.selectedCategory.hostsCount}})</a>
       <ul {{bindAttr class="view.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
         {{#each subMenuItem in view.menuItems.s.submenu}}
@@ -42,7 +42,7 @@
       </ul>
     </li>
     <li class="dropdown-submenu">
-      <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.f.label}}
+      <a {{bindAttr class="view.parentView.hasFilteredItems::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.f.label}}
         ({{view.parentView.filteredContent.length}})</a>
       <ul {{bindAttr class="view.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
         {{#each subMenuItem in view.menuItems.f.submenu}}

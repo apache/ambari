@@ -102,7 +102,7 @@ App.HostTableMenuView = Em.View.extend({
   getHostItemsTemplate: function() {
     return Em.A([
       Em.Object.create({
-        label: Em.I18n.t('hosts.host.details.startAllComponents'),
+        label: Em.I18n.t('common.start'),
         operationData: Em.Object.create({
           action: 'STARTED',
           actionToCheck: 'INSTALLED',
@@ -110,7 +110,7 @@ App.HostTableMenuView = Em.View.extend({
         })
       }),
       Em.Object.create({
-        label: Em.I18n.t('hosts.host.details.stopAllComponents'),
+        label: Em.I18n.t('common.stop'),
         operationData: Em.Object.create({
           action: 'INSTALLED',
           actionToCheck: 'STARTED',
@@ -118,7 +118,7 @@ App.HostTableMenuView = Em.View.extend({
         })
       }),
       Em.Object.create({
-        label: Em.I18n.t('hosts.table.menu.l2.restartAllComponents'),
+        label: Em.I18n.t('common.restart'),
         operationData: Em.Object.create({
           action: 'RESTART',
           message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
@@ -153,7 +153,7 @@ App.HostTableMenuView = Em.View.extend({
    * @returns {Array}
    */
   getSubMenuItemsTemplate: function(selection) {
-    var submenu = [{label: Em.I18n.t('common.hosts'), submenu: this.getHostItemsTemplate()}];
+    var submenu = [{label: Em.I18n.t('hosts.table.menu.l2.allComponents'), submenu: this.getHostItemsTemplate()}];
 
     if (!!App.HDFSService.find().content.length) {
       var slaveItemsForHdfs = this.getSlaveItemsTemplate('NAMENODE', 'DATANODE');
