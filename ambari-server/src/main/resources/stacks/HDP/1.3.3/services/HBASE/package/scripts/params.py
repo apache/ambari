@@ -20,7 +20,6 @@ limitations under the License.
 
 from functions import calc_xmn_from_xms
 from resource_management import *
-import functions
 import status_params
 
 # server configurations
@@ -87,7 +86,7 @@ master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
-kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 #log4j.properties
 if ('hbase-log4j' in config['configurations']):
