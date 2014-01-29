@@ -18,8 +18,8 @@
 
 var App = require('app');
 
-App.MainJobsController = Em.Controller.extend({
-  name: 'mainJobsController',
+App.MainDatasetJobsController = Em.Controller.extend({
+  name: 'mainDatasetJobsController',
 
   isLoaded: function () {
     return App.router.get('mainMirroringController.isLoaded');

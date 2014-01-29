@@ -20,7 +20,7 @@ var App = require('app');
 var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 
-App.MainJobsView = App.TableView.extend({
+App.MainDatasetJobsView = App.TableView.extend({
   templateName: require('templates/main/mirroring/jobs'),
   content: function () {
     return this.get('controller.jobs');

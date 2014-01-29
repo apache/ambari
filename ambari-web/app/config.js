@@ -69,7 +69,8 @@ App.supports = {
   deleteHost: true,
   autoRollbackHA: false,
   appTimelineServer: false,
-  storm: false
+  storm: false,
+  jobs: false
 };
 
 if (App.enableExperimental) {

@@ -96,19 +96,28 @@ module.exports = Em.Route.extend({
       router.transitionTo(event.context);
     }
   }),
-    apps: Em.Route.extend({
-      route: '/apps',
-      connectOutlets: function (router) {
-        if (App.get('isHadoop2Stack')) {
-          Em.run.next(function () {
-            router.transitionTo('main.dashboard');
-          });
-        } else {
-          router.get('mainAppsController').loadRuns();
-          router.get('mainController').connectOutlet('mainApps');
-        }
+
+  apps: Em.Route.extend({
+    route: '/apps',
+    connectOutlets: function (router) {
+      if (App.get('isHadoop2Stack')) {
+        Em.run.next(function () {
+          router.transitionTo('main.dashboard');
+        });
+      } else {
+        router.get('mainAppsController').loadRuns();
+        router.get('mainController').connectOutlet('mainApps');
       }
-    }),
+    }
+  }),
+
+  jobs: Em.Route.extend({
+    route: '/jobs',
+    connectOutlets: function (router) {
+      router.get('mainJobsController').loadRuns();
+      router.get('mainController').connectOutlet('mainJobs');
+    }
+  }),
 
   mirroring: Em.Route.extend({
     route: '/mirroring',

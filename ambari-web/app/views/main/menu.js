@@ -39,6 +39,8 @@ App.MainMenuView = Em.CollectionView.extend({
 
     if (!App.get('isHadoop2Stack')) {
       result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
+    }else if (App.supports.jobs) {
+      result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'jobs'});
     }
 
     if (App.get('isAdmin')) {

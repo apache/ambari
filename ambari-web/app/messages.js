@@ -1698,6 +1698,17 @@ Em.I18n.translations = {
   'tableView.filters.paginationInfo': '{0} - {1} of {2}',
   'tableView.filters.clearAllFilters': 'clear filters',
 
+  'jobs.type':'Jobs Type',
+  'jobs.type.hive':'Hive',
+  'jobs.show.up.to':'Show up to',
+  'jobs.filtered.jobs':'{0} of {1} jobs showing',
+  'jobs.filtered.clear':'clear filters',
+  'jobs.column.id':'Id',
+  'jobs.column.user':'User',
+  'jobs.column.start.time':'Start Time',
+  'jobs.column.end.time':'End Time',
+  'jobs.column.duration':'Duration',
+
   'apps.table.column.appId':'App ID',
   'apps.table.column.runDate': 'Run Date',
   'apps.avgTable.avg': 'Avg',
