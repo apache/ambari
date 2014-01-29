@@ -62,4 +62,11 @@ public interface ViewContext {
    * @return the resource provider
    */
   public ResourceProvider<?> getResourceProvider(String type);
+
+  /**
+   * Get a URL stream provider.
+   *
+   * @return a stream provider
+   */
+  public URLStreamProvider getURLStreamProvider();
 }

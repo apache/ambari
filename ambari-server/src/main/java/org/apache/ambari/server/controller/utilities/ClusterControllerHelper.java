@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.utilities;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.view.ViewProviderModule;
 
 /**
  * Temporary class to bootstrap a cluster controller.  TODO : Replace this global state with injection.
@@ -36,7 +37,7 @@ public class ClusterControllerHelper {
     if (controller == null) {
       try {
         Class<?> implClass = Class.forName(PROVIDER_MODULE_CLASS);
-        ProviderModule providerModule = (ProviderModule) implClass.newInstance();
+        ProviderModule providerModule = ViewProviderModule.getViewProviderModule((ProviderModule) implClass.newInstance());
         controller = new ClusterControllerImpl(providerModule);
 
       } catch (Exception e) {

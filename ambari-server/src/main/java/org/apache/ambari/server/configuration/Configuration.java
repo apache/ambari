@@ -50,6 +50,8 @@ public class Configuration {
   public static final String CONFIG_FILE = "ambari.properties";
   public static final String BOOTSTRAP_DIR = "bootstrap.dir";
   public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
+  public static final String VIEWS_DIR = "views.dir";
+  public static final String VIEWS_DIR_DEFAULT = "/var/lib/ambari-server/resources/views";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
   public static final String BOOTSTRAP_SCRIPT_DEFAULT = "/usr/bin/ambari_bootstrap";
@@ -458,6 +460,16 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  /**
+   * Get the views directory.
+   *
+   * @return the views directory
+   */
+  public File getViewsDir() {
+    String fileName = properties.getProperty(VIEWS_DIR, VIEWS_DIR_DEFAULT);
+    return new File(fileName);
   }
 
   public File getBootStrapDir() {

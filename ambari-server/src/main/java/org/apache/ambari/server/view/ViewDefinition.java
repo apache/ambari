@@ -1,0 +1,209 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.view;
+
+import org.apache.ambari.server.api.resources.BaseResourceDefinition;
+import org.apache.ambari.server.view.configuration.ResourceConfig;
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Provides access to the attributes of a view.
+ */
+public class ViewDefinition {
+  /**
+   * The associated view configuration.
+   */
+  private final ViewConfig configuration;
+
+  /**
+   * The mapping of resource type to resource provider.
+   */
+  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
+
+  /**
+   * The mapping of resource type to resource definition.
+   */
+  private final Map<Resource.Type, BaseResourceDefinition> resourceDefinitions = new HashMap<Resource.Type, BaseResourceDefinition>();
+
+  /**
+   * The mapping of resource type to resource configuration.
+   */
+  private final Map<Resource.Type, ResourceConfig> resourceConfigurations = new HashMap<Resource.Type, ResourceConfig>();
+
+  /**
+   * The mapping of instance name to instance definition.
+   */
+  private final Map<String, ViewInstanceDefinition> instanceDefinitions = new HashMap<String, ViewInstanceDefinition>();
+
+
+  // ----- Constructors ------------------------------------------------------
+
+  /**
+   * Construct a view definition from the given configuration.
+   *
+   * @param configuration the view configuration
+   */
+  public ViewDefinition(ViewConfig configuration) {
+    this.configuration = configuration;
+  }
+
+
+  // ----- ViewDefinition ----------------------------------------------------
+
+  /**
+   * Get the view name.
+   *
+   * @return the view name
+   */
+  public String getName() {
+    return configuration.getName();
+  }
+
+  /**
+   * Get the view label.
+   *
+   * @return the view label
+   */
+  public String getLabel() {
+    return configuration.getLabel();
+  }
+
+  /**
+   * Get the view version.
+   *
+   * @return the version
+   */
+  public String getVersion() {
+    return configuration.getVersion();
+  }
+
+  /**
+   * Get the associated view configuration.
+   *
+   * @return the configuration
+   */
+  public ViewConfig getConfiguration() {
+    return configuration;
+  }
+
+  /**
+   * Add a resource provider for the given type.
+   *
+   * @param type      the resource type
+   * @param provider  the resource provider
+   */
+  public void addResourceProvider(Resource.Type type, ResourceProvider provider) {
+    resourceProviders.put(type, provider);
+  }
+
+  /**
+   * Get the resource provider for the given type.
+   *
+   * @param type  the resource type
+   *
+   * @return the resource provider associated with the given type
+   */
+  public ResourceProvider getResourceProvider(Resource.Type type) {
+    return resourceProviders.get(type);
+  }
+
+  /**
+   * Add a resource definition.
+   *
+   * @param definition  the resource definition
+   */
+  public void addResourceDefinition(BaseResourceDefinition definition) {
+    resourceDefinitions.put(definition.getType(), definition);
+  }
+
+  /**
+   * Get the resource definition for the given type
+   *
+   * @param type  the resource type
+   *
+   * @return the resource definition associated with the given type
+   */
+  public BaseResourceDefinition getResourceDefinition(Resource.Type type) {
+    return resourceDefinitions.get(type);
+  }
+
+  /**
+   * Add a resource configuration for the given type.
+   *
+   * @param type    the resource type
+   * @param config  the configuration
+   */
+  public void addResourceConfiguration(Resource.Type type, ResourceConfig config) {
+    resourceConfigurations.put(type, config);
+  }
+
+  /**
+   * Get a mapping of resource type to resource configurations.
+   *
+   * @return the mapping of resource types to resource configurations
+   */
+  public Map<Resource.Type, ResourceConfig> getResourceConfigurations() {
+    return resourceConfigurations;
+  }
+
+  /**
+   * Get the set of resource types for this view.
+   *
+   * @return the set of resource type
+   */
+  public Set<Resource.Type> getViewResourceTypes() {
+    return resourceConfigurations.keySet();
+  }
+
+  /**
+   * Add an instance definition.
+   *
+   * @param viewInstanceDefinition  the instance definition
+   */
+  public void addInstanceDefinition(ViewInstanceDefinition viewInstanceDefinition) {
+    instanceDefinitions.put(viewInstanceDefinition.getName(), viewInstanceDefinition);
+  }
+
+  /**
+   * Get the collection of all instance definitions for this view.
+   *
+   * @return the collection of instance definitions
+   */
+  public Collection<ViewInstanceDefinition> getInstanceDefinitions() {
+    return instanceDefinitions.values();
+  }
+
+  /**
+   * Get an instance definition for the given name.
+   *
+   * @param instanceName  the instance name
+   *
+   * @return the instance definition
+   */
+  public ViewInstanceDefinition getInstanceDefinition(String instanceName) {
+    return instanceDefinitions.get(instanceName);
+  }
+}

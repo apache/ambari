@@ -22,13 +22,24 @@ package org.apache.ambari.server.api.resources;
 import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.view.ViewRegistry;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Factory for creating resource instances.
  */
 public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
+
+
+  /**
+   * Map of external resource definitions (added through views).
+   */
+  private final static Map<Resource.Type, ResourceDefinition> resourceDefinitions =
+      new HashMap<Resource.Type, ResourceDefinition>();
+
 
   @Override
   public ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
@@ -42,6 +53,16 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
   }
 
   /**
+   * Associate an external resource definition with a type.
+   *
+   * @param type        the resource type
+   * @param definition  the resource definition
+   */
+  public static void addResourceDefinition(Resource.Type type, ResourceDefinition definition) {
+    resourceDefinitions.put(type, definition);
+  }
+
+  /**
    * Get a resource definition for the given type.
    *
    * @param type    the resource type
@@ -51,6 +72,11 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
    */
   public static ResourceDefinition getResourceDefinition(Resource.Type type, Map<Resource.Type, String> mapIds) {
     ResourceDefinition resourceDefinition;
+
+    // Check to see if there is an external resource definition registered for the given type.
+    if (resourceDefinitions.containsKey(type)) {
+      return resourceDefinitions.get(type);
+    }
 
     //todo: consider ResourceDependencyManager : Map<Resource.Type, ResourceDefinition>
     switch (type.getInternalType()) {
@@ -165,6 +191,17 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case RequestSchedule:
         resourceDefinition = new RequestScheduleResourceDefinition();
+        break;
+
+      case View:
+        resourceDefinition = new ViewResourceDefinition();
+        break;
+
+      case ViewInstance:
+        Set<SubResourceDefinition> subResourceDefinitions =
+            ViewRegistry.getInstance().getSubResourceDefinitions(mapIds.get(Resource.Type.View));
+
+        resourceDefinition = new ViewInstanceResourceDefinition(subResourceDefinitions);
         break;
 
       default:

@@ -61,6 +61,10 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new JobResourceProvider(propertyIds, keyPropertyIds);
       case TaskAttempt:
         return new TaskAttemptResourceProvider(propertyIds, keyPropertyIds);
+      case View:
+        return new ViewResourceProvider();
+      case ViewInstance:
+        return new ViewInstanceResourceProvider();
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,
             keyPropertyIds, managementController);

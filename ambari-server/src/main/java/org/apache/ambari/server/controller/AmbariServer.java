@@ -58,11 +58,11 @@ import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsSer
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenAuthenticationFilter;
-import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
@@ -277,6 +277,8 @@ public class AmbariServer {
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
+      ViewRegistry.readViewArchives(configs, root, springSecurityFilter);
+
       ServletHolder agent = new ServletHolder(ServletContainer.class);
       agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
@@ -317,8 +319,8 @@ public class AmbariServer {
       if (configs.getApiSSLAuthentication()) {
         String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
           File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY);
-        LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);        
-        
+        LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
+
         String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
 
         SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector();
@@ -332,7 +334,7 @@ public class AmbariServer {
         sapiConnector.setTruststoreType("PKCS12");
         sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
         apiConnector = sapiConnector;
-      } 
+      }
       else  {
         apiConnector = new SelectChannelConnector();
         apiConnector.setPort(configs.getClientApiPort());

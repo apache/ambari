@@ -101,7 +101,9 @@ public interface Resource {
     TaskAttempt,
     RootService,
     RootServiceComponent,
-    RootServiceHostComponent;
+    RootServiceHostComponent,
+    View,
+    ViewInstance;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -164,6 +166,8 @@ public interface Resource {
     public static final Type RootService = InternalType.RootService.getType();
     public static final Type RootServiceComponent = InternalType.RootServiceComponent.getType();
     public static final Type RootServiceHostComponent = InternalType.RootServiceHostComponent.getType();
+    public static final Type View = InternalType.View.getType();
+    public static final Type ViewInstance = InternalType.ViewInstance.getType();
 
     /**
      * The type name.
