@@ -18,3 +18,4 @@
 
 
 -- DDL
+UPDATE metainfo SET metainfo_value = '${ambariVersion}' WHERE metainfo_key = 'version';
