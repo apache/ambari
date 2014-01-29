@@ -1169,34 +1169,34 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  turnOnOffMaintenanceConfirmation: function(event){
+  turnOnOffPassiveConfirmation: function(event){
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase();
     var state, onOff;
-    if (component.get("workStatus") == App.HostComponentStatus.maintenance) {
+    if (component.get("passiveState") == "PASSIVE") {
       onOff = "Off";
-      state = App.HostComponentStatus.stopped;
+      state = "ACTIVE";
     } else {
       onOff = "On";
-      state = App.HostComponentStatus.maintenance;
+      state = "PASSIVE";
     }
     App.showConfirmationPopup(function() {
-          self.turnOnOffmaintenance(state, componentName)
+          self.turnOnOffPassive(state, componentName)
         },
-        Em.I18n.t('hosts.maintenanceMode.popup').format(onOff,component.get('displayName'))
+        Em.I18n.t('hosts.passiveMode.popup').format(onOff,component.get('displayName'))
     );
   },
 
-  turnOnOffmaintenance: function(state,componentName) {
+  turnOnOffPassive: function(state,componentName) {
     var hostName = this.get('content.hostName');
     App.ajax.send({
-      name: 'host_component.maintenance_mode',
+      name: 'host_component.passive',
       sender: this,
       data: {
         hostName: hostName,
         componentName: componentName,
-        state: state,
+        passive_state: state,
         requestInfo: componentName + " " + state
       }
     });

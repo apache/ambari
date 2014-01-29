@@ -25,12 +25,14 @@ App.statusMapper = App.QuickDataMapper.create({
       var hostsCache = App.cache['Hosts'];
       var previousHostStatuses = App.cache['previousHostStatuses'];
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
+      var previousComponentPassiveStates = App.cache['previousComponentPassiveStates'];
       var hostComponentRecordsMap = App.cache['hostComponentRecordsMap'];
       var hostStatuses = {};
       var addedHostComponents = [];
       var updatedHostComponents = [];
       var componentServiceMap = App.QuickDataMapper.componentServiceMap();
       var currentComponentStatuses = {};
+      var currentComponentPassiveStates = {};
       var currentHostStatuses = {};
       var hostComponentsOnService = {};
 
@@ -46,20 +48,23 @@ App.statusMapper = App.QuickDataMapper.create({
         host.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + hostName;
           var existedComponent = previousComponentStatuses[host_component.id];
+          var existedPassiveComponent = previousComponentPassiveStates[host_component.id];
           var service = componentServiceMap[host_component.HostRoles.component_name];
 
           //delete all currently existed host-components to indicate which need to be deleted from model
           delete previousComponentStatuses[host_component.id];
+          delete previousComponentPassiveStates[host_component.id];
 
-          if (existedComponent) {
+          if (existedComponent || existedPassiveComponent) {
             //update host-components, which have status changed
-            if (existedComponent !== host_component.HostRoles.state) {
+            if (existedComponent !== host_component.HostRoles.state || existedPassiveComponent !== host_component.HostRoles.passive_state) {
               updatedHostComponents.push(host_component);
             }
           } else {
             addedHostComponents.push({
               id: host_component.id,
               component_name: host_component.HostRoles.component_name,
+              passive_state: host_component.HostRoles.passive_state,
               work_status: host_component.HostRoles.state,
               host_id: hostName,
               service_id: service
@@ -68,7 +73,7 @@ App.statusMapper = App.QuickDataMapper.create({
             if (hostsCache[hostName]) hostsCache[hostName].is_modified = true;
           }
           currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
-
+          currentComponentPassiveStates[host_component.id] = host_component.HostRoles.passive_state;
           //host-components to host relations
           hostComponentsOnHost.push(host_component.id);
           //host-component to service relations
@@ -96,6 +101,7 @@ App.statusMapper = App.QuickDataMapper.create({
         var hostComponentRecord = hostComponentRecordsMap[hostComponent.id];
         if (hostComponentRecord) {
           hostComponentRecord.set('workStatus', hostComponent.HostRoles.state);
+          hostComponentRecord.set('passiveState', hostComponent.HostRoles.passive_state);
         }
       }, this);
 
@@ -116,6 +122,7 @@ App.statusMapper = App.QuickDataMapper.create({
 
       App.cache['previousHostStatuses'] = currentHostStatuses;
       App.cache['previousComponentStatuses'] = currentComponentStatuses;
+      App.cache['previousComponentPassiveStates'] = currentComponentPassiveStates;
       App.cache['hostComponentsOnService'] = hostComponentsOnService;
 
     }

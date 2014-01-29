@@ -207,11 +207,11 @@ var urls = {
     }
   },
 
-  'host_component.maintenance_mode': {
+  'host_component.passive': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
     'type': 'PUT',
-    'format': function() {
+    'format': function(data) {
       return {
         data: JSON.stringify({
           RequestInfo: {
@@ -219,7 +219,7 @@ var urls = {
           },
           Body: {
             HostRoles: {
-              state: data.state
+              passive_state: data.passive_state
             }
           }
         })

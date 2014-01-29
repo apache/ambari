@@ -171,10 +171,10 @@ Em.I18n.translations = {
   'common.url': 'URL',
   'common.advanced': 'Advanced',
 
-  'maintenance.turnOn':'Turn On Maintenance Mode',
-  'maintenance.turnOff':'Turn Off Maintenance Mode',
-  'maintenance.turnOnFor':'Turn On Maintenance Mode for',
-  'maintenance.turnOffFor':'Turn Off Maintenance Mode for',
+  'passiveState.turnOn':'Turn On Passive Mode',
+  'passiveState.turnOff':'Turn Off Passive Mode',
+  'passiveState.turnOnFor':'Turn On Passive Mode for',
+  'passiveState.turnOffFor':'Turn Off Passive Mode for',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1454,7 +1454,7 @@ Em.I18n.translations = {
     'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
   'hosts.assignRack':'Assign Rack',
-  'hosts.maintenanceMode.popup':'Are you sure you want to Turn {0} Maintenance Mode for {1}?',
+  'hosts.passiveMode.popup':'Are you sure you want to Turn {0} Passive Mode for {1}?',
 
   'charts.horizon.chart.showText':'show',
   'charts.horizon.chart.hideText':'hide',

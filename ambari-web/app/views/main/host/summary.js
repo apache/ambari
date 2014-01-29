@@ -317,13 +317,13 @@ App.MainHostSummaryView = Em.View.extend({
       }
 
       //Class when maintenance
-      if (this.get('workStatus') === App.HostComponentStatus.maintenance) {
+      if (this.get('content.passiveState') === "PASSIVE") {
         return 'icon-medkit';
       }
 
       //For all other cases
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
-    }.property('workStatus', 'isDataNodeRecommissionAvailable', 'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable'),
+    }.property('content.passiveState','workStatus', 'isDataNodeRecommissionAvailable', 'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable'),
 
     disabled: function () {
       return (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") ? 'disabled' : '';
@@ -412,9 +412,9 @@ App.MainHostSummaryView = Em.View.extend({
       return this.get('content.componentName') === 'HBASE_REGIONSERVER';
     }.property('content'),
 
-    isInMaintenance: function () {
-      return (this.get('workStatus') == App.HostComponentStatus.maintenance);
-    }.property("workStatus"),
+    isPassive: function () {
+      return (this.get('content.passiveState') == "PASSIVE");
+    }.property('content.passiveState'),
 
 
     isDecommissioning: function () {

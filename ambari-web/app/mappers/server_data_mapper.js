@@ -26,6 +26,7 @@ App.cache = {
   'Hosts': {},
   'previousHostStatuses': {},
   'previousComponentStatuses': {},
+  'previousComponentPassiveStates': {},
   'hostComponentsOnService': {},
   'services': [],
   'hostComponentRecordsMap': {}

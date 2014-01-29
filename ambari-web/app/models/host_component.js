@@ -20,6 +20,7 @@ var App = require('app');
 
 App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
+  passiveState: DS.attr('string'),
   componentName: DS.attr('string'),
   haStatus: DS.attr('string'),
   displayNameAdvanced: DS.attr('string'),
@@ -170,7 +171,6 @@ App.HostComponentStatus = {
   install_failed: "INSTALL_FAILED",
   installing: "INSTALLING",
   upgrade_failed: "UPGRADE_FAILED",
-  maintenance: "MAINTENANCE",
   unknown: "UNKNOWN",
 
   /**
@@ -194,8 +194,6 @@ App.HostComponentStatus = {
         return 'installing';
       case this.upgrade_failed:
         return 'upgrade_failed';
-      case this.maintenance:
-        return 'maintenance';
       case this.unknown:
         return 'unknown';
     }
@@ -225,8 +223,6 @@ App.HostComponentStatus = {
         return 'Heartbeat lost...';
       case this.upgrade_failed:
         return 'Upgrade Failed';
-      case this.maintenance:
-        return 'Maintenance';
     }
     return 'Unknown';
   }
