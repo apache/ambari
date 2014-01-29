@@ -986,8 +986,8 @@ App.config = Em.Object.create({
   OnNnHAHideSnn: function (ServiceConfig) {
     var configCategories = ServiceConfig.get('configCategories');
     var snCategory = configCategories.findProperty('name', 'SNameNode');
-    var activeNn = App.HDFSService.find('HDFS').get('activeNameNode.hostName');
-    if (snCategory && activeNn) {
+    var isSnnPresent = !!App.HDFSService.find('HDFS').get('snameNode');
+    if (snCategory && !isSnnPresent) {
       configCategories.removeObject(snCategory);
     }
   },
