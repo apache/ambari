@@ -162,6 +162,9 @@ App.hostsMapper = App.QuickDataMapper.create({
       }
     }
     console.timeEnd('App.hostsMapper execution time');
+    if (!App.router.get('clusterController.dataLoadList.serviceMetrics')) {
+      App.router.get('clusterController').deferServiceMetricsLoad();
+    }
   },
   /**
    * check mutable fields whether they have been changed and if positive

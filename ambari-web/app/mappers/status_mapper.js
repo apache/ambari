@@ -120,5 +120,8 @@ App.statusMapper = App.QuickDataMapper.create({
 
     }
     console.timeEnd('App.statusMapper execution time');
+    if (!App.router.get('clusterController.isLoaded')) {
+      App.hostsMapper.map(json);
+    }
   }
 });

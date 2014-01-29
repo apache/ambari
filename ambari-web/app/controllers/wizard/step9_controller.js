@@ -682,6 +682,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       console.log("Step9: ERROR: NO tasks available to process");
     }
     var requestId = this.get('content.cluster.requestId');
+    tasksData.setEach('Tasks.request_id', requestId);
     if(polledData.Requests && polledData.Requests.id && polledData.Requests.id!=requestId){
       // We don't want to use non-current requestId's tasks data to
       // determine the current install status.
@@ -737,7 +738,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
     var requestId = requestId || this.get('content.cluster.requestId');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true';
     console.log("URL for step9 is: " + url);
     return url;
   },

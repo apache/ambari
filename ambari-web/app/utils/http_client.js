@@ -45,9 +45,6 @@ App.HttpClient = Em.Object.create({
     }
   },
 
-  emptyFunc: function () {
-  },
-
   /**
    * @param {string} url
    * @param {Object} ajaxOptions
@@ -82,6 +79,7 @@ App.HttpClient = Em.Object.create({
           try {
             App.store.commit();
           } catch (err) {
+            console.warn('App.store.commit error:', err);
           }
           mapper.map($.parseJSON(xhr.responseText));
           tmp_val.complete.call(self);
@@ -91,7 +89,7 @@ App.HttpClient = Em.Object.create({
         }
 
         tmp_val = null;
-        xhr = self.emptyFunc();
+        xhr = null;
         clearTimeout(timeout);
         timeout = null;
 

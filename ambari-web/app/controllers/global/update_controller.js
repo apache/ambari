@@ -139,7 +139,6 @@ App.UpdateController = Em.Controller.extend({
     });
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var initialFieldsString = initialFields.length > 0 ? ',' + initialFields.join(',') : '';
-    var methodStartTs = new Date().getTime();
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json':'/data/dashboard/services.json';
 
     var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
@@ -177,7 +176,6 @@ App.UpdateController = Em.Controller.extend({
     };
     App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {
       complete: function(){
-        console.log("UpdateServiceMetric() Finished in:"+ (new Date().getTime()-methodStartTs) + " ms");
         callback();
       }
     });

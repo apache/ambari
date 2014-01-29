@@ -58,7 +58,6 @@ App.ClusterController = Em.Controller.extend({
     'clusterStatus':false,
     'racks':false,
     'users':false,
-    'status': false,
     'componentConfigs': false
   }),
 
@@ -193,16 +192,24 @@ App.ClusterController = Em.Controller.extend({
   /**
    * Send request to server to load components updated statuses
    * @param callback Slave function, should be called to fire delayed update.
+   * @param isInitialLoad
    * Look at <code>App.updater.run</code> for more information
    * @return {Boolean} Whether we have errors
    */
-  loadUpdatedStatus: function(callback){
-    if(!this.get('clusterName')){
+  loadUpdatedStatus: function (callback, isInitialLoad) {
+    if (!this.get('clusterName')) {
       callback();
       return false;
     }
-    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json':'/data/dashboard/services.json';
+    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json' : '/data/dashboard/services.json';
     var statusUrl = '/hosts?fields=Hosts/host_status,host_components/HostRoles/state&minimal_response=true';
+    if (isInitialLoad) {
+      testUrl = '/data/hosts/HDP2/hosts_init.json';
+      statusUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
+        'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,' +
+        'Hosts/disk_info,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
+        'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
+    }
     //desired_state property is eliminated since calculateState function is commented out, it become useless
     statusUrl = this.getUrl(testUrl, statusUrl);
 
@@ -247,10 +254,6 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
-      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,Hosts/disk_info,' +
-      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free,'+
-      'alerts/summary&minimal_response=true';
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
 
@@ -288,33 +291,54 @@ App.ClusterController = Em.Controller.extend({
 
     /**
      * Order of loading:
-     * 1. put services in cache
-     * 2. load host-components to model
-     * 3. load services from cache with metrics to model
-     * 4. update stale_configs of host-components (depends on App.supports.hostOverrides)
-     * 5. load hosts to model
+     * 1. request for services
+     * 2. put services in cache
+     * 3. request for hosts and host-components (single call)
+     * 4. request for service metrics
+     * 5. load host-components to model
+     * 6. load hosts to model
+     * 7. load services from cache with metrics to model
+     * 8. update stale_configs of host-components (depends on App.supports.hostOverrides)
      */
-
     App.router.get('updateController').updateServices(function () {
       self.updateLoadStatus('services');
       self.loadUpdatedStatus(function () {
-        self.updateLoadStatus('status');
-        App.router.get('updateController').updateServiceMetric(function () {
-          if (App.supports.hostOverrides) {
-            App.router.get('updateController').updateComponentConfig(function () {
-              self.updateLoadStatus('componentConfigs');
-            });
-          } else {
+        self.updateLoadStatus('hosts');
+        if (App.supports.hostOverrides) {
+          App.router.get('updateController').updateComponentConfig(function () {
             self.updateLoadStatus('componentConfigs');
-          }
-          self.updateLoadStatus('serviceMetrics');
-          self.requestHosts(hostsRealUrl, function (jqXHR, textStatus) {
-            self.updateLoadStatus('hosts');
           });
-        }, true);
-      });
+        } else {
+          self.updateLoadStatus('componentConfigs');
+        }
+      }, true);
+      App.router.get('updateController').updateServiceMetric(function () {}, true);
     });
 
+  },
+  /**
+   * json from serviceMetricsMapper on initial load
+   */
+  serviceMetricsJson: null,
+  /**
+   * control that services was loaded to model strictly after hosts and host-components
+   * regardless which request was completed first
+   * @param json
+   */
+  deferServiceMetricsLoad: function (json) {
+    if (json) {
+      if (this.get('dataLoadList.hosts')) {
+        App.serviceMetricsMapper.map(json, true);
+        this.updateLoadStatus('serviceMetrics');
+      } else {
+        this.set('serviceMetricsJson', json);
+      }
+    } else if (this.get('serviceMetricsJson')) {
+      json = this.get('serviceMetricsJson');
+      this.set('serviceMetricsJson', null);
+      App.serviceMetricsMapper.map(json, true);
+      this.updateLoadStatus('serviceMetrics');
+    }
   },
 
   requestHosts: function(realUrl, callback){
