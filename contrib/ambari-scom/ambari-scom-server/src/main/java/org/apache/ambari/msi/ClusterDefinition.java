@@ -22,6 +22,7 @@ import org.apache.ambari.scom.ClusterDefinitionProvider;
 import org.apache.ambari.scom.HostInfoProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +40,7 @@ import java.util.Set;
 public class ClusterDefinition {
 
   private static final String HEADER_TAG              = "#";
-  private static final String HOSTS_HEADER            = "Hosts";
+  private static final String HOSTS_HEADER            = "hosts";
 
   private final Set<String> services = new HashSet<String>();
   private final Set<String> hosts = new HashSet<String>();
@@ -64,9 +65,9 @@ public class ClusterDefinition {
    * Component name mapping to account for differences in what is provided by the MSI
    * and what is expected by the Ambari providers.
    */
-  private static final Map<String, Set<String>> componentNameMap = new HashMap<String, Set<String>>();
+  private final Map<String, Set<String>> componentNameMap = new HashMap<String, Set<String>>();
 
-  static {
+  private void initComponentNameMap() {
     componentNameMap.put("NAMENODE_HOST",           Collections.singleton("NAMENODE"));
     componentNameMap.put("SECONDARY_NAMENODE_HOST", Collections.singleton("SECONDARY_NAMENODE"));
     componentNameMap.put("OOZIE_SERVER_HOST",       Collections.singleton("OOZIE_SERVER"));
@@ -76,15 +77,8 @@ public class ClusterDefinition {
     componentNameMap.put("HBASE_REGIONSERVERS",     Collections.singleton("HBASE_REGIONSERVER"));
     componentNameMap.put("ZOOKEEPER_HOSTS",         Collections.singleton("ZOOKEEPER_SERVER"));
 
-    Set<String> mapReduceComponents = new HashSet<String>();
-    mapReduceComponents.add("JOBTRACKER");
-    mapReduceComponents.add("HISTORY_SERVER");
-    componentNameMap.put("JOBTRACKER_HOST", mapReduceComponents);
-
     Set<String> slaveComponents = new HashSet<String>();
     slaveComponents.add("DATANODE");
-    slaveComponents.add("TASKTRACKER");
-
     componentNameMap.put("SLAVE_HOSTS", slaveComponents);
 
     Set<String> hiveComponents = new HashSet<String>();
@@ -92,22 +86,44 @@ public class ClusterDefinition {
     hiveComponents.add("HIVE_SERVER2");
     hiveComponents.add("HIVE_METASTORE");
     hiveComponents.add("HIVE_CLIENT");
-
     componentNameMap.put("HIVE_SERVER_HOST", hiveComponents);
+
+    Integer majorStackVersion = getMajorStackVersion();
+    if(majorStackVersion != null) {
+      if(majorStackVersion == 1) {
+        Set<String> mapReduceComponents = new HashSet<String>();
+        mapReduceComponents.add("JOBTRACKER");
+        mapReduceComponents.add("HISTORY_SERVER");
+        componentNameMap.put("JOBTRACKER_HOST", mapReduceComponents);
+
+        slaveComponents.add("TASKTRACKER");
+      }
+      if(majorStackVersion == 2) {
+        componentNameMap.put("JOURNALNODE_HOST", Collections.singleton("JOURNALNODE"));
+
+        Set<String> mapReduce2Components = new HashSet<String>();
+        mapReduce2Components.add("HISTORY_SERVER");
+        mapReduce2Components.add("RESOURCEMANAGER");
+        componentNameMap.put("RESOURCEMANAGER_HOST", mapReduce2Components);
+
+        slaveComponents.add("NODEMANAGER");
+        //hiveComponents.add("MYSQL_SERVER");
+
+        Set<String> clientHosts = new HashSet<String>();
+        componentNameMap.put("CLIENT_HOSTS", clientHosts);
+      }
+    }
   }
 
   /**
    * Component service mapping .
    */
-  private static final Map<String, String> componentServiceMap = new HashMap<String, String>();
+  private final Map<String, String> componentServiceMap = new HashMap<String, String>();
 
-  static {
+  private void initComponentServiceMap() {
     componentServiceMap.put("NAMENODE",           "HDFS");
     componentServiceMap.put("DATANODE",           "HDFS");
     componentServiceMap.put("SECONDARY_NAMENODE", "HDFS");
-    componentServiceMap.put("JOBTRACKER",         "MAPREDUCE");
-    componentServiceMap.put("HISTORY_SERVER",     "MAPREDUCE");
-    componentServiceMap.put("TASKTRACKER",        "MAPREDUCE");
     componentServiceMap.put("HIVE_SERVER",        "HIVE");
     componentServiceMap.put("HIVE_SERVER2",       "HIVE");
     componentServiceMap.put("HIVE_METASTORE",     "HIVE");
@@ -118,8 +134,23 @@ public class ClusterDefinition {
     componentServiceMap.put("HBASE_MASTER",       "HBASE");
     componentServiceMap.put("HBASE_REGIONSERVER", "HBASE");
     componentServiceMap.put("ZOOKEEPER_SERVER",   "ZOOKEEPER");
-  }
 
+    Integer majorStackVersion = getMajorStackVersion();
+    if(majorStackVersion != null) {
+      if(majorStackVersion == 1) {
+        componentServiceMap.put("JOBTRACKER",         "MAPREDUCE");
+        componentServiceMap.put("HISTORY_SERVER",     "MAPREDUCE");
+        componentServiceMap.put("TASKTRACKER",        "MAPREDUCE");
+      }
+      if(majorStackVersion == 2) {
+        componentServiceMap.put("HISTORY_SERVER",     "MAPREDUCE2");
+        componentServiceMap.put("JOURNALNODE",        "HDFS");
+        componentServiceMap.put("NODEMANAGER",        "YARN");
+        componentServiceMap.put("RESOURCEMANAGER",    "YARN");
+        //componentServiceMap.put("MYSQL_SERVER",       "HIVE");
+      }
+    }
+  }
 
   // ----- Constructors ------------------------------------------------------
 
@@ -137,12 +168,29 @@ public class ClusterDefinition {
     this.clusterName        = definitionProvider.getClusterName();
     this.versionId          = definitionProvider.getVersionId();
 
+    init();
+
     try {
       readClusterDefinition();
     } catch (IOException e) {
       String msg = "Caught exception reading cluster definition file.";
       throw new IllegalStateException(msg, e);
     }
+  }
+
+  private void init() {
+    initComponentNameMap();
+    initComponentServiceMap();
+  }
+
+  private Integer getMajorStackVersion() {
+    if(StringUtils.isNotEmpty(versionId)) {
+      String majorVersion = StringUtils.substring(versionId, 4, 5);
+      if(StringUtils.isNotEmpty(majorVersion)) {
+        return Integer.parseInt(majorVersion);
+      }
+    }
+    return null;
   }
 
   // ----- ClusterDefinition -------------------------------------------------
@@ -481,8 +529,8 @@ public class ClusterDefinition {
 
         if (line.startsWith(HEADER_TAG)) {
 
-          String header = line.substring(HEADER_TAG.length());
-          hostsSection = header.equals(HOSTS_HEADER);
+          String header = line.substring(HEADER_TAG.length()).toLowerCase();
+          hostsSection = header.equalsIgnoreCase(HOSTS_HEADER);
 
           if (!hostsSection && (header.startsWith(HOSTS_HEADER) ) ){
             char c = header.charAt(HOSTS_HEADER.length());

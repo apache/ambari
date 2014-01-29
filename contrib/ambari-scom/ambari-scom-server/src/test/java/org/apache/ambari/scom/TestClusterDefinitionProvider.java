@@ -27,4 +27,10 @@ public class TestClusterDefinitionProvider extends ClusterDefinitionProvider {
     setClusterName("myCluster");
     setVersionId("HDP-1.2.9");
   }
+
+  public TestClusterDefinitionProvider (String fileName, String clusterName, String versionId) {
+    setFileName(fileName);
+    setClusterName(clusterName);
+    setVersionId(versionId);
+  }
 }

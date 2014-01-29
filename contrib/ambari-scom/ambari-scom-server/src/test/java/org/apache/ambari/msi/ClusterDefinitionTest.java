@@ -283,4 +283,28 @@ public class ClusterDefinitionTest {
 
     verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
   }
+
+  @Test
+  public void testHDP2ServicesAndComponents() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider("clusterproperties_HDP2.txt", "myCluster", "HDP-2.0.6");
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertFalse(clusterDefinition.getServices().contains("MAPREDUCE"));
+    Assert.assertTrue(clusterDefinition.getServices().contains("YARN"));
+    Assert.assertTrue(clusterDefinition.getServices().contains("MAPREDUCE2"));
+    Assert.assertTrue(clusterDefinition.getComponents("YARN").contains("NODEMANAGER"));
+    Assert.assertTrue(clusterDefinition.getComponents("YARN").contains("RESOURCEMANAGER"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
 }

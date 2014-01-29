@@ -76,6 +76,9 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
     serviceNames.put("DATANODE",           "datanode");
     serviceNames.put("TASKTRACKER",        "tasktracker");
     serviceNames.put("WEBHCAT_SERVER",     "templeton");
+    serviceNames.put("NODEMANAGER",        "nodemanager");
+    serviceNames.put("RESOURCEMANAGER",    "resourcemanager");
+    serviceNames.put("JOURNALNODE",        "journalnode");
   }
 
   private static final String STATE_PREFIX = "STATE              : ";
