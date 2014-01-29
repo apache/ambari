@@ -69,7 +69,6 @@ App.supports = {
   deleteHost: true,
   autoRollbackHA: false,
   appTimelineServer: false,
-  storm: false,
   jobs: false
 };
 

@@ -478,7 +478,6 @@ App.WizardController = Em.Controller.extend({
     for (var i = 0; i < displayOrderConfig.length; i++) {
       var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
       if (entry) {
-        if (entry.StackServices.service_name == 'STORM' && !App.supports.storm) continue; // @todo remove this line after STORM integration
         var myService = Service.create({
           serviceName: entry.StackServices.service_name,
           displayName: displayOrderConfig[i].displayName,

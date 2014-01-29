@@ -401,23 +401,18 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
       case 'nimbus.host':
-        if (!App.supports.storm) return; // @todo remove test mode check after Storm service integration
         this.set('value', masterComponentHostsInDB.findProperty('component', 'NIMBUS').hostName);
         break;
       case 'logviewerserver_host':
-        if (!App.supports.storm) return; // @todo remove test mode check after Storm service integration
         this.set('value', masterComponentHostsInDB.findProperty('component', 'LOGVIEWER_SERVER').hostName);
         break;
       case 'drpcserver_host':
-        if (!App.supports.storm) return; // @todo remove test mode check after Storm service integration
         this.set('value', masterComponentHostsInDB.findProperty('component', 'DRPC_SERVER').hostName);
         break;
       case 'stormuiserver_host':
-        if (!App.supports.storm) return; // @todo remove test mode check after Storm service integration
         this.set('value', masterComponentHostsInDB.findProperty('component', 'STORM_UI_SERVER').hostName);
         break;
       case 'supervisor_hosts':
-        if (!App.supports.storm) return; // @todo remove test mode check after Storm service integration
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR').hosts.mapProperty('hostName'));
         break;
       case 'hbase.zookeeper.quorum':

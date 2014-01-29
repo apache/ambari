@@ -389,7 +389,6 @@ App.QuickLinks.FIXTURES = [
     regex: portRegex,
     default_http_port: 19888
   },
-  /* @todo Add real info about links */
   {
     id:31,
     label:'Nimbus UI',
