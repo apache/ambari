@@ -26,13 +26,19 @@ App.MainHostDetailsView = Em.View.extend({
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
+  isActive: function() {
+    return this.get('controller.content.passiveState') === "ACTIVE";
+  }.property('controller.content.passiveState'),
+
   maintenance: function(){
+    var onOff = this.get('isActive') ? "On" : "Off";
     return [
       {action: 'startAllComponents', cssClass: 'icon-play enabled', 'label': this.t('hosts.host.details.startAllComponents')},
       {action: 'stopAllComponents', cssClass: 'icon-stop enabled', 'label': this.t('hosts.host.details.stopAllComponents')},
       {action: 'restartAllComponents', cssClass: 'icon-forward enabled', 'label': this.t('hosts.host.details.restartAllComponents')},
-      {action: 'deleteHost', cssClass: 'icon-remove enabled', 'label': this.t('hosts.host.details.deleteHost')}];
-  }.property('controller.content'),
+      {action: 'deleteHost', cssClass: 'icon-remove enabled', 'label': this.t('hosts.host.details.deleteHost')},
+      {action: 'onOffPassiveModeForHost', cssClass: 'icon-medkit enabled', active:this.get('isActive'), 'label': this.t('passiveState.turn' + onOff)}];
+  }.property('controller.content','isActive'),
   didInsertElement: function() {
     App.tooltip($("[rel='HealthTooltip']"));
   }

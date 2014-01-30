@@ -209,6 +209,9 @@ App.Host = DS.Model.extend({
    * @returns {String}
    */
   healthClass: function(){
+    if (this.get('passiveState')!= 'ACTIVE') {
+      return 'icon-medkit';
+    }
     var statusMap = {
       'UNKNOWN': 'health-status-DEAD-YELLOW',
       'HEALTHY': 'health-status-LIVE',

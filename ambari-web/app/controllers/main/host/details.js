@@ -939,9 +939,34 @@ App.MainHostDetailsController = Em.Controller.extend({
       case "restartAllComponents":
         this.doRestartAllComponents();
         break;
+      case "onOffPassiveModeForHost":
+        this.onOffPassiveModeForHost(option.context);
+        break;
       default:
         break;
     }
+  },
+
+  onOffPassiveModeForHost: function(context) {
+    var state = context.active ? 'PASSIVE' : 'ACTIVE';
+    var self = this;
+    App.showConfirmationPopup(function() {
+          self.hostPassiveModeRequest(state, context.label)
+        },
+        Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off',this.get('content.hostName'))
+    );
+  },
+
+  hostPassiveModeRequest: function(state,message) {
+    App.ajax.send({
+      name: 'bulk_request.hosts.passive_state',
+      sender: this,
+      data: {
+        hostNames: this.get('content.hostName'),
+        passive_state: state,
+        requestInfo: message
+      }
+    });
   },
 
   doStartAllComponents: function() {

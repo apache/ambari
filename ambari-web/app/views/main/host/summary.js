@@ -332,7 +332,7 @@ App.MainHostSummaryView = Em.View.extend({
       }
 
       //Class when maintenance
-      if (this.get('content.passiveState') === "PASSIVE") {
+      if (this.get('content.passiveState') != "ACTIVE") {
         return 'icon-medkit';
       }
 

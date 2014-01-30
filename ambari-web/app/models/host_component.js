@@ -197,7 +197,7 @@ App.HostComponentStatus = {
       case this.unknown:
         return 'unknown';
     }
-    return 'Unknown';
+    return 'unknown';
   },
 
   /**
