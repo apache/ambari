@@ -193,8 +193,31 @@ App.MainServiceItemController = Em.Controller.extend({
     });
   },
 
+  turnOnOffPassive: function(label) {
+    var self = this;
+    var state = this.get('content.passiveState') == 'ACTIVE' ? 'PASSIVE' : 'ACTIVE';
+    var onOff = state === 'PASSIVE' ? "On" : "Off";
+    App.showConfirmationPopup(function() {
+          self.turnOnOffPassiveRequest(state, label)
+        },
+        Em.I18n.t('hosts.passiveMode.popup').format(onOff,self.get('content.displayName'))
+    );
+  },
+
   rollingRestart: function(hostComponentName) {
     batchUtils.launchHostComponentRollingRestart(hostComponentName, false);
+  },
+
+  turnOnOffPassiveRequest: function(state,message) {
+    App.ajax.send({
+      'name': 'service.item.passive',
+      'sender': this,
+      'data': {
+        'requestInfo': message,
+        'serviceName': this.get('content.serviceName').toUpperCase(),
+        'passive_state': state
+      }
+    });
   },
 
   runSmokeTestPrimary: function() {

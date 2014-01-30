@@ -55,6 +55,8 @@ App.MainServiceItemView = Em.View.extend({
       default:
         options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
     }
+    var passiveLabel = service.get('passiveState') === "ACTIVE" ? Em.I18n.t('passiveState.turnOn') : Em.I18n.t('passiveState.turnOff');
+    options.push({action:'turnOnOffPassive', cssClass: 'icon-medkit', context:passiveLabel, 'label':passiveLabel , disabled: false});
     return options;
   }.property('controller.content', 'controller.isStopDisabled'),
   isMaintenanceActive: function() {

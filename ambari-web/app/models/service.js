@@ -23,7 +23,7 @@ require('utils/config');
 App.Service = DS.Model.extend({
 
   serviceName: DS.attr('string'),
-
+  passiveState: DS.attr('string'),
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),
   toolTipContent: DS.attr('string'),

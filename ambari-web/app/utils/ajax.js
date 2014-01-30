@@ -98,6 +98,25 @@ var urls = {
       };
     }
   },
+  'service.item.passive': {
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.requestInfo
+          },
+          Body: {
+            ServiceInfo: {
+              passive_state: data.passive_state
+            }
+          }
+        })
+      };
+    }
+  },
   'service.stale_host_components.start_stop': {
     'real': '/clusters/{clusterName}/host_components?' +
             'HostRoles/stale_configs=true&HostRoles/component_name.in({componentNames})',

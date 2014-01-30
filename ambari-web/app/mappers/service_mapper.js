@@ -26,7 +26,8 @@ App.serviceMapper = App.QuickDataMapper.create({
       var serviceData = {
         ServiceInfo: {
           service_name: service.ServiceInfo.service_name,
-          state: service.ServiceInfo.state
+          state: service.ServiceInfo.state,
+          passive_state: service.ServiceInfo.passive_state
         },
         host_components: [],
         components: []

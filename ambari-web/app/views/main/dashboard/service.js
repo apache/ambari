@@ -59,6 +59,9 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   },
 
   healthStatus: function () {
+    if (this.get('service.passiveState') != 'ACTIVE') {
+      return 'icon-medkit';
+    }
     var status = this.get('service.healthStatus');
     switch (status) {
       case 'green':
@@ -83,7 +86,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     }
 
     return 'health-status-' + status;
-  }.property('service.healthStatus'),
+  }.property('service.healthStatus','service.passiveState'),
 
   didInsertElement: function () {
     this.updateToolTip();
