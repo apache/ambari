@@ -324,6 +324,8 @@ App.MainHostController = Em.ArrayController.extend({
       var parameters = {
         "slave_type": operationData.realComponentName
       };
+      var contextString = turn_off? 'hosts.host.' + operationData.realComponentName.toLowerCase() + '.recommission':
+        'hosts.host.' + operationData.realComponentName.toLowerCase() + '.decommission';
       if (turn_off) {
         parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
       }
@@ -334,7 +336,7 @@ App.MainHostController = Em.ArrayController.extend({
         name: 'bulk_request.decommission',
         sender: this,
         data: {
-          context: turn_off ? Em.I18n.t('hosts.host.datanode.recommission') : Em.I18n.t('hosts.host.datanode.decommission'),
+          context: Em.I18n.t(contextString),
           serviceName: service.get('serviceName'),
           componentName: operationData.componentName,
           parameters: parameters
