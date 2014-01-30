@@ -773,7 +773,7 @@ App.MainHostSummaryView = Em.View.extend({
      * Shows whether we need to show Delete button
      */
     isDeletableComponent: function () {
-      return App.deletableComponents.contains(this.get('content.componentName'));
+      return App.get('components.deletable').contains(this.get('content.componentName'));
     }.property('content'),
 
     isDeleteComponentDisabled: function () {
@@ -782,11 +782,11 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('workStatus'),
 
     isReassignable: function () {
-      return App.supports.reassignMaster && App.reassignableComponents.contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
+      return App.supports.reassignMaster && App.get('components.reassignable').contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
     }.property('content.componentName'),
 
     isRestartableComponent: function() {
-      return App.restartableComponents.contains(this.get('content.componentName'));
+      return App.get('components.restartable').contains(this.get('content.componentName'));
     }.property('content'),
 
     isRestartComponentDisabled: function() {

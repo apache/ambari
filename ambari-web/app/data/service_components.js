@@ -241,7 +241,7 @@ module.exports = new Ember.Set([
     service_name: 'HIVE',
     component_name: 'MYSQL_SERVER',
     display_name: 'MySQL Server for Hive',
-    isMaster: false,
+    isMaster: true,
     isClient: false,
     description: ''
   },

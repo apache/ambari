@@ -379,7 +379,8 @@ describe('App.InstallerStep9Controller', function () {
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'DATANODE'}},
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'TASKTRACKER'}},
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'HBASE_REGIONSERVER'}},
-          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'GANGLIA_MONITOR'}}
+          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'GANGLIA_MONITOR'}},
+          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'SUPERVISOR'}}
         ],
         e: false,
         m: 'No one Master is failed'
@@ -389,7 +390,8 @@ describe('App.InstallerStep9Controller', function () {
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'NAMENODE'}},
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'TASKTRACKER'}},
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'HBASE_REGIONSERVER'}},
-          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'GANGLIA_MONITOR'}}
+          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'GANGLIA_MONITOR'}},
+          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'SUPERVISOR'}}
         ],
         e: true,
         m: 'One Master is failed'
@@ -399,7 +401,8 @@ describe('App.InstallerStep9Controller', function () {
           {Tasks: {command: 'PENDING',status: 'FAILED',role: 'NAMENODE'}},
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'TASKTRACKER'}},
           {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'HBASE_REGIONSERVER'}},
-          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'GANGLIA_MONITOR'}}
+          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'GANGLIA_MONITOR'}},
+          {Tasks: {command: 'INSTALL',status: 'FAILED',role: 'SUPERVISOR'}}
         ],
         e: false,
         m: 'one Master is failed but command is not install'
