@@ -204,6 +204,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ViewInstanceResourceDefinition(subResourceDefinitions);
         break;
 
+      case Blueprint:
+        resourceDefinition = new BlueprintResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

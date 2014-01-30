@@ -141,10 +141,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
   }
 
   /**
-   * Extracting given query_paramater value from the predicate
-   * @param queryParameterId
-   * @param predicate
-   * @return
+   * Extracting given query_parameter value from the predicate
+   * @param queryParameterId  query parameter id
+   * @param predicate         predicate
+   * @return the query parameter
    */
   protected static Object getQueryParameterValue(String queryParameterId, Predicate predicate) {
 

@@ -65,6 +65,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ViewResourceProvider();
       case ViewInstance:
         return new ViewInstanceResourceProvider();
+      case Blueprint:
+        return new BlueprintResourceProvider(propertyIds, keyPropertyIds);
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,
             keyPropertyIds, managementController);

@@ -285,16 +285,16 @@
         "TaskAttempt/output_bytes",
         "TaskAttempt/status",
         "TaskAttempt/locality"
-     ],
+    ],
      "RootService":[
         "RootService/service_name"
-     ],
+    ],
     "RootServiceComponent":[
         "RootServiceComponents/service_name",
         "RootServiceComponents/component_name",
         "RootServiceComponents/properties",
         "RootServiceComponents/component_version"
-     ],
+    ],
     "RootServiceHostComponent":[
         "RootServiceHostComponents/service_name",
         "RootServiceHostComponents/component_name",
@@ -302,5 +302,13 @@
         "RootServiceHostComponents/component_state",
         "RootServiceHostComponents/component_version",
         "RootServiceHostComponents/properties"
-     ]
+     ],
+    "Blueprint":[
+        "Blueprints/blueprint_name",
+        "Blueprints/stack_name",
+        "Blueprints/stack_version",
+        "host_groups",
+        "host_groups/components",
+        "host_groups/cardinality"
+    ]
 }
