@@ -48,9 +48,6 @@ copy management-pack\Hadoop_MP\HadoopMp\bin\Debug\*.mpb %MP_DIR% || exit /b 1
 copy management-pack\Hadoop_MP\PresentationMp\bin\Debug\*.mpb %MP_DIR% || exit /b 1
 
 copy msi\*.msi %FINAL_ZIPS% || exit /b 1
-copy LICENSE %FINAL_ZIPS% || exit /b 1
-copy MSPL-LICENSE %FINAL_ZIPS% || exit /b 1
-copy NOTICE %FINAL_ZIPS% || exit /b 1
 copy README.md %FINAL_ZIPS% || exit /b 1
 
 

@@ -32,6 +32,7 @@ copy /y "%cd%\src\GUI\bin\Debug\GUI_Ambari.exe" "%cd%\src\bin\GUI_Ambari.exe" ||
 
 echo Building Result Messagebox
 call %msBuildDir%\msbuild.exe "%cd%\src\Result\Ambari_Result.csproj"  || exit /b 1
+mkdir "%cd%\src\bin\"
 copy /y "%cd%\src\Result\bin\Debug\Ambari_Result.exe" "%cd%\src\bin\Ambari_Result.exe" || exit /b 1
 
 echo Building MSI
@@ -39,7 +40,7 @@ pushd "%cd%\src" || exit /b 1
 start /wait /min candle "%cd%\ambari-scom.wxs"  || exit /b 1
 start /wait /min light "%cd%\ambari-scom.wixobj"  || exit /b 1
 popd || exit /b 1
-copy /y "%cd%\src\ambari-scom.msi" "%cd%\ambari-scom.msi" || exit /b 1
+copy /y "..\management-pack\Hadoop_MP\Installer\bin\Debug\en-us\AmbariSCOMManagementPack.msi" "%cd%\ambari-scom.msi" || exit /b 1
 
 echo Cleaning 
 del /f /q "%cd%\src\ambari-scom.wixobj"  || exit /b 1
