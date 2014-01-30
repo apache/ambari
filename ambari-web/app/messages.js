@@ -140,6 +140,8 @@ Em.I18n.translations = {
   'common.misc': 'Misc',
   'common.userSettings': 'User Settings',
   'common.operations': 'Operations',
+  'common.startTime': 'Start Time',
+  'common.duration': 'Duration',
   'common.reinstall': 'Re-Install',
   'common.errorPopup.header': 'An error has been encountered',
   'common.use': 'Use',

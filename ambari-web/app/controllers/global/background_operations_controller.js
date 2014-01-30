@@ -167,6 +167,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
         rq.set('progress', Math.ceil(request.Requests.progress_percent));
         rq.set('status', request.Requests.request_status);
         rq.set('isRunning', isRunning);
+        rq.set('startTime', request.Requests.start_time);
+        rq.set('endTime', request.Requests.end_time);
       } else {
         rq = Em.Object.create({
           id: request.Requests.id,
@@ -177,6 +179,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
           isRunning: isRunning,
           hostsMap: {},
           tasks: [],
+          startTime: request.Requests.start_time,
+          endTime: request.Requests.end_time,
           dependentService: requestParams.dependentService,
           sourceRequestScheduleId: request.Requests.source_schedule_id,
           previousTaskStatusMap: {},

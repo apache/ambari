@@ -53,6 +53,53 @@ module.exports = {
     return date.toDateString();
   },
   /**
+   * Convert starTimestamp to 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES, lasted for DURATION', except for the case: year equals 1969
+   * @param startTimestamp
+   * @return string startTimeSummary
+   */
+  startTime: function (startTimestamp) {
+    if (!validator.isValidInt(startTimestamp)) return '';
+    var startDate = new Date(startTimestamp * 1);
+    var months = this.dateMonths;
+    var days = this.dateDays;
+    // generate start time
+    if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
+      return 'Not started';
+    }
+    var startTimeSummary = '';
+    if (new Date(startTimestamp * 1).setHours(0, 0, 0, 0) == new Date().setHours(0, 0, 0, 0) ) { //today
+      startTimeSummary = 'Today ' + this.dateFormatZeroFirst(startDate.getHours()) + ':' + this.dateFormatZeroFirst(startDate.getMinutes());
+    } else {
+      startTimeSummary =  days[startDate.getDay()] + ' ' + months[startDate.getMonth()] + ' ' + this.dateFormatZeroFirst(startDate.getDate()) + ' ' + startDate.getFullYear() + ' '
+        + this.dateFormatZeroFirst(startDate.getHours()) + ':' + this.dateFormatZeroFirst(startDate.getMinutes());
+    }
+    return startTimeSummary;
+  },
+  /**
+   * Provides the duration between the given start and end timestamp. If start time
+   * not valid, duration will be ''. If end time is not valid, duration will
+   * be till now, showing 'Lasted for xxx secs'.
+   * @param startTimestamp
+   * @param endTimestamp
+   * @return string durationSummary
+   */
+  durationSummary: function (startTimestamp, endTimestamp) {
+    // generate duration
+    var durationSummary = '';
+    var startDate = new Date(startTimestamp * 1);
+    var endDate = new Date(endTimestamp * 1);
+    if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
+      return '';
+    }
+    if (endDate.getFullYear() != 1969 && endTimestamp > 0) {
+      durationSummary = '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
+    } else {
+      durationSummary = '' + this.timingFormat(new Date().getTime() - startTimestamp, 1);
+    }
+    return durationSummary;
+  },
+
+  /**
    * Convert time in mseconds to
    * 30 ms = 30 ms
    * 300 ms = 300 ms

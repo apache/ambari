@@ -1372,11 +1372,30 @@ width:100%;
   }
 }
 .host-component-popup-wrap {
-  #host-info, #service-info{
-    .task-list-line-cursor{
-      width: 100%;
-      height: 20px;
+  .task-top-wrap {
+    height: 20px;
+    .operation-name-top {
+      width: 33%;
+      padding-left: 20px;
     }
+    .task-name-top {
+      width: 23%;
+      padding-left: 20px;
+    }
+    .start-time-top {
+      width: 20%;
+      padding-left: 5px;
+    }
+    .duration-top {
+      width: 10%;
+      padding-left: 5px;
+    }
+    .operation-name-top,.task-name-top,.start-time-top,.duration-top {
+      float: left;
+      text-align: left;
+    }
+  }
+  #host-info, #service-info{
     .span2{
       width:20%;
       float: left;
@@ -1390,20 +1409,56 @@ width:100%;
       width: 50%;
       white-space: nowrap;
     }
+  }
+  #host-info, #service-info, #host-log {
     .log-list-wrap {
       padding: 10px 10px 10px 20px;
       border-top: 1px solid #CCC;
       border-bottom: 1px solid #CCC;
-
+    }
+    .task-list-line-cursor{
+      width: 100%;
+      min-height: 20px;
+      .progress-bar{
+        .progress{
+          margin-bottom: 0px;
+        }
+      }
       .show-details {
         float: right;
         cursor: pointer;
         font-size: 16px;
-
         i {
           color: #333;
         }
       }
+      .operation-name-icon-wrap {
+        float: left;
+        width: 35%;
+      }
+      .start-time-text {
+        margin-left: 5px;
+        width: 20%;
+        float: left;
+      }
+      .duration-text {
+        margin-left: 5px;
+        width: 10%;
+        float: left;
+      }
+      .time-summary {
+        padding-left: 0px;
+        color: #808080;
+        font-size: 12px;
+      }
+    }
+    .task-list-line-cursor:before,.task-list-line-cursor:after {
+      display: table;
+      line-height: 0;
+      content: "";
+    }
+    .task-list-line-cursor:after {
+      clear: both;
     }
   }
 }
@@ -1471,25 +1526,7 @@ width:100%;
     }
 
     .tasks-list-select{
-      margin-top: -28px;
-    }
-  }
-
-  #host-log, {
-    .log-list-wrap {
-      padding: 10px 10px 10px 20px;
-      border-top: 1px solid #CCC;
-      border-bottom: 1px solid #CCC;
-
-      .show-details {
-        float: right;
-        cursor: pointer;
-        font-size: 16px;
-
-        i {
-          color: #333;
-        }
-      }
+      //margin-top: -28px;
     }
   }
 }

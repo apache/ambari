@@ -18,6 +18,7 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+var date = require('utils/date');
 
 /**
  * App.HostPopup is for the popup that shows up upon clicking already-performed or currently-in-progress operations
@@ -242,6 +243,8 @@ App.HostPopup = Em.Object.create({
           isRunning: service.isRunning,
           name: service.name,
           isVisible: true,
+          startTime: date.startTime(service.startTime),
+          duration: date.durationSummary(service.startTime, service.endTime),
           icon: status[1],
           barColor: status[2],
           isInProgress: status[3],
@@ -271,6 +274,8 @@ App.HostPopup = Em.Object.create({
       stderr: _task.Tasks.stderr,
       stdout: _task.Tasks.stdout,
       isVisible: true,
+      startTime: date.startTime(_task.Tasks.start_time),
+      duration: date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time),
       icon: function () {
         var statusIconMap = {
           'pending': 'icon-cog',
@@ -339,6 +344,8 @@ App.HostPopup = Em.Object.create({
                   existTask.set('status', App.format.taskStatus(_task.Tasks.status));
                   existTask.set('stdout', _task.Tasks.stdout);
                   existTask.set('stderr', _task.Tasks.stderr);
+                  existTask.set('startTime', date.startTime(_task.Tasks.start_time));
+                  existTask.set('duration', date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time));
                 } else {
                   existTasks.pushObject(this.createTask(_task));
                 }
