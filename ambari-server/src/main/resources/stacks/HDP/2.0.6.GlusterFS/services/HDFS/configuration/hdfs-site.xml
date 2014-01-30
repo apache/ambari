@@ -27,7 +27,7 @@
   <property>
     <name>dfs.namenode.name.dir</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>/hadoop/hdfs/namenode</value>
     <description>Determines where on the local filesystem the DFS name node
       should store the name table.  If this is a comma-delimited list
       of directories then the name table is replicated in all of the
@@ -45,20 +45,20 @@
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>
-    <description>to enable webhdfs</description>
+    <description>Whether to enable WebHDFS feature</description>
     <final>true</final>
   </property>
 
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
     <value>0</value>
-    <description>#of failed disks dn would tolerate</description>
+    <description> Number of failed disks a DataNode would tolerate before it stops offering service</description>
     <final>true</final>
   </property>
 
   <property>
     <name>dfs.datanode.data.dir</name>
-    <value></value>
+    <value>/hadoop/hdfs/data</value>
     <description>Determines where on the local filesystem an DFS data node
   should store its blocks.  If this is a comma-delimited
   list of directories, then data will be stored in all named
@@ -70,7 +70,7 @@
 
   <property>
     <name>dfs.hosts.exclude</name>
-    <value></value>
+    <value>/etc/hadoop/conf/dfs.exclude</value>
     <description>Names a file that contains a list of hosts that are
     not permitted to connect to the namenode.  The full pathname of the
     file must be specified.  If the value is empty, no hosts are
@@ -80,7 +80,7 @@
 <!--
   <property>
     <name>dfs.hosts</name>
-    <value></value>
+    <value>/etc/hadoop/conf/dfs.include</value>
     <description>Names a file that contains a list of hosts that are
     permitted to connect to the namenode. The full pathname of the file
     must be specified.  If the value is empty, all hosts are
@@ -90,7 +90,7 @@
 
   <property>
     <name>dfs.namenode.checkpoint.dir</name>
-    <value></value>
+    <value>/hadoop/hdfs/namesecondary</value>
     <description>Determines where on the local filesystem the DFS secondary
       name node should store the temporary images to merge.
       If this is a comma-delimited list of directories then the image is
@@ -109,10 +109,19 @@
     </description>
   </property>
 
+
   <property>
     <name>dfs.namenode.checkpoint.period</name>
-    <value></value>
+    <value>21600</value>
     <description>The number of seconds between two periodic checkpoints.
+    </description>
+  </property>
+
+  <property>
+    <name>fs.checkpoint.size</name>
+    <value>67108864</value>
+    <description>The size of the current edit log (in bytes) that triggers
+      a periodic checkpoint even if the maximum checkpoint delay is not reached
     </description>
   </property>
 
@@ -174,11 +183,17 @@
   <property>
     <name>dfs.datanode.address</name>
     <value>0.0.0.0:50010</value>
+    <description>
+      The datanode server address and port for data transfer.
+    </description>
   </property>
 
   <property>
     <name>dfs.datanode.http.address</name>
     <value>0.0.0.0:50075</value>
+    <description>
+      The datanode http server address and port.
+    </description>
   </property>
 
   <property>
@@ -189,7 +204,7 @@
 
   <property>
     <name>dfs.namenode.http-address</name>
-    <value></value>
+    <value>localhost:50070</value>
 <description>The name of the default file system.  Either the
 literal string "local" or a host:port for NDFS.</description>
 <final>true</final>
@@ -310,7 +325,7 @@ Kerberos principal name for the NameNode
   <property>
     <!-- cluster variant -->
     <name>dfs.namenode.secondary.http-address</name>
-    <value></value>
+    <value>localhost:50090</value>
     <description>Address of secondary namenode web server</description>
   </property>
 
@@ -367,7 +382,7 @@ Kerberos principal name for the NameNode
 
   <property>
     <name>dfs.namenode.https-address</name>
-    <value></value>
+    <value>localhost:50470</value>
   <description>The https address where namenode binds</description>
 
   </property>
@@ -470,6 +485,13 @@ don't exist, they will be created with this permission.</description>
       more file descriptors, but potentially provide better performance on
       workloads involving lots of seeks.
     </description>
+  </property>
+
+  <property>
+    <name>dfs.namenode.name.dir.restore</name>
+    <value>true</value>
+    <description>Set to true to enable NameNode to attempt recovering a previously failed dfs.namenode.name.dir.
+      When enabled, a recovery of any failed directory is attempted during checkpoint.</description>
   </property>
 
 </configuration>

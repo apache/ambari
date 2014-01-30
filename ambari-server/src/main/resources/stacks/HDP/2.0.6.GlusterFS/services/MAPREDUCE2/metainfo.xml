@@ -18,7 +18,7 @@
 <metainfo>
     <user>mapred</user>
     <comment>Apache Hadoop NextGen MapReduce (client libraries)</comment>
-    <version>2.1.0.2.0.6.0</version>
+    <version>2.2.0.2.0.6.0</version>
     <components>
         <component>
             <name>HISTORYSERVER</name>
@@ -29,4 +29,9 @@
             <category>CLIENT</category>
         </component>
     </components>
+    <configuration-dependencies>
+      <config-type>core-site</config-type>
+      <config-type>global</config-type>
+      <config-type>mapred-site</config-type>
+    </configuration-dependencies>
 </metainfo>

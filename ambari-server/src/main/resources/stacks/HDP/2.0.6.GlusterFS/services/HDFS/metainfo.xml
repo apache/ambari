@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Apache Hadoop Distributed File System</comment>
-    <version>2.1.0.2.0.6.0</version>
+    <version>2.2.0.2.0.6.0</version>
 
     <components>
         <component>
@@ -51,5 +51,10 @@
           <category>SLAVE</category>
         </component>
     </components>
-    
+    <configuration-dependencies>
+      <config-type>core-site</config-type>
+      <config-type>global</config-type>
+      <config-type>hdfs-site</config-type>
+      <config-type>hadoop-policy</config-type>
+    </configuration-dependencies>
 </metainfo>

@@ -18,7 +18,7 @@
 <metainfo>
     <user>mapred</user>
     <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-    <version>2.1.0.2.0.6.0</version>
+    <version>2.2.0.2.0.6.0</version>
     <components>
         <component>
             <name>RESOURCEMANAGER</name>
@@ -33,4 +33,10 @@
             <category>CLIENT</category>
         </component>
     </components>
+    <configuration-dependencies>
+      <config-type>global</config-type>
+      <config-type>core-site</config-type>
+      <config-type>yarn-site</config-type>
+      <config-type>capacity-scheduler</config-type>
+    </configuration-dependencies>
 </metainfo>

@@ -218,9 +218,9 @@
 
     <property>
         <name>oozie.service.JPAService.jdbc.username</name>
-        <value>sa</value>
+        <value>oozie</value>
         <description>
-            DB user name.
+          Database user name to use to connect to the database
         </description>
     </property>
 

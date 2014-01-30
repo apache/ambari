@@ -24,6 +24,12 @@
   <!-- ResourceManager -->
 
   <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>localhost</value>
+    <description>The hostname of the RM.</description>
+  </property>
+
+  <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
   </property>

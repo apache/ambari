@@ -116,5 +116,13 @@
       No description
     </description>
   </property>
+  <property>
+    <name>yarn.scheduler.capacity.node-locality-delay</name>
+    <value>40</value>
+    <description>
+      No description
+    </description>
+  </property>
+
 
 </configuration>

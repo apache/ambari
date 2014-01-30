@@ -18,7 +18,7 @@
 <metainfo>
     <user>mapred</user>
     <comment>Non-relational distributed database and centralized service for configuration management &amp; synchronization</comment>
-    <version>0.96.0.2.0.6.0</version>
+    <version>0.96.1.2.0.6.1</version>
 
     <components>
         <component>
@@ -36,5 +36,9 @@
             <category>CLIENT</category>
         </component>
     </components>
-
+    <configuration-dependencies>
+      <config-type>global</config-type>
+      <config-type>hbase-site</config-type>
+      <config-type>hbase-policy</config-type>
+    </configuration-dependencies>
 </metainfo>
