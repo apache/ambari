@@ -759,7 +759,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.getLogsByRequest(url, false);
     }, this);
   },
-
   /**
    * {Number}
    * <code>taskId</code> of current open task
@@ -770,16 +769,6 @@ App.WizardStep9Controller = Em.Controller.extend({
    * <code>requestId</code> of current open task
    */
   currentOpenTaskRequestId: 0,
-  /**
-   * {Object}
-   * Log of current open task (loaded from server)
-   * Fields: {
-   *   stdout: '',
-   *   stderr: ''
-   * }
-   */
-  currentOpenTaskLog: null,
-
   /**
    * Load form server <code>stderr, stdout</code> of current open task
    */
@@ -806,18 +795,12 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   loadCurrentTaskLogSuccessCallback: function(data) {
-    this.set('currentOpenTaskLog', {
-      stdout: data.Tasks.stdout,
-      stderr: data.Tasks.stderr
-    });
     var taskId = this.get('currentOpenTaskId');
     if (taskId) {
-      var currentTask = this.get('polledData').findProperty('Tasks.id', taskId);
-      var log = this.get('currentOpenTaskLog');
-      if (currentTask && log) {
+      var currentTask = this.get('hosts').findProperty('name', data.Tasks.host_name).get('logTasks').findProperty('Tasks.id', data.Tasks.id);
+      if (currentTask) {
         currentTask.Tasks.stderr = data.Tasks.stderr;
         currentTask.Tasks.stdout = data.Tasks.stdout;
-        this.updateHostLogTask(data.Tasks.host_name, data.Tasks.id, data.Tasks.stderr, data.Tasks.stdout);
       }
     }
     this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
@@ -825,21 +808,6 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   loadCurrentTaskLogErrorCallback: function() {
     this.set('currentOpenTaskId', 0);
-    this.set('currentOpenTaskRequestId', 0);
-  },
-  /**
-   * Update log task for provided host
-   * @param {String} hostName
-   * @param {Number} taskId
-   * @param {String} stderr
-   * @param {String} stdout
-   */
-  updateHostLogTask: function(hostName, taskId, stderr, stdout) {
-    var logTask = this.get('hosts').findProperty('name', hostName).get('logTasks').findProperty('Tasks.id', taskId);
-    if (logTask) {
-      logTask.Tasks.stderr = stderr;
-      logTask.Tasks.stdout = stdout;
-    }
   },
 
   // polling: whether to continue polling for status or not

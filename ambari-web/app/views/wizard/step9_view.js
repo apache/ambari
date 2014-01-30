@@ -256,20 +256,9 @@ App.HostStatusView = Em.View.extend({
           newdocument.close();
         },
 
-        openedTask: null,
-        /**
-         * Set logs (stderr, stdout) to the current opened task
-         */
-        currentOpenTaskLogObserver: function() {
-          if (!this.get('parentView.c.currentOpenTaskId')) {
-            this.set('openedTask', Ember.Object.create());
-          }
-          this.set('openedTask', this.get('tasks').findProperty('id', this.get('parentView.c.currentOpenTaskId')));
-          if (this.get('openedTask.stdout') == '') {
-            this.set('openedTask.stdout', this.get('parentView.c.currentOpenTaskLog').stdout);
-            this.set('openedTask.stderr', this.get('parentView.c.currentOpenTaskLog').stderr);
-          }
-        }.observes('tasks.@each', 'parentView.c.currentOpenTaskLog.stderr', 'parentView.c.currentOpenTaskLog.stdout'),
+        openedTask: function() {
+          return this.get('tasks').findProperty('id', this.get('parentView.c.currentOpenTaskId'))
+        }.property('parentView.c.currentOpenTaskId', 'tasks.@each'),
 
         toggleTaskLog: function (event, context) {
           if (this.get('isLogWrapHidden')) {
