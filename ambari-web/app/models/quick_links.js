@@ -419,10 +419,11 @@ App.QuickLinks.FIXTURES = [
     label:'Falcon Server UI',
     url:'%@://%@:%@/stacks',
     service_id: 'FALCON',
-    template:'%@://%@:%@/html5-ui',
-    site: 'falcon-site',
+    template:'%@://%@:%@/falcon',
+    http_config: 'mapreduce.jobhistory.webapp.address',
+    https_config: 'mapreduce.jobhistory.webapp.https.address',
+    site: 'hdfs-site',
     regex: portRegex,
-    default_http_port: 16000
-
+    default_http_port: 15000
   }
 ];

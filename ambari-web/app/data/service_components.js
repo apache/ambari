@@ -350,6 +350,14 @@ module.exports = new Ember.Set([
     description: 'Falcon Server for mirroring'
   },
   {
+    service_name: 'FALCON',
+    component_name: 'FALCON_CLIENT',
+    display_name: 'Falcon Client',
+    isMaster: false,
+    isClient: true,
+    description: 'Falcon Client for mirroring'
+  },
+  {
     service_name: 'STORM',
     component_name: 'NIMBUS',
     display_name: 'Nimbus',

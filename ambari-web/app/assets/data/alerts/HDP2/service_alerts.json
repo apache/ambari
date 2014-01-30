@@ -17,6 +17,26 @@
         "output" : "Connection refused"
       },
       {
+        "description" : "Falcon server down on dev01.hortonworks.com",
+        "host_name" : "dev01.hortonworks.com",
+        "last_status" : "CRITICAL",
+        "last_status_time" : 1389636534,
+        "service_name" : "FALCON",
+        "status" : "CRITICAL",
+        "status_time" : 1389793060,
+        "output" : "Connection refused"
+      },
+      {
+        "description" : "Falcon host CPU utilization on dev01.hortonworks.com",
+        "host_name" : "dev01.hortonworks.com",
+        "last_status" : "OK",
+        "last_status_time" : 1389636534,
+        "service_name" : "FALCON",
+        "status" : "OK",
+        "status_time" : 1389793060,
+        "output" : "1 CPU, load 19.0% &lt; 200% : OK"
+      },
+      {
         "description" : "DataNode space",
         "host_name" : "dev01.hortonworks.com",
         "last_status" : "CRITICAL",

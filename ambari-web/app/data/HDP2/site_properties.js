@@ -1677,6 +1677,179 @@ module.exports =
       "defaultValue": "5000",
       "displayType": "int"
     },
+  /*********************************************oozie-site for Falcon*****************************/
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":true,
+      "isVisible":true,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon proxyuser hosts",
+      "name":"oozie.service.ProxyUserService.proxyuser.falcon.hosts",
+      "defaultValue":"*",
+      "displayType":"advanced"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":true,
+      "isVisible":true,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon proxyuser groups",
+      "name":"oozie.service.ProxyUserService.proxyuser.falcon.groups",
+      "defaultValue":"*",
+      "displayType":"advanced"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name":"oozie.service.ELService.ext.functions.coord-job-submit-instances",
+      "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,"
+        + "today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,"
+        + "yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,"
+        + "currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,"
+        + "lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,"
+        + "currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,"
+        + "lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,"
+        + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,"
+        + "latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,"
+        + "future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo",
+      "displayType":"multiLine"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name":"oozie.service.ELService.ext.functions.coord-action-create-inst",
+      "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph2_now_inst,"
+        + "today=org.apache.oozie.extensions.OozieELExtensions#ph2_today_inst,"
+        + "yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday_inst,"
+        + "currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth_inst,"
+        + "lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth_inst,"
+        + "currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear_inst,"
+        + "lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear_inst,"
+        + "latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,"
+        + "future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,"
+        + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,"
+        + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
+      "displayType":"multiLine"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name": "oozie.service.ELService.ext.functions.coord-action-create",
+      "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,"
+        + "today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,"
+        + "yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday,"
+        + "currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth,"
+        + "lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth,"
+        + "currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear,"
+        + "lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear,"
+        + "latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,"
+        + "future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,"
+        + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,"
+        + "user=org.apache.oozie.coord.CoordELFunctions#coord_user,",
+      "displayType":"multiLine"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name":"oozie.service.ELService.ext.functions.coord-job-submit-data",
+      "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,"
+        + "today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,"
+        + "yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,"
+        + "currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,"
+        + "lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,"
+        + "currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,"
+        + "lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,"
+        + "dataIn=org.apache.oozie.extensions.OozieELExtensions#ph1_dataIn_echo,"
+        + "instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_wrap,"
+        + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,"
+        + "dateOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dateOffset_echo,"
+        + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
+      "displayType":"multiLine"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name":"oozie.service.ELService.ext.functions.coord-action-start",
+      "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,"
+        + "today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,"
+        + "yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday,"
+        + "currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth,"
+        + "lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth,"
+        + "currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear,"
+        + "lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear,"
+        + "latest=org.apache.oozie.coord.CoordELFunctions#ph3_coord_latest,"
+        + "future=org.apache.oozie.coord.CoordELFunctions#ph3_coord_future,"
+        + "dataIn=org.apache.oozie.extensions.OozieELExtensions#ph3_dataIn,"
+        + "instanceTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_nominalTime,"
+        + "dateOffset=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dateOffset,"
+        + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_formatTime,"
+        + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
+      "displayType":"multiLine"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name":"oozie.service.ELService.ext.functions.coord-sla-submit",
+      "defaultValue":"instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_fixed,"
+        + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
+      "displayType":"multiLine"
+    },
+    {
+      "id":"site property",
+      "description":"",
+      "isReconfigurable":false,
+      "isVisible":false,
+      "isRequiredByAgent": true,
+      "serviceName":"FALCON",
+      "category":"Advanced",
+      "displayName":"Falcon",
+      "name":"oozie.service.ELService.ext.functions.coord-sla-create",
+      "defaultValue":"instanceTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_nominalTime,"
+        + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
+      "displayType":"multiLine"
+    },
   /**********************************************webhcat-site***************************************/
     {
       "id": "site property",

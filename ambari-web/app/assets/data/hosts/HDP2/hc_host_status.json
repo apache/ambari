@@ -262,10 +262,19 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/FALCON_SERVER",
           "HostRoles" : {
             "cluster_name" : "perf",
             "component_name" : "FALCON_SERVER",
+            "host_name" : "dev01.hortonworks.com",
+            "state" : "STARTED"
+          }
+        },
+        {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/FALCON_CLIENT",
+          "HostRoles" : {
+            "cluster_name" : "perf",
+            "component_name" : "FALCON_CLIENT",
             "host_name" : "dev01.hortonworks.com",
             "state" : "STARTED"
           }

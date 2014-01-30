@@ -217,6 +217,7 @@ App.QuickDataMapper.componentServiceMap = function () {
     'HUE_SERVER': 'HUE',
     'GLUSTERFS_CLIENT': 'GLUSTERFS',
     'FALCON_SERVER': 'FALCON',
+    'FALCON_CLIENT': 'FALCON',
     'NIMBUS': 'STORM',
     'SUPERVISOR': 'STORM',
     'STORM_UI_SERVER': 'STORM',

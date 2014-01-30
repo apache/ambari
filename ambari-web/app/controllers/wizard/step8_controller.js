@@ -1072,6 +1072,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (selectedServices.someProperty('serviceName', 'PIG')) {
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
     }
+    if (selectedServices.someProperty('serviceName', 'FALCON')) {
+      this.get('serviceConfigTags').pushObject(this.createFalconSiteObj('FALCON'));
+    }
     if (selectedServices.someProperty('serviceName', 'STORM')) {
       this.get('serviceConfigTags').pushObject(this.createStormSiteObj());
     }
@@ -1413,6 +1416,17 @@ App.WizardStep8Controller = Em.Controller.extend({
       this._recordHostOverrideFromObj(_configProperty, 'tez-site', 'version1', this);
     }, this);
     return {type: 'tez-site', tag: 'version1', properties: tezProperty};
+  },
+
+
+  createFalconSiteObj: function (s) {
+    var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
+    var falconProperties = {};
+    configs.forEach(function (_configProperty) {
+      falconProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, 'oozie-site', 'version1', this);
+    }, this);
+    return {type: 'oozie-site', tag: 'version1', properties: falconProperties};
   },
 
   ajaxQueueFinished: function () {

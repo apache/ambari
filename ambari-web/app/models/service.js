@@ -77,7 +77,8 @@ App.Service = DS.Model.extend({
       "GANGLIA",
       "HUE",
       "TEZ",
-      "STORM"
+      "STORM",
+      "FALCON"
     ];
     return configurableServices.contains(this.get('serviceName'));
   }.property('serviceName'),
