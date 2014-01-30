@@ -2775,6 +2775,67 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_db_cli_tool_mock.called)
     self.assertTrue(execute_remote_script_mock.called)
 
+
+  def test_prepare_schema_upgrade_command(self):
+    test_command = "sqlplus -S -L " \
+                   "'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' " \
+                   "@/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Oracle-UPGRADE.sql user"
+    args = MagicMock()
+    args.database="oracle"
+    args.database_username="user"
+    args.database_password="pass"
+    args.database_host="oraclehost"
+    args.sid_or_sname="sid"
+    args.jdbc_url="fake"
+    args.database_port="1521"
+    args.database_name="db_SID"
+
+    command = ambari_server.prepare_schema_upgrade_command(args)
+
+    self.assertEqual(command, test_command)
+
+    pass
+
+  def test_prepare_local_repo_upgrade_commands(self):
+    test_commands = [
+      "sqlplus -S -L 'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' @/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql key value",
+      "sqlplus -S -L 'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' @/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-FIX_LOCAL_REPO.sql"
+    ]
+    args = MagicMock()
+    args.database="oracle"
+    args.database_username="user"
+    args.database_password="pass"
+    args.database_host="oraclehost"
+    args.sid_or_sname="sid"
+    args.jdbc_url="fake"
+    args.database_port="1521"
+    args.database_name="db_SID"
+
+    commands = ambari_server.prepare_local_repo_upgrade_commands(args, "key", "value")
+
+    self.assertEqual(commands, test_commands)
+
+    pass
+
+  def test_prepare_stack_upgrade_command(self):
+    test_command = "sqlplus -S -L 'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' " \
+                   "@/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-UPGRADE_STACK.sql HDP 2.1.1"
+    args = MagicMock()
+    args.database="oracle"
+    args.database_username="user"
+    args.database_password="pass"
+    args.database_host="oraclehost"
+    args.sid_or_sname="sid"
+    args.jdbc_url="fake"
+    args.database_port="1521"
+    args.database_name="db_SID"
+
+    command = ambari_server.prepare_stack_upgrade_command(args, "HDP-2.1.1")
+
+    self.assertEqual(command, test_command)
+
+    pass
+
   def test_print_info_msg(self):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -4537,3 +4598,5 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_ambari_properties_mock.called)
     self.assertTrue(load_stack_values_mock.called)
     self.assertFalse(upgrade_local_repo_db_mock.called)
+
+

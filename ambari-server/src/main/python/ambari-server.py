@@ -347,7 +347,7 @@ MYSQL_EXEC_ARGS_WITH_USER_VARS = "--host={0} --port={1} --user={2} --password={3
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
 MYSQL_EXEC_ARGS_WO_USER_VARS = "--force --host={0} --port={1} --user={2} --password={3} --database={4} < {5} 2> /dev/null"
 
-ORACLE_UPGRADE_STACK_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {7} {8}"
+ORACLE_UPGRADE_STACK_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {7} {8}"
 
 JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle":"Oracle", "mysql":"MySQL", "postgres":"PostgreSQL"}
@@ -1343,7 +1343,7 @@ def remote_stack_upgrade(args, scriptPath, stackId):
 def execute_remote_script(args, scriptPath):
   tool = get_db_cli_tool(args)
   if not tool:
-    args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     if VERBOSE:
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return -1, "Client wasn't found", "Client wasn't found"
@@ -1390,6 +1390,135 @@ def execute_remote_script(args, scriptPath):
 
   return -2, "Wrong database", "Wrong database"
 
+def prepare_stack_upgrade_command(args, stackId):
+  db_index = DATABASE_NAMES.index(args.database)
+  tool = DATABASE_CLI_TOOLS_DESC[db_index]
+
+  scriptPath = DATABASE_STACK_UPGRADE_SCRIPTS[db_index]
+
+  stack_name, stack_version = stackId.split(STACK_NAME_VER_SEP)
+  if args.database == "oracle":
+    sid_or_sname = "sid"
+    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
+      (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
+      sid_or_sname = "service_name"
+
+    command = '{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      scriptPath,
+      sid_or_sname,
+      stack_name,
+      stack_version
+    )).strip()
+    return command
+  elif args.database == "mysql":
+    command = '{0} {1}'.format(tool, MYSQL_UPGRADE_STACK_ARGS.format(
+      args.database_host,
+      args.database_port,
+      args.database_username,
+      args.database_password,
+      args.database_name,
+      scriptPath,
+      stack_name,
+      stack_version
+    )).strip()
+    return command
+  pass
+
+
+def prepare_schema_upgrade_command(args):
+  db_index = DATABASE_NAMES.index(args.database)
+  tool = DATABASE_CLI_TOOLS_DESC[db_index]
+
+  scriptPath = DATABASE_UPGRADE_SCRIPTS[db_index]
+
+  if args.database == "postgres":
+    os.environ["PGPASSWORD"] = args.database_password
+    command = '{0} {1}'.format(tool,  POSTGRES_EXEC_ARGS.format(
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      args.database_username,
+      scriptPath
+    )).strip()
+    return command
+  elif args.database == "oracle":
+    sid_or_sname = "sid"
+    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
+      (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
+      sid_or_sname = "service_name"
+
+    command = '{0} {1}'.format(tool, ORACLE_EXEC_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      scriptPath,
+      sid_or_sname
+    )).strip()
+
+    return command
+  elif args.database == "mysql":
+    MYSQL_EXEC_ARGS = MYSQL_EXEC_ARGS_WO_USER_VARS if MYSQL_INIT_SCRIPT == scriptPath else MYSQL_EXEC_ARGS_WITH_USER_VARS
+    command = '{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
+      args.database_host,
+      args.database_port,
+      args.database_username,
+      args.database_password,
+      args.database_name,
+      scriptPath
+    )).strip()
+    return command
+  pass
+
+def prepare_local_repo_upgrade_commands(args, dbkey, dbvalue):
+  db_index = DATABASE_NAMES.index(args.database)
+  tool = DATABASE_CLI_TOOLS_DESC[db_index]
+
+  scriptPath = DATABASE_INSERT_METAINFO_SCRIPTS[db_index]
+
+  command_list = []
+
+  if args.database == "oracle":
+    sid_or_sname = "sid"
+    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
+      (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
+      sid_or_sname = "service_name"
+
+    command_list.append('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      scriptPath,
+      sid_or_sname,
+      dbkey,
+      dbvalue
+    )).strip())
+
+    command_list.append('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      DATABASE_FIX_LOCAL_REPO_SCRIPTS[db_index],
+      sid_or_sname,
+      '',
+      ''
+    )).strip())
+
+
+  return command_list
 
 def configure_database_password(showDefault=True):
   passwordDefault = PG_DEFAULT_PASSWORD
@@ -2427,12 +2556,12 @@ def upgrade_stack(args, stack_id):
         raise NonFatalException(err)
 
     else:
+      command = prepare_stack_upgrade_command(args, stack_id)
       err = 'Cannot find ' + client_desc + ' client in the path to upgrade the Ambari ' + \
             'Server stack. To upgrade stack of Ambari Server ' + \
-            'you must run the following DML against the database:' + \
-            os.linesep + client_usage_cmd
-      raise NonFatalException(err)
-
+            'you must run the following command:' + \
+            os.linesep + command
+      args.warnings.append(err)
 
     pass
   else:
@@ -2473,7 +2602,7 @@ def load_stack_values(version, filename):
 def upgrade_local_repo_remote_db(args, sqlfile, dbkey, dbvalue):
   tool = get_db_cli_tool(args)
   if not tool:
-    args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     if VERBOSE:
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return -1, "Client wasn't found", "Client wasn't found"
@@ -2537,9 +2666,14 @@ def upgrade_local_repo_db(args, dbkey, dbvalue):
         raise NonFatalException(err)
 
     else:
+      commands = prepare_local_repo_upgrade_commands(args, dbkey, dbvalue)
       err = 'Cannot find ' + client_desc + ' client in the path to upgrade the local ' + \
-            'repo information.'
-      raise NonFatalException(err)
+            'repo information. To upgrade local repo information. ' + \
+            'you must run the following commands:'
+      for command in commands:
+        err = err + os.linesep + command
+        pass
+      args.warnings.append(err)
 
     pass
   else:
@@ -2655,11 +2789,12 @@ def upgrade(args):
         raise NonFatalException(err)
 
     else:
+      command = prepare_schema_upgrade_command(args)
       err = 'Cannot find ' + client_desc + ' client in the path to upgrade the Ambari ' + \
             'Server schema. To upgrade Ambari Server schema ' + \
-            'you must run the following DDL against the database:' + \
-            os.linesep + client_usage_cmd
-      raise NonFatalException(err)
+            'you must run the following command:' + \
+            os.linesep + command
+      args.warnings.append(err)
 
     pass
   else:
@@ -4079,6 +4214,12 @@ def main():
         print 'NOTE: Restart Ambari Server to apply changes'+ \
               ' ("ambari-server restart|stop|start")'
 
+    if options.warnings:
+      for warning in options.warnings:
+        print_warning_msg(warning)
+        pass
+      options.exit_message = "Ambari Server '%s' completed with warnings." % action
+      pass
   except FatalException as e:
     if e.reason is not None:
       print_error_msg("Exiting with exit code {0}. Reason: {1}".format(e.code, e.reason))
