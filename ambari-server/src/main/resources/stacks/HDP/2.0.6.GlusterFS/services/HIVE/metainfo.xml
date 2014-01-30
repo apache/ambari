@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
-    <version>0.12.0.2.0.6.0</version>
+    <version>0.12.0.2.0.6.1</version>
 
     <components>        
         <component>
@@ -38,6 +38,8 @@
             <category>CLIENT</category>
         </component>
     </components>
-
-
+    <configuration-dependencies>
+      <config-type>global</config-type>
+      <config-type>hive-site</config-type>
+    </configuration-dependencies>
 </metainfo>

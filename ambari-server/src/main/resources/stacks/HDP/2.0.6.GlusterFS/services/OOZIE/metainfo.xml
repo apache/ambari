@@ -31,5 +31,8 @@
             <category>CLIENT</category>
         </component>
     </components>
-
+    <configuration-dependencies>
+      <config-type>global</config-type>
+      <config-type>oozie-site</config-type>
+    </configuration-dependencies>
 </metainfo>

@@ -22,7 +22,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value></value>
+    <value>hdfs://localhost:8020/apps/hbase/data</value>
     <description>The directory shared by region servers and into
     which HBase persists.  The URL should be 'fully-qualified'
     to include the filesystem scheme.  For example, to specify the
@@ -44,7 +44,7 @@
   </property>
   <property>
     <name>hbase.tmp.dir</name>
-    <value></value>
+    <value>/hadoop/hbase</value>
     <description>Temporary directory on the local filesystem.
     Change this setting to point to a location more permanent
     than '/tmp' (The '/tmp' directory is often cleared on
@@ -69,14 +69,14 @@
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
-    <value></value>
+    <value>0.4</value>
     <description>Maximum size of all memstores in a region server before new
       updates are blocked and flushes are forced. Defaults to 40% of heap
     </description>
   </property>
   <property>
     <name>hbase.regionserver.handler.count</name>
-    <value></value>
+    <value>60</value>
     <description>Count of RPC Listener instances spun up on RegionServers.
     Same property is used by the Master for count of master handlers.
     Default is 10.
@@ -84,8 +84,8 @@
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>
-    <value></value>
-    <description>The time (in miliseconds) between 'major' compactions of all
+    <value>86400000</value>
+    <description>The time (in milliseconds) between 'major' compactions of all
     HStoreFiles in a region.  Default: 1 day.
     Set to 0 to disable automated major compactions.
     </description>
@@ -93,7 +93,7 @@
   
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
-    <value></value>
+    <value>0.38</value>
     <description>When memstores are being forced to flush to make room in
       memory, keep flushing until we hit this mark. Defaults to 35% of heap.
       This value equal to hbase.regionserver.global.memstore.upperLimit causes
@@ -103,7 +103,7 @@
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
-    <value></value>
+    <value>2</value>
     <description>Block updates if memstore has hbase.hregion.memstore.block.multiplier
     time hbase.hregion.flush.size bytes.  Useful preventing
     runaway memstore during spikes in update traffic.  Without an
@@ -114,7 +114,7 @@
   </property>
   <property>
     <name>hbase.hregion.memstore.flush.size</name>
-    <value></value>
+    <value>134217728</value>
     <description>
     Memstore will be flushed to disk if size of the memstore
     exceeds this number of bytes.  Value is checked by a thread that runs
@@ -123,7 +123,7 @@
   </property>
   <property>
     <name>hbase.hregion.memstore.mslab.enabled</name>
-    <value></value>
+    <value>true</value>
     <description>
       Enables the MemStore-Local Allocation Buffer,
       a feature which works to prevent heap fragmentation under
@@ -133,7 +133,7 @@
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
-    <value></value>
+    <value>10737418240</value>
     <description>
     Maximum HStoreFile size. If any one of a column families' HStoreFiles has
     grown to exceed this value, the hosting HRegion is split in two.
@@ -142,7 +142,7 @@
   </property>
   <property>
     <name>hbase.client.scanner.caching</name>
-    <value></value>
+    <value>100</value>
     <description>Number of rows that will be fetched when calling next
     on a scanner if it is not served from (local, client) memory. Higher
     caching values will enable faster scanners but will eat up more memory
@@ -164,7 +164,7 @@
   </property>
   <property>
     <name>hbase.client.keyvalue.maxsize</name>
-    <value></value>
+    <value>10485760</value>
     <description>Specifies the combined maximum allowed size of a KeyValue
     instance. This is to set an upper boundary for a single entry saved in a
     storage file. Since they cannot be split it helps avoiding that a region
@@ -175,7 +175,7 @@
   </property>
   <property>
     <name>hbase.hstore.compactionThreshold</name>
-    <value></value>
+    <value>3</value>
     <description>
     If more than this number of HStoreFiles in any one HStore
     (one HStoreFile is written per flush of memstore) then a compaction
@@ -193,7 +193,7 @@
   
   <property>
     <name>hbase.hstore.blockingStoreFiles</name>
-    <value></value>
+    <value>10</value>
     <description>
     If more than this number of StoreFiles in any one Store
     (one StoreFile is written per flush of MemStore) then updates are
@@ -203,7 +203,7 @@
   </property>
   <property>
     <name>hfile.block.cache.size</name>
-    <value></value>
+    <value>0.40</value>
     <description>
         Percentage of maximum heap (-Xmx setting) to allocate to block cache
         used by HFile/StoreFile. Default of 0.25 means allocate 25%.
@@ -309,7 +309,7 @@
   -->
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value></value>
+    <value>localhost</value>
     <description>Comma separated list of servers in the ZooKeeper Quorum.
     For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
     By default this is set to localhost for local and pseudo-distributed modes

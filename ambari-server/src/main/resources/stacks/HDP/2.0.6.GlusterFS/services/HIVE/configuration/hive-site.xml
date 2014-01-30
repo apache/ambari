@@ -18,9 +18,16 @@ limitations under the License.
 -->
 
 <configuration>
+
+  <property>
+    <name>ambari.hive.db.schema.name</name>
+    <value>hive</value>
+    <description>Database name used as the Hive Metastore</description>
+  </property>
+
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value></value>
+    <value>jdbc</value>
     <description>JDBC connect string for a JDBC metastore</description>
   </property>
 
@@ -32,13 +39,13 @@ limitations under the License.
 
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
-    <value></value>
+    <value>hive</value>
     <description>username to use against metastore database</description>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionPassword</name>
-    <value></value>
+    <value> </value>
     <description>password to use against metastore database</description>
   </property>
 
@@ -77,7 +84,7 @@ limitations under the License.
 
   <property>
     <name>hive.metastore.uris</name>
-    <value></value>
+    <value>thrift://localhost:9083</value>
     <description>URI for client to contact metastore server</description>
   </property>
 
@@ -107,9 +114,21 @@ limitations under the License.
 
   <property>
     <name>hive.security.authorization.manager</name>
-    <value>org.apache.hadoop.hive.ql.security.authorization.DefaultHiveAuthorizationProvider</value>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
     <description>the hive client authorization manager class name.
     The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+  </property>
+
+  <property>
+    <name>hive.security.metastore.authorization.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
+    <description>The authorization manager class name to be used in the metastore for authorization. The user-defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.  </description>
+  </property>
+
+  <property>
+    <name>hive.security.authenticator.manager</name>
+    <value>org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator</value>
+    <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
   </property>
 
   <property>

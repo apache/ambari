@@ -25,6 +25,7 @@
             <category>CLIENT</category>
         </component>
     </components>
-
-
+    <configuration-dependencies>
+      <config-type>core-site</config-type>
+    </configuration-dependencies>
 </metainfo>
