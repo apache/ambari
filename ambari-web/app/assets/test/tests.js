@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-require('test/app_test');
 require('test/controllers/global/background_operations_test');
 require('test/controllers/global/cluster_controller_test');
 require('test/controllers/main/app_contoller_test');
