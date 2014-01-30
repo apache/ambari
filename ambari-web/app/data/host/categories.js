@@ -85,14 +85,14 @@ module.exports = [
     observes: 'view.content.@each.selected'
   },
   {
-    value: Em.I18n.t('common.maintenance'),
-    hostProperty: 'componentsInMaintenanceCount',
-    class: 'maintenance icon-medkit',
+    value: Em.I18n.t('common.passive_state'),
+    hostProperty: 'componentsInPassiveStateCount',
+    class: 'passive-state icon-medkit',
     isHealthStatus: false,
-    healthStatusValue: 'health-status-MAINTENANCE',
+    healthStatusValue: 'health-status-PASSIVE_STATE',
     column: 9,
     type: 'number',
     filterValue: '>0',
-    observes: 'view.content.@each.componentsInMaintenanceCount'
+    observes: 'view.content.@each.componentsInPassiveStateCount'
   }
 ];

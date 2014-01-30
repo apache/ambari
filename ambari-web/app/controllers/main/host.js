@@ -148,11 +148,16 @@ App.MainHostController = Em.ArrayController.extend({
         this.bulkOperationForHostComponentsRestart(operationData, hosts);
       }
       else {
-        if (operationData.action.indexOf('DECOMMISSION') != -1) {
-          this.bulkOperationForHostComponentsDecommission(operationData, hosts);
+        if (operationData.action === 'PASSIVE_STATE') {
+          this.bulkOperationForHostComponentsPassiveState(operationData, hosts);
         }
         else {
-          this.bulkOperationForHostComponents(operationData, hosts);
+          if (operationData.action.indexOf('DECOMMISSION') != -1) {
+            this.bulkOperationForHostComponentsDecommission(operationData, hosts);
+          }
+          else {
+            this.bulkOperationForHostComponents(operationData, hosts);
+          }
         }
       }
     }
@@ -161,13 +166,18 @@ App.MainHostController = Em.ArrayController.extend({
         this.bulkOperationForHostsRestart(operationData, hosts);
       }
       else {
-        this.bulkOperationForHosts(operationData, hosts);
+        if (operationData.action === 'PASSIVE_STATE') {
+          this.bulkOperationForHostsPassiveState(operationData, hosts);
+        }
+        else {
+          this.bulkOperationForHosts(operationData, hosts);
+        }
       }
     }
   },
 
   /**
-   * Do bulk operation for selected hosts
+   * Bulk operation (start/stop all) for selected hosts
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Array} hosts - list of affected hosts
    */
@@ -223,18 +233,43 @@ App.MainHostController = Em.ArrayController.extend({
   },
 
   /**
-   * Do bulk operation for selected hostComponents
+   * Bulk turn on/off passive state for selected hosts
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Array} hosts - list of affected hosts
+   */
+  bulkOperationForHostsPassiveState: function(operationData, hosts) {
+    var affectedHosts = [];
+    hosts.forEach(function(host) {
+      if (host.get('passiveState') !== operationData.state) {
+        affectedHosts.push(host.get('hostName'));
+      }
+    });
+    if (affectedHosts.length) {
+      App.ajax.send({
+        name: 'bulk_request.hosts.passive_state',
+        sender: this,
+        data: {
+          hostNames: affectedHosts.join(','),
+          passive_state: operationData.state,
+          requestInfo: operationData.message
+        }
+      });
+    }
+    else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
+        secondary: false
+      });
+    }
+  },
+
+  /**
+   * Bulk operation for selected hostComponents
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Array} hosts - list of affected hosts
    */
   bulkOperationForHostComponents: function(operationData, hosts) {
-    var hostsWithSelectedComponent = [];
-    hosts.forEach(function(host) {
-      var components = host.get('hostComponents');
-      if (components.findProperty('componentName', operationData.componentName)) {
-        hostsWithSelectedComponent.push(host);
-      }
-    });
     var service = App.Service.find(operationData.serviceName);
     var components = service.get('hostComponents').filter(function(hc) {
       if (hc.get('componentName') != operationData.componentName) {
@@ -337,6 +372,58 @@ App.MainHostController = Em.ArrayController.extend({
       App.ModalPopup.show({
         header: Em.I18n.t('rolling.nothingToDo.header'),
         body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+        secondary: false
+      });
+    }
+  },
+
+  /**
+   * Bulk turn on/off passive state for selected hostComponents
+   * @param {Object} operationData
+   * @param {Array} hosts
+   */
+  bulkOperationForHostComponentsPassiveState: function(operationData, hosts) {
+    var affectedHosts = [];
+    hosts.forEach(function(host) {
+      host.get('hostComponents').forEach(function(hostComponent) {
+        if (hostComponent.get('componentName') == operationData.componentName) {
+          if (hostComponent.get('passiveState') !== operationData.state) {
+            if (hostComponent.get('passiveState') === 'IMPLIED') {
+              if (operationData.state === 'ACTIVE') {
+                affectedHosts.push(host.get('hostName'));
+              }
+            }
+            else {
+              if (hostComponent.get('passiveState') === 'PASSIVE') {
+                if (operationData.state === 'ACTIVE') {
+                  affectedHosts.push(host.get('hostName'));
+                }
+              }
+              else {
+                if (operationData.state === 'PASSIVE') {
+                  affectedHosts.push(host.get('hostName'));
+                }
+              }
+            }
+          }
+        }
+      });
+    });
+    if (affectedHosts.length) {
+      App.ajax.send({
+        name: 'bulk_request.hosts.all_components.passive_state',
+        sender: this,
+        data: {
+          query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + affectedHosts.join(',') + ')',
+          passive_state: operationData.state,
+          requestInfo: operationData.message
+        }
+      });
+    }
+    else {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('hosts.bulkOperation.host_components.passiveState.nothingToDo.body'),
         secondary: false
       });
     }

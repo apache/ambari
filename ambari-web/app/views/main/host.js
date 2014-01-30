@@ -65,7 +65,7 @@ App.MainHostView = App.TableView.extend({
 
   /**
    * Select/deselect all visible hosts flag
-   * @property {Boolean}
+   * @property {bool}
    */
   selectAllHosts: false,
 
@@ -231,14 +231,16 @@ App.MainHostView = App.TableView.extend({
      * Tooltip message for "Maintenance" icon
      * @returns {String}
      */
-    componentsInMaintenanceMessage: function() {
-      var componentsInMaintenance = this.get('content.hostComponents').filterProperty('workStatus', App.HostComponentStatus.maintenance);
-      var count = componentsInMaintenance.length;
+    componentsInPassiveStateMessage: function() {
+      var componentsInPassiveState = this.get('content.hostComponents').filter(function(component) {
+        return component.get('passiveState') !== 'ACTIVE';
+      });
+      var count = componentsInPassiveState.length;
       if (count <= 5) {
-        return Em.I18n.t('hosts.table.componentsInMaintenance.withNames').format(componentsInMaintenance.getEach('displayName').join(', '));
+        return Em.I18n.t('hosts.table.componentsInPassiveState.withNames').format(componentsInPassiveState.getEach('displayName').join(', '));
       }
-      return Em.I18n.t('hosts.table.componentsInMaintenance.withoutNames').format(count);
-    }.property('content.hostComponents.@each.workStatus'),
+      return Em.I18n.t('hosts.table.componentsInPassiveState.withoutNames').format(count);
+    }.property('content.hostComponents.@each.passiveState'),
 
     /**
      * String with list of host components <code>displayName</code>
@@ -272,7 +274,7 @@ App.MainHostView = App.TableView.extend({
     value: null,
     /**
      * Is category based on host health status
-     * @type {Boolean}
+     * @type {bool}
      */
     isHealthStatus: true,
     /**
@@ -282,12 +284,12 @@ App.MainHostView = App.TableView.extend({
     healthStatusValue: '',
     /**
      * Should category be displayed on the top of the hosts table
-     * @type {Boolean}
+     * @type {bool}
      */
     isVisible: true,
     /**
      * Is category selected now
-     * @type {Boolean}
+     * @type {bool}
      */
     isActive: false,
     /**
@@ -311,7 +313,7 @@ App.MainHostView = App.TableView.extend({
      */
     type: null,
     /**
-     * @type {String|Number|Boolean}
+     * @type {String|Number|bool}
      */
     filterValue: null,
     /**
@@ -328,7 +330,7 @@ App.MainHostView = App.TableView.extend({
 
     /**
      * Determine if category has hosts
-     * @type {Boolean}
+     * @type {bool}
      */
     hasHosts: false,
 
@@ -502,13 +504,13 @@ App.MainHostView = App.TableView.extend({
   /**
    * view of the maintenance filter implemented as a category of host statuses
    */
-  maintenanceFilter: Em.View.extend({
+  passiveStateFilter: Em.View.extend({
     column: 9,
     value: null,
     classNames: ['noDisplay'],
     showClearFilter: function(){
       var mockEvent = {
-        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-MAINTENANCE')
+        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-PASSIVE_STATE')
       };
       if(this.get('value')) {
         this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
@@ -729,7 +731,7 @@ App.MainHostView = App.TableView.extend({
     associations[6] = 'hostComponents';
     associations[7] = 'criticalAlertsCount';
     associations[8] = 'componentsWithStaleConfigsCount';
-    associations[9] = 'componentsInMaintenanceCount';
+    associations[9] = 'componentsInPassiveStateCount';
     associations[10] = 'selected';
     return associations;
   }.property()

@@ -1500,6 +1500,48 @@ var urls = {
     }
   },
 
+  'bulk_request.hosts.passive_state': {
+    'real': '/clusters/{clusterName}/hosts',
+    'mock': '',
+    'format': function(data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            context: data.requestInfo,
+            query: 'Hosts/host_name.in(' + data.hostNames + ')'
+          },
+          Body: {
+            Hosts: {
+              passive_state: data.passive_state
+            }
+          }
+        })
+      }
+    }
+  },
+
+  'bulk_request.hosts.all_components.passive_state': {
+    'real': '/clusters/{clusterName}/host_components',
+    'mock': '',
+    'format': function(data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          RequestInfo: {
+            context: data.requestInfo,
+            query: data.query
+          },
+          Body: {
+            HostRoles: {
+              passive_state: data.passive_state
+            }
+          }
+        })
+      }
+    }
+  },
+
   'mirroring.create_new_dataset': {
     'real': '/falcon/entities/submitAndSchedule/feed',
     'mock': '/data/mirroring/succeeded.json',

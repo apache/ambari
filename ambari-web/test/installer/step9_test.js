@@ -150,8 +150,10 @@ describe('App.InstallerStep9Controller', function () {
     it('All should have status "pending" and message "Waiting"', function() {
       controller.resetHostsForRetry();
       for (var name in hosts) {
-        expect(controller.get('content.hosts')[name].get('status','pending')).to.equal('pending');
-        expect(controller.get('content.hosts')[name].get('message','Waiting')).to.equal('Waiting');
+        if (hosts.hasOwnProperty(name)) {
+          expect(controller.get('content.hosts')[name].get('status','pending')).to.equal('pending');
+          expect(controller.get('content.hosts')[name].get('message','Waiting')).to.equal('Waiting');
+        }
       }
     });
   });
@@ -662,9 +664,9 @@ describe('App.InstallerStep9Controller', function () {
     it('check requestId priority', function() {
       cluster.set('content.cluster.requestId', 123);
       var url = cluster.getUrl(321);
-      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status');
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
       url = cluster.getUrl();
-      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status');
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
     });
   });
 
@@ -749,7 +751,7 @@ describe('App.InstallerStep9Controller', function () {
         m: 'Some hosts without tasks'
       },
       {
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({
             name: 'host1',
             tasks: [],
@@ -765,7 +767,7 @@ describe('App.InstallerStep9Controller', function () {
             tasks: [],
             bootStatus: 'REGISTERED'
           })
-        ],
+        ]),
         polledData: [],
         e: {
           host1: {count: 0},
@@ -780,7 +782,9 @@ describe('App.InstallerStep9Controller', function () {
         var controller = App.WizardStep9Controller.create({polledData: test.polledData, hosts: test.hosts});
         controller.setTasksPerHost();
         for(var name in test.e.hosts) {
-          expect(controller.get('hosts').findProperty('name', name).get('tasks.length')).to.equal(test.e[name].count);
+          if (test.e.hosts.hasOwnProperty(name)) {
+            expect(controller.get('hosts').findProperty('name', name).get('tasks.length')).to.equal(test.e[name].count);
+          }
         }
       });
     });
@@ -824,21 +828,14 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#parseHostInfo', function() {
-    var requestId = 1;
-    var polledData = {Requests:{id:2}};
-    it('Invalid requestId. Should return false', function() {
-      var controller = App.WizardStep9Controller.create({content: {cluster:{requestId: requestId}}});
-      var res = controller.parseHostInfo(polledData);
-      expect(res).to.equal(false);
-    });
 
     var tests = [
       {
         cluster: {status: 'PENDING'},
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({name: 'host1',status: '',message: '',progress: '',logTasks: []}),
           Em.Object.create({name: 'host2',status: '',message: '',progress: '',logTasks: []})
-        ],
+        ]),
         polledData: {
           tasks:[
             {Tasks: {host_name: 'host2',status: 'COMPLETED'}},
@@ -856,10 +853,10 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         cluster: {status: 'PENDING'},
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({name: 'host1',status: '',message: '',progress: '',logTasks: []}),
           Em.Object.create({name: 'host2',status: '',message: '',progress: '',logTasks: []})
-        ],
+        ]),
         polledData: {
           tasks:[
             {Tasks: {host_name: 'host1',status: 'IN_PROGRESS'}},
@@ -871,10 +868,10 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         cluster: {status: 'PENDING'},
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({name: 'host1',status: '',message: '',progress: '',logTasks: []}),
           Em.Object.create({name: 'host2',status: '',message: '',progress: '',logTasks: []})
-        ],
+        ]),
         polledData: {
           tasks:[
             {Tasks: {host_name: 'host1',status: 'QUEUED'}},
@@ -892,10 +889,10 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         cluster: {status: 'INSTALLED'},
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({name: 'host1',status: '',message: '',progress: '',logTasks: []}),
           Em.Object.create({name: 'host2',status: '',message: '',progress: '',logTasks: []})
-        ],
+        ]),
         polledData: {
           tasks:[
             {Tasks: {host_name: 'host2',status: 'COMPLETED'}},
@@ -913,10 +910,10 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         cluster: {status: 'INSTALLED'},
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({name: 'host1',status: '',message: '',progress: '',logTasks: []}),
           Em.Object.create({name: 'host2',status: '',message: '',progress: '',logTasks: []})
-        ],
+        ]),
         polledData: {
           tasks:[
             {Tasks: {host_name: 'host1',status: 'IN_PROGRESS'}},
@@ -934,10 +931,10 @@ describe('App.InstallerStep9Controller', function () {
       },
       {
         cluster: {status: 'INSTALLED'},
-        hosts: [
+        hosts: Em.A([
           Em.Object.create({name: 'host1',status: '',message: '',progress: '',logTasks: []}),
           Em.Object.create({name: 'host2',status: '',message: '',progress: '',logTasks: []})
-        ],
+        ]),
         polledData: {
           tasks:[
             {Tasks: {host_name: 'host1',status: 'QUEUED'}},
@@ -961,7 +958,9 @@ describe('App.InstallerStep9Controller', function () {
         controller.parseHostInfo(test.polledData);
         expect(controller.get('logTasksChangesCounter')).to.equal(logTasksChangesCounter + 1);
         for (var name in test.e.hosts) {
-          expect(controller.get('hosts').findProperty('name', name).get('progress')).to.equal(test.e.hosts[name].progress);
+          if (test.e.hosts.hasOwnProperty(name)) {
+            expect(controller.get('hosts').findProperty('name', name).get('progress')).to.equal(test.e.hosts[name].progress);
+          }
         }
         expect(controller.get('progress')).to.equal(test.e.progress);
       });

@@ -105,9 +105,9 @@
               <span class="muted icon-refresh" rel="ComponentsTooltip" {{bindAttr title="view.restartRequiredComponentsMessage"}}></span>
             {{/if}}
           </td>
-          <td class="maintenance">
-            {{#if host.componentsInMaintenanceCount}}
-              <span class="icon-medkit" rel="ComponentsTooltip" {{bindAttr title="view.componentsInMaintenanceMessage"}}></span>
+          <td class="passive-state">
+            {{#if host.componentsInPassiveStateCount}}
+              <span class="icon-medkit" rel="ComponentsTooltip" {{bindAttr title="view.componentsInPassiveStateMessage"}}></span>
             {{/if}}
           </td>
           <td>{{host.ip}}</td>

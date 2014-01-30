@@ -56,7 +56,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     last_heart_beat_time: "Hosts.last_heartbeat_time",
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
-    ip: 'Hosts.ip'
+    ip: 'Hosts.ip',
+    passive_state: 'Hosts.passive_state'
   },
   map: function (json) {
     console.time('App.hostsMapper execution time');
@@ -175,7 +176,7 @@ App.hostsMapper = App.QuickDataMapper.create({
    */
   getDiscrepancies: function (current, previous) {
     var result = {};
-    var fields = ['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free', 'critical_alerts_count'];
+    var fields = ['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free', 'critical_alerts_count', 'passive_state'];
     if (previous) {
       fields.forEach(function (field) {
         if (current[field] != previous[field]) result[field] = current[field];

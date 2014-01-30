@@ -45,6 +45,7 @@ App.Host = DS.Model.extend({
   cpuSystem:DS.attr('number'),
   cpuUser:DS.attr('number'),
   criticalAlertsCount: DS.attr('number'),
+  passiveState: DS.attr('string'),
 
   /**
    * Is host checked at the main Hosts page
@@ -87,12 +88,14 @@ App.Host = DS.Model.extend({
   }.property('componentsWithStaleConfigs.length'),
 
   /**
-   * Get count of host components in maintenance mode
+   * Get count of host components in passive state
    * @returns {Number}
    */
-  componentsInMaintenanceCount: function() {
-    return this.get('hostComponents').filterProperty('workStatus', App.HostComponentStatus.maintenance).length;
-  }.property('hostComponents.@each.workStatus'),
+  componentsInPassiveStateCount: function() {
+    return this.get('hostComponents').filter(function(component) {
+      return component.get('passiveState') !== 'ACTIVE';
+    }).length;
+  }.property('hostComponents.@each.passiveState'),
 
   /**
    * Truncate hostName if it longer than 43 symbols

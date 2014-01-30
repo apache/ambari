@@ -168,6 +168,7 @@ Em.I18n.translations = {
   'common.discard': 'Discard',
   'common.actions': 'Actions',
   'common.maintenance': 'Maintenance',
+  'common.passive_state': 'Passive State',
   'common.selected': 'Selected',
   'common.password': 'Password',
   'common.url': 'URL',
@@ -219,7 +220,7 @@ Em.I18n.translations = {
   'login.username':'Username',
   'login.loginButton':'Sign in',
   'login.error':'Invalid username/password combination.',
-  
+
   'graphs.noData.title': 'No Data',
   'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible Ganglia service.',
   'graphs.noDataAtTime.message': 'No available data for the time period.',
@@ -614,7 +615,7 @@ Em.I18n.translations = {
   'addHost.step4.header':'Configurations',
   'addHost.step4.title':'Select the configuration groups to which the added hosts will belong to.',
 
-  
+
   'installer.stackUpgrade.header':'Stack Upgrade Wizard',
   'installer.stackUpgrade.step1.newVersion':'New Version',
   'installer.stackUpgrade.step1.installedVersion':'Installed Version',
@@ -1332,8 +1333,8 @@ Em.I18n.translations = {
   'hosts.table.restartComponents.withNames':'Restart {0}',
   'hosts.table.restartComponents.withoutNames':'{0} components should be restarted',
 
-  'hosts.table.componentsInMaintenance.withNames':'{0} in maintenance mode',
-  'hosts.table.componentsInMaintenance.withoutNames':'{0} components in maintenance mode',
+  'hosts.table.componentsInPassiveState.withNames':'{0} in passive state',
+  'hosts.table.componentsInPassiveState.withoutNames':'{0} components in passive state',
 
   'hosts.table.menu.l1.selectedHosts':'Selected Hosts',
   'hosts.table.menu.l1.filteredHosts':'Filtered Hosts',
@@ -1344,6 +1345,8 @@ Em.I18n.translations = {
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
   'hosts.bulkOperation.confirmation.hostComponents':'Are you sure you want to <strong>{0} {1}</strong> on the following {2} hosts?',
+  'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts are already in Passive State that you selected',
+  'hosts.bulkOperation.host_components.passiveState.nothingToDo.body':'All host components are already in Passive State that you selected',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',
@@ -1643,8 +1646,8 @@ Em.I18n.translations = {
   'dashboard.services.flume.channels': 'Channels',
   'dashboard.services.flume.sources': 'Sources',
   'dashboard.services.flume.sinks': 'Sinks',
-  
-  
+
+
   'dashboard.services.hbase.summary':'{0} region servers with {1} average load',
   'dashboard.services.hbase.masterServer':'HBase Master',
   'dashboard.services.hbase.masterServer.active':'Active HBase Master',

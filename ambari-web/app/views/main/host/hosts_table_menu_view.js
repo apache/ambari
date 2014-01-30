@@ -83,6 +83,24 @@ App.HostTableMenuView = Em.View.extend({
           componentName: componentNameForDecommission,
           realComponentName: componentNameForOtherActions
         })
+      }),
+      Em.Object.create({
+        label: Em.I18n.t('passiveState.turnOn'),
+        operationData: Em.Object.create({
+          state: 'PASSIVE',
+          action: 'PASSIVE_STATE',
+          message: Em.I18n.t('passiveState.turnOnFor'),
+          componentName: componentNameForOtherActions
+        })
+      }),
+      Em.Object.create({
+        label: Em.I18n.t('passiveState.turnOff'),
+        operationData: Em.Object.create({
+          state: 'ACTIVE',
+          action: 'PASSIVE_STATE',
+          message: Em.I18n.t('passiveState.turnOffFor'),
+          componentName: componentNameForOtherActions
+        })
       })
     ]);
   },
@@ -92,8 +110,8 @@ App.HostTableMenuView = Em.View.extend({
    * operationData format:
    * <code>
    *  {
-   *    action: 'STARTED|INSTALLED|RESTART', // action for selected hosts (will be applied for each host component in selected hosts)
-   *    actionToCheck: 'INSTALLED|STARTED' // state to filter host components should be processed
+   *    action: 'STARTED|INSTALLED|RESTART..', // action for selected hosts (will be applied for each host component in selected hosts)
+   *    actionToCheck: 'INSTALLED|STARTED..' // state to filter host components should be processed
    *    message: 'some text', // just text to BG popup
    *  }
    *  </code>
@@ -123,22 +141,23 @@ App.HostTableMenuView = Em.View.extend({
           action: 'RESTART',
           message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
         })
-      })
-      //@todo uncomment when API will be ready
-      /*Em.Object.create({
-        label: Em.I18n.t('maintenance.turnOn'),
+      }),
+      Em.Object.create({
+        label: Em.I18n.t('passiveState.turnOn'),
         operationData: Em.Object.create({
-          action: 'turn_on_maintenance',
-          message: Em.I18n.t('maintenance.turnOn')
+          state: 'PASSIVE',
+          action: 'PASSIVE_STATE',
+          message: Em.I18n.t('passiveState.turnOn')
         })
       }),
       Em.Object.create({
-        label: Em.I18n.t('maintenance.turnOff'),
+        label: Em.I18n.t('passiveState.turnOff'),
         operationData: Em.Object.create({
-          action: 'turn_off_maintenance',
-          message: Em.I18n.t('maintenance.turnOff')
+          state: 'ACTIVE',
+          action: 'PASSIVE_STATE',
+          message: Em.I18n.t('passiveState.turnOff')
         })
-      })*/
+      })
     ]);
   },
 
@@ -153,7 +172,7 @@ App.HostTableMenuView = Em.View.extend({
    * @returns {Array}
    */
   getSubMenuItemsTemplate: function(selection) {
-    var submenu = [{label: Em.I18n.t('hosts.table.menu.l2.allComponents'), submenu: this.getHostItemsTemplate()}];
+    var submenu = Em.A([{label: Em.I18n.t('hosts.table.menu.l2.allComponents'), submenu: this.getHostItemsTemplate()}]);
 
     if (!!App.HDFSService.find().content.length) {
       var slaveItemsForHdfs = this.getSlaveItemsTemplate('NAMENODE', 'DATANODE');
