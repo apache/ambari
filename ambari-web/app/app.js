@@ -71,8 +71,22 @@ module.exports = Em.Application.create({
   isHaEnabled: function() {
     if (!this.get('isHadoop2Stack')) return false;
     return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property('router.clusterController.isLoaded')
+  }.property('router.clusterController.isLoaded'),
 
+  components: Ember.Object.create({
+    reassignable: ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'],
+    restartable: ['APP_TIMELINE_SERVER'],
+    deletable: ['SUPERVISOR', 'HBASE_MASTER'],
+    slaves: function() {
+      return require('data/service_components').filter(function(component){
+        return !component.isClient && !component.isMaster
+      }).mapProperty('component_name').uniq().without("DASHBOARD");
+    }.property().cacheable(),
+
+    masters: function() {
+      return require('data/service_components').filterProperty('isMaster', true).mapProperty('component_name').uniq();
+    }.property().cacheable()
+  })
 });
 
 /**

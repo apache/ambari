@@ -352,7 +352,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       data = {
         "RequestInfo": {
           "context": Em.I18n.t("requestInfo.startHostComponents"),
-          "query": "HostRoles/component_name.in(GANGLIA_MONITOR,HBASE_REGIONSERVER,DATANODE,TASKTRACKER,NODEMANAGER)&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")"
+          "query": "HostRoles/component_name.in(" + App.get('components.slaves').join(',') + ")&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")"
         },
         "Body": {
           "HostRoles": { "state": "STARTED" }
@@ -467,8 +467,8 @@ App.WizardStep9Controller = Em.Controller.extend({
   isMasterFailed: function(polledData) {
     var result = false;
     polledData.filterProperty('Tasks.command', 'INSTALL').filterProperty('Tasks.status', 'FAILED').mapProperty('Tasks.role').forEach (
-      function (task) {
-        if (!['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(task)) {
+      function (role) {
+        if (!App.get('components.slaves').contains(role)) {
           result = true;
         }
       }
@@ -546,7 +546,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         return;
       }
       var actionsPerRole = polledData.filterProperty('Tasks.role', role);
-      if (['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(role)) {
+      if (App.get('components.slaves').contains(role)) {
         // check slave components for success factor.
         // partial failure for slave components are allowed.
         var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
