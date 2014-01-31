@@ -18,12 +18,13 @@
 <metainfo>
     <user>root</user>
     <comment>Flume is a distributed, reliable, and available system for efficiently collecting, aggregating and moving large amounts of log data from many different sources to a centralized data store.</comment>
-    <version>1.3.1.1.3.2.0</version>
+    <version>1.3.1.1.3.3.0</version>
 
     <components>
         <component>
             <name>FLUME_SERVER</name>
             <category>MASTER</category>
+            <cardinality>1</cardinality>
         </component>
     </components>
 

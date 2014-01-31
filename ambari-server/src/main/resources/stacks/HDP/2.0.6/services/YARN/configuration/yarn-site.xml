@@ -328,4 +328,15 @@
     </description>
   </property>
 
+  <property>
+    <name>yarn.resourcemanager.nodes.exclude-path</name>
+    <value>/etc/hadoop/conf/yarn.exclude</value>
+    <description>
+      Names a file that contains a list of hosts that are
+      not permitted to connect to the resource manager.  The full pathname of the
+      file must be specified.  If the value is empty, no hosts are
+      excluded.
+    </description>
+  </property>
+
 </configuration>

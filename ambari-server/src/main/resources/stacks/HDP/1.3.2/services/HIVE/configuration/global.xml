@@ -121,5 +121,28 @@
     <value>hive</value>
     <description>Hive User.</description>
   </property>
+
+  <!--HCAT-->
+
+  <property>
+    <name>hcat_log_dir</name>
+    <value>/var/log/webhcat</value>
+    <description>WebHCat Log Dir.</description>
+  </property>
+  <property>
+    <name>hcat_pid_dir</name>
+    <value>/etc/run/webhcat</value>
+    <description>WebHCat Pid Dir.</description>
+  </property>
+  <property>
+    <name>hcat_user</name>
+    <value>hcat</value>
+    <description>HCat User.</description>
+  </property>
+  <property>
+    <name>webhcat_user</name>
+    <value>hcat</value>
+    <description>WebHCat User.</description>
+  </property>
   
 </configuration>

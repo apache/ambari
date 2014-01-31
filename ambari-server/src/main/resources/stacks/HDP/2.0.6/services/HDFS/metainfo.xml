@@ -16,45 +16,138 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Apache Hadoop Distributed File System</comment>
-    <version>2.2.0.2.0.6.0</version>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HDFS</name>
+      <comment>Apache Hadoop Distributed File System</comment>
+      <version>2.1.0.2.1.1</version>
 
-    <components>
+      <components>
         <component>
-            <name>NAMENODE</name>
-            <category>MASTER</category>
+          <name>NAMENODE</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/namenode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
 
         <component>
-            <name>DATANODE</name>
-            <category>SLAVE</category>
+          <name>DATANODE</name>
+          <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/datanode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
 
         <component>
-            <name>SECONDARY_NAMENODE</name>
-            <category>MASTER</category>
+          <name>SECONDARY_NAMENODE</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/snamenode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
 
         <component>
-            <name>HDFS_CLIENT</name>
-            <category>CLIENT</category>
+          <name>HDFS_CLIENT</name>
+          <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/hdfs_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-        
+
         <component>
-            <name>JOURNALNODE</name>
-            <category>MASTER</category>
+          <name>JOURNALNODE</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/journalnode.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
 
         <component>
           <name>ZKFC</name>
           <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/zkfc_slave.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-    </components>
-    <configuration-dependencies>
-      <config-type>core-site</config-type>
-      <config-type>global</config-type>
-      <config-type>hdfs-site</config-type>
-      <config-type>hadoop-policy</config-type>
-    </configuration-dependencies>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osType>any</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>lzo</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>hadoop</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>hadoop-libhdfs</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>hadoop-lzo</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>hadoop-lzo-native</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>snappy</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>snappy-devel</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>ambari-log4j</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>core-site</config-type>
+        <config-type>global</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-policy</config-type>
+        <config-type>hdfs-log4j</config-type>
+      </configuration-dependencies>
+    </service>
+  </services>
 </metainfo>
