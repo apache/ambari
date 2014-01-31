@@ -71,7 +71,9 @@ class ActionQueue(threading.Thread):
     self.sh = shellRunner()
     self._stop = threading.Event()
     self.tmpdir = config.get('agent', 'prefix')
-    self.customServiceOrchestrator = CustomServiceOrchestrator(config)
+    self.customServiceOrchestrator = CustomServiceOrchestrator(config,
+                                                               controller)
+
 
   def stop(self):
     self._stop.set()

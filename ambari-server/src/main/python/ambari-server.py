@@ -39,6 +39,7 @@ import datetime
 import tempfile
 import random
 import pwd
+from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
 # debug settings
 VERBOSE = False
@@ -593,6 +594,8 @@ NR_ADJUST_OWNERSHIP_LIST =[
   ( "/var/lib/ambari-server/keys/db", "700", "{0}", False ),
   ( "/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", False ),
   ( "/var/lib/ambari-server/keys/.ssh", "700", "{0}", False ),
+  ( "/var/lib/ambari-server/resources/stacks/", "755", "{0}", True ),
+  ( "/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True ),
   ( "/etc/ambari-server/conf", "644", "{0}", True ),
   ( "/etc/ambari-server/conf", "755", "{0}", False ),
   ( "/etc/ambari-server/conf/password.dat", "640", "{0}", False ),
@@ -2550,6 +2553,20 @@ def start(args):
       print "Please do not forget to start PostgreSQL server."
 
   properties = get_ambari_properties()
+  stack_location = get_stack_location(properties)
+  # Hack: we determine resource dir as a parent dir for stack_location
+  resources_location = os.path.dirname(stack_location)
+  resource_files_keeper = ResourceFilesKeeper(resources_location)
+
+  try:
+    print "Organizing resource files at {0}...".format(resources_location,
+                                                       verbose=VERBOSE)
+    resource_files_keeper.perform_housekeeping()
+  except KeeperException, ex:
+    msg = "Can not organize resource files at {0}: {1}".format(
+                                                resources_location, str(ex))
+    raise FatalException(-1, msg)
+
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
   environ = os.environ.copy()
@@ -2804,16 +2821,20 @@ def upgrade_local_repo_db(args, dbkey, dbvalue):
     return retcode
   pass
 
+
+def get_stack_location(properties):
+  stack_location = properties[STACK_LOCATION_KEY]
+  if stack_location is None:
+    stack_location = STACK_LOCATION_DEFAULT
+  return stack_location
+
 def upgrade_local_repo(args):
   properties = get_ambari_properties()
   if properties == -1:
     print_error_msg ("Error getting ambari properties")
     return -1
 
-  stack_location = properties[STACK_LOCATION_KEY]
-  if stack_location is None:
-    stack_location = STACK_LOCATION_DEFAULT
-
+  stack_location = get_stack_location(properties)
   stack_root_local = os.path.join(stack_location, "HDPLocal")
   if not os.path.exists(stack_root_local):
     print_info_msg("HDPLocal stack directory does not exist, skipping")

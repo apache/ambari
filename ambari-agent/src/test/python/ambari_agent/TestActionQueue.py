@@ -143,8 +143,13 @@ class TestActionQueue(TestCase):
 
   @patch.object(ActionQueue, "process_command")
   @patch.object(Queue, "get")
-  def test_ActionQueueStartStop(self, get_mock, process_command_mock):
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_ActionQueueStartStop(self, CustomServiceOrchestrator_mock,
+                                get_mock, process_command_mock):
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    config = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     actionQueue.start()
     time.sleep(0.1)
     actionQueue.stop()
@@ -158,7 +163,8 @@ class TestActionQueue(TestCase):
   @patch.object(ActionQueue, "execute_status_command")
   def test_process_command(self, execute_status_command_mock,
                            execute_command_mock, print_exc_mock):
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
     execution_command = {
       'commandType' : ActionQueue.EXECUTION_COMMAND,
     }
@@ -228,7 +234,10 @@ class TestActionQueue(TestCase):
     config = AmbariConfig().getConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
-    actionQueue = ActionQueue(config, 'dummy_controller')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     unfreeze_flag = threading.Event()
     puppet_execution_result_dict = {
       'stdout': 'out',
@@ -388,7 +397,10 @@ class TestActionQueue(TestCase):
     config = AmbariConfig().getConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
-    actionQueue = ActionQueue(config, 'dummy_controller')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     actionQueue.execute_command(self.datanode_restart_command)
     report = actionQueue.result()
     expected = {'actionId': '1-1',
@@ -414,11 +426,15 @@ class TestActionQueue(TestCase):
   @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
-  def test_execute_status_command(self, build_mock, execute_command_mock,
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_execute_status_command(self, CustomServiceOrchestrator_mock,
+                                  build_mock, execute_command_mock,
                                   requestComponentStatus_mock, read_stack_version_mock,
                                   determine_command_format_version_mock,
                                   status_update_callback):
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
 
     build_mock.return_value = "dummy report"
     # Check execution ov V1 status command
@@ -441,7 +457,10 @@ class TestActionQueue(TestCase):
     self.assertTrue(requestComponentStatus_mock.called)
 
 
-  def test_determine_command_format_version(self):
+  @patch.object(CustomServiceOrchestrator, "__init__")
+  def test_determine_command_format_version(self,
+                                            CustomServiceOrchestrator_mock):
+    CustomServiceOrchestrator_mock.return_value = None
     v1_command = {
       'commandParams': {
         'schema_version': '1.0'
@@ -455,7 +474,8 @@ class TestActionQueue(TestCase):
     current_command = {
       # Absent 'commandParams' section
     }
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
     self.assertEqual(actionQueue.determine_command_format_version(v1_command),
                      ActionQueue.COMMAND_FORMAT_V1)
     self.assertEqual(actionQueue.determine_command_format_version(v2_command),
@@ -469,12 +489,16 @@ class TestActionQueue(TestCase):
   @patch.object(PuppetExecutor, "runCommand")
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(CustomServiceOrchestrator, "__init__")
   def test_command_execution_depending_on_command_format(self,
+                                CustomServiceOrchestrator_mock,
                                 status_update_callback_mock,
                                 custom_ex_runCommand_mock,
                                 puppet_runCommand_mock, open_mock,
                                 determine_command_format_version_mock):
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+    CustomServiceOrchestrator_mock.return_value = None
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
     ret = {
       'stdout' : '',
       'stderr' : '',

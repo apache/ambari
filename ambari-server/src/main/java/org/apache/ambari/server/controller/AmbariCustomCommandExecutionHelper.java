@@ -125,8 +125,8 @@ public class AmbariCustomCommandExecutionHelper {
   @Inject
   private ConfigHelper configHelper;
 
-  private Boolean isServiceCheckCommand(String
-                                          command, String service) {
+
+  private Boolean isServiceCheckCommand(String command, String service) {
     List<String> actions = actionMetadata.getActions(service);
     if (actions == null || actions.size() == 0) {
       return false;

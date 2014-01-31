@@ -322,9 +322,7 @@ public class AmbariServer {
       resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
       resources.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.resources.api.rest;" + "org.apache.ambari.server.api");
-      resources.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
-          "true");
+          "org.apache.ambari.server.resources.api.rest;");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(6);
 

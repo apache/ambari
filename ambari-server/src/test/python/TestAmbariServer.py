@@ -29,6 +29,7 @@ import stat
 import datetime
 import operator
 from pwd import getpwnam
+from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
@@ -2455,7 +2456,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "find_jdbc_driver")
   @patch("getpass.getuser")
   @patch("os.chdir")
-  def test_start(self, chdir_mock, getuser_mock, find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
+  @patch.object(ResourceFilesKeeper, "perform_housekeeping")
+  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock,
+                 find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
                  parse_properties_file_mock, check_postgre_up_mock,
                  print_error_msg_mock, find_jdk_mock, search_file_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
@@ -2556,6 +2559,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       # Ignored
       pass
 
+    # Test exception handling on resource files housekeeping
+    perform_housekeeping_mock.reset_mock()
+    perform_housekeeping_mock.side_effect = KeeperException("some_reason")
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with exception")
+    except FatalException as e:
+      self.assertTrue('some_reason' in e.reason)
+    self.assertTrue(perform_housekeeping_mock.called)
+    perform_housekeeping_mock.side_effect = lambda *v, **kv : None
+    perform_housekeeping_mock.reset_mock()
+
     self.assertFalse('Unable to start PostgreSQL server' in e.reason)
     self.assertFalse(check_postgre_up_mock.called)
 
@@ -2585,6 +2600,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(popenMock.called)
     popen_arg = popenMock.call_args[0][0]
     self.assertTrue(popen_arg[0] == "/bin/sh")
+    self.assertTrue(perform_housekeeping_mock.called)
+    perform_housekeeping_mock.reset_mock()
     popenMock.reset_mock()
 
     parse_properties_file_mock.reset_mock()
@@ -2596,6 +2613,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(popenMock.called)
     popen_arg = popenMock.call_args[0][0]
     self.assertTrue(popen_arg[0] == "/bin/su")
+    self.assertTrue(perform_housekeeping_mock.called)
     check_postgre_up_mock.reset_mock()
 
     popenMock.reset_mock()

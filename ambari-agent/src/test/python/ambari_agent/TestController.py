@@ -209,7 +209,32 @@ class TestController(unittest.TestCase):
     heartbeatWithServer = MagicMock(name="heartbeatWithServer")
     self.controller.heartbeatWithServer = heartbeatWithServer
 
-    self.controller.isRegistered = True;
+    listener1 = MagicMock()
+    listener2 = MagicMock()
+    self.controller.registration_listeners.append(listener1)
+    self.controller.registration_listeners.append(listener2)
+    self.controller.isRegistered = True
+    self.controller.registerAndHeartbeat()
+    registerWithServer.assert_called_once_with()
+    heartbeatWithServer.assert_called_once_with()
+    self.assertTrue(listener1.called)
+    self.assertTrue(listener2.called)
+
+    self.controller.registerWithServer = \
+      Controller.Controller.registerWithServer
+    self.controller.heartbeatWithServer = \
+      Controller.Controller.registerWithServer
+
+
+  @patch("time.sleep")
+  def test_registerAndHeartbeat_check_registration_listener(self, sleepMock):
+    registerWithServer = MagicMock(name="registerWithServer")
+    registerWithServer.return_value = {"response":"resp"}
+    self.controller.registerWithServer = registerWithServer
+    heartbeatWithServer = MagicMock(name="heartbeatWithServer")
+    self.controller.heartbeatWithServer = heartbeatWithServer
+
+    self.controller.isRegistered = True
     self.controller.registerAndHeartbeat()
     registerWithServer.assert_called_once_with()
     heartbeatWithServer.assert_called_once_with()

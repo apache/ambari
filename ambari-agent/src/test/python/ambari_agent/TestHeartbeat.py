@@ -47,7 +47,12 @@ class TestHeartbeat(TestCase):
 
 
   def test_build(self):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
+    config = AmbariConfig.AmbariConfig().getConfig()
+    config.set('agent', 'prefix', 'tmp')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
     print "Heartbeat: " + str(result)
@@ -80,7 +85,12 @@ class TestHeartbeat(TestCase):
                    'exitCode': 777}],
       'componentStatus': [{'status': 'HEALTHY', 'componentName': 'NAMENODE'}]
     }
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
+    config = AmbariConfig.AmbariConfig().getConfig()
+    config.set('agent', 'prefix', 'tmp')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     heartbeat = Heartbeat(actionQueue)
     hb = heartbeat.build(id = 10, state_interval=1, componentsMapped=True)
     self.assertEqual(register_mock.call_args_list[0][0][1], True)
@@ -92,7 +102,12 @@ class TestHeartbeat(TestCase):
 
   @patch.object(ActionQueue, "result")
   def test_build_long_result(self, result_mock):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
+    config = AmbariConfig.AmbariConfig().getConfig()
+    config.set('agent', 'prefix', 'tmp')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
             'stderr': 'Read from /tmp/errors-3.txt',
@@ -178,7 +193,12 @@ class TestHeartbeat(TestCase):
 
   @patch.object(HostInfo, 'register')
   def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
+    config = AmbariConfig.AmbariConfig().getConfig()
+    config.set('agent', 'prefix', 'tmp')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     statusCommand = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
@@ -198,7 +218,12 @@ class TestHeartbeat(TestCase):
 
   @patch.object(HostInfo, 'register')
   def test_heartbeat_host_check_no_cmd(self, register_mock):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
+    config = AmbariConfig.AmbariConfig().getConfig()
+    config.set('agent', 'prefix', 'tmp')
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
     heartbeat = Heartbeat(actionQueue)
     heartbeat.build(12, 6)
     self.assertTrue(register_mock.called)

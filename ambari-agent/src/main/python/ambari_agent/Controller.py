@@ -54,7 +54,8 @@ class Controller(threading.Thread):
     self.credential = None
     self.config = config
     self.hostname = hostname.hostname()
-    server_secured_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'secured_url_port')
+    server_secured_url = 'https://' + config.get('server', 'hostname') + \
+                         ':' + config.get('server', 'secured_url_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
     self.heartbeatUrl = server_secured_url + '/agent/v1/heartbeat/' + self.hostname
     self.netutil = NetUtil()
@@ -67,14 +68,15 @@ class Controller(threading.Thread):
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
     self.heartbeat_wait_event = threading.Event()
+    # List of callbacks that are called at agent registration
+    self.registration_listeners = []
+
 
   def __del__(self):
     logger.info("Server connection disconnected.")
     pass
   
   def registerWithServer(self):
-    retry=False
-    firstTime=True
     id = -1
     ret = {}
 
@@ -257,8 +259,11 @@ class Controller(threading.Thread):
     message = registerResponse['response']
     logger.info("Response from server = " + message)
     if self.isRegistered:
-     time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
-     self.heartbeatWithServer()
+      # Process callbacks
+      for callback in self.registration_listeners:
+        callback()
+      time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
+      self.heartbeatWithServer()
 
   def restartAgent(self):
     os._exit(AGENT_AUTO_RESTART_EXIT_CODE)

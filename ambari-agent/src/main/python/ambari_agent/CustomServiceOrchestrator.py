@@ -48,7 +48,7 @@ class CustomServiceOrchestrator():
   PRE_HOOK_PREFIX="before"
   POST_HOOK_PREFIX="after"
 
-  def __init__(self, config):
+  def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
     self.file_cache = FileCache(config)
@@ -57,6 +57,8 @@ class CustomServiceOrchestrator():
                                                'status_command_stdout.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
+    # cache reset will be called on every agent registration
+    controller.registration_listeners.append(self.file_cache.reset)
     # Clean up old status command files if any
     try:
       os.unlink(self.status_commands_stdout)
@@ -72,15 +74,10 @@ class CustomServiceOrchestrator():
     command json, is ignored.
     """
     try:
-      try:
-        component_name = command['role']
-      except KeyError:
-        # For status commands and (maybe) custom actions component name
-        # is stored at another location
-        component_name = command['componentName']
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
       timeout = int(command['commandParams']['command_timeout'])
+      server_url_prefix = command['hostLevelParams']['jdk_location']
       task_id = "status"
       try:
         task_id = command['taskId']
@@ -92,15 +89,14 @@ class CustomServiceOrchestrator():
         command_name = forsed_command_name
 
       if command_name == self.CUSTOM_ACTION_COMMAND:
-        base_dir = self.config.get('python', 'custom_actions_dir')
+        base_dir = self.file_cache.get_custom_actions_base_dir(server_url_prefix)
         script_tuple = (os.path.join(base_dir, script) , base_dir)
         hook_dir = None
       else:
         if command_name == self.CUSTOM_COMMAND_COMMAND:
           command_name = command['hostLevelParams']['custom_command']
-        hook_dir = self.file_cache.get_hook_base_dir(command)
-        service_subpath = command['commandParams']['service_package_folder']
-        base_dir = self.file_cache.get_service_base_dir(service_subpath)
+        hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
+        base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
         script_path = self.resolve_script_path(base_dir, script, script_type)
         script_tuple = (script_path, base_dir)
 

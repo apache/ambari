@@ -28,6 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
@@ -49,6 +50,7 @@ public class HeartbeatMonitor implements Runnable {
   private Thread monitorThread = null;
   private final ConfigHelper configHelper;
   private final AmbariMetaInfo ambariMetaInfo;
+  private final AmbariManagementController ambariManagementController;
   private final Configuration configuration;
 
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
@@ -59,6 +61,8 @@ public class HeartbeatMonitor implements Runnable {
     this.threadWakeupInterval = threadWakeupInterval;
     this.configHelper = injector.getInstance(ConfigHelper.class);
     this.ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    this.ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
     this.configuration = injector.getInstance(Configuration.class);
   }
 
@@ -191,7 +195,6 @@ public class HeartbeatMonitor implements Runnable {
     String serviceName = sch.getServiceName();
     String componentName = sch.getServiceComponentName();
     Service service = cluster.getService(sch.getServiceName());
-    ServiceComponent sc = service.getServiceComponent(componentName);
     StackId stackId = cluster.getDesiredStackVersion();
     ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
             stackId.getStackVersion(), serviceName);
@@ -267,6 +270,7 @@ public class HeartbeatMonitor implements Runnable {
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
     // Fill host level params
     Map<String, String> hostLevelParams = statusCmd.getHostLevelParams();
+    hostLevelParams.put(JDK_LOCATION, ambariManagementController.getJdkResourceUrl());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 

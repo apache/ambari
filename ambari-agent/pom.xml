@@ -336,7 +336,6 @@
               </sources>
             </mapping>
             <mapping>
-              <!-- TODO: Remove when we introduce metadata downloading by agent-->
               <directory>/var/lib/ambari-agent/cache/stacks</directory>
               <sources>
                 <source>
@@ -346,7 +345,7 @@
             </mapping>
             <mapping>
               <!-- custom actions root-->
-              <directory>/var/lib/ambari-agent/resources/custom_actions</directory>
+              <directory>/var/lib/ambari-agent/cache/custom_actions</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>

@@ -327,7 +327,6 @@
                   <location>${project.build.directory}/DBConnectionVerification.jar</location>
                 </source>
                 <source>
-                  <!-- This file is also included into agent rpm -->
                   <location>src/main/resources/role_command_order.json</location>
                 </source>
               </sources>
@@ -390,6 +389,9 @@
               <groupname>root</groupname>
               <sources>
                 <source>
+                  <location>src/main/python/ambari_server</location>
+                </source>
+                <source>
                   <location>src/main/python/bootstrap.py</location>
                 </source>
                 <source>
@@ -417,6 +419,18 @@
               <sources>
                 <source>
                   <location>src/main/resources/custom_action_definitions</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <!-- custom actions root-->
+              <directory>/var/lib/ambari-server/resources/custom_actions</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/main/resources/custom_actions</location>
                 </source>
               </sources>
             </mapping>

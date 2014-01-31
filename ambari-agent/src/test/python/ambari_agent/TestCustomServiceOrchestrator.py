@@ -56,11 +56,26 @@ class TestCustomServiceOrchestrator(TestCase):
     self.config.set('python', 'custom_actions_dir', tmpdir)
 
 
+  @patch.object(FileCache, "__init__")
+  def test_add_reg_listener_to_controller(self, FileCache_mock):
+    FileCache_mock.return_value = None
+    dummy_controller = MagicMock()
+    config = AmbariConfig().getConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    CustomServiceOrchestrator(config, dummy_controller)
+    self.assertTrue(dummy_controller.registration_listeners.append.called)
+
+
   @patch.object(manifestGenerator, 'decompressClusterHostInfo')
   @patch("hostname.public_hostname")
   @patch("os.path.isfile")
   @patch("os.unlink")
-  def test_dump_command_to_json(self, unlink_mock, isfile_mock, hostname_mock, decompress_cluster_host_info_mock):
+  @patch.object(FileCache, "__init__")
+  def test_dump_command_to_json(self, FileCache_mock, unlink_mock,
+                                isfile_mock, hostname_mock,
+                                decompress_cluster_host_info_mock):
+    FileCache_mock.return_value = None
     hostname_mock.return_value = "test.hst"
     command = {
       'commandType': 'EXECUTION_COMMAND',
@@ -86,7 +101,8 @@ class TestCustomServiceOrchestrator(TestCase):
     config = AmbariConfig().getConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
-    orchestrator = CustomServiceOrchestrator(config)
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(config, dummy_controller)
     isfile_mock.return_value = True
     # Test dumping EXECUTION_COMMAND
     json_file = orchestrator.dump_command_to_json(command)
@@ -112,9 +128,12 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch("os.path.exists")
-  def test_resolve_script_path(self, exists_mock):
+  @patch.object(FileCache, "__init__")
+  def test_resolve_script_path(self, FileCache_mock, exists_mock):
+    FileCache_mock.return_value = None
+    dummy_controller = MagicMock()
     config = AmbariConfig().getConfig()
-    orchestrator = CustomServiceOrchestrator(config)
+    orchestrator = CustomServiceOrchestrator(config, dummy_controller)
     # Testing existing path
     exists_mock.return_value = True
     path = orchestrator.\
@@ -136,14 +155,18 @@ class TestCustomServiceOrchestrator(TestCase):
   @patch.object(FileCache, "get_hook_base_dir")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(PythonExecutor, "run_file")
-  def test_runCommand(self, run_file_mock, dump_command_to_json_mock,
+  @patch.object(FileCache, "__init__")
+  def test_runCommand(self, FileCache_mock,
+                      run_file_mock, dump_command_to_json_mock,
                       get_hook_base_dir_mock, get_service_base_dir_mock,
                       resolve_hook_script_path_mock, resolve_script_path_mock):
+    FileCache_mock.return_value = None
     command = {
       'role' : 'REGION_SERVER',
       'hostLevelParams' : {
         'stack_name' : 'HDP',
         'stack_version' : '2.0.7',
+        'jdk_location' : 'some_location'
       },
       'commandParams': {
         'script_type': 'PYTHON',
@@ -159,7 +182,8 @@ class TestCustomServiceOrchestrator(TestCase):
     resolve_hook_script_path_mock.return_value = \
       ('/hooks_dir/prefix-command/scripts/hook.py',
        '/hooks_dir/prefix-command')
-    orchestrator = CustomServiceOrchestrator(self.config)
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
     get_hook_base_dir_mock.return_value = "/hooks/"
     # normal run case
     run_file_mock.return_value = {
@@ -206,10 +230,19 @@ class TestCustomServiceOrchestrator(TestCase):
 
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(PythonExecutor, "run_file")
-  def test_runCommand_custom_action(self, run_file_mock, dump_command_to_json_mock):
+  @patch.object(FileCache, "__init__")
+  @patch.object(FileCache, "get_custom_actions_base_dir")
+  def test_runCommand_custom_action(self, get_custom_actions_base_dir_mock,
+                                    FileCache_mock,
+                                    run_file_mock, dump_command_to_json_mock):
+    FileCache_mock.return_value = None
+    get_custom_actions_base_dir_mock.return_value = "some path"
     _, script = tempfile.mkstemp()
     command = {
       'role' : 'any',
+      'hostLevelParams' : {
+        'jdk_location' : 'some_location'
+      },
       'commandParams': {
         'script_type': 'PYTHON',
         'script': 'some_custom_action.py',
@@ -218,8 +251,8 @@ class TestCustomServiceOrchestrator(TestCase):
       'taskId' : '3',
       'roleCommand': 'ACTIONEXECUTE'
     }
-
-    orchestrator = CustomServiceOrchestrator(self.config)
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
     # normal run case
     run_file_mock.return_value = {
       'stdout' : 'sss',
@@ -235,9 +268,11 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch("os.path.isfile")
-  def test_resolve_hook_script_path(self, isfile_mock):
-
-    orchestrator = CustomServiceOrchestrator(self.config)
+  @patch.object(FileCache, "__init__")
+  def test_resolve_hook_script_path(self, FileCache_mock, isfile_mock):
+    FileCache_mock.return_value = None
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
     # Testing None param
     res1 = orchestrator.resolve_hook_script_path(None, "prefix", "command",
                                             "script_type")
@@ -256,7 +291,9 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch.object(CustomServiceOrchestrator, "runCommand")
-  def test_requestComponentStatus(self, runCommand_mock):
+  @patch.object(FileCache, "__init__")
+  def test_requestComponentStatus(self, FileCache_mock, runCommand_mock):
+    FileCache_mock.return_value = None
     status_command = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
@@ -264,7 +301,8 @@ class TestCustomServiceOrchestrator(TestCase):
       "componentName" : "DATANODE",
       'configurations':{}
     }
-    orchestrator = CustomServiceOrchestrator(self.config)
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
     # Test alive case
     runCommand_mock.return_value = {
       "exitcode" : 0
