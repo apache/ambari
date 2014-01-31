@@ -106,7 +106,7 @@ class TestMySqlServer(RMFTestCase):
       content = StaticFile('addMysqlUser.sh'),
       mode = 493,
     )
-    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysql', u'hive', 'asd', u'c6402.ambari.apache.org'),
+    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysql', 'hive', 'q', 'c6402.ambari.apache.org'),
       logoutput = True,
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
@@ -128,7 +128,7 @@ class TestMySqlServer(RMFTestCase):
       content = StaticFile('addMysqlUser.sh'),
       mode = 493,
     )
-    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysql', u'hive', 'asd', u'c6402.ambari.apache.org'),
+    self.assertResourceCalled('Execute', ('bash', '-x', '/tmp/addMysqlUser.sh', 'mysql', 'hive', 'q', 'c6402.ambari.apache.org'),
       logoutput = True,
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,

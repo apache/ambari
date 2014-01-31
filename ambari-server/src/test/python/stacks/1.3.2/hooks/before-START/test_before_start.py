@@ -94,6 +94,11 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('health_check.j2'),
                               owner = 'hdfs',
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/log4j.properties',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 420,
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.driver=.*~ambari.jobhistory.driver=org.postgresql.Driver~' /etc/hadoop/conf/log4j.properties",
                               )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA=.*~log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender~' /etc/hadoop/conf/log4j.properties",
@@ -147,4 +152,17 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/hadoop-tools.jar',
                               to = '/usr/lib/hadoop/hadoop-tools.jar',
                               )
+    
+    self.assertResourceCalled('File', '/etc/hadoop/conf/configuration.xsl',
+      owner = 'hdfs',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
+      owner = 'mapred',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-server.xml.example',
+      owner = 'mapred',
+      group = 'hadoop',
+    )
     self.assertNoMoreResources()

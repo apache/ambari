@@ -142,6 +142,11 @@ class TestHbaseRegionServer(RMFTestCase):
       owner = 'hbase',
       recursive = True,
     )
+    self.assertResourceCalled('File', '/etc/hbase/conf/log4j.properties',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 420,
+    )
   
   
   def assert_configure_secured(self):
@@ -193,4 +198,9 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+    )
+    self.assertResourceCalled('File', '/etc/hbase/conf/log4j.properties',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 420,
     )

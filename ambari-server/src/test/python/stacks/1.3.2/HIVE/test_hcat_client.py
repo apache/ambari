@@ -33,7 +33,7 @@ class TestHcatClient(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('Directory', '/var/run/webhcat',
+    self.assertResourceCalled('Directory', '/etc/run/webhcat',
       owner = 'hcat',
       recursive = True,
     )
@@ -56,7 +56,7 @@ class TestHcatClient(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('Directory', '/var/run/webhcat',
+    self.assertResourceCalled('Directory', '/etc/run/webhcat',
       owner = 'hcat',
       recursive = True,
     )

@@ -40,7 +40,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
+                              not_if = 'ls /etc/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /etc/run/webhcat/webhcat.pid` >/dev/null 2>&1',
                               user = 'hcat'
     )
     self.assertNoMoreResources()
@@ -55,7 +55,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
                               )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/webhcat/webhcat.pid')
+    self.assertResourceCalled('Execute', 'rm -f /etc/run/webhcat/webhcat.pid')
     self.assertNoMoreResources()
 
     def test_configure_secured(self):
@@ -77,7 +77,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
-                              not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
+                              not_if = 'ls /etc/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps `cat /etc/run/webhcat/webhcat.pid` >/dev/null 2>&1',
                               user = 'hcat'
     )
     self.assertNoMoreResources()
@@ -92,11 +92,11 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
                               )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/webhcat/webhcat.pid')
+    self.assertResourceCalled('Execute', 'rm -f /etc/run/webhcat/webhcat.pid')
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Directory', '/var/run/webhcat',
+    self.assertResourceCalled('Directory', '/etc/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
@@ -123,7 +123,7 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
       not_if = ' hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
       user = 'hcat',
       conf_dir = '/etc/hadoop/conf',
@@ -140,7 +140,7 @@ class TestWebHCatServer(RMFTestCase):
     )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Directory', '/var/run/webhcat',
+    self.assertResourceCalled('Directory', '/etc/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
@@ -171,7 +171,7 @@ class TestWebHCatServer(RMFTestCase):
       path = ['/bin'],
       user = 'hcat',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
       not_if = '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
       user = 'hcat',
       conf_dir = '/etc/hadoop/conf',

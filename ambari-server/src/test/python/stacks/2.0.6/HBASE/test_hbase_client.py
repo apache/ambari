@@ -66,6 +66,11 @@ class TestHBaseClient(RMFTestCase):
       owner = 'hbase',
       template_tag = None,
     )
+    self.assertResourceCalled('File', '/etc/hbase/conf/log4j.properties',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 420,
+    )
     self.assertNoMoreResources()
     
   def test_configure_default(self):
@@ -107,6 +112,11 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/regionservers',
       owner = 'hbase',
       template_tag = None,
+    )
+    self.assertResourceCalled('File', '/etc/hbase/conf/log4j.properties',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode = 420,
     )
     self.assertNoMoreResources()
     

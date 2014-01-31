@@ -64,6 +64,11 @@ class TestZookeeperClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('File', '/etc/zookeeper/conf/log4j.properties',
+      owner = 'zookeeper',
+      group = 'hadoop',
+      mode = 420,
+    )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo_sample.cfg',
       owner = 'zookeeper',
       group = 'hadoop',
@@ -112,6 +117,11 @@ class TestZookeeperClient(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+    )
+    self.assertResourceCalled('File', '/etc/zookeeper/conf/log4j.properties',
+      owner = 'zookeeper',
+      group = 'hadoop',
+      mode = 420,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper_client_jaas.conf',
       owner = 'zookeeper',
