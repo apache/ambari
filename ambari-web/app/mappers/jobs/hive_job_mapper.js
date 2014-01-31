@@ -62,7 +62,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
             var vertex = stageValue.Tez["Vertices:"][vertexName];
             var vertexObj = {
               id : dagName + "/" + vertexName,
-              name : vertexName,
+              name : vertexName
             };
             vertexIds.push(vertexObj.id);
             var operatorExtractor = function(obj) {
@@ -82,13 +82,13 @@ App.hiveJobMapper = App.QuickDataMapper.create({
               return ops;
             }
             if (vertex["Map Operator Tree:"] != null) {
-              vertexObj.isMap = true;
+              vertexObj.is_map = true;
               vertexObj.operations = operatorExtractor(vertex["Map Operator Tree:"]);
-              vertexObj.operationPlan = JSON.stringify(vertex["Map Operator Tree:"]);
+              vertexObj.operation_plan = JSON.stringify(vertex["Map Operator Tree:"], undefined, "  ");
             } else if (vertex["Reduce Operator Tree:"] != null) {
-              vertexObj.isMap = false;
+              vertexObj.is_map = false;
               vertexObj.operations = operatorExtractor(vertex["Reduce Operator Tree:"]);
-              vertexObj.operationPlan = JSON.stringify(vertex["Reduce Operator Tree:"]);
+              vertexObj.operation_plan = JSON.stringify(vertex["Reduce Operator Tree:"], undefined, "  ");
             }
             vertices.push(vertexObj);
           }
@@ -96,20 +96,25 @@ App.hiveJobMapper = App.QuickDataMapper.create({
           var edges = [];
           var edgeIds = [];
           for ( var childVertex in stageValue.Tez["Edges:"]) {
-            stageValue.Tez["Edges:"][childVertex].forEach(function(e) {
+            var childVertices = stageValue.Tez["Edges:"][childVertex];
+            if (!$.isArray(childVertices)) {
+              // Single edge given as object instead of array
+              childVertices = [ childVertices ];
+            }
+            childVertices.forEach(function(e) {
               var parentVertex = e.parent;
               var edgeObj = {
                 id : dagName + "/" + parentVertex + "-" + childVertex,
-                fromVertex : dagName + "/" + parentVertex,
-                toVertex : dagName + "/" + childVertex
+                from_vertex : dagName + "/" + parentVertex,
+                to_vertex : dagName + "/" + childVertex
               };
               edgeIds.push(edgeObj.id);
               switch (e.type) {
               case "BROADCAST_EDGE":
-                edgeObj.edgeType = App.TezDagVertexType.BROADCAST;
+                edgeObj.edge_type = App.TezDagVertexType.BROADCAST;
                 break;
               case "SIMPLE_EDGE":
-                edgeObj.edgeType = App.TezDagVertexType.SCATTER_GATHER;
+                edgeObj.edge_type = App.TezDagVertexType.SCATTER_GATHER;
                 break;
               default:
                 break;

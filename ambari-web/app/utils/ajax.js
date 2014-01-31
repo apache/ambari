@@ -1577,11 +1577,11 @@ var urls = {
     'mock': '/data/jobs/tezDag-name-to-id.json'
   },
   'jobs.tezDag.tezDagId': {
-    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID/{tezDagId}',
+    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities',
     'mock': '/data/jobs/tezDag.json'
   },
   'jobs.tezDag.tezDagVertexId': {
-    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_VERTEX_ID/{tezDagVertexId}',
+    'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
     'mock': '/data/jobs/tezDagVertex.json'
   }
 };

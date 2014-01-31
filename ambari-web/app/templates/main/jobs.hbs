@@ -53,8 +53,8 @@
         {{else}}
           {{#each job in content}}
             <tr>
-              <td width="40%">
-                {{job.name}}
+              <td>
+                <a title="{{unbound job.name}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
               </td>
               <td>
                 {{job.user}}

@@ -49,7 +49,7 @@ module.exports = {
     var hiveJobId = hiveJob.get('id');
     // First refresh query
     var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" :
-    App.apiPrefix + "/proxy?url=http://"+historyServerHostName+":8188/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id');
+    App.apiPrefix + "/proxy?url=http://"+historyServerHostName+":8188/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id')+"?fields=otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
@@ -145,6 +145,16 @@ module.exports = {
             vertexRecord.set('tasksCount', data.otherinfo.numTasks);
             vertexRecord.set('state', data.otherinfo.status);
             // TODO Need additional vertex metrics
+            vertexRecord.set('fileReadBytes', 0);
+            vertexRecord.set('fileReadOps', 0);
+            vertexRecord.set('fileWriteOps', 0);
+            vertexRecord.set('fileWriteBytes', 0);
+            vertexRecord.set('hdfsReadOps', 0);
+            vertexRecord.set('hdfsReadBytes', 0);
+            vertexRecord.set('hdfsWriteOps', 0);
+            vertexRecord.set('hdfsWriteBytes', 0);
+            vertexRecord.set('recordReadCount', 0);
+            vertexRecord.set('recordWriteCount', 0);
           }
         }
       },

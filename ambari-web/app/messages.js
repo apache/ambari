@@ -1829,6 +1829,15 @@ Em.I18n.translations = {
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
 
+  'jobs.hive.tez.tasks':'Tez Tasks',
+  'jobs.hive.tez.hdfs':'HDFS',
+  'jobs.hive.tez.localFiles':'Local Files',
+  'jobs.hive.tez.records':'Records',
+  'jobs.hive.tez.reads':'{0} reads',
+  'jobs.hive.tez.writes':'{0} writes',
+  'jobs.hive.tez.records.count':'{0} Records',
+  'jobs.hive.tez.operatorPlan':'Operator Plan',
+
   'number.validate.empty': 'cannot be empty',
   'number.validate.notValidNumber': 'not a valid number',
   'number.validate.lessThanMinumum': 'value less than {0}',

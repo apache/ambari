@@ -1,0 +1,107 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="hive-job-details">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <a {{action "routeToJobs" target="controller"}} href="#">{{t menu.item.jobs}}</a> > {{view.content.name}}
+    <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
+  </div>
+
+  <!-- Sections -->
+  <div class="row-fluid">
+    <div class="span12 sections">
+      <!-- Section LHS -->
+      <div class="span6 sections-lhs">
+      </div>
+
+      <!-- Section RHS -->
+      <div class="span6 sections-rhs">
+
+        <!-- Section RHS Vertices -->
+        <div id="tez-vertices-table-section">
+          <div id="tez-vertices-table-container" class="section">
+            <table class="table table-hover table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th>{{t common.name}}</th>
+                  <th>{{t common.tasks}}</th>
+                  <th>{{t apps.item.dag.input}}</th>
+                  <th>{{t apps.item.dag.output}}</th>
+                  <th>{{t apps.item.dag.duration}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each vertex in view.content.tezDag.vertices}}
+                  <tr {{bindAttr class="vertex.isSelected:info"}}>
+                    <td>
+                      <a title="{{vertex.name}}" href="#" {{action "doSelectVertex" vertex target="view"}}>{{vertex.name}}</a>
+                    </td>
+                    <td>{{vertex.tasksCount}}</td>
+                    <td>{{vertex.totalReadBytesDisplay}}</td>
+                    <td>{{vertex.totalWriteBytesDisplay}}</td>
+                    <td>{{vertex.durationDisplay}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section RHS Vertex -->
+        {{#if view.selectedVertex}}
+          <div id="section tez-vertex-details-section">
+            <div class="box">
+            <div class="box-header">
+              <h4>{{view.selectedVertex.name}}</h4>
+            </div>
+            <div id="tez-vertex-details-section-body">
+              <table class="table">
+                <tr>
+                  <td>{{t jobs.hive.tez.tasks}}</td>
+                  <td>{{view.selectedVertex.tasksCount}}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>{{t jobs.hive.tez.hdfs}}</td>
+                  <td>{{view.selectedVertexIODisplay.hdfs.read.ops}} / {{view.selectedVertexIODisplay.hdfs.read.bytes}}</td>
+                  <td>{{view.selectedVertexIODisplay.hdfs.write.ops}} / {{view.selectedVertexIODisplay.hdfs.write.bytes}}</td>
+                </tr>
+                <tr>
+                  <td>{{t jobs.hive.tez.localFiles}}</td>
+                  <td>{{view.selectedVertexIODisplay.file.read.ops}} / {{view.selectedVertexIODisplay.file.read.bytes}}</td>
+                  <td>{{view.selectedVertexIODisplay.file.write.ops}} / {{view.selectedVertexIODisplay.file.write.bytes}}</td>
+                </tr>
+                <tr>
+                  <td>{{t jobs.hive.tez.records}}</td>
+                  <td>{{view.selectedVertexIODisplay.records.read}}</td>
+                  <td>{{view.selectedVertexIODisplay.records.write}}</td>
+                </tr>
+                  <td>{{t jobs.hive.tez.operatorPlan}}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </table>
+              {{view Ember.TextArea valueBinding="view.selectedVertex.operationPlan" rows="15"}}
+            </div>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

@@ -17,13 +17,14 @@
 
 var App = require('app');
 var dateUtils = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.TezDag = DS.Model.extend({
   id : DS.attr('string'),
   /**
    * When DAG is actually running on server, a unique ID is assigned.
    */
-  insanceId : DS.attr('string'),
+  instanceId : DS.attr('string'),
   name : DS.attr('string'),
   stage : DS.attr('string'),
   vertices : DS.hasMany('App.TezDagVertex'),
@@ -32,7 +33,7 @@ App.TezDag = DS.Model.extend({
 
 App.TezDagEdge = DS.Model.extend({
   id : DS.attr('string'),
-  insanceId : DS.attr('string'),
+  instanceId : DS.attr('string'),
   fromVertex : DS.belongsTo('App.TezDagVertex'),
   toVertex : DS.belongsTo('App.TezDagVertex'),
   /**
@@ -47,7 +48,7 @@ App.TezDagVertex = DS.Model.extend({
   /**
    * When DAG vertex is actually running on server, a unique ID is assigned.
    */
-  insanceId : DS.attr('string'),
+  instanceId : DS.attr('string'),
   name : DS.attr('string'),
 
   /**
@@ -88,8 +89,10 @@ App.TezDagVertex = DS.Model.extend({
    * Each Tez vertex can perform arbitrary application specific computations
    * inside. The application can provide a list of operations it has provided in
    * this vertex.
+   *
+   * Array of strings. [{string}]
    */
-  operations : DS.hasMany('string'),
+  operations : [],
 
   /**
    * Provides additional information about the 'operations' performed in this
@@ -122,7 +125,20 @@ App.TezDagVertex = DS.Model.extend({
    * Record metrics for this vertex
    */
   recordReadCount : DS.attr('number'),
-  recordWriteCount : DS.attr('number')
+  recordWriteCount : DS.attr('number'),
+
+  totalReadBytesDisplay : function() {
+    return numberUtils.bytesToSize(this.get('fileReadBytes') + this.get('hdfsReadBytes'));
+  }.property('fileReadBytes', 'hdfsReadBytes'),
+
+  totalWriteBytesDisplay : function() {
+    return numberUtils.bytesToSize(this.get('fileWriteBytes') + this.get('hdfsWriteBytes'));
+  }.property('fileWriteBytes', 'hdfsWriteBytes'),
+
+  durationDisplay : function() {
+    var duration = this.get('duration');
+    return dateUtils.timingFormat(duration, true);
+  }.property('duration')
 });
 
 App.TezDagVertexState = {

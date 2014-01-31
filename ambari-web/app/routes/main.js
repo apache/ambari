@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+var jobsUtils = require('utils/jobs');
 
 module.exports = Em.Route.extend({
   route: '/main',
@@ -111,17 +112,34 @@ module.exports = Em.Route.extend({
     }
   }),
 
-  jobs: Em.Route.extend({
-    route: '/jobs',
-    connectOutlets: function (router) {
-      if (!App.get('isHadoop2Stack')) {
-        Em.run.next(function () {
-          router.transitionTo('main.dashboard');
-        });
-      } else {
-        router.get('mainJobsController').loadJobs();
-        router.get('mainController').connectOutlet('mainJobs');
+  jobs : Em.Route.extend({
+    route : '/jobs',
+    index: Ember.Route.extend({
+      route: '/',
+      connectOutlets : function(router) {
+        if (!App.get('isHadoop2Stack')) {
+          Em.run.next(function() {
+            router.transitionTo('main.dashboard');
+          });
+        } else {
+          router.get('mainJobsController').loadJobs();
+          router.get('mainController').connectOutlet('mainJobs');
+        }
       }
+    }),
+    jobDetails : Em.Route.extend({
+      route : '/:job_id',
+      connectOutlets : function(router, job) {
+        if (job) {
+          jobsUtils.refreshJobDetails(job);
+          if (job.get('jobType') === App.JobType.HIVE) {
+            router.get('mainController').connectOutlet('mainHiveJobDetails', job);
+          }
+        }
+      },
+    }),
+    showJobDetails : function(router, event) {
+      router.transitionTo('jobDetails', event.context);
     }
   }),
 
