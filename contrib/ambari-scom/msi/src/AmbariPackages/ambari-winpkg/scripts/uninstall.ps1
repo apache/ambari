@@ -47,8 +47,16 @@ function Main( $scriptDir )
     Write-Log "UNINSTALLATION STARTED"
 	Write-Log "Reading Ambari and HDP layout"
 	$destination= [Environment]::GetEnvironmentVariable("AMB_DATA_DIR","Machine")
-	$ENV:AMB_LAYOUT = Join-Path $destination "ambariproperties.txt"
-	$ENV:HDP_LAYOUT = Join-Path $destination "clusterproperties.txt"
+	if (-not (Test-Path ENV:AMB_LAYOUT))
+	{
+		$ENV:AMB_LAYOUT = Join-Path $destination "ambariproperties.txt"
+	}
+	if (-not (Test-Path ENV:HDP_LAYOUT) -or ($ENV:HDP_LAYOUT -notlike "*:"))
+	{
+		$ENV:HDP_LAYOUT = Join-Path $destination "clusterproperties.txt"
+	}
+	Write-Log "Ambari layout = $ENV:AMB_LAYOUT" 
+	Write-Log "Cluster layout = $ENV:HDP_LAYOUT" 
 	Export-ClusterLayoutIntoEnv $ENV:AMB_LAYOUT "amb"
 	Export-ClusterLayoutIntoEnv $ENV:HDP_LAYOUT "hdp"
 	$jar = Join-Path $destination "\metrics-sink-*.jar"

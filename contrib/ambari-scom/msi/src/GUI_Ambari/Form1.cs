@@ -1,18 +1,15 @@
-﻿// Licensed to the Apache Software Foundation (ASF) under one or more
-// contributor license agreements.  See the NOTICE file distributed with
-// this work for additional information regarding copyright ownership.
-// The ASF licenses this file to You under the Apache License, Version 2.0
-// (the "License"); you may not use this file except in compliance with
-// the License.  You may obtain a copy of the License at
-//
+﻿//Licensed to the Apache Software Foundation (ASF) under one or more
+//contributor license agreements.  See the NOTICE file distributed with
+//this work for additional information regarding copyright ownership.
+//The ASF licenses this file to You under the Apache License, Version 2.0
+//(the "License"); you may not use this file except in compliance with
+//the License.  You may obtain a copy of the License at
 //     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+//Unless required by applicable law or agreed to in writing, software
+//distributed under the License is distributed on an "AS IS" BASIS,
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//See the License for the specific language governing permissions and
+//limitations under the License.
 
 using System;
 using System.IO;
@@ -41,10 +38,20 @@ namespace GUI_Ambari
         private void Form1_Load(object sender, EventArgs e)
         {
             Sname.Text = Environment.GetEnvironmentVariable("computername");
-
-
+            CLP_Path();
         }
-
+        private void CLP_Path()
+        { 
+             if (!string.IsNullOrEmpty (Environment.GetEnvironmentVariable("HADOOP_HOME")))
+            {
+                try
+                {
+                    Cpath.Text = Path.GetFullPath(Environment.GetEnvironmentVariable("HADOOP_NODE_INSTALL_ROOT") + @"\cluster.properties");
+                }
+                catch 
+                { }
+            }
+        }
         private void Browse_Click(object sender, EventArgs e)
         {
             BrowseDirs.ShowDialog();
@@ -79,7 +86,7 @@ namespace GUI_Ambari
 
         }
 
-        private void Install_Click(object sender, EventArgs e)
+        private void Install_Click(object sender, EventArgs e) 
         {
             if (string.IsNullOrEmpty(AID.Text) || string.IsNullOrEmpty(Sname.Text) || string.IsNullOrEmpty(Sport.Text) || string.IsNullOrEmpty(Slogin.Text) || string.IsNullOrEmpty(Spassword.Text) || string.IsNullOrEmpty(SQLDpath.Text))
             {
@@ -92,6 +99,10 @@ namespace GUI_Ambari
             else if (string.IsNullOrEmpty(SQLDpath.Text) || SQLDpath.Text.Contains(" ") || !SQLDpath.Text.Contains("\\") || !SQLDpath.Text.Contains(":") || (SQLDpath.Text.Length < 4)|| !SQLDpath.Text.Contains(".jar"))
             {
                 MessageBox.Show("Please enter correct SQL JDBC driver path", "Error");
+            }
+            else if (string.IsNullOrEmpty(Cpath.Text) & string.IsNullOrEmpty (Environment.GetEnvironmentVariable("HADOOP_HOME")))
+            {
+                MessageBox.Show("You are installing Ambari on separate node. Please enter correct cluster layout file path", "Error");
             }
             else
             {
@@ -112,11 +123,25 @@ namespace GUI_Ambari
             DialogResult result = MessageBox.Show("Do you really want to exit?", "Warning", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
+                Kill_Msiexec();
                 Environment.Exit(1);
             }
-
         }
 
+        private void Kill_Msiexec()
+        {
+            try
+            {
+                var processes = Process.GetProcessesByName("msiexec").OrderBy(x => x.StartTime);
+                foreach (var process in processes)
+                {
+                    process.Kill();
+                }
+            }
+            catch
+            {
+            }
+        }
         private void Reset_Click(object sender, EventArgs e)
         {
             AID.Text = "C:\\Ambari";
@@ -128,6 +153,7 @@ namespace GUI_Ambari
             Cpath.Clear();
             SQLDpath.Clear();
             Cstart.Checked = false;
+            CLP_Path();
         }
 
         private void Spassworde_CheckedChanged(object sender, EventArgs e)

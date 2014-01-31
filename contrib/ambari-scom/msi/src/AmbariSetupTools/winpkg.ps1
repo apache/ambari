@@ -495,14 +495,17 @@ function Main( $winpkgBinPath, $Package, $Action )
 	    [Environment]::CurrentDirectory = $pwd
 		if ($env:HDP_LAYOUT -notlike "*:*")
 		{
+			Write-Log "Setting HDP_LAYOUT" 
 			$HDP_LAYOUT = [Environment]::GetEnvironmentVariable("HDP_LAYOUT","Machine")
 			if ($HDP_LAYOUT -eq $null)
 			{
+				Write-Log "Setting HDP_LAYOUT from HDP installed" 
 				$HNIR= [Environment]::GetEnvironmentVariable("HADOOP_NODE_INSTALL_ROOT","Machine")
 				$ENV:HDP_LAYOUT = "$HNIR\cluster.properties"
 			}
 			else
 			{
+				Write-Log "Setting HDP_LAYOUT from system environment" 
 				$ENV:HDP_LAYOUT=$HDP_LAYOUT
 			}
 		}
