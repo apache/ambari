@@ -187,9 +187,11 @@ App.MainHostController = Em.ArrayController.extend({
       var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + host.get('hostName') + ')';
       var components = [];
       host.get('hostComponents').forEach(function(hostComponent) {
-        if (hostComponent.get('isMaster') || hostComponent.get('isSlave')) {
-          if (hostComponent.get('workStatus') === operationData.actionToCheck) {
-            components.push(hostComponent.get('componentName'));
+        if (hostComponent.get('passiveState') == 'ACTIVE') {
+          if (hostComponent.get('isMaster') || hostComponent.get('isSlave')) {
+            if (hostComponent.get('workStatus') === operationData.actionToCheck) {
+              components.push(hostComponent.get('componentName'));
+            }
           }
         }
       });
@@ -227,7 +229,7 @@ App.MainHostController = Em.ArrayController.extend({
   bulkOperationForHostsRestart: function(operationData, hosts) {
     var hostComponents = [];
     hosts.forEach(function(host) {
-      hostComponents.pushObjects(host.get('hostComponents').toArray());
+      hostComponents.pushObjects(host.get('hostComponents').filterProperty('passiveState','ACTIVE').toArray());
     });
     batchUtils.restartHostComponents(hostComponents);
   },
@@ -272,7 +274,7 @@ App.MainHostController = Em.ArrayController.extend({
   bulkOperationForHostComponents: function(operationData, hosts) {
     var service = App.Service.find(operationData.serviceName);
     var components = service.get('hostComponents').filter(function(hc) {
-      if (hc.get('componentName') != operationData.componentName) {
+      if (hc.get('componentName') != operationData.componentName || hc.get('passiveState') != 'ACTIVE' ) {
         return false;
       }
       if(hc.get('workStatus') == operationData.action) {
@@ -312,7 +314,7 @@ App.MainHostController = Em.ArrayController.extend({
   bulkOperationForHostComponentsDecommission: function(operationData, hosts) {
     var service = App.Service.find(operationData.serviceName);
     var components = service.get('hostComponents').filter(function(hc) {
-      if (hc.get('componentName') != operationData.realComponentName) {
+      if (hc.get('componentName') != operationData.realComponentName || hc.get('passiveState') != 'ACTIVE' ) {
         return false;
       }
       return hosts.contains(hc.get('host'));
@@ -361,7 +363,7 @@ App.MainHostController = Em.ArrayController.extend({
   bulkOperationForHostComponentsRestart: function(operationData, hosts) {
     var service = App.Service.find(operationData.serviceName);
     var components = service.get('hostComponents').filter(function(hc) {
-      if (hc.get('componentName') != operationData.componentName) {
+      if (hc.get('componentName') != operationData.componentName || hc.get('passiveState') != 'ACTIVE') {
         return false;
       }
       return hosts.contains(hc.get('host'));

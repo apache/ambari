@@ -193,21 +193,23 @@
                             </a>
                         </li>
                     {{/if}}
-                     {{#if view.isPassive}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                              {{t passiveState.turnOff}}
-                            </a>
-                        </li>
+                    {{#unless view.isImplied}}
+                      {{#if view.isActive}}
+                          <li {{bindAttr class="view.noActionAvailable"}}>
+                              <a href="javascript:void(null)"
+                                 data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
+                                {{t passiveState.turnOn}}
+                              </a>
+                          </li>
                       {{else}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                              {{t passiveState.turnOn}}
-                            </a>
-                        </li>
-                    {{/if}}
+                          <li {{bindAttr class="view.noActionAvailable"}}>
+                              <a href="javascript:void(null)"
+                                 data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
+                                {{t passiveState.turnOff}}
+                              </a>
+                          </li>
+                      {{/if}}
+                    {{/unless}}
                   {{/unless}}
                 </ul>
               </div>

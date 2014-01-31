@@ -171,8 +171,8 @@ describe('MainHostController', function () {
         hosts: [
           Em.Object.create({
             hostComponents: Em.A([
-              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE'}),
-              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE'})
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE', passiveState: 'ACTIVE'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'ACTIVE'})
             ])
           })
         ],
@@ -186,8 +186,8 @@ describe('MainHostController', function () {
         hosts: [
           Em.Object.create({
             hostComponents: Em.A([
-              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE'}),
-              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE'})
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE', passiveState: 'ACTIVE'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'ACTIVE'})
             ])
           })
         ],
@@ -201,8 +201,8 @@ describe('MainHostController', function () {
         hosts: [
           Em.Object.create({
             hostComponents: Em.A([
-              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'INSTALLED', componentName: 'NAMENODE'}),
-              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE'})
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'INSTALLED', componentName: 'NAMENODE', passiveState: 'ACTIVE'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'ACTIVE'})
             ])
           })
         ],
@@ -240,7 +240,7 @@ describe('MainHostController', function () {
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({}), Em.Object.create({})])
+            hostComponents: Em.A([Em.Object.create({passiveState: 'ACTIVE'}), Em.Object.create({passiveState: 'ACTIVE'})])
           })
         ]),
         m: 'One host',

@@ -428,10 +428,13 @@ App.MainHostSummaryView = Em.View.extend({
       return this.get('content.componentName') === 'HBASE_REGIONSERVER';
     }.property('content'),
 
-    isPassive: function () {
-      return (this.get('content.passiveState') == "PASSIVE");
+    isActive: function () {
+      return (this.get('content.passiveState') == "ACTIVE");
     }.property('content.passiveState'),
 
+    isImplied: function() {
+      return (this.get('content.passiveState') == "IMPLIED");
+    }.property('content.passiveState'),
 
     isDecommissioning: function () {
       return (this.get('isDataNode') && this.get("isDataNodeDecommissioning")) || (this.get('isRegionServer') && this.get("isRegionServerDecommissioning"));

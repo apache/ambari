@@ -103,9 +103,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param context  Context under which this command is beign sent. 
    */
   sendStartComponentCommand: function(component, context) {
-    var url = component !== null ? 
+    var url = component !== null ?
         '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components';
+        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/passive_state=ACTIVE';
     var dataToSend = {
       RequestInfo : {
         "context" : context
@@ -120,8 +120,10 @@ App.MainHostDetailsController = Em.Controller.extend({
       var allComponents = this.get('content.hostComponents');
       var startable = [];
       allComponents.forEach(function (c) {
-        if (c.get('isMaster') || c.get('isSlave')) {
-          startable.push(c.get('componentName'));
+        if (c.get('passiveState') == 'ACTIVE') {
+          if (c.get('isMaster') || c.get('isSlave')) {
+            startable.push(c.get('componentName'));
+          }
         }
       });
       dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + startable.join(',') + ")";
@@ -300,9 +302,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param context  Context under which this command is beign sent. 
    */
   sendStopComponentCommand: function(component, context){
-    var url = component !== null ? 
+    var url = component !== null ?
         '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components';
+        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/passive_state=ACTIVE';
     var dataToSend = {
       RequestInfo : {
         "context" : context
@@ -317,8 +319,10 @@ App.MainHostDetailsController = Em.Controller.extend({
       var allComponents = this.get('content.hostComponents');
       var startable = [];
       allComponents.forEach(function (c) {
-        if (c.get('isMaster') || c.get('isSlave')) {
-          startable.push(c.get('componentName'));
+        if (c.get('passiveState') == 'ACTIVE') {
+          if (c.get('isMaster') || c.get('isSlave')) {
+            startable.push(c.get('componentName'));
+          }
         }
       });
       dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + startable.join(',') + ")";
@@ -994,8 +998,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   doRestartAllComponents: function() {
-    var self = this;
-    var components = this.get('content.hostComponents');
+    var components = this.get('content.hostComponents').filterProperty('passiveState','ACTIVE');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {

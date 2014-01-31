@@ -70,7 +70,7 @@ module.exports = {
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly) {
     var service = App.Service.find(serviceName);
     if (service) {
-      var hostComponents = service.get('hostComponents');
+      var hostComponents = service.get('hostComponents').filterProperty('passiveState','ACTIVE');
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
@@ -263,13 +263,10 @@ module.exports = {
    * Retrieves the latest information about a specific request schedule
    * identified by 'requestScheduleId'
    *
-   * @param {Number}
-   *          requestScheduleId ID of the request schedule to get
-   * @param {Function}
-   *          successCallback Called with request_schedule data from server. An
+   * @param {Number} requestScheduleId ID of the request schedule to get
+   * @param {Function} successCallback Called with request_schedule data from server. An
    *          empty object returned for invalid ID.
-   * @param {Function}
-   *          errorCallback Optional error callback. Default behavior is to
+   * @param {Function} errorCallback Optional error callback. Default behavior is to
    *          popup default error dialog.
    */
   getRequestSchedule: function(requestScheduleId, successCallback, errorCallback) {
@@ -286,7 +283,7 @@ module.exports = {
           }
         },
         data : {
-          request_schedule_id : requestScheduleId,
+          request_schedule_id : requestScheduleId
         },
         success : 'successCallbackFunction',
         error : 'errorCallbackFunction'
@@ -299,12 +296,9 @@ module.exports = {
   /**
    * Attempts to abort a specific request schedule identified by 'requestScheduleId'
    *
-   * @param {Number}
-   *          requestScheduleId ID of the request schedule to get
-   * @param {Function}
-   *          successCallback Called when request schedule successfully aborted
-   * @param {Function}
-   *          errorCallback Optional error callback. Default behavior is to
+   * @param {Number} requestScheduleId ID of the request schedule to get
+   * @param {Function} successCallback Called when request schedule successfully aborted
+   * @param {Function} errorCallback Optional error callback. Default behavior is to
    *          popup default error dialog.
    */
   doAbortRequestSchedule: function(requestScheduleId, successCallback, errorCallback) {
@@ -321,7 +315,7 @@ module.exports = {
           }
         },
         data : {
-          request_schedule_id : requestScheduleId,
+          request_schedule_id : requestScheduleId
         },
         success : 'successCallbackFunction',
         error : 'errorCallbackFunction'

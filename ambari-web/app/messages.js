@@ -1816,7 +1816,7 @@ Em.I18n.translations = {
 
   'rolling.command.context': 'Rolling set {0} to state "{1}" - batch {2} of {3}',
   'rolling.nothingToDo.header': 'Nothing to do',
-  'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state.',
+  'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state or in passive mode.',
 
   'restart.service.all': 'Restart All',
   'restart.service.rest.context': 'Restart {1}s ({0})',

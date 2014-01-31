@@ -1467,7 +1467,7 @@ var urls = {
         data: JSON.stringify({
           RequestInfo: {
             context: data.requestInfo,
-            query: 'HostRoles/component_name=' + data.componentName + '&HostRoles/host_name.in(' + data.hostNames + ')'
+            query: 'HostRoles/component_name=' + data.componentName + '&HostRoles/host_name.in(' + data.hostNames + ')&HostRoles/passive_state=ACTIVE'
           },
           Body: {
             HostRoles: {
