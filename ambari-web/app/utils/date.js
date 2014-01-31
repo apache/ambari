@@ -32,7 +32,7 @@ module.exports = {
    */
   dateFormat:function (timestamp) {
     if (!validator.isValidInt(timestamp)) return timestamp;
-    var date = new Date(timestamp * 1);
+    var date = new Date(timestamp);
     var months = this.dateMonths;
     var days = this.dateDays;
     return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
@@ -45,7 +45,7 @@ module.exports = {
   dateFormatShort: function(timestamp) {
     if (!validator.isValidInt(timestamp)) return timestamp;
 
-    var date = new Date(timestamp*1);
+    var date = new Date(timestamp);
     var today = new Date();
     if (date.toDateString() === today.toDateString()) {
       return 'Today ' + date.toLocaleTimeString();
@@ -59,7 +59,7 @@ module.exports = {
    */
   startTime: function (startTimestamp) {
     if (!validator.isValidInt(startTimestamp)) return '';
-    var startDate = new Date(startTimestamp * 1);
+    var startDate = new Date(startTimestamp);
     var months = this.dateMonths;
     var days = this.dateDays;
     // generate start time
@@ -67,7 +67,7 @@ module.exports = {
       return 'Not started';
     }
     var startTimeSummary = '';
-    if (new Date(startTimestamp * 1).setHours(0, 0, 0, 0) == new Date().setHours(0, 0, 0, 0) ) { //today
+    if (new Date(startTimestamp).setHours(0, 0, 0, 0) == new Date().setHours(0, 0, 0, 0) ) { //today
       startTimeSummary = 'Today ' + this.dateFormatZeroFirst(startDate.getHours()) + ':' + this.dateFormatZeroFirst(startDate.getMinutes());
     } else {
       startTimeSummary =  days[startDate.getDay()] + ' ' + months[startDate.getMonth()] + ' ' + this.dateFormatZeroFirst(startDate.getDate()) + ' ' + startDate.getFullYear() + ' '
@@ -86,8 +86,8 @@ module.exports = {
   durationSummary: function (startTimestamp, endTimestamp) {
     // generate duration
     var durationSummary = '';
-    var startDate = new Date(startTimestamp * 1);
-    var endDate = new Date(endTimestamp * 1);
+    var startDate = new Date(startTimestamp);
+    var endDate = new Date(endTimestamp);
     if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
       return '';
     }
@@ -146,10 +146,8 @@ module.exports = {
    * is not given, duration will be 0. If end time is not given, duration will
    * be till now.
    *
-   * @param {Number}
-   *          startTime Start time from epoch
-   * @param {Number}
-   *          endTime End time from epoch
+   * @param {Number} startTime Start time from epoch
+   * @param {Number} endTime End time from epoch
    * @return {Number} duration
    */
   duration : function(startTime, endTime) {

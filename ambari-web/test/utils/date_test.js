@@ -24,13 +24,13 @@ var date = require('utils/date');
 
 describe('date', function () {
 
-  var correct_tests = [
+  var correct_tests = Em.A([
     {t: 1349752195000, e: 'Tue, Oct 09, 2012 06:09', e2: 'Tue Oct 09 2012'},
     {t: 1367752195000, e: 'Sun, May 05, 2013 14:09', e2: 'Sun May 05 2013'},
     {t: 1369952195000, e: 'Fri, May 31, 2013 01:16', e2: 'Fri May 31 2013'}
-  ];
+  ]);
 
-  var incorrect_tests = [
+  var incorrect_tests = Em.A([
     {t: null},
     {t: ''},
     {t: false},
@@ -38,7 +38,7 @@ describe('date', function () {
     {t: {}},
     {t: undefined},
     {t: function(){}}
-  ];
+  ]);
 
   describe('#dateFormat', function() {
     it('Correct timestamps', function(){
@@ -72,7 +72,7 @@ describe('date', function () {
   });
 
   describe('#timingFormat', function() {
-    var tests = [
+    var tests = Em.A([
       {i: '30', e:'30 ms'},
       {i: '300', e:'300 ms'},
       {i: '999', e:'999 ms'},
@@ -87,7 +87,7 @@ describe('date', function () {
       {i: '350000000', e:'4.05 days'},
       {i: '3500000000', e:'40.51 days'},
       {i: '35000000000', e:'405.09 days'}
-    ];
+    ]);
 
     it('Correct data', function(){
       tests.forEach(function(test) {
@@ -101,6 +101,18 @@ describe('date', function () {
       });
     });
 
+  });
+
+  describe('#duration', function() {
+    var tests = Em.A([
+      {startTime: 1, endTime: 2, e: 1},
+      {startTime: 0, endTime: 2000, e: 0}
+    ]);
+    tests.forEach(function(test) {
+      it(test.startTime + ' ' + test.endTime, function() {
+        expect(date.duration(test.startTime, test.endTime)).to.equal(test.e);
+      });
+    });
   });
 
 });

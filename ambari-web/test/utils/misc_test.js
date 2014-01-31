@@ -21,7 +21,7 @@ var misc = require('utils/misc');
 describe('misc', function () {
 
   describe('#formatBandwidth', function () {
-    var tests = [
+    var tests = Em.A([
       {m:'undefined to undefined',i:undefined,e:undefined},
       {m:'0 to <1KB',i:'0',e:'<1KB'},
       {m:'1000 to <1KB',i:'1000',e:'<1KB'},
@@ -30,7 +30,7 @@ describe('misc', function () {
       {m:'1048576 to 1.0MB',i:'1048576',e:'1.0MB'},
       {m:'1782579 to 1.7MB',i:'1782579',e:'1.7MB'},
       {m:'1546188226 to 1.44GB',i:'1546188226',e:'1.44GB'}
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
         expect(misc.formatBandwidth(test.i)).to.equal(test.e);
@@ -42,16 +42,44 @@ describe('misc', function () {
   });
 
   describe('#ipToInt', function () {
-    var tests = [
+    var tests = Em.A([
       {m:'0.0.0.0 to 0',i:'0.0.0.0',e:0},
       {m:'255.255.255.255 to 4294967295',i:'255.255.255.255',e:4294967295},
       {m:'"" to false',i:'',e:false},
       {m:'255.255.255.256 to false',i:'255.255.255.256',e:false},
       {m:'255.255.255 to false',i:'255.255.255',e:false}
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
         expect(misc.ipToInt(test.i)).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#sortByOrder', function() {
+    var tests = Em.A([
+      {
+        sortOrder: ['b', 'c', 'a'],
+        array: [{id:'a'}, {id:'b'}, Em.Object.create({id:'c'})],
+        e: [{id:'b'}, Em.Object.create({id:'c'}), {id:'a'}],
+        m: 'Array with Ember and native objects'
+      },
+      {
+        sortOrder: ['b', 'c', 'a'],
+        array: [{id:'a'}, {id:'b'}, {id:'c'}],
+        e: [{id:'b'}, {id:'c'}, {id:'a'}],
+        m: 'Array with native objects'
+      },
+      {
+        sortOrder: ['b', 'c', 'a'],
+        array: [Em.Object.create({id:'a'}), Em.Object.create({id:'b'}), Em.Object.create({id:'c'})],
+        e: [Em.Object.create({id:'b'}), Em.Object.create({id:'c'}), Em.Object.create({id:'a'})],
+        m: 'Array with Ember objects'
+      }
+    ]);
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(misc.sortByOrder(test.sortOrder, test.array)).to.eql(test.e);
       });
     });
   });

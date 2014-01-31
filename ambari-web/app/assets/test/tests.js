@@ -71,6 +71,7 @@ require('test/utils/config_test');
 require('test/utils/date_test');
 require('test/utils/form_field_test');
 require('test/utils/misc_test');
+require('test/utils/number_utils_test');
 require('test/utils/validator_test');
 require('test/utils/config_test');
 require('test/utils/string_utils_test');
