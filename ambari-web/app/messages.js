@@ -181,7 +181,9 @@ Em.I18n.translations = {
   'common.url': 'URL',
   'common.advanced': 'Advanced',
   'common.download': 'Download',
-
+  'common.hostLog.popup.logDir.path':'/var/lib/ambari-agent/data/',
+  'common.hostLog.popup.outputLog.value': 'output-{0}.txt',
+  'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
   'passiveState.turnOn':'Turn On Passive Mode',
   'passiveState.turnOff':'Turn Off Passive Mode',
   'passiveState.turnOnFor':'Turn On Passive Mode for',

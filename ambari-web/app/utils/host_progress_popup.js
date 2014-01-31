@@ -267,10 +267,12 @@ App.HostPopup = Em.Object.create({
   createTask: function (_task) {
     return Ember.Object.create({
       id: _task.Tasks.id,
-      hostName: _task.Tasks.hostName,
+      hostName: _task.Tasks.host_name,
       command: ( _task.Tasks.command.toLowerCase() != 'service_check') ? _task.Tasks.command.toLowerCase() : '',
       status: App.format.taskStatus(_task.Tasks.status),
       role: App.format.role(_task.Tasks.role),
+      outputLog: Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.outputLog.value').format(_task.Tasks.id),
+      errorLog: Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.errorLog.value').format(_task.Tasks.id),
       stderr: _task.Tasks.stderr,
       stdout: _task.Tasks.stdout,
       isVisible: true,

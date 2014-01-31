@@ -190,9 +190,9 @@
       <div class="content-area" >
         <div class="task-detail-log-clipboard-wrap" ></div>
         <div class="task-detail-log-maintext">
-          <h5>stderr:</h5>
+          <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
           <pre class="stderr">{{view.openedTask.stderr}}</pre>
-          <h5>stdout:</h5>
+          <h5>stdout: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span> </h5>
           <pre class="stdout">{{view.openedTask.stdout}}</pre>
         </div>
       </div>
