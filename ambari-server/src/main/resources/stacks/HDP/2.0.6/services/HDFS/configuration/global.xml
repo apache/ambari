@@ -107,11 +107,6 @@
     <description>HDFS Maximum Checkpoint Delay</description>
   </property>
   <property>
-    <name>fs_checkpoint_size</name>
-    <value>0.5</value>
-    <description>FS Checkpoint Size.</description>
-  </property>
-  <property>
     <name>proxyuser_group</name>
     <value>users</value>
     <description>Proxy user group.</description>
