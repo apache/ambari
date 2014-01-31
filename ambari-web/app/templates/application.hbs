@@ -44,11 +44,13 @@
                 {{App.router.loginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
+                <li><a href="" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
                 {{#if isClusterDataLoaded}}
                   {{#if App.isAdmin}}
                     <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
                   {{/if}}
                 {{/if}}
+                <li class="break"></li>
                 <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>
               </ul>
             </div>

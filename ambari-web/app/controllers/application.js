@@ -27,6 +27,10 @@ App.ApplicationController = Em.Controller.extend({
     return (App.router.get('clusterController.clusterName') || 'My Cluster');
   }.property('App.router.clusterController.clusterName'),
 
+  ambariVersion: function () {
+    return (App.router.get('clusterController.ambariVersion') || Em.I18n.t('common.notAvailable'));
+  }.property('App.router.clusterController.ambariVersion'),
+
   clusterDisplayName: function () {
     var name = this.get('clusterName');
     return name.length > 13 ? name.substr(0, 10) + "..." : name;
@@ -138,6 +142,19 @@ App.ApplicationController = Em.Controller.extend({
         }
       })
     });
+  },
+
+  showAboutPopup: function() {
+
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.aboutAmbari'),
+      secondary: false,
+      bodyClass: Em.View.extend({
+        templateName: require('templates/common/about'),
+        ambariVersion: this.get('ambariVersion')
+      })
+    });    
   }
 
 });

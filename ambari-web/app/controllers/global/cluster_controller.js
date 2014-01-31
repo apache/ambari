@@ -23,6 +23,7 @@ App.ClusterController = Em.Controller.extend({
   cluster:null,
   isLoaded:false,
   ambariProperties: null,
+  ambariVersion: null,
   clusterDataLoadedPercent: 'width:0', // 0 to 1
   /**
    * Whether we need to update statuses automatically or not
@@ -362,6 +363,7 @@ App.ClusterController = Em.Controller.extend({
   loadAmbariPropertiesSuccess: function(data) {
     console.log('loading ambari properties');
     this.set('ambariProperties', data.RootServiceComponents.properties);
+    this.set('ambariVersion', data.RootServiceComponents.component_version);
   },
 
   loadAmbariPropertiesError: function() {

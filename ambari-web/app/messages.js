@@ -26,8 +26,13 @@ Em.I18n.translations = {
   'app.loadingPlaceholder': 'Loading...',
   'app.signout':'Sign out',
   'app.settings':'Settings',
+  'app.aboutAmbari':'About',
   'app.settings.notshowBgOperationsPopup': 'Do not show the Background Operations dialog when starting an operation',
   'app.settings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
+
+  'app.aboutAmbari.getInvolved': 'Get involved!',
+  'app.aboutAmbari.version': 'Version',
+  'app.aboutAmbari.licensed': 'Licensed under the Apache License, Version 2.0',
 
   'apply':'apply',
   'and':'and',
@@ -139,6 +144,8 @@ Em.I18n.translations = {
   'common.abort': 'Abort',
   'common.misc': 'Misc',
   'common.userSettings': 'User Settings',
+  'common.aboutAmbari': 'About',
+  'common.notAvailable': 'Not Available',
   'common.operations': 'Operations',
   'common.startTime': 'Start Time',
   'common.duration': 'Duration',
