@@ -15,96 +15,83 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div>
-  {{#if App.isAdmin}}
-    <div class="mirroring-top-nav pull-right btn-group">
-      <button class="btn">{{t common.actions}}</button>
-      <button class="btn dropdown-toggle" data-toggle="dropdown">
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu pull-left">
-        <li>
-          <a  href="javascript:void(null);" {{action addNewDataset}}>
-            <i class="icon-plus"></i>&nbsp;{{t mirroring.dataset.createDataset}}
-          </a>
-        </li>
-        <li>
-          <a {{action manageClusters}} href="javascript:void(null);">
-            <i class="icon-cog"></i>&nbsp;{{t mirroring.dataset.manageClusters}}...
-          </a>
-        </li>
-      </ul>
-    </div>
-  {{/if}}
-</div>
 <div id="mirroring">
-  <table class="table table-bordered table-striped">
-    <thead>
-    <tr>
-      {{#view view.sortView contentBinding="view.filteredContent"}}
-        <th class="first"> </th>
-        {{view view.parentView.nameSort}}
-        {{view view.parentView.sourceSort}}
-        {{view view.parentView.targetSort}}
-        {{view view.parentView.clusterSort}}
-        {{view view.parentView.lastSuccessSort}}
-        {{view view.parentView.nextInstanceSort}}
-      {{/view}}
-    </tr>
-    <tr>
-      <th class="first"> </th>
-      <th>{{view view.nameFilterView}}</th>
-      <th>{{view view.datasetSourceFilterView}}</th>
-      <th>{{view view.datasetTargetFilterView}}</th>
-      <th>{{view view.clusterFilterView}}</th>
-      <th>{{view view.lastSuccessFilterView}}</th>
-      <th>{{view view.nextInstanceFilterView}}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#if controller.isLoaded}}
-      {{#if view.pageContent}}
-        {{#each dataset in view.pageContent}}
-          {{#view view.DatasetView contentBinding="dataset"}}
+  <div class="row-fluid">
+    <div class="span4">
+      <div>
+        <div class="pull-left">
+          <h4>{{t mirroring.dataset.dataSets}}</h4>
+        </div>
+        {{#if App.isAdmin}}
+          <div class="mirroring-top-nav pull-right btn-group">
+            <button class="btn">{{t common.actions}}</button>
+            <button class="btn dropdown-toggle" data-toggle="dropdown">
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-left">
+              <li>
+                <a href="javascript:void(null);" {{action addNewDataset}}>
+                  <i class="icon-plus"></i>&nbsp;{{t mirroring.dataset.createDataset}}
+                </a>
+              </li>
+              <li>
+                <a {{action manageClusters}} href="javascript:void(null);">
+                  <i class="icon-cog"></i>&nbsp;{{t mirroring.dataset.manageClusters}}...
+                </a>
+              </li>
+            </ul>
+          </div>
+        {{/if}}
+      </div>
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          {{#view view.sortView contentBinding="view.filteredContent"}}
+          <th class="first"></th>
+          {{view view.parentView.nameSort}}
+          {{view view.parentView.statusSort}}
+          {{/view}}
+        </tr>
+        <tr>
+          <th class="first"></th>
+          <th>{{view view.nameFilterView}}</th>
+          <th>{{view view.statusFilterView}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if controller.isLoaded}}
+          {{#if view.pageContent}}
+            {{#each dataset in view.pageContent}}
+            {{#view view.DatasetView contentBinding="dataset"}}
             <td class="first">
               <span {{bindAttr class="dataset.healthClass"}}></span>
             </td>
             <td class="name">
               <a title="{{unbound dataset.name}}" href="#" {{action "gotoShowJobs" dataset}}>{{unbound dataset.name}}</a>
             </td>
-            <td>{{dataset.sourceDir}}</td>
-            <td>{{dataset.targetDir}}</td>
-            <td>{{dataset.targetClusterName}}</td>
-            <td>{{view.lastSucceededDateFormatted}}</td>
-            <td>{{dataset.nextInstance}}</td>
-          {{/view}}
-        {{/each}}
-      {{else}}
-        <tr>
-          <td class="first"></td>
-          <td colspan="6">
-            {{t mirroring.table.noDatasets}}
-          </td>
-        </tr>
-      {{/if}}
-    {{else}}
-      <tr>
-        <td colspan="7">
-          <div class="spinner"></div>
-        </td>
-      </tr>
-      {{/if}}
-    </tbody>
-  </table>
-
-  <div class="page-bar">
-    <div class="items-on-page">
-      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+            <td><span {{bindAttr class="dataset.isRunning:text-info dataset.isSuspended:text-warning"}}>{{dataset.statusFormatted}}</span></td>
+            {{/view}}
+            {{/each}}
+          {{else}}
+            <tr>
+              <td class="first"></td>
+              <td colspan="2">
+                {{t mirroring.table.noDatasets}}
+              </td>
+            </tr>
+          {{/if}}
+        {{else}}
+          <tr>
+            <td colspan="3">
+              <div class="spinner"></div>
+            </td>
+          </tr>
+        {{/if}}
+        </tbody>
+      </table>
     </div>
-    <div class="info">{{view.paginationInfo}}</div>
-    <div class="paging_two_button">
-      {{view view.paginationLeft}}
-      {{view view.paginationRight}}
+    <div class="span8 jobs-container">
+      {{view App.MainDatasetJobsView controllerBinding="App.router.mainDatasetJobsController"}}
     </div>
   </div>
 </div>

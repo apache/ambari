@@ -39,45 +39,15 @@ App.MainDatasetsView = App.TableView.extend({
     return this.get('controller.targetClusters');
   }.property('controller.targetClusters'),
 
-  showClusterPopup: function (event) {
-    return App.ModalPopup.show({
-      header: Em.I18n.t('mirroring.sidebar.popup.clusters.header'),
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile("{{t mirroring.sidebar.popup.clusters.body}}")
-      })
-    });
-  },
-
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
     name: 'name',
     displayName: Em.I18n.t('common.name')
   }),
 
-  sourceSort: sort.fieldView.extend({
-    name: 'sourceDir',
-    displayName: Em.I18n.t('mirroring.table.datasetSource')
-  }),
-
-  targetSort: sort.fieldView.extend({
-    name: 'targetDir',
-    displayName: Em.I18n.t('mirroring.table.datasetTarget')
-  }),
-
-  clusterSort: sort.fieldView.extend({
-    name: 'targetClusterName',
-    displayName: Em.I18n.t('common.cluster')
-  }),
-
-  lastSuccessSort: sort.fieldView.extend({
-    name: 'lastSucceededDate',
-    displayName: Em.I18n.t('mirroring.table.lastSuccess'),
-    type: 'number'
-  }),
-
-  nextInstanceSort: sort.fieldView.extend({
-    name: 'nextInstance',
-    displayName: Em.I18n.t('mirroring.table.nextInstance')
+  statusSort: sort.fieldView.extend({
+    name: 'status',
+    displayName: Em.I18n.t('mirroring.table.datasetStatus')
   }),
 
   /**
@@ -92,28 +62,10 @@ App.MainDatasetsView = App.TableView.extend({
     }
   }),
 
-  datasetSourceFilterView: filters.createTextView({
+  statusFilterView: filters.createSelectView({
     fieldType: 'input-medium',
     column: 2,
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
-    }
-  }),
-
-  datasetTargetFilterView: filters.createTextView({
-    fieldType: 'input-medium',
-    column: 3,
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
-    }
-  }),
-
-  clusterFilterView: filters.createSelectView({
-    fieldType: 'input-medium',
-    column: 4,
-    content: function () {
-      return ['Any'].concat(this.get('parentView.content').mapProperty('targetClusterName').uniq());
-    }.property('this.parentView.content'),
+    content: ['Any', 'Scheduled', 'Suspended', 'Running'],
     onClearValue: function () {
       if (this.get('value') === '') {
         this.set('value', 'Any');
@@ -128,26 +80,15 @@ App.MainDatasetsView = App.TableView.extend({
     }
   }),
 
-  lastSuccessFilterView: filters.createSelectView({
-    fieldType: 'input-medium',
-    column: 5,
-    content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
-    }
-  }),
-
-  nextInstanceFilterView: filters.createTextView({
-    fieldType: 'input-small',
-    column: 6,
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
-    }
-  }),
-
   DatasetView: Em.View.extend({
     content: null,
     tagName: 'tr',
+
+    classNameBindings: ['selectedClass'],
+
+    selectedClass: function () {
+      return this.get('controller.selectedDataset.id') === this.get('content.id') ? 'dataset-selected' : '';
+    }.property('controller.selectedDataset'),
 
     lastDurationFormatted: function () {
       var milliseconds = this.get('content.lastDuration');
@@ -176,11 +117,7 @@ App.MainDatasetsView = App.TableView.extend({
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'name';
-    associations[2] = 'sourceDir';
-    associations[3] = 'targetDir';
-    associations[4] = 'targetClusterName';
-    associations[5] = 'lastSucceededDate';
-    associations[6] = 'nextInstance';
+    associations[2] = 'status';
     return associations;
   }.property()
 

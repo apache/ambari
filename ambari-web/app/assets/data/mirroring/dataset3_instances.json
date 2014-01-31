@@ -1,1 +1,22 @@
-{"status": "SUCCEEDED", "message": "default/STATUS\n", "requestId": "default/a7463898-4d2a-4857-866d-15fdf65da84f\n", "instances": []}
+{"status": "SUCCEEDED", "message": "default/STATUS\n", "requestId": "default/a7463898-4d2a-4857-866d-15fdf65da84f\n", "instances": [
+  {
+    "instance": "2014-10-24T00:00Z",
+    "status": "FAILED",
+    "logFile": "http://c6407.ambari.apache.org:11000/oozie?job=0000004-140108205147729-oozie-oozi-W",
+    "cluster": "mcluster-bcp",
+    "sourceCluster": "mcluster",
+    "startTime": "2014-01-09T06:23:33Z",
+    "endTime": "2014-01-09T06:24:29Z",
+    "details": ""
+  },
+  {
+    "instance": "2014-10-24T01:00Z",
+    "status": "SUSPENDED",
+    "logFile": "http://c6407.ambari.apache.org:11000/oozie?job=0000005-140108205147729-oozie-oozi-W",
+    "cluster": "mcluster-bcp",
+    "sourceCluster": "mcluster",
+    "startTime": "2014-01-09T06:25:35Z",
+    "endTime": "2014-01-09T06:26:02Z",
+    "details": ""
+  }
+]}

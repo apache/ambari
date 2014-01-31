@@ -116,13 +116,19 @@ App.MainMirroringController = Em.ArrayController.extend({
     }, this);
     this.get('datasetsData').findProperty('name', opts.dataset).set('instances', datasetJobs);
     this.set('datasetCount', this.get('datasetCount') - 1);
+    var sortedDatasets = [];
     if (this.get('datasetCount') < 1) {
       App.dataSetMapper.map(this.get('datasetsData'));
-      this.set('datasets', App.Dataset.find().toArray().sort(function(a,b){
-        return a.get('name') - b.get('name');
-      }));
+      sortedDatasets = App.Dataset.find().toArray().sort(function (a, b) {
+        if (a.get('name') < b.get('name'))  return -1;
+        if (a.get('name') > b.get('name'))  return 1;
+        return 0;
+      });
+      this.set('datasets', sortedDatasets);
       this.set('isLoaded', true);
     }
+    var selectedDataset = this.get('selectedDataset');
+    App.router.transitionTo('showDatasetJobs', selectedDataset || sortedDatasets[0]);
   },
 
   onLoadDatasetsInstancesError: function () {

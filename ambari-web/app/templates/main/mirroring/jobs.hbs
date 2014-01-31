@@ -15,109 +15,137 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="row-fluid">
-    <div class="top-portion">
-      <div class="pull-left">
-        <strong>{{view.dataset.name}}</strong>
-        <a class="pull-left" href="#/main/mirroring">&larr; {{t common.back}}</a>
-      </div>
-      {{#if App.isAdmin}}
-        <div class="switcher pull-right">
-          {{#if isScheduled}}
-            <span class="heatmap-host">
-                <a href="javascript:void(null)" data-toggle="modal"
-                   class="btn btn-danger enabled" {{action "suspend" target="controller"}}>
-                  <i class="icon-pause"></i>
-                  {{actionDesc}}
-                </a>
-                <span>{{content.status}}&nbsp;</span>
-              </span>
+<div class="dataset-details">
+  <div class="top-left">
+    <h4>{{view.dataset.name}}</h4>
+  </div>
+  <div class="bottom-left">
+    <table>
+      <tr>
+        <td>{{t mirroring.dataset.source}}:</td>
+        <td>{{view.dataset.sourceClusterName}}</td>
+        <td>{{view.dataset.sourceDir}}</td>
+      </tr>
+      <tr>
+        <td>{{t mirroring.dataset.target}}:</td>
+        <td>{{view.dataset.targetClusterName}}</td>
+        <td>{{view.dataset.targetDir}}</td>
+      </tr>
+    </table>
+  </div>
+  {{#if App.isAdmin}}
+    <div class="top-right">
+      <div class="btn-group pull-right">
+        <button class="btn">{{t common.actions}}</button>
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu pull-right">
+          {{#if view.dataset.isRunning}}
+            <li>
+              <a href="javascript:void(null);">
+                {{t mirroring.dataset.suspendInstance}}
+              </a>
+            </li>
+            <li>
+              <a href="javascript:void(null);">
+                {{t mirroring.dataset.killInstance}}
+              </a>
+            </li>
           {{else}}
-            <span>
-                <span>&nbsp;{{content.status}}</span>
-                <a href="javascript:void(null)" data-toggle="modal"
-                   class="btn btn-success" {{action "schedule" target="controller"}}>
-                  <i class="icon-play"></i>
-                  {{actionDesc}}
+            {{#if view.dataset.isSuspended}}
+              <li>
+                <a href="javascript:void(null);">
+                  {{t mirroring.dataset.schedule}}
                 </a>
-              </span>
+              </li>
+            {{else}}
+              <li>
+                <a href="javascript:void(null);">
+                  {{t mirroring.dataset.suspend}}
+                </a>
+              </li>
+            {{/if}}
+            <li>
+              <a href="javascript:void(null);">
+                {{t common.edit}}
+              </a>
+            </li>
+            <li>
+              <a href="javascript:void(null);">
+                {{t common.delete}}
+              </a>
+            </li>
           {{/if}}
-        </div>
+        </ul>
+      </div>
+      <span {{bindAttr class=":label view.dataset.isRunning:label-info  view.dataset.isSuspended:label-warning  view.dataset.isScheduled:label-success :pull-right :dataset-status"}}>
+        {{view.dataset.statusFormatted}}</span>
+    </div>
+  {{/if}}
+  <div class="bottom-right">{{t common.download}}: <a href="javascript:void(null);">{{view.dataset.name}}.xml</a></div>
+</div>
+<div>
+  <table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+      {{#view view.sortView contentBinding="view.filteredContent"}}
+      <th class="first"></th>
+      {{view view.parentView.idSort}}
+      {{view view.parentView.startSort}}
+      {{view view.parentView.endSort}}
+      {{/view}}
+    </tr>
+    <tr>
+      <th class="first"></th>
+      <th>{{view view.idFilterView}}</th>
+      <th>{{view view.startFilterView}}</th>
+      <th>{{view view.endFilterView}}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#if controller.isLoaded}}
+      {{#if view.pageContent}}
+        {{#each job in view.pageContent}}
+        {{#view view.JobView contentBinding="job"}}
+
+        <td class="first">
+          <span {{ bindAttr class="job.healthClass"}}></span>
+        </td>
+
+        <td>{{unbound job.id}}</td>
+        <td>{{unbound job.startFormatted}}</td>
+        <td>{{unbound job.endFormatted}}</td>
+        {{/view}}
+        {{/each}}
+      {{else}}
+        <tr>
+          <td class="first"></td>
+          <td colspan="3">
+            {{t mirroring.table.noJobs}}
+          </td>
+        </tr>
       {{/if}}
-      <br />
+    {{else}}
+      <tr>
+        <td colspan="4">
+          <div class="spinner"></div>
+        </td>
+      </tr>
+    {{/if}}
+    </tbody>
+  </table>
+  {{#if controller.isLoaded}}
+    <div class="page-bar">
+      <div class="items-on-page">
+        <label>{{t common.show}}
+          : {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+      </div>
+      <div class="info">{{view.paginationInfo}}</div>
+      <div class="paging_two_button">
+        {{view view.paginationLeft}}
+        {{view view.paginationRight}}
+      </div>
     </div>
-    <div class="jobs-sidebar">
-        <h5>{{t common.details}}
-        </h5>
-        <hr/>
-        <p>{{t mirroring.dataset.target}}: <span class="pull-right">{{view.dataset.targetCluster.clusterName}}</span></p>
-        <p>{{t mirroring.dataset.sourceDir}}: <span class="pull-right">{{view.dataset.sourceDir}}</span></p>
-        <p>{{t mirroring.dataset.filespec}}: <span class="pull-right">{{view.dataset.filespec}}</span></p>
-
-    </div>
-    <div class="jobs-middleportion">
-        <div id="mirroring">
-            <table class="table table-bordered table-striped">
-                <thead>
-                <tr>
-                  {{#view view.sortView contentBinding="view.filteredContent"}}
-                      <th class="first"></th>
-                    {{view view.parentView.idSort}}
-                    {{view view.parentView.startSort}}
-                    {{view view.parentView.endSort}}
-                  {{/view}}
-                </tr>
-                <tr>
-                    <th class="first"></th>
-                    <th>{{view view.idFilterView}}</th>
-                    <th>{{view view.startFilterView}}</th>
-                    <th>{{view view.endFilterView}}</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{#if controller.isLoaded}}
-                  {{#if view.pageContent}}
-                    {{#each job in view.pageContent}}
-                      {{#view view.JobView contentBinding="job"}}
-
-                      <td class="first">
-                        <span {{ bindAttr class="job.healthClass"}}></span>
-                      </td>
-
-                      <td>{{unbound job.id}}</td>
-                      <td>{{unbound job.startFormatted}}</td>
-                      <td>{{unbound job.endFormatted}}</td>
-                      {{/view}}
-                    {{/each}}
-                  {{else}}
-                  <tr>
-                      <td class="first"></td>
-                      <td colspan="6">
-                        {{t mirroring.table.noJobs}}
-                      </td>
-                  </tr>
-                  {{/if}}
-                {{else}}
-                  <tr>
-                    <td colspan="7">
-                      <div class="spinner"></div>
-                    </td>
-                  </tr>
-                {{/if}}
-                </tbody>
-            </table>
-
-            <div class="page-bar">
-                <div class="items-on-page">
-                    <label>{{t common.show}}
-                        : {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-                </div>
-                <div class="info">{{view.paginationInfo}}</div>
-                <div class="paging_two_button">
-                  {{view view.paginationLeft}}
-                  {{view view.paginationRight}}
-                </div>
-            </div>
-        </div>
-    </div>
+  {{/if}}
 </div>

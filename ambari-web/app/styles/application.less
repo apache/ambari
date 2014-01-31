@@ -3908,6 +3908,9 @@ ul.filter {
       background-image: @status-dead-red-marker;
       .status-dot-position;
     }
+    .dataset-selected {
+      background-color: #E6F1F6;
+    }
   }
 
   .box-footer .footer-pagination {
@@ -3950,6 +3953,46 @@ ul.filter {
           }
         }
       }
+    }
+  }
+  .jobs-container {
+    margin-top: 50px;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    padding: 10px
+  }
+  .dataset-details {
+    position: relative;
+    height: 100px;
+    .top-right {
+      position: absolute;
+      top: 0;
+      right: 10px;
+    }
+    .top-left {
+      position: absolute;
+      top: 0;
+      left: 10px;
+    }
+    .bottom-right {
+      position: absolute;
+      bottom: 5px;
+      right: 10px;
+    }
+    .bottom-left {
+      position: absolute;
+      bottom: 5px;
+      left: 10px;
+    }
+    .dataset-status {
+      padding: 8px;
+      font-size: 16px;
+      margin-right: 5px;
+    }
+    td {
+      padding: 0 15px 0 0;
     }
   }
 }

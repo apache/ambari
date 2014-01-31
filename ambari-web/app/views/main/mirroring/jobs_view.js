@@ -26,13 +26,6 @@ App.MainDatasetJobsView = App.TableView.extend({
     return this.get('controller.jobs');
   }.property('controller.jobs'),
 
-  didInsertElement: function () {
-    var mainMirroringController = App.router.get('mainMirroringController');
-    if (!mainMirroringController.get('isLoaded')) {
-      mainMirroringController.loadDatasets();
-    }
-  },
-
   dataset: function () {
     return this.get('controller.content');
   }.property('controller.content'),

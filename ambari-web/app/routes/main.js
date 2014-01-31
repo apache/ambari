@@ -128,9 +128,22 @@ module.exports = Em.Route.extend({
   mirroring: Em.Route.extend({
     route: '/mirroring',
     index: Ember.Route.extend({
-      route: '/',
-      connectOutlets: function (router, context) {
-        router.get('mainController').connectOutlet('mainMirroring');
+      route: '/'
+    }),
+
+    connectOutlets: function (router) {
+      router.get('mainController').connectOutlet('mainMirroring');
+    },
+
+    gotoShowJobs: function (router, event) {
+      router.transitionTo('showDatasetJobs', event.context);
+    },
+
+    showDatasetJobs: Em.Route.extend({
+      route: '/:dataset_id',
+      connectOutlets: function (router, dataset) {
+        router.get('mainDatasetJobsController').set('content', dataset);
+        router.get('mainMirroringController').set('selectedDataset', dataset);
       }
     }),
 
@@ -151,17 +164,6 @@ module.exports = Em.Route.extend({
       enter: function (router) {
         var controller = router.get('mainMirroringController');
         controller.manageClusters();
-      }
-    }),
-
-    gotoShowJobs: function (router, event) {
-      router.transitionTo('showDatasetJobs', event.context);
-    },
-
-    showDatasetJobs: Em.Route.extend({
-      route: '/dataset/:dataset_id',
-      connectOutlets: function (router, dataset) {
-        router.get('mainController').connectOutlet('mainJobs', dataset);
       }
     }),
 
