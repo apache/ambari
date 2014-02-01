@@ -20,9 +20,11 @@ package org.apache.ambari.server.controller.nagios;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.BaseProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
@@ -69,6 +72,13 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private static final String ALERT_SUMMARY_WARNING_PROPERTY_ID = "alerts/summary/WARNING";
   private static final String ALERT_SUMMARY_CRITICAL_PROPERTY_ID = "alerts/summary/CRITICAL";
   
+  private static final List<String> IGNORABLE_FOR_SERVICES = new ArrayList<String>(
+      Arrays.asList("NodeManager health", "NodeManager process", "TaskTracker process",
+      "RegionServer process", "DataNode process", "DataNode space",
+      "ZooKeeper Server process"));
+  
+  private static final List<String> IGNORABLE_FOR_HOSTS = new ArrayList<String>(
+      Arrays.asList("percent"));
   
   // holds alerts for clusters.  clusterName -> AlertStates
   private static final Map<String, AlertState> CLUSTER_ALERTS = new ConcurrentHashMap<String, AlertState>();
@@ -105,6 +115,20 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   @Inject
   public static void init(Injector injector) {
     clusters = injector.getInstance(Clusters.class);
+    Configuration config = injector.getInstance(Configuration.class);
+    
+    String ignores = config.getProperty(Configuration.NAGIOS_IGNORE_FOR_SERVICES_KEY);
+    if (null != ignores) {
+      for (String str : ignores.split(","))
+        IGNORABLE_FOR_SERVICES.add(str);
+    }
+
+    ignores = config.getProperty(Configuration.NAGIOS_IGNORE_FOR_HOSTS_KEY);
+    if (null != ignores) {
+      for (String str : ignores.split(","))
+        IGNORABLE_FOR_HOSTS.add(str);
+    }
+    
   }  
   
   public NagiosPropertyProvider(Resource.Type type,
@@ -132,7 +156,6 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       Request request, Predicate predicate) throws SystemException {
 
     Set<String> propertyIds = getRequestPropertyIds(request, predicate);
-    
     
     for (Resource res : resources) {
       String matchValue = res.getPropertyValue(resourceTypeProperty).toString();
@@ -182,9 +205,21 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       switch (resourceType.getInternalType()) {
         case Service:
           match = alert.getService().equals(matchValue);
+          if (match && null != alert.getDescription() &&
+              IGNORABLE_FOR_SERVICES.contains(alert.getDescription())) {
+            match = false;
+          }
           break;
         case Host:
           match = alert.getHost().equals(matchValue);
+          if (match && null != alert.getDescription()) {
+            String desc = alert.getDescription();
+            Iterator<String> it = IGNORABLE_FOR_HOSTS.iterator();
+            while (it.hasNext() && match) {
+              if (-1 != desc.toLowerCase().indexOf(it.next()))
+                match = false;
+            }
+          }
           break;
         default:
           break;
