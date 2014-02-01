@@ -27,12 +27,8 @@ powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -comma
 
 echo Building GUI
 set msBuildDir=%WINDIR%\Microsoft.NET\Framework\v4.0.30319
-call %msBuildDir%\msbuild.exe "%cd%\src\GUI\GUI_Ambari.csproj"  || exit /b 1
-copy /y "%cd%\src\GUI\bin\Debug\GUI_Ambari.exe" "%cd%\src\bin\GUI_Ambari.exe" || exit /b 1
-
-echo Building Result Messagebox
-call %msBuildDir%\msbuild.exe "%cd%\src\Result\Ambari_Result.csproj"  || exit /b 1
-copy /y "%cd%\src\Result\bin\Debug\Ambari_Result.exe" "%cd%\src\bin\Ambari_Result.exe" || exit /b 1
+call %msBuildDir%\msbuild.exe "%cd%\src\GUI_Ambari\GUI_Ambari.csproj"  || exit /b 1
+copy /y "%cd%\src\GUI_Ambari\bin\Debug\GUI_Ambari.exe" "%cd%\src\bin\GUI_Ambari.exe" || exit /b 1
 
 echo Building MSI
 pushd "%cd%\src" || exit /b 1
@@ -45,14 +41,14 @@ echo Cleaning
 del /f /q "%cd%\src\ambari-scom.wixobj"  || exit /b 1
 del /f /q "%cd%\src\ambari-scom.wixpdb"  || exit /b 1
 del /f /q "%cd%\src\ambari-scom.msi"  || exit /b 1
+attrib -r -s -h "%cd%\src\GUI_Ambari.v11.suo" || exit /b 1
+del /f /q "%cd%\src\GUI_Ambari.v11.suo"  || exit /b 1
 del /f /q "%cd%\src\bin\GUI_Ambari.exe"  || exit /b 1
 del /f /q "%cd%\src\bin\Ambari_Result.exe"  || exit /b 1
 del /f /q "%cd%\src\AmbariPackages\ambari-winpkg.zip" || exit /b 1
 del /f /q "%cd%\src\AmbariPackages\ambari-winpkg\resources\*.jar"  || exit /b 1
 del /f /q "%cd%\src\AmbariPackages\ambari-winpkg\resources\*.zip"  || exit /b 1
 del /f /q "%cd%\src\AmbariPackages\ambari-winpkg\resources\Hadoop-Metrics-SQLServer-CREATE.ddl"  || exit /b 1
-rd /s /q "%cd%\src\GUI\bin"  || exit /b 1
-rd /s /q "%cd%\src\GUI\obj"  || exit /b 1
-rd /s /q "%cd%\src\Result\bin"  || exit /b 1
-rd /s /q "%cd%\src\Result\obj"  || exit /b 1
+rd /s /q "%cd%\src\GUI_Ambari\bin"  || exit /b 1
+rd /s /q "%cd%\src\GUI_Ambari\obj"  || exit /b 1
 echo Done

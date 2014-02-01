@@ -132,6 +132,7 @@ function Main( $scriptDir )
 	[Environment]::SetEnvironmentVariable("AMB_DATA_DIR", $destination, "Machine")
 	if (!(test-path $destination)) {New-Item -path $destination -ItemType directory}
 	$path = [Environment]::CurrentDirectory
+	$env:AMB_INSTALL_PATH = [Environment]::CurrentDirectory
 	$Package_trim =  Split-Path -Path $path -Parent
 	Write-Log "Copying Ambari-Scom.Jar"
 	$jar = Join-Path $Package_trim "resources\ambari-scom-*.jar"
@@ -149,6 +150,17 @@ function Main( $scriptDir )
 	Copy-Item -Force $jar $destination
 	Write-log "Pushing Ambari-SCOM and SQL Server JDBC to each node"
 	$current = @()
+    $failed=@()
+ 	$failed_file = join-path $env:TMP "ambari_failed.txt"
+	$db_file = join-path $env:TMP "db_ambari_failed.txt"
+ 	if (Test-Path $failed_file)
+ 	{
+ 		Remove-Item $failed_file -Force
+ 	}
+	if (Test-Path $db_file)
+	{
+		Remove-Item $db_file -Force
+	}
 	$SQL_SERVER_NAME = $env:SQL_SERVER_NAME
 	if (($SQL_SERVER_NAME  -ieq "localhost") -or ($SQL_SERVER_NAME  -ieq "127.0.0.1"))
 	{
@@ -192,6 +204,7 @@ function Main( $scriptDir )
 					{
 						Out-File -FilePath $log -InputObject "Modifying $name.xml" -Append -Encoding "UTF8"
 						Write-Host "Modifying $name.xml"
+                        Write-Output "Modifying $name.xml"
 						[xml]$xml = Get-Content $xml_file
 						$arguments = ($xml.service.arguments).split(" ")
 						for ($i = 0; $i -lt $arguments.length; $i++){
@@ -220,15 +233,22 @@ function Main( $scriptDir )
 				{
 					Out-File -FilePath $log -InputObject "Creating MonitoringDatabase environment" -Append -Encoding "UTF8"
 					Write-HOST "Creating MonitoringDatabase environment"
+                    Write-Output "Creating MonitoringDatabase environment"
 					$sql_path = Join-Path $destination "\Hadoop-Metrics-SQLServer-CREATE.ddl"
-					$cmd ="sqlcmd -s $SQL_SERVER_NAME -i $sql_path"
-					invoke-cmd $cmd 
+					$cmd ="sqlcmd -s $SQL_SERVER_NAME -i $sql_path -U $SQL_SERVER_LOGIN -P $SQL_SERVER_PASSWORD"
+					$check = invoke-cmd $cmd 
+					if ($check -like "*failed*")
+					{
+						Write-Output "Cannot create database"
+						Out-File -FilePath $log -InputObject "Cannot create database" -Append -Encoding "UTF8"
+					}
 				}
 				$hdp_home = [Environment]::GetEnvironmentVariable("HADOOP_HOME","Machine")
 				if ($hdp_home -ne $null)
 				{
 					Out-File -FilePath $log -InputObject "Installing data sink on $server" -Append -Encoding "UTF8"
 					Write-Host "Installing data sink on $server"
+                    Write-Output "Installing data sink on $server"
 					$metrics = Join-Path $hdp_home "bin\hadoop-metrics2.properties"
 					if (-not (test-path $metrics))
 					{
@@ -242,15 +262,18 @@ function Main( $scriptDir )
 					}
 					Out-File -FilePath $log -InputObject "Modifying CLASSPATH" -Append -Encoding "UTF8"
 					Write-Host "Modifying CLASSPATH"
+                    Write-Output "Modifying CLASSPATH"
 					$names = @("namenode","secondarynamenode","datanode","historyserver","jobtracker","tasktracker")
 					foreach ($name in $names)
 					{
 						modify_xml $name
 					}
 					Write-Host "Start services flag is $START_SERVICES"
+                    Write-Output "Start services flag is $START_SERVICES"
 					if ($START_SERVICES -like "*yes*")
 					{
 						Write-Host "Starting services"
+                        Write-Output "Starting services"
 						Out-File -FilePath $log -InputObject "Starting HDP services" -Append -Encoding "UTF8"
 						$hdp_root= [Environment]::GetEnvironmentVariable("HADOOP_NODE_INSTALL_ROOT","Machine")
 						$cmd = Join-Path $hdp_root "start_local_hdp_services.cmd"
@@ -261,14 +284,21 @@ function Main( $scriptDir )
 				{	
 					Out-File -FilePath $log -InputObject "Cleaning things on SQL server" -Append -Encoding "UTF8"
 					Write-Host "Cleaning things on SQL server"
+                    Write-Output "Cleaning things on SQL server"
 					$log_new = Join-Path $ENV:TMP "ambari_install.log"
 					Copy-Item $log $log_new
 					Remove-Item $Destination -force -Recurse
 				}
 			} -ArgumentList ($server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES)
+            if ($out -like "*Cannot create database*")
+			{
+                Write-Log "DB creation on $server failed."
+				Out-File -FilePath $db_file -InputObject $server -Append -Encoding "UTF8"
+			}
 			if ($out -eq $null)
 			{
 				Write-Log "Installation on $server failed. Please check host availability"
+                Out-File -FilePath $failed_file -InputObject $server -Append -Encoding "UTF8"
 			}
 			else
 			{
@@ -333,7 +363,10 @@ try
 }
 catch
 {
+	
 	Write-Log $_.Exception.Message "Failure" $_
+	Write-Log "Starting rollback"
+	invoke-ps "$env:AMB_INSTALL_PATH\uninstall.ps1"
 	exit 1
 }
 finally

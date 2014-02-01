@@ -14,7 +14,6 @@
 ### limitations under the License.
 
 
-### NOTE: This file is common across the Windows installer projects for Hadoop Core, Hive, and Pig.
 ### This dependency is currently managed by convention.
 ### If you find yourself needing to change something in this file, it's likely that you're
 ### either doing something that's more easily done outside this file or is a bigger change

@@ -17,18 +17,19 @@ limitations under the License. -->
         <Package Comments="This installer database contains the logic and data required to install Apache Ambari-SCOM." Compressed="yes" Description="Ambari-SCOM" InstallerVersion="100" Languages="1033" Manufacturer="Apache" Platform="x86" />
 		<Binary Id="GUI" SourceFile="SourceDir\bin\GUI_Ambari.exe" />
 		<Binary Id="WixCA" SourceFile="SourceDir\bin\wixca" />
-		<Binary Id="Result" SourceFile="SourceDir\bin\Ambari_Result.exe" />
-        <Condition Message="You need to be an administrator to install this product.">Privileged</Condition>
+		<Condition Message="You need to be an administrator to install this product.">Privileged</Condition>
 		<CustomAction Id="INSTINTERRUPT" Error="Installation interrupted by user" />
         <CustomAction Id="INSTSUCCESS" Error="Installation completed succesfully" />
         <CustomAction Id="INSTFAILED" Error="Installation failed. Please see installation log for details: [TARGETDIR]AmbariInstallFiles\AmbariSetupTools\ambari.winpkg.install.log" />
 		<CustomAction Id="SET_AMB_LAYOUT" Property="AMB_LAYOUT" Value="[%APPDATA]\amb_install\ambariproperties.txt" />
-        <CustomAction Id="GUI" BinaryKey="GUI" ExeCommand="" />
+        <CustomAction Id="GUI" BinaryKey="GUI" ExeCommand="gui" />
         <CustomAction Id="InstallCommand" Property="InstallDeferred" Value="&quot;cmd.exe&quot; /c &quot;set START_SERVICES=[START_SERVICES] &amp;&amp; set HDP_LAYOUT=[HDP_LAYOUT] &amp;&amp; set AMB_LAYOUT=[AMB_LAYOUT] &amp;&amp; [AMBARI_SETUP_TOOLS]bootstrap_install.cmd [AMBARI_SETUP_TOOLS]&quot;" />
         <CustomAction Id="InstallDeferred" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" />
         <CustomAction Id="UninstallCommand" Property="UninstallDeferred" Value="&quot;cmd.exe&quot; /c &quot;[AMBARI_SETUP_TOOLS]bootstrap_uninstall.cmd [AMBARI_SETUP_TOOLS]&quot;" />
         <CustomAction Id="UninstallDeferred" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" />
-		<CustomAction Id="Result" BinaryKey="Result" ExeCommand="" Execute="deferred" />
+		<CustomAction Id="Result" BinaryKey="GUI" ExeCommand="install" Execute="deferred" />
+		<CustomAction Id="Result_rem" BinaryKey="GUI" ExeCommand="uninstall" Execute="deferred" />
+		<CustomAction Id="Database" BinaryKey="GUI" ExeCommand="db" Execute="deferred" />
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="FromDir" Name="AmbariInstallFiles" ShortName="d6tzoyaf">
                 <Directory Id="PACKAGE_HOME" Name="AmbariPackages" ShortName="98sctbni">
@@ -61,7 +62,9 @@ limitations under the License. -->
             <Custom Action="UninstallDeferred" Sequence="1502">Installed</Custom>
             <Custom Action="InstallCommand" Sequence="4003">NOT Installed</Custom>
             <Custom Action="InstallDeferred" Sequence="4004">NOT Installed</Custom>
-			<Custom Action="Result" Sequence="6500">REMOVE</Custom>
+			<Custom Action="Result" Sequence="6500">NOT Installed</Custom>
+			<Custom Action="Result_rem" Sequence="6500">REMOVE</Custom>
+			<Custom Action="Database" Sequence="6510">NOT Installed</Custom>
             <LaunchConditions Sequence="100" />
             <ValidateProductID Sequence="700" />
             <CostInitialize Sequence="800" />
