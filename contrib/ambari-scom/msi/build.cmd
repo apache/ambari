@@ -1,3 +1,6 @@
+echo Building Result Messagebox
+call %msBuildDir%\msbuild.exe "%cd%\src\Result\Ambari_Result.csproj"  || exit /b 1
+mkdir "%cd%\src\bin\"
 rem Licensed to the Apache Software Foundation (ASF) under one or more
 rem contributor license agreements.  See the NOTICE file distributed with
 rem this work for additional information regarding copyright ownership.
@@ -35,7 +38,7 @@ pushd "%cd%\src" || exit /b 1
 start /wait /min candle "%cd%\ambari-scom.wxs"  || exit /b 1
 start /wait /min light "%cd%\ambari-scom.wixobj"  || exit /b 1
 popd || exit /b 1
-copy /y "%cd%\src\ambari-scom.msi" "%cd%\ambari-scom.msi" || exit /b 1
+copy /y "..\management-pack\Hadoop_MP\Installer\bin\Debug\en-us\AmbariSCOMManagementPack.msi" "%cd%\ambari-scom.msi" || exit /b 1
 
 echo Cleaning 
 del /f /q "%cd%\src\ambari-scom.wixobj"  || exit /b 1
