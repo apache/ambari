@@ -47,12 +47,12 @@ copy management-pack\Hadoop_MP\ManagementMp\bin\Debug\*.mpb %MP_DIR% || exit /b 
 copy management-pack\Hadoop_MP\HadoopMp\bin\Debug\*.mpb %MP_DIR% || exit /b 1
 copy management-pack\Hadoop_MP\PresentationMp\bin\Debug\*.mpb %MP_DIR% || exit /b 1
 
-REM copy msi\*.msi %FINAL_ZIPS% || exit /b 1
+copy msi\*.msi %FINAL_ZIPS% || exit /b 1
 copy README.md %FINAL_ZIPS% || exit /b 1
 
 
-REM powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%SCOM_DIR%" "%FINAL_ZIPS%\server.zip" || exit /b 1
-REM powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%SINK_DIR%" "%FINAL_ZIPS%\metrics-sink.zip" || exit /b 1
-REM powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%MP_DIR%" "%FINAL_ZIPS%\mp.zip" || exit /b 1
+powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%SCOM_DIR%" "%FINAL_ZIPS%\server.zip" || exit /b 1
+powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%SINK_DIR%" "%FINAL_ZIPS%\metrics-sink.zip" || exit /b 1
+powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%MP_DIR%" "%FINAL_ZIPS%\mp.zip" || exit /b 1
 
 powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -command "%cd%\msi\build\zip.ps1" "%FINAL_ZIPS%" "%ARTIFACT_DIR%\ambari-scom-%SCOM_VERSION%.zip" || exit /b 1
