@@ -31,6 +31,7 @@ powershell.exe -NoProfile -InputFormat none -ExecutionPolicy unrestricted -comma
 echo Building GUI
 set msBuildDir=%WINDIR%\Microsoft.NET\Framework\v4.0.30319
 call %msBuildDir%\msbuild.exe "%cd%\src\GUI_Ambari\GUI_Ambari.csproj"  || exit /b 1
+mkdir "%cd%\src\bin\" 
 copy /y "%cd%\src\GUI_Ambari\bin\Debug\GUI_Ambari.exe" "%cd%\src\bin\GUI_Ambari.exe" || exit /b 1
 
 echo Building MSI
