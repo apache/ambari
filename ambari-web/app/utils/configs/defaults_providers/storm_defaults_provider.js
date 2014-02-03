@@ -26,12 +26,9 @@ App.STORMDefaultsProvider = App.DefaultsProvider.create({
    * List of the configs that should be calculated
    */
   configsTemplate: {
-    'supervisor.childopts': null,
-    'nimbus.childopts': null,
     'drpc.childopts': null,
     'ui.childopts': null,
-    'logviewer.childopts': null,
-    'worker.childopts': null
+    'logviewer.childopts': null
   },
 
   // @todo fill with correct values
@@ -43,12 +40,9 @@ App.STORMDefaultsProvider = App.DefaultsProvider.create({
     if (!this.clusterDataIsValid()) {
       return configs;
     }
-    configs['supervisor.childopts'] = '-Xmx256m';
-    configs['nimbus.childopts'] = '-Xmx1024m';
     configs['drpc.childopts'] = '-Xmx768m';
     configs['ui.childopts'] = '-Xmx768m';
     configs['logviewer.childopts'] = '-Xmx128m';
-    configs['worker.childopts'] = '-Xmx768m';
     return configs;
   },
 

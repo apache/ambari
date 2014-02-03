@@ -23,20 +23,9 @@ App.STORMConfigsValidator = App.ServiceConfigsValidator.create({
    * List of the configs that should be validated
    */
   configValidators: {
-    'supervisor.childopts': 'supervisorChildOpts',
-    'nimbus.childopts': 'nimbusChildOpts',
     'drpc.childopts': 'drpcChildOpts',
     'ui.childopts': 'uiChildOpts',
-    'logviewer.childopts': 'logviewerChildOpts',
-    'worker.childopts': 'workerChildOpts'
-  },
-
-  supervisorChildOpts: function(config) {
-    return this.validateXmxValue(config);
-  },
-
-  nimbusChildOpts: function(config) {
-    return this.validateXmxValue(config);
+    'logviewer.childopts': 'logviewerChildOpts'
   },
 
   drpcChildOpts: function(config) {
@@ -48,10 +37,6 @@ App.STORMConfigsValidator = App.ServiceConfigsValidator.create({
   },
 
   logviewerChildOpts: function(config) {
-    return this.validateXmxValue(config);
-  },
-
-  workerChildOpts: function(config) {
     return this.validateXmxValue(config);
   }
 });

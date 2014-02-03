@@ -1385,9 +1385,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   createStormSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
     var stormProperties = {};
+    var specialProperties = ["storm.zookeeper.servers", "nimbus.childopts", "supervisor.childopts", "worker.childopts"];
     configs.forEach(function (_configProperty) {
-      if (_configProperty.name == "storm.zookeeper.servers") {
-        stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
+      if (specialProperties.contains(_configProperty.name)) {
+        if (_configProperty.name == "storm.zookeeper.servers") {
+          stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
+        } else {
+          stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g,"");
+        }
       } else {
         stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       }

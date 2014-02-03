@@ -113,7 +113,7 @@
   </property>
   <property>
     <name>nimbus.childopts</name>
-    <value>-Xmx1024m</value>
+    <value></value>
     <description></description>
   </property>
   <property>
@@ -243,7 +243,7 @@
   </property>
   <property>
     <name>supervisor.childopts</name>
-    <value>-Xmx256m</value>
+    <value></value>
     <description></description>
   </property>
   <property>
@@ -273,7 +273,7 @@
   </property>
   <property>
     <name>worker.childopts</name>
-    <value>-Xmx768m</value>
+    <value></value>
     <description></description>
   </property>
   <property>

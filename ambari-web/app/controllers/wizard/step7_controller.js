@@ -308,7 +308,39 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     }
   },
+  /**
+   *  Resolve dependency between configs.
+   *  @param serviceName {String}
+   *  @param configs {Mixed}
+   */
+  resolveServiceDependencyConfigs: function (serviceName, configs) {
+    switch (serviceName) {
+      case 'STORM':
+        this.resolveStormConfigs(configs);
+        break;
+      default:
+        break;
+    }
+  },
 
+  resolveStormConfigs: function(configs) {
+    var dependentConfigs, gangliaServerHost;
+    dependentConfigs = ['nimbus.childopts', 'supervisor.childopts', 'worker.childopts'];
+    // if Ganglia selected or installed, set ganglia host to configs
+    if (this.get('installedServiceNames').contains('STORM') && this.get('installedServiceNames').contains('GANGLIA')) return;
+    if (this.get('allSelectedServiceNames').contains('GANGLIA') || this.get('installedServiceNames').contains('GANGLIA')) {
+      gangliaServerHost = this.get('wizardController').getDBProperty('masterComponentHosts').findProperty('component', 'GANGLIA_SERVER').hostName;
+      dependentConfigs.forEach(function(configName){
+        var config = configs.findProperty('name', configName);
+        config.value = config.defaultValue.format(gangliaServerHost);
+      }, this);
+    } else {
+      // if Ganglia not selected remove config
+      dependentConfigs.forEach(function(configName){
+        configs.removeAt(configs.indexOf(configs.findProperty('name', configName)));
+      }, this);
+    }
+  },
   /**
    * On load function
    */
@@ -338,6 +370,9 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (this.get('wizardController.name') === 'addServiceController') {
       this.getConfigTags();
       this.setInstalledServiceConfigs(this.get('serviceConfigTags'), configs);
+    }
+    if (this.get('allSelectedServiceNames').contains('STORM') || this.get('installedServiceNames').contains('STORM')) {
+      this.resolveServiceDependencyConfigs('STORM', configs);
     }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB);

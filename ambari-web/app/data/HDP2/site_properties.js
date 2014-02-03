@@ -981,12 +981,13 @@ module.exports =
       "name": "nimbus.childopts",
       "displayName": "nimbus.childopts",
       "description": "",
-      "defaultValue": "",
+      "defaultValue": "-javaagent:/var/lib/storm/jmxetric-1.0.4.jar=host={0},port=8649,wireformat31x=true,mode=multicast,config=/var/lib/storm/jmxetric-conf.xml,process=Nimbus_JVM -Xmx1024m",
       "isReconfigurable": true,
-      "isVisible": true,
+      "isVisible": false,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
-      "category": "Nimbus"
+      "category": "Nimbus",
+      "filename": "storm-site.xml"
     },
     {
       "id": "site property",
@@ -1128,14 +1129,15 @@ module.exports =
       "id":"site property",
       "description":"",
       "isReconfigurable": true,
-      "isVisible":true,
+      "isVisible":false,
       "isRequiredByAgent":true,
       "serviceName":"STORM",
       "category":"Supervisor",
       "displayName":"supervisor.childopts",
       "name":"supervisor.childopts",
-      "defaultValue":"-Xmx256m",
-      "displayType":"string"
+      "defaultValue":"-javaagent:/var/lib/storm/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/var/lib/storm/jmxetric-conf.xml,process=Supervisor_JVM -Xmx256m",
+      "displayType":"string",
+      "filename": "storm-site.xml"
     },
     {
       "id":"site property",
@@ -1354,14 +1356,15 @@ module.exports =
       "id": "site property",
       "description": "",
       "isReconfigurable": true,
-      "isVisible": true,
+      "isVisible": false,
       "isRequiredByAgent": true,
       "serviceName": "STORM",
       "category": "Advanced",
       "displayName": "worker.childopts",
       "name": "worker.childopts",
-      "defaultValue": "-Xmx768m",
-      "displayType": "string"
+      "defaultValue": "-javaagent:/var/lib/storm/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/var/lib/storm/jmxetric-conf.xml,process=Worker_%ID%_JVM -Xmx768m",
+      "displayType": "string",
+      "filename": "storm-site.xml"
     },
 
   /**********************************************tez-site***************************************/
