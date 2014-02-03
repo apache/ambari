@@ -27,5 +27,6 @@
     </components>
     <configuration-dependencies>
       <config-type>core-site</config-type>
+      <config-type>global</config-type>
     </configuration-dependencies>
 </metainfo>
