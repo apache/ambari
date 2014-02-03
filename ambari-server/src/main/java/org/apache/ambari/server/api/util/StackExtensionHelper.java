@@ -122,6 +122,7 @@ public class StackExtensionHelper {
   private ServiceInfo mergeServices(ServiceInfo parentService,
                                     ServiceInfo childService) {
     ServiceInfo mergedServiceInfo = new ServiceInfo();
+    mergedServiceInfo.setSchemaVersion(childService.getSchemaVersion());
     mergedServiceInfo.setName(childService.getName());
     mergedServiceInfo.setComment(childService.getComment());
     mergedServiceInfo.setUser(childService.getUser());

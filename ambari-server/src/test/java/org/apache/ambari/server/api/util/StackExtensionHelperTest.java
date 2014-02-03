@@ -51,7 +51,7 @@ public class StackExtensionHelperTest {
     StackExtensionHelper helper = new StackExtensionHelper(stackRoot);
     helper.populateServicesForStack(stackInfo);
     List<ServiceInfo> services =  stackInfo.getServices();
-    assertEquals(5, services.size());
+    assertEquals(6, services.size());
     for (ServiceInfo serviceInfo : services) {
       if (serviceInfo.getName().equals("HIVE")) {
         // Check old-style service
@@ -177,7 +177,8 @@ public class StackExtensionHelperTest {
       } else {
         if (!serviceInfo.getName().equals("YARN") &&
             !serviceInfo.getName().equals("HDFS") &&
-            !serviceInfo.getName().equals("MAPREDUCE2")) {
+            !serviceInfo.getName().equals("MAPREDUCE2") &&
+            !serviceInfo.getName().equals("SQOOP")) {
           fail("Unknown service");
         }
       }

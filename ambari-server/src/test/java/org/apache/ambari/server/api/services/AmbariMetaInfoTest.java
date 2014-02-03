@@ -1228,6 +1228,16 @@ public class AmbariMetaInfoTest {
             service.getOsSpecifics().get("any").getPackages().get(0).getName());
   }
 
+  @Test
+  public void testServiceSchemaVersionInheritance() throws Exception {
+    // Check parent
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "SQOOP");
+    Assert.assertEquals("2.0", service.getSchemaVersion());
+    // Test child service metainfo after merge
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "SQOOP");
+    Assert.assertEquals("2.0", service.getSchemaVersion());
+  }
+
 
   private CustomCommandDefinition findCustomCommand(String ccName,
                                                     ServiceInfo service) {
