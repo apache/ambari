@@ -66,7 +66,14 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
 
     if(sortOrder) {
       sortOrder.forEach(function(name) {
-        sorted.push(misc_configs.findProperty('name', name));
+        var user = misc_configs.findProperty('name', name);
+        if (user) {
+          sorted.push({
+            isVisible: user.get('isVisible'),
+            displayName: user.get('displayName'),
+            value: user.get('value')
+          });
+        }
       });
       this.set('users', sorted);
     }
