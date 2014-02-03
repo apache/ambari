@@ -31,6 +31,7 @@ def service(
   import status_params
 
   pid_file = status_params.pid_files[name]
+  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
   if action == "start":
     cmd = ["/usr/bin/storm", name]
@@ -38,8 +39,6 @@ def service(
       crt_pid_cmd = format("pgrep -f \"^java.+backtype.storm.ui.core$\" > {pid_file}")
     else :
       crt_pid_cmd = format("pgrep -f \"^java.+backtype.storm.daemon.{name}$\" > {pid_file}")
-
-    no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     #Execute(cmd,
     #        not_if=no_op_test,
@@ -58,5 +57,11 @@ def service(
     )
 
   elif action == "stop":
-    cmd = format("kill `cat {pid_file}` >/dev/null 2>&1 && rm -f {pid_file}")
+    cmd = format("kill `cat {pid_file}` >/dev/null 2>&1")
     Execute(cmd)
+
+    Execute(format("! ({no_op_test})"),
+            tries=5,
+            try_sleep=3
+    )
+    Execute(format("rm -f {pid_file}"))
