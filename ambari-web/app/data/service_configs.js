@@ -224,9 +224,10 @@ module.exports = [
     serviceName: 'FALCON',
     displayName: 'Falcon',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Falcon', displayName : 'Falcon Server'})
+      App.ServiceConfigCategory.create({ name: 'Falcon', displayName : 'Falcon Server'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Falcon - Oozie integration'})
     ],
-    sites: ['falcon-site'],
+    sites: ['global', 'oozie-site'],
     configs: []
   },
 
