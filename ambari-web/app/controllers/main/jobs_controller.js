@@ -31,31 +31,19 @@ App.MainJobsController = Em.ArrayController.extend({
    */
   jobsLimit : -1,
 
-
-  clearFilters: function () {
-    var obj=this.get("filterObject");
-    obj.set("id","");
-    obj.set("user","");
-    obj.set("startTime","");
-    obj.set("endTime","");
-  },
-
-  //Filter object
-
-  filterObject : Ember.Object.create({
-    id:"",
-    user:"",
-    startTime:"",
-    endTime:"",
-
-
-    allFilterActivated:false,
-    filteredDisplayRecords:null,
-
-    viewType:"all",
-    viewTypeClickEvent:false
-
-  }),
+  /**
+   * List of users.
+   * Will be used for filtering in user column.
+   * Go to App.MainJobsView.userFilterView for more information
+   */
+  users: function () {
+    return this.get('content').mapProperty("user").uniq().map(function(userName){
+      return {
+        name: userName,
+        checked: false
+      };
+    });
+  }.property('content.length'),
 
   columnsName: Ember.ArrayController.create({
     content: [

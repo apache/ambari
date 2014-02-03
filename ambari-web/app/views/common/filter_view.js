@@ -370,6 +370,9 @@ module.exports = {
           var match = false;
           var timePassed = new Date().getTime() - rowValue;
           switch (rangeExp) {
+            case 'Past 1 hour':
+              match = timePassed <= 3600000;
+              break;
             case 'Past 1 Day':
               match = timePassed <= 86400000;
               break;
@@ -436,7 +439,11 @@ module.exports = {
       case 'multiple':
         return function(origin, compareValue){
           var options = compareValue.split(',');
-          var rowValue = origin.mapProperty('componentName').join(" ");
+          if(typeof (origin) === "string"){
+            var rowValue = origin;
+          }else{
+            var rowValue = origin.mapProperty('componentName').join(" ");
+          }
           var str = new RegExp(compareValue, "i");
           for (var i = 0; i < options.length; i++) {
             if(!isGlobal) {

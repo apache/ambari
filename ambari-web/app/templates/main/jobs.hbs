@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div id="apps">
+<div id="jobs">
 
     <div class="jobs_head">
       <div>{{t menu.item.jobs}}</div>
@@ -28,16 +28,18 @@
       </div>
     </div>
 
-    <table class="table table-striped runsList">
+    <table class="table table-bordered table-striped">
         <thead>
-        {{#view view.wrapSorting}}
-          {{#each controller.columnsName}}
-            {{#view view.parentView.sortingColumns contentBinding="this"}}
-              {{name}}
-            {{/view}}
-          {{/each}}
+
+        {{#view view.sortView contentBinding="view.filteredContent"}}
+            {{view view.parentView.idSort}}
+            {{view view.parentView.userSort}}
+            {{view view.parentView.startTimeSort}}
+            {{view view.parentView.endTimeSort}}
+            {{view view.parentView.durationSort}}
         {{/view}}
-        <tr>
+
+        <tr class="first">
             <th>{{view view.jobsIdFilterView}}</th>
             <th>{{view view.userFilterView}}</th>
             <th>{{view view.startTimeFilterView}}</th>
@@ -51,7 +53,7 @@
                 <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t apps.filters.nothingToShow}}</td>
             </tr>
         {{else}}
-          {{#each job in content}}
+          {{#each job in view.pageContent}}
             <tr>
               <td>
                 <a title="{{unbound job.name}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
@@ -76,10 +78,10 @@
 
     <div class="page-bar">
         <div id="filtered-jobs">
-          {{view.filteredJobs}} - <a href="javascript:void(null);" {{action clearFilters target="controller"}}>{{t jobs.filtered.clear}}</a>
+          {{view.filteredJobs}} - <a href="javascript:void(null);" {{action clearFilters target="view"}}>{{t jobs.filtered.clear}}</a>
         </div>
         <div class="items-on-page">
-            <label>{{t jobs.show.up.to}}: {{view view.showNumberOfJobs selectionBinding="controller.filterObject.iDisplayLength"}}</label>
+            <label>{{t jobs.show.up.to}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
         </div>
     </div>
 </div>
