@@ -120,7 +120,7 @@ App.HostTableMenuView = Em.View.extend({
   getHostItemsTemplate: function() {
     return Em.A([
       Em.Object.create({
-        label: Em.I18n.t('hosts.host.details.stopAllComponents'),
+        label: Em.I18n.t('hosts.host.details.startAllComponents'),
         operationData: Em.Object.create({
           action: 'STARTED',
           actionToCheck: 'INSTALLED',
