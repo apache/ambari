@@ -20,6 +20,7 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("os.path.exists", new = MagicMock(return_value=True))
 class TestZookeeperClient(RMFTestCase):
 
   def test_configure_default(self):

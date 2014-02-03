@@ -20,6 +20,7 @@ limitations under the License.
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHBaseMaster(RMFTestCase):
   def test_configure_default(self):
     self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_master.py",

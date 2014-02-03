@@ -18,8 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHookBeforeStart(RMFTestCase):
   def test_configure_default(self):
     self.executeScript("2.0.6/hooks/before-START/scripts/hook.py",
@@ -133,6 +135,10 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('hadoop-metrics2.properties.j2'),
                               owner = 'hdfs',
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -165,6 +171,14 @@ class TestHookBeforeStart(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop',
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
+      owner = 'mapred',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/masters',
+      owner = 'hdfs',
+      group = 'hadoop',
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
       owner = 'mapred',
       group = 'hadoop',
@@ -174,3 +188,4 @@ class TestHookBeforeStart(RMFTestCase):
       group = 'hadoop',
     )
     self.assertNoMoreResources()
+

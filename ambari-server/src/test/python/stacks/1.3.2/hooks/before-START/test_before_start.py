@@ -18,10 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHookBeforeStart(RMFTestCase):
-  def test_hook_default(self):
+  def test_configure_default(self):
     self.executeScript("1.3.2/hooks/before-START/scripts/hook.py",
                        classname="BeforeConfigureHook",
                        command="hook",
@@ -94,66 +96,79 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('health_check.j2'),
                               owner = 'hdfs',
                               )
+    
     self.assertResourceCalled('File', '/etc/hadoop/conf/log4j.properties',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 420,
     )
+  
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.driver=.*~ambari.jobhistory.driver=org.postgresql.Driver~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA=.*~log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.driver=.*~log4j.appender.JHA.driver=${ambari.jobhistory.driver}~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.database=.*~log4j.appender.JHA.database=${ambari.jobhistory.database}~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.logger=.*~ambari.jobhistory.logger=DEBUG,JHA~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.password=.*~log4j.appender.JHA.password=${ambari.jobhistory.password}~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.database=.*~ambari.jobhistory.database=jdbc:postgresql://c6401.ambari.apache.org/ambarirca~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=.*~log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=.*~log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=${ambari.jobhistory.logger}~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.user=.*~log4j.appender.JHA.user=${ambari.jobhistory.user}~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.user=.*~ambari.jobhistory.user=mapred~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.password=.*~ambari.jobhistory.password=mapred~' /etc/hadoop/conf/log4j.properties",
-                              )
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
-                              content = Template('hadoop-metrics2.properties.j2'),
-                              owner = 'hdfs',
-                              )
+      content = Template('hadoop-metrics2.properties.j2'),
+      owner = 'hdfs',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
+      owner = 'mapred',
+      group = 'hadoop',
+    )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              )
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+    )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['mapred-site'],
-                              )
+      owner = 'mapred',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['mapred-site'],
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
-                              content = StaticFile('task-log4j.properties'),
-                              mode = 0755,
-                              )
+      content = StaticFile('task-log4j.properties'),
+      mode = 493,
+    )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              )
+      owner = 'hdfs',
+      group = 'hadoop',
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['hdfs-site'],
+    )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/hadoop-tools.jar',
-                              to = '/usr/lib/hadoop/hadoop-tools.jar',
-                              )
-    
+      to = '/usr/lib/hadoop/hadoop-tools.jar',
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/configuration.xsl',
+      owner = 'hdfs',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
+      owner = 'mapred',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/masters',
       owner = 'hdfs',
       group = 'hadoop',
     )
@@ -166,3 +181,4 @@ class TestHookBeforeStart(RMFTestCase):
       group = 'hadoop',
     )
     self.assertNoMoreResources()
+
