@@ -115,6 +115,9 @@ App.MainDashboardServiceView = Em.View.extend({
   }.property('controller.data'),
 
   dashboardMasterComponentView : Em.View.extend({
+    didInsertElement: function() {
+      App.tooltip($('[rel=healthTooltip]'));
+    },
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp : function(){
      return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);

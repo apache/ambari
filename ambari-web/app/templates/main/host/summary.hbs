@@ -47,7 +47,7 @@
                   </a>
                 {{/if}}
               {{else}}
-                <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
+                <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass :components-health" title="view.componentTextStatus"}}></span>&nbsp;
               {{/if}}
                 {{#if component.displayNameAdvanced}}
                   {{component.displayNameAdvanced}}
@@ -193,23 +193,21 @@
                             </a>
                         </li>
                     {{/if}}
-                    {{#unless view.isImplied}}
                       {{#if view.isActive}}
-                          <li {{bindAttr class="view.noActionAvailable"}}>
-                              <a href="javascript:void(null)"
+                          <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
+                              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}}
                                  data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
                                 {{t passiveState.turnOn}}
                               </a>
                           </li>
                       {{else}}
-                          <li {{bindAttr class="view.noActionAvailable"}}>
-                              <a href="javascript:void(null)"
+                          <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
+                              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}}
                                  data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
                                 {{t passiveState.turnOff}}
                               </a>
                           </li>
                       {{/if}}
-                    {{/unless}}
                   {{/unless}}
                 </ul>
               </div>

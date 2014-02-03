@@ -1343,8 +1343,8 @@ Em.I18n.translations = {
   'hosts.table.restartComponents.withNames':'Restart {0}',
   'hosts.table.restartComponents.withoutNames':'{0} components should be restarted',
 
-  'hosts.table.componentsInPassiveState.withNames':'{0} in passive state',
-  'hosts.table.componentsInPassiveState.withoutNames':'{0} components in passive state',
+  'hosts.table.componentsInPassiveState.withNames':'{0} in Out-of-Service mode',
+  'hosts.table.componentsInPassiveState.withoutNames':'{0} components in Out-of-Service mode',
 
   'hosts.table.menu.l1.selectedHosts':'Selected Hosts',
   'hosts.table.menu.l1.filteredHosts':'Filtered Hosts',
@@ -1435,7 +1435,10 @@ Em.I18n.translations = {
   'hosts.host.decommissioned':'Decommissioned',
   'hosts.host.decommissioning':'Decommissioning...',
 
-
+  'hosts.component.passive.implied.host.mode.tooltip':'Cannot Turn Off Out-of-Service mode because Host is in Out-of-Service mode',
+  'hosts.component.passive.implied.service.mode.tooltip':'Cannot Turn Off Out-of-Service mode because {0} is in Out-of-Service mode',
+  'hosts.component.passive.mode':'Component is in Out-of-Service mode',
+  'hosts.host.passive.mode':'Host is in Out-of-Service mode',
   'hosts.host.alert.noAlerts':'No alerts',
   'hosts.host.alert.noAlerts.message':'There are no alerts for this host.',
   'hosts.host.healthStatus.heartBeatNotReceived':'The server has not received a heartbeat from this host for more than 3 minutes.',

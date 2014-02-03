@@ -231,6 +231,9 @@ App.Host = DS.Model.extend({
       return item.get('workStatus') !== App.HostComponentStatus.started;
     });
     var output = '';
+    if (this.get('passiveState') != 'ACTIVE') {
+      return Em.I18n.t('hosts.host.passive.mode');
+    }
     switch (this.get('healthClass')){
       case 'health-status-DEAD-RED':
         hostComponents = hostComponents.filterProperty('isMaster', true);
@@ -254,7 +257,7 @@ App.Host = DS.Model.extend({
         break;
     }
     return output;
-  }.property('hostComponents.@each.workStatus')
+  }.property('hostComponents.@each.workStatus','hostComponents.@each.passiveState')
 });
 
 App.Host.FIXTURES = [];

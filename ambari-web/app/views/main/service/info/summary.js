@@ -55,6 +55,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ"],
 
   sumMasterComponentView : Em.View.extend({
+    didInsertElement: function() {
+      App.tooltip($('[rel=healthTooltip]'));
+    },
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp : function(){
       return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);

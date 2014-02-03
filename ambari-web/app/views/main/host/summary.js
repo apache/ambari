@@ -224,6 +224,8 @@ App.MainHostSummaryView = Em.View.extend({
   ComponentView: Em.View.extend({
     content: null,
     didInsertElement: function () {
+      App.tooltip($('[rel=componentHealthTooltip]'));
+      App.tooltip($('[rel=passiveTooltip]'));
       if (this.get('isInProgress')) {
         this.doBlinking();
       }
@@ -262,6 +264,9 @@ App.MainHostSummaryView = Em.View.extend({
      * Return host component text status
      */
     componentTextStatus: function () {
+      if (this.get('content.passiveState') != 'ACTIVE') {
+        return Em.I18n.t('hosts.component.passive.mode');
+      }
       var workStatus = this.get("workStatus");
       var componentTextStatus = this.get('content.componentTextStatus');
       var hostComponent = this.get('hostComponent');
@@ -289,8 +294,16 @@ App.MainHostSummaryView = Em.View.extend({
         }
       }
       return componentTextStatus;
-    }.property('workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable',
+    }.property('content.passiveState','workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable',
       'isTaskTrackerRecommissionAvailable', 'isRegionServerRecommissionAvailable', 'isRegionServerDecommissioning'),
+
+    passiveImpliedTextStatus: function() {
+      if(this.get('parentView.content.passiveState') === 'PASSIVE') {
+        return Em.I18n.t('hosts.component.passive.implied.host.mode.tooltip');
+      } else if(this.get('content.service.passiveState') === 'PASSIVE') {
+        return Em.I18n.t('hosts.component.passive.implied.service.mode.tooltip').format(this.get('content.service.serviceName'));
+      }
+    }.property('content.passiveState','parentView.content.passiveState'),
 
     statusClass: function () {
       //If the component is DataNode
@@ -433,7 +446,7 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content.passiveState'),
 
     isImplied: function() {
-      return (this.get('content.passiveState') == "IMPLIED");
+      return (this.get('parentView.content.passiveState') === 'PASSIVE' || this.get('content.service.passiveState') === 'PASSIVE');
     }.property('content.passiveState'),
 
     isDecommissioning: function () {

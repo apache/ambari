@@ -156,6 +156,20 @@ App.HostComponent = DS.Model.extend({
    * User friendly host component status
    * @returns {String}
    */
+  isActive: function() {
+    return (this.get('passiveState') == 'ACTIVE');
+  }.property('passiveState'),
+
+  passiveTooltip: function() {
+    if (!this.get('isActive')) {
+      return Em.I18n.t('hosts.component.passive.mode');
+    }
+  }.property('isActive'),
+
+  statusClass: function() {
+    return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';
+  }.property('workStatus','isActive'),
+
   componentTextStatus: function () {
     return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
   }.property('workStatus','isDecommissioning')
