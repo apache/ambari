@@ -20,6 +20,7 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("sys.executable", new = '/usr/bin/python2.6')
 class TestServiceCheck(RMFTestCase):
 
   def test_service_check_default(self):
@@ -33,7 +34,7 @@ class TestServiceCheck(RMFTestCase):
                           content = StaticFile('validateYarnComponentStatus.py'),
                           mode = 493,
     )
-    self.assertResourceCalled('Execute', '/tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
+    self.assertResourceCalled('Execute', '/usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
                           logoutput = True,
                           path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                           tries = 3,
@@ -55,7 +56,7 @@ class TestServiceCheck(RMFTestCase):
                           content = StaticFile('validateYarnComponentStatus.py'),
                           mode = 493,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
                           logoutput = True,
                           path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                           tries = 3,

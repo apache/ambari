@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 from resource_management import *
+import sys
 
 class ServiceCheck(Script):
   def service_check(self, env):
@@ -37,8 +38,8 @@ class ServiceCheck(Script):
 
     validateStatusFileName = "validateYarnComponentStatus.py"
     validateStatusFilePath = format("/tmp/{validateStatusFileName}")
-
-    validateStatusCmd = format("{validateStatusFilePath} {component_type} -p {component_address} -s {hadoop_ssl_enabled}")
+    python_executable = sys.executable
+    validateStatusCmd = format("{python_executable} {validateStatusFilePath} {component_type} -p {component_address} -s {hadoop_ssl_enabled}")
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
@@ -60,7 +61,7 @@ class ServiceCheck(Script):
     )
 
     Execute(run_yarn_check_cmd,
-                  user=params.smokeuser
+            user=params.smokeuser
     )
 
 if __name__ == "__main__":
