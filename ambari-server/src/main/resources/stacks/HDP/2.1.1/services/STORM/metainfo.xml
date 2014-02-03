@@ -77,7 +77,6 @@
       </components>
 
 
-      <!--
       <osSpecifics>
         <osSpecific>
           <osType>any</osType>
@@ -86,8 +85,9 @@
               <type>rpm</type>
               <name>storm</name>
             </package>
+          </packages>
         </osSpecific>
-      </osSpecifics> -->
+      </osSpecifics>
 
       <commandScript>
         <script>scripts/service_check.py</script>

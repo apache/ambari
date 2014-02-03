@@ -28,9 +28,6 @@ from service import service
 class Supervisor(Script):
   def install(self, env):
     self.install_packages(env)
-    # TODO remove
-    Execute("yum install http://s3.amazonaws.com/dev.hortonworks.com/storm/storm-0.9.1.2.0.6.1-1.el6.noarch.rpm -y",
-            ignore_failures = True)
     self.configure(env)
 
   def configure(self, env):
