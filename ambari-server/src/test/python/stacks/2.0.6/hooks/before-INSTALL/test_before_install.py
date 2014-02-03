@@ -34,6 +34,9 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'ambari-qa',
                           gid='hadoop',
                           groups=['users'], )
+    self.assertResourceCalled('User', 'tez',
+                              gid='hadoop',
+                              groups=['users'], )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                           content=StaticFile('changeToSecureUid.sh'),
                           mode=0555, )

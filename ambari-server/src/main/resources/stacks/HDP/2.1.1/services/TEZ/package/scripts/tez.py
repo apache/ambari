@@ -27,7 +27,8 @@ def tez():
 
   Directory( params.conf_dir,
     owner = params.tez_user,
-    group = params.user_group
+    group = params.user_group,
+    recursive = True
   )
 
   XmlConfig( "tez-site.xml",

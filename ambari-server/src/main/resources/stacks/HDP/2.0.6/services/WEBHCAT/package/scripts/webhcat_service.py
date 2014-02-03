@@ -24,7 +24,7 @@ from resource_management import *
 def webhcat_service(action='start'):
   import params
 
-  cmd = format('env HADOOP_HOME={hadoop_home} /usr/lib/hcatalog/sbin/webhcat_server.sh')
+  cmd = format('env HADOOP_HOME={hadoop_home} {webhcat_bin_dir}/webhcat_server.sh')
 
   if action == 'start':
     demon_cmd = format('{cmd} start')

@@ -29,7 +29,12 @@ config = Script.get_config()
 webhcat_user = config['configurations']['global']['webhcat_user']
 download_url = config['configurations']['global']['apache_artifacts_download_url']
 
-config_dir = '/etc/hcatalog/conf'
+if config['hostLevelParams']['stack_version'] == '2.1.1':
+  config_dir = '/etc/hive-webhcat/conf'
+  webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+else:
+  config_dir = '/etc/hcatalog/conf'
+  webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
 
 templeton_log_dir = config['configurations']['global']['hcat_log_dir']
 templeton_pid_dir = status_params.templeton_pid_dir

@@ -37,6 +37,10 @@ class TestHcatClient(RMFTestCase):
       owner = 'hcat',
       recursive = True,
     )
+    self.assertResourceCalled('File',"/usr/bin/hcat",
+      mode=0755,
+      content=StaticFile('hcat')
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hcatalog/conf/hcat-env.sh',
       owner = 'hcat',
       group = 'hadoop',
@@ -59,6 +63,10 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
       recursive = True,
+    )
+    self.assertResourceCalled('File',"/usr/bin/hcat",
+      mode=0755,
+      content=StaticFile('hcat')
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hcatalog/conf/hcat-env.sh',
       owner = 'hcat',
