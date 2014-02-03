@@ -979,31 +979,19 @@ App.WizardStep8Controller = Em.Controller.extend({
       return;
     }
 
-    // currently we are specifying the predicate as a query string.
-    // this can hit a ~4000-character limit in Jetty server.
-    // chunk to multiple calls if needed
-    // var hostsPredicate = hostNames.map(function (hostName) {
-    //   return 'Hosts/host_name=' + hostName;
-    // }).join('|');
-
-    var queryStrArr = [];
     var queryStr = '';
     hostNames.forEach(function (hostName) {
       queryStr += 'Hosts/host_name=' + hostName + '|';
-      if (queryStr.length > 3500) {
-        queryStrArr.push(queryStr.slice(0, -1));
-        queryStr = '';
-      }
     });
+    //slice off last symbol '|'
+    queryStr = queryStr.slice(0, -1);
 
-    if (queryStr.length > 0) {
-      queryStrArr.push(queryStr.slice(0, -1));
-    }
-
-    queryStrArr.forEach(function (queryStr) {
-      // console.log('creating host components for ' + queryStr);
-      var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts?' + queryStr;
-      var data = {
+    var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts';
+    var data = {
+      "RequestInfo": {
+        "query": queryStr
+      },
+      "Body": {
         "host_components": [
           {
             "HostRoles": {
@@ -1011,14 +999,14 @@ App.WizardStep8Controller = Em.Controller.extend({
             }
           }
         ]
-      };
+      }
+    };
 
-      this.ajax({
-        type: 'POST',
-        url: url,
-        data: JSON.stringify(data)
-      });
-    }, this);
+    this.ajax({
+      type: 'POST',
+      url: url,
+      data: JSON.stringify(data)
+    });
   },
 
   createConfigurations: function () {
