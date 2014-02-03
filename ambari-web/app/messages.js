@@ -175,7 +175,7 @@ Em.I18n.translations = {
   'common.discard': 'Discard',
   'common.actions': 'Actions',
   'common.maintenance': 'Maintenance',
-  'common.passive_state': 'Passive State',
+  'common.passive_state': 'Out of Service',
   'common.selected': 'Selected',
   'common.password': 'Password',
   'common.url': 'URL',
@@ -184,10 +184,10 @@ Em.I18n.translations = {
   'common.hostLog.popup.logDir.path':'/var/lib/ambari-agent/data/',
   'common.hostLog.popup.outputLog.value': 'output-{0}.txt',
   'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
-  'passiveState.turnOn':'Turn On Passive Mode',
-  'passiveState.turnOff':'Turn Off Passive Mode',
-  'passiveState.turnOnFor':'Turn On Passive Mode for',
-  'passiveState.turnOffFor':'Turn Off Passive Mode for',
+  'passiveState.turnOn':'Turn On Out-of-Service Mode',
+  'passiveState.turnOff':'Turn Off Out-of-Service Mode',
+  'passiveState.turnOnFor':'Turn On Out-of-Service Mode for',
+  'passiveState.turnOffFor':'Turn Off Out-of-Service Mode for',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1355,8 +1355,8 @@ Em.I18n.translations = {
   'hosts.bulkOperation.confirmation.header':'Confirm Bulk Operation',
   'hosts.bulkOperation.confirmation.hosts':'Are you sure you want to <strong>{0}</strong> on the following {1} hosts?',
   'hosts.bulkOperation.confirmation.hostComponents':'Are you sure you want to <strong>{0} {1}</strong> on the following {2} hosts?',
-  'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts are already in Passive State that you selected',
-  'hosts.bulkOperation.host_components.passiveState.nothingToDo.body':'All host components are already in Passive State that you selected',
+  'hosts.bulkOperation.passiveState.nothingToDo.body':'All hosts that you selected are already in Out-of-Service mode.',
+  'hosts.bulkOperation.host_components.passiveState.nothingToDo.body':'All host components that you selected are already in Out-of-Service mode',
 
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',
@@ -1474,7 +1474,7 @@ Em.I18n.translations = {
     'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
   'hosts.assignRack':'Assign Rack',
-  'hosts.passiveMode.popup':'Are you sure you want to Turn {0} Passive Mode for {1}?',
+  'hosts.passiveMode.popup':'Are you sure you want to Turn {0} Out-of-Service Mode for {1}?',
 
   'charts.horizon.chart.showText':'show',
   'charts.horizon.chart.hideText':'hide',
@@ -1828,7 +1828,7 @@ Em.I18n.translations = {
 
   'rolling.command.context': 'Rolling set {0} to state "{1}" - batch {2} of {3}',
   'rolling.nothingToDo.header': 'Nothing to do',
-  'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state or in passive mode.',
+  'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state or in Out-of-Service mode.',
 
   'restart.service.all': 'Restart All',
   'restart.service.rest.context': 'Restart {1}s ({0})',
