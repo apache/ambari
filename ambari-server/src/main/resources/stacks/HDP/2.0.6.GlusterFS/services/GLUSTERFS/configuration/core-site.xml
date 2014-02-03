@@ -32,6 +32,11 @@
   page size (4096 on Intel x86), and it determines how much data is
   buffered during read and write operations.</description>
   </property>
+ <property>
+    <name>hadoop_heapsize</name>
+    <value>1024</value>
+    <description>Hadoop maximum Java heap size</description>
+  </property>
 
   <property>
     <name>io.serializations</name>

@@ -332,6 +332,18 @@ module.exports =
             "serviceName": "GLUSTERFS",
             "category": "General"
           },
+          {
+            "id": "puppet var",
+            "name": "hadoop_heapsize",
+            "displayName": "Hadoop maximum Java heap size",
+            "description": "Maximum Java heap size for daemons such as Balancer (Java option -Xmx)",
+            "defaultValue": "1024",
+            "displayType": "int",
+            "unit": "MB",
+	          "isVisible": true,
+	          "serviceName": "GLUSTERFS",
+            "index": 1
+          },
   /**********************************************MAPREDUCE***************************************/
     {
       "id": "puppet var",

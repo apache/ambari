@@ -22,7 +22,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value>hdfs://localhost:8020/apps/hbase/data</value>
+    <value>glusterfs:///hbase</value>
     <description>The directory shared by region servers and into
     which HBase persists.  The URL should be 'fully-qualified'
     to include the filesystem scheme.  For example, to specify the
