@@ -280,10 +280,18 @@ App.MainHostSummaryView = Em.View.extend({
           }
         }
         if(this.get("isNodeManager") && this.get('isNodeManagerRecommissionAvailable')){
-          componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
+          if(this.get('isNodeManagerDecommissioning')){
+            componentTextStatus = Em.I18n.t('hosts.host.decommissioning');
+          } else {
+            componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
+          }
         }
         if(this.get("isTaskTracker") && this.get('isTaskTrackerRecommissionAvailable')){
-          componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
+          if(this.get('isTaskTrackerDecommissioning')){
+            componentTextStatus = Em.I18n.t('hosts.host.decommissioning');
+          } else {
+            componentTextStatus = Em.I18n.t('hosts.host.decommissioned');
+          }
         }
         if(this.get("isRegionServer") && this.get('isRegionServerRecommissionAvailable')){
           if(this.get('isRegionServerDecommissioning')){
@@ -294,8 +302,9 @@ App.MainHostSummaryView = Em.View.extend({
         }
       }
       return componentTextStatus;
-    }.property('content.passiveState','workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable',
-      'isTaskTrackerRecommissionAvailable', 'isRegionServerRecommissionAvailable', 'isRegionServerDecommissioning'),
+    }.property('content.passiveState','workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable', 'isNodeManagerDecommissioning',
+      'isTaskTrackerRecommissionAvailable', 'isTaskTrackerDecommissioning', 'isRegionServerRecommissionAvailable', 'isRegionServerDecommissioning'),
+
 
     passiveImpliedTextStatus: function() {
       if(this.get('parentView.content.passiveState') === 'PASSIVE') {
@@ -376,7 +385,7 @@ App.MainHostSummaryView = Em.View.extend({
       var workStatus = this.get('workStatus');
       var self = this;
       var pulsate = [ App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.installing].contains(workStatus);
-      if (!pulsate && (this.get('isDataNode') || this.get('isRegionServer'))) {
+      if (!pulsate && (this.get('isDataNode') || this.get('isRegionServer') || this.get('isNodeManager') || this.get('isTaskTracker'))) {
         var component = this.get('content');
         if (component && workStatus != "INSTALLED") {
           pulsate = this.get('isDecommissioning');
@@ -397,7 +406,8 @@ App.MainHostSummaryView = Em.View.extend({
       this.$('.components-health').stop(true, true);
       this.$('.components-health').css({opacity: 1.0});
       this.doBlinking();
-    }.observes('workStatus','isDataNodeRecommissionAvailable', 'isDecommissioning', 'isRegionServerRecommissionAvailable'),
+    }.observes('workStatus','isDataNodeRecommissionAvailable', 'isDecommissioning', 'isRegionServerRecommissionAvailable',
+      'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable'),
 
     isStart: function () {
       return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
@@ -450,8 +460,9 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content.passiveState'),
 
     isDecommissioning: function () {
-      return (this.get('isDataNode') && this.get("isDataNodeDecommissioning")) || (this.get('isRegionServer') && this.get("isRegionServerDecommissioning"));
-    }.property("workStatus", "isDataNodeDecommissioning", "isRegionServerDecommissioning"),
+      return ( (this.get('isDataNode') && this.get("isDataNodeDecommissioning")) || (this.get('isRegionServer') && this.get("isRegionServerDecommissioning"))
+        || (this.get('isNodeManager') && this.get("isNodeManagerDecommissioning")) || (this.get('isTaskTracker') && this.get('isTaskTrackerDecommissioning')));
+    }.property("workStatus", "isDataNodeDecommissioning", "isRegionServerDecommissioning", "isNodeManagerDecommissioning", "isTaskTrackerDecommissioning"),
 
     isDataNodeDecommissioning: null,
     isDataNodeDecommissionAvailable: null,
@@ -493,7 +504,7 @@ App.MainHostSummaryView = Em.View.extend({
                   break;
               }
             } else {
-              // if namenode is down, get desired_admin_state to decide if the used had issued a decommission
+              // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
               var deferred = $.Deferred();
               self.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
                 var desired_admin_state = self.get('desiredAdminState');
@@ -534,7 +545,7 @@ App.MainHostSummaryView = Em.View.extend({
               self.set('isDataNodeDecommissioning', false);
               self.set('isDataNodeDecommissionAvailable', self.get('isStart'));
             } else {
-              // if namenode is down, get desired_admin_state to decide if the used had issued a decommission
+              // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
               var deferred = $.Deferred();
               self.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
                 var desired_admin_state = self.get('desiredAdminState');
@@ -623,6 +634,7 @@ App.MainHostSummaryView = Em.View.extend({
 
     isNodeManagerDecommissionAvailable: null,
     isNodeManagerRecommissionAvailable: null,
+    isNodeManagerDecommissioning: null,
     /**
      * load Recommission/Decommission status for nodeManager from nodeManagers list
      */
@@ -633,38 +645,41 @@ App.MainHostSummaryView = Em.View.extend({
       var slaveType = 'NODEMANAGER';
       var dfd = $.Deferred();
       var self = this;
-      this.getNMDecommissionStatus(clusterName, hostName, componentName).done(function () {
-        var curObj = self.get('decommissionedStatusObject');
-        self.set('decommissionedStatusObject', null);
-        if (curObj && curObj.rm_metrics) {
-          var nodeManagersArray = App.parseJSON(curObj.rm_metrics.cluster.nodeManagers);
-            if (nodeManagersArray.findProperty('HostName', hostName)){
-              self.set('isNodeManagerRecommissionAvailable', false);
-              self.set('isNodeManagerDecommissionAvailable', self.get('isStart'));
-            } else {
-              self.set('isNodeManagerRecommissionAvailable', true);
-              self.set('isNodeManagerDecommissionAvailable', false);
-            }
-        } else if (!curObj.rm_metrics) {
-          // if ResourceManager is down, get desired_admin_state of NM to decide if the used had issued a decommission
-          var deferred = $.Deferred();
-          self.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
-            var desired_admin_state = self.get('desiredAdminState');
-            self.set('desiredAdminState', null);
-            switch(desired_admin_state) {
-              case "INSERVICE":
-                self.set('isNodeManagerRecommissionAvailable', false);
-                self.set('isNodeManagerDecommissionAvailable', self.get('isStart'));
-                break;
-              case "DECOMMISSIONED":
-                self.set('isNodeManagerRecommissionAvailable', true);
-                self.set('isNodeManagerDecommissionAvailable', false);
-                break;
-            }
-            deferred.resolve(desired_admin_state);
-          });
+
+      this.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
+        var desired_admin_state = self.get('desiredAdminState');
+        self.set('desiredAdminState', null);
+        switch(desired_admin_state) {
+          case "INSERVICE":
+            // can be decommissioned if already started
+            self.set('isNodeManagerRecommissionAvailable', false);
+            self.set('isNodeManagerDecommissioning', false);
+            self.set('isNodeManagerDecommissionAvailable', self.get('isStart'));
+            break;
+          case "DECOMMISSIONED":
+            var deferred = $.Deferred();
+            self.getNMDecommissionStatus(clusterName, hostName, componentName).done( function() {
+              var curObj = self.get('decommissionedStatusObject');
+              self.set('decommissionedStatusObject', null);
+              if (curObj && curObj.rm_metrics) {
+                var nodeManagersArray = App.parseJSON(curObj.rm_metrics.cluster.nodeManagers);
+                if (nodeManagersArray.findProperty('HostName', hostName)){
+                  // decommisioning ..
+                  self.set('isNodeManagerRecommissionAvailable', true);
+                  self.set('isNodeManagerDecommissioning', true);
+                  self.set('isNodeManagerDecommissionAvailable', false);
+                } else {
+                  // decommissioned ..
+                  self.set('isNodeManagerRecommissionAvailable', true);
+                  self.set('isNodeManagerDecommissioning', false);
+                  self.set('isNodeManagerDecommissionAvailable', false);
+                }
+              }
+              deferred.resolve(curObj);
+            });
+            break;
         }
-        dfd.resolve(curObj);
+        dfd.resolve(desired_admin_state);
       });
       return dfd.promise();
     }.observes('App.router.mainHostDetailsController.content'),
@@ -688,6 +703,7 @@ App.MainHostSummaryView = Em.View.extend({
 
     isTaskTrackerDecommissionAvailable: null,
     isTaskTrackerRecommissionAvailable: null,
+    isTaskTrackerDecommissioning: null,
     /**
      * load Recommission/Decommission status for TaskTracker from JobTracker/AliveNodes list
      */
@@ -698,40 +714,43 @@ App.MainHostSummaryView = Em.View.extend({
       var slaveType = 'TASKTRACKER';
       var dfd = $.Deferred();
       var self = this;
-      this.getTTDecommissionStatus(clusterName, hostName, componentName).done(function () {
-        var curObj = self.get('decommissionedStatusObject');
-        self.set('decommissionedStatusObject', null);
-        if (curObj) {
-          var aliveNodesArray = App.parseJSON(curObj.AliveNodes);
-          if (aliveNodesArray != null) {
-            if (aliveNodesArray.findProperty('hostname', hostName)){
-              self.set('isTaskTrackerRecommissionAvailable', false);
-              self.set('isTaskTrackerDecommissionAvailable', self.get('isStart'));
-            } else {
-              self.set('isTaskTrackerRecommissionAvailable', true);
-              self.set('isTaskTrackerDecommissionAvailable', false);
-            }
-          }
-        } else {
-          // if JobTracker is down, get desired_admin_state of TT to decide if the used had issued a decommission
-          var deferred = $.Deferred();
-          self.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
-            var desired_admin_state = self.get('desiredAdminState');
-            self.set('desiredAdminState', null);
-            switch(desired_admin_state) {
-              case "INSERVICE":
-                self.set('isTaskTrackerRecommissionAvailable', false);
-                self.set('isTaskTrackerDecommissionAvailable', self.get('isStart'));
-                break;
-              case "DECOMMISSIONED":
-                self.set('isTaskTrackerRecommissionAvailable', true);
-                self.set('isTaskTrackerDecommissionAvailable', false);
-                break;
-            }
-            deferred.resolve(desired_admin_state);
-          });
+      this.getDesiredAdminState(clusterName, hostName, slaveType).done( function () {
+        var desired_admin_state = self.get('desiredAdminState');
+        self.set('desiredAdminState', null);
+        switch(desired_admin_state) {
+          case "INSERVICE":
+            // can be decommissioned if already started
+            self.set('isTaskTrackerRecommissionAvailable', false);
+            self.set('isTaskTrackerDecommissioning', false);
+            self.set('isTaskTrackerDecommissionAvailable', self.get('isStart'));
+            break;
+          case "DECOMMISSIONED":
+            var deferred = $.Deferred();
+            self.getTTDecommissionStatus(clusterName, hostName, componentName).done( function() {
+              var curObj = self.get('decommissionedStatusObject');
+              self.set('decommissionedStatusObject', null);
+              if (curObj) {
+                var aliveNodesArray = App.parseJSON(curObj.AliveNodes);
+                if (aliveNodesArray != null) {
+                  if (aliveNodesArray.findProperty('hostname', hostName)){
+                    //decommissioning ..
+                    self.set('isTaskTrackerRecommissionAvailable', true);
+                    self.set('isTaskTrackerDecommissioning', true);
+                    self.set('isTaskTrackerDecommissionAvailable', false);
+                  } else {
+                    //decommissioned
+                    self.set('isTaskTrackerRecommissionAvailable', true);
+                    self.set('isTaskTrackerDecommissioning', false);
+                    self.set('isTaskTrackerDecommissionAvailable', false);
+                  }
+                }
+
+              }
+              deferred.resolve(curObj);
+            });
+            break;
         }
-        dfd.resolve(curObj);
+        dfd.resolve(desired_admin_state);
       });
       return dfd.promise();
     }.observes('App.router.mainHostDetailsController.content'),
