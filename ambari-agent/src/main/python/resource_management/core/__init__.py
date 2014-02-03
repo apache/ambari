@@ -28,5 +28,6 @@ from resource_management.core.resources import *
 from resource_management.core.source import *
 from resource_management.core.system import *
 from resource_management.core.shell import *
+from resource_management.core.logger import *
 
 __version__ = "0.4.1"

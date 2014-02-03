@@ -26,6 +26,7 @@ from string import Formatter
 from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
 from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 class ConfigurationFormatter(Formatter):
@@ -33,9 +34,34 @@ class ConfigurationFormatter(Formatter):
     env = Environment.get_instance()
     variables = kwargs
     params = env.config.params
+    all_params = checked_unite(variables, params)
     
-    result = checked_unite(variables, params)
-    return self.vformat(format_string, args, result)
+    self.convert_field = self.convert_field_protected
+    result_protected = self.vformat(format_string, args, all_params)
+    
+    self.convert_field = self.convert_field_unprotected
+    result_unprotected = self.vformat(format_string, args, all_params)
+    
+    if result_protected != result_unprotected:
+      Logger.sensitive_strings[result_unprotected] = result_protected
+      
+    return result_unprotected
+  
+  def convert_field_unprotected(self, value, conversion):
+    if conversion == 'p':
+      return value
+      
+    return super(ConfigurationFormatter, self).convert_field(value, conversion)
+  
+  def convert_field_protected(self, value, conversion):
+    """
+    Enable masking sensitive information like
+    passwords from logs via !p (password) format flag.
+    """
+    if conversion == 'p':
+      return "[PROTECTED]"
+      
+    return super(ConfigurationFormatter, self).convert_field(value, conversion)
       
   
 def format(format_string, *args, **kwargs):

@@ -25,6 +25,7 @@ import os
 from resource_management.core import shell
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
+from resource_management.core.logger import Logger
 
 
 class ServiceProvider(Provider):
@@ -53,11 +54,11 @@ class ServiceProvider(Provider):
 
   def _exec_cmd(self, command, expect=None):
     if command != "status":
-      self.log.info("%s command '%s'" % (self.resource, command))
+      Logger.info("%s command '%s'" % (self.resource, command))
 
     custom_cmd = getattr(self.resource, "%s_command" % command, None)
     if custom_cmd:
-      self.log.debug("%s executing '%s'" % (self.resource, custom_cmd))
+      Logger.debug("%s executing '%s'" % (self.resource, custom_cmd))
       if hasattr(custom_cmd, "__call__"):
         if custom_cmd():
           ret = 0

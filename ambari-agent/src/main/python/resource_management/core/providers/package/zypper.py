@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
+from resource_management.core.logger import Logger
 
 INSTALL_CMD = "/usr/bin/zypper --quiet install --auto-agree-with-licenses --no-confirm %s"
 REMOVE_CMD = "/usr/bin/zypper --quiet remove --no-confirm %s"
@@ -29,7 +30,7 @@ REMOVE_CMD = "/usr/bin/zypper --quiet remove --no-confirm %s"
 class ZypperProvider(PackageProvider):
   def install_package(self, name):
     cmd = INSTALL_CMD % (name)
-    self.log.info("Installing package %s ('%s')", name, cmd)
+    Logger.info("Installing package %s ('%s')", name, cmd)
     shell.checked_call(cmd)
 
   def upgrade_package(self, name):
@@ -37,5 +38,5 @@ class ZypperProvider(PackageProvider):
   
   def remove_package(self, name):
     cmd = REMOVE_CMD % (name)
-    self.log.info("Removing package %s ('%s')", name, cmd)
+    Logger.info("Removing package %s ('%s')", name, cmd)
     shell.checked_call(cmd)

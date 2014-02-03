@@ -28,3 +28,8 @@ hive_pid = 'hive-server.pid'
 hive_metastore_pid = 'hive.pid'
 
 hcat_pid_dir = config['configurations']['global']['hcat_pid_dir'] #hcat_pid_dir
+
+if System.get_instance().os_family == "suse":
+  daemon_name = 'mysql'
+else:
+  daemon_name = 'mysqld'

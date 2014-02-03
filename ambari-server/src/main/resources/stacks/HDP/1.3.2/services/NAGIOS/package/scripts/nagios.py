@@ -77,7 +77,7 @@ def nagios():
 def set_web_permisssions():
   import params
 
-  cmd = format("{htpasswd_cmd} -c -b  /etc/nagios/htpasswd.users {nagios_web_login} {nagios_web_password}")
+  cmd = format("{htpasswd_cmd} -c -b  /etc/nagios/htpasswd.users {nagios_web_login} {nagios_web_password!p}")
   test = format("grep {nagios_web_login} /etc/nagios/htpasswd.users")
   Execute( cmd,
     not_if = test

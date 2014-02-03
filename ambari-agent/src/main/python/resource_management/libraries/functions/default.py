@@ -21,12 +21,11 @@ Ambari Agent
 """
 
 __all__ = ["default"]
-import logging
 from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+from resource_management.core.logger import Logger
 
 default_subdict='/configurations/global'
-log = logging.getLogger('resource_management')
 
 def default(name, default_value):
   subdicts = filter(None, name.split('/'))
@@ -40,7 +39,7 @@ def default(name, default_value):
       curr_dict = curr_dict[x]
     else:
       if not isinstance(default_value, UnknownConfiguration):
-        log.debug("Cannot find configuration: '%s'. Using '%s' value as default" % (name, default_value))
+        Logger.debug("Cannot find configuration: '%s'. Using '%s' value as default" % (name, default_value))
       return default_value
 
   return curr_dict

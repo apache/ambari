@@ -40,7 +40,7 @@ class XmlConfigProvider(Provider):
   </configuration>''', extra_imports=[time], configurations_dict=self.resource.configurations)
    
   
-    self.log.info(format("Generating config: {conf_dir}/{filename}"))
+    Logger.info(format("Generating config: {conf_dir}/{filename}"))
     
     with Environment.get_instance_copy() as env:
       File (format("{conf_dir}/{filename}"),

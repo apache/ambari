@@ -22,7 +22,6 @@ Ambari Agent
 
 __all__ = ["Environment"]
 
-import logging
 import os
 import shutil
 import time
@@ -33,6 +32,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.providers import find_provider
 from resource_management.core.utils import AttributeDictionary
 from resource_management.core.system import System
+from resource_management.core.logger import Logger
 
 
 class Environment(object):
@@ -44,7 +44,6 @@ class Environment(object):
     are looked up
     @param test_mode: if this is enabled, resources won't be executed until manualy running env.run().
     """
-    self.log = logging.getLogger("resource_management")
     self.reset(basedir, test_mode)
 
   def reset(self, basedir, test_mode):
@@ -73,7 +72,7 @@ class Environment(object):
         os.makedirs(self.config.backup.path, 0700)
       new_name = self.config.backup.prefix + path.replace('/', '-')
       backup_path = os.path.join(self.config.backup.path, new_name)
-      self.log.info("backing up %s to %s" % (path, backup_path))
+      Logger.info("backing up %s to %s" % (path, backup_path))
       shutil.copy(path, backup_path)
 
   def update_config(self, attributes, overwrite=True):
@@ -104,7 +103,7 @@ class Environment(object):
         self.config.params[variable] = value
         
   def run_action(self, resource, action):
-    self.log.debug("Performing action %s on %s" % (action, resource))
+    Logger.debug("Performing action %s on %s" % (action, resource))
 
     provider_class = find_provider(self, resource.__class__.__name__,
                                    resource.provider)
@@ -123,51 +122,26 @@ class Environment(object):
       ret, out = shell.call(cond)
       return ret == 0
 
-    raise Exception("Unknown condition type %r" % cond)
-
-  def _get_resource_repr(self, resource):
-    arguments_str = ""
-    for x,y in resource.arguments.iteritems():
-      
-      # strip unicode 'u' sign
-      if isinstance(y, unicode):
-        val = repr(y).lstrip('u')
-      # don't show dicts of configurations
-      # usually too long  
-      elif isinstance(y, dict):
-        val = "..."
-      # correctly output 'mode' (as they are octal values like 0755)
-      elif y and x == 'mode':
-        val = oct(y)
-      else:
-        val = repr(y)
-      
-      
-      arguments_str += "'{0}': {1}, ".format(x, val)
-      
-    if arguments_str:  
-      arguments_str = arguments_str[:-2]
-    
-    return "{0} {{{1}}}".format(resource, arguments_str)  
+    raise Exception("Unknown condition type %r" % cond) 
     
   def run(self):
     with self:
       # Run resource actions
       while self.resource_list:
         resource = self.resource_list.pop(0)
-        self.log.info(self._get_resource_repr(resource))
+        Logger.info_resource(resource)
         
         if resource.initial_wait:
           time.sleep(resource.initial_wait)
 
         if resource.not_if is not None and self._check_condition(
           resource.not_if):
-          self.log.info("Skipping %s due to not_if" % resource)
+          Logger.info("Skipping %s due to not_if" % resource)
           continue
 
         if resource.only_if is not None and not self._check_condition(
           resource.only_if):
-          self.log.info("Skipping %s due to only_if" % resource)
+          Logger.info("Skipping %s due to only_if" % resource)
           continue
 
         for action in resource.action:

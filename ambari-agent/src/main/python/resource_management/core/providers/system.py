@@ -30,6 +30,7 @@ import shutil
 from resource_management.core import shell
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
+from resource_management.core.logger import Logger
 
 
 def _coerce_uid(user):
@@ -54,27 +55,27 @@ def _coerce_gid(group):
   return gid
 
 
-def _ensure_metadata(path, user, group, mode=None, log=None):
+def _ensure_metadata(path, user, group, mode=None):
   stat = os.stat(path)
 
   if mode:
     existing_mode = stat.st_mode & 07777
     if existing_mode != mode:
-      log and log.info("Changing permission for %s from %o to %o" % (
+      Logger.info("Changing permission for %s from %o to %o" % (
       path, existing_mode, mode))
       os.chmod(path, mode)
 
   if user:
     uid = _coerce_uid(user)
     if stat.st_uid != uid:
-      log and log.info(
+      Logger.info(
         "Changing owner for %s from %d to %s" % (path, stat.st_uid, user))
       os.chown(path, uid, -1)
 
   if group:
     gid = _coerce_gid(group)
     if stat.st_gid != gid:
-      log and log.info(
+      Logger.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
       os.chown(path, -1, gid)
 
@@ -106,14 +107,13 @@ class FileProvider(Provider):
             self.resource.env.backup_file(path)
 
     if write:
-      self.log.info("Writing %s because %s" % (self.resource, reason))
+      Logger.info("Writing %s because %s" % (self.resource, reason))
       with open(path, "wb") as fp:
         if content:
           fp.write(content)
 
     _ensure_metadata(self.resource.path, self.resource.owner,
-                        self.resource.group, mode=self.resource.mode,
-                        log=self.log)
+                        self.resource.group, mode=self.resource.mode)
 
   def action_delete(self):
     path = self.resource.path
@@ -122,7 +122,7 @@ class FileProvider(Provider):
       raise Fail("Applying %s failed, %s is directory not file!" % (self.resource, path))
     
     if os.path.exists(path):
-      self.log.info("Deleting %s" % self.resource)
+      Logger.info("Deleting %s" % self.resource)
       os.unlink(path)
 
   def _get_content(self):
@@ -140,7 +140,7 @@ class DirectoryProvider(Provider):
   def action_create(self):
     path = self.resource.path
     if not os.path.exists(path):
-      self.log.info("Creating directory %s" % self.resource)
+      Logger.info("Creating directory %s" % self.resource)
       if self.resource.recursive:
         os.makedirs(path, self.resource.mode or 0755)
       else:
@@ -154,7 +154,7 @@ class DirectoryProvider(Provider):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
 
     _ensure_metadata(path, self.resource.owner, self.resource.group,
-                        mode=self.resource.mode, log=self.log)
+                        mode=self.resource.mode)
 
   def action_delete(self):
     path = self.resource.path
@@ -162,7 +162,7 @@ class DirectoryProvider(Provider):
       if not os.path.isdir(path):
         raise Fail("Applying %s failed, %s is not a directory" % (self.resource, path))
       
-      self.log.info("Removing directory %s and all its content" % self.resource)
+      Logger.info("Removing directory %s and all its content" % self.resource)
       shutil.rmtree(path)
 
 
@@ -177,7 +177,7 @@ class LinkProvider(Provider):
       if not os.path.islink(path):
         raise Fail(
           "%s trying to create a symlink with the same name as an existing file or directory" % self)
-      self.log.info("%s replacing old symlink to %s" % (self.resource, oldpath))
+      Logger.info("%s replacing old symlink to %s" % (self.resource, oldpath))
       os.unlink(path)
       
     if self.resource.hard:
@@ -186,19 +186,19 @@ class LinkProvider(Provider):
       if os.path.isdir(self.resource.to):
         raise Fail("Failed to apply %s, cannot create hard link to a directory (%s)" % (self.resource, self.resource.to))
       
-      self.log.info("Creating hard %s" % self.resource)
+      Logger.info("Creating hard %s" % self.resource)
       os.link(self.resource.to, path)
     else:
       if not os.path.exists(self.resource.to):
-        self.log.info("Warning: linking to nonexistent location %s", self.resource.to)
+        Logger.info("Warning: linking to nonexistent location %s", self.resource.to)
         
-      self.log.info("Creating symbolic %s" % self.resource)
+      Logger.info("Creating symbolic %s" % self.resource)
       os.symlink(self.resource.to, path)
 
   def action_delete(self):
     path = self.resource.path
     if os.path.exists(path):
-      self.log.info("Deleting %s" % self.resource)
+      Logger.info("Deleting %s" % self.resource)
       os.unlink(path)
 
 
@@ -218,7 +218,7 @@ class ExecuteProvider(Provider):
       if os.path.exists(self.resource.creates):
         return
 
-    self.log.debug("Executing %s" % self.resource)
+    Logger.debug("Executing %s" % self.resource)
     
     if self.resource.path != []:
       if not self.resource.environment:
@@ -236,7 +236,7 @@ class ExecuteProvider(Provider):
         if i == self.resource.tries-1: # last try
           raise ex
         else:
-          self.log.info("Retrying after %d seconds. Reason: %s", self.resource.try_sleep, str(ex))
+          Logger.info("Retrying after %d seconds. Reason: %s", self.resource.try_sleep, str(ex))
           time.sleep(self.resource.try_sleep)
        
 
@@ -244,7 +244,7 @@ class ExecuteScriptProvider(Provider):
   def action_run(self):
     from tempfile import NamedTemporaryFile
 
-    self.log.info("Running script %s" % self.resource)
+    Logger.info("Running script %s" % self.resource)
     with NamedTemporaryFile(prefix="resource_management-script", bufsize=0) as tf:
       tf.write(self.resource.code)
       tf.flush()

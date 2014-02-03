@@ -26,16 +26,17 @@ import grp
 import pwd
 from resource_management.core import shell
 from resource_management.core.providers import Provider
+from resource_management.core.logger import Logger
 
 
 class UserProvider(Provider):
   def action_create(self):
     if not self.user:
       command = ['useradd', "-m"]
-      self.log.info("Adding user %s" % self.resource)
+      Logger.info("Adding user %s" % self.resource)
     else:
       command = ['usermod']
-      self.log.info("Modifying user %s" % (self.resource.username))
+      Logger.info("Modifying user %s" % (self.resource.username))
 
     options = dict(
       comment="-c",
@@ -65,7 +66,7 @@ class UserProvider(Provider):
     if self.user:
       command = ['userdel', self.resource.username]
       shell.checked_call(command)
-      self.log.info("Removed user %s" % self.resource)
+      Logger.info("Removed user %s" % self.resource)
 
   @property
   def user(self):
@@ -80,10 +81,10 @@ class GroupProvider(Provider):
     group = self.group
     if not group:
       command = ['groupadd']
-      self.log.info("Adding group %s" % self.resource)
+      Logger.info("Adding group %s" % self.resource)
     else:
       command = ['groupmod']
-      self.log.info("Modifying group %s" % (self.resource.group_name))
+      Logger.info("Modifying group %s" % (self.resource.group_name))
       
     options = dict(
         gid="-g",
@@ -105,7 +106,7 @@ class GroupProvider(Provider):
     if self.group:
       command = ['groupdel', self.resource.group_name]
       shell.checked_call(command)
-      self.log.info("Removed group %s" % self.resource)
+      Logger.info("Removed group %s" % self.resource)
 
   @property
   def group(self):

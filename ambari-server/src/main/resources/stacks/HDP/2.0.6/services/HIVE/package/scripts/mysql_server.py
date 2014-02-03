@@ -25,11 +25,6 @@ from mysql_service import mysql_service
 
 class MysqlServer(Script):
 
-  if System.get_instance().os_family == "suse":
-    daemon_name = 'mysql'
-  else:
-    daemon_name = 'mysqld'
-
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -38,40 +33,38 @@ class MysqlServer(Script):
     import params
     env.set_params(params)
 
-    mysql_service(daemon_name=self.daemon_name, action='start')
+    mysql_service(daemon_name=params.daemon_name, action='start')
 
     File(params.mysql_adduser_path,
          mode=0755,
          content=StaticFile('addMysqlUser.sh')
     )
 
-    # Autoescaping
-    cmd = ("bash", "-x", params.mysql_adduser_path, self.daemon_name,
-           params.hive_metastore_user_name, str(params.hive_metastore_user_passwd) , params.mysql_host[0])
+    cmd = format("bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {mysql_host[0]}")
 
     Execute(cmd,
             tries=3,
             try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-            logoutput=True
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     )
 
-    mysql_service(daemon_name=self.daemon_name, action='stop')
+    mysql_service(daemon_name=params.daemon_name, action='stop')
 
   def start(self, env):
     import params
     env.set_params(params)
 
-    mysql_service(daemon_name=self.daemon_name, action = 'start')
+    mysql_service(daemon_name=params.daemon_name, action = 'start')
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    mysql_service(daemon_name=self.daemon_name, action = 'stop')
+    mysql_service(daemon_name=params.daemon_name, action = 'stop')
 
   def status(self, env):
-    mysql_service(daemon_name=self.daemon_name, action = 'status')
+    import status_params
+    mysql_service(daemon_name=status_params.daemon_name, action = 'status')
 
 if __name__ == "__main__":
   MysqlServer().execute()

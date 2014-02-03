@@ -22,12 +22,10 @@ Ambari Agent
 
 __all__ = ["checked_call"]
 
-import logging
 import subprocess
 import pipes
 from exceptions import Fail
-
-log = logging.getLogger("resource_management.provider")
+from resource_management.core.logger import Logger
 
 def checked_call(command, logoutput=False, 
          cwd=None, env=None, preexec_fn=None, user=None):
@@ -67,7 +65,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
   code = proc.returncode
   
   if logoutput and out and out!="":
-    log.info(out)
+    Logger.info(out)
   
   if throw_on_failure and code:
     err_msg = ("Execution of '%s' returned %d. %s") % (command[-1], code, out)

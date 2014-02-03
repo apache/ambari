@@ -26,6 +26,7 @@ import os
 import re
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
+from resource_management.core.logger import Logger
 
 
 class MountProvider(Provider):
@@ -34,7 +35,7 @@ class MountProvider(Provider):
       os.makedirs(self.resource.mount_point)
 
     if self.is_mounted():
-      self.log.debug("%s already mounted" % self)
+      Logger.debug("%s already mounted" % self)
     else:
       args = ["mount"]
       if self.resource.fstype:
@@ -47,19 +48,19 @@ class MountProvider(Provider):
 
       check_call(args)
 
-      self.log.info("%s mounted" % self)
+      Logger.info("%s mounted" % self)
 
   def action_umount(self):
     if self.is_mounted():
       check_call(["umount", self.resource.mount_point])
 
-      self.log.info("%s unmounted" % self)
+      Logger.info("%s unmounted" % self)
     else:
-      self.log.debug("%s is not mounted" % self)
+      Logger.debug("%s is not mounted" % self)
 
   def action_enable(self):
     if self.is_enabled():
-      self.log.debug("%s already enabled" % self)
+      Logger.debug("%s already enabled" % self)
     else:
       if not self.resource.device:
         raise Fail("[%s] device not set but required for enable action" % self)
@@ -76,7 +77,7 @@ class MountProvider(Provider):
           self.resource.passno,
         ))
 
-      self.log.info("%s enabled" % self)
+      Logger.info("%s enabled" % self)
 
   def action_disable(self):
     pass # TODO

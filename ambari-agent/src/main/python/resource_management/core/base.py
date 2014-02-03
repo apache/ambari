@@ -23,9 +23,9 @@ Ambari Agent
 __all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
            "BooleanArgument"]
 
-import logging
 from resource_management.core.exceptions import Fail, InvalidArgument
 from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 class ResourceArgument(object):
   def __init__(self, default=None, required=False):
@@ -93,8 +93,6 @@ class ResourceMetaclass(type):
 class Resource(object):
   __metaclass__ = ResourceMetaclass
 
-  log = logging.getLogger("resource_management.resource")
-
   action = ForcedListArgument(default="nothing")
   ignore_failures = BooleanArgument(default=False)
   not_if = ResourceArgument() # pass command e.g. not_if = ('ls','/root/jdk')
@@ -146,7 +144,7 @@ class Resource(object):
         except InvalidArgument, exc:
           raise InvalidArgument("%s %s" % (self, exc))
 
-    Resource.log.debug("New resource %s: %s" % (self, self.arguments))
+    Logger.debug("New resource %s: %s" % (self, self.arguments))
     
     if not self.env.test_mode:
       self.env.run()
@@ -173,7 +171,5 @@ class Resource(object):
     self.provider = state['provider']
     self.arguments = state['arguments']
     self.env = state['env']
-
-    Resource.log = logging.getLogger("resource_management.resource")
 
     self.validate()

@@ -22,14 +22,12 @@ Ambari Agent
 
 __all__ = ["Provider", "find_provider"]
 
-import logging
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.providers import PROVIDERS as LIBRARY_PROVIDERS
 
 
 class Provider(object):
   def __init__(self, resource):
-    self.log = logging.getLogger("resource_management.provider")
     self.resource = resource
 
   def action_nothing(self):

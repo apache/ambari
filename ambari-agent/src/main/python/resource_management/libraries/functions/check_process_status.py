@@ -21,11 +21,10 @@ Ambari Agent
 """
 
 from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.logger import Logger
 __all__ = ["check_process_status"]
 
-import os, logging
-
-log = logging.getLogger('resource_management')
+import os
 
 def check_process_status(pid_file):
   """
@@ -42,7 +41,7 @@ def check_process_status(pid_file):
     try:
       pid = int(f.read())
     except:
-      log.debug("Pid file {0} does not exist".format(pid_file))
+      Logger.debug("Pid file {0} does not exist".format(pid_file))
       raise ComponentIsNotRunning()
     try:
       # Kill will not actually kill the process
@@ -52,7 +51,7 @@ def check_process_status(pid_file):
       # process ID or process group ID.
       os.kill(pid, 0)
     except OSError:
-      log.debug("Process with pid {0} is not running. Stale pid file"
+      Logger.debug("Process with pid {0} is not running. Stale pid file"
                 " at {1}".format(pid, pid_file))
       raise ComponentIsNotRunning()
   pass

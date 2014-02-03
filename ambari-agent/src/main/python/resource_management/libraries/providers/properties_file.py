@@ -38,7 +38,7 @@ class PropertiesFileProvider(Provider):
 {{key}}={{value}}{% endfor %}
     ''', extra_imports=[time], properties_dict=self.resource.properties)
 
-    self.log.debug(format("Generating properties file: {filepath}"))
+    Logger.info(format("Generating properties file: {filepath}"))
 
     with Environment.get_instance_copy() as env:
       File (format("{filepath}"),

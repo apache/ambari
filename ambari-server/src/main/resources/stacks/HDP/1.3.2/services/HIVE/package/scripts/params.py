@@ -133,3 +133,5 @@ if ('hive-exec-log4j' in config['configurations']):
   log4j_exec_props = config['configurations']['hive-exec-log4j']
 else:
   log4j_exec_props = None
+  
+daemon_name = status_params.daemon_name
