@@ -2754,9 +2754,6 @@ table.graphs {
       }
     }
   }
-  .icon-question-sign {
-    color:#FFD13D;
-  }
   .status-dot-position {
     background-position: center;
     background-repeat: no-repeat;
@@ -2785,6 +2782,12 @@ table.graphs {
   .health-status-DEAD-YELLOW {
     background-image: @status-dead-yellow-marker;
     .status-dot-position;
+    &.icon-question-sign {
+      background-image: none !important;
+      display: inline !important;
+      float: none !important;
+      color:#FFD13D;
+    }
   }
   .passive-state {
     color: #000;
