@@ -89,18 +89,58 @@
           </package>
         </osSpecific>
         <osSpecific>
-          <osType>centos5</osType>
-          <package>
-            <type>rpm</type>
-            <name>httpd</name>
-          </package>
+          <osType>centos6</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
         </osSpecific>
         <osSpecific>
-          <osType>centos6</osType>
-          <package>
-            <type>rpm</type>
-            <name>httpd</name>
-          </package>
+          <osType>centos5</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>redhat6</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>redhat5</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>oraclelinux6</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>oraclelinux5</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
         </osSpecific>
       </osSpecifics>
     </service>
