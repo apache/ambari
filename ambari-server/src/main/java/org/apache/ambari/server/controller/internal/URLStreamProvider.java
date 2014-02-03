@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,6 +28,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.KeyStore;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -77,10 +81,10 @@ public class URLStreamProvider implements StreamProvider {
   
   @Override
   public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
-    return processURL(spec, requestMethod, params).getInputStream();
+    return processURL(spec, requestMethod, params, APPLICATION_FORM_URLENCODED).getInputStream();
   }
 
-  public HttpURLConnection processURL(String spec, String requestMethod, String params) throws IOException {
+  public HttpURLConnection processURL(String spec, String requestMethod, Object params, String mediaType) throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("readFrom spec:" + spec);
     }
@@ -98,9 +102,16 @@ public class URLStreamProvider implements StreamProvider {
     connection.setReadTimeout(readTimeout);
     connection.setDoOutput(true);
     connection.setRequestMethod(requestMethod);
+    connection.setRequestProperty("Content-Type", mediaType);
 
     if (params != null) {
-      connection.getOutputStream().write(params.getBytes());
+      String strParams;
+      if (mediaType.equals(APPLICATION_JSON)) {
+        strParams = new Gson().toJson(params);
+      } else {
+        strParams = (String)params;
+      }
+      connection.getOutputStream().write(strParams.getBytes());
     }
 
     int statusCode = connection.getResponseCode();

@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
@@ -45,7 +46,7 @@ import java.util.Map;
 public class ProxyService {
 
   private static final int REPO_URL_CONNECT_TIMEOUT = 3000;
-  private static final int REPO_URL_READ_TIMEOUT = 500;
+  private static final int REPO_URL_READ_TIMEOUT = 1000;
   private static final int HTTP_ERROR_RANGE_START = 400;
 
   private static final String REQUEST_TYPE_GET = "GET";
@@ -59,32 +60,32 @@ public class ProxyService {
 
   @GET
   public Response processGetRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_GET, ui, null);
+    return handleRequest(REQUEST_TYPE_GET, ui, null, APPLICATION_FORM_URLENCODED);
   }
 
   @POST
-  public Response processPostRequestForwarding(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_POST, ui, body);
+  public Response processPostRequestForwarding(Object body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(REQUEST_TYPE_POST, ui, body, headers.getMediaType().toString());
   }
 
   @PUT
-  public Response processPutRequestForwarding(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_PUT, ui, body);
+  public Response processPutRequestForwarding(Object body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(REQUEST_TYPE_PUT, ui, body, headers.getMediaType().toString());
   }
 
   @DELETE
   public Response processDeleteRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_DELETE, ui, null);
+    return handleRequest(REQUEST_TYPE_DELETE, ui, null, APPLICATION_FORM_URLENCODED);
   }
 
-  private Response handleRequest(String requestType, UriInfo ui, String body) {
+  private Response handleRequest(String requestType, UriInfo ui, Object body, String mediaType) {
     URLStreamProvider urlStreamProvider = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
                                                 REPO_URL_READ_TIMEOUT, null, null, null);
     List<String> urlsToForward = ui.getQueryParameters().get(QUERY_PARAMETER_URL);
     if (!urlsToForward.isEmpty()) {
       String url = urlsToForward.get(0);
       try {
-        HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body);
+        HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, mediaType);
         int responseCode = connection.getResponseCode();
         if (responseCode >= HTTP_ERROR_RANGE_START) {
           throw new WebApplicationException(connection.getResponseCode());
