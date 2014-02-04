@@ -25,21 +25,40 @@ def hbase_decommission(env):
   import params
 
   env.set_params(params)
+  kinit_cmd = params.kinit_cmd
+
+  File(params.region_drainer,
+       content=StaticFile("draining_servers.rb"),
+       mode=0755
+  )
 
   if params.hbase_drain_only == True:
-    print "TBD: Remove host from draining"
+    hosts = params.hbase_excluded_hosts.split(",")
+    for host in hosts:
+      if host:
+        regiondrainer_cmd = format(
+          "{kinit_cmd} {hbase_cmd} --config {conf_dir} org.jruby.Main {region_drainer} remove {host}")
+        Execute(regiondrainer_cmd,
+                user=params.hbase_user,
+                logoutput=True
+        )
+        pass
     pass
 
   else:
 
-    kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};") if params.security_enabled else ""
-
     hosts = params.hbase_excluded_hosts.split(",")
     for host in hosts:
       if host:
-        print "TBD: Add host to draining"
+        regiondrainer_cmd = format(
+          "{kinit_cmd} {hbase_cmd} --config {conf_dir} org.jruby.Main {region_drainer} add {host}")
         regionmover_cmd = format(
           "{kinit_cmd} {hbase_cmd} --config {conf_dir} org.jruby.Main {region_mover} unload {host}")
+
+        Execute(regiondrainer_cmd,
+                user=params.hbase_user,
+                logoutput=True
+        )
 
         Execute(regionmover_cmd,
                 user=params.hbase_user,

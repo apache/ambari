@@ -28,10 +28,10 @@ config = Script.get_config()
 conf_dir = "/etc/hbase/conf"
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-region_drainer = "/usr/lib/hbase/bin/region_drainer.rb"
+region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_excluded_hosts = default("/commandParams/excluded_hosts", "")
-hbase_drain_only = default("/commandParams/mark_draining_only", "")
+hbase_drain_only = default("/commandParams/mark_draining_only", False)
 
 hbase_user = config['configurations']['global']['hbase_user']
 smokeuser = config['configurations']['global']['smokeuser']
@@ -87,6 +87,10 @@ regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regions
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+if security_enabled:
+  kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
+else:
+  kinit_cmd = ""
 
 #log4j.properties
 if ('hbase-log4j' in config['configurations']):

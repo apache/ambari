@@ -2291,6 +2291,112 @@ public class AmbariManagementControllerTest {
     }
   }
 
+  @Test
+  public void testHbaseDecommission() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-2.0.7"));
+    String serviceName = "HBASE";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "HBASE_MASTER";
+    String componentName2 = "HBASE_REGIONSERVER";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+        State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host2, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Start
+    startService(clusterName, serviceName, false, false);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s = cluster.getService(serviceName);
+    Assert.assertEquals(State.STARTED, s.getDesiredState());
+    ServiceComponentHost scHost = s.getServiceComponent("HBASE_REGIONSERVER").getServiceComponentHost("h2");
+    Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
+
+    // Decommission one RS
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("excluded_hosts", "h2");
+    }};
+    ExecuteActionRequest request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HBASE", "HBASE_MASTER",
+        null, params);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+
+    RequestStatusResponse response = controller.createAction(request,
+        requestProperties);
+
+    List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    ExecutionCommand execCmd = storedTasks.get(0).getExecutionCommandWrapper
+        ().getExecutionCommand();
+    Assert.assertNotNull(storedTasks);
+    Assert.assertEquals(1, storedTasks.size());
+    Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    HostRoleCommand command = storedTasks.get(0);
+    Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
+    Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
+    Map<String, Set<String>> cInfo = execCmd.getClusterHostInfo();
+    Assert.assertTrue(cInfo.containsKey("decom_hbase_rs_hosts"));
+    Assert.assertTrue(cInfo.get("decom_hbase_rs_hosts").size() == 1);
+    Assert.assertEquals("h2",
+        cInfo.get("all_hosts").toArray()[Integer.parseInt(cInfo.get("decom_hbase_rs_hosts").iterator().next())]);
+    Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+
+    // RS stops
+    s.getServiceComponent("HBASE_REGIONSERVER").getServiceComponentHost("h2").setState(State.INSTALLED);
+
+    // Remove RS from draining
+    params = new
+        HashMap<String, String>() {{
+          put("excluded_hosts", "h2");
+          put("mark_draining_only", "true");
+          put("slave_type", "HBASE_REGIONSERVER");
+        }};
+    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HBASE", "HBASE_MASTER", null, params);
+
+    response = controller.createAction(request,
+        requestProperties);
+
+    storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    execCmd = storedTasks.get(0).getExecutionCommandWrapper
+        ().getExecutionCommand();
+    Assert.assertNotNull(storedTasks);
+    Assert.assertEquals(1, storedTasks.size());
+    Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    cInfo = execCmd.getClusterHostInfo();
+    Assert.assertTrue(cInfo.containsKey("decom_hbase_rs_hosts"));
+    Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+  }
+
   private Cluster setupClusterWithHosts(String clusterName, String stackId, List<String> hosts,
                                         String osType) throws AmbariException {
     ClusterRequest r = new ClusterRequest(null, clusterName, stackId, null);
@@ -3845,6 +3951,14 @@ public class AmbariManagementControllerTest {
     actionRequest = new ExecuteActionRequest("c1", "DECOMMISSION", null, "HDFS", "NAMENODE", null, params2);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
         "Component DATANODE on host h1 cannot be decommissioned as its not in STARTED state");
+
+    params2 = new HashMap<String, String>() {{
+      put("excluded_hosts", "h1 ");
+      put("mark_draining_only", "true");
+    }};
+    actionRequest = new ExecuteActionRequest("c1", "DECOMMISSION", null, "HDFS", "NAMENODE", null, params2);
+    expectActionCreationErrorWithMessage(actionRequest, requestProperties,
+        "mark_draining_only is not a valid parameter for NAMENODE");
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         "a1", ActionType.SYSTEM, "test,dirName", "", "", "Does file exist",

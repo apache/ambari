@@ -45,6 +45,14 @@
                 <timeout>888</timeout>
               </commandScript>
             </customCommand>
+            <customCommand> <!--Specialized only for custom commands, can use the same script as well -->
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/hbase_decommission.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>300</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
         </component>
 

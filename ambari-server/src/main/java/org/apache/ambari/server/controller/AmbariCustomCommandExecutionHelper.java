@@ -502,9 +502,16 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException("Component " + slaveCompType + " is not supported for decommissioning.");
     }
 
+    String isDrainOnlyRequest = request.getParameters().get(HBASE_MARK_DRAINING_ONLY);
+    if (isDrainOnlyRequest != null && !slaveCompType.equals(Role.HBASE_REGIONSERVER.name())) {
+      throw new AmbariException(HBASE_MARK_DRAINING_ONLY + " is not a valid parameter for " + masterCompType);
+    }
+
     // Decommission only if the sch is in state STARTED or INSTALLED
     for (ServiceComponentHost sch : svcComponents.get(slaveCompType).getServiceComponentHosts().values()) {
-      if (excludedHosts.contains(sch.getHostName()) && sch.getState() != State.STARTED) {
+      if (excludedHosts.contains(sch.getHostName())
+          && !"true".equals(isDrainOnlyRequest)
+          && sch.getState() != State.STARTED) {
         throw new AmbariException("Component " + slaveCompType + " on host " + sch.getHostName() + " cannot be " +
             "decommissioned as its not in STARTED state. Aborting the whole request.");
       }
@@ -541,7 +548,6 @@ public class AmbariCustomCommandExecutionHelper {
     if (serviceName.equals(Service.Type.HBASE.name()) && listOfExcludedHosts.size() > 0) {
       commandParams = new HashMap<String, String>();
       commandParams.put(DECOM_EXCLUDED_HOSTS, StringUtils.join(listOfExcludedHosts, ','));
-      String isDrainOnlyRequest = request.getParameters().get(HBASE_MARK_DRAINING_ONLY);
       if (isDrainOnlyRequest != null) {
         if (isDrainOnlyRequest.equals("true") || isDrainOnlyRequest.equals("false")) {
           commandParams.put(HBASE_MARK_DRAINING_ONLY, isDrainOnlyRequest);
