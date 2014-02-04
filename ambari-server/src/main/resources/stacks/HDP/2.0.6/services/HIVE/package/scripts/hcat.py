@@ -35,11 +35,6 @@ def hcat():
             recursive=True
   )
 
-  File("/usr/bin/hcat",
-       mode=0755,
-       content=StaticFile('hcat')
-  )
-
   hcat_TemplateConfig('hcat-env.sh')
 
 

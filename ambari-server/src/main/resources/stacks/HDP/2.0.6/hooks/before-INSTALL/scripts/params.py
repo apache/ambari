@@ -38,7 +38,7 @@ zk_user = config['configurations']['global']['zk_user']
 gmetad_user = config['configurations']['global']["gmetad_user"]
 gmond_user = config['configurations']['global']["gmond_user"]
 storm_user = config['configurations']['global']['storm_user']
-tez_user = default('/configurations/global/tez_user', 'tez')
+tez_user = 'tez'
 
 user_group = config['configurations']['global']['user_group']
 proxyuser_group =  config['configurations']['global']['proxyuser_group']

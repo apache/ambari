@@ -38,7 +38,7 @@ def hcat_service_check():
          mode=0755
     )
 
-    prepare_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")
+    prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")
 
     Execute(prepare_cmd,
             tries=3,
