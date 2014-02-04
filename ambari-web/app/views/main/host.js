@@ -449,6 +449,7 @@ App.MainHostView = App.TableView.extend({
         });
       }
       else {
+        this.get('parentView').updateFilter(0, '', 'string');
         this.get('categories').filterProperty('isHealthStatus', false).forEach(function(c) {
           if (c.get('column') === category.get('column')) {
             self.get('parentView').updateFilter(category.get('column'), category.get('filterValue'), category.get('type'));

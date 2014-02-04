@@ -26,9 +26,12 @@
       {{#view view.statusFilter categoriesBinding="view.categories"}}
         <div class="btn-group display-inline-block">
           <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-            <span {{bindAttr class="view.class"}}></span>
+            <span class="filters-label">{{t common.filter}}: </span>
+            <span>
+              <span {{bindAttr class="view.class"}}></span>
               {{view.comboBoxLabel}}
-            <span class="caret"></span>
+              <span class="caret"></span>
+            </span>
           </a>
           <ul class="dropdown-menu">
             <li {{bindAttr class=":category-item view.filtersUsed::active"}}>
