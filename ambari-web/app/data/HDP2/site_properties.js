@@ -980,7 +980,7 @@ module.exports =
       "id": "site property",
       "name": "nimbus.childopts",
       "displayName": "nimbus.childopts",
-      "description": "",
+      "description": "This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.",
       "defaultValue": "-javaagent:/var/lib/storm/jmxetric-1.0.4.jar=host={0},port=8649,wireformat31x=true,mode=multicast,config=/var/lib/storm/jmxetric-conf.xml,process=Nimbus_JVM -Xmx1024m",
       "isReconfigurable": true,
       "isVisible": false,
@@ -1127,7 +1127,7 @@ module.exports =
     },
     {
       "id":"site property",
-      "description":"",
+      "description":"This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.",
       "isReconfigurable": true,
       "isVisible":false,
       "isRequiredByAgent":true,
@@ -1354,7 +1354,7 @@ module.exports =
     },
     {
       "id": "site property",
-      "description": "",
+      "description": "The jvm opts provided to workers launched by this supervisor. All \"%ID%\" substrings are replaced with an identifier for this worker.",
       "isReconfigurable": true,
       "isVisible": false,
       "isRequiredByAgent": true,
