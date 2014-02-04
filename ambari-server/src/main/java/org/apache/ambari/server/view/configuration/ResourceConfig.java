@@ -32,6 +32,12 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ResourceConfig {
+
+  /**
+   * Constants.
+   */
+  public static final String EXTERNAL_RESOURCE_PLURAL_NAME = "resources";
+
   /**
    * The resource name.
    */
@@ -170,5 +176,14 @@ public class ResourceConfig {
       resourceClass = cl.loadClass(resource);
     }
     return resourceClass;
+  }
+
+  /**
+   * Determine whether the resource is external (does not use the API framework).
+   *
+   * @return true if the resource is external.
+   */
+  public boolean isExternal() {
+    return resource == null || provider == null;
   }
 }

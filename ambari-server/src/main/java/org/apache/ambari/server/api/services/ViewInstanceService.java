@@ -74,6 +74,11 @@ public class ViewInstanceService extends BaseService {
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("instanceName") String instanceName) {
 
+    if (ViewRegistry.getInstance().getInstanceDefinition(m_viewName, instanceName) == null) {
+      throw new IllegalArgumentException("A view instance " +
+          m_viewName + "/" + instanceName + " can not be found.");
+    }
+
     return handleRequest(headers, null, ui, Request.Type.GET,
         createServiceResource(m_viewName, instanceName));
   }

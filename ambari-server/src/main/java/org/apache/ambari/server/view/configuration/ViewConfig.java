@@ -173,8 +173,10 @@ public class ViewConfig {
       throws ClassNotFoundException{
     if (servletPathMap == null) {
       servletPathMap = new HashMap<String, Class<? extends HttpServlet>>();
-      for (ServletConfig servletConfig : servlets) {
-        servletPathMap.put(servletConfig.getName(), servletConfig.getServletClass(cl));
+      if (servlets != null) {
+        for (ServletConfig servletConfig : servlets) {
+          servletPathMap.put(servletConfig.getName(), servletConfig.getServletClass(cl));
+        }
       }
     }
     return servletPathMap;
@@ -188,8 +190,10 @@ public class ViewConfig {
   public synchronized Map<String, String> getServletURLPatternMap() {
     if (servletURLPatternMap == null) {
       servletURLPatternMap = new HashMap<String, String>();
-      for (ServletMappingConfig servletMappingConfig : mappings) {
-        servletURLPatternMap.put(servletMappingConfig.getName(), servletMappingConfig.getUrlPattern());
+      if (mappings != null) {
+        for (ServletMappingConfig servletMappingConfig : mappings) {
+          servletURLPatternMap.put(servletMappingConfig.getName(), servletMappingConfig.getUrlPattern());
+        }
       }
     }
     return servletURLPatternMap;

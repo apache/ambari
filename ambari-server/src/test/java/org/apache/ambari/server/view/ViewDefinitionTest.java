@@ -78,19 +78,33 @@ public class ViewDefinitionTest {
   public void testAddGetResourceProvider() throws Exception {
     ViewDefinition viewDefinition = getViewDefinition();
 
-    ResourceProvider provider = createNiceMock(ResourceProvider.class);
+    ResourceProvider provider1 = createNiceMock(ResourceProvider.class);
 
-    Resource.Type type = new Resource.Type("myType");
-    viewDefinition.addResourceProvider(type, provider);
+    Resource.Type type1 = new Resource.Type("myType1");
+    viewDefinition.addResourceProvider(type1, provider1);
 
-    Assert.assertEquals(provider, viewDefinition.getResourceProvider(type));
+    Assert.assertEquals(provider1, viewDefinition.getResourceProvider(type1));
+
+    ResourceProvider provider2 = createNiceMock(ResourceProvider.class);
+
+    Resource.Type type2 = new Resource.Type("myType2");
+    viewDefinition.addResourceProvider(type2, provider2);
+
+    Assert.assertEquals(provider2, viewDefinition.getResourceProvider(type2));
+
+    Set<Resource.Type> types = viewDefinition.getViewResourceTypes();
+
+    Assert.assertEquals(2, types.size());
+
+    Assert.assertTrue(types.contains(type1));
+    Assert.assertTrue(types.contains(type2));
   }
 
   @Test
   public void testAddGetResourceDefinition() throws Exception {
     ViewDefinition viewDefinition = getViewDefinition();
 
-    BaseResourceDefinition definition = createNiceMock(BaseResourceDefinition.class);
+    ViewSubResourceDefinition definition = createNiceMock(ViewSubResourceDefinition.class);
     Resource.Type type = new Resource.Type("myType");
 
     expect(definition.getType()).andReturn(type);
@@ -121,13 +135,6 @@ public class ViewDefinitionTest {
     viewDefinition.addResourceConfiguration(type2, config);
 
     Assert.assertEquals(config, viewDefinition.getResourceConfigurations().get(type2));
-
-    Set<Resource.Type> types = viewDefinition.getViewResourceTypes();
-
-    Assert.assertEquals(2, types.size());
-
-    Assert.assertTrue(types.contains(type1));
-    Assert.assertTrue(types.contains(type2));
   }
 
   @Test

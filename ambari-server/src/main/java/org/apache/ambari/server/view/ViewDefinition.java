@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.view;
 
-import org.apache.ambari.server.api.resources.BaseResourceDefinition;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -46,7 +45,7 @@ public class ViewDefinition {
   /**
    * The mapping of resource type to resource definition.
    */
-  private final Map<Resource.Type, BaseResourceDefinition> resourceDefinitions = new HashMap<Resource.Type, BaseResourceDefinition>();
+  private final Map<Resource.Type, ViewSubResourceDefinition> resourceDefinitions = new HashMap<Resource.Type, ViewSubResourceDefinition>();
 
   /**
    * The mapping of resource type to resource configuration.
@@ -59,6 +58,12 @@ public class ViewDefinition {
   private final Map<String, ViewInstanceDefinition> instanceDefinitions = new HashMap<String, ViewInstanceDefinition>();
 
 
+  /**
+   * The external resource type for the view.
+   */
+  private final Resource.Type externalResourceType;
+
+
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -68,6 +73,9 @@ public class ViewDefinition {
    */
   public ViewDefinition(ViewConfig configuration) {
     this.configuration = configuration;
+
+    this.externalResourceType =
+        new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
   }
 
 
@@ -135,19 +143,28 @@ public class ViewDefinition {
    *
    * @param definition  the resource definition
    */
-  public void addResourceDefinition(BaseResourceDefinition definition) {
+  public void addResourceDefinition(ViewSubResourceDefinition definition) {
     resourceDefinitions.put(definition.getType(), definition);
   }
 
   /**
-   * Get the resource definition for the given type
+   * Get the resource definition for the given type.
    *
    * @param type  the resource type
    *
    * @return the resource definition associated with the given type
    */
-  public BaseResourceDefinition getResourceDefinition(Resource.Type type) {
+  public ViewSubResourceDefinition getResourceDefinition(Resource.Type type) {
     return resourceDefinitions.get(type);
+  }
+
+  /**
+   * Get the mapping of resource type to resource definitions.
+   *
+   * @return the mapping of resource type to resource definitions
+   */
+  public Map<Resource.Type, ViewSubResourceDefinition> getResourceDefinitions() {
+    return resourceDefinitions;
   }
 
   /**
@@ -161,7 +178,7 @@ public class ViewDefinition {
   }
 
   /**
-   * Get a mapping of resource type to resource configurations.
+   * Get the mapping of resource type to resource configurations.
    *
    * @return the mapping of resource types to resource configurations
    */
@@ -175,7 +192,7 @@ public class ViewDefinition {
    * @return the set of resource type
    */
   public Set<Resource.Type> getViewResourceTypes() {
-    return resourceConfigurations.keySet();
+    return resourceProviders.keySet();
   }
 
   /**
@@ -205,5 +222,25 @@ public class ViewDefinition {
    */
   public ViewInstanceDefinition getInstanceDefinition(String instanceName) {
     return instanceDefinitions.get(instanceName);
+  }
+
+  /**
+   * Get the external resource type for the view.
+   *
+   * @return the external resource type
+   */
+  public Resource.Type getExternalResourceType() {
+    return externalResourceType;
+  }
+
+  /**
+   * Get a resource name qualified by the associated view name.
+   *
+   * @param resourceTypeName  the resource type name
+   *
+   * @return the qualified resource name
+   */
+  public String getQualifiedResourceTypeName(String resourceTypeName) {
+    return configuration.getName() + "/" + resourceTypeName;
   }
 }

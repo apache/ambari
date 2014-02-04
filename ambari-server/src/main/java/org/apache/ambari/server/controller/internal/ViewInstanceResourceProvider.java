@@ -47,6 +47,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
    */
   public static final String VIEW_NAME_PROPERTY_ID        = "ViewInstanceInfo/view_name";
   public static final String INSTANCE_NAME_PROPERTY_ID    = "ViewInstanceInfo/instance_name";
+  public static final String PROPERTIES_PROPERTY_ID       = "ViewInstanceInfo/properties";
   public static final String SERVLET_MAPPINGS_PROPERTY_ID = "ViewInstanceInfo/servlet_mappings";
 
   /**
@@ -65,6 +66,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
+    propertyIds.add(PROPERTIES_PROPERTY_ID);
     propertyIds.add(SERVLET_MAPPINGS_PROPERTY_ID);
   }
 
@@ -114,6 +116,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
               setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewDefinition.getName(), requestedIds);
               setResourceProperty(resource, INSTANCE_NAME_PROPERTY_ID, viewInstanceDefinition.getName(), requestedIds);
+              setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
+                  viewInstanceDefinition.getProperties(), requestedIds);
               setResourceProperty(resource, SERVLET_MAPPINGS_PROPERTY_ID,
                   viewInstanceDefinition.getServletMappings(), requestedIds);
 

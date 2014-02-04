@@ -56,7 +56,7 @@ public class ViewSubResourceDefinition extends BaseResourceDefinition {
    * @param resourceConfiguration  the resource configuration
    */
   public ViewSubResourceDefinition(ViewDefinition viewDefinition, ResourceConfig resourceConfiguration) {
-    super(new Resource.Type(getQualifiedResourceTypeName(viewDefinition.getName(), resourceConfiguration.getName())));
+    super(new Resource.Type(viewDefinition.getQualifiedResourceTypeName(resourceConfiguration.getName())));
 
     this.viewDefinition        = viewDefinition;
     this.resourceConfiguration = resourceConfiguration;
@@ -83,7 +83,7 @@ public class ViewSubResourceDefinition extends BaseResourceDefinition {
       if (subResourceNames != null) {
         for (String subType : subResourceNames) {
           Resource.Type type = Resource.Type.valueOf(
-              getQualifiedResourceTypeName(viewDefinition.getName(), subType));
+              viewDefinition.getQualifiedResourceTypeName(subType));
           definitions.add(new SubResourceDefinition(type));
         }
       }
@@ -94,8 +94,12 @@ public class ViewSubResourceDefinition extends BaseResourceDefinition {
 
   // ----- helper methods ----------------------------------------------------
 
-  // qualify the resource type name with the view name
-  private static String getQualifiedResourceTypeName(String viewName, String resourceTypeName) {
-    return viewName + "/" + resourceTypeName;
+  /**
+   * Get the associated resource configuration.
+   *
+   * @return the resource configuration
+   */
+  public ResourceConfig getResourceConfiguration() {
+    return resourceConfiguration;
   }
 }

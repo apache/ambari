@@ -21,9 +21,10 @@ package org.apache.ambari.server.view;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.ambari.server.api.resources.BaseResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
+import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
+import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -263,20 +264,33 @@ public class ViewRegistry {
 
     ViewDefinition viewDefinition = new ViewDefinition(viewConfig);
 
+    Resource.Type externalResourceType = viewDefinition.getExternalResourceType();
+
+    ViewExternalSubResourceProvider viewExternalSubResourceProvider =
+        new ViewExternalSubResourceProvider(externalResourceType, viewDefinition);
+    viewDefinition.addResourceProvider(externalResourceType, viewExternalSubResourceProvider );
+
+    ResourceInstanceFactoryImpl.addResourceDefinition(externalResourceType,
+        new ViewExternalSubResourceDefinition(externalResourceType));
+
     for (ResourceConfig resourceConfiguration : resourceConfigurations) {
 
-      BaseResourceDefinition resourceDefinition = new ViewSubResourceDefinition(viewDefinition, resourceConfiguration);
+      ViewSubResourceDefinition resourceDefinition = new ViewSubResourceDefinition(viewDefinition, resourceConfiguration);
       viewDefinition.addResourceDefinition(resourceDefinition);
 
       Resource.Type type = resourceDefinition.getType();
-      ResourceInstanceFactoryImpl.addResourceDefinition(type, resourceDefinition);
-
       viewDefinition.addResourceConfiguration(type, resourceConfiguration);
 
-      Class<?> clazz      = resourceConfiguration.getResourceClass(cl);
-      String   idProperty = resourceConfiguration.getIdProperty();
+      if (resourceConfiguration.isExternal()) {
+        viewExternalSubResourceProvider.addResourceName(resourceConfiguration.getName());
+      } else {
+        ResourceInstanceFactoryImpl.addResourceDefinition(type, resourceDefinition);
 
-      viewDefinition.addResourceProvider(type, new ViewSubResourceProvider(type, clazz, idProperty, viewDefinition));
+        Class<?> clazz      = resourceConfiguration.getResourceClass(cl);
+        String   idProperty = resourceConfiguration.getIdProperty();
+
+        viewDefinition.addResourceProvider(type, new ViewSubResourceProvider(type, clazz, idProperty, viewDefinition));
+      }
     }
 
     ViewRegistry.getInstance().addDefinition(viewDefinition);
@@ -301,20 +315,29 @@ public class ViewRegistry {
 
     ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition);
 
-    Map<Resource.Type, ResourceConfig> resourceConfigurations = viewDefinition.getResourceConfigurations();
+    ViewExternalSubResourceService externalSubResourceService =
+        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
 
-    for (Map.Entry<Resource.Type, ResourceConfig> entry : resourceConfigurations.entrySet()) {
+    viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
 
-      Resource.Type  type          = entry.getKey();
-      ResourceConfig configuration = entry.getValue();
+    Collection<ViewSubResourceDefinition> resourceDefinitions = viewDefinition.getResourceDefinitions().values();
+    for (ViewSubResourceDefinition resourceDefinition : resourceDefinitions) {
+
+      Resource.Type  type           = resourceDefinition.getType();
+      ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
 
       ViewResourceHandler viewResourceService =
           new ViewSubResourceService(type, viewDefinition.getName(), instanceConfig.getName());
-      viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(),
-          getService(configuration.getServiceClass(cl), viewResourceService, viewInstanceContext));
 
-      viewInstanceDefinition.addResourceProvider(type,
-          getProvider(configuration.getProviderClass(cl), viewInstanceContext));
+      Object service = getService(resourceConfig.getServiceClass(cl), viewResourceService, viewInstanceContext);
+
+      if (resourceConfig.isExternal()) {
+        externalSubResourceService.addResourceService(resourceConfig.getName(), service);
+      } else {
+        viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(),service);
+        viewInstanceDefinition.addResourceProvider(type,
+            getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
+      }
     }
 
     ViewConfig viewConfig = viewDefinition.getConfiguration();

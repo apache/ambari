@@ -20,6 +20,7 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.junit.AfterClass;
@@ -29,6 +30,8 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Set;
+
+import static org.easymock.EasyMock.createNiceMock;
 
 /**
  * ViewRegistry tests.
@@ -78,6 +81,9 @@ public class ViewRegistryTest {
 
     ResourceConfig config = ResourceConfigTest.getResourceConfigs().get(0);
     Resource.Type type1 = new Resource.Type("myType");
+
+    ResourceProvider provider1 = createNiceMock(ResourceProvider.class);
+    viewDefinition.addResourceProvider(type1, provider1);
 
     viewDefinition.addResourceConfiguration(type1, config);
     registry.addDefinition(viewDefinition);

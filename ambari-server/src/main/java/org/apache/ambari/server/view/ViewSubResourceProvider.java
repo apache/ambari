@@ -261,7 +261,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
   private static Set<String> discoverPropertyIds(Class<?> clazz) throws IntrospectionException {
     Set<String> propertyIds = new HashSet<String>(getDescriptorMap(clazz).keySet());
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
-    propertyIds.add("view_name");
+    propertyIds.add(VIEW_NAME_PROPERTY_ID);
 
     return propertyIds;
   }
