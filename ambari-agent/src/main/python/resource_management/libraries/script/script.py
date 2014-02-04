@@ -152,7 +152,7 @@ class Script(object):
     except KeyError:
       pass # No reason to worry
     
-    RepoInstaller.remove_repos(config)
+    #RepoInstaller.remove_repos(config)
 
 
 
