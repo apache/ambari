@@ -150,8 +150,9 @@ class Environment(object):
           else:
             try:
               self.run_action(resource, action)
-            except Exception:
-                pass
+            except Exception as ex:
+              Logger.info("Skipping failure of %s due to ignore_failures. Failure reason: %s" % (resource, str(ex)))
+              pass
 
       # Run delayed actions
       while self.delayed_actions:

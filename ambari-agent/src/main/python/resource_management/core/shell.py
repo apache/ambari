@@ -61,7 +61,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
   
-  out = proc.communicate()[0]
+  out = proc.communicate()[0].strip('\n')
   code = proc.returncode
   
   if logoutput and out and out!="":

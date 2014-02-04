@@ -30,7 +30,7 @@ REMOVE_CMD = "/usr/bin/zypper --quiet remove --no-confirm %s"
 class ZypperProvider(PackageProvider):
   def install_package(self, name):
     cmd = INSTALL_CMD % (name)
-    Logger.info("Installing package %s ('%s')", name, cmd)
+    Logger.info("Installing package %s ('%s')" % (name, cmd))
     shell.checked_call(cmd)
 
   def upgrade_package(self, name):
@@ -38,5 +38,5 @@ class ZypperProvider(PackageProvider):
   
   def remove_package(self, name):
     cmd = REMOVE_CMD % (name)
-    Logger.info("Removing package %s ('%s')", name, cmd)
+    Logger.info("Removing package %s ('%s')" % (name, cmd))
     shell.checked_call(cmd)

@@ -80,9 +80,9 @@ class TestExecuteResource(TestCase):
       )
     self.assertEqual(execute_resource.environment["PATH"], '/test/one:test/two')
 
-  @patch.object(logging.Logger, "info")
+  @patch('time.sleep')
   @patch.object(subprocess, "Popen")
-  def test_attribute_try_sleep_tries(self, popen_mock, info_mock):
+  def test_attribute_try_sleep_tries(self, popen_mock, time_mock):
     expected_call = "call('Retrying after %d seconds. Reason: %s', 1, 'Fail')"
 
     subproc_mock = MagicMock()
@@ -93,12 +93,11 @@ class TestExecuteResource(TestCase):
     with Environment("/") as env:
       Execute('echo "1"',
               tries=2,
-              try_sleep=1
+              try_sleep=10
       )
     pass
 
-    self.assertEqual(info_mock.call_count, 2)
-    self.assertTrue(expected_call in str(info_mock.call_args_list))
+    time_mock.assert_called_once_with(10)
 
   @patch.object(pwd, "getpwnam")
   def test_attribute_group(self, getpwnam_mock):

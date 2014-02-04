@@ -190,7 +190,7 @@ class LinkProvider(Provider):
       os.link(self.resource.to, path)
     else:
       if not os.path.exists(self.resource.to):
-        Logger.info("Warning: linking to nonexistent location %s", self.resource.to)
+        Logger.info("Warning: linking to nonexistent location %s" % self.resource.to)
         
       Logger.info("Creating symbolic %s" % self.resource)
       os.symlink(self.resource.to, path)
@@ -236,7 +236,7 @@ class ExecuteProvider(Provider):
         if i == self.resource.tries-1: # last try
           raise ex
         else:
-          Logger.info("Retrying after %d seconds. Reason: %s", self.resource.try_sleep, str(ex))
+          Logger.info("Retrying after %d seconds. Reason: %s" % (self.resource.try_sleep, str(ex)))
           time.sleep(self.resource.try_sleep)
        
 
