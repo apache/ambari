@@ -39,14 +39,14 @@
   <div class="accordion warnings-list" id="accordion2">
     {{#each category in view.content}}
     <div class="accordion-group block">
-      <div class="accordion-heading">
+      <div class="accordion-heading" {{action onToggleBlock category}}>
         <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
         {{#if category.warnings.length}}
         <i class="pull-right accordion-toggle icon-warning-sign"></i>
         {{else}}
         <i class="pull-right accordion-toggle icon-ok"></i>
         {{/if}}
-        <a class="accordion-toggle" {{action onToggleBlock category}}>
+        <a class="accordion-toggle">
           {{category.title}} ({{category.warnings.length}})
         </a>
       </div>

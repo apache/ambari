@@ -1053,7 +1053,8 @@ App.WizardStep3Controller = Em.Controller.extend({
                 type: Em.I18n.t('common.issues'),
                 emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.repositories'),
                 action: Em.I18n.t('installer.step3.hostWarningsPopup.action.invalid'),
-                category: 'repositories'
+                category: 'repositories',
+                isCollapsed: true
              }),
              Ember.Object.create({
                warnings: categoryWarnings.filterProperty('category', 'firewall'),
@@ -1062,7 +1063,8 @@ App.WizardStep3Controller = Em.Controller.extend({
                type: Em.I18n.t('common.issues'),
                emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.firewall'),
                action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-               category: 'firewall'
+               category: 'firewall',
+               isCollapsed: true
              }),
              Ember.Object.create({
                warnings: categoryWarnings.filterProperty('category', 'processes'),
@@ -1071,7 +1073,8 @@ App.WizardStep3Controller = Em.Controller.extend({
                type: Em.I18n.t('common.process'),
                emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
                action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-               category: 'process'
+               category: 'process',
+               isCollapsed: true
              }),
              Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'packages'),
@@ -1080,7 +1083,8 @@ App.WizardStep3Controller = Em.Controller.extend({
               type: Em.I18n.t('common.package'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.packages'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.installed'),
-              category: 'package'
+              category: 'package',
+              isCollapsed: true
             }),
              Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
@@ -1089,7 +1093,8 @@ App.WizardStep3Controller = Em.Controller.extend({
               type: Em.I18n.t('common.path'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.filesAndFolders'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'fileFolders'
+              category: 'fileFolders',
+              isCollapsed: true
             }),
              Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'services'),
@@ -1098,7 +1103,8 @@ App.WizardStep3Controller = Em.Controller.extend({
               type: Em.I18n.t('common.service'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.services'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.notRunning'),
-              category: 'service'
+              category: 'service',
+              isCollapsed: true
             }),
              Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'users'),
@@ -1107,7 +1113,8 @@ App.WizardStep3Controller = Em.Controller.extend({
               type: Em.I18n.t('common.user'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.users'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'user'
+              category: 'user',
+              isCollapsed: true
             }),
             Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'misc'),
@@ -1116,7 +1123,8 @@ App.WizardStep3Controller = Em.Controller.extend({
               type: Em.I18n.t('installer.step3.hostWarningsPopup.misc.umask'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.misc'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'misc'
+              category: 'misc',
+              isCollapsed: true
             })
           ]
         }.property('category', 'warningsByHost'),
@@ -1135,6 +1143,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
         onToggleBlock: function (category) {
           this.$('#' + category.context.category).toggle('blind', 500);
+          category.context.set("isCollapsed", !category.context.get("isCollapsed"));
         },
         warningsNotice: function () {
           var warnings = this.get('warnings');
