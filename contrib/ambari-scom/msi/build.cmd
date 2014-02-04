@@ -43,7 +43,8 @@ echo MSI build failed
 exit /b 1
 )
 popd || exit /b 1
-copy /y "..\management-pack\Hadoop_MP\Installer\bin\Debug\en-us\AmbariSCOMManagementPack.msi" "%cd%\ambari-scom-mp.msi" || exit /b 1
+copy /y "%cd%\src\ambari-scom.msi" "%cd%\ambari-scom.msi" || exit /b 1
+copy /y "..\management-pack\Hadoop_MP\Installer\bin\Debug\en-us\AmbariSCOMManagementPack.msi" "%cd%\AmbariSCOMManagementPack.msi" || exit /b 1
 
 echo Cleaning 
 del /f /q "%cd%\src\ambari-scom.wixobj"  || exit /b 1
