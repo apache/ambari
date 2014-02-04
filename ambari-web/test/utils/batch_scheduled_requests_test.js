@@ -17,6 +17,7 @@
 
 var App = require('app');
 require('utils/helper');
+require('views/common/rolling_restart_view');
 var batchUtils = require('utils/batch_scheduled_requests');
 
 describe('batch_scheduled_requests', function() {
@@ -84,6 +85,37 @@ describe('batch_scheduled_requests', function() {
         expect(batchUtils.getBatchesForRollingRestartRequest(test.hostComponents, test.batchSize).length).to.equal(test.e.batchCount);
       });
     });
+  });
+
+  describe('#launchHostComponentRollingRestart', function() {
+
+    beforeEach(function() {
+      sinon.spy(batchUtils, 'showRollingRestartPopup');
+      sinon.spy(batchUtils, 'showWarningRollingRestartPopup');
+    });
+
+    afterEach(function() {
+      batchUtils.showRollingRestartPopup.restore();
+      batchUtils.showWarningRollingRestartPopup.restore();
+    });
+
+    var tests = Em.A([
+      {componentName: 'DATANODE', e:{showRollingRestartPopup:true, showWarningRollingRestartPopup:false}},
+      {componentName: 'TASKTRACKER', e:{showRollingRestartPopup:true, showWarningRollingRestartPopup:false}},
+      {componentName: 'NODEMANAGER', e:{showRollingRestartPopup:true, showWarningRollingRestartPopup:false}},
+      {componentName: 'HBASE_REGIONSERVER', e:{showRollingRestartPopup:true, showWarningRollingRestartPopup:false}},
+      {componentName: 'SUPERVISOR', e:{showRollingRestartPopup:true, showWarningRollingRestartPopup:false}},
+      {componentName: 'SOME_OTHER_COMPONENT', e:{showRollingRestartPopup:false, showWarningRollingRestartPopup:true}}
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.componentName, function() {
+        batchUtils.launchHostComponentRollingRestart(test.componentName);
+        expect(batchUtils.showRollingRestartPopup.calledOnce).to.equal(test.e.showRollingRestartPopup);
+        expect(batchUtils.showWarningRollingRestartPopup.calledOnce).to.equal(test.e.showWarningRollingRestartPopup);
+      });
+    });
+
   });
 
 });

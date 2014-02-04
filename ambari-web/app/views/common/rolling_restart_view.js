@@ -25,12 +25,44 @@ var numberUtils = require('utils/number_utils');
  */
 App.RollingRestartView = Em.View.extend({
   templateName : require('templates/common/rolling_restart_view'),
+
+  /**
+   * Component name for components that should be restarted
+   * @type {String}
+   */
   hostComponentName : null,
+
+  /**
+   * Restart only components with <code>staleConfigs</code>
+   * @type {bool}
+   */
   staleConfigsOnly : false,
+
+  /**
+   * Count of host components in one batch
+   * @type {Number}
+   */
   batchSize : -1,
+
+  /**
+   * Delay between batches
+   * @type {Number}
+   */
   interBatchWaitTimeSeconds : -1,
+
+  /**
+   * @type {Number}
+   */
   tolerateSize : -1,
-  errors : null,
+
+  /**
+   * List of error in batch-request properties
+   * @type {Array}
+   */
+  errors : [],
+  /**
+   * Set initial values for batch-request properties
+   */
   initialize : function() {
     if (this.get('batchSize') == -1 && this.get('interBatchWaitTimeSeconds') == -1 && this.get('tolerateSize') == -1) {
       var restartCount = this.get('restartHostComponents');
@@ -44,6 +76,11 @@ App.RollingRestartView = Em.View.extend({
       this.set('interBatchWaitTimeSeconds', 120);
     }
   },
+
+  /**
+   * Validate batch-request properties
+   * List of errors is saved to <code>errors</code>
+   */
   validate : function() {
     var displayName = this.get('hostComponentDisplayName');
     var totalCount = this.get('restartHostComponents.length');
@@ -67,24 +104,40 @@ App.RollingRestartView = Em.View.extend({
     if (waitError != null) {
       errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.waitTime').format(waitError));
     }
-    if (errors.length < 1) {
-      errors = null;
-    }
     this.set('errors', errors);
   }.observes('batchSize', 'interBatchWaitTimeSeconds', 'tolerateSize', 'restartHostComponents', 'hostComponentDisplayName'),
+
+  /**
+   * Formatted <code>hostComponentName</code>
+   * @type {String}
+   */
   hostComponentDisplayName : function() {
     return App.format.role(this.get('hostComponentName'));
   }.property('hostComponentName'),
+
+  /**
+   * List of all host components
+   * @type {Array}
+   */
   allHostComponents : function() {
     return App.HostComponent.find().filterProperty('componentName', this.get('hostComponentName'));
   }.property('hostComponentName'),
+
+  /**
+   * List of host components without components in out-of-service state
+   * @type {Array}
+   */
   nonMaintainanceHostComponents : function() {
-    var hostComponents = this.get('allHostComponents');
-    hostComponents = hostComponents.filter(function(item) {
-      return item.get('workStatus') !== App.HostComponentStatus.maintenance;
+    return this.get('allHostComponents').filter(function(item) {
+      return item.get('passiveState') == 'ACTIVE';
     });
-    return hostComponents;
-  }.property('allHostComponents', 'allHostComponents.@each.workStatus'),
+  }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
+
+  /**
+   * List of host components without components in out-of-service state
+   * If <code>staleConfigsOnly</code> is true, components with <code>staleConfigs</code> = false are also filtered
+   * @type {Array}
+   */
   restartHostComponents : function() {
     var hostComponents = this.get('nonMaintainanceHostComponents');
     if (this.get('staleConfigsOnly')) {
@@ -92,6 +145,10 @@ App.RollingRestartView = Em.View.extend({
     }
     return hostComponents;
   }.property('nonMaintainanceHostComponents', 'staleConfigsOnly'),
+
+  /**
+   * @type {String}
+   */
   restartMessage : function() {
     var rhc = this.get('restartHostComponents.length');
     if (rhc > 1) {
@@ -99,6 +156,10 @@ App.RollingRestartView = Em.View.extend({
     }
     return Em.I18n.t('rollingrestart.dialog.msg.restart').format(rhc, this.get('hostComponentDisplayName'))
   }.property('restartHostComponents', 'hostComponentDisplayName'),
+
+  /**
+   * @type {String}
+   */
   maintainanceMessage : function() {
     var allCount = this.get('allHostComponents.length');
     var nonMaintainCount = this.get('nonMaintainanceHostComponents.length');
@@ -112,9 +173,17 @@ App.RollingRestartView = Em.View.extend({
     }
     return null;
   }.property('allHostComponents', 'nonMaintainanceHostComponents', 'hostComponentDisplayName'),
+
+  /**
+   * @type {String}
+   */
   batchSizeMessage : function() {
     return Em.I18n.t('rollingrestart.dialog.msg.componentsAtATime').format(this.get('hostComponentDisplayName'));
   }.property('hostComponentDisplayName'),
+
+  /**
+   * @type {String}
+   */
   staleConfigsOnlyMessage : function() {
     return Em.I18n.t('rollingrestart.dialog.msg.staleConfigsOnly').format(this.get('hostComponentDisplayName'));
   }.property('hostComponentDisplayName')

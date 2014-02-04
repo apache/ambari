@@ -65,7 +65,7 @@ module.exports = {
   /**
    * Facade-function for restarting host components of specific service
    * @param {String} serviceName for which service hostComponents should be restarted
-   * @param {Boolean} staleConfigsOnly restart only hostComponents with <code>staleConfig</code> true
+   * @param {bool} staleConfigsOnly restart only hostComponents with <code>staleConfig</code> true
    */
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly) {
     var service = App.Service.find(serviceName);
@@ -198,65 +198,95 @@ module.exports = {
    * @param {String} hostComponentName
    *           Type of host-component to restart across cluster
    *          (ex: DATANODE)
-   * @param {Boolean} staleConfigsOnly
+   * @param {bool} staleConfigsOnly
    *           Pre-select host-components which have stale
    *          configurations
    */
   launchHostComponentRollingRestart: function(hostComponentName, staleConfigsOnly) {
+    if (App.get('components.rollinRestartAllowed').contains(hostComponentName)) {
+      this.showRollingRestartPopup(hostComponentName, staleConfigsOnly);
+    }
+    else {
+      this.showWarningRollingRestartPopup(hostComponentName);
+    }
+  },
+
+  /**
+   * Show popup with rolling restart dialog
+   * @param {String} hostComponentName name of the host components that should be restarted
+   * @param {bool} staleConfigsOnly restart only components with <code>staleConfigs</code> = true
+   * @param {App.hostComponent[]} hostComponents list of hostComponents that should be restarted (optional).
+   * Using this parameter will reset hostComponentName
+   */
+  showRollingRestartPopup: function(hostComponentName, staleConfigsOnly, hostComponents) {
+    hostComponents = hostComponents || [];
     var componentDisplayName = App.format.role(hostComponentName);
     if (!componentDisplayName) {
       componentDisplayName = hostComponentName;
     }
-    var self = this;
     var title = Em.I18n.t('rollingrestart.dialog.title').format(componentDisplayName);
-    var allowedHostComponents = ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "SUPERVISOR"];
-    if (allowedHostComponents.contains(hostComponentName)) {
-      App.ModalPopup.show({
-        header : title,
-        hostComponentName : hostComponentName,
-        staleConfigsOnly : staleConfigsOnly,
-        innerView : null,
-        bodyClass : App.RollingRestartView.extend({
-          hostComponentName : hostComponentName,
-          staleConfigsOnly : staleConfigsOnly,
-          didInsertElement : function() {
-            this.set('parentView.innerView', this);
-            this.initialize();
-          }
-        }),
-        classNames : [ 'rolling-restart-popup' ],
-        primary : Em.I18n.t('rollingrestart.dialog.primary'),
-        onPrimary : function() {
-          var dialog = this;
-          if (!dialog.get('enablePrimary')) {
-            return;
-          }
-          var restartComponents = this.get('innerView.restartHostComponents');
-          var batchSize = this.get('innerView.batchSize');
-          var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
-          var tolerateSize = this.get('innerView.tolerateSize');
-          self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function() {
-            dialog.hide();
-            defaultSuccessCallback();
-          });
-        },
-        updateButtons : function() {
-          var errors = this.get('innerView.errors');
-          this.set('enablePrimary', !(errors != null && errors.length > 0))
-        }.observes('innerView.errors')
-      });
-    } else {
-      var msg = Em.I18n.t('rollingrestart.notsupported.hostComponent').format(componentDisplayName);
-      console.log(msg);
-      App.ModalPopup.show({
-        header : title,
-        secondary : false,
-        msg : msg,
-        bodyClass : Ember.View.extend({
-          template : Ember.Handlebars.compile('<div class="alert alert-warning">{{msg}}</div>')
-        })
-      });
+    var viewExtend = {
+      staleConfigsOnly : staleConfigsOnly,
+      hostComponentName : hostComponentName,
+      didInsertElement : function() {
+        this.set('parentView.innerView', this);
+        this.initialize();
+      }
+    };
+    if (hostComponents.length) {
+      viewExtend.allHostComponents = hostComponents;
     }
+
+    var self = this;
+    App.ModalPopup.show({
+      header : title,
+      hostComponentName : hostComponentName,
+      staleConfigsOnly : staleConfigsOnly,
+      innerView : null,
+      bodyClass : App.RollingRestartView.extend(viewExtend),
+      classNames : [ 'rolling-restart-popup' ],
+      primary : Em.I18n.t('rollingrestart.dialog.primary'),
+      onPrimary : function() {
+        var dialog = this;
+        if (!dialog.get('enablePrimary')) {
+          return;
+        }
+        var restartComponents = this.get('innerView.restartHostComponents');
+        var batchSize = this.get('innerView.batchSize');
+        var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
+        var tolerateSize = this.get('innerView.tolerateSize');
+        self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function() {
+          dialog.hide();
+          defaultSuccessCallback();
+        });
+      },
+      updateButtons : function() {
+        var errors = this.get('innerView.errors');
+        this.set('enablePrimary', !(errors != null && errors.length > 0))
+      }.observes('innerView.errors')
+    });
+  },
+
+  /**
+   * Show warning popup about not supported host components
+   * @param {String} hostComponentName
+   */
+  showWarningRollingRestartPopup: function(hostComponentName) {
+    var componentDisplayName = App.format.role(hostComponentName);
+    if (!componentDisplayName) {
+      componentDisplayName = hostComponentName;
+    }
+    var title = Em.I18n.t('rollingrestart.dialog.title').format(componentDisplayName);
+    var msg = Em.I18n.t('rollingrestart.notsupported.hostComponent').format(componentDisplayName);
+    console.log(msg);
+    App.ModalPopup.show({
+      header : title,
+      secondary : false,
+      msg : msg,
+      bodyClass : Em.View.extend({
+        template : Em.Handlebars.compile('<div class="alert alert-warning">{{msg}}</div>')
+      })
+    });
   },
 
   /**

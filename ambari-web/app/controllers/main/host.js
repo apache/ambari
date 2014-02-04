@@ -370,7 +370,7 @@ App.MainHostController = Em.ArrayController.extend({
     });
 
     if (components.length) {
-      batchUtils._doPostBatchRollingRestartRequest(components, components.length, 1, 1);
+      batchUtils.showRollingRestartPopup(components.objectAt(0).get('componentName'), false, components);
     }
     else {
       App.ModalPopup.show({
