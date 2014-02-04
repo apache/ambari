@@ -22,13 +22,6 @@ from resource_management import *
 def falcon(type, action = None):
   import params
 
-  #TODO remove after package will be available in repo
-  Execute("cd /tmp; rm -f falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; "
-          "wget http://public-repo-1.hortonworks.com/HDP-LABS/Projects/Falcon/2.0.6.0-76/rpm/falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; "
-          "rpm -Uvh --nodeps falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm",
-          not_if='yum list installed | grep falcon'
-  )
-
   if type == 'client':
     if action == 'config':
       File(params.falcon_conf_dir + '/client.properties',

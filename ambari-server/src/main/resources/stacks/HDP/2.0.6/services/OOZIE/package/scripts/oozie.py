@@ -109,7 +109,7 @@ def oozie_server_specific(
     mode = 0755,
     recursive = True
   )
-       
+
   cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
   cmd2 =  format("cd /usr/lib/oozie && mkdir -p {oozie_tmp_dir}")
   
@@ -119,10 +119,10 @@ def oozie_server_specific(
     cmd3 += format(" && cp {jdbc_driver_jar} {oozie_libext_dir}")
   #falcon el extension
   if params.has_falcon_host:
-    cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-0.4.0.2.0.6.0-76.jar {oozie_libext_dir}')
+    cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}')
   # this is different for HDP1
   cmd4 = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh prepare-war")
-  
+
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
   Execute( [cmd1, cmd2, cmd3],
     not_if  = no_op_test

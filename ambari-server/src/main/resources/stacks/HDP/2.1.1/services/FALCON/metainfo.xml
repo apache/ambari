@@ -43,18 +43,17 @@
         </component>
       </components>
 
-      <!--TODO: uncomment this after package will be available in repo-->
-      <!--<osSpecifics>-->
-        <!--<osSpecific>-->
-          <!--<osType>any</osType>-->
-          <!--<packages>-->
-            <!--<package>-->
-              <!--<type>rpm</type>-->
-              <!--<name>falcon-0.4.0.2.0.6.0-76</name>-->
-            <!--</package>-->
-          <!--</packages>-->
-        <!--</osSpecific>-->
-      <!--</osSpecifics>-->
+      <osSpecifics>
+        <osSpecific>
+          <osType>any</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>falcon</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
 
       <commandScript>
         <script>scripts/service_check.py</script>

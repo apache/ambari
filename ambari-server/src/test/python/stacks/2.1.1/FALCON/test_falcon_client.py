@@ -28,10 +28,6 @@ class TestFalconClient(RMFTestCase):
                        command="configure",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute',
-                              'cd /tmp; rm -f falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; wget http://public-repo-1.hortonworks.com/HDP-LABS/Projects/Falcon/2.0.6.0-76/rpm/falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; rpm -Uvh --nodeps falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm',
-                              not_if='yum list installed | grep falcon', )
-
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
                               content=Template('client.properties.j2'),
                               mode=0644, )

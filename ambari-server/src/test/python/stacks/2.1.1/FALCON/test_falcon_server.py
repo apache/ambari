@@ -29,9 +29,6 @@ class TestFalconServer(RMFTestCase):
                        command="start",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute',
-                              'cd /tmp; rm -f falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; wget http://public-repo-1.hortonworks.com/HDP-LABS/Projects/Falcon/2.0.6.0-76/rpm/falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; rpm -Uvh --nodeps falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm',
-                              not_if='yum list installed | grep falcon', )
     self.assertResourceCalled('Directory',
                               '/hadoop/falcon',
                               owner='falcon',
@@ -46,9 +43,6 @@ class TestFalconServer(RMFTestCase):
                               content=Template('startup.properties.j2'),
                               mode=0644, )
     self.assertResourceCalled('Execute',
-                              'cd /tmp; rm -f falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; wget http://public-repo-1.hortonworks.com/HDP-LABS/Projects/Falcon/2.0.6.0-76/rpm/falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; rpm -Uvh --nodeps falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm',
-                              not_if='yum list installed | grep falcon', )
-    self.assertResourceCalled('Execute',
                               'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-start -port 15000',
                               user='falcon', )
     self.assertNoMoreResources()
@@ -60,9 +54,6 @@ class TestFalconServer(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Execute',
-                          'cd /tmp; rm -f falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; wget http://public-repo-1.hortonworks.com/HDP-LABS/Projects/Falcon/2.0.6.0-76/rpm/falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; rpm -Uvh --nodeps falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm',
-                          not_if='yum list installed | grep falcon', )
-    self.assertResourceCalled('Execute',
                           'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-stop',
                           user='falcon', )
     self.assertNoMoreResources()
@@ -73,9 +64,6 @@ class TestFalconServer(RMFTestCase):
                        command="configure",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute',
-                              'cd /tmp; rm -f falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; wget http://public-repo-1.hortonworks.com/HDP-LABS/Projects/Falcon/2.0.6.0-76/rpm/falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm; rpm -Uvh --nodeps falcon-0.4.0.2.0.6.0-76.el6.noarch.rpm',
-                              not_if='yum list installed | grep falcon', )
     self.assertResourceCalled('Directory',
                               '/hadoop/falcon',
                               owner='falcon',

@@ -23,26 +23,6 @@
       <comment>System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the &lt;a target="_blank" href="http://www.sencha.com/products/extjs/license/"&gt;ExtJS&lt;/a&gt; Library.
       </comment>
       <version>4.0.0.2.1.1</version>
-      <components>
-        <component>
-          <name>OOZIE_SERVER</name>
-          <category>MASTER</category>
-          <commandScript>
-            <script>scripts/oozie_server.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
-        </component>
-
-        <component>
-          <name>OOZIE_CLIENT</name>
-          <category>CLIENT</category>
-          <commandScript>
-            <script>scripts/oozie_client.py</script>
-            <scriptType>PYTHON</scriptType>
-          </commandScript>
-        </component>
-      </components>
 
       <osSpecifics>
         <osSpecific>
@@ -60,16 +40,13 @@
               <type>rpm</type>
               <name>extjs-2.2-1</name>
             </package>
+            <package>
+              <type>rpm</type>
+              <name>falcon</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
-
-      <commandScript>
-        <script>scripts/service_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
-
       <configuration-dependencies>
         <config-type>global</config-type>
         <config-type>oozie-site</config-type>

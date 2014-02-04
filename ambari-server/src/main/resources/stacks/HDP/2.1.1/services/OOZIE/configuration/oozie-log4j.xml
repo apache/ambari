@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  <property>
+    <name>log4j.appender.oozie</name>
+    <value>org.apache.log4j.DailyRollingFileAppender</value>
+  </property>
+
+  <property>
+    <name>log4j.appender.oozie.DatePattern</name>
+    <value>.yyyy-MM-dd-HH</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozie.File</name>
+    <value>${oozie.log.dir}/oozie.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozie.Append</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozie.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozie.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>
+  </property>
+
+  <property>
+    <name>log4j.appender.oozieops</name>
+    <value>org.apache.log4j.DailyRollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieops.DatePattern</name>
+    <value>.yyyy-MM-dd</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieops.File</name>
+    <value>${oozie.log.dir}/oozie-ops.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieops.Append</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieops.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieops.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieinstrumentation</name>
+    <value>org.apache.log4j.DailyRollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieinstrumentation.DatePattern</name>
+    <value>.yyyy-MM-dd</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieinstrumentation.File</name>
+    <value>${oozie.log.dir}/oozie-instrumentation.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieinstrumentation.Append</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieinstrumentation.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieinstrumentation.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieaudit</name>
+    <value>org.apache.log4j.DailyRollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieaudit.DatePattern</name>
+    <value>.yyyy-MM-dd</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieaudit.File</name>
+    <value>${oozie.log.dir}/oozie-audit.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieaudit.Append</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieaudit.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.oozieaudit.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>
+  </property>
+  <property>
+    <name>log4j.appender.openjpa</name>
+    <value>org.apache.log4j.DailyRollingFileAppender</value>
+  </property>
+  <property>
+    <name>log4j.appender.openjpa.DatePattern</name>
+    <value>.yyyy-MM-dd</value>
+  </property>
+  <property>
+    <name>log4j.appender.openjpa.File</name>
+    <value>${oozie.log.dir}/oozie-jpa.log</value>
+  </property>
+  <property>
+    <name>log4j.appender.openjpa.Append</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>log4j.appender.openjpa.layout</name>
+    <value>org.apache.log4j.PatternLayout</value>
+  </property>
+  <property>
+    <name>log4j.appender.openjpa.layout.ConversionPattern</name>
+    <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>
+  </property>
+  <property>
+    <name>log4j.logger.openjpa</name>
+    <value>INFO, openjpa</value>
+  </property>
+  <property>
+    <name>log4j.logger.oozieops</name>
+    <value>INFO, oozieops</value>
+  </property>
+  <property>
+    <name>log4j.logger.oozieinstrumentation</name>
+    <value>ALL, oozieinstrumentation</value>
+  </property>
+  <property>
+    <name>log4j.logger.oozieaudit</name>
+    <value>ALL, oozieaudit</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.oozie</name>
+    <value>INFO, oozie</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.hadoop</name>
+    <value>WARN, oozie</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.mortbay</name>
+    <value>WARN, oozie</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.hsqldb</name>
+    <value>WARN, oozie</value>
+  </property>
+  <property>
+    <name>log4j.logger.org.apache.hadoop.security.authentication.server</name>
+    <value>INFO, oozie</value>
+  </property>
+
+</configuration>
