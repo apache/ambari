@@ -818,17 +818,29 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  decommissionAndStartSuccessCallback: function (response, request, data) {
-    console.log('Success in decommission callback:' + response);
-    if (!App.testMode) {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-    }
-  },
-  decommissionSuccessCallback: function (response, request, data) {
-    console.log('Success in decommission callback:' + response);
-  },
   decommissionErrorCallback: function (request, ajaxOptions, error) {
     console.log('ERROR: '+ error);
+  },
+  /**
+   * Success ajax response for Recommission/Decommission slaves
+   * @param data
+   * @param ajaxOptions
+   */
+  decommissionSuccessCallback: function(data, ajaxOptions) {
+    if(data && (data.Requests || data.resources[0].RequestSchedule) ) {
+      if (!App.testMode) {
+        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
+    }
+    else {
+      console.log('cannot get request id from ', data);
+    }
   },
 
   doRecommissionAndStart:  function(hostName, serviceName, componentName, slaveType, startContext){
@@ -875,7 +887,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           }
         ]
       },
-      success: 'decommissionAndStartSuccessCallback',
+      success: 'decommissionSuccessCallback',
       error: 'decommissionErrorCallback'
     });
   },
