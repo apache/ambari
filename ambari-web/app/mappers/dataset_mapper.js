@@ -29,6 +29,10 @@ App.dataSetMapper = App.QuickDataMapper.create({
     target_cluster_name: 'targetClusterName',
     source_dir: 'sourceDir',
     target_dir: 'targetDir',
+    frequency: 'frequency',
+    frequency_unit: 'frequencyUnit',
+    schedule_start_date: 'scheduleStartDate',
+    schedule_end_date: 'scheduleEndDate',
     dataset_jobs_key: 'instances',
     dataset_jobs_type: 'array',
     dataset_jobs: {

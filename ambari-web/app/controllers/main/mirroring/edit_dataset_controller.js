@@ -19,6 +19,8 @@
 App.MainMirroringEditDataSetController = Ember.Controller.extend({
   name: 'mainMirroringEditDataSetController',
 
+  isEdit: false,
+
   // Fields values from Edit DataSet form
   formFields: Ember.Object.create({
     datasetName: null,
@@ -78,6 +80,12 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
   showAddPopup: function () {
     this.showPopup(Em.I18n.t('mirroring.dataset.newDataset'));
+    this.set('isEdit', false);
+  },
+
+  showEditPopup: function () {
+    this.showPopup(Em.I18n.t('mirroring.dataset.editDataset'));
+    this.set('isEdit', true);
   },
 
   showPopup: function (header) {
@@ -113,7 +121,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
       primaryWasClicked: false,
       onSecondary: function () {
         this.hide();
-        App.router.transitionTo('main.mirroring.index');
+        App.router.send('gotoShowJobs');
       },
       bodyClass: App.MainMirroringEditDataSetView.extend({
         controller: self
@@ -189,6 +197,13 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
   // Convert date to TZ format
   toTZFormat: function (date) {
     return date.getFullYear() + '-' + this.addZero(date.getMonth() + 1) + '-' + this.addZero(date.getDate()) + 'T' + this.addZero(date.getHours()) + ':' + this.addZero(date.getMinutes()) + 'Z';
+  },
+
+  // Converts hours value from 24-hours format to AM/PM format
+  toAMPMHours: function (hours) {
+    var result = hours % 12;
+    result = result ? result : 12;
+    return this.addZero(result);
   },
 
   save: function () {

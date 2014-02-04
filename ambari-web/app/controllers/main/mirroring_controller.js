@@ -85,6 +85,10 @@ App.MainMirroringController = Em.ArrayController.extend({
           targetClusterName: targetCluster['@attributes'].name,
           sourceDir: parsedData.feed.locations.location['@attributes'].path,
           targetDir: targetCluster.locations.location['@attributes'].path,
+          frequency: parsedData.feed.frequency['#text'].match(/\d/)[0],
+          frequencyUnit: parsedData.feed.frequency['#text'].match(/\w+(?=\()/)[0],
+          scheduleEndDate: sourceCluster.validity['@attributes'].end,
+          scheduleStartDate: sourceCluster.validity['@attributes'].start,
           instances: []
         })
     );
@@ -126,9 +130,15 @@ App.MainMirroringController = Em.ArrayController.extend({
       });
       this.set('datasets', sortedDatasets);
       this.set('isLoaded', true);
+      var selectedDataset = this.get('selectedDataset');
+      if (!selectedDataset) {
+        this.set('selectedDataset', sortedDatasets[0]);
+      }
+      var routerState = App.router.get('currentState.name');
+      if (routerState === 'index') {
+        App.router.send('gotoShowJobs');
+      }
     }
-    var selectedDataset = this.get('selectedDataset');
-    App.router.transitionTo('showDatasetJobs', selectedDataset || sortedDatasets[0]);
   },
 
   onLoadDatasetsInstancesError: function () {
@@ -149,11 +159,11 @@ App.MainMirroringController = Em.ArrayController.extend({
       secondary: null,
       onPrimary: function () {
         this.hide();
-        App.router.transitionTo('main.mirroring.index');
+        App.router.send('gotoShowJobs');
       },
       onClose: function () {
         this.hide();
-        App.router.transitionTo('main.mirroring.index');
+        App.router.send('gotoShowJobs');
       },
       didInsertElement: function () {
         this._super();

@@ -136,7 +136,7 @@ module.exports = Em.Route.extend({
             router.get('mainController').connectOutlet('mainHiveJobDetails', job);
           }
         }
-      },
+      }
     }),
     showJobDetails : function(router, event) {
       router.transitionTo('jobDetails', event.context);
@@ -154,7 +154,10 @@ module.exports = Em.Route.extend({
     },
 
     gotoShowJobs: function (router, event) {
-      router.transitionTo('showDatasetJobs', event.context);
+      var dataset = (event && event.context) || router.get('mainMirroringController.selectedDataset');
+      if (dataset) {
+        router.transitionTo('showDatasetJobs', dataset);
+      }
     },
 
     showDatasetJobs: Em.Route.extend({
@@ -164,6 +167,17 @@ module.exports = Em.Route.extend({
         router.get('mainMirroringController').set('selectedDataset', dataset);
       }
     }),
+
+    editDatasetRoute: Em.Route.extend({
+      route: '/edit/:dataset_id',
+      connectOutlets: function (router, dataset) {
+        router.get('mainMirroringEditDataSetController').showEditPopup(dataset);
+      }
+    }),
+
+    editDataset: function (router, event) {
+      router.transitionTo('editDatasetRoute', event.view.get('dataset'));
+    },
 
     addNewDataset: function (router) {
       router.transitionTo('addNewDatasetRoute');

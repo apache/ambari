@@ -6,7 +6,7 @@
             <retention action="delete" limit="days(7)"/>
         </cluster>
 
-        <cluster name="target-cluster1" type="target">
+        <cluster name="tdk" type="target">
             <validity end="2014-12-31T00:00Z" start="2013-10-24T00:00Z"/>
             <retention action="delete" limit="months(1)"/>-
             <locations>

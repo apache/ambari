@@ -1753,6 +1753,7 @@ Em.I18n.translations = {
 
   'mirroring.dataset.dataSets':'Datasets',
   'mirroring.dataset.createDataset':'Create Dataset',
+  'mirroring.dataset.editDataset':'Edit Dataset',
   'mirroring.dataset.manageClusters':'Manage Clusters',
   'mirroring.dataset.newDataset':'New Dataset',
   'mirroring.dataset.selectTargetClusters':'Select Target Cluster...',

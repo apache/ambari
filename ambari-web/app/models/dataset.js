@@ -25,6 +25,10 @@ App.Dataset = DS.Model.extend({
   targetClusterName: DS.attr('string'),
   sourceDir: DS.attr('string'),
   targetDir: DS.attr('string'),
+  frequency: DS.attr('string'),
+  frequencyUnit: DS.attr('string'),
+  scheduleStartDate: DS.attr('string'),
+  scheduleEndDate: DS.attr('string'),
   datasetJobs: DS.hasMany('App.DataSetJob'),
 
   status: function () {
