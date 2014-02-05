@@ -981,8 +981,14 @@ App.MainHostDetailsController = Em.Controller.extend({
         hostNames: this.get('content.hostName'),
         passive_state: state,
         requestInfo: message
-      }
+      },
+      success: 'updateHost'
     });
+  },
+
+  updateHost: function(data, opt, params) {
+    this.set('content.passiveState', params.passive_state);
+    App.router.get('clusterController').loadUpdatedStatus(function(){});
   },
 
   doStartAllComponents: function() {
@@ -1212,7 +1218,6 @@ App.MainHostDetailsController = Em.Controller.extend({
   turnOnOffPassiveConfirmation: function(event){
     var self = this;
     var component = event.context;
-    var componentName = component.get('componentName').toUpperCase();
     var state, onOff;
     if (component.get("passiveState") == "PASSIVE") {
       onOff = "Off";
@@ -1222,23 +1227,29 @@ App.MainHostDetailsController = Em.Controller.extend({
       state = "PASSIVE";
     }
     App.showConfirmationPopup(function() {
-          self.turnOnOffPassive(state, componentName)
+          self.turnOnOffPassive(state, component)
         },
         Em.I18n.t('hosts.passiveMode.popup').format(onOff,component.get('displayName'))
     );
   },
 
-  turnOnOffPassive: function(state,componentName) {
+  turnOnOffPassive: function(state,component) {
     var hostName = this.get('content.hostName');
     App.ajax.send({
       name: 'host_component.passive',
       sender: this,
       data: {
+        component: component,
         hostName: hostName,
-        componentName: componentName,
+        componentName: component.get('componentName'),
         passive_state: state,
-        requestInfo: componentName + " " + state
-      }
+        requestInfo: component.get('componentName') + " " + state
+      },
+      success: 'updateComponentPassiveState'
     });
+  },
+
+  updateComponentPassiveState: function(data, opt, params) {
+    params.component.set('passiveState',params.passive_state);
   }
 });

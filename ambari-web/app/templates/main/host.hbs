@@ -109,9 +109,7 @@
             {{/if}}
           </td>
           <td class="passive-state">
-            {{#if host.componentsInPassiveStateCount}}
-              <span class="icon-medkit" rel="ComponentsTooltip" {{bindAttr title="view.componentsInPassiveStateMessage"}}></span>
-            {{/if}}
+              <span rel="ComponentsTooltip" {{bindAttr data-original-title="view.componentsInPassiveStateMessage" class="host.componentsInPassiveStateCount:icon-medkit"}}></span>
           </td>
           <td>{{host.ip}}</td>
           <td>{{host.coresFormatted}}</td>

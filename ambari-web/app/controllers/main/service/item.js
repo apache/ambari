@@ -216,7 +216,15 @@ App.MainServiceItemController = Em.Controller.extend({
         'requestInfo': message,
         'serviceName': this.get('content.serviceName').toUpperCase(),
         'passive_state': state
-      }
+      },
+      'success':'updateService'
+    });
+  },
+
+  updateService: function(data, opt, params) {
+    var self = this;
+    App.router.get('clusterController').loadUpdatedStatus(function(){
+      self.set('content.passiveState', params.passive_state);
     });
   },
 

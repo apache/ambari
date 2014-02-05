@@ -243,7 +243,7 @@ App.MainHostController = Em.ArrayController.extend({
     var affectedHosts = [];
     hosts.forEach(function(host) {
       if (host.get('passiveState') !== operationData.state) {
-        affectedHosts.push(host.get('hostName'));
+        affectedHosts.push(host);
       }
     });
     if (affectedHosts.length) {
@@ -251,10 +251,12 @@ App.MainHostController = Em.ArrayController.extend({
         name: 'bulk_request.hosts.passive_state',
         sender: this,
         data: {
-          hostNames: affectedHosts.join(','),
+          hosts: affectedHosts,
+          hostNames: affectedHosts.mapProperty('hostName').join(','),
           passive_state: operationData.state,
           requestInfo: operationData.message
-        }
+        },
+        success: 'updateHostPassiveState'
       });
     }
     else {
@@ -266,6 +268,10 @@ App.MainHostController = Em.ArrayController.extend({
     }
   },
 
+  updateHostPassiveState: function(data, opt, params) {
+    params.hosts.setEach('passiveState', params.passive_state);
+    App.router.get('clusterController').loadUpdatedStatus(function(){});
+  },
   /**
    * Bulk operation for selected hostComponents
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
@@ -421,7 +427,8 @@ App.MainHostController = Em.ArrayController.extend({
           query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + affectedHosts.join(',') + ')',
           passive_state: operationData.state,
           requestInfo: operationData.message
-        }
+        },
+        success: 'updateHostComponentsPassiveState'
       });
     }
     else {
@@ -433,6 +440,9 @@ App.MainHostController = Em.ArrayController.extend({
     }
   },
 
+  updateHostComponentsPassiveState: function() {
+    App.router.get('clusterController').loadUpdatedStatus(function(){});
+  },
   /**
    * Show BO popup after bulk request
    */
