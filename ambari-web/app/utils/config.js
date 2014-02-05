@@ -236,6 +236,7 @@ App.config = Em.Object.create({
     var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties'));
     var mappingConfigs = [];
     var filenameExceptions = this.get('filenameExceptions');
+    var selectedServiceNames = App.Service.find().mapProperty('serviceName');
     tags.forEach(function (_tag) {
       var isAdvanced = null;
       var properties = configGroups.filter(function (serviceConfigProperties) {
@@ -244,7 +245,13 @@ App.config = Em.Object.create({
 
       properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
-        var configsPropertyDef = preDefinedConfigs.findProperty('name', index) || null;
+        var configsPropertyDef =  null;
+        var preDefinedConfig = preDefinedConfigs.filterProperty('name', index);
+        preDefinedConfig.forEach(function(_preDefinedConfig){
+          if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
+            configsPropertyDef = _preDefinedConfig;
+          }
+        },this);
         var serviceConfigObj = App.ServiceConfig.create({
           name: index,
           value: properties[index],
@@ -379,7 +386,7 @@ App.config = Em.Object.create({
    * @param advancedConfigs
    * @return {*}
    */
-  mergePreDefinedWithStored: function (storedConfigs, advancedConfigs) {
+  mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
     var preDefinedConfigs = $.extend(true, [], this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')));
     var categoryMetaData = null;
@@ -390,7 +397,14 @@ App.config = Em.Object.create({
     var names = preDefinedNames.concat(storedNames).uniq();
     names.forEach(function (name) {
       var stored = storedConfigs.findProperty('name', name);
-      var preDefined = preDefinedConfigs.findProperty('name', name);
+      var preDefined;
+      var preDefinedConfig = preDefinedConfigs.filterProperty('name', name);
+         preDefinedConfig.forEach(function(_preDefinedConfig){
+           if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
+             preDefined = _preDefinedConfig;
+           }
+         },this);
+
       var configData = {};
       var isAdvanced = advancedConfigs.someProperty('name', name);
       if (preDefined && stored) {
