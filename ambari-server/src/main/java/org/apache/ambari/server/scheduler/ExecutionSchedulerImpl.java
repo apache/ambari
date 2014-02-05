@@ -162,7 +162,20 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
       throw new AmbariException(msg);
     }
     try {
-      scheduler.startDelayed(delay != null ? delay : 0);
+      if (!scheduler.isStarted()) {
+        // To avoid issue created due to change in server clock in between the
+        // scheduler initialization and scheduler start,
+        // start immediately if no delay provided.
+        if (delay != null) {
+          scheduler.startDelayed(delay);
+        } else {
+          scheduler.start();
+        }
+
+      } else {
+        LOG.info("Scheduler " + scheduler.getSchedulerInstanceId() +
+          " already started. Skipping start.");
+      }
     } catch (SchedulerException e) {
       LOG.error("Failed to start scheduler", e);
       throw new AmbariException(e.getMessage());
@@ -205,6 +218,11 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
   @Override
   public List<? extends Trigger> getTriggersForJob(JobKey jobKey) throws SchedulerException {
     return scheduler.getTriggersOfJob(jobKey);
+  }
+
+  @Override
+  public boolean isSchedulerStarted() throws SchedulerException {
+    return scheduler.isStarted();
   }
 
 }

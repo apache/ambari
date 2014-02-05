@@ -79,4 +79,10 @@ public interface ExecutionScheduler {
    */
   public List<? extends Trigger> getTriggersForJob(JobKey jobKey)
     throws SchedulerException;
+
+  /**
+   * Check whether the scheduler is already running.
+   * @return
+   */
+  public boolean isSchedulerStarted() throws SchedulerException;
 }

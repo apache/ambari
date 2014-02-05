@@ -39,7 +39,6 @@ import static org.powermock.api.easymock.PowerMock.expectNew;
 import static org.powermock.api.easymock.PowerMock.expectPrivate;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ ExecutionSchedulerImpl.class })
 @PowerMockIgnore("javax.management.*")
 public class ExecutionSchedulerTest {
 
@@ -65,6 +64,7 @@ public class ExecutionSchedulerTest {
   }
 
   @Test
+  @PrepareForTest({ ExecutionSchedulerImpl.class })
   public void testSchedulerInitialize() throws Exception {
 
     ExecutionSchedulerImpl executionScheduler =
@@ -87,6 +87,7 @@ public class ExecutionSchedulerTest {
   }
 
   @Test
+  @PrepareForTest({ ExecutionSchedulerImpl.class })
   public void testSchedulerStartStop() throws Exception {
     StdSchedulerFactory factory = createNiceMock(StdSchedulerFactory.class);
     Scheduler scheduler = createNiceMock(Scheduler.class);
@@ -143,5 +144,29 @@ public class ExecutionSchedulerTest {
 
     Assert.assertEquals("org.quartz.impl.jdbcjobstore.oracle.OracleDelegate", subProps[0]);
     Assert.assertEquals("select 0 from dual", subProps[1]);
+  }
+
+  @Test
+  @PrepareForTest({ ExecutionSchedulerImpl.class })
+  public void testSchedulerStartDelay() throws Exception {
+    StdSchedulerFactory factory = createNiceMock(StdSchedulerFactory.class);
+    Scheduler scheduler = createNiceMock(Scheduler.class);
+
+    expect(factory.getScheduler()).andReturn(scheduler).anyTimes();
+    expectNew(StdSchedulerFactory.class).andReturn(factory);
+    expect(scheduler.isStarted()).andReturn(false).anyTimes();
+    expectPrivate(scheduler, "startDelayed", new Integer(180)).once();
+    expectPrivate(scheduler, "start").once();
+
+    PowerMock.replay(factory, StdSchedulerFactory.class, scheduler);
+
+    ExecutionSchedulerImpl executionScheduler = new ExecutionSchedulerImpl(configuration);
+
+    executionScheduler.startScheduler(180);
+    executionScheduler.startScheduler(null);
+
+    PowerMock.verify(factory, StdSchedulerFactory.class, scheduler);
+
+    Assert.assertTrue(executionScheduler.isInitialized());
   }
 }

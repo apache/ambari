@@ -137,8 +137,7 @@ public class ExecutionScheduleManager {
   public void start() {
     LOG.info("Starting scheduler");
     try {
-      executionScheduler.startScheduler(configuration
-        .getExecutionSchedulerStartDelay());
+      executionScheduler.startScheduler(configuration.getExecutionSchedulerStartDelay());
       schedulerAvailable = true;
 
     } catch (AmbariException e) {
@@ -215,6 +214,16 @@ public class ExecutionScheduleManager {
       throw new AmbariException("Scheduler unavailable.");
     }
 
+    // Check if scheduler is running, if not start immediately before scheduling jobs
+    try {
+      if (!executionScheduler.isSchedulerStarted()) {
+        executionScheduler.startScheduler(null);
+      }
+    } catch (SchedulerException e) {
+      LOG.error("Unable to determine scheduler state.", e);
+      throw new AmbariException("Scheduler unavailable.");
+    }
+
     // Create and persist jobs based on batches
     JobDetail firstJobDetail = persistBatch(requestExecution);
 
@@ -252,8 +261,6 @@ public class ExecutionScheduleManager {
           .startAt(startDate)
           .endAt(endDate)
           .build();
-
-
 
       try {
         executionScheduler.scheduleJob(trigger);
