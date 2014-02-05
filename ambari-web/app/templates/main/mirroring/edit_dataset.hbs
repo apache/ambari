@@ -45,6 +45,18 @@
           <td class="spacer" colspan="3"></td>
         </tr>
 
+        <tr>
+          <td class="percent25" colspan="1">
+            {{t mirroring.dataset.sourceCluster}}
+          </td>
+          <td colspan="2" style="text-align: left">
+            {{App.clusterName}}
+          </td>
+        </tr>
+        <tr>
+          <td class="spacer" colspan="3"></td>
+        </tr>
+
         <tr {{bindAttr class="errors.isSourceDirError:error"}}>
           <td colspan="1">
             {{t mirroring.dataset.sourceDir}}
@@ -59,7 +71,7 @@
         </tr>
         <tr {{bindAttr class="errors.isTargetClusterError:error"}}>
           <td colspan="1">
-            {{t mirroring.dataset.target}}
+            {{t mirroring.dataset.targetCluster}}
           </td>
           <td colspan="2" style="text-align: left">
             {{view view.targetClusterSelect selectionBinding="formFields.datasetTargetClusterName"}}

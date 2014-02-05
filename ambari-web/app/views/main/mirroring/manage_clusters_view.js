@@ -22,82 +22,32 @@ App.MainMirroringManageClusterstView = Em.View.extend({
   name: 'mainMirroringManageClustersView',
   templateName: require('templates/main/mirroring/manage_clusters'),
 
-  didInsertElement: function () {
-    this.get('controller').clearStep();
-  },
-
   clusterSelect: Ember.Select.extend({
     classNames: ['cluster-select'],
     multiple: true,
     content: function () {
-      return App.TargetCluster.find().mapProperty('clusterName');
-    }.property(),
-    selectedCluster: null,
+      var clusters = this.get('controller.clusters').slice();
+      clusters.unshift(App.get('clusterName'));
+      return clusters;
+    }.property('controller.clusters.@each', 'App.clusterName'),
+
     onSelect: function () {
       if (this.get('selection.length')) {
         if (this.get('selection').length === 1) {
-          this.set('selectedCluster', this.get('selection')[0]);
+          this.set('controller.selectedCluster', this.get('selection')[0]);
         } else {
-          this.set('selection', [this.get('selectedCluster')]);
+          this.set('selection', [this.get('controller.selectedCluster')]);
         }
       } else {
-        this.set('selectedCluster', null);
+        this.set('controller.selectedCluster', null);
       }
     }.observes('selection')
   }),
 
-  ambariClusterSelect: Ember.Select.extend({
-    attributeBindings: ['disabled'],
-    classNames: ['span5'],
-    content: function () {
-      return [App.get('clusterName')];
-    }.property()
-  }),
-
-  ambariRadioButton: Ember.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: ['type', 'checked'],
-    checked: function () {
-      return this.get('controller.ambariSelected');
-    }.property('controller.ambariSelected'),
-    type: 'radio',
-
-    click: function () {
-      this.set('controller.ambariSelected', true);
-      this.set('controller.ambariServerSelected', false);
-      this.set('controller.interfacesSelected', false);
-    }
-  }),
-
-  ambariServerRadioButton: Ember.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: ['type', 'checked'],
-    checked: function () {
-      return this.get('controller.ambariServerSelected');
-    }.property('controller.ambariServerSelected'),
-    type: 'radio',
-
-    click: function () {
-      this.set('controller.ambariSelected', false);
-      this.set('controller.ambariServerSelected', true);
-      this.set('controller.interfacesSelected', false);
-    }
-  }),
-
-  interfacesRadioButton: Ember.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: ['type', 'checked'],
-    checked: function () {
-      return this.get('controller.interfacesSelected');
-    }.property('controller.interfacesSelected'),
-    type: 'radio',
-
-    click: function () {
-      this.set('controller.ambariSelected', false);
-      this.set('controller.ambariServerSelected', false);
-      this.set('controller.interfacesSelected', true);
-    }
-  })
+  removeDisabled: function () {
+    var selectedCluster = this.get('controller.selectedCluster');
+    return !selectedCluster || selectedCluster === App.get('clusterName');
+  }.property('controller.selectedCluster', 'App.clusterName')
 });
 
 

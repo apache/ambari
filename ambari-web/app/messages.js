@@ -224,6 +224,7 @@ Em.I18n.translations = {
 
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
+  'popup.prompt.commonHeader':'Prompt',
 
   'router.hadoopClusterNotSetUp':'Your administrator has not set up a Hadoop cluster yet.',
 
@@ -1760,10 +1761,12 @@ Em.I18n.translations = {
   'mirroring.dataset.name':'Name',
   'mirroring.dataset.type':'Type',
   'mirroring.dataset.save': 'Save & Schedule',
-  'mirroring.dataset.sourceDir':'Source',
+  'mirroring.dataset.sourceDir':'Source Directory',
+  'mirroring.dataset.sourceCluster':'Source Cluster',
   'mirroring.dataset.target':'Target',
   'mirroring.dataset.source':'Source',
-  'mirroring.dataset.targetDir':'Target Cluster Directory',
+  'mirroring.dataset.targetCluster':'Target Cluster',
+  'mirroring.dataset.targetDir':'Target Directory',
   'mirroring.dataset.schedule':'Schedule',
   'mirroring.dataset.suspend':'Suspend',
   'mirroring.dataset.suspendInstance':'Suspend Instance',
@@ -1782,8 +1785,8 @@ Em.I18n.translations = {
   'mirroring.dataset.middayPeriod.pm':'PM',
 
   'mirroring.manageClusters.ambariServer':'Ambari Server',
-  'mirroring.manageClusters.testConnection':'Test Connection',
   'mirroring.manageClusters.interfaces':'Interfaces',
+  'mirroring.manageClusters.specifyName':'Specify name for new target cluster:',
   'mirroring.manageClusters.execute':'Execute',
   'mirroring.manageClusters.readonly':'Readonly',
   'mirroring.manageClusters.workflow':'Workflow',

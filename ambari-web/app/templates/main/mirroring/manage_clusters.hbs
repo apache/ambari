@@ -21,67 +21,24 @@
       {{view view.clusterSelect}}
       <div class="btn-toolbar pull-right">
         <button class="btn" {{action addCluster target="controller"}}><i class="icon-plus"></i></button>
-        <button class="btn" {{action removeCluster target="controller"}}><i class="icon-minus"></i></button>
-        <button class="btn"><i class="icon-cog"></i></button>
+        <button class="btn" {{action removeCluster target="controller"}} {{bindAttr disabled="view.removeDisabled"}}><i class="icon-minus"></i></button>
       </div>
     </div>
     <div class="span7" style="padding-left: 15px">
       <form class="form-horizontal">
         <div class="control-group">
-          <label class="control-label-manage-clusters">{{t common.name}}</label>
-          {{view Ember.TextField class="span8"}}
-        </div>
-        <div class="control-group">
-          <label class="radio">
-            {{view view.ambariRadioButton checkedBinding="controller.ambariSelected"}}
-            {{t app.name}}
-          </label>
-
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t common.name}}</label>
-            {{view view.ambariClusterSelect disabledBinding="controller.ambariDisabled"}}
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="radio">
-            {{view view.ambariServerRadioButton checkedBinding="controller.ambariServerSelected"}}
-            {{t mirroring.manageClusters.ambariServer}}
-          </label>
-
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t common.url}}</label>
-            {{view Ember.TextField class="span8" disabledBinding="controller.ambariServerDisabled"}}
-          </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t common.user}}</label>
-            {{view Ember.TextField class="span8" disabledBinding="controller.ambariServerDisabled"}}
-          </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t common.password}}</label>
-            {{view Ember.TextField class="span4" type="password" disabledBinding="controller.ambariServerDisabled"}}
-            {{view Ember.TextField class="span4" type="password" disabledBinding="controller.ambariServerDisabled"}}
-          </div>
-          <div class="control-group text-center">
-            <button class="btn btn-success" {{action testConnection target="controller"}} {{bindAttr disabled="controller.ambariServerDisabled"}}>{{t mirroring.manageClusters.testConnection}}</button>
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="radio">
-            {{view view.interfacesRadioButton checkedBinding="controller.interfacesSelected"}}
-            {{t mirroring.manageClusters.interfaces}}
-          </label>
-
+          <div style="margin-bottom: 15px">{{t mirroring.manageClusters.interfaces}}</div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.execute}}</label>
-            {{view Ember.TextField class="span8" disabledBinding="controller.interfacesDisabled"}}
+            {{view Ember.TextField class="span8"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.readonly}}</label>
-            {{view Ember.TextField class="span8" disabledBinding="controller.interfacesDisabled"}}
+            {{view Ember.TextField class="span8"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
-            {{view Ember.TextField class="span8" disabledBinding="controller.interfacesDisabled"}}
+            {{view Ember.TextField class="span8"}}
           </div>
         </div>
         <div class="accordion control-group" id="advanced-fields">
@@ -91,7 +48,7 @@
                 <i class="icon-caret-down"></i> {{t common.advanced}}
               </a>
             </div>
-            <div id="collapse-fields" class="accordion-body collapse">
+            <div id="collapse-fields" class="accordion-body collapse in">
               <div class="accordion-inner">
                 <div class="control-group">
                   <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>

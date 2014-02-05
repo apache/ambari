@@ -21,33 +21,23 @@ var App = require('app');
 App.MainMirroringManageClustersController = Em.ArrayController.extend({
   name: 'mainMirroringManageClustersController',
 
-  ambariSelected: true,
+  clusters: [],
 
-  ambariServerSelected: false,
+  selectedCluster: null,
 
-  interfacesSelected: false,
-
-  ambariDisabled: function () {
-    return !this.get('ambariSelected');
-  }.property('ambariSelected'),
-
-  ambariServerDisabled: function () {
-    return !this.get('ambariServerSelected');
-  }.property('ambariServerSelected'),
-
-  interfacesDisabled: function () {
-    return !this.get('interfacesSelected');
-  }.property('interfacesSelected'),
-
-  clearStep: function () {
-    this.set('ambariSelected', true);
-    this.set('ambariServerSelected', false);
-    this.set('interfacesSelected', false);
+  addCluster: function () {
+    var self = this;
+    App.showPromptPopup(Em.I18n.t('mirroring.manageClusters.specifyName'),
+        function (clusterName) {
+          self.get('clusters').pushObject(clusterName);
+        }
+    );
   },
 
-  addCluster: function() {},
-
-  removeCluster: function() {},
-
-  testConnection: function() {}
+  removeCluster: function () {
+    var self = this;
+    App.showConfirmationPopup(function () {
+      self.set('clusters', self.get('clusters').without(self.get('selectedCluster')));
+    })
+  }
 });

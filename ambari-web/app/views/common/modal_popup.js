@@ -121,9 +121,7 @@ App.showConfirmationPopup = function (primary, body, secondary) {
     return false;
   }
   return App.ModalPopup.show({
-    primary: Em.I18n.t('ok'),
     encodeBody: false,
-    secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.confirmation.commonHeader'),
     body: body || Em.I18n.t('question.sure'),
     onPrimary: function () {
@@ -157,6 +155,39 @@ App.showAlertPopup = function (header, body, primary) {
       this.hide();
       if (primary) {
         primary();
+      }
+    }
+  });
+};
+
+/**
+ * Show prompt popup
+ *
+ * @param {String} text - additional text constant. Will be placed on the top of the input field
+ * @param {Function} primary - "OK" button click handler
+ * @param {String} defaultValue - additional text constant. Will be default value for input field
+ * @param {Function} secondary
+ * @return {*}
+ */
+App.showPromptPopup = function (text, primary, defaultValue, secondary) {
+  if (!primary) {
+    return false;
+  }
+  return App.ModalPopup.show({
+    header: Em.I18n.t('popup.prompt.commonHeader'),
+    bodyClass: Em.View.extend({
+      templateName: require('templates/common/prompt_popup'),
+      text: text
+    }),
+    inputValue: defaultValue || '',
+    onPrimary: function () {
+      this.hide();
+      primary(this.get('inputValue'));
+    },
+    onSecondary: function () {
+      this.hide();
+      if (secondary) {
+        secondary();
       }
     }
   });
