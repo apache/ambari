@@ -76,7 +76,7 @@ module.exports = Em.Application.create({
   components: Ember.Object.create({
     reassignable: ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'],
     restartable: ['APP_TIMELINE_SERVER'],
-    deletable: ['SUPERVISOR', 'HBASE_MASTER'],
+    deletable: ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER'],
     rollinRestartAllowed: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "SUPERVISOR"],
     slaves: function() {
       return require('data/service_components').filter(function(component){
