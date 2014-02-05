@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.PassiveStateHelper;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -566,14 +567,19 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       
       if (null != request.getClusterName() && null != request.getPassiveState()) {
         Cluster c = clusters.getCluster(request.getClusterName());
-        PassiveState newStatus = PassiveState.valueOf(request.getPassiveState());
-        PassiveState oldStatus = h.getPassiveState(c.getClusterId());
-        if (!newStatus.equals(oldStatus)) {
-          if (newStatus.equals(PassiveState.IMPLIED)) {
+        PassiveState newState = PassiveState.valueOf(request.getPassiveState());
+        PassiveState oldState = h.getPassiveState(c.getClusterId());
+        if (!newState.equals(oldState)) {
+          if (newState.equals(PassiveState.IMPLIED)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
               "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
           } else {
-            h.setPassiveState(c.getClusterId(), newStatus);
+            h.setPassiveState(c.getClusterId(), newState);
+            try {
+              PassiveStateHelper.createRequest(controller, c.getClusterName(), h.getHostName());
+            } catch (Exception e) {
+              LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+            }
           }
         }
       }

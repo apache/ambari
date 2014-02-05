@@ -3884,6 +3884,9 @@ public class AmbariManagementControllerTest {
     assertEquals(1, response.getTasks().size());
     taskStatus = response.getTasks().get(0);
     Assert.assertEquals("h3", taskStatus.getHostName());
+    
+    Assert.assertTrue(null != cmd.getPassiveInfo());
+    
   }
 
   @Test
@@ -9296,6 +9299,11 @@ public class AmbariManagementControllerTest {
       // manually change live state to stopped as no running action manager
       List<HostRoleCommand> commands = actionDB.getRequestTasks(rsr.getRequestId());
       for (HostRoleCommand cmd : commands) {
+        Assert.assertNotNull(cmd.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo());
+        Assert.assertEquals(Integer.valueOf(1),
+            Integer.valueOf(
+                cmd.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo().size()));
+        
         clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(cmd.getRole().name())
             .getServiceComponentHost(cmd.getHostName()).setState(State.INSTALLED);
       }
@@ -9309,7 +9317,7 @@ public class AmbariManagementControllerTest {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(sch == targetSch ? State.INIT : State.INSTALLED, sch.getState());
       }
-    }    
+    }
 
   }
 

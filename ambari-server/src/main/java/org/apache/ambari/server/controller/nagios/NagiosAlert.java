@@ -35,7 +35,9 @@ public class NagiosAlert {
   private String last_time_critical = null;
 //  private String is_flapping = null;
 //  private String last_check = null;
-  private String service_type = null;  
+  private String service_type = null;
+  private String long_plugin_output = null;
+
   
   public NagiosAlert() {
   }
@@ -155,6 +157,13 @@ public class NagiosAlert {
     } catch (Exception e) {
       return 0L;
     }
+  }
+  
+  /**
+   * @return the long output, if any
+   */
+  public String getLongPluginOutput() {
+    return long_plugin_output;
   }
   
   @Override

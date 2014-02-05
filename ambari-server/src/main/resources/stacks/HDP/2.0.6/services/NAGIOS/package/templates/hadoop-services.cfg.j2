@@ -478,7 +478,7 @@ define service {
         use                     hadoop-service
         service_description     DATANODE::DataNode process
         servicegroups           HDFS
-        check_command           check_tcp!{{datanode_port}}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{datanode_port}}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3

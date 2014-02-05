@@ -37,6 +37,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.PassiveStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -559,6 +560,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
           } else {
             s.setPassiveState(newPassive);
+            try {
+              PassiveStateHelper.createRequest(controller, cluster.getClusterName(),
+                  s.getName());
+            } catch (Exception e) {
+              LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+            }
           }
         }
       }
@@ -974,6 +981,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           LOG.error("Can't determine service state.", e);
         }
       }
-      return State.UNKNOWN;    }
+      return State.UNKNOWN;
+    }
   }
+  
 }

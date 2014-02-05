@@ -71,6 +71,8 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private static final String ALERT_SUMMARY_OK_PROPERTY_ID = "alerts/summary/OK";
   private static final String ALERT_SUMMARY_WARNING_PROPERTY_ID = "alerts/summary/WARNING";
   private static final String ALERT_SUMMARY_CRITICAL_PROPERTY_ID = "alerts/summary/CRITICAL";
+  private static final String ALERT_SUMMARY_PASSIVE_PROPERTY_ID = "alerts/summary/PASSIVE";
+  private static final String PASSIVE_TOKEN = "AMBARIPASSIVE=";
   
   private static final List<String> IGNORABLE_FOR_SERVICES = new ArrayList<String>(
       Arrays.asList("NodeManager health", "NodeManager process", "TaskTracker process",
@@ -196,6 +198,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     int ok = 0;
     int warning = 0;
     int critical = 0;
+    int passive = 0;
     
     List<Map<String, Object>> alerts = new ArrayList<Map<String, Object>>();
     
@@ -208,7 +211,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
           if (match && null != alert.getDescription() &&
               IGNORABLE_FOR_SERVICES.contains(alert.getDescription())) {
             match = false;
-          }
+          }          
           break;
         case Host:
           match = alert.getHost().equals(matchValue);
@@ -226,7 +229,38 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       }
       
       if (match) {
-        switch (alert.getStatus()) {
+
+        // status = the return code from the plugin that controls
+        // whether an alert is sent out (0 when using wrapper)
+        // actual_status = the actual process result
+        
+        Map<String, Object> map = new LinkedHashMap<String, Object>();
+        
+        map.put("description", alert.getDescription());
+        map.put("host_name", alert.getHost());
+        map.put("last_status", NagiosAlert.getStatusString(alert.getLastStatus()));
+        map.put("last_status_time", Long.valueOf(alert.getLastStatusTime()));
+        map.put("service_name", alert.getService());
+        map.put("status", NagiosAlert.getStatusString(alert.getStatus()));
+        map.put("status_time", Long.valueOf(alert.getStatusTime()));
+        map.put("output", alert.getOutput());
+        map.put("actual_status", NagiosAlert.getStatusString(alert.getStatus()));
+        
+        String longOut = alert.getLongPluginOutput();
+        if (null != longOut && longOut.startsWith(PASSIVE_TOKEN)) {
+          int actualStatus = 3;
+          try {
+            int len = PASSIVE_TOKEN.length();
+            actualStatus = Integer.parseInt(longOut.substring(len, len+1));
+          } catch (Exception e) {
+            // do nothing
+          }
+          
+          map.put("status", "PASSIVE");
+          map.put("actual_status", NagiosAlert.getStatusString(actualStatus));
+          passive++;
+        } else {
+          switch (alert.getStatus()) {
           case 0:
             ok++;
             break;
@@ -238,18 +272,8 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
             break;
           default:
             break;
+          }
         }
-        
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
-
-        map.put("description", alert.getDescription());
-        map.put("host_name", alert.getHost());
-        map.put("last_status", NagiosAlert.getStatusString(alert.getLastStatus()));
-        map.put("last_status_time", Long.valueOf(alert.getLastStatusTime()));
-        map.put("service_name", alert.getService());
-        map.put("status", NagiosAlert.getStatusString(alert.getStatus()));
-        map.put("status_time", Long.valueOf(alert.getStatusTime()));
-        map.put("output", alert.getOutput());
         
         alerts.add(map);
       }
@@ -258,6 +282,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     setResourceProperty(res, ALERT_SUMMARY_OK_PROPERTY_ID, Integer.valueOf(ok), requestedIds);
     setResourceProperty(res, ALERT_SUMMARY_WARNING_PROPERTY_ID, Integer.valueOf(warning), requestedIds);
     setResourceProperty(res, ALERT_SUMMARY_CRITICAL_PROPERTY_ID, Integer.valueOf(critical), requestedIds);
+    setResourceProperty(res, ALERT_SUMMARY_PASSIVE_PROPERTY_ID, Integer.valueOf(passive), requestedIds);
     
     if (!alerts.isEmpty())
       setResourceProperty(res, ALERT_DETAIL_PROPERTY_ID, alerts, requestedIds);
@@ -302,7 +327,11 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         Collections.sort(alerts.alerts, new Comparator<NagiosAlert>() {
           @Override
           public int compare(NagiosAlert o1, NagiosAlert o2) {
-            return o2.getStatus()-o1.getStatus();
+            if (o2.getStatus() != o1.getStatus())
+              return o2.getStatus()-o1.getStatus();
+            else {
+              return (int)(o2.getLastStatusTime()-o1.getLastStatusTime());
+            }
           }
         });
         

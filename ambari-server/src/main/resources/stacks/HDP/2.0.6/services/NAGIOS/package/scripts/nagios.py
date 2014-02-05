@@ -72,6 +72,11 @@ def nagios():
     owner = params.nagios_user,
     group = params.nagios_group
   )
+
+  File(format("{nagios_var_dir}/ignore.dat"),
+    owner = params.nagios_user,
+    group = params.nagios_group,
+    mode = 0664)
   
   
 def set_web_permisssions():

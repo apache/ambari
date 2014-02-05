@@ -55,6 +55,7 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, String> commandParams;
   private String serviceName;
   private String componentName;
+  private Set<Map<String,String>> passiveInfo;
 
   @JsonProperty("commandId")
   public String getCommandId() {
@@ -225,6 +226,20 @@ public class ExecutionCommand extends AgentCommand {
    */
   public Map<String, Map<String, String>> getConfigurationTags() {
     return configurationTags;
+  }
+  
+  /**
+   * @return the passive info for the cluster
+   */
+  public Set<Map<String, String>> getPassiveInfo() {
+    return passiveInfo;
+  }
+  
+  /**
+   * @param info the passive info for the cluster
+   */
+  public void setPassiveInfo(Set<Map<String,String>> info) {
+    passiveInfo = info;
   }
 
 

@@ -17,15 +17,21 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 
 import com.google.inject.Inject;
@@ -35,7 +41,10 @@ import com.google.inject.Injector;
  * Used to help manage passive state checks.
  */
 public class PassiveStateHelper {
-
+  private static final String NAGIOS_SERVICE = "NAGIOS";
+  private static final String NAGIOS_COMPONENT = "NAGIOS_SERVER";
+  private static final String NAGIOS_ACTION_NAME = "nagios_update_ignore";
+  
   @Inject
   private Clusters clusters;
   
@@ -62,14 +71,67 @@ public class PassiveStateHelper {
     if (null == host) // better not
       throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
     
+    return getEffectiveState(cluster.getClusterId(), service, host, sch);
+  }
+  
+  private static PassiveState getEffectiveState(long clusterId, Service service,
+      Host host, ServiceComponentHost sch) {
     if (PassiveState.PASSIVE == sch.getPassiveState())
       return PassiveState.PASSIVE;
 
     if (PassiveState.ACTIVE != service.getPassiveState() ||
-        PassiveState.ACTIVE != host.getPassiveState(cluster.getClusterId()))
+        PassiveState.ACTIVE != host.getPassiveState(clusterId))
       return PassiveState.IMPLIED;
     
     return sch.getPassiveState();
   }
+
+  /**
+   * @param cluster
+   * @return
+   */
+  public static Set<Map<String, String>> getPassiveHostComponents(Clusters clusters,
+      Cluster cluster) throws AmbariException {
+    
+    Set<Map<String, String>> set = new HashSet<Map<String, String>>();
+    
+    for (Service service : cluster.getServices().values()) {
+      for (ServiceComponent sc : service.getServiceComponents().values()) {
+        if (sc.isClientComponent())
+          continue;
+
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          Host host = clusters.getHostsForCluster(
+              cluster.getClusterName()).get(sch.getHostName());
+          
+          if (PassiveState.ACTIVE != getEffectiveState(cluster.getClusterId(),
+              service, host, sch)) {
+            Map<String, String> map = new HashMap<String, String>();
+            map.put("host", sch.getHostName());
+            map.put("service", sch.getServiceName());
+            map.put("component", sch.getServiceComponentName());
+            set.add(map);
+          }
+        }
+      }
+    }
+    
+    return set;
+  }
+  
+  public static RequestStatusResponse createRequest(AmbariManagementController amc,
+      String clusterName, String desc) throws AmbariException {
+    
+    Map<String, String> params = new HashMap<String, String>();
+    
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+        clusterName, RoleCommand.ACTIONEXECUTE.name(),
+        NAGIOS_ACTION_NAME, NAGIOS_SERVICE, NAGIOS_COMPONENT, null, params);
+
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("context", "Update " + desc + " passive state");
+    
+    return amc.createAction(actionRequest, map);
+  }  
   
 }

@@ -769,6 +769,11 @@ public class AmbariCustomCommandExecutionHelper {
       hostParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     }
     execCmd.setHostLevelParams(hostParams);
+
+    Map<String, String> roleParams = new TreeMap<String, String>();
+    execCmd.setRoleParams(roleParams);
+    
+    execCmd.setPassiveInfo(PassiveStateHelper.getPassiveHostComponents(clusters, cluster));
   }
 
   private String getRepoInfo(Cluster cluster, Host host) throws AmbariException {

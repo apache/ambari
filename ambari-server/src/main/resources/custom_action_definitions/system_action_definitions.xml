@@ -29,4 +29,14 @@
     <description>HDFS Rebalance</description>
     <targetType>ANY</targetType>
   </actionDefinition>
+  <actionDefinition>
+    <actionName>nagios_update_ignore</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs>[nagios_ignore]</inputs>
+    <targetService>NAGIOS</targetService>
+    <targetComponent>NAGIOS_SERVER</targetComponent>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Used to create an alert blackout</description>
+    <targetType>ANY</targetType>
+  </actionDefinition>
 </actionDefinitions>

@@ -42,6 +42,8 @@ class NagiosServer(Script):
     import params
     env.set_params(params)
 
+    update_ignorable(params)
+
     self.configure(env) # done for updating configs after Security enabled
     nagios_service(action='start')
 
@@ -71,6 +73,30 @@ def remove_conflicting_packages():
     path    = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
     ignore_failures = True 
   )
+
+def update_ignorable(params):
+  if not params.config.has_key('passiveInfo'):
+    return
+  else:
+    buf = ""
+    for define in params.config['passiveInfo']:
+      try:
+        host = str(define['host'])
+        service = str(define['service'])
+        component = str(define['component'])
+        buf += host + " " + service + " " + component + "\n"
+      except KeyError:
+        pass
+
+    f = None
+    try:
+      f = open('/var/nagios/ignore.dat', 'w')
+      f.write(buf)
+    except:
+      pass
+    finally:
+      if f is not None:
+        f.close()
 
 def main():
   command_type = sys.argv[1] if len(sys.argv)>1 else "install"

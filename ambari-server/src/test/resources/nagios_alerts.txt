@@ -39,6 +39,7 @@
             "current_state": "0",
             "plugin_output": "TCP OK - 0.001 second response time on port 8662",
             "last_hard_state_change": "1389125389",
+            "long_plugin_output": "AMBARIPASSIVE=2\n",
             "last_hard_state": "0",
             "last_time_ok": "1389288714",
             "last_time_warning": "0",

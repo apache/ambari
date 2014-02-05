@@ -286,7 +286,8 @@ function hdp_mon_generate_response( $response_data )
     $servicestatus_attributes = array ("service_description", "host_name", "current_attempt",
                                        "current_state", "plugin_output", "last_hard_state_change", "last_hard_state",
                                        "last_time_ok", "last_time_warning", "last_time_unknown",
-                                       "last_time_critical", "is_flapping", "last_check");
+                                       "last_time_critical", "is_flapping", "last_check",
+                                       "long_plugin_output");
 
     $num_matches = preg_match_all("/servicestatus \{([\S\s]*?)\}/", $status_file_content, $matches, PREG_PATTERN_ORDER);
     #echo $matches[0][0] . ", " . $matches[0][1] . "\n";

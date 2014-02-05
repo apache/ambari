@@ -909,11 +909,8 @@ public class Configuration {
   }
 
   public String getCustomActionDefinitionPath() {
-    String value = configsMap.get(CUSTOM_ACTION_DEFINITION_KEY);
-    if (value == null) {
-      value = CUSTOM_ACTION_DEFINITION_DEF_VALUE;
-    }
-    return value;
+    return properties.getProperty(CUSTOM_ACTION_DEFINITION_KEY,
+        CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
   /**

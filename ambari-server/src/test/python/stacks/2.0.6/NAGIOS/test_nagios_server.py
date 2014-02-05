@@ -32,7 +32,6 @@ class TestNagiosServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-
   def test_start_default(self):
     self.executeScript(
       "2.0.6/services/NAGIOS/package/scripts/nagios_service.py",
@@ -238,6 +237,11 @@ class TestNagiosServer(RMFTestCase):
                               mode=0755
     )
     self.assertResourceCalled('File',
+                              '/usr/lib64/nagios/plugins/check_wrapper.sh',
+                              content=StaticFile('check_wrapper.sh'),
+                              mode=0755
+    )
+    self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/hdp_nagios_init.php',
                               content=StaticFile('hdp_nagios_init.php'),
                               mode=0755
@@ -256,4 +260,9 @@ class TestNagiosServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/nagios/command.cfg',
                               owner='nagios',
                               group='nagios'
+    )
+    self.assertResourceCalled('File', '/var/nagios/ignore.dat',
+                              owner='nagios',
+                              group='nagios',
+                              mode=0664
     )
