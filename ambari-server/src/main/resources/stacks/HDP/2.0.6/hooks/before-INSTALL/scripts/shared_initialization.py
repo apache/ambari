@@ -114,4 +114,6 @@ def set_uid(user, user_dirs):
 def install_packages():
   Package("unzip")
   Package("net-snmp")
-  Package("net-snmp-utils")
+  
+  if System.get_instance().os_family != "suse":
+    Package("net-snmp-utils")
