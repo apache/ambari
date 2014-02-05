@@ -34,8 +34,8 @@ copy /y "%cd%\src\Result\bin\Debug\Ambari_Result.exe" "%cd%\src\bin\Ambari_Resul
 
 echo Building MSI
 pushd "%cd%\src" || exit /b 1
-start /wait /min candle "%cd%\ambari-scom.wxs"  || exit /b 1
-start /wait /min light "%cd%\ambari-scom.wixobj"  || exit /b 1
+candle "%cd%\ambari-scom.wxs"  2>&1 || exit /b 1
+light "%cd%\ambari-scom.wixobj" 2>&1 || exit /b 1
 if not exist "%cd%\ambari-scom.msi" (
 echo MSI build failed
 exit /b 1
