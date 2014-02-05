@@ -105,7 +105,7 @@ public class StackExtensionHelperTest {
         // Check custom commands for component
         List<CustomCommandDefinition> customCommands =
                 firstComponent.getCustomCommands();
-        assertEquals(1, customCommands.size());
+        assertEquals(2, customCommands.size());
         assertEquals("RESTART", customCommands.get(0).getName());
         assertTrue(firstComponent.isCustomCommand("RESTART"));
         assertEquals("scripts/hbase_master_restart.py",
