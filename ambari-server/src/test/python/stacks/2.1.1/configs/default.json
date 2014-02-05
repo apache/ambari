@@ -488,8 +488,26 @@
             "tez.lib.uris": "file:///usr/lib/tez/,file:///usr/lib/tez/lib/",
             "tez.staging-dir": "/tmp/${user.name}/staging",
             "tez.am.am-rm.heartbeat.interval-ms.max": "250"
+        },
+        "hdfs-log4j": {
+            "property1": "value1"
+        },
+        "yarn-log4j": {
+            "property1": "value1"
+        },
+        "hbase-log4j": {
+            "property1": "value1"
+        },
+        "hive-log4j": {
+            "property1": "value1"
+        },
+        "hive-exec-log4j": {
+            "property1": "value1"
+        },
+        "zookeeper-log4j": {
+            "property1": "value1"
         }
-    }, 
+    },
     "configurationTags": {
         "capacity-scheduler": {
             "tag": "version1"
@@ -522,6 +540,24 @@
             "tag": "version1"
         }, 
         "hive-site": {
+            "tag": "version1"
+        },
+        "hdfs-log4j": {
+            "tag": "version1"
+        },
+        "yarn-log4j": {
+            "tag": "version1"
+        },
+        "hbase-log4j": {
+            "tag": "version1"
+        },
+        "hive-log4j": {
+            "tag": "version1"
+        },
+        "hive-exec-log4j": {
+            "tag": "version1"
+        },
+        "zookeeper-log4j": {
             "tag": "version1"
         }
     }, 

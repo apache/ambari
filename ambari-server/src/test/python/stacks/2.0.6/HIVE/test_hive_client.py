@@ -57,6 +57,22 @@ class TestHiveClient(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
     )
+    self.assertResourceCalled('PropertiesFile',
+                              'hive-exec-log4j.properties',
+                              dir='/etc/hive/conf',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hive',
+                              group='hadoop'
+    )
+    self.assertResourceCalled('PropertiesFile',
+                              'hive-log4j.properties',
+                              dir='/etc/hive/conf',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hive',
+                              group='hadoop'
+    )
     self.assertNoMoreResources()
 
 
@@ -95,5 +111,21 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
       owner = 'hive',
       group = 'hadoop',
+    )
+    self.assertResourceCalled('PropertiesFile',
+                              'hive-exec-log4j.properties',
+                              dir='/etc/hive/conf',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hive',
+                              group='hadoop'
+    )
+    self.assertResourceCalled('PropertiesFile',
+                              'hive-log4j.properties',
+                              dir='/etc/hive/conf',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hive',
+                              group='hadoop'
     )
     self.assertNoMoreResources()

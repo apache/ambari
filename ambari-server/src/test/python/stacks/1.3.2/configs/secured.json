@@ -452,6 +452,24 @@
             "hive.server2.enable.doAs": "true", 
             "hive.optimize.mapjoin.mapreduce": "true", 
             "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab"
+        },
+        "hdfs-log4j": {
+            "property1": "value1"
+        },
+        "yarn-log4j": {
+            "property1": "value1"
+        },
+        "hbase-log4j": {
+            "property1": "value1"
+        },
+        "hive-log4j": {
+            "property1": "value1"
+        },
+        "hive-exec-log4j": {
+            "property1": "value1"
+        },
+        "zookeeper-log4j": {
+            "property1": "value1"
         }
     }, 
     "configurationTags": {

@@ -31,7 +31,7 @@ class TestHBaseMaster(RMFTestCase):
     
     self.assert_configure_default()
     self.assertNoMoreResources()
-    
+
   def test_start_default(self):
     self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_master.py",
                    classname = "HbaseMaster",
@@ -209,10 +209,13 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       recursive = True,
     )
-    self.assertResourceCalled('File', '/etc/hbase/conf/log4j.properties',
-      owner = 'hbase',
-      group = 'hadoop',
-      mode = 420,
+    self.assertResourceCalled('PropertiesFile',
+                              'log4j.properties',
+                              dir='/etc/hbase/conf',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hbase',
+                              group='hadoop'
     )
   
   def assert_configure_secured(self):
@@ -265,8 +268,11 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       recursive = True,
     )
-    self.assertResourceCalled('File', '/etc/hbase/conf/log4j.properties',
-      owner = 'hbase',
-      group = 'hadoop',
-      mode = 420,
+    self.assertResourceCalled('PropertiesFile',
+                              'log4j.properties',
+                              dir='/etc/hbase/conf',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hbase',
+                              group='hadoop'
     )

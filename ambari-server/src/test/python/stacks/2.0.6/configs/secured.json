@@ -615,6 +615,24 @@
             "yarn.resourcemanager.webapp.spnego-keytab-file": "/etc/security/keytabs/spnego.service.keytab", 
             "yarn.resourcemanager.keytab": "/etc/security/keytabs/rm.service.keytab", 
             "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler"
+        },
+        "hdfs-log4j": {
+            "property1": "value1"
+        },
+        "yarn-log4j": {
+            "property1": "value1"
+        },
+        "hbase-log4j": {
+            "property1": "value1"
+        },
+        "hive-log4j": {
+            "property1": "value1"
+        },
+        "hive-exec-log4j": {
+            "property1": "value1"
+        },
+        "zookeeper-log4j": {
+            "property1": "value1"
         }
     }, 
     "configurationTags": {
@@ -650,8 +668,27 @@
         }, 
         "hive-site": {
             "tag": "version1389972945450"
+        },
+        "hdfs-log4j": {
+            "tag": "version1389972945450"
+        },
+        "yarn-log4j": {
+            "tag": "version1389972945450"
+        },
+        "hbase-log4j": {
+            "tag": "version1389972945450"
+        },
+        "hive-log4j": {
+            "tag": "version1389972945450"
+        },
+        "hive-exec-log4j": {
+            "tag": "version1389972945450"
+        },
+        "zookeeper-log4j": {
+            "tag": "version1389972945450"
         }
-    }, 
+
+    },
     "commandId": "9-1", 
     "clusterHostInfo": {
         "snamenode_host": [

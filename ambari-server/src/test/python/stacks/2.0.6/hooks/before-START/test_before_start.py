@@ -100,13 +100,13 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('health_check-v2.j2'),
                               owner = 'hdfs',
                               )
-    
-    self.assertResourceCalled('File', '/etc/hadoop/conf/log4j.properties',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              mode = 420,
+    self.assertResourceCalled('PropertiesFile',
+                              '/etc/hadoop/conf/log4j.properties',
+                              properties={'property1': 'value1'},
+                              mode=0664,
+                              owner='hdfs',
+                              group='hadoop'
     )
-  
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.driver=.*~###ambari.jobhistory.driver=o~' /etc/hadoop/conf/log4j.properties",
                               )
     self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA=.*~###log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender~' /etc/hadoop/conf/log4j.properties",
