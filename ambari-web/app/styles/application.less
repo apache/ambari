@@ -2872,6 +2872,7 @@ table.graphs {
     width:70%;
   }
   .table {
+    table-layout: fixed;
     th {
       border-top: none;
     }
@@ -2884,21 +2885,19 @@ table.graphs {
     th:first-child,
     td:first-child + td,
     th:first-child + th{
-      width: 1.5%;
-      min-width:13px!important;
+      width: 13px;
     }
     .col2,
     td:first-child + td + td,
     th:first-child + th + th{
-      width: 18%;
+      width: 22%;
     }
     .col3, .col4,
     td:first-child + td + td + td,
     th:first-child + th + th + th,
     td:first-child + td + td + td + td,
     th:first-child + th + th + th + th{
-      width:1.5%;
-      min-width:13px!important;
+      width: 13px;
     }
     .col5,.col6,.col7,.col8,.col9,
     td:first-child + td + td + td + td + td,
@@ -2923,7 +2922,7 @@ table.graphs {
     }
 
     td.name {
-      overflow: auto;
+      overflow: inherit;
       overflow-wrap: break-word;
       white-space: nowrap;
     }
@@ -3025,7 +3024,7 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
     a.ui-icon-circle-close {
       float: right;
       opacity: 0.2;
-      padding: 1px;
+      padding: 1px 0;
       position: relative;
       right: 0px;
       margin-top: 3px;
