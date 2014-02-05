@@ -16,7 +16,6 @@ limitations under the License. -->
     <Product Id="{C627953F-1C50-4520-AB91-A938F7E01B58}" Codepage="1252" Language="1033" Manufacturer="Apache" Name="Ambari-SCOM" UpgradeCode="{CD3CAC20-F0A9-4EF7-9C75-CF660D0697AA}" Version="1.3.0.0">
         <Package Comments="This installer database contains the logic and data required to install Apache Ambari-SCOM." Compressed="yes" Description="Ambari-SCOM" InstallerVersion="100" Languages="1033" Manufacturer="Apache" Platform="x86" />
 		<Binary Id="GUI" SourceFile="SourceDir\bin\GUI_Ambari.exe" />
-		<Binary Id="WixCA" SourceFile="SourceDir\bin\wixca" />
 		<Condition Message="You need to be an administrator to install this product.">Privileged</Condition>
 		<CustomAction Id="INSTINTERRUPT" Error="Installation interrupted by user" />
         <CustomAction Id="INSTSUCCESS" Error="Installation completed succesfully" />

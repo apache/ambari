@@ -34,7 +34,7 @@ copy /y "%cd%\src\GUI_Ambari\bin\Debug\GUI_Ambari.exe" "%cd%\src\bin\GUI_Ambari.
 echo Building MSI
 pushd "%cd%\src" || exit /b 1
 candle "%cd%\ambari-scom.wxs"  2>&1 || exit /b 1
-light "%cd%\ambari-scom.wixobj" 2>&1 || exit /b 1
+light "%cd%\ambari-scom.wixobj" -ext WixUtilExtension.dll 2>&1 || exit /b 1
 if not exist "%cd%\ambari-scom.msi" (
 echo MSI build failed
 exit /b 1
