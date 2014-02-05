@@ -84,6 +84,17 @@ class Execute(Resource):
   path = ForcedListArgument(default=[])
   actions = Resource.actions + ["run"]
   logoutput = BooleanArgument(default=False)
+  """
+  Wait for command to finish or not. 
+  
+  NOTE:
+  In case of False, since any command results are skipped, it disables some functionality: 
+  - non-zero return code failure
+  - logoutput
+  - tries
+  - try_sleep
+  """
+  wait_for_finish = BooleanArgument(default=True)
 
 
 class ExecuteScript(Resource):

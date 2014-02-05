@@ -49,6 +49,18 @@ class TestExecuteResource(TestCase):
 
     info_mock.assert_called('1')
     self.assertTrue("call('2')" not in str(info_mock.mock_calls))
+    
+  @patch('subprocess.Popen.communicate')
+  @patch('subprocess.Popen')
+  def test_attribute_wait(self, popen_mock, proc_communicate_mock):
+    with Environment("/") as env:
+      Execute('echo "1"',
+              wait_for_finish=False)
+      Execute('echo "2"',
+              wait_for_finish=False)
+    
+    self.assertTrue(popen_mock.called, 'subprocess.Popen should have been called!')
+    self.assertFalse(proc_communicate_mock.called, 'proc.communicate should not have been called!')
 
   @patch.object(os.path, "exists")
   @patch.object(subprocess, "Popen")

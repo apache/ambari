@@ -28,16 +28,16 @@ from exceptions import Fail
 from resource_management.core.logger import Logger
 
 def checked_call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None):
-  return _call(command, logoutput, True, cwd, env, preexec_fn, user)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True):
+  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish)
 
 def call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None):
-  return _call(command, logoutput, False, cwd, env, preexec_fn, user)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True):
+  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish)
   
 
 def _call(command, logoutput=False, throw_on_failure=True, 
-         cwd=None, env=None, preexec_fn=None, user=None):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True):
   """
   Execute shell command
   
@@ -60,11 +60,14 @@ def _call(command, logoutput=False, throw_on_failure=True,
   proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
-  
+
+  if not wait_for_finish:
+    return None, None
+
   out = proc.communicate()[0].strip('\n')
   code = proc.returncode
   
-  if logoutput and out and out!="":
+  if logoutput and out:
     Logger.info(out)
   
   if throw_on_failure and code:
