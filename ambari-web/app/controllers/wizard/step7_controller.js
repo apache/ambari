@@ -93,7 +93,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
-    var configs = App.config.mergePreDefinedWithStored(storedConfigs, advancedConfigs);
+    var configs = App.config.mergePreDefinedWithStored(storedConfigs, advancedConfigs,this.get('selectedServiceNames'));
     //STEP 4: Add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs);
     //STEP 5: Add custom configs
