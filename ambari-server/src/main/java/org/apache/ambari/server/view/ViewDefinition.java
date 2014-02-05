@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -57,6 +58,10 @@ public class ViewDefinition {
    */
   private final Map<String, ViewInstanceDefinition> instanceDefinitions = new HashMap<String, ViewInstanceDefinition>();
 
+  /**
+   * The Ambari configuration properties.
+   */
+  private final Configuration ambariConfiguration;
 
   /**
    * The external resource type for the view.
@@ -69,10 +74,12 @@ public class ViewDefinition {
   /**
    * Construct a view definition from the given configuration.
    *
-   * @param configuration the view configuration
+   * @param configuration        the view configuration
+   * @param ambariConfiguration  the Ambari configuration
    */
-  public ViewDefinition(ViewConfig configuration) {
-    this.configuration = configuration;
+  public ViewDefinition(ViewConfig configuration, Configuration ambariConfiguration) {
+    this.configuration       = configuration;
+    this.ambariConfiguration = ambariConfiguration;
 
     this.externalResourceType =
         new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
@@ -115,6 +122,17 @@ public class ViewDefinition {
    */
   public ViewConfig getConfiguration() {
     return configuration;
+  }
+
+  /**
+   * Get a property for the given key from the ambari configuration.
+   *
+   * @param key  the property key
+   *
+   * @return the property value; null indicates that the configuration contains no mapping for the key
+   */
+  public String getAmbariProperty(String key) {
+    return ambariConfiguration.getProperty(key);
   }
 
   /**

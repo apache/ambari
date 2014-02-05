@@ -78,6 +78,11 @@ public class ViewContextImpl implements ViewContext {
   }
 
   @Override
+  public String getAmbariProperty(String key) {
+    return viewInstanceDefinition.getViewDefinition().getAmbariProperty(key);
+  }
+
+  @Override
   public ResourceProvider<?> getResourceProvider(String type) {
     return viewInstanceDefinition.getResourceProvider(type);
   }

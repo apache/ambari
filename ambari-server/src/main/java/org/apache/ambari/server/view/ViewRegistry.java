@@ -229,7 +229,7 @@ public class ViewRegistry {
             JAXBContext    jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
             Unmarshaller   jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             ViewConfig     viewConfig       = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-            ViewDefinition viewDefinition   = installView(viewConfig, cl);
+            ViewDefinition viewDefinition   = installView(viewConfig, cl, configuration);
 
             List<InstanceConfig> instances = viewConfig.getInstances();
 
@@ -257,12 +257,12 @@ public class ViewRegistry {
   }
 
   // install a new view definition
-  private static ViewDefinition installView(ViewConfig viewConfig, ClassLoader cl)
+  private static ViewDefinition installView(ViewConfig viewConfig, ClassLoader cl, Configuration ambariConfig)
       throws ClassNotFoundException, IntrospectionException {
 
     List<ResourceConfig> resourceConfigurations = viewConfig.getResources();
 
-    ViewDefinition viewDefinition = new ViewDefinition(viewConfig);
+    ViewDefinition viewDefinition = new ViewDefinition(viewConfig, ambariConfig);
 
     Resource.Type externalResourceType = viewDefinition.getExternalResourceType();
 
@@ -303,7 +303,7 @@ public class ViewRegistry {
                                    ClassLoader cl,
                                    ServletContextHandler root,
                                    DelegatingFilterProxy springSecurityFilter,
-                                   Configuration configs) throws ClassNotFoundException {
+                                   Configuration ambariConfig) throws ClassNotFoundException {
 
     ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
 
@@ -354,7 +354,7 @@ public class ViewRegistry {
       root.addServlet(sh, pathSpec);
       viewInstanceDefinition.addServletMapping(servletName, pathSpec);
 
-      if (configs.getApiAuthentication()) {
+      if (ambariConfig.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), pathSpec, 1);
       }
     }

@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.view;
 
-import org.apache.ambari.server.api.resources.BaseResourceDefinition;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
@@ -29,6 +29,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.easymock.EasyMock.createNiceMock;
@@ -42,11 +43,17 @@ import static org.easymock.EasyMock.verify;
 public class ViewDefinitionTest {
 
   public static ViewDefinition getViewDefinition() throws Exception {
-    return new ViewDefinition(ViewConfigTest.getConfig());
+    return getViewDefinition(ViewConfigTest.getConfig());
   }
 
-  public static ViewDefinition getViewDefinition(ViewConfig config) throws Exception {
-    return new ViewDefinition(config);
+  public static ViewDefinition getViewDefinition(ViewConfig viewConfig) throws Exception {
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+    properties.put("p2", "v2");
+    properties.put("p3", "v3");
+
+    Configuration ambariConfig = new Configuration(properties);
+    return new ViewDefinition(viewConfig, ambariConfig);
   }
 
   @Test
@@ -72,6 +79,15 @@ public class ViewDefinitionTest {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
     ViewDefinition viewDefinition = getViewDefinition(viewConfig);
     Assert.assertEquals(viewConfig, viewDefinition.getConfiguration());
+  }
+
+  @Test
+  public void testGetAmbariProperty() throws Exception {
+    ViewConfig viewConfig = ViewConfigTest.getConfig();
+    ViewDefinition viewDefinition = getViewDefinition(viewConfig);
+    Assert.assertEquals("v1", viewDefinition.getAmbariProperty("p1"));
+    Assert.assertEquals("v2", viewDefinition.getAmbariProperty("p2"));
+    Assert.assertEquals("v3", viewDefinition.getAmbariProperty("p3"));
   }
 
   @Test

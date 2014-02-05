@@ -55,6 +55,15 @@ public interface ViewContext {
   public Map<String, String> getProperties();
 
   /**
+   * Get a property for the given key from the ambari configuration.
+   *
+   * @param key  the property key
+   *
+   * @return the property value; null indicates that the configuration contains no mapping for the key
+   */
+  public String getAmbariProperty(String key);
+
+  /**
    * Get the view resource provider for the given resource type.
    *
    * @param type  the resource type
