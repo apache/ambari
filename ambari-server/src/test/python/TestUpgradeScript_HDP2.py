@@ -53,9 +53,9 @@ class TestUpgradeHDP2Script(TestCase):
     opm.parse_args.return_value = (options, args)
     get_config_mock.return_value = {"a1": "va1", "a2": "va2", "b1": "vb1", "b2": "vb2", "c1": "vc1", "d1": "d1"}
     site_template = {"y1": "vy1", "a1": "REPLACE_WITH_", "a2": "REPLACE_WITH_", "nb1": "REPLACE_WITH_b1",
-                     "nb2": "REPLACE_WITH_b2", "d1": "DELETE_OLD", "b1" : "DELETE_OLD"}
-    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc1"}
-    UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template, True)
+                     "nb2": "REPLACE_WITH_b2", "d1": "DELETE_OLD", "b1" : "DELETE_OLD","c1": "vc2"}
+    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc2"}
+    UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template)
     get_config_mock.assert_called_once_with(opm, "global")
     update_config_mock.assert_called_once_with(opm, expected_site, "global")
     pass
@@ -63,7 +63,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch.object(UpgradeHelper_HDP2, 'update_config')
   @patch.object(UpgradeHelper_HDP2, 'get_config')
   @patch('optparse.Values')
-  def test_update_without_append(self, optparse_mock, get_config_mock, update_config_mock):
+  def test_update_with_appen_II(self, optparse_mock, get_config_mock, update_config_mock):
     opm = optparse_mock.return_value
     update_config_mock.return_value = None
     options = MagicMock()
@@ -73,7 +73,7 @@ class TestUpgradeHDP2Script(TestCase):
                                     "X1": "X1"}
     site_template = {"y1": "vy1", "a1": "REPLACE_WITH_", "a2": "REPLACE_WITH_", "nb1": "REPLACE_WITH_b1",
                      "nb2": "REPLACE_WITH_b2", "x1": "DELETE_OLD", "X1": "DELETE"}
-    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "X1": "DELETE"}
+    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc1","X1": "DELETE"}
     UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template)
     get_config_mock.assert_called_once_with(opm, "global")
     update_config_mock.assert_called_once_with(opm, expected_site, "global")
@@ -385,6 +385,7 @@ class TestUpgradeHDP2Script(TestCase):
     saved_hdfs = UpgradeHelper_HDP2.HDFS_SITE
     saved_core = UpgradeHelper_HDP2.CORE_SITE
     saved_habse = UpgradeHelper_HDP2.HBASE_SITE
+    saved_hive = UpgradeHelper_HDP2.HIVE_SITE
     saved_mapred = UpgradeHelper_HDP2.MAPRED_SITE
     try:
       UpgradeHelper_HDP2.GLOBAL = {"global2": "REPLACE_WITH_global1"}
@@ -397,7 +398,7 @@ class TestUpgradeHDP2Script(TestCase):
       UpgradeHelper_HDP2.CORE_SITE = saved_core
       UpgradeHelper_HDP2.MAPRED_SITE = saved_mapred
 
-    self.assertEqual(7, len(curl_mock.call_args_list))
+    self.assertEqual(8, len(curl_mock.call_args_list))
     self.validate_update_config_call(curl_mock.call_args_list[0], "capacity-scheduler")
     self.validate_update_config_call(curl_mock.call_args_list[1], "yarn-site")
     self.validate_update_config_call(curl_mock.call_args_list[3], "mapred-site")

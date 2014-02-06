@@ -49,6 +49,7 @@ HDFS_SITE_TAG = "hdfs-site"
 CORE_SITE_TAG = "core-site"
 YARN_SITE_TAG = "yarn-site"
 HBASE_SITE_TAG = "hbase-site"
+HIVE_SITE_TAG = "hive-site"
 REPLACE_JH_HOST_NAME_TAG = "REPLACE_JH_HOST"
 REPLACE_RM_HOST_NAME_TAG = "REPLACE_RM_HOST"
 REPLACE_WITH_TAG = "REPLACE_WITH_"
@@ -593,6 +594,12 @@ HBASE_SITE = {
   "zookeeper.session.timeout": "30000"
 }
 
+HIVE_SITE = {
+  "hive.security.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
+  "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
+  "hive.security.authenticator.manager": "org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator"
+}
+
 
 class FatalException(Exception):
   def __init__(self, code, reason):
@@ -869,7 +876,7 @@ def modify_configs(options, config_type):
 
   # Update global config
   if (config_type is None) or (config_type == GLOBAL_TAG):
-    update_config_using_existing(options, GLOBAL_TAG, GLOBAL.copy(), True)
+    update_config_using_existing(options, GLOBAL_TAG, GLOBAL.copy())
     pass
 
   core_site_latest = rename_all_properties(get_config(options, CORE_SITE_TAG), PROPERTY_MAPPING)
@@ -891,25 +898,31 @@ def modify_configs(options, config_type):
         pass
       pass
     pass
-    update_config_using_existing_properties(options, MAPRED_SITE_TAG, mapred_updated, mapred_site_latest, True)
+    update_config_using_existing_properties(options, MAPRED_SITE_TAG, mapred_updated, mapred_site_latest)
     pass
 
   # Update hdfs-site, core-site
   if (config_type is None) or (config_type == HDFS_SITE_TAG):
-    update_config_using_existing_properties(options, HDFS_SITE_TAG, HDFS_SITE.copy(), hdfs_site_latest, True)
+    update_config_using_existing_properties(options, HDFS_SITE_TAG, HDFS_SITE.copy(), hdfs_site_latest)
     pass
   if (config_type is None) or (config_type == CORE_SITE_TAG):
-    update_config_using_existing_properties(options, CORE_SITE_TAG, CORE_SITE.copy(), core_site_latest, True)
+    update_config_using_existing_properties(options, CORE_SITE_TAG, CORE_SITE.copy(), core_site_latest)
     pass
 
   # Update hbase-site if exists
   if (config_type is None) or (config_type == HBASE_SITE_TAG):
     tag, structured_resp = get_config_resp(options, HBASE_SITE_TAG, False)
     if structured_resp is not None:
-      update_config_using_existing(options, HBASE_SITE_TAG, HBASE_SITE.copy(), True)
+      update_config_using_existing(options, HBASE_SITE_TAG, HBASE_SITE.copy())
       pass
     pass
 
+  # Update hive-site if exists
+  if (config_type is None) or (config_type == HIVE_SITE_TAG):
+    tag, structured_resp = get_config_resp(options, HIVE_SITE_TAG, False)
+    if structured_resp is not None:
+      update_config_using_existing(options, HIVE_SITE_TAG, HIVE_SITE.copy())
+      pass
   pass
 
 
@@ -922,14 +935,14 @@ def rename_all_properties(properties, name_mapping):
   return properties
 
 
-def update_config_using_existing(options, type, properties_template, append_unprocessed=False):
+def update_config_using_existing(options, type, properties_template):
   site_properties = get_config(options, type)
-  update_config_using_existing_properties(options, type, properties_template, site_properties, append_unprocessed)
+  update_config_using_existing_properties(options, type, properties_template, site_properties)
   pass
 
 
 def update_config_using_existing_properties(options, type, properties_template,
-                                            site_properties, append_unprocessed=False):
+                                            site_properties):
   keys_processed = []
   keys_to_delete = []
   for key in properties_template.keys():
@@ -952,14 +965,14 @@ def update_config_using_existing_properties(options, type, properties_template,
       pass
     pass
   pass
-  if append_unprocessed:
-    for key in site_properties.keys():
-      if key not in keys_processed:
-        properties_template[key] = site_properties[key]
-        pass
+
+  for key in site_properties.keys():
+    if key not in keys_processed:
+      properties_template[key] = site_properties[key]
       pass
     pass
   pass
+
   for key in keys_to_delete:
     del properties_template[key]
   pass
