@@ -411,6 +411,16 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       self.updateReadOnlyFlags();
     });
   },
+
+  /**
+   * Should we show current category accordion-body, based on category.isCollapsed property.
+   * If added/removed a serverConfigObject, this property got updated.
+   * Without this property, all serviceConfigs Objects will show up even if some was collapsed before.
+   */
+  isCategoryBodyVisible: function () {
+    return this.get('category.isCollapsed')? "display: none;" : "display: block;"
+  }.property('serviceConfigs.length'),
+
   childView: App.ServiceConfigsOverridesView,
   changeFlag: Ember.Object.create({
     val: 1
