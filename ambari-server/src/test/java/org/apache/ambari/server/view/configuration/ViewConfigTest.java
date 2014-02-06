@@ -184,7 +184,11 @@ public class ViewConfigTest {
   }
 
   public static  ViewConfig getConfig() throws JAXBException {
-    InputStream configStream =  new ByteArrayInputStream(xml.getBytes());
+      return getConfig(xml);
+  }
+
+  public static  ViewConfig getConfig(String xml) throws JAXBException {
+      InputStream configStream =  new ByteArrayInputStream(xml.getBytes());
     JAXBContext jaxbContext = JAXBContext.newInstance(ViewConfig.class);
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     return (ViewConfig) unmarshaller.unmarshal(configStream);

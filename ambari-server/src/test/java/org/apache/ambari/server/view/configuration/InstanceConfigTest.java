@@ -28,6 +28,25 @@ import java.util.List;
  * InstanceConfig tests.
  */
 public class InstanceConfigTest {
+
+  private static String xml_no_properties = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <resource>\n" +
+      "        <name>resource</name>\n" +
+      "        <plural-name>resources</plural-name>\n" +
+      "        <id-property>id</id-property>\n" +
+      "        <resource-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResource</resource-class>\n" +
+      "        <provider-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResourceProvider</provider-class>\n" +
+      "        <service-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResourceService</service-class>\n" +
+      "        <sub-resource-name>subresource</sub-resource-name>\n" +
+      "    </resource>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "    </instance>\n" +
+      "</view>";
+
   @Test
   public void testGetName() throws Exception {
     List<InstanceConfig> instances = getInstanceConfigs();
@@ -47,10 +66,23 @@ public class InstanceConfigTest {
 
     properties = instances.get(1).getProperties();
     Assert.assertEquals(1, properties.size());
+
+    // check the case where no properties are specified for the instance...
+    instances = getInstanceConfigs(xml_no_properties);
+
+    Assert.assertEquals(1, instances.size());
+    properties = instances.get(0).getProperties();
+    Assert.assertNotNull(properties);
+    Assert.assertEquals(0, properties.size());
   }
 
   public static List<InstanceConfig> getInstanceConfigs() throws JAXBException {
     ViewConfig config = ViewConfigTest.getConfig();
+    return config.getInstances();
+  }
+
+  public static List<InstanceConfig> getInstanceConfigs(String xml) throws JAXBException {
+    ViewConfig config = ViewConfigTest.getConfig(xml);
     return config.getInstances();
   }
 }
