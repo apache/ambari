@@ -23,25 +23,23 @@ Ambari Agent
 from resource_management import *
 
 
-def service(
-    name,
-    action='start'):
+def service(componentName, action='start', serviceName='yarn'):
 
   import params
 
-  if (name == 'historyserver'):
+  if (serviceName == 'mapreduce' and componentName == 'historyserver'):
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
-    pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{name}.pid")
+    pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{componentName}.pid")
     usr = params.mapred_user
   else:
     daemon = format("{yarn_bin}/yarn-daemon.sh")
-    pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{name}.pid")
+    pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{componentName}.pid")
     usr = params.yarn_user
 
   cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {config_dir}")
 
   if action == 'start':
-    daemon_cmd = format("{cmd} start {name}")
+    daemon_cmd = format("{cmd} start {componentName}")
     no_op = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
     Execute(daemon_cmd,
             user=usr,
@@ -55,7 +53,7 @@ def service(
     )
 
   elif action == 'stop':
-    daemon_cmd = format("{cmd} stop {name}")
+    daemon_cmd = format("{cmd} stop {componentName}")
     Execute(daemon_cmd,
             user=usr,
     )

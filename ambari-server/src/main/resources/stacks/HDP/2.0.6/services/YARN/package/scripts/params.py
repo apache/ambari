@@ -49,6 +49,7 @@ hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 yarn_heapsize = config['configurations']['global']['yarn_heapsize']
 resourcemanager_heapsize = config['configurations']['global']['resourcemanager_heapsize']
 nodemanager_heapsize = config['configurations']['global']['nodemanager_heapsize']
+apptimelineserver_heapsize = default("/configurations/global/apptimelineserver_heapsize", 1024)
 
 yarn_log_dir_prefix = config['configurations']['global']['yarn_log_dir_prefix']
 yarn_pid_dir_prefix = status_params.yarn_pid_dir_prefix

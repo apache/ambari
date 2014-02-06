@@ -19,16 +19,17 @@ limitations under the License.
 Ambari Agent
 
 """
+
 import sys
 from resource_management import *
-
 from yarn import yarn
 from service import service
 
-class Histroryserver(Script):
+class ApplicationTimelineServer(Script):
+
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
+    #self.configure(env)
 
   def configure(self, env):
     import params
@@ -39,17 +40,17 @@ class Histroryserver(Script):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    service('historyserver', action='start', serviceName='mapreduce')
+    service('historyserver', action='start')
 
   def stop(self, env):
     import params
     env.set_params(params)
-    service('historyserver', action='stop', serviceName='mapreduce')
+    service('historyserver', action='stop')
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    check_process_status(status_params.mapred_historyserver_pid_file)
+    check_process_status(status_params.yarn_historyserver_pid_file)
 
 if __name__ == "__main__":
-  Histroryserver().execute()
+  ApplicationTimelineServer().execute()
