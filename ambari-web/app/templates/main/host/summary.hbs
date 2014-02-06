@@ -22,7 +22,27 @@
       {{!components}}
       <div class="box">
         <div class="box-header">
-          <h4>{{t common.components}}</h4>
+          <div class="pull-left">
+            <h4>{{t common.components}}</h4>
+          </div>
+          <div class="pull-right span5 row-fluid" style="padding:0 10px;">
+            {{#if App.isAdmin}}
+              <div class="btn-group pull-right">
+                <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-info :dropdown-toggle"}}>
+                  <span class="icon-plus"></span>&nbsp;{{t add}}
+                </button>
+                <ul class="dropdown-menu">
+                  {{#each component in view.addableComponents}}
+                    <li>
+                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
+                        {{component.displayName}}
+                      </a>
+                    </li>
+                  {{/each}}
+                </ul>
+              </div>
+            {{/if}}
+          </div>
         </div>
         <div class="host-components">
         {{#if view.sortedComponents.length}}
@@ -37,184 +57,9 @@
           {{/if}}
 
           {{#each component in view.sortedComponents}}
-          <div class="row-fluid">
-          {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
-            <div class="span7">
-              {{#if view.isUpgradeFailed}}
-                {{#if App.isAdmin}}
-                  <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
-                    <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
-                  </a>
-                {{/if}}
-              {{else}}
-                <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass :components-health" title="view.componentTextStatus"}}></span>&nbsp;
-              {{/if}}
-                {{#if component.displayNameAdvanced}}
-                  {{component.displayNameAdvanced}}
-                {{else}}
-                  {{component.displayName}}
-                {{/if}}
-                &nbsp;/&nbsp;
-              <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
-                &nbsp;
-              {{#if component.staleConfigs}}
-                <i class="text-warning icon-refresh"></i>
-              {{/if}}
+            <div class="row-fluid">
+              {{view App.HostComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
             </div>
-            <div class="span5 pull-right">
-              {{#if App.isAdmin}}
-              <div class="btn-group pull-right">
-                <a {{ bindAttr class="view.disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
-                  {{t common.actions}}
-                  <span class="caret pull-right"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <div class="component-text-status">
-                      {{view.componentTextStatus}}
-                    </div>
-                  </li>
-                  {{#if view.isDataNode}}
-                    {{#if view.isDataNodeDecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                          {{t common.decommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                    {{#if view.isDataNodeRecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                          {{t common.recommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                  {{/if}}
-                  {{#if view.isNodeManager}}
-                    {{#if view.isNodeManagerDecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                          {{t common.decommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                    {{#if view.isNodeManagerRecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                          {{t common.recommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                  {{/if}}
-                  {{#if view.isTaskTracker}}
-                    {{#if view.isTaskTrackerDecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                          {{t common.decommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                    {{#if view.isTaskTrackerRecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                          {{t common.recommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                  {{/if}}
-                  {{#if view.isRegionServer}}
-                    {{#if view.isRegionServerDecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                          {{t common.decommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                    {{#if view.isRegionServerRecommissionAvailable}}
-                      <li {{bindAttr class="view.noActionAvailable"}}>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                          {{t common.recommission}}
-                        </a>
-                      </li>
-                    {{/if}}
-                  {{/if}}
-                  {{#if view.isDeletableComponent}}
-                    <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
-                        {{t common.delete}}
-                      </a>
-                    </li>
-                  {{/if}}
-                  {{#if view.isRestartableComponent}}
-                    <li {{bindAttr class="view.isRestartComponentDisabled:disabled"}}>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action "restartComponent" view.content target="controller"}}>
-                        {{t common.restart}}
-                      </a>
-                    </li>
-                  {{/if}}
-                  {{#unless view.isInstalling}}
-                    {{#if view.isStart}}
-                        <li {{bindAttr class=" view.isDecommissioning:hidden view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
-                              {{t common.stop}}
-                            </a>
-                        </li>
-                    {{/if}}
-                    {{#unless view.isStart}}
-                        <li {{bindAttr class="view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
-                              {{t common.start}}
-                            </a>
-                        </li>
-                    {{/unless}}
-                    {{#if view.isUpgradeFailed}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
-                              {{t common.reUpgrade}}
-                            </a>
-                        </li>
-                    {{/if}}
-                    {{#if view.isInstallFailed}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
-                              {{t common.reinstall}}
-                            </a>
-                        </li>
-                    {{/if}}
-                    {{#if view.isReassignable}}
-                        <li {{bindAttr class="view.noActionAvailable"}}>
-                            <a href="javascript:void(null)"
-                               data-toggle="modal" {{action "moveComponent" view.content target="controller"}}>
-                              {{t common.move}}
-                            </a>
-                        </li>
-                    {{/if}}
-                      {{#if view.isActive}}
-                          <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-                              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}}
-                                 data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                                {{t passiveState.turnOn}}
-                              </a>
-                          </li>
-                      {{else}}
-                          <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-                              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}}
-                                 data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                                {{t passiveState.turnOff}}
-                              </a>
-                          </li>
-                      {{/if}}
-                  {{/unless}}
-                </ul>
-              </div>
-              {{/if}}
-            </div>
-          {{/view}}
-          </div>
           {{/each}}
         {{/if}}
           {{!clients and add component button}}
@@ -233,17 +78,15 @@
               {{#if App.isAdmin}}
                 <div class="btn-group pull-right">
                   <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-info :dropdown-toggle"}}>
-                    {{t hosts.host.summary.addComponent}}
+                    {{t common.installed}}
                     <span class="caret pull-right"></span>
                   </button>
                   <ul class="dropdown-menu">
-                    {{#each component in view.addableComponents}}
-                      <li>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
-                          {{component.displayName}}
-                        </a>
-                      </li>
-                    {{/each}}
+                    <li>
+                      <a href="javascript:void(null)" {{bindAttr class="view.areClientWithStaleConfigs::disabled"}} data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
+                        {{t hosts.host.details.refreshConfigs}}
+                      </a>
+                    </li>
                   </ul>
                 </div>
               {{/if}}

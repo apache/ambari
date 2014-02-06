@@ -1251,5 +1251,20 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   updateComponentPassiveState: function(data, opt, params) {
     params.component.set('passiveState',params.passive_state);
+  },
+
+  /**
+   * Restart clients host components to apply config changes
+   */
+  refreshConfigs: function(event) {
+    var components = event.context.filter(function(component) {
+      return component.get('staleConfigs');
+    });
+    if (components.get('length') > 0) {
+      App.showConfirmationPopup(function() {
+        batchUtils.restartHostComponents(components);
+      });
+    }
   }
+
 });
