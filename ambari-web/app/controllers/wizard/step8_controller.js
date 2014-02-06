@@ -415,7 +415,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var supportedOs = ['redhat5', 'redhat6', 'sles11'];
     data.items.forEach(function (item) {
       var os = item.repositories[0].Repositories;
-      if (supportedOs.contains(os.osType)) {
+      if (supportedOs.contains(os.os_type)) {
         allRepos.push(Em.Object.create({
           base_url: os.base_url,
           os_type: Em.I18n.t("installer.step8.repoInfo.osType." + os.os_type)
