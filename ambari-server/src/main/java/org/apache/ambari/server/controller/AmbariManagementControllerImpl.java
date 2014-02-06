@@ -1506,7 +1506,10 @@ public class AmbariManagementControllerImpl implements
         PassiveState oldPassive = getEffectivePassiveState(cluster, s, sch);
         
         if (newPassive != oldPassive) {
-          if (newPassive.equals(PassiveState.IMPLIED)) {
+          if (sc.isClientComponent()) {
+            throw new IllegalArgumentException("Invalid arguments, cannot set " +
+              "passive state on a client component");
+          } else if (newPassive.equals(PassiveState.IMPLIED)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
               "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
           } else {

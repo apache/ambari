@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -557,8 +558,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       return null;
     }
 
-    Clusters clusters = getManagementController().getClusters();
-    AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
+    AmbariManagementController controller = getManagementController();
+    Clusters clusters = controller.getClusters();
+    AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
 
     Map<State, List<ServiceComponent>> changedComps =
         new HashMap<State, List<ServiceComponent>>();
@@ -732,6 +734,21 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           }
           continue;
         }
+
+        // do not update or alter any HC that is not active
+        PassiveState schPassive = controller.getEffectivePassiveState(cluster, s, sch);
+        if (PassiveState.ACTIVE != schPassive) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Ignoring ServiceComponentHost"
+                + ", clusterName=" + request.getClusterName()
+                + ", serviceName=" + s.getName()
+                + ", componentName=" + sc.getName()
+                + ", hostname=" + sch.getHostName()
+                + ", passive=" + schPassive);
+          }
+          continue;
+        }
+
         if (!State.isValidStateTransition(oldSchState, newState)) {
           // FIXME throw correct error
           throw new AmbariException("Invalid transition for"

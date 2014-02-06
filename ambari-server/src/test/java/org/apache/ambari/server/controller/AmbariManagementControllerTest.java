@@ -9026,7 +9026,6 @@ public class AmbariManagementControllerTest {
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put("context", "Called from a test");
     
-    
     Cluster cluster = clusters.getCluster(clusterName);
     Service service = cluster.getService(serviceName);
     Map<String, Host> hosts = clusters.getHostsForCluster(clusterName);
@@ -9127,6 +9126,38 @@ public class AmbariManagementControllerTest {
     
     targetSch.setPassiveState(PassiveState.PASSIVE);
     Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+
+    // check the host components active state vs desired state
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(State.INIT, sch.getState());
+      }
+    }    
+    
+    // attempt install on DATANODE only
+    ServiceComponentRequest scr = new ServiceComponentRequest(clusterName,
+        serviceName, componentName2, State.INSTALLED.name());
+    RequestStatusResponse rsr = ComponentResourceProviderTest.updateComponents(
+        controller, Collections.singleton(scr), requestProperties, false);
+    
+    if (rsr != null) {
+      // manually change live state to stopped as no running action manager
+      List<HostRoleCommand> commands = actionDB.getRequestTasks(rsr.getRequestId());
+      for (HostRoleCommand cmd : commands) {
+        clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(cmd.getRole().name())
+            .getServiceComponentHost(cmd.getHostName()).setState(State.INSTALLED);
+      }
+    }
+    
+    // verify passive sch was skipped
+    for (ServiceComponent sc : service.getServiceComponents().values()) {
+      if (!sc.getName().equals(componentName2))
+        continue;
+      
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(sch == targetSch ? State.INIT : State.INSTALLED, sch.getState());
+      }
+    }    
 
   }
 
