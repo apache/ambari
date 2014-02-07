@@ -30,6 +30,9 @@ hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user = config['configurations']['global']['hdfs_user']
 smokeuser = config['configurations']['global']['smokeuser']
 user_group = config['configurations']['global']['user_group']
+security_enabled = config['configurations']['global']['security_enabled']
+smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']

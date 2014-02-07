@@ -22,6 +22,7 @@ Ambari Agent
 
 __all__ = ["Logger"]
 import logging
+from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
 class Logger:
   logger = logging.getLogger("resource_management")
@@ -67,6 +68,9 @@ class Logger:
       # usually too long  
       elif isinstance(y, dict):
         val = "..."
+      # for configs which didn't come
+      elif isinstance(y, UnknownConfiguration):
+        val = "[EMPTY]"
       # correctly output 'mode' (as they are octal values like 0755)
       elif y and x == 'mode':
         val = oct(y)

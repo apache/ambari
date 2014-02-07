@@ -143,8 +143,6 @@ class Resource(object):
           self.arguments[key] = arg.validate(value)
         except InvalidArgument, exc:
           raise InvalidArgument("%s %s" % (self, exc))
-
-    Logger.debug("New resource %s: %s" % (self, self.arguments))
     
     if not self.env.test_mode:
       self.env.run()

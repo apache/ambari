@@ -39,7 +39,11 @@ class PigServiceCheck(Script):
       tries     = 3,
       try_sleep = 5,
       user      = params.smokeuser,
-      conf_dir = params.hadoop_conf_dir
+      conf_dir = params.hadoop_conf_dir,
+      # for kinit run
+      keytab = params.smoke_user_keytab,
+      security_enabled = params.security_enabled,
+      kinit_path_local = params.kinit_path_local
     )
   
     File( '/tmp/pigSmoke.sh',
@@ -61,11 +65,13 @@ class PigServiceCheck(Script):
     )
     
 def main():
+  command_type = "service_check"
+  print "Running "+command_type
+  command_data_file = '/var/lib/ambari-agent/data/command-2.json'
+  basedir = '/root/ambari/ambari-server/src/main/resources/stacks/HDP/2.0.6/services/PIG/package'
+  stroutfile = '/1.txt'
   import sys
-  command_type = 'service_check'
-  command_data_file = '/root/workspace/Pig/input.json'
-  basedir = '/root/workspace/Pig/main'
-  sys.argv = ["", command_type, command_data_file, basedir]
+  sys.argv = ["", command_type, command_data_file, basedir, stroutfile]
   
   PigServiceCheck().execute()
   

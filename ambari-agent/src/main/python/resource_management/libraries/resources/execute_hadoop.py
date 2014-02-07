@@ -31,7 +31,7 @@ class ExecuteHadoop(Resource):
   try_sleep = ResourceArgument(default=0) # seconds
   user = ResourceArgument()
   logoutput = BooleanArgument(default=False)
-  principal = ResourceArgument()
+  principal = ResourceArgument(default=lambda obj: obj.user)
   
   conf_dir = ResourceArgument()
   

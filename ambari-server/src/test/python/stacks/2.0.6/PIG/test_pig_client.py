@@ -39,6 +39,11 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
     )
+    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
+      owner = 'hdfs',
+      group = 'hadoop',
+      mode = 0644,
+    )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
@@ -57,5 +62,10 @@ class TestHcatClient(RMFTestCase):
     )
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
+    )
+    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
+      owner = 'hdfs',
+      group = 'hadoop',
+      mode = 0644,
     )
     self.assertNoMoreResources()

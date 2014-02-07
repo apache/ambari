@@ -29,11 +29,7 @@ class ExecuteHadoopProvider(Provider):
     keytab = self.resource.keytab
     conf_dir = self.resource.conf_dir
     command = self.resource.command
-    
-    if self.resource.principal:
-      principal = self.resource.user
-    else:
-      principal = self.resource.principal
+    principal = self.resource.principal
     
     if isinstance(command, (list, tuple)):
       command = ' '.join(pipes.quote(x) for x in command)

@@ -29,6 +29,7 @@ from mock.mock import MagicMock, patch
 from resource_management.core.environment import Environment
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.script import config_dictionary 
 import platform
 
 PATH_TO_STACKS = os.path.normpath("main/resources/stacks/HDP")
@@ -81,7 +82,8 @@ class RMFTestCase(TestCase):
           with patch.object(Script, 'install_packages'):
             with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
               with patch.object(platform, 'linux_distribution', return_value=os_type):
-                method(RMFTestCase.env)
+                with patch.object(config_dictionary, 'UnknownConfiguration', return_value='mockOfUnknownConfiguration'):
+                  method(RMFTestCase.env)
   
   def getConfig(self):
     return self.config_dict
@@ -113,7 +115,14 @@ class RMFTestCase(TestCase):
     for resource in RMFTestCase.env.resource_list:
       print "'{0}', {1},".format(resource.__class__.__name__, self._ppformat(resource.name))
       for k,v in resource.arguments.iteritems():
-        print "  {0} = {1},".format(k, self._ppformat(v))
+
+        # correctly output octal mode numbers
+        if k == 'mode' and isinstance( v, int ):
+          val = oct(v)
+        else:
+          val = self._ppformat(v)
+          
+        print "  {0} = {1},".format(k, val)
       print
   
   def assertResourceCalled(self, resource_type, name, **kwargs):

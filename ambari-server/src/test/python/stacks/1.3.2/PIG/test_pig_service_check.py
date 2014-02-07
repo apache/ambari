@@ -34,6 +34,9 @@ class TestServiceCheck(RMFTestCase):
       tries = 3,
       user = 'ambari-qa',
       conf_dir = '/etc/hadoop/conf',
+      security_enabled = False,
+      keytab = 'mockOfUnknownConfiguration',
+      kinit_path_local = '/usr/bin/kinit',
     )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
@@ -53,7 +56,7 @@ class TestServiceCheck(RMFTestCase):
       user = 'ambari-qa',
       conf_dir = '/etc/hadoop/conf',
     )
-    
+    self.assertNoMoreResources()
 
   def test_configure_secured(self):
     self.executeScript("1.3.2/services/PIG/package/scripts/service_check.py",
@@ -67,6 +70,9 @@ class TestServiceCheck(RMFTestCase):
       tries = 3,
       user = 'ambari-qa',
       conf_dir = '/etc/hadoop/conf',
+      security_enabled = True, 
+      keytab = '/etc/security/keytabs/smokeuser.headless.keytab',
+      kinit_path_local = '/usr/bin/kinit',
     )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
@@ -86,3 +92,4 @@ class TestServiceCheck(RMFTestCase):
       user = 'ambari-qa',
       conf_dir = '/etc/hadoop/conf',
     )
+    self.assertNoMoreResources()
