@@ -98,8 +98,6 @@ App.WizardStep7Controller = Em.Controller.extend({
    *  Load config groups for installed services
    */
   loadInstalledServicesConfigGroups: function (servicesNames) {
-    if (servicesNames.indexOf('MISC') > -1)
-      servicesNames.splice(servicesNames.indexOf('MISC'), 1);
     servicesNames.forEach(function(serviceName) {
       App.ajax.send({
         name: 'config.tags_and_groups',
@@ -255,8 +253,6 @@ App.WizardStep7Controller = Em.Controller.extend({
             }
           }
         }
-        serviceConfigProperty.set('isVisible', true);
-
         console.log("config result", serviceConfigProperty);
       } else {
         serviceConfigProperty.set('isVisible', false);
@@ -352,7 +348,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
-    var configs = App.config.mergePreDefinedWithStored(storedConfigs, advancedConfigs,this.get('selectedServiceNames'));
+    var configs = App.config.mergePreDefinedWithStored(storedConfigs, advancedConfigs, this.get('selectedServiceNames').concat(this.get('installedServiceNames')));
     //STEP 4: Add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs);
     //STEP 5: Add custom configs
@@ -398,9 +394,8 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.set('stepConfigs', serviceConfigs);
     if (App.supports.hostOverridesInstaller) {
       this.loadConfigGroups(this.get('content.configGroups'));
-      var installedServicesConfigs = this.get('stepConfigs').filterProperty('selected', false);
-      if (installedServicesConfigs.length > 0 && !storedConfigs)
-        this.loadInstalledServicesConfigGroups(installedServicesConfigs.mapProperty('serviceName'));
+      if (this.get('installedServiceNames').length > 0)
+        this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
     }
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
@@ -450,7 +445,9 @@ App.WizardStep7Controller = Em.Controller.extend({
     });
     configs.forEach(function (_config) {
       if (configsMap[_config.name] !== undefined) {
-        _config.value = configsMap[_config.name];
+        // prevent overriding already edited properties
+        if (_config.defaultValue != configsMap[_config.name])
+          _config.value = configsMap[_config.name];
         _config.defaultValue = configsMap[_config.name];
         App.config.handleSpecialProperties(_config);
       }

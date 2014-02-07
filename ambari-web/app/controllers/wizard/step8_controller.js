@@ -537,6 +537,26 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.submitProceed();
     }
   },
+  /**
+   * Update configurations for installed services.
+   *
+   * @param {Array} configsToUpdate - configs need to update
+   * @return {*}
+   */
+  updateConfigurations: function (configsToUpdate) {
+    var configurationController = App.router.get('mainServiceInfoConfigsController');
+    var serviceNames = configsToUpdate.mapProperty('serviceName').uniq();
+    serviceNames.forEach(function(serviceName) {
+      var configs = configsToUpdate.filterProperty('serviceName', serviceName);
+      configurationController.setNewTagNames(configs);
+      var tagName = configs.objectAt(0).newTagName;
+      var siteConfigs = configs.filterProperty('id', 'site property');
+      siteConfigs.mapProperty('filename').uniq().forEach(function(siteName) {
+        var formattedConfigs = configurationController.createSiteObj(siteName.replace(".xml", ""), tagName, configs.filterProperty('filename', siteName));
+        configurationController.doPUTClusterConfigurationSite(formattedConfigs);
+      });
+    });
+  },
 
   submitProceed: function() {
     this.set('isSubmitDisabled', true);
@@ -580,6 +600,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (this.get('content.controllerName') == 'installerController' && (!App.testMode)) {
       var clusterNames = this.getExistingClusterNames();
       this.deleteClusters(clusterNames);
+    }
+    if (this.get('wizardController').getDBProperty('configsToUpdate')) {
+      this.updateConfigurations(this.get('wizardController').getDBProperty('configsToUpdate'));
     }
     this.setLocalRepositories();
     this.createCluster();

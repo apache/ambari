@@ -712,6 +712,7 @@ App.WizardController = Em.Controller.extend({
    */
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
+    var updateServiceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
 
       if (_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi) {
@@ -733,9 +734,21 @@ App.WizardController = Em.Controller.extend({
         };
         serviceConfigProperties.push(configProperty);
       }, this);
+      // check for configs that need to update for installed services
+      if (stepController.get('installedServiceNames') && stepController.get('installedServiceNames').contains(_content.get('serviceName'))) {
+        // get only modified configs
+        var configs = _content.get('configs').filterProperty('isNotDefaultValue').filter(function(config) {
+          var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
+          return !notAllowed.contains(config.get('displayType'));
+        });
+        // if modified configs detected push all service's configs for update
+        if (configs.length)
+          updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
+      }
     }, this);
     this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+    this.setDBProperty('configsToUpdate', updateServiceConfigProperties);
   },
   /**
    * save Config groups
@@ -771,6 +784,6 @@ App.WizardController = Em.Controller.extend({
       }, this)
     }, this);
     this.setDBProperty('serviceConfigGroups', serviceConfigGroups);
-    this.set('content.serviceConfigProperties', serviceConfigGroups);
+    this.set('content.configGroups', serviceConfigGroups);
   }
 });

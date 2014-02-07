@@ -1414,7 +1414,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "STORM",
-      "category": "StormUIServer"
+      "category": "StormUIServer",
+      "filename": "global.xml"
     },
     {
       "id": "puppet var",
@@ -1427,7 +1428,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "STORM",
-      "category": "LogviewerServer"
+      "category": "LogviewerServer",
+      "filename": "global.xml"
     },
     {
       "id": "puppet var",
@@ -1440,7 +1442,8 @@ module.exports =
       "isVisible": true,
       "isRequiredByAgent": false,
       "serviceName": "STORM",
-      "category": "DRPCServer"
+      "category": "DRPCServer",
+      "filename": "global.xml"
     },
     {
       "id": "puppet var",
@@ -1454,7 +1457,8 @@ module.exports =
       "isRequiredByAgent": false,
       "serviceName": "STORM",
       "isOverridable": false,
-      "category": "Supervisor"
+      "category": "Supervisor",
+      "filename": "global.xml"
     },
   /**********************************************MISC***************************************/
     {
