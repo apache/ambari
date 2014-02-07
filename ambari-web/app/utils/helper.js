@@ -137,6 +137,7 @@ App.format = {
     'DECOMMISSION_DATANODE': 'Update Exclude File',
     'DRPC_SERVER': 'DRPC Server',
     'FALCON': 'Falcon',
+    'FALCON_CLIENT': 'Falcon Client',
     'FALCON_SERVER': 'Falcon Server',
     'FALCON_SERVICE_CHECK': 'Falcon Service Check',
     'FLUME_SERVER': 'Flume Agent',
