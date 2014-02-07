@@ -19,10 +19,20 @@
 var App = require('app');
 
 describe('#App.components', function() {
+
   it('slaves and masters should not intersect', function() {
     var intersected = App.get('components.slaves').filter(function(item){
       return App.get('components.masters').contains(item);
     });
     expect(intersected).to.eql([]);
   });
+
+  it('decommissionAllowed', function() {
+    expect(App.get('components.decommissionAllowed')).to.eql(["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"]);
+  });
+
+  it('addableToHost', function() {
+    expect(App.get('components.addableToHost')).to.eql(["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR"]);
+  });
+
 });

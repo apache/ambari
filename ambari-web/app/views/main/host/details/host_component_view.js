@@ -20,30 +20,14 @@ var App = require('app');
 var uiEffects = require('utils/ui_effects');
 
 App.HostComponentView = Em.View.extend({
+
   templateName: require('templates/main/host/details/host_component'),
+
   /**
    * @type {App.HostComponent}
    */
   content: null,
-  didInsertElement: function () {
-    App.tooltip($('[rel=componentHealthTooltip]'));
-    App.tooltip($('[rel=passiveTooltip]'));
-    if (this.get('isInProgress')) {
-      this.doBlinking();
-    }
-    if (this.get('isDataNode')){
-      this.loadDataNodeDecommissionStatus();
-    }
-    if (this.get('isNodeManager')){
-      this.loadNodeManagerDecommissionStatus();
-    }
-    if (this.get('isTaskTracker')){
-      this.loadTaskTrackerDecommissionStatus();
-    }
-    if (this.get('isRegionServer')){
-      this.loadRegionServerDecommissionStatus();
-    }
-  },
+
   /**
    * @type {App.HostComponent}
    */
@@ -128,6 +112,10 @@ App.HostComponentView = Em.View.extend({
     return '';
   }.property('content.passiveState','parentView.content.passiveState'),
 
+  /**
+   * CSS-class for host component status
+   * @type {String}
+   */
   statusClass: function () {
     //If the component is DataNode
     if (this.get('isDataNode')) {
@@ -178,23 +166,162 @@ App.HostComponentView = Em.View.extend({
   }.property('content.passiveState','workStatus', 'isDataNodeRecommissionAvailable', 'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable', 'isRegionServerRecommissionAvailable'),
 
   /**
+   * CSS-class for disabling drop-down menu with list of host component actions
+   * Disabled if host's <code>healthClass</code> is health-status-DEAD-YELLOW (lost heartbeat)
    * @type {String}
    */
   disabled: function () {
     return (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") ? 'disabled' : '';
   }.property('parentView.content.healthClass'),
+
   /**
    * For Upgrade failed state
+   * @type {bool}
    */
   isUpgradeFailed: function () {
     return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed";
   }.property("workStatus"),
+
   /**
    * For Install failed state
+   * @type {bool}
    */
   isInstallFailed: function () {
     return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed";
   }.property("workStatus"),
+
+  /**
+   * For Started and Starting states
+   * @type {bool}
+   */
+  isStart: function () {
+    return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
+  }.property('workStatus'),
+
+  /**
+   * For Installed state
+   * @type {bool}
+   */
+  isStop: function () {
+    return (this.get('workStatus') == App.HostComponentStatus.stopped);
+  }.property('workStatus'),
+
+  /**
+   * For Installing state
+   * @type {bool}
+   */
+  isInstalling: function () {
+    return (this.get('workStatus') == App.HostComponentStatus.installing);
+  }.property('workStatus'),
+
+  /**
+   * No action available while component is starting/stopping/unknown
+   * @type {String}
+   */
+  noActionAvailable: function () {
+    var workStatus = this.get('workStatus');
+    if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus)) {
+      return "hidden";
+    }else{
+      return "";
+    }
+  }.property('workStatus'),
+
+  /**
+   * For Stopping or Starting states, also for decommissioning
+   * @type {bool}
+   */
+  isInProgress: function () {
+    return (this.get('workStatus') === App.HostComponentStatus.stopping ||
+      this.get('workStatus') === App.HostComponentStatus.starting) ||
+      this.get('isDecommissioning');
+  }.property('workStatus', 'isDecommissioning'),
+
+  /**
+   * For ACTIVE <code>passiveState</code> of host component
+   * @type {bool}
+   */
+  isActive: function () {
+    return (this.get('content.passiveState') == "ACTIVE");
+  }.property('content.passiveState'),
+
+  /**
+   * For PASSIVE <code>passiveState</code> of host or service
+   * @type {bool}
+   */
+  isImplied: function() {
+    return (this.get('parentView.content.passiveState') === 'PASSIVE' || this.get('content.service.passiveState') === 'PASSIVE');
+  }.property('parentView.content.passiveState', 'content.service.passiveState'),
+
+  /**
+   *
+   * @type {bool}
+   */
+  isDecommissioning: function () {
+    return ( (this.get('isDataNode') && this.get("isDataNodeDecommissioning")) || (this.get('isRegionServer') && this.get("isRegionServerDecommissioning"))
+      || (this.get('isNodeManager') && this.get("isNodeManagerDecommissioning")) || (this.get('isTaskTracker') && this.get('isTaskTrackerDecommissioning')));
+  }.property("workStatus", "isDataNodeDecommissioning", "isRegionServerDecommissioning", "isNodeManagerDecommissioning", "isTaskTrackerDecommissioning"),
+
+  /**
+   * Shows whether we need to show Delete button
+   * @type {bool}
+   */
+  isDeletableComponent: function () {
+    return App.get('components.deletable').contains(this.get('content.componentName'));
+  }.property('content'),
+
+  /**
+   * Host component with some <code>workStatus</code> can't be deleted (so, disable such action in the dropdown list)
+   * @type {bool}
+   */
+  isDeleteComponentDisabled: function () {
+    return ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed].contains(this.get('workStatus'));
+  }.property('workStatus'),
+
+  /**
+   * Check if component may be reassinged to another host
+   * @type {bool}
+   */
+  isReassignable: function () {
+    return App.supports.reassignMaster && App.get('components.reassignable').contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
+  }.property('content.componentName'),
+
+  /**
+   * Check if component is restartable
+   * @type {bool}
+   */
+  isRestartableComponent: function() {
+    return App.get('components.restartable').contains(this.get('content.componentName'));
+  }.property('content'),
+
+  /**
+   * Host component with some <code>workStatus</code> can't be restarted (so, disable such action in the dropdown list)
+   * @type {bool}
+   */
+  isRestartComponentDisabled: function() {
+    return ![App.HostComponentStatus.started].contains(this.get('workStatus'));
+  }.property('workStatus'),
+
+  didInsertElement: function () {
+    App.tooltip($('[rel=componentHealthTooltip]'));
+    App.tooltip($('[rel=passiveTooltip]'));
+    if (this.get('isInProgress')) {
+      this.doBlinking();
+    }
+    if (this.get('isDataNode')){
+      this.loadDataNodeDecommissionStatus();
+    }
+    if (this.get('isNodeManager')){
+      this.loadNodeManagerDecommissionStatus();
+    }
+    if (this.get('isTaskTracker')){
+      this.loadTaskTrackerDecommissionStatus();
+    }
+    if (this.get('isRegionServer')){
+      this.loadRegionServerDecommissionStatus();
+    }
+  },
+
   /**
    * Do blinking for 1 minute
    */
@@ -226,60 +353,21 @@ App.HostComponentView = Em.View.extend({
   }.observes('workStatus','isDataNodeRecommissionAvailable', 'isDecommissioning', 'isRegionServerRecommissionAvailable',
       'isNodeManagerRecommissionAvailable', 'isTaskTrackerRecommissionAvailable'),
 
-  isStart: function () {
-    return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
-  }.property('workStatus'),
-
-  isStop: function () {
-    return (this.get('workStatus') == App.HostComponentStatus.stopped);
-  }.property('workStatus'),
-
-  isInstalling: function () {
-    return (this.get('workStatus') == App.HostComponentStatus.installing);
-  }.property('workStatus'),
-  /**
-   * No action available while component is starting/stopping/unknown
-   */
-  noActionAvailable: function () {
-    var workStatus = this.get('workStatus');
-    if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus)) {
-      return "hidden";
-    }else{
-      return "";
-    }
-  }.property('workStatus'),
-
-  isInProgress: function () {
-    return (this.get('workStatus') === App.HostComponentStatus.stopping ||
-      this.get('workStatus') === App.HostComponentStatus.starting) ||
-      this.get('isDecommissioning');
-  }.property('workStatus', 'isDecommissioning'),
-
   isDataNode: function () {
     return this.get('content.componentName') === 'DATANODE';
   }.property('content'),
+
   isNodeManager: function () {
     return this.get('content.componentName') === 'NODEMANAGER';
   }.property('content'),
+
   isTaskTracker: function () {
     return this.get('content.componentName') === 'TASKTRACKER';
   }.property('content'),
+
   isRegionServer: function () {
     return this.get('content.componentName') === 'HBASE_REGIONSERVER';
   }.property('content'),
-
-  isActive: function () {
-    return (this.get('content.passiveState') == "ACTIVE");
-  }.property('content.passiveState'),
-
-  isImplied: function() {
-    return (this.get('parentView.content.passiveState') === 'PASSIVE' || this.get('content.service.passiveState') === 'PASSIVE');
-  }.property('content.passiveState'),
-
-  isDecommissioning: function () {
-    return ( (this.get('isDataNode') && this.get("isDataNodeDecommissioning")) || (this.get('isRegionServer') && this.get("isRegionServerDecommissioning"))
-      || (this.get('isNodeManager') && this.get("isNodeManagerDecommissioning")) || (this.get('isTaskTracker') && this.get('isTaskTrackerDecommissioning')));
-  }.property("workStatus", "isDataNodeDecommissioning", "isRegionServerDecommissioning", "isNodeManagerDecommissioning", "isTaskTrackerDecommissioning"),
 
   isDataNodeDecommissioning: null,
   isDataNodeDecommissionAvailable: null,
@@ -620,31 +708,6 @@ App.HostComponentView = Em.View.extend({
       deferred.resolve(desired_admin_state);
     });
     return deferred.promise();
-  }.observes('App.router.mainHostDetailsController.content'),
-
-  /**
-   * Shows whether we need to show Delete button
-   */
-  isDeletableComponent: function () {
-    return App.get('components.deletable').contains(this.get('content.componentName'));
-  }.property('content'),
-
-  isDeleteComponentDisabled: function () {
-    return !(this.get('workStatus') == App.HostComponentStatus.stopped || this.get('workStatus') == App.HostComponentStatus.unknown ||
-      this.get('workStatus') == App.HostComponentStatus.install_failed || this.get('workStatus') == App.HostComponentStatus.upgrade_failed);
-  }.property('workStatus'),
-
-  isReassignable: function () {
-    return App.supports.reassignMaster && App.get('components.reassignable').contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
-  }.property('content.componentName'),
-
-  isRestartableComponent: function() {
-    return App.get('components.restartable').contains(this.get('content.componentName'));
-  }.property('content'),
-
-  isRestartComponentDisabled: function() {
-    var allowableStates = [App.HostComponentStatus.started];
-    return !allowableStates.contains(this.get('workStatus'));
-  }.property('workStatus')
+  }.observes('App.router.mainHostDetailsController.content')
 
 });

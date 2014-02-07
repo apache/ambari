@@ -17,13 +17,19 @@
  */
 
 var App = require('app');
-var uiEffects = require('utils/ui_effects');
 
 App.MainHostSummaryView = Em.View.extend({
+
   templateName: require('templates/main/host/summary'),
 
+  /**
+   * @type {bool}
+   */
   isStopCommand:true,
 
+  /**
+   * @type {App.Host}
+   */
   content: function () {
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
@@ -34,6 +40,10 @@ App.MainHostSummaryView = Em.View.extend({
     window.open(gangliaMobileUrl);
   },
 
+  /**
+   * Message for "restart" block
+   * @type {String}
+   */
   needToRestartMessage: function() {
     var componentsCount, word;
     componentsCount = this.get('content.componentsWithStaleConfigsCount');
@@ -48,11 +58,29 @@ App.MainHostSummaryView = Em.View.extend({
   didInsertElement: function () {
     this.addToolTip();
   },
+
+  /**
+   * Create tooltip for "Add" button if nothing to add to the current host
+   */
   addToolTip: function() {
     if (this.get('addComponentDisabled')) {
       App.tooltip($('#add_component'), {title: Em.I18n.t('services.nothingToAdd')});
     }
   }.observes('addComponentDisabled'),
+
+  /**
+   * List of installed services
+   * @type {String[]}
+   */
+  installedServices: function() {
+    return App.Service.find().mapProperty('serviceName');
+  }.property('App.Service.@each'),
+
+  /**
+   * List of installed masters and slaves
+   * Masters first, then slaves
+   * @type {DS.Model[]}
+   */
   sortedComponents: function () {
     var slaveComponents = [];
     var masterComponents = [];
@@ -64,7 +92,12 @@ App.MainHostSummaryView = Em.View.extend({
       }
     }, this);
     return masterComponents.concat(slaveComponents);
-  }.property('content', 'content.hostComponents.length'),
+  }.property('content.hostComponents.length'),
+
+  /**
+   * List of installed clients
+   * @type {DS.Model[]}
+   */
   clients: function () {
     var clients = [];
     this.get('content.hostComponents').forEach(function (component) {
@@ -93,7 +126,10 @@ App.MainHostSummaryView = Em.View.extend({
     }).length;
   }.property('clients.@each.staleConfigs'),
 
-
+  /**
+   * Template for addable component
+   * @type {Em.Object}
+   */
   addableComponentObject: Em.Object.extend({
     componentName: '',
     subComponentNames: null,
@@ -104,134 +140,70 @@ App.MainHostSummaryView = Em.View.extend({
       return App.format.role(this.get('componentName'));
     }.property('componentName')
   }),
+
+  /**
+   * If host lost heartbeat, components can't be added on it
+   * @type {bool}
+   */
   isAddComponent: function () {
     return this.get('content.healthClass') !== 'health-status-DEAD-YELLOW';
   }.property('content.healthClass'),
 
+  /**
+   * Disable "Add" button if components can't be added to the current host
+   * @type {bool}
+   */
   addComponentDisabled: function() {
     return (!this.get('isAddComponent')) || (this.get('addableComponents.length') == 0);
   }.property('isAddComponent', 'addableComponents.length'),
 
+  /**
+   * List of client's that may be installed to the current host
+   * @type {String[]}
+   */
   installableClientComponents: function() {
-    var installableClients = [];
     if (!App.supports.deleteHost) {
-      return installableClients;
+      return [];
     }
-    App.Service.find().forEach(function(svc){
-      switch(svc.get('serviceName')){
-        case 'PIG':
-          installableClients.push('PIG');
-          break;
-        case 'SQOOP':
-          installableClients.push('SQOOP');
-          break;
-        case 'HCATALOG':
-          installableClients.push('HCAT');
-          break;
-        case 'HDFS':
-          installableClients.push('HDFS_CLIENT');
-          break;
-        case 'OOZIE':
-          installableClients.push('OOZIE_CLIENT');
-          break;
-        case 'ZOOKEEPER':
-          installableClients.push('ZOOKEEPER_CLIENT');
-          break;
-        case 'HIVE':
-          installableClients.push('HIVE_CLIENT');
-          break;
-        case 'HBASE':
-          installableClients.push('HBASE_CLIENT');
-          break;
-        case 'YARN':
-          installableClients.push('YARN_CLIENT');
-          break;
-        case 'MAPREDUCE':
-          installableClients.push('MAPREDUCE_CLIENT');
-          break;
-        case 'MAPREDUCE2':
-          installableClients.push('MAPREDUCE2_CLIENT');
-          break;
-        case 'TEZ':
-          installableClients.push('TEZ_CLIENT');
-          break;
-      }
+    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
+    var allClients = App.get('components.clients');
+    var installedServices = this.get('installedServices');
+    var installedClients = this.get('clients').mapProperty('componentName');
+    return allClients.filter(function(componentName) {
+      // service for current client is installed but client isn't installed on current host
+      return installedServices.contains(componentServiceMap[componentName]) && !installedClients.contains(componentName);
     });
-    this.get('content.hostComponents').forEach(function (component) {
-      var index = installableClients.indexOf(component.get('componentName'));
-      if (index > -1) {
-        installableClients.splice(index, 1);
-      }
-    }, this);
-    return installableClients;
-  }.property('content', 'content.hostComponents.length', 'App.Service', 'App.supports.deleteHost'),
-  
+  }.property('content.hostComponents.length', 'installedServices.length', 'App.supports.deleteHost'),
+
+  /**
+   * List of components that may be added to the current host
+   * @type {Em.Object[]}
+   */
   addableComponents: function () {
     var components = [];
-    var services = App.Service.find();
-    var dataNodeExists = false;
-    var taskTrackerExists = false;
-    var regionServerExists = false;
-    var zookeeperServerExists = false;
-    var nodeManagerExists = false;
-    var hbaseMasterExists = false;
-    var supervisorExists = false;
-    
+    var self = this;
     var installableClients = this.get('installableClientComponents');
-    
-    this.get('content.hostComponents').forEach(function (component) {
-      switch (component.get('componentName')) {
-        case 'DATANODE':
-          dataNodeExists = true;
-          break;
-        case 'TASKTRACKER':
-          taskTrackerExists = true;
-          break;
-        case 'HBASE_REGIONSERVER':
-          regionServerExists = true;
-          break;
-        case 'ZOOKEEPER_SERVER':
-          zookeeperServerExists = true;
-          break;
-        case 'NODEMANAGER':
-          nodeManagerExists = true;
-          break;
-        case 'HBASE_MASTER':
-          hbaseMasterExists = true;
-          break;
-        case 'SUPERVISOR':
-          supervisorExists = true;
-          break;
-      }
-    }, this);
+    var installedComponents = this.get('content.hostComponents').mapProperty('componentName');
+    var addableToHostComponents = App.get('components.addableToHost');
+    var installedServices = this.get('installedServices');
+    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
 
-    if (!dataNodeExists) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'DATANODE' }));
-    }
-    if (!taskTrackerExists && services.findProperty('serviceName', 'MAPREDUCE')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'TASKTRACKER' }));
-    }
-    if (!regionServerExists && services.findProperty('serviceName', 'HBASE')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_REGIONSERVER' }));
-    }
-    if (!hbaseMasterExists && services.findProperty('serviceName', 'HBASE')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_MASTER' }));
-    }
-    if (!zookeeperServerExists && services.findProperty('serviceName', 'ZOOKEEPER')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'ZOOKEEPER_SERVER' }));
-    }
-    if (!nodeManagerExists && services.findProperty('serviceName', 'YARN')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'NODEMANAGER' }));
-    }
-    if (!supervisorExists && services.findProperty('serviceName', 'STORM')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'SUPERVISOR' }));
-    }
+    addableToHostComponents.forEach(function(addableComponent) {
+      if(installedServices.contains(componentServiceMap[addableComponent]) && !installedComponents.contains(addableComponent)) {
+        components.pushObject(self.addableComponentObject.create({'componentName': addableComponent}));
+      }
+    });
     if (installableClients.length > 0) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'CLIENTS', subComponentNames: installableClients }));
     }
-    return components;
-  }.property('content', 'content.hostComponents.length', 'installableClientComponents'),
 
+    return components;
+  }.property('content.hostComponents.length', 'installableClientComponents'),
+
+  /**
+   * Formatted with <code>$.timeago</code> value of host's last heartbeat
+   * @type {String}
+   */
   timeSinceHeartBeat: function () {
     var d = this.get('content.lastHeartBeatTime');
     if (d) {
