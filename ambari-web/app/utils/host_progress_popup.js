@@ -842,7 +842,7 @@ App.HostPopup = Em.Object.create({
          * Return task detail info of opened task
          */
         openedTask: function () {
-          if (!this.get('openedTaskId')) {
+          if (!(this.get('openedTaskId') && this.get('tasks'))) {
             return Ember.Object.create();
           }
           return this.get('tasks').findProperty('id', this.get('openedTaskId'));
