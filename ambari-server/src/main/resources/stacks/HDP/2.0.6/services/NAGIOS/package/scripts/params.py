@@ -49,7 +49,7 @@ eventhandlers_dir = "/usr/lib/nagios/eventhandlers"
 nagios_principal_name = default("nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
-namenode_metadata_port = "8020"
+namenode_metadata_port = get_port_from_url(config['configurations']['core-site']['fs.defaultFS'])
 oozie_server_port = "11000"
 # different to HDP1    
 namenode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.namenode.http-address'])
