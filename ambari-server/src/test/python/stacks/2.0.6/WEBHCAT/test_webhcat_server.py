@@ -126,7 +126,7 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar /apps/webhcat/hadoop-streaming.jar',
       not_if = ' hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
       user = 'hcat',
       conf_dir = '/etc/hadoop/conf',
@@ -174,7 +174,7 @@ class TestWebHCatServer(RMFTestCase):
       path = ['/bin'],
       user = 'hcat',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming*.jar /apps/webhcat/hadoop-streaming.jar',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar /apps/webhcat/hadoop-streaming.jar',
       not_if = '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
       user = 'hcat',
       conf_dir = '/etc/hadoop/conf',

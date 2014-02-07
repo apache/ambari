@@ -66,7 +66,7 @@ def webhcat():
             path='/bin'
     )
 
-  copyFromLocal(path='/usr/lib/hadoop-mapreduce/hadoop-streaming*.jar',
+  copyFromLocal(path='/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=format("{webhcat_apps_dir}/hadoop-streaming.jar"),
