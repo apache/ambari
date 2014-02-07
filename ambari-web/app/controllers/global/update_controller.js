@@ -118,31 +118,42 @@ App.UpdateController = Em.Controller.extend({
 
     var conditionalFields = [];
     var initialFields = [];
-    var services = [
-        {
-            name: 'FLUME',
-            urlParam: 'flume/flume'
-        },
-        {
-            name: 'YARN',
-            urlParam: 'yarn/Queue'
-        },
-        {
-          name: 'HBASE',
-          urlParam: 'hbase/master/IsActiveMaster'
-        }
-    ];
-    services.forEach(function(service) {
-        if (App.Service.find(service.name)) {
-            conditionalFields.push("host_components/metrics/" + service.urlParam);
-        }
+    var serviceSpecificParams = {
+      'FLUME': "host_components/metrics/flume/flume",
+      'YARN': "host_components/metrics/yarn/Queue," +
+              "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+              "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
+              "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
+              "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
+      'HBASE': "host_components/metrics/hbase/master/IsActiveMaster" +
+               "ServiceComponentInfo/MasterStartTime," +
+               "ServiceComponentInfo/MasterActiveTime," +
+               "ServiceComponentInfo/AverageLoad," +
+               "ServiceComponentInfo/Revision," +
+               "ServiceComponentInfo/RegionsInTransition",
+      'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
+                   "ServiceComponentInfo/GrayListedNodes," +
+                   "ServiceComponentInfo/BlackListedNodes," +
+                   "ServiceComponentInfo/jobtracker/*,"
+    };
+    var services = App.cache['services'];
+    services.forEach(function (service) {
+      var urlParams = serviceSpecificParams[service.ServiceInfo.service_name];
+      if (urlParams) {
+        conditionalFields.push(urlParams);
+      }
     });
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var initialFieldsString = initialFields.length > 0 ? ',' + initialFields.join(',') : '';
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json':'/data/dashboard/services.json';
 
     var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
-      'ServiceComponentInfo,' +
+      'ServiceComponentInfo/Version,' +
+      'ServiceComponentInfo/StartTime,' +
+      'ServiceComponentInfo/HeapMemoryUsed,' +
+      'ServiceComponentInfo/HeapMemoryMax,' +
+      'ServiceComponentInfo/service_name,' +
+      'host_components/HostRoles/host_name,' +
       'host_components/HostRoles/state,' +
       'host_components/HostRoles/passive_state,' +
       'host_components/HostRoles/stale_configs,' +
@@ -153,23 +164,15 @@ App.UpdateController = Em.Controller.extend({
       'host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
       'host_components/metrics/cpu/cpu_wio,' +
       'host_components/metrics/rpc/RpcQueueTime_avg_time,' +
-      'host_components/metrics/dfs/FSNamesystem/HAState,' +
-      'host_components/metrics/dfs/FSNamesystem/CapacityUsed,' +
-      'host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
-      'host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
-      'host_components/metrics/dfs/FSNamesystem/BlocksTotal,' +
-      'host_components/metrics/dfs/FSNamesystem/CorruptBlocks,' +
-      'host_components/metrics/dfs/FSNamesystem/MissingBlocks,' +
-      'host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,' +
+      'host_components/metrics/dfs/FSNamesystem/*,' +
       'host_components/metrics/dfs/namenode/Version,' +
-      'host_components/metrics/dfs/namenode/LiveNodes,' +
-      'host_components/metrics/dfs/namenode/DeadNodes,' +
       'host_components/metrics/dfs/namenode/DecomNodes,' +
       'host_components/metrics/dfs/namenode/TotalFiles,' +
       'host_components/metrics/dfs/namenode/UpgradeFinalized,' +
       'host_components/metrics/dfs/namenode/Safemode,' +
       'host_components/metrics/runtime/StartTime' +
-      conditionalFieldsString;
+      conditionalFieldsString +
+      '&minimal_response=true';
 
     var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + initialFieldsString) : this.getUrl(testUrl, realUrl);
     callback = callback || function () {

@@ -33,8 +33,6 @@ App.HDFSService = App.Service.extend({
   nameNodeStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapMax: DS.attr('number'),
-  liveDataNodes: DS.hasMany('App.Host'),
-  deadDataNodes: DS.hasMany('App.Host'),
   decommissionDataNodes: DS.hasMany('App.Host'),
   capacityUsed: DS.attr('number'),
   capacityTotal: DS.attr('number'),

@@ -45,8 +45,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     name_node_start_time: 'nameNodeComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
     jvm_memory_heap_max: 'nameNodeComponent.host_components[0].metrics.jvm.HeapMemoryMax',
-    live_data_nodes: 'live_data_nodes',
-    dead_data_nodes: 'dead_data_nodes',
     decommission_data_nodes: 'decommission_data_nodes',
     capacity_used: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityUsed',
     capacity_total: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityTotal',
@@ -64,7 +62,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   yarnConfig: {
     version: 'resourceManagerComponent.ServiceComponentInfo.Version',
     resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
-    node_manager_live_nodes: 'node_manager_live_nodes',
     resource_manager_start_time: 'resourceManagerComponent.ServiceComponentInfo.StartTime',
     jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
     jvm_memory_heap_max: 'resourceManagerComponent.host_components[0].metrics.jvm.HeapMemoryMax',
@@ -386,19 +383,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
         // Get the live, dead & decommission nodes from string json
         if (component.host_components[0].metrics && component.host_components[0].metrics.dfs && component.host_components[0].metrics.dfs.namenode) {
-          var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
-          var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
           var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
         }
-        item.live_data_nodes = [];
-        item.dead_data_nodes = [];
         item.decommission_data_nodes = [];
-        for (var ln in liveNodesJson) {
-          item.live_data_nodes.push(ln);
-        }
-        for (var dn in deadNodesJson) {
-          item.dead_data_nodes.push(dn);
-        }
         for (var dcn in decommissionNodesJson) {
           item.decommission_data_nodes.push(dcn);
         }
@@ -432,19 +419,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
         item.resourceManagerComponent = component;
-        // live nodes calculation
-        var nmList = [];
-        if (component.ServiceComponentInfo.rm_metrics && component.ServiceComponentInfo.rm_metrics.cluster && component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers) {
-          nmList = App.parseJSON(component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers);
-        }
-        nmList.forEach(function (nm) {
-          if (nm.State === "RUNNING") {
-            if (!item.node_manager_live_nodes) {
-              item.node_manager_live_nodes = [];
-            }
-            item.node_manager_live_nodes.push(nm.HostName);
-          }
-        });
 
         if (component.host_components[0].metrics && component.host_components[0].metrics.yarn) {
           var root = component.host_components[0].metrics.yarn.Queue.root;
