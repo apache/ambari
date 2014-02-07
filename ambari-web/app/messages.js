@@ -1441,6 +1441,7 @@ Em.I18n.translations = {
   'hosts.component.passive.implied.host.mode.tooltip':'Cannot Turn Off Out-of-Service mode because Host is in Out-of-Service mode',
   'hosts.component.passive.implied.service.mode.tooltip':'Cannot Turn Off Out-of-Service mode because {0} is in Out-of-Service mode',
   'hosts.component.passive.mode':'Component is in Out-of-Service mode',
+  'hosts.component.passive.short.mode':'Out of Service',
   'hosts.host.passive.mode':'Host is in Out-of-Service mode',
   'hosts.host.alert.noAlerts':'No alerts',
   'hosts.host.alert.noAlerts.message':'There are no alerts for this host.',

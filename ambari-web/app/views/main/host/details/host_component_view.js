@@ -74,7 +74,7 @@ App.HostComponentView = Em.View.extend({
    */
   componentTextStatus: function () {
     if (this.get('content.passiveState') != 'ACTIVE') {
-      return Em.I18n.t('hosts.component.passive.mode');
+      return Em.I18n.t('hosts.component.passive.short.mode');
     }
     var workStatus = this.get("workStatus");
     var componentTextStatus = this.get('content.componentTextStatus');
