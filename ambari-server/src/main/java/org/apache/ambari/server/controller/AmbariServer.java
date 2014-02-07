@@ -203,12 +203,14 @@ public class AmbariServer {
 
       //session-per-request strategy for api and agents
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
+      root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", 1);
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
 
       agentroot.addFilter(SecurityFilter.class, "/*", 1);
 
       if (configs.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
+        root.addFilter(new FilterHolder(springSecurityFilter), "/proxy/*", 1);
       }
 
 
@@ -272,10 +274,6 @@ public class AmbariServer {
               "org.apache.ambari.server.api");
       sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
           "true");
-      if (configs.csrfProtectionEnabled()) {
-        sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-            "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
-      }
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
@@ -301,6 +299,15 @@ public class AmbariServer {
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
 
+      ServletHolder proxy = new ServletHolder(ServletContainer.class);
+      proxy.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
+                             "com.sun.jersey.api.core.PackagesResourceConfig");
+      proxy.setInitParameter("com.sun.jersey.config.property.packages",
+                             "org.apache.ambari.server.proxy");
+      proxy.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
+      root.addServlet(proxy, "/proxy/*");
+      proxy.setInitOrder(5);
+
       ServletHolder resources = new ServletHolder(ServletContainer.class);
       resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
@@ -310,6 +317,13 @@ public class AmbariServer {
           "true");
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(6);
+
+      if (configs.csrfProtectionEnabled()) {
+        sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
+                    "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
+        proxy.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
+                    "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
+      }
 
       //Set jetty thread pool
       serverForAgent.setThreadPool(new QueuedThreadPool(25));

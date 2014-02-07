@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.services;
+package org.apache.ambari.server.proxy;
 
 import com.google.gson.Gson;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -42,7 +42,7 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 
-@Path("/proxy/")
+@Path("/")
 public class ProxyService {
 
   private static final int REPO_URL_CONNECT_TIMEOUT = 3000;

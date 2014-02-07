@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.services;
+package org.apache.ambari.server.proxy;
 
 import com.google.gson.Gson;
 import com.sun.jersey.core.spi.factory.ResponseBuilderImpl;
 import com.sun.jersey.core.spi.factory.ResponseImpl;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+import org.apache.ambari.server.api.services.BaseServiceTest;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
