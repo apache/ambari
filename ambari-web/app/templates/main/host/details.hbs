@@ -30,7 +30,7 @@
       {{#if App.supports.deleteHost}}
 				<div class="service-button">
 				    <div class="btn-group display-inline-block">
-				      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+				      <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle controller.content.isNotHeartBeating:disabled"}} data-toggle="dropdown">
                 {{t hosts.host.details.hostActions}}
 				        <span class="caret"></span>
 				      </a>
