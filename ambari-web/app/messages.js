@@ -51,6 +51,7 @@ Em.I18n.translations = {
   'add': 'Add',
 
 
+  'common.access':'Access',
   'common.learnMore':'Learn more',
   'common.back':'Back',
   'common.prev':'Prev',
@@ -939,6 +940,8 @@ Em.I18n.translations = {
   'admin.users.createError.passwordValidation': 'Passwords are different',
   'admin.users.createError.userNameExists': 'User with the same name is already exists',
   'admin.users.editError.requiredField': 'This is required',
+
+  'admin.access.showJobs':'Enable Jobs tab for non-admin users',
 
   'admin.confirmUninstall':'Confirm Uninstall',
   'admin.cluster.stackVersion':'Cluster Stack Version',

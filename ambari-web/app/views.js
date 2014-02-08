@@ -79,6 +79,7 @@ require('views/main/admin/cluster');
 require('views/main/admin/misc_view');
 require('views/main/admin/stack_upgrade');
 require('views/main/admin/advanced');
+require('views/main/admin/access_view');
 require('views/main/admin/advanced/password');
 require('views/main/admin/audit');
 require('views/main/admin/authentication');

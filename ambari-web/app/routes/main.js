@@ -114,6 +114,13 @@ module.exports = Em.Route.extend({
 
   jobs : Em.Route.extend({
     route : '/jobs',
+    enter: function () {
+      if(!App.db.getShowJobsForNonAdmin() && !App.get('isAdmin')){
+        Em.run.next(function () {
+          router.transitionTo('main.dashboard');
+        });
+      }
+    },
     index: Ember.Route.extend({
       route: '/',
       connectOutlets : function(router) {
@@ -523,6 +530,13 @@ module.exports = Em.Route.extend({
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "misc");
         router.get('mainAdminController').connectOutlet('mainAdminMisc');
+      }
+    }),
+    adminAccess: Em.Route.extend({
+      route: '/access',
+      connectOutlets: function (router) {
+        router.set('mainAdminController.category', "access");
+        router.get('mainAdminController').connectOutlet('mainAdminAccess');
       }
     }),
 

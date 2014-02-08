@@ -47,6 +47,7 @@ require('controllers/main/admin/cluster');
 require('controllers/main/admin/stack_upgrade_controller');
 require('controllers/main/admin/user');
 require('controllers/main/admin/misc_controller');
+require('controllers/main/admin/access_controller');
 require('controllers/main/admin/user/edit');
 require('controllers/main/admin/user/create');
 require('controllers/main/admin/advanced');
