@@ -18,7 +18,6 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
-var jobsUtils = require('utils/jobs');
 
 module.exports = Em.Route.extend({
   route: '/main',
@@ -138,9 +137,9 @@ module.exports = Em.Route.extend({
       route : '/:job_id',
       connectOutlets : function(router, job) {
         if (job) {
-          jobsUtils.refreshJobDetails(job);
           if (job.get('jobType') === App.JobType.HIVE) {
             router.get('mainController').connectOutlet('mainHiveJobDetails', job);
+            router.get('mainHiveJobDetailsController').loadJobDetails();
           }
         }
       }

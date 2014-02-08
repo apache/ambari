@@ -58,11 +58,14 @@ App.hiveJobMapper = App.QuickDataMapper.create({
           // Vertices
           var vertices = [];
           var vertexIds = [];
+          var vertexIdMap = {};
           for ( var vertexName in stageValue.Tez["Vertices:"]) {
             var vertex = stageValue.Tez["Vertices:"][vertexName];
             var vertexObj = {
               id : dagName + "/" + vertexName,
-              name : vertexName
+              name : vertexName,
+              incoming_edges : [],
+              outgoing_edges : []
             };
             vertexIds.push(vertexObj.id);
             var operatorExtractor = function(obj) {
@@ -90,6 +93,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
               vertexObj.operations = operatorExtractor(vertex["Reduce Operator Tree:"]);
               vertexObj.operation_plan = JSON.stringify(vertex["Reduce Operator Tree:"], undefined, "  ");
             }
+            vertexIdMap[vertexObj.id] = vertexObj;
             vertices.push(vertexObj);
           }
           // Edges
@@ -105,9 +109,11 @@ App.hiveJobMapper = App.QuickDataMapper.create({
               var parentVertex = e.parent;
               var edgeObj = {
                 id : dagName + "/" + parentVertex + "-" + childVertex,
-                from_vertex : dagName + "/" + parentVertex,
-                to_vertex : dagName + "/" + childVertex
+                from_vertex_id : dagName + "/" + parentVertex,
+                to_vertex_id : dagName + "/" + childVertex
               };
+              vertexIdMap[edgeObj.from_vertex_id].outgoing_edges.push(edgeObj.id);
+              vertexIdMap[edgeObj.to_vertex_id].incoming_edges.push(edgeObj.id);
               edgeIds.push(edgeObj.id);
               switch (e.type) {
               case "BROADCAST_EDGE":

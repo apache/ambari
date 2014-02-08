@@ -165,4 +165,21 @@ DS.attr.transforms.object = {
   }
 };
 
-
+/**
+ * Allows EmberData models to have array properties.
+ *
+ * Declare the property as <code>
+ *  operations: DS.attr('array'),
+ * </code> and
+ * during load provide a JSON array for value.
+ *
+ * This transform simply assigns the same array in both directions.
+ */
+DS.attr.transforms.array = {
+  from : function(serialized) {
+    return serialized;
+  },
+  to : function(deserialized) {
+    return deserialized;
+  }
+};

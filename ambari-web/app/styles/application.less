@@ -5432,3 +5432,91 @@ i.icon-asterisks {
     width: 520px;
   }
 }
+
+/***************
+ * Tez DAG section
+ ***************/
+#tez-dag-section {
+  padding-left: 7px;
+  padding-top: 5px;
+}
+#tez-dag-section-body {
+  display: block;
+}
+#tez-dag-section-body-dag {
+  max-height: 800px;
+  overflow-y: auto;
+
+  .heat-0-20 {
+    fill: #ffffff;
+  }
+  .heat-20-40 {
+    fill: #aaaaaa;
+  }
+  .heat-40-60 {
+    fill: #ffff00;
+  }
+  .heat-60-80 {
+    fill: #FFC000;
+  }
+  .heat-80-100 {
+    fill: #ff0000;
+  }
+  .heat-none {
+    fill: #999999;
+  }
+  #tez-dag-svg {
+    .link line {
+      stroke: #696969;
+    }
+    .link line.separator {
+      stroke: #fff;
+      stroke-width: 2px;
+    }
+    text {
+      font-weight: lighter;
+    }
+    .node {
+      .background.map {
+        fill: #fde0dd;
+        stroke: #bbbbbb;
+      }
+      .background.reduce {
+        fill: #DBD4EB;
+        stroke: #bbbbbb;
+      }
+      .background.selected {
+        stroke: #3a87ad;
+      }
+      .background {
+        stroke-width: 6px;
+        fill: #c0c0c0;
+        stroke: #999999;
+        cursor: pointer;
+      }
+      .metric {
+        rect {
+          opacity: 0.6;
+        }
+        text {
+          font-size: 90%;
+        }
+      }
+      .operation {
+        fill: #3F66E8;
+        opacity: 0.5;
+        text {
+          font-size: 80%;
+        }
+      }
+    }
+    .node text {
+      pointer-events: none;
+    }
+    path.link {
+      fill: none;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+  }
+}

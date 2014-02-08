@@ -92,7 +92,7 @@ App.TezDagVertex = DS.Model.extend({
    *
    * Array of strings. [{string}]
    */
-  operations : [],
+  operations : DS.attr('array'),
 
   /**
    * Provides additional information about the 'operations' performed in this

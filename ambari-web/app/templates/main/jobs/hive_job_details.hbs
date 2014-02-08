@@ -23,85 +23,115 @@
     <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
   </div>
 
-  <!-- Sections -->
-  <div class="row-fluid">
-    <div class="span12 sections">
-      <!-- Section LHS -->
-      <div class="span6 sections-lhs">
-      </div>
-
-      <!-- Section RHS -->
-      <div class="span6 sections-rhs">
-
-        <!-- Section RHS Vertices -->
-        <div id="tez-vertices-table-section">
-          <div id="tez-vertices-table-container" class="section">
-            <table class="table table-hover table-bordered table-striped">
-              <thead>
-                <tr>
-                  <th>{{t common.name}}</th>
-                  <th>{{t common.tasks}}</th>
-                  <th>{{t apps.item.dag.input}}</th>
-                  <th>{{t apps.item.dag.output}}</th>
-                  <th>{{t apps.item.dag.duration}}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each vertex in view.content.tezDag.vertices}}
-                  <tr {{bindAttr class="vertex.isSelected:info"}}>
-                    <td>
-                      <a title="{{vertex.name}}" href="#" {{action "doSelectVertex" vertex target="view"}}>{{vertex.name}}</a>
-                    </td>
-                    <td>{{vertex.tasksCount}}</td>
-                    <td>{{vertex.totalReadBytesDisplay}}</td>
-                    <td>{{vertex.totalWriteBytesDisplay}}</td>
-                    <td>{{vertex.durationDisplay}}</td>
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
+  {{#if controller.loaded}}
+    <!-- Sections -->
+    <div class="row-fluid">
+      <div class="span12 sections">
+        <!-- Section LHS -->
+        <div id="tez-dag-lhs" class="span6 sections-lhs">
+          <div id="tez-dag-section" class="box">
+            <div id="tez-dag-section-top-bar"> &nbsp;
+              {{t jobs.hive.tez.dag.summary.metric}}
+              <div class="btn-group  display-inline-block">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                  {{view.summaryMetricTypeDisplay}}
+                  <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                  <!-- dropdown menu links -->
+                  {{#each type in view.summaryMetricTypesDisplay}}
+                    <li>
+                      <a title="{{type}}" href="#" {{action "doSelectSummaryMetricType" type target="view"}}>{{type}}</a>
+                    </li>
+                  {{/each}}
+                </ul>
+              </div>
+            <div id="tez-dag-section-top-bar-actions" class="pull-right">
+            </div>
+            </div>
+            <div id="tez-dag-section-body">
+              {{view App.MainHiveJobDetailsTezDagView controllerBinding="controller" selectedVertexBinding="view.selectedVertex" summaryMetricTypeBinding="view.summaryMetricType"}}
+            </div>
           </div>
         </div>
 
-        <!-- Section RHS Vertex -->
-        {{#if view.selectedVertex}}
-          <div id="section tez-vertex-details-section">
-            <div class="box">
-            <div class="box-header">
-              <h4>{{view.selectedVertex.name}}</h4>
-            </div>
-            <div id="tez-vertex-details-section-body">
-              <table class="table">
-                <tr>
-                  <td>{{t jobs.hive.tez.tasks}}</td>
-                  <td>{{view.selectedVertex.tasksCount}}</td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>{{t jobs.hive.tez.hdfs}}</td>
-                  <td>{{view.selectedVertexIODisplay.hdfs.read.ops}} / {{view.selectedVertexIODisplay.hdfs.read.bytes}}</td>
-                  <td>{{view.selectedVertexIODisplay.hdfs.write.ops}} / {{view.selectedVertexIODisplay.hdfs.write.bytes}}</td>
-                </tr>
-                <tr>
-                  <td>{{t jobs.hive.tez.localFiles}}</td>
-                  <td>{{view.selectedVertexIODisplay.file.read.ops}} / {{view.selectedVertexIODisplay.file.read.bytes}}</td>
-                  <td>{{view.selectedVertexIODisplay.file.write.ops}} / {{view.selectedVertexIODisplay.file.write.bytes}}</td>
-                </tr>
-                <tr>
-                  <td>{{t jobs.hive.tez.records}}</td>
-                  <td>{{view.selectedVertexIODisplay.records.read}}</td>
-                  <td>{{view.selectedVertexIODisplay.records.write}}</td>
-                </tr>
-                  <td>{{t jobs.hive.tez.operatorPlan}}</td>
-                  <td></td>
-                  <td></td>
-                </tr>
+        <!-- Section RHS -->
+        <div id="tez-vertices-rhs" class="span6 sections-rhs">
+
+          <!-- Section RHS Vertices -->
+          <div id="tez-vertices-table-section">
+            <div id="tez-vertices-table-container" class="section">
+              <table class="table table-hover table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th>{{t common.name}}</th>
+                    <th>{{t common.tasks}}</th>
+                    <th>{{t apps.item.dag.input}}</th>
+                    <th>{{t apps.item.dag.output}}</th>
+                    <th>{{t apps.item.dag.duration}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each vertex in view.content.tezDag.vertices}}
+                    <tr {{bindAttr class="vertex.isSelected:info"}}>
+                      <td>
+                        <a title="{{vertex.name}}" href="#" {{action "doSelectVertex" vertex target="view"}}>{{vertex.name}}</a>
+                      </td>
+                      <td>{{vertex.tasksCount}}</td>
+                      <td>{{vertex.totalReadBytesDisplay}}</td>
+                      <td>{{vertex.totalWriteBytesDisplay}}</td>
+                      <td>{{vertex.durationDisplay}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
               </table>
-              {{view Ember.TextArea valueBinding="view.selectedVertex.operationPlan" rows="15"}}
             </div>
           </div>
-        {{/if}}
+
+          <!-- Section RHS Vertex -->
+          {{#if view.selectedVertex}}
+            <div id="section tez-vertex-details-section">
+              <div class="box">
+              <div class="box-header">
+                <h4>{{view.selectedVertex.name}}</h4>
+              </div>
+              <div id="tez-vertex-details-section-body">
+                <table class="table">
+                  <tr>
+                    <td>{{t jobs.hive.tez.tasks}}</td>
+                    <td>{{view.selectedVertex.tasksCount}}</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>{{t jobs.hive.tez.hdfs}}</td>
+                    <td>{{view.selectedVertexIODisplay.hdfs.read.ops}} / {{view.selectedVertexIODisplay.hdfs.read.bytes}}</td>
+                    <td>{{view.selectedVertexIODisplay.hdfs.write.ops}} / {{view.selectedVertexIODisplay.hdfs.write.bytes}}</td>
+                  </tr>
+                  <tr>
+                    <td>{{t jobs.hive.tez.localFiles}}</td>
+                    <td>{{view.selectedVertexIODisplay.file.read.ops}} / {{view.selectedVertexIODisplay.file.read.bytes}}</td>
+                    <td>{{view.selectedVertexIODisplay.file.write.ops}} / {{view.selectedVertexIODisplay.file.write.bytes}}</td>
+                  </tr>
+                  <tr>
+                    <td>{{t jobs.hive.tez.records}}</td>
+                    <td>{{view.selectedVertexIODisplay.records.read}}</td>
+                    <td>{{view.selectedVertexIODisplay.records.write}}</td>
+                  </tr>
+                    <td>{{t jobs.hive.tez.operatorPlan}}</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </table>
+                {{view Ember.TextArea valueBinding="view.selectedVertex.operationPlan" rows="15"}}
+              </div>
+            </div>
+          {{/if}}
+        </div>
       </div>
     </div>
-  </div>
+  {{else}}
+    <div class="alert alert-info">
+      <h4>{{t app.loadingPlaceholder}}</h4>
+    </div>
+  {{/if}}
 </div>

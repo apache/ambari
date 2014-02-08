@@ -59,7 +59,7 @@ module.exports = {
    * checks are ignored if their valid is NaN.
    */
   validateInteger : function(str, min, max) {
-    if (!str || (str + "").trim().length < 1) {
+    if (str==null || str==undefined || (str + "").trim().length < 1) {
       return Em.I18n.t('number.validate.empty');
     } else {
       str = (str + "").trim();

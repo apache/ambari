@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -23,10 +23,20 @@ App.MainHiveJobDetailsView = Em.View.extend({
   templateName : require('templates/main/jobs/hive_job_details'),
 
   selectedVertex : null,
+  content : null,
+  summaryMetricType: 'input',
+  summaryMetricTypesDisplay : [ Em.I18n.t('jobs.hive.tez.metric.input'), Em.I18n.t('jobs.hive.tez.metric.output'), Em.I18n.t('jobs.hive.tez.metric.recordsRead'),
+                                Em.I18n.t('jobs.hive.tez.metric.recordsWrite'), Em.I18n.t('jobs.hive.tez.metric.tezTasks') ],
+  summaryMetricTypeDisplay: function(){
+    return Em.I18n.t('jobs.hive.tez.metric.'+this.get('summaryMetricType'));
+  }.property('summaryMetricType'),
 
-  content : function() {
-    return this.get('controller.content');
-  }.property('controller.content'),
+  initialDataLoaded : function() {
+    var loaded = this.get('controller.loaded');
+    if (loaded) {
+      this.set('content', this.get('controller.content'));
+    }
+  }.observes('controller.loaded'),
 
   jobObserver : function() {
     var content = this.get('content');
@@ -35,7 +45,9 @@ App.MainHiveJobDetailsView = Em.View.extend({
       var vertices = content.get('tezDag.vertices');
       if (vertices) {
         vertices.setEach('isSelected', false);
-        this.doSelectVertex({context:vertices.objectAt(0)});
+        this.doSelectVertex({
+          context : vertices.objectAt(0)
+        });
       }
     }
   }.observes('selectedVertex', 'content.tezDag.vertices.@each.id'),
@@ -48,6 +60,30 @@ App.MainHiveJobDetailsView = Em.View.extend({
     }
     newVertex.set('isSelected', true);
     this.set('selectedVertex', newVertex);
+  },
+
+  doSelectSummaryMetricType: function(event) {
+    var summaryType = event.context;
+    switch (summaryType) {
+    case Em.I18n.t('jobs.hive.tez.metric.input'):
+      summaryType = 'input';
+      break;
+    case Em.I18n.t('jobs.hive.tez.metric.output'):
+      summaryType = 'output';
+      break;
+    case Em.I18n.t('jobs.hive.tez.metric.recordsRead'):
+      summaryType = 'recordsRead';
+      break;
+    case Em.I18n.t('jobs.hive.tez.metric.recordsWrite'):
+      summaryType = 'recordsWrite';
+      break;
+    case Em.I18n.t('jobs.hive.tez.metric.tezTasks'):
+      summaryType = 'tezTasks';
+      break;
+    default:
+      break;
+    }
+    this.set('summaryMetricType', summaryType);
   },
 
   /**

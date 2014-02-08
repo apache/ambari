@@ -23,12 +23,14 @@ module.exports = {
    *
    * @param {App.AbstractJob}
    *          job
+   * @param {Function}
+   *          successCallback
    */
-  refreshJobDetails : function(job) {
+  refreshJobDetails : function(job, successCallback) {
     if (job) {
       switch (job.get('jobType')) {
       case App.JobType.HIVE:
-        this.refreshHiveJobDetails(job);
+        this.refreshHiveJobDetails(job, successCallback);
         break;
       default:
         break;
@@ -41,15 +43,17 @@ module.exports = {
    *
    * @param {App.HiveJob}
    *          hiveJob
+   * @param {Function}
+   *          successCallback
    */
-  refreshHiveJobDetails : function(hiveJob) {
+  refreshHiveJobDetails : function(hiveJob, successCallback) {
     var self = this;
     // TODO - to be changed to history server when implemented in stack.
     var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName')
     var hiveJobId = hiveJob.get('id');
     // First refresh query
-    var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" :
-    App.apiPrefix + "/proxy?url=http://"+historyServerHostName+":8188/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id')+"?fields=otherinfo";
+    var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : App.apiPrefix + "/proxy?url=http://" + historyServerHostName
+        + ":8188/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
@@ -61,7 +65,9 @@ module.exports = {
               if (data && data.entities && data.entities.length > 0) {
                 var dagId = data.entities[0].entity;
                 App.TezDag.find(tezDagName).set('instanceId', dagId);
-                self.refreshTezDagDetails(tezDagName);
+                self.refreshTezDagDetails(tezDagName, successCallback);
+              }else{
+                App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagId.message').format(hiveJobId));
               }
             },
             dagNameToIdError : function(jqXHR, url, method, showStatus) {
@@ -79,9 +85,8 @@ module.exports = {
             error : 'dagNameToIdError'
           });
         } else {
-          // TODO
+          App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDag.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDag.message').format(hiveJobId));
         }
-
       }
     });
   },
@@ -92,8 +97,10 @@ module.exports = {
    *
    * @param {string}
    *          tezDagId ID of the Tez DAG. Example: 'HIVE-Q2:1'
+   * @param {Function}
+   *          successCallback
    */
-  refreshTezDagDetails : function(tezDagId) {
+  refreshTezDagDetails : function(tezDagId, successCallback) {
     var self = this;
     var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName');
     var tezDag = App.TezDag.find(tezDagId);
@@ -102,8 +109,14 @@ module.exports = {
       var sender = {
         loadTezDagSuccess : function(data) {
           if (data && data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
+            var count = data.relatedentities.TEZ_VERTEX_ID.length;
             data.relatedentities.TEZ_VERTEX_ID.forEach(function(v) {
-              self.refreshTezDagVertex(tezDagId, v);
+              self.refreshTezDagVertex(tezDagId, v, function() {
+                if (--count <= 0) {
+                  // all vertices succeeded
+                  successCallback();
+                }
+              });
             });
           }
         },
@@ -121,6 +134,8 @@ module.exports = {
         success : 'loadTezDagSuccess',
         error : 'loadTezDagError'
       });
+    }else{
+      App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.message').format(tezDagId));
     }
   },
 
@@ -132,8 +147,10 @@ module.exports = {
    * @param {string}
    *          tezVertexInstanceID Instance ID of the vertex to refresh. Example
    *          'vertex_1390516007863_0001_1_00'
+   * @param {Function}
+   *          successCallback
    */
-  refreshTezDagVertex : function(tezDagId, tezVertexInstanceId) {
+  refreshTezDagVertex : function(tezDagId, tezVertexInstanceId, successCallback) {
     var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName');
     var sender = {
       loadTezDagVertexSuccess : function(data) {
@@ -155,6 +172,7 @@ module.exports = {
             vertexRecord.set('hdfsWriteBytes', 0);
             vertexRecord.set('recordReadCount', 0);
             vertexRecord.set('recordWriteCount', 0);
+            successCallback();
           }
         }
       },

@@ -16,10 +16,22 @@
  */
 
 var App = require('app');
+var jobsUtils = require('utils/jobs');
 
 App.MainHiveJobDetailsController = Em.Controller.extend({
   name : 'mainHiveJobDetailsController',
   content : null,
+  loaded : false,
+  loadJobDetails : function() {
+    var self = this;
+    this.set('loaded', false);
+    var content = this.get('content');
+    if (content != null) {
+      jobsUtils.refreshJobDetails(content, function() {
+        self.set('loaded', true);
+      });
+    }
+  },
 
   /**
    * path to page visited before
