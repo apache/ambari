@@ -9271,6 +9271,20 @@ public class AmbariManagementControllerTest {
       Assert.assertFalse(sts.getHostName().equals(host1));
     }
     
+    h1.setPassiveState(cluster.getClusterId(), PassiveState.ACTIVE);
+    startService(clusterName, serviceName2, false, false);
+    
+    service2.setPassiveState(PassiveState.PASSIVE);
+    
+    ServiceRequest sr = new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name());
+    rsr = ServiceResourceProviderTest.updateServices(controller,
+        Collections.singleton(sr), requestProperties, false, false);
+    
+    System.out.println(rsr.getTasks());
+    
+    Assert.assertTrue("Service is started, command should create tasks",
+        rsr.getTasks().size() > 0);
+    
   }  
 }
 
