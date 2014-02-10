@@ -35,7 +35,7 @@ class TestServiceCheck(RMFTestCase):
       user = 'ambari-qa',
       conf_dir = '/etc/hadoop/conf',
       security_enabled = False,
-      keytab = 'mockOfUnknownConfiguration',
+      keytab = UnknownConfigurationMock(),
       kinit_path_local = '/usr/bin/kinit',
     )
        

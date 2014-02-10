@@ -66,7 +66,7 @@ class TestNagiosServer(RMFTestCase):
 
 
   def assert_configure_default(self):
-    self.assertResourceCalled('File', '/etc/httpd/conf.d/nagios.conf',
+    self.assertResourceCalled('File', '/etc/apache2/conf.d/nagios.conf',
                               owner='nagios',
                               group='nagios',
                               content=Template("nagios.conf.j2"),

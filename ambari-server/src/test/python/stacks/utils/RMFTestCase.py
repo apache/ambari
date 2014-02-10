@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate"]
+__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate","UnknownConfigurationMock"]
 
 from unittest import TestCase
 import json
@@ -29,7 +29,7 @@ from mock.mock import MagicMock, patch
 from resource_management.core.environment import Environment
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.script import config_dictionary 
+from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 import platform
 
 PATH_TO_STACKS = os.path.normpath("main/resources/stacks/HDP")
@@ -82,8 +82,7 @@ class RMFTestCase(TestCase):
           with patch.object(Script, 'install_packages'):
             with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
               with patch.object(platform, 'linux_distribution', return_value=os_type):
-                with patch.object(config_dictionary, 'UnknownConfiguration', return_value='mockOfUnknownConfiguration'):
-                  method(RMFTestCase.env)
+                method(RMFTestCase.env)
   
   def getConfig(self):
     return self.config_dict
@@ -119,6 +118,8 @@ class RMFTestCase(TestCase):
         # correctly output octal mode numbers
         if k == 'mode' and isinstance( v, int ):
           val = oct(v)
+        elif  isinstance( v, UnknownConfiguration):
+          val = "UnknownConfigurationMock()"
         else:
           val = self._ppformat(v)
           
@@ -155,4 +156,8 @@ def InlineTemplate(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import InlineTemplate
     return InlineTemplate(name, **kwargs)
+  
+class UnknownConfigurationMock():
+  def __eq__(self, other):
+    return isinstance(other, UnknownConfiguration)
 
