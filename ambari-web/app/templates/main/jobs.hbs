@@ -28,10 +28,10 @@
       </div>
     </div>
 
-    <table class="table table-bordered table-striped">
+    <table id="jobs-table" class="table table-bordered table-striped">
         <thead>
 
-        {{#view view.sortView contentBinding="view.filteredContent"}}
+        {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
             {{view view.parentView.idSort}}
             {{view view.parentView.userSort}}
             {{view view.parentView.startTimeSort}}
@@ -39,11 +39,11 @@
             {{view view.parentView.durationSort}}
         {{/view}}
 
-        <tr class="first">
+        <tr id="filter-row" class="first">
             <th>{{view view.jobsIdFilterView}}</th>
             <th>{{view view.userFilterView}}</th>
-            <th>{{view view.startTimeFilterView}}</th>
-            <th>{{view view.endTimeFilterView}}</th>
+            <th class="start-time">{{view view.startTimeFilterView}}</th>
+            <th></th>
             <th></th>
         </tr>
         </thead>
@@ -55,7 +55,7 @@
         {{else}}
           {{#each job in view.pageContent}}
             <tr>
-              <td>
+              <td class="id">
                 <a title="{{unbound job.name}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
               </td>
               <td>

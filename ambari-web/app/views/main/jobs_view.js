@@ -111,7 +111,7 @@ App.MainJobsView = App.TableView.extend({
      * Base methods was implemented in <code>filters.componentFieldView</code>
      */
     filterView: filters.componentFieldView.extend({
-      templateName:require('templates/main/apps/user_filter'),
+      templateName:require('templates/main/jobs/user_filter'),
 
       usersBinding: 'controller.users',
 
@@ -158,19 +158,6 @@ App.MainJobsView = App.TableView.extend({
     fieldType: 'input-medium',
     column: 2,
     content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
-    }
-  }),
-
-  /**
-   * Filter-field for End Time.
-   * Based on <code>filters</code> library
-   */
-  endTimeFilterView: filters.createSelectView({
-    fieldType: 'input-medium',
-    column: 3,
-    content: ['Any'],
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
     }
