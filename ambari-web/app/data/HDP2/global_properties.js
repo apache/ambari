@@ -414,18 +414,18 @@ module.exports =
 //    },
 //    {
 //      "id": "puppet var",
-//      "name": "ats_server_port",
-//      "displayName": "Server port",
-//      "description": "Application Timeline Server port",
-//      "defaultValue": "9292", // @todo add correct value APP_TIMELINE_SERVER.port
+//      "name": "apptimelineserver_heapsize",
+//      "displayName": "AppTimelineServer Java heap size",
+//      "description": "AppTimelineServer Java heap size",
+//      "defaultValue": "1024",
 //      "isOverridable": false,
 //      "displayType": "int",
-//      "isRequiredByAgent": false,
+//      "unit": "MB",
 //      "isVisible": true,
 //      "serviceName": "YARN",
 //      "category": "AppTimelineServer",
 //      "index": 1
-//    },
+//    }
   /**********************************************HBASE***************************************/
     {
       "id": "puppet var",
@@ -1761,32 +1761,33 @@ module.exports =
 // @todo remove after App Timeline service integration
 if (App.supports.appTimelineServer) {
   module.exports.configProperties.push(
-      {
-        "id": "puppet var",
-        "name": "ats_host",
-        "displayName": "App Timeline Server",
-        "description": "Application Timeline Server Host",
-        "defaultValue": "",
-        "isOverridable": false,
-        "displayType": "masterHost",
-        "isRequiredByAgent": false,
-        "isVisible": true,
-        "serviceName": "YARN",
-        "category": "AppTimelineServer",
-        "index": 0
-      },
-      {
-        "id": "puppet var",
-        "name": "ats_server_port",
-        "displayName": "Server port",
-        "description": "Application Timeline Server port",
-        "defaultValue": "9292",
-        "isOverridable": false,
-        "displayType": "int",
-        "isRequiredByAgent": false,
-        "isVisible": true,
-        "serviceName": "YARN",
-        "category": "AppTimelineServer",
-        "index": 1
-      });
+    {
+      "id": "puppet var",
+      "name": "ats_host",
+      "displayName": "App Timeline Server",
+      "description": "Application Timeline Server Host",
+      "defaultValue": "",
+      "isOverridable": false,
+      "displayType": "masterHost",
+      "isRequiredByAgent": false,
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "apptimelineserver_heapsize",
+      "displayName": "AppTimelineServer Java heap size",
+      "description": "AppTimelineServer Java heap size",
+      "defaultValue": "1024",
+      "isOverridable": false,
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "index": 1
+    }
+  );
 }

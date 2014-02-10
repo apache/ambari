@@ -74,6 +74,71 @@ module.exports = Em.Application.create({
   }.property('router.clusterController.isLoaded'),
 
   /**
+   * List of exlcuded components for the current stack.
+   * Setup available versions by 'stackVersions' property.
+   *
+   * For example:
+   *  {
+   *   service_name: 'YARN',
+   *   component_name: 'APP_TIMELINE_SERVER',
+   *   display_name: 'App Timeline Server',
+   *   isMaster: true,
+   *   isClient: false,
+   *   stackVersions: ['2.1.1'], - this component available only for HDP-2.1.1 stack
+   *   description: ''
+   *  }
+   *
+   * @type {Array}
+   */
+  stackDependedComponents: [],
+  /**
+   * Resolve dependency in components. Check forbidden components and
+   * remove related data.
+   */
+  handleStackDependedComponents: function() {
+    var stackVersion, stackDependedComponents;
+    stackVersion = this.get('currentStackVersionNumber');
+    stackDependedComponents = [];
+    require('data/service_components').filterProperty('stackVersions').forEach(function(component) {
+      if (!component.stackVersions.contains(stackVersion))
+        stackDependedComponents.push(component);
+    });
+    if (stackDependedComponents.length > 0) {
+      // start clean info about each component
+      stackDependedComponents.forEach(function(component) {
+        // remove component from service_components list
+        require('data/service_components').removeObject(require('data/service_components').findProperty('component_name', component.component_name));
+        var serviceConfig = require('data/service_configs').findProperty('serviceName', component.service_name);
+        var serviceConfigsCategoryName, requirePrefix, propertyFileNames;
+        propertyFileNames = ['global_properties', 'site_properties'];
+        // remove config category assigned to this component
+        serviceConfig.configCategories = serviceConfig.configCategories.filter(function(configCategory) {
+          if (configCategory.get('hostComponentNames')) {
+            serviceConfigsCategoryName = configCategory.get('name');
+            return !configCategory.get('hostComponentNames').contains(component.component_name);
+          }
+          else
+            return true;
+        });
+        requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
+        // remove config properties related to this component
+        propertyFileNames.forEach(function(propertyFileName) {
+          var properties = require(requirePrefix + propertyFileName);
+          properties.configProperties = properties.configProperties.filter(function(property) {
+            return property.category != serviceConfigsCategoryName;
+          });
+        });
+        // remove component from review configs
+        var reviewConfigsService = require('data/review_configs').findProperty('config_name', 'services').config_value.findProperty('service_name', component.service_name);
+        reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
+          return serviceComponent.get('component_name') != component.component_name;
+        }));
+      }, this);
+    }
+    this.set('stackDependedComponents', stackDependedComponents);
+  }.observes('currentStackVersion'),
+
+  /**
    * List of components with allowed action for them
    * @type {Em.Object}
    */

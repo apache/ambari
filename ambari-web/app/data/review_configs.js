@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
 module.exports = [
 
   {
@@ -127,7 +129,9 @@ module.exports = [
           // @todo uncomment after Application Timeline Server API implementation
 //          Ember.Object.create({
 //            display_name: 'App Timeline Server',
-//            component_value: ''
+//            component_name: 'APP_TIMELINE_SERVER',
+//            component_value: '',
+//            isMaster: true
 //          })
         ]
       }),
@@ -339,7 +343,9 @@ if (App.supports.appTimelineServer) {
   yarnServiceComponents.push(
     Ember.Object.create({
       display_name: 'App Timeline Server',
-      component_value: ''
+      component_name: "APP_TIMELINE_SERVER",
+      component_value: '',
+      isMaster: true
     })
   )
 }

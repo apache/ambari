@@ -1499,7 +1499,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @return {Object}
    */
   createGlobalSiteObj: function (tagName, globalConfigs) {
-    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize'];
+    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize'];
     var globalSiteProperties = {};
     globalConfigs.forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts
@@ -1676,6 +1676,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         break;
       case 'YARN':
         var resourceManagerHost = serviceConfigs.findProperty('name', 'rm_host');
+        var ATSHost = this.getMasterComponentHostValue('APP_TIMELINE_SERVER');
+        if (ATSHost) {
+          var ATSProperty = serviceConfigs.findProperty('name', 'ats_host');
+          ATSProperty.defaultValue = ATSHost
+          globalConfigs.push(ATSProperty);
+        }
         resourceManagerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
         globalConfigs.push(resourceManagerHost);
         //yarn.log.server.url config dependent on HistoryServer host
@@ -1750,7 +1756,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   getMasterComponentHostValue: function(componentName) {
-    return this.get('content.hostComponents').findProperty('componentName', componentName).get('host.hostName')
+    var component = this.get('content.hostComponents').findProperty('componentName', componentName);
+    return component ? component.get('host.hostName') : false;
   },
   /**
    * Provides service component name and display-name information for

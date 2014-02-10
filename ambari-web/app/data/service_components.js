@@ -131,6 +131,7 @@ module.exports = new Ember.Set([
 //    display_name: 'App Timeline Server',
 //    isMaster: true,
 //    isClient: false,
+//    stackVersions: ['2.1.1'],
 //    description: ''
 //  },
   {
@@ -407,6 +408,7 @@ if (App.supports.appTimelineServer) {
     display_name: 'App Timeline Server',
     isMaster: true,
     isClient: false,
+    stackVersions: ['2.1.1'],
     description: ''
   };
   module.exports.push(appTimelineServerObj);
