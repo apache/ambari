@@ -23,19 +23,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RootServiceComponentRequest;
 import org.apache.ambari.server.controller.RootServiceComponentResponse;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class RootServiceComponentResourceProvider extends
@@ -52,6 +52,9 @@ public class RootServiceComponentResourceProvider extends
   
   public static final String PROPERTIES_PROPERTY_ID = PropertyHelper
       .getPropertyId("RootServiceComponents", "properties");
+  
+  public static final String PROPERTIES_SERVER_CLOCK = PropertyHelper
+      .getPropertyId("RootServiceComponents", "server_clock");
   
   private Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { SERVICE_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID }));
@@ -102,6 +105,11 @@ public class RootServiceComponentResourceProvider extends
       
       setResourceProperty(resource, COMPONENT_VERSION_PROPERTY_ID,
           response.getComponentVersion(), requestedIds);
+      
+      if(response.getComponentName().equals(Components.AMBARI_SERVER.name())){
+        setResourceProperty(resource, PROPERTIES_SERVER_CLOCK,
+            System.currentTimeMillis() / 1000L, requestedIds);
+      }      
 
       resources.add(resource);
     }

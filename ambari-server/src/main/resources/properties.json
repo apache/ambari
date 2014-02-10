@@ -293,7 +293,8 @@
         "RootServiceComponents/service_name",
         "RootServiceComponents/component_name",
         "RootServiceComponents/properties",
-        "RootServiceComponents/component_version"
+        "RootServiceComponents/component_version",
+        "RootServiceComponents/server_clock"
     ],
     "RootServiceHostComponent":[
         "RootServiceHostComponents/service_name",

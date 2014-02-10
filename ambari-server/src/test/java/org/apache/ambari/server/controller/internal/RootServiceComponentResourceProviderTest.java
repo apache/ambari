@@ -18,18 +18,13 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RootServiceComponentRequest;
 import org.apache.ambari.server.controller.RootServiceComponentResponse;
+import org.apache.ambari.server.controller.RootServiceResponseFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -37,6 +32,10 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.easymock.EasyMock;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,6 +51,7 @@ public class RootServiceComponentResourceProviderTest {
     allResponse.add(new RootServiceComponentResponse("component1", "1.1.1", Collections.<String,String>emptyMap()));
     allResponse.add(new RootServiceComponentResponse("component2", "1.1.1", Collections.<String,String>emptyMap()));
     allResponse.add(new RootServiceComponentResponse("component3", "1.1.1", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceComponentResponse(RootServiceResponseFactory.Components.AMBARI_SERVER.name(), "1.1.1", Collections.<String,String>emptyMap()));
 
     Set<RootServiceComponentResponse> nameResponse = new HashSet<RootServiceComponentResponse>();
     nameResponse.add(new RootServiceComponentResponse("component4", "1.1.1", Collections.<String,String>emptyMap()));
@@ -75,6 +75,7 @@ public class RootServiceComponentResourceProviderTest {
     propertyIds.add(RootServiceComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceComponentResourceProvider.PROPERTIES_PROPERTY_ID);
     propertyIds.add(RootServiceComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
+    propertyIds.add(RootServiceComponentResourceProvider.PROPERTIES_SERVER_CLOCK);
 
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -86,6 +87,13 @@ public class RootServiceComponentResourceProviderTest {
     for (Resource resource : resources) {
       String componentName = (String) resource.getPropertyValue(RootServiceComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
       String componentVersion = (String) resource.getPropertyValue(RootServiceComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
+      Long server_clock = (Long) resource.getPropertyValue(RootServiceComponentResourceProvider.PROPERTIES_SERVER_CLOCK);
+      if (componentName.equals(RootServiceResponseFactory.Components.AMBARI_SERVER.name())){
+        Assert.assertNotNull(server_clock);
+      } else {
+        Assert.assertNull(server_clock);
+      }
+      
       Assert.assertTrue(allResponse.contains(new RootServiceComponentResponse(componentName, componentVersion, Collections.<String,String>emptyMap())));
     }
 
