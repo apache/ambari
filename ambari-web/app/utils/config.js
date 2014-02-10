@@ -43,7 +43,7 @@ App.config = Em.Object.create({
     "&apos;": "'"
   },
   
-  CONFIG_GROUP_NAME_MAX_LENGTH: 40,
+  CONFIG_GROUP_NAME_MAX_LENGTH: 18,
 
   /**
    * filename exceptions used to support substandard sitenames which don't have "xml" extension
