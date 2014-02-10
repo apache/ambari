@@ -29,7 +29,9 @@
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/datanode.py",
-        "excluded_hosts": "host1,host2"
+        "excluded_hosts": "host1,host2",
+        "mark_draining_only" : "false",
+        "update_exclude_file_only" : "false"
     }, 
     "taskId": 18, 
     "public_hostname": "c6402.ambari.apache.org", 

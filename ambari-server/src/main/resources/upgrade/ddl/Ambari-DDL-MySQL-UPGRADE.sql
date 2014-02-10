@@ -83,6 +83,8 @@ create index idx_qrtz_ft_tg on QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
 ALTER TABLE hostcomponentdesiredstate ADD passive_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE';
 ALTER TABLE servicedesiredstate ADD passive_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE';
 ALTER TABLE hoststate ADD passive_state VARCHAR(512);
+ALTER TABLE host_role_command ADD command_detail VARCHAR(255);
+ALTER TABLE host_role_command ADD custom_command_name VARCHAR(255);
 
 -- blueprint related tables
 CREATE TABLE blueprint (blueprint_name VARCHAR(255) NOT NULL, stack_name VARCHAR(255) NOT NULL, stack_version VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name));

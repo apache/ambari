@@ -27,17 +27,20 @@ public class ShortTaskStatus {
   protected String role;
   protected String command;
   protected String status;
+  protected String customCommandName;
 
   public ShortTaskStatus() {
   }
 
-  public ShortTaskStatus(int taskId, long stageId, String hostName, String role, String command, String status) {
+  public ShortTaskStatus(int taskId, long stageId, String hostName, String role, String command, String status,
+                         String customCommandName) {
     this.taskId = taskId;
     this.stageId = stageId;
     this.hostName = hostName;
     this.role = role;
     this.command = command;
     this.status = status;
+    this.customCommandName = customCommandName;
   }
 
   public ShortTaskStatus(HostRoleCommand hostRoleCommand) {
@@ -47,6 +50,15 @@ public class ShortTaskStatus {
     this.hostName = hostRoleCommand.getHostName();
     this.role = hostRoleCommand.getRole().toString();
     this.status = hostRoleCommand.getStatus().toString();
+    this.customCommandName = hostRoleCommand.getCustomCommandName();
+  }
+
+  public String getCustomCommandName() {
+    return customCommandName;
+  }
+
+  public void setCustomCommandName(String customCommandName) {
+    this.customCommandName = customCommandName;
   }
 
   public long getTaskId() {

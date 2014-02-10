@@ -102,9 +102,10 @@ class Resourcemanager(Script):
          group=user_group
     )
 
-    Execute(yarn_refresh_cmd,
-            user=yarn_user
-    )
+    if params.update_exclude_file_only == False:
+      Execute(yarn_refresh_cmd,
+            user=yarn_user)
+      pass
     pass
 
 

@@ -63,6 +63,7 @@ def namenode(action=None, format=True):
   if action == "decommission":
     decommission()
 
+
 def create_name_dirs(directories):
   import params
 
@@ -137,6 +138,7 @@ def create_app_directories():
                      mode="755"
       )
 
+
 def create_user_directories():
   import params
 
@@ -206,7 +208,10 @@ def decommission():
        group=user_group
   )
 
-  ExecuteHadoop('dfsadmin -refreshNodes',
-                user=hdfs_user,
-                conf_dir=conf_dir,
-                kinit_override=True)
+  if params.update_exclude_file_only == False:
+    ExecuteHadoop('dfsadmin -refreshNodes',
+                  user=hdfs_user,
+                  conf_dir=conf_dir,
+                  kinit_override=True)
+    pass
+  pass

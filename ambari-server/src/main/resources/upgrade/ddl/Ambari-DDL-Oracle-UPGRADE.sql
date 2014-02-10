@@ -70,6 +70,8 @@ ALTER TABLE hosts DROP COLUMN disks_info;
 --Added end_time and structured output support to command execution result
 ALTER TABLE host_role_command ADD (end_time NUMBER(19) DEFAULT NULL);
 ALTER TABLE host_role_command ADD (structured_out BLOB DEFAULT NULL);
+ALTER TABLE host_role_command ADD (command_detail VARCHAR(255) DEFAULT NULL);
+ALTER TABLE host_role_command ADD (custom_command_name VARCHAR(255) DEFAULT NULL);
 
 --1.5.0 upgrade
 CREATE TABLE request (request_id NUMBER(19) NOT NULL, cluster_id NUMBER(19), request_schedule_id NUMBER(19), command_name VARCHAR(255), create_time NUMBER(19) NOT NULL, end_time NUMBER(19) NOT NULL, inputs CLOB, request_context VARCHAR(255), request_type VARCHAR(255), start_time NUMBER(19) NOT NULL, status VARCHAR(255), target_component VARCHAR(255), target_hosts CLOB, target_service VARCHAR(255), PRIMARY KEY (request_id))

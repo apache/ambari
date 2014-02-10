@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.Role;
@@ -28,8 +29,6 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Injector;
-
 /**
  * This class encapsulates the information for an task on a host for a
  * particular role which action manager needs. It doesn't capture actual
@@ -38,30 +37,29 @@ import com.google.inject.Injector;
  */
 public class HostRoleCommand {
   private static final Logger log = LoggerFactory.getLogger(HostRoleCommand.class);
-
+  private final Role role;
+  private final ServiceComponentHostEventWrapper event;
   private long taskId = -1;
   private long stageId = -1;
   private long requestId = -1;
   private String hostName;
-  private final Role role;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
   private String structuredOut = "";
   private int exitCode = 999; //Default is unknown
-  private final ServiceComponentHostEventWrapper event;
   private long startTime = -1;
   private long endTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
   private RoleCommand roleCommand;
-
+  private String commandDetail;
+  private String customCommandName;
   private ExecutionCommandWrapper executionCommandWrapper;
-
   private ExecutionCommandDAO executionCommandDAO;
 
   public HostRoleCommand(String host, Role role,
-      ServiceComponentHostEvent event, RoleCommand command) {
+                         ServiceComponentHostEvent event, RoleCommand command) {
     this.hostName = host;
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
@@ -86,6 +84,8 @@ public class HostRoleCommand {
     attemptCount = hostRoleCommandEntity.getAttemptCount();
     roleCommand = hostRoleCommandEntity.getRoleCommand();
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
+    commandDetail = hostRoleCommandEntity.getCommandDetail();
+    customCommandName = hostRoleCommandEntity.getCustomCommandName();
     //make use of lazy loading
 
     executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
@@ -105,6 +105,8 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
     hostRoleCommandEntity.setRoleCommand(roleCommand);
+    hostRoleCommandEntity.setCommandDetail(commandDetail);
+    hostRoleCommandEntity.setCustomCommandName(customCommandName);
 
     hostRoleCommandEntity.setEvent(event.getEventJson());
 
@@ -139,16 +141,32 @@ public class HostRoleCommand {
     return role;
   }
 
+  public String getCommandDetail() {
+    return commandDetail;
+  }
+
+  public void setCommandDetail(String commandDetail) {
+    this.commandDetail = commandDetail;
+  }
+
+  public String getCustomCommandName() {
+    return customCommandName;
+  }
+
+  public void setCustomCommandName(String customCommandName) {
+    this.customCommandName = customCommandName;
+  }
+
   public HostRoleStatus getStatus() {
     return status;
   }
 
-  public ServiceComponentHostEventWrapper getEvent() {
-    return event;
-  }
-
   public void setStatus(HostRoleStatus status) {
     this.status = status;
+  }
+
+  public ServiceComponentHostEventWrapper getEvent() {
+    return event;
   }
 
   public String getStdout() {

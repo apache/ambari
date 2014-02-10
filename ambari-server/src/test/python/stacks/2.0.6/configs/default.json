@@ -25,7 +25,8 @@
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/service_check.py",
-        "excluded_hosts": "host1,host2"
+        "excluded_hosts": "host1,host2",
+        "mark_draining_only" : "false"
     },
     "taskId": 152, 
     "public_hostname": "c6401.ambari.apache.org", 

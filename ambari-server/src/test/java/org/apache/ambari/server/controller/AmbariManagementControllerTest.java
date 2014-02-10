@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -2323,6 +2324,8 @@ public class AmbariManagementControllerTest {
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host2, null);
     createServiceComponentHost(clusterName, serviceName, componentName2,
         host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2,
@@ -2361,6 +2364,11 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
     HostRoleCommand command = storedTasks.get(0);
+    Assert.assertTrue("DECOMMISSION, Excluded: h2".equals(command.getCommandDetail()));
+    Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
+    Map<String, String> cmdParams = command.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+    Assert.assertTrue(cmdParams.containsKey("mark_draining_only"));
+    Assert.assertEquals("false", cmdParams.get("mark_draining_only"));
     Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Map<String, Set<String>> cInfo = execCmd.getClusterHostInfo();
@@ -2394,6 +2402,44 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
     cInfo = execCmd.getClusterHostInfo();
     Assert.assertTrue(cInfo.containsKey("decom_hbase_rs_hosts"));
+    command = storedTasks.get(0);
+    Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+    Assert.assertTrue("DECOMMISSION, Excluded: h2".equals(command.getCommandDetail()));
+    Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
+    cmdParams = command.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+    Assert.assertTrue(cmdParams.containsKey("mark_draining_only"));
+    Assert.assertEquals("true", cmdParams.get("mark_draining_only"));
+
+    //Recommission
+    params = new HashMap<String, String>() {{
+      put("included_hosts", "h2");
+    }};
+    request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HBASE", "HBASE_MASTER",
+        null, params);
+
+    response = controller.createAction(request,
+        requestProperties);
+
+    storedTasks = actionDB.getRequestTasks(response.getRequestId());
+    execCmd = storedTasks.get(0).getExecutionCommandWrapper
+        ().getExecutionCommand();
+    Assert.assertNotNull(storedTasks);
+    Assert.assertEquals(1, storedTasks.size());
+    Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
+    Assert.assertEquals(PassiveState.ACTIVE, scHost.getPassiveState());
+    command = storedTasks.get(0);
+    Assert.assertTrue("DECOMMISSION, Included: h2".equals(command.getCommandDetail()));
+    Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
+    cmdParams = command.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+    Assert.assertTrue(cmdParams.containsKey("mark_draining_only"));
+    Assert.assertEquals("false", cmdParams.get("mark_draining_only"));
+
+    Assert.assertTrue(cmdParams.containsKey("excluded_hosts"));
+    Assert.assertEquals("", cmdParams.get("excluded_hosts"));
+    Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
+    Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
+    cInfo = execCmd.getClusterHostInfo();
+    Assert.assertFalse(cInfo.containsKey("decom_hbase_rs_hosts"));
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
   }
 
@@ -4103,6 +4149,9 @@ public class AmbariManagementControllerTest {
 
     assertEquals(1, storedTasks.size());
     HostRoleCommand hostRoleCommand = storedTasks.get(0);
+
+    assertEquals("SERVICE_CHECK HDFS", hostRoleCommand.getCommandDetail());
+    assertNull(hostRoleCommand.getCustomCommandName());
 
     assertEquals(task.getTaskId(), hostRoleCommand.getTaskId());
     assertEquals(actionRequest.getServiceName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getServiceName());
@@ -5853,6 +5902,9 @@ public class AmbariManagementControllerTest {
     storedTasks = actionDB.getRequestTasks(response.getRequestId());
     execCmd = storedTasks.get(0).getExecutionCommandWrapper
         ().getExecutionCommand();
+    Map<String, String> cmdParams = execCmd.getCommandParams();
+    Assert.assertTrue(cmdParams.containsKey("update_exclude_file_only"));
+    Assert.assertTrue(cmdParams.get("update_exclude_file_only").equals("false"));
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
@@ -5862,7 +5914,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("0,1", cInfo.get("decom_dn_hosts").iterator().next());
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
 
-    // Recommission the other datanode  (while adding NN HA)
+    // Recommission the other datanode  (while adding NameNode HA)
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host2, null);
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName, serviceName,
@@ -5898,6 +5950,17 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(2, storedTasks.size());
     cInfo = execCmd.getClusterHostInfo();
     Assert.assertFalse(cInfo.containsKey("decom_dn_hosts"));
+    int countRefresh = 0;
+    for(HostRoleCommand hrc : storedTasks) {
+      Assert.assertTrue("DECOMMISSION, Included: h1,h2".equals(hrc.getCommandDetail()));
+      Assert.assertTrue("DECOMMISSION".equals(hrc.getCustomCommandName()));
+      cmdParams = hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+      if(!cmdParams.containsKey("update_exclude_file_only")
+          || !cmdParams.get("update_exclude_file_only").equals("true")) {
+        countRefresh++;
+      }
+    }
+    Assert.assertEquals(2, countRefresh);
 
     // Slave components will have admin state as INSERVICE even if the state in DB is null
     scHost.setComponentAdminState(null);

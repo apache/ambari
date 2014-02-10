@@ -29,8 +29,10 @@
         "script_type": "PYTHON", 
         "schema_version": "2.0", 
         "script": "scripts/mysql_server.py",
-        "excluded_hosts": "host1"
-    }, 
+        "excluded_hosts": "host1",
+        "mark_draining_only" : "false",
+        "update_exclude_file_only" : "false"
+    },
     "taskId": 117, 
     "public_hostname": "c6402.ambari.apache.org", 
     "configurations": {

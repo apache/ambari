@@ -443,7 +443,7 @@ public class Stage {
         origStage.getHostRoleCommand(hostname, role));
   }
 
-  HostRoleCommand getHostRoleCommand(String hostname, String role) {
+  public HostRoleCommand getHostRoleCommand(String hostname, String role) {
     return hostRoleCommands.get(hostname).get(role);
   }
 

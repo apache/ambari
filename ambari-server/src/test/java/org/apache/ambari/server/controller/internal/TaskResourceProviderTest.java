@@ -94,7 +94,8 @@ public class TaskResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<TaskStatusResponse> allResponse = new HashSet<TaskStatusResponse>();
-    allResponse.add(new TaskStatusResponse(100L, 100, 100L, "HostName100", "", "", "", 0, "", "", 0L, (short) 0));
+    allResponse.add(new TaskStatusResponse(100L, 100, 100L, "HostName100", "", "", "", 0, "", "", 0L, (short) 0,
+        "commandDetail", "customCommandName"));
 
     // set expectations
     expect(managementController.getTaskStatus(AbstractResourceProviderTest.Matcher.getTaskRequestSet(100L, 100L))).
@@ -113,6 +114,7 @@ public class TaskResourceProviderTest {
 
     propertyIds.add(TaskResourceProvider.TASK_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID);
+    propertyIds.add(TaskResourceProvider.TASK_COMMAND_DET_PROPERTY_ID);
 
     Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("100").
                           and().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
@@ -123,6 +125,10 @@ public class TaskResourceProviderTest {
     for (Resource resource : resources) {
       long taskId = (Long) resource.getPropertyValue(TaskResourceProvider.TASK_ID_PROPERTY_ID);
       Assert.assertEquals(100L, taskId);
+      Assert.assertEquals(null, resource.getPropertyValue(TaskResourceProvider
+          .TASK_CUST_CMD_NAME_PROPERTY_ID));
+      Assert.assertEquals("commandDetail", resource.getPropertyValue(TaskResourceProvider
+          .TASK_COMMAND_DET_PROPERTY_ID));
     }
 
     // verify

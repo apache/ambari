@@ -144,6 +144,8 @@
         "Tasks/end_time",
         "Tasks/structured_out",
         "Tasks/attempt_cnt",
+        "Tasks/custom_command_name",
+        "Tasks/command_detail",
         "_"
     ],
     "User":[

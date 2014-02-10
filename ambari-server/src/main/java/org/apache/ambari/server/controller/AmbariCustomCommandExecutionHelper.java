@@ -24,6 +24,7 @@ import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -54,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -106,6 +108,7 @@ public class AmbariCustomCommandExecutionHelper {
   private static String DECOM_EXCLUDED_HOSTS = "excluded_hosts";
   private static String DECOM_SLAVE_COMPONENT = "slave_type";
   private static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
+  private static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
   @Inject
   private ActionMetadata actionMetadata;
   @Inject
@@ -197,15 +200,29 @@ public class AmbariCustomCommandExecutionHelper {
     } else if (actionRequest.getCommandName().equals("DECOMMISSION")) {
       addDecommissionAction(actionRequest, stage, hostLevelParams);
     } else if (isValidCustomCommand(actionRequest)) {
-      addCustomCommandAction(actionRequest, stage, hostLevelParams, null);
+      String commandDetail = getReadableCustomCommandDetail(actionRequest);
+      addCustomCommandAction(actionRequest, stage, hostLevelParams, null, commandDetail);
     } else {
       throw new AmbariException("Unsupported action " + actionRequest.getCommandName());
     }
   }
 
+  private String getReadableCustomCommandDetail(ExecuteActionRequest actionRequest) {
+    StringBuffer sb = new StringBuffer();
+    sb.append(actionRequest.getCommandName());
+    if (actionRequest.getServiceName() != null && !actionRequest.getServiceName().equals("")) {
+      sb.append(" for " + actionRequest.getServiceName());
+    }
+    if (actionRequest.getComponentName() != null && !actionRequest.getComponentName().equals("")) {
+      sb.append("/" + actionRequest.getComponentName());
+    }
+    return sb.toString();
+  }
+
   private void addCustomCommandAction(ExecuteActionRequest actionRequest,
                                       Stage stage, Map<String, String> hostLevelParams,
-                                      Map<String, String> additionalCommandParams)
+                                      Map<String, String> additionalCommandParams,
+                                      String commandDetail)
       throws AmbariException {
 
     if (actionRequest.getHosts().isEmpty()) {
@@ -224,7 +241,7 @@ public class AmbariCustomCommandExecutionHelper {
         ambariMetaInfo.getServiceInfo(stackId.getStackName(),
             stackId.getStackVersion(), serviceName);
     StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-            stackId.getStackVersion());
+        stackId.getStackVersion());
 
     long nowTimestamp = System.currentTimeMillis();
 
@@ -239,6 +256,12 @@ public class AmbariCustomCommandExecutionHelper {
           new TreeMap<String, Map<String, String>>();
       Map<String, Map<String, String>> configTags =
           amc.findConfigurationTagsWithOverrides(cluster, hostName);
+
+      HostRoleCommand cmd = stage.getHostRoleCommand(hostName, componentName);
+      if (cmd != null) {
+        cmd.setCommandDetail(commandDetail);
+        cmd.setCustomCommandName(actionRequest.getCommandName());
+      }
 
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
           componentName).getExecutionCommand();
@@ -278,7 +301,7 @@ public class AmbariCustomCommandExecutionHelper {
         } else {
           String message = String.format("Component %s has not command script " +
               "defined. It is not possible to send command for " +
-                  "this service", componentName);
+              "this service", componentName);
           throw new AmbariException(message);
         }
         // We don't need package/repo information to perform service check
@@ -366,7 +389,7 @@ public class AmbariCustomCommandExecutionHelper {
         ambariMetaInfo.getServiceInfo(stackId.getStackName(),
             stackId.getStackVersion(), serviceName);
     StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-            stackId.getStackVersion());
+        stackId.getStackVersion());
 
 
     stage.addHostRoleExecutionCommand(hostname,
@@ -375,6 +398,10 @@ public class AmbariCustomCommandExecutionHelper {
         new ServiceComponentHostOpInProgressEvent(componentName, hostname,
             nowTimestamp), cluster.getClusterName(), serviceName);
 
+    HostRoleCommand hrc = stage.getHostRoleCommand(hostname, smokeTestRole);
+    if (hrc != null) {
+      hrc.setCommandDetail(String.format("%s %s", RoleCommand.SERVICE_CHECK.toString(), serviceName));
+    }
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations =
         new TreeMap<String, Map<String, String>>();
@@ -533,29 +560,66 @@ public class AmbariCustomCommandExecutionHelper {
       }
     }
 
-    Set<String> masterHosts = masterComponent.getServiceComponentHosts().keySet();
-    ExecuteActionRequest commandRequest = new ExecuteActionRequest(
-        request.getClusterName(), request.getCommandName(), request.getActionName(), request.getServiceName(),
-        masterComponent.getName(), new ArrayList<String>(masterHosts), null);
+    // In the event there are more than one master host the following logic is applied
+    // -- HDFS/DN, MR1/TT, YARN/NM call refresh node on both
+    // -- HBASE/RS call only on one host
 
-    String clusterHostInfoJson = StageUtils.getGson().toJson(
-        StageUtils.getClusterHostInfo(clusters.getHostsForCluster(cluster.getClusterName()), cluster));
-
-    // Reset cluster host info as it has changed
-    stage.setClusterHostInfo(clusterHostInfoJson);
-
-    Map<String, String> commandParams = null;
-    if (serviceName.equals(Service.Type.HBASE.name()) && listOfExcludedHosts.size() > 0) {
-      commandParams = new HashMap<String, String>();
-      commandParams.put(DECOM_EXCLUDED_HOSTS, StringUtils.join(listOfExcludedHosts, ','));
-      if (isDrainOnlyRequest != null) {
-        if (isDrainOnlyRequest.equals("true") || isDrainOnlyRequest.equals("false")) {
-          commandParams.put(HBASE_MARK_DRAINING_ONLY, isDrainOnlyRequest);
+    // Ensure host is active
+    Map<String, ServiceComponentHost> masterSchs = masterComponent.getServiceComponentHosts();
+    String primaryCandidate = null;
+    for (String hostName : masterSchs.keySet()) {
+      if (primaryCandidate == null) {
+        primaryCandidate = hostName;
+      } else {
+        ServiceComponentHost sch = masterSchs.get(hostName);
+        if (sch.getState() == State.STARTED) {
+          primaryCandidate = hostName;
         }
       }
     }
 
-    addCustomCommandAction(commandRequest, stage, hostLevelParams, commandParams);
+    StringBuilder commandDetail = getReadableDecommissionCommandDetail(request, includedHosts, listOfExcludedHosts);
+
+    for (String hostName : masterSchs.keySet()) {
+      ExecuteActionRequest commandRequest = new ExecuteActionRequest(
+          request.getClusterName(), request.getCommandName(), request.getActionName(), request.getServiceName(),
+          masterComponent.getName(), Collections.singletonList(hostName), null);
+
+      String clusterHostInfoJson = StageUtils.getGson().toJson(
+          StageUtils.getClusterHostInfo(clusters.getHostsForCluster(cluster.getClusterName()), cluster));
+
+      // Reset cluster host info as it has changed
+      stage.setClusterHostInfo(clusterHostInfoJson);
+
+      Map<String, String> commandParams = new HashMap<String, String>();
+      if (serviceName.equals(Service.Type.HBASE.name())) {
+        commandParams.put(DECOM_EXCLUDED_HOSTS, StringUtils.join(listOfExcludedHosts, ','));
+        if ((isDrainOnlyRequest != null) && isDrainOnlyRequest.equals("true")) {
+          commandParams.put(HBASE_MARK_DRAINING_ONLY, isDrainOnlyRequest);
+        } else {
+          commandParams.put(HBASE_MARK_DRAINING_ONLY, "false");
+        }
+      }
+
+      if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
+        commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
+        addCustomCommandAction(commandRequest, stage, hostLevelParams, commandParams, commandDetail.toString());
+      }
+    }
+  }
+
+  private StringBuilder getReadableDecommissionCommandDetail(ExecuteActionRequest request,
+                                                             Set<String> includedHosts,
+                                                             List<String> listOfExcludedHosts) {
+    StringBuilder commandDetail = new StringBuilder();
+    commandDetail.append(request.getCommandName());
+    if (listOfExcludedHosts.size() > 0) {
+      commandDetail.append(", Excluded: ").append(StringUtils.join(listOfExcludedHosts, ','));
+    }
+    if (includedHosts.size() > 0) {
+      commandDetail.append(", Included: ").append(StringUtils.join(includedHosts, ','));
+    }
+    return commandDetail;
   }
 
   /**
@@ -585,7 +649,7 @@ public class AmbariCustomCommandExecutionHelper {
         stackId.getStackName(), stackId.getStackVersion(),
         serviceName, componentName);
     StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-            stackId.getStackVersion());
+        stackId.getStackVersion());
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
         scHost.getServiceComponentName()).getExecutionCommand();
@@ -612,7 +676,7 @@ public class AmbariCustomCommandExecutionHelper {
      * component main commandScript to agent. This script is only used for
      * default commads like INSTALL/STOP/START/CONFIGURE
      */
-    String commandTimeout =configs.getDefaultAgentTaskTimeout();
+    String commandTimeout = configs.getDefaultAgentTaskTimeout();
     CommandScriptDefinition script = componentInfo.getCommandScript();
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       if (script != null) {

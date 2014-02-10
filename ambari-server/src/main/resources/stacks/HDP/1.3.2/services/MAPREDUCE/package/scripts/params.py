@@ -41,6 +41,7 @@ user_group = config['configurations']['global']['user_group']
 hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
 mapred_log_dir = format("{hdfs_log_dir_prefix}/{mapred_user}")
 mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
+update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
 hadoop_jar_location = "/usr/lib/hadoop/"
 smokeuser = config['configurations']['global']['smokeuser']

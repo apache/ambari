@@ -158,6 +158,8 @@ ALTER TABLE ambari.hosts DROP COLUMN disks_info;
 --Added end_time and structured output support to command execution result
 ALTER TABLE ambari.host_role_command ADD COLUMN end_time BIGINT;
 ALTER TABLE ambari.host_role_command ADD COLUMN structured_out BYTEA;
+ALTER TABLE ambari.host_role_command ADD COLUMN command_detail VARCHAR(255);
+ALTER TABLE ambari.host_role_command ADD COLUMN custom_command_name VARCHAR(255);
 
 --1.5.0 upgrade
 

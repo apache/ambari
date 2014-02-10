@@ -60,6 +60,8 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected static final String TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "start_time");
   protected static final String TASK_END_TIME_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "end_time");
   protected static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
+  protected static final String TASK_COMMAND_DET_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "command_detail");
+  protected static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
 
 
   private static Set<String> pkPropertyIds =
@@ -147,6 +149,15 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
         setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, response.getEndTime(), requestedIds);
         setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
+        if (response.getCustomCommandName() != null) {
+          setResourceProperty(resource, TASK_CUST_CMD_NAME_PROPERTY_ID, response.getCustomCommandName(), requestedIds);
+        }
+        if (response.getCommandDetail() == null) {
+          setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID,
+              String.format("%s %s", response.getRole(), response.getCommand()), requestedIds);
+        } else {
+          setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID, response.getCommandDetail(), requestedIds);
+        }
         resources.add(resource);
       }
     }

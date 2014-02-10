@@ -73,10 +73,12 @@ class Jobtracker(Script):
          group=user_group
     )
 
-    ExecuteHadoop('mradmin -refreshNodes',
-                user=mapred_user,
-                conf_dir=conf_dir,
-                kinit_override=True)
+    if params.update_exclude_file_only == False:
+      ExecuteHadoop('mradmin -refreshNodes',
+                  user=mapred_user,
+                  conf_dir=conf_dir,
+                  kinit_override=True)
+      pass
     pass
 
 if __name__ == "__main__":

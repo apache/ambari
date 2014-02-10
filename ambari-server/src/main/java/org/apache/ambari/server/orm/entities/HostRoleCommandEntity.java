@@ -56,6 +56,8 @@ import org.apache.commons.lang.ArrayUtils;
 
 public class HostRoleCommandEntity {
 
+  private static int MAX_COMMAND_DETAIL_LENGTH = 250;
+
   @Column(name = "task_id")
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "host_role_command_id_generator")
@@ -120,9 +122,20 @@ public class HostRoleCommandEntity {
   @Column(name = "attempt_count", nullable = false)
   private Short attemptCount = 0;
 
+  // This is really command type as well as name
   @Column(name = "role_command")
   @Enumerated(EnumType.STRING)
   private RoleCommand roleCommand;
+
+  // A readable description of the command
+  @Column(name = "command_detail")
+  @Basic
+  private String commandDetail;
+
+  // When command type id CUSTOM_COMMAND and CUSTOM_ACTION this is the name
+  @Column(name = "custom_command_name")
+  @Basic
+  private String customCommandName;
 
   @OneToOne(mappedBy = "hostRoleCommand", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private ExecutionCommandEntity executionCommand;
@@ -261,6 +274,28 @@ public class HostRoleCommandEntity {
 
   public void setEndTime(Long endTime) {
     this.endTime = endTime;
+  }
+
+  public String getCommandDetail() {
+    return commandDetail;
+  }
+
+  public void setCommandDetail(String commandDetail) {
+    String truncatedCommandDetail = commandDetail;
+    if (commandDetail != null) {
+      if (commandDetail.length() > MAX_COMMAND_DETAIL_LENGTH) {
+        truncatedCommandDetail = commandDetail.substring(0, MAX_COMMAND_DETAIL_LENGTH) + "...";
+      }
+    }
+    this.commandDetail = truncatedCommandDetail;
+  }
+
+  public String getCustomCommandName() {
+    return customCommandName;
+  }
+
+  public void setCustomCommandName(String customCommandName) {
+    this.customCommandName = customCommandName;
   }
 
   @Override

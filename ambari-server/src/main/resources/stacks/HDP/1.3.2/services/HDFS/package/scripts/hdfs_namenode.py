@@ -186,7 +186,9 @@ def decommission():
        group=params.user_group
   )
 
-  ExecuteHadoop('dfsadmin -refreshNodes',
-                user=hdfs_user,
-                conf_dir=conf_dir,
-                kinit_override=True)
+  if params.update_exclude_file_only == False:
+    ExecuteHadoop('dfsadmin -refreshNodes',
+                  user=hdfs_user,
+                  conf_dir=conf_dir,
+                  kinit_override=True)
+    pass

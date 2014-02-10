@@ -83,6 +83,21 @@ class TestJobtracker(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  def test_decommission_default_no_refersh(self):
+
+    self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/jobtracker.py",
+                       classname = "Jobtracker",
+                       command = "decommission",
+                       config_file="default.hbasedecom.json"
+    )
+
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
+                              owner = 'mapred',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
+    self.assertNoMoreResources()
+
   def test_configure_secured(self):
 
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/jobtracker.py",
