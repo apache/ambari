@@ -33,7 +33,6 @@ nagios_rw_dir = "/var/nagios/rw"
 plugins_dir = "/usr/lib64/nagios/plugins"
 nagios_obj_dir = "/etc/nagios/objects"
 check_result_path = "/var/nagios/spool/checkresults"
-nagios_httpd_config_file = format("/etc/httpd/conf.d/nagios.conf")
 nagios_log_dir = "/var/log/nagios"
 nagios_log_archives_dir = format("{nagios_log_dir}/archives")
 nagios_host_cfg = format("{nagios_obj_dir}/hadoop-hosts.cfg")
@@ -100,9 +99,11 @@ all_ping_ports = config['clusterHostInfo']['all_ping_ports']
 if System.get_instance().os_family == "suse":
   nagios_p1_pl = "/usr/lib/nagios/p1.pl"
   htpasswd_cmd = "htpasswd2"
+  nagios_httpd_config_file = format("/etc/apache2/conf.d/nagios.conf")
 else:
   nagios_p1_pl = "/usr/bin/p1.pl"
   htpasswd_cmd = "htpasswd"
+  nagios_httpd_config_file = format("/etc/httpd/conf.d/nagios.conf")
   
 nagios_user = config['configurations']['global']['nagios_user']
 nagios_group = config['configurations']['global']['nagios_group']
