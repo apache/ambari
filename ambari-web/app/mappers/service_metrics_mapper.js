@@ -314,8 +314,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       GANGLIA: [20],
       NAGIOS: [21],
       HUE: [22],
-      STORM: [31],
-      FALCON: [32]
+      STORM: [31]
     };
     if (quickLinks[item.ServiceInfo.service_name])
       finalJson.quick_links = quickLinks[item.ServiceInfo.service_name];

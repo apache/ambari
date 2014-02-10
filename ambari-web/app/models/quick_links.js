@@ -413,17 +413,5 @@ App.QuickLinks.FIXTURES = [
     site: 'yarn-site',
     regex: portRegex,
     default_http_port: 8088
-  },
-  {
-    id:32,
-    label:'Falcon Server UI',
-    url:'%@://%@:%@/stacks',
-    service_id: 'FALCON',
-    template:'%@://%@:%@/falcon',
-    http_config: 'mapreduce.jobhistory.webapp.address',
-    https_config: 'mapreduce.jobhistory.webapp.https.address',
-    site: 'hdfs-site',
-    regex: portRegex,
-    default_http_port: 15000
   }
 ];
