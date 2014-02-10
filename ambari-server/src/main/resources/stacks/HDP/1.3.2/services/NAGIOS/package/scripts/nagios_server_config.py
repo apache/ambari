@@ -42,7 +42,7 @@ def nagios_server_config():
   
   if System.get_instance().os_family != "suse":
     nagios_server_configfile( 'nagios',
-                              config_dir = '/etc/init.d/', 
+                              config_dir = '/etc/init.d',
                               mode = 0755, 
                               owner = 'root', 
                               group = 'root'
