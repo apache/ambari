@@ -707,7 +707,7 @@ public class AmbariManagementControllerImpl implements
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
             }
-            r.setPassiveState(getEffectivePassiveState(cluster, s, sch).name());
+            r.setPassiveState(getEffectivePassiveState(sch).name());
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
@@ -740,7 +740,7 @@ public class AmbariManagementControllerImpl implements
               continue;
             }
             
-            r.setPassiveState(getEffectivePassiveState(cluster, s, sch).name());
+            r.setPassiveState(getEffectivePassiveState(sch).name());
             response.add(r);
           }
         }
@@ -750,26 +750,11 @@ public class AmbariManagementControllerImpl implements
   }
   
   @Override
-  public PassiveState getEffectivePassiveState(Cluster cluster, Service service,
-      ServiceComponentHost sch) throws AmbariException
-      {
+  public PassiveState getEffectivePassiveState(ServiceComponentHost sch)
+      throws AmbariException {
+    PassiveStateHelper psh = injector.getInstance(PassiveStateHelper.class);
     
-    Map<String, Host> map = clusters.getHostsForCluster(cluster.getClusterName());
-    if (null == map)
-      return PassiveState.ACTIVE;
-    
-    Host host = clusters.getHostsForCluster(cluster.getClusterName()).get(sch.getHostName());
-    if (null == host) // better not
-      throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
-    
-    if (PassiveState.PASSIVE == sch.getPassiveState())
-      return PassiveState.PASSIVE;
-
-    if (PassiveState.ACTIVE != service.getPassiveState() ||
-        PassiveState.ACTIVE != host.getPassiveState(cluster.getClusterId()))
-      return PassiveState.IMPLIED;
-    
-    return sch.getPassiveState();
+    return psh.getEffectiveState(sch);
   }
   
 
@@ -1502,8 +1487,10 @@ public class AmbariManagementControllerImpl implements
       }
       
       if (null != request.getPassiveState()) {
+        PassiveStateHelper psh = injector.getInstance(PassiveStateHelper.class);
+        
         PassiveState newPassive = PassiveState.valueOf(request.getPassiveState());
-        PassiveState oldPassive = getEffectivePassiveState(cluster, s, sch);
+        PassiveState oldPassive = psh.getEffectiveState(sch);
         
         if (newPassive != oldPassive) {
           if (sc.isClientComponent()) {

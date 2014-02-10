@@ -53,6 +53,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 
 import com.google.inject.persist.UnitOfWork;
+
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -1387,9 +1389,36 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb2);
     assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
     
+    // mark the installed DN as passive
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(
+        DummyHostname1).setPassiveState(PassiveState.PASSIVE);
+    HeartBeat hb2a = new HeartBeat();
+    hb2a.setResponseId(2);
+    hb2a.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb2a.setHostname(DummyHostname1);
+    componentStatus = new ArrayList<ComponentStatus>();
+    dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(dataNodeStatus);
+    nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("STARTED");
+    componentStatus.add(nameNodeStatus);
+    hb2a.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb2a);
+    assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
+    
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(
+        DummyHostname1).setPassiveState(PassiveState.ACTIVE);
+    
     //Some masters are down
     HeartBeat hb3 = new HeartBeat();
-    hb3.setResponseId(2);
+    hb3.setResponseId(3);
     hb3.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb3.setHostname(DummyHostname1);
     componentStatus = new ArrayList<ComponentStatus>();
@@ -1410,14 +1439,14 @@ public class TestHeartbeatHandler {
     assertEquals(HostHealthStatus.HealthStatus.UNHEALTHY.name(), hostObject.getStatus());
 
     //All are up
-    hb1.setResponseId(3);
+    hb1.setResponseId(4);
     handler.handleHeartBeat(hb1);
     assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
 
     //Only one component reported status
     hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.INSTALLED);
     HeartBeat hb4 = new HeartBeat();
-    hb4.setResponseId(4);
+    hb4.setResponseId(5);
     hb4.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb4.setHostname(DummyHostname1);
     componentStatus = new ArrayList<ComponentStatus>();
@@ -1431,13 +1460,13 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb4);
     assertEquals(HostHealthStatus.HealthStatus.UNHEALTHY.name(), hostObject.getStatus());
 
-    hb1.setResponseId(5);
+    hb1.setResponseId(6);
     handler.handleHeartBeat(hb1);
     assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
 
     //Some command reports
     HeartBeat hb5 = new HeartBeat();
-    hb5.setResponseId(6);
+    hb5.setResponseId(7);
     hb5.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb5.setHostname(DummyHostname1);
     CommandReport cr1 = new CommandReport();

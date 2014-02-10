@@ -736,7 +736,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
 
         // do not update or alter any HC that is not active
-        PassiveState schPassive = controller.getEffectivePassiveState(cluster, s, sch);
+        PassiveState schPassive = controller.getEffectivePassiveState(sch);
         if (PassiveState.ACTIVE != schPassive) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"

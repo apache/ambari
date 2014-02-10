@@ -662,7 +662,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             continue;
           }
           
-          PassiveState schPassive = controller.getEffectivePassiveState(cluster, s, sch);
+          PassiveState schPassive = controller.getEffectivePassiveState(sch);
           if (PassiveState.PASSIVE == schPassive ||
               (requests.size() > 1 && PassiveState.ACTIVE != schPassive)) {
             ignoredScHosts.add(sch);

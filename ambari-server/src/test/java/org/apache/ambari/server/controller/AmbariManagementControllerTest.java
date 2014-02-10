@@ -9041,7 +9041,7 @@ public class AmbariManagementControllerTest {
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(PassiveState.IMPLIED,
-            controller.getEffectivePassiveState(cluster, service, sch));
+            controller.getEffectivePassiveState(sch));
         Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
       }
     }
@@ -9056,7 +9056,7 @@ public class AmbariManagementControllerTest {
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(PassiveState.ACTIVE,
-            controller.getEffectivePassiveState(cluster, service, sch));
+            controller.getEffectivePassiveState(sch));
         Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
       }
     }
@@ -9072,7 +9072,7 @@ public class AmbariManagementControllerTest {
     // check the host components implied state vs desired state, only for affected hosts
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        PassiveState implied = controller.getEffectivePassiveState(cluster, service, sch);
+        PassiveState implied = controller.getEffectivePassiveState(sch);
         if (sch.getHostName().equals(host1)) {
           Assert.assertEquals(PassiveState.IMPLIED, implied);
         } else {
@@ -9093,7 +9093,7 @@ public class AmbariManagementControllerTest {
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         Assert.assertEquals(PassiveState.ACTIVE,
-            controller.getEffectivePassiveState(cluster, service, sch));
+            controller.getEffectivePassiveState(sch));
         Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
       }
     }
@@ -9105,27 +9105,27 @@ public class AmbariManagementControllerTest {
     targetSch.setPassiveState(PassiveState.PASSIVE);
 
     // check the host components active state vs desired state
-    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(targetSch));
     
     // update the service
     service.setPassiveState(PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(targetSch));
     
     // make SCH active
     targetSch.setPassiveState(PassiveState.ACTIVE);
-    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(cluster, service, targetSch));
+    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(targetSch));
     
     // update the service
     service.setPassiveState(PassiveState.ACTIVE);
-    Assert.assertEquals(PassiveState.ACTIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    Assert.assertEquals(PassiveState.ACTIVE, controller.getEffectivePassiveState(targetSch));
     
     host = hosts.get(host2);
     // update host
     host.setPassiveState(cluster.getClusterId(), PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(cluster, service, targetSch));
+    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(targetSch));
     
     targetSch.setPassiveState(PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(cluster, service, targetSch));
+    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(targetSch));
 
     // check the host components active state vs desired state
     for (ServiceComponent sc : service.getServiceComponents().values()) {

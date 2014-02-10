@@ -48,6 +48,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -280,10 +281,12 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHost componentHost = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response = createNiceMock(ServiceComponentHostResponse.class);
 
+    PassiveStateHelper passiveHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveHelper.getEffectiveState(componentHost)).andReturn(PassiveState.ACTIVE).anyTimes();
+    
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
         "cluster1", null, "component1", "host1", null);
-
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
     setRequests.add(request1);
@@ -291,7 +294,9 @@ public class AmbariManagementControllerImplTest {
     // expectations
     // constructor init
     injector.injectMembers(capture(controllerCapture));
+    
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveHelper);
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -309,7 +314,8 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost.convertToResponse()).andReturn(response);
 
     // replay mocks
-    replay(injector, clusters, cluster, host, response, stack, metaInfo, service, component, componentHost);
+    replay(passiveHelper, injector, clusters, cluster, host, response, stack,
+        metaInfo, service, component, componentHost);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -414,7 +420,10 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHost componentHost2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
-
+    PassiveStateHelper passiveStateHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveStateHelper.getEffectiveState(capture(new Capture<ServiceComponentHost>())
+        )).andReturn(PassiveState.ACTIVE).anyTimes();
+    
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
         "cluster1", null, "component1", "host1", null);
@@ -435,6 +444,8 @@ public class AmbariManagementControllerImplTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveStateHelper).anyTimes();
+
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -466,8 +477,9 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.convertToResponse()).andReturn(response2);
 
     // replay mocks
-    replay(injector, clusters, cluster, host, stack, metaInfo, service, component, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+    replay(passiveStateHelper, injector, clusters, cluster, host, stack,
+        metaInfo, service, component, component2, component3, componentHost1,
+        componentHost2, response1, response2);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -509,6 +521,9 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHost componentHost2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
+    PassiveStateHelper passiveHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveHelper.getEffectiveState(capture(
+        new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
@@ -530,7 +545,8 @@ public class AmbariManagementControllerImplTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
-
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveHelper).anyTimes();
+    
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.singleton(cluster)).anyTimes();
@@ -559,8 +575,9 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.convertToResponse()).andReturn(response2);
 
     // replay mocks
-    replay(injector, clusters, cluster, host, stack, metaInfo, service, component, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+    replay(passiveHelper, injector, clusters, cluster, host, stack, metaInfo,
+        service, component, component2, component3, componentHost1,
+        componentHost2, response1, response2);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -603,6 +620,10 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHost componentHost2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
+    
+    PassiveStateHelper passiveHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveHelper.getEffectiveState(capture(
+        new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
@@ -624,6 +645,7 @@ public class AmbariManagementControllerImplTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveHelper).anyTimes();
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -654,8 +676,9 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.convertToResponse()).andReturn(response2);
 
     // replay mocks
-    replay(injector, clusters, cluster, host, stack, metaInfo, service, service2, component, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+    replay(passiveHelper, injector, clusters, cluster, host, stack, metaInfo,
+        service, service2, component, component2, component3, componentHost1,
+        componentHost2, response1, response2);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -698,6 +721,9 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHost componentHost2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
+    PassiveStateHelper passiveHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveHelper.getEffectiveState(
+        capture(new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
@@ -719,6 +745,7 @@ public class AmbariManagementControllerImplTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveHelper).anyTimes();
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -745,8 +772,9 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.convertToResponse()).andReturn(response2);
 
     // replay mocks
-    replay(injector, clusters, cluster, host, stack, metaInfo, service, service2, component, component2, component3,
-        componentHost1, componentHost2, response1, response2);
+    replay(passiveHelper, injector, clusters, cluster, host, stack, metaInfo,
+        service, service2, component, component2, component3, componentHost1,
+        componentHost2, response1, response2);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -901,6 +929,9 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHost componentHost2 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
+    PassiveStateHelper passiveHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveHelper.getEffectiveState(
+        capture(new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
@@ -919,6 +950,7 @@ public class AmbariManagementControllerImplTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveHelper).anyTimes();
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -937,7 +969,8 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost2.convertToResponse()).andReturn(response2);
 
     // replay mocks
-    replay(injector, clusters, cluster, response1, response2, stack, metaInfo, service, component, componentHost1, componentHost2);
+    replay(passiveHelper, injector, clusters, cluster, response1, response2,
+        stack, metaInfo, service, component, componentHost1, componentHost2);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -978,6 +1011,9 @@ public class AmbariManagementControllerImplTest {
     ServiceComponentHostResponse response1 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response2 = createNiceMock(ServiceComponentHostResponse.class);
     ServiceComponentHostResponse response3 = createNiceMock(ServiceComponentHostResponse.class);
+    PassiveStateHelper passiveHelper = createNiceMock(PassiveStateHelper.class);
+    expect(passiveHelper.getEffectiveState(
+        capture(new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
@@ -1000,6 +1036,7 @@ public class AmbariManagementControllerImplTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(PassiveStateHelper.class)).andReturn(passiveHelper).anyTimes();
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -1019,8 +1056,9 @@ public class AmbariManagementControllerImplTest {
     expect(componentHost3.convertToResponse()).andReturn(response3);
 
     // replay mocks
-    replay(injector, clusters, cluster, response1, response2, response3, stack, metaInfo, service1, service2,
-        component1, component2, componentHost1, componentHost2, componentHost3);
+    replay(passiveHelper, injector, clusters, cluster, response1, response2,
+        response3, stack, metaInfo, service1, service2, component1, component2,
+        componentHost1, componentHost2, componentHost3);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);

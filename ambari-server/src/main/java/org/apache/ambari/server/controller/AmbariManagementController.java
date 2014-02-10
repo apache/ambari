@@ -528,7 +528,6 @@ public interface AmbariManagementController {
    * @return the passive state
    * @throws AmbariException
    */
-  public PassiveState getEffectivePassiveState(Cluster cluster, Service service,
-      ServiceComponentHost sch) throws AmbariException;
+  public PassiveState getEffectivePassiveState(ServiceComponentHost sch) throws AmbariException;
 }
   

@@ -240,7 +240,6 @@ public class ComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getEffectivePassiveState(
-        capture(new Capture<Cluster>()), capture(new Capture<Service>()),
         capture(new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
     
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();

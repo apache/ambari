@@ -31,6 +31,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.PassiveStateHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
@@ -40,6 +41,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.PassiveState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -242,6 +244,8 @@ public class HeartBeatHandler {
         StackId stackId;
         Cluster cluster = clusterFsm.getCluster(clusterName);
         stackId = cluster.getDesiredStackVersion();
+        
+        PassiveStateHelper psh = injector.getInstance(PassiveStateHelper.class);
 
         List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(heartbeat.getHostname());
         for (ServiceComponentHost scHost : scHosts) {
@@ -254,15 +258,17 @@ public class HeartBeatHandler {
 
           String category = componentInfo.getCategory();
 
-          if (category.equals("MASTER")) {
-            ++masterCount;
-            if (status.equals("STARTED")) {
-              ++mastersRunning;
-            }
-          } else if (category.equals("SLAVE")) {
-            ++slaveCount;
-            if (status.equals("STARTED")) {
-              ++slavesRunning;
+          if (PassiveState.ACTIVE == psh.getEffectiveState(scHost)) {
+            if (category.equals("MASTER")) {
+              ++masterCount;
+              if (status.equals("STARTED")) {
+                ++mastersRunning;
+              }
+            } else if (category.equals("SLAVE")) {
+              ++slaveCount;
+              if (status.equals("STARTED")) {
+                ++slavesRunning;
+              }
             }
           }
         }
