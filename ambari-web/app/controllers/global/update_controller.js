@@ -125,7 +125,7 @@ App.UpdateController = Em.Controller.extend({
               "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
               "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
               "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
-      'HBASE': "host_components/metrics/hbase/master/IsActiveMaster" +
+      'HBASE': "host_components/metrics/hbase/master/IsActiveMaster," +
                "ServiceComponentInfo/MasterStartTime," +
                "ServiceComponentInfo/MasterActiveTime," +
                "ServiceComponentInfo/AverageLoad," +
