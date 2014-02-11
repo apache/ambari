@@ -341,7 +341,7 @@
 
   <property>
     <name>yarn.ats.store.class</name>
-    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbApplicationTimelineStore</value>
+    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.apptimeline.LeveldbApplicationTimelineStore</value>
     <description></description>
   </property>
 
