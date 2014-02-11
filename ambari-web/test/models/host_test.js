@@ -51,7 +51,9 @@ describe('App.Host', function () {
       last_heart_beat_time: (new Date()).getTime()
     }
   ];
-  App.set('testMode', false);
+  before(function() {
+    App.set('testMode', false);
+  });
   App.store.loadMany(App.Host, data);
 
   describe('#diskUsedFormatted', function () {
@@ -109,7 +111,7 @@ describe('App.Host', function () {
     });
     it('host3 - false', function () {
       var host = App.Host.find().findProperty('hostName', 'host3');
-      expect(host.get('isNotHeartBeating')).to.equal(false);
+      expect(host.get('isNotHeartBeating')).to.equal(true);
     });
   });
 

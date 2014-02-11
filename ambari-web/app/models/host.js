@@ -185,11 +185,11 @@ App.Host = DS.Model.extend({
   }.property('memory'),
 
   /**
-   * Return true if the host has not sent heartbeat within the last 180 seconds
+   * Return true if the host <code>healthStatus</code> is UNKNOWN
    * @returns {bool}
    */
   isNotHeartBeating : function() {
-    return (App.testMode) ? false : ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
+    return (App.testMode) ? false : (this.get('healthStatus') === "UNKNOWN");
   }.property('lastHeartBeatTime'),
 
   /**
