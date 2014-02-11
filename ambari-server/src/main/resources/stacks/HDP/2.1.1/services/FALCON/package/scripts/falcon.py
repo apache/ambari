@@ -29,6 +29,12 @@ def falcon(type, action = None):
            mode=0644)
   elif type == 'server':
     if action == 'config':
+      if params.store_uri[0:4] == "hdfs":
+        params.HdfsDirectory(params.store_uri,
+                             action="create",
+                             owner=params.falcon_user,
+                             mode=0755
+        )
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
                 recursive=True

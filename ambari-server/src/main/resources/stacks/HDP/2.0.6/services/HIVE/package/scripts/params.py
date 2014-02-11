@@ -122,7 +122,7 @@ hcat_user = config['configurations']['global']['hcat_user']
 webhcat_user = config['configurations']['global']['webhcat_user']
 
 hcat_pid_dir = status_params.hcat_pid_dir
-hcat_log_dir = config['configurations']['global']['hcat_log_dir']   #hcat_log_dir
+hcat_log_dir = config['configurations']['global']['hcat_log_dir']
 
 hadoop_conf_dir = '/etc/hadoop/conf'
 
@@ -139,3 +139,26 @@ else:
   log4j_exec_props = None
 
 daemon_name = status_params.daemon_name
+
+hive_hdfs_user_dir = format("/user/{hive_user}")
+hive_hdfs_user_mode = 0700
+hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
+#for create_hdfs_directory
+hostname = config["hostname"]
+hadoop_conf_dir = "/etc/hadoop/conf"
+hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+hdfs_user = config['configurations']['global']['hdfs_user']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)

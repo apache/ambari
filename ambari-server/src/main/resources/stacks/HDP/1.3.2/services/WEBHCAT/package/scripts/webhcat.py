@@ -26,6 +26,23 @@ import sys
 def webhcat():
   import params
 
+  if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
+    params.HdfsDirectory(params.hcat_hdfs_user_dir,
+                         action="create_delayed",
+                         owner=params.hcat_user,
+                         mode=params.hcat_hdfs_user_mode
+    )
+  params.HdfsDirectory(params.webhcat_hdfs_user_dir,
+                       action="create_delayed",
+                       owner=params.webhcat_user,
+                       mode=params.webhcat_hdfs_user_mode
+  )
+  params.HdfsDirectory(params.webhcat_apps_dir,
+                       action="create_delayed",
+                       owner=params.webhcat_user,
+                       mode=0755
+  )
+  params.HdfsDirectory(None, action="create")
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
             mode=0755,

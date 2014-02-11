@@ -29,12 +29,11 @@ from service import service
 class Nodemanager(Script):
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
 
   def configure(self, env):
     import params
     env.set_params(params)
-    yarn()
+    yarn(name="nodemanager")
 
   def start(self, env):
     import params

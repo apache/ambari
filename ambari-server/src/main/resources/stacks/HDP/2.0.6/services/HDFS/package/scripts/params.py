@@ -126,55 +126,26 @@ dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)
 
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
-jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']#"/grid/0/hdfs/journal"
+jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']
 
-# if stack_version[0] == "2":
 dfs_name_dir = config['configurations']['hdfs-site']['dfs.namenode.name.dir']
-# else:
-#   dfs_name_dir = default("/configurations/hdfs-site/dfs.name.dir","/tmp/hadoop-hdfs/dfs/name")
 
 namenode_dirs_created_stub_dir = format("{hdfs_log_dir_prefix}/{hdfs_user}")
 namenode_dirs_stub_filename = "namenode_dirs_created"
 
-hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']#","/apps/hbase/data")
-hbase_staging_dir = "/apps/hbase/staging"
-hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"] #, "/apps/hive/warehouse")
-webhcat_apps_dir = "/apps/webhcat"
-yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']#","true")
-yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']#","/app-logs")
-mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']#","/app-logs")
-mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']#","/mr-history/done")
-
-if has_oozie_server:
-  oozie_hdfs_user_dir = format("/user/{oozie_user}")
-  oozie_hdfs_user_mode = 775
-if has_hcat_server_host:
-  hcat_hdfs_user_dir = format("/user/{hcat_user}")
-  hcat_hdfs_user_mode = 755
-  webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
-  webhcat_hdfs_user_mode = 755
-if has_hive_server_host:
-  hive_hdfs_user_dir = format("/user/{hive_user}")
-  hive_hdfs_user_mode = 700
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 770
+smoke_hdfs_user_mode = 0770
 
 namenode_formatted_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted/")
 
-# if stack_version[0] == "2":
-fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir'] #","/tmp/hadoop-hdfs/dfs/namesecondary")
-# else:
-#   fs_checkpoint_dir = default("/configurations/core-site/fs.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
+fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
 
-# if stack_version[0] == "2":
-dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']#,"/tmp/hadoop-hdfs/dfs/data")
-# else:
-#   dfs_data_dir = default('/configurations/hdfs-site/dfs.data.dir',"/tmp/hadoop-hdfs/dfs/data")
-
+dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
 # HDFS High Availability properties
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
 dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+namenode_id = None
 if dfs_ha_namenode_ids:
   dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
   dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
@@ -185,10 +156,19 @@ if dfs_ha_enabled:
     nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
     if hostname in nn_host:
       namenode_id = nn_id
-  namenode_id = None
 
 journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-address', None)
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
 
-falcon_store_uri = config['configurations']['global']['falcon_store_uri']
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)

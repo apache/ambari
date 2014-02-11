@@ -96,6 +96,34 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('HdfsDirectory', '/user/hcat',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              mode = 0755,
+                              owner = 'hcat',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              mode = 0755,
+                              owner = 'hcat',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              action = ['create'],
+                              )
     self.assertResourceCalled('Directory', '/etc/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',
@@ -140,6 +168,34 @@ class TestWebHCatServer(RMFTestCase):
     )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('HdfsDirectory', '/user/hcat',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0755,
+                              owner = 'hcat',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0755,
+                              owner = 'hcat',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              action = ['create'],
+                              )
     self.assertResourceCalled('Directory', '/etc/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',

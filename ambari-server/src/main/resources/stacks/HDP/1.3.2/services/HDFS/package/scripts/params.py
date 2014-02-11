@@ -123,49 +123,38 @@ dfs_domain_socket_dir = os.path.dirname(dfs_domain_socket_path)
 
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 
-jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']#"/grid/0/hdfs/journal"
+jn_edits_dir = config['configurations']['hdfs-site']['dfs.journalnode.edits.dir']
 
-# if stack_version[0] == "2":
-#dfs_name_dir = config['configurations']['hdfs-site']['dfs.namenode.name.dir']
-# else:
-dfs_name_dir = config['configurations']['hdfs-site']['dfs.name.dir']#","/tmp/hadoop-hdfs/dfs/name")
+dfs_name_dir = config['configurations']['hdfs-site']['dfs.name.dir']
 
 namenode_dirs_created_stub_dir = format("{hdfs_log_dir_prefix}/{hdfs_user}")
 namenode_dirs_stub_filename = "namenode_dirs_created"
 
-hbase_hdfs_root_dir = config['configurations']['hbase-site']['hbase.rootdir']#","/apps/hbase/data")
-hbase_staging_dir = "/apps/hbase/staging"
-hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"] #, "/apps/hive/warehouse")
-webhcat_apps_dir = "/apps/webhcat"
-mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']#","/app-logs")
-mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']#","/mr-history/done")
-
-if has_oozie_server:
-  oozie_hdfs_user_dir = format("/user/{oozie_user}")
-  oozie_hdfs_user_mode = 775
-if has_hcat_server_host:
-  hcat_hdfs_user_dir = format("/user/{hcat_user}")
-  hcat_hdfs_user_mode = 755
-  webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
-  webhcat_hdfs_user_mode = 755
-if has_hive_server_host:
-  hive_hdfs_user_dir = format("/user/{hive_user}")
-  hive_hdfs_user_mode = 700
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 770
+smoke_hdfs_user_mode = 0770
 
 namenode_formatted_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted/")
 
-# if stack_version[0] == "2":
-#fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir'] #","/tmp/hadoop-hdfs/dfs/namesecondary")
-# else:
-fs_checkpoint_dir = config['configurations']['core-site']['fs.checkpoint.dir']#","/tmp/hadoop-hdfs/dfs/namesecondary")
+fs_checkpoint_dir = config['configurations']['core-site']['fs.checkpoint.dir']
 
-# if stack_version[0] == "2":
-#dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']#,"/tmp/hadoop-hdfs/dfs/data")
-# else:
-dfs_data_dir = config['configurations']['hdfs-site']['dfs.data.dir']#,"/tmp/hadoop-hdfs/dfs/data")
-
+dfs_data_dir = config['configurations']['hdfs-site']['dfs.data.dir']
+#for create_hdfs_directory
+hostname = config["hostname"]
+hadoop_conf_dir = "/etc/hadoop/conf"
+hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+hdfs_user = config['configurations']['global']['hdfs_user']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)
 
 
 

@@ -5,6 +5,12 @@ def oozie(is_server=False
               ):
   import params
 
+  if is_server:
+    params.HdfsDirectory(params.oozie_hdfs_user_dir,
+                         action="create",
+                         owner=params.oozie_user,
+                         mode=params.oozie_hdfs_user_mode
+    )
   XmlConfig( "oozie-site.xml",
     conf_dir = params.conf_dir, 
     configurations = params.config['configurations']['oozie-site'],

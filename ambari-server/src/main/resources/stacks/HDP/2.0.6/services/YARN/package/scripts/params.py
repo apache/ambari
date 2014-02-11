@@ -88,4 +88,28 @@ yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
+
+
+yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
+yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
+mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']
+mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']
+
+#for create_hdfs_directory
+hostname = config["hostname"]
+hadoop_conf_dir = "/etc/hadoop/conf"
+hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+hdfs_user = config['configurations']['global']['hdfs_user']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']

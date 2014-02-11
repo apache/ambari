@@ -19,18 +19,16 @@ limitations under the License.
 
 from resource_management import *
 from utils import service
-from utils import hdfs_directory
-import urlparse
 
 
-def namenode(action=None, format=True):
+def namenode(action=None, do_format=True):
   import params
 
   if action == "configure":
     create_name_dirs(params.dfs_name_dir)
 
   if action == "start":
-    if format:
+    if do_format:
       format_namenode()
       pass
     service(
@@ -41,9 +39,15 @@ def namenode(action=None, format=True):
       principal=params.dfs_namenode_kerberos_principal
     )
 
-    # TODO: extract creating of dirs to different services
-    create_app_directories()
-    create_user_directories()
+    namenode_safe_mode_off = format("su - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
+    if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user}"),
+              user = params.hdfs_user)
+    Execute(namenode_safe_mode_off,
+            tries=40,
+            try_sleep=10
+    )
+    create_hdfs_directories()
 
   if action == "stop":
     service(
@@ -66,89 +70,20 @@ def create_name_dirs(directories):
             recursive=True
   )
 
-
-def create_app_directories():
+def create_hdfs_directories():
   import params
 
-  hdfs_directory(name="/tmp",
-                 owner=params.hdfs_user,
-                 mode="777"
+  params.HdfsDirectory("/tmp",
+                       action="create_delayed",
+                       owner=params.hdfs_user,
+                       mode=0777
   )
-  #mapred directories
-  if params.has_jobtracker:
-    hdfs_directory(name="/mapred",
-                   owner=params.mapred_user
-    )
-    hdfs_directory(name="/mapred/system",
-                   owner=params.mapred_user
-    )
-    #hbase directories
-  if len(params.hbase_master_hosts) != 0:
-    hdfs_directory(name=params.hbase_hdfs_root_dir,
-                   owner=params.hbase_user
-    )
-    hdfs_directory(name=params.hbase_staging_dir,
-                   owner=params.hbase_user,
-                   mode="711"
-    )
-    #hive directories
-  if len(params.hive_server_host) != 0:
-    hdfs_directory(name=params.hive_apps_whs_dir,
-                   owner=params.hive_user,
-                   mode="777"
-    )
-  if len(params.hcat_server_hosts) != 0:
-    hdfs_directory(name=params.webhcat_apps_dir,
-                   owner=params.webhcat_user,
-                   mode="755"
-    )
-  if len(params.hs_host) != 0:
-    hdfs_directory(name=params.mapreduce_jobhistory_intermediate_done_dir,
-                   owner=params.mapred_user,
-                   group=params.user_group,
-                   mode="777"
-    )
-
-    hdfs_directory(name=params.mapreduce_jobhistory_done_dir,
-                   owner=params.mapred_user,
-                   group=params.user_group,
-                   mode="777"
-    )
-
-  pass
-
-
-def create_user_directories():
-  import params
-
-  hdfs_directory(name=params.smoke_hdfs_user_dir,
-                 owner=params.smoke_user,
-                 mode=params.smoke_hdfs_user_mode
+  params.HdfsDirectory(params.smoke_hdfs_user_dir,
+                       action="create_delayed",
+                       owner=params.smoke_user,
+                       mode=params.smoke_hdfs_user_mode
   )
-
-  if params.has_hive_server_host:
-    hdfs_directory(name=params.hive_hdfs_user_dir,
-                   owner=params.hive_user,
-                   mode=params.hive_hdfs_user_mode
-    )
-
-  if params.has_hcat_server_host:
-    if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
-      hdfs_directory(name=params.hcat_hdfs_user_dir,
-                     owner=params.hcat_user,
-                     mode=params.hcat_hdfs_user_mode
-      )
-    hdfs_directory(name=params.webhcat_hdfs_user_dir,
-                   owner=params.webhcat_user,
-                   mode=params.webhcat_hdfs_user_mode
-    )
-
-  if params.has_oozie_server:
-    hdfs_directory(name=params.oozie_hdfs_user_dir,
-                   owner=params.oozie_user,
-                   mode=params.oozie_hdfs_user_mode
-    )
-
+  params.HdfsDirectory(None, action="create")
 
 def format_namenode(force=None):
   import params

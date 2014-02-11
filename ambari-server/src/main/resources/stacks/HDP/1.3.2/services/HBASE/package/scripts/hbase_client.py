@@ -33,7 +33,7 @@ class HbaseClient(Script):
     import params
     env.set_params(params)
     
-    hbase(type='client')
+    hbase(name='client')
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

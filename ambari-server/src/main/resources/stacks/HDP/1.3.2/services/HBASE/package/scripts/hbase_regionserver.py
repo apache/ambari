@@ -28,13 +28,12 @@ from hbase_service import hbase_service
 class HbaseRegionServer(Script):
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
     
   def configure(self, env):
     import params
     env.set_params(params)
 
-    hbase(type='regionserver')
+    hbase(name='regionserver')
       
   def start(self, env):
     import params

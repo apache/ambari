@@ -26,6 +26,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 
+hcat_user = config['configurations']['global']['hcat_user']
 webhcat_user = config['configurations']['global']['webhcat_user']
 download_url = config['configurations']['global']['apache_artifacts_download_url']
 
@@ -54,3 +55,26 @@ smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 smokeuser = config['configurations']['global']['smokeuser']
 security_enabled = config['configurations']['global']['security_enabled']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
+hcat_hdfs_user_dir = format("/user/{hcat_user}")
+hcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
+webhcat_hdfs_user_mode = 0755
+webhcat_apps_dir = "/apps/webhcat"
+#for create_hdfs_directory
+hostname = config["hostname"]
+hadoop_conf_dir = "/etc/hadoop/conf"
+hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+hdfs_user = config['configurations']['global']['hdfs_user']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)

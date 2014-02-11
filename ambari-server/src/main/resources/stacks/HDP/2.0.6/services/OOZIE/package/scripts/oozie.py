@@ -24,6 +24,13 @@ from resource_management import *
 def oozie(is_server=False # TODO: see if see can remove this
               ):
   import params
+
+  if is_server:
+    params.HdfsDirectory(params.oozie_hdfs_user_dir,
+                         action="create",
+                         owner=params.oozie_user,
+                         mode=params.oozie_hdfs_user_mode
+    )
   #TODO hack for falcon el
   oozie_site = dict(params.config['configurations']['oozie-site'])
   oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]

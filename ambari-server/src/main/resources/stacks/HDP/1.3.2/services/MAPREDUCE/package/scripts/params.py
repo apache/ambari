@@ -53,3 +53,24 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 mr_exclude_hosts = default("/clusterHostInfo/decom_tt_hosts", [])
 exclude_file_path = config['configurations']['mapred-site']['mapred.hosts.exclude']
 mapred_hosts_file_path = config['configurations']['mapred-site']['mapred.hosts']
+
+#hdfs directories
+mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']
+mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapred.job.tracker.history.completed.location']
+#for create_hdfs_directory
+hostname = config["hostname"]
+hadoop_conf_dir = "/etc/hadoop/conf"
+hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+hdfs_user = config['configurations']['global']['hdfs_user']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)

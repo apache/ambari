@@ -24,8 +24,36 @@ from resource_management import *
 import sys
 
 
-def mapreduce():
+def mapreduce(name=None):
   import params
+
+
+  if name in ["jobtracker","historyserver"]:
+    params.HdfsDirectory("/mapred",
+                         action="create_delayed",
+                         owner=params.mapred_user
+    )
+    params.HdfsDirectory("/mapred/system",
+                         action="create_delayed",
+                         owner=params.mapred_user
+    )
+    params.HdfsDirectory("/mapred/history",
+                         action="create_delayed",
+                         owner=params.mapred_user
+    )
+    params.HdfsDirectory(params.mapreduce_jobhistory_intermediate_done_dir,
+                         action="create_delayed",
+                         owner=params.mapred_user,
+                         group=params.user_group,
+                         mode=0777
+    )
+    params.HdfsDirectory(params.mapreduce_jobhistory_done_dir,
+                         action="create_delayed",
+                         owner=params.mapred_user,
+                         group=params.user_group,
+                         mode=0777
+    )
+    params.HdfsDirectory(None, action="create")
 
   Directory([params.mapred_pid_dir,params.mapred_log_dir],
             owner=params.mapred_user,

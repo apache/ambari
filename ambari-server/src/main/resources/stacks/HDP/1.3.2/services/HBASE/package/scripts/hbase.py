@@ -22,10 +22,23 @@ import os
 from resource_management import *
 import sys
 
-def hbase(type=None # 'master' or 'regionserver' or 'client'
+def hbase(name=None # 'master' or 'regionserver' or 'client'
               ):
   import params
-  
+
+
+  if name in ["regionserver","master"]:
+    params.HdfsDirectory(params.hbase_hdfs_root_dir,
+                         action="create_delayed",
+                         owner=params.hbase_user
+    )
+    params.HdfsDirectory(params.hbase_staging_dir,
+                         action="create_delayed",
+                         owner=params.hbase_user,
+                         mode=0711
+    )
+    params.HdfsDirectory(None, action="create")
+
   Directory( params.conf_dir,
       owner = params.hbase_user,
       group = params.user_group,
@@ -67,15 +80,15 @@ def hbase(type=None # 'master' or 'regionserver' or 'client'
   hbase_TemplateConfig( 'hbase-env.sh')     
        
   hbase_TemplateConfig( params.metric_prop_file_name,
-    tag = 'GANGLIA-MASTER' if type == 'master' else 'GANGLIA-RS'
+    tag = 'GANGLIA-MASTER' if name == 'master' else 'GANGLIA-RS'
   )
 
   hbase_TemplateConfig( 'regionservers')
 
   if params.security_enabled:
-    hbase_TemplateConfig( format("hbase_{type}_jaas.conf"))
+    hbase_TemplateConfig( format("hbase_{name}_jaas.conf"))
   
-  if type != "client":
+  if name != "client":
     Directory( params.pid_dir,
       owner = params.hbase_user,
       recursive = True

@@ -164,6 +164,34 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              mode = 0777,
+                              owner = 'hive',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/user/hive',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              mode = 0700,
+                              owner = 'hive',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              action = ['create'],
+                              )
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
       creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
       path = ['/bin', 'usr/bin/'],
@@ -221,6 +249,34 @@ class TestHiveServer(RMFTestCase):
     )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0777,
+                              owner = 'hive',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/user/hive',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0700,
+                              owner = 'hive',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              action = ['create'],
+                              )
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
       creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
       path = ['/bin', 'usr/bin/'],

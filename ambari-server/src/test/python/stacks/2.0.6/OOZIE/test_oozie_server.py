@@ -114,6 +114,16 @@ class TestOozieServer(RMFTestCase):
     # Hack for oozie.py changing conf on fly
     oozie_site = self.getConfig()['configurations']['oozie-site'].copy()
     oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
+    self.assertResourceCalled('HdfsDirectory', '/user/oozie',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0775,
+                              owner = 'oozie',
+                              action = ['create'],
+    )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
                               group = 'hadoop',
@@ -197,6 +207,16 @@ class TestOozieServer(RMFTestCase):
     # Hack for oozie.py changing conf on fly
     oozie_site = self.getConfig()['configurations']['oozie-site'].copy()
     oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
+    self.assertResourceCalled('HdfsDirectory', '/user/oozie',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0775,
+                              owner = 'oozie',
+                              action = ['create'],
+                              )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
                               group = 'hadoop',

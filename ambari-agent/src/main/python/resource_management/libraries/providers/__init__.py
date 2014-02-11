@@ -31,6 +31,7 @@ PROVIDERS = dict(
     XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
     PropertiesFile="resource_management.libraries.providers.properties_file.PropertiesFileProvider",
     MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
-    Repository="resource_management.libraries.providers.repository.RepositoryProvider"
+    Repository="resource_management.libraries.providers.repository.RepositoryProvider",
+    HdfsDirectory="resource_management.libraries.providers.hdfs_directory.HdfsDirectoryProvider"
   ),
 )

@@ -28,7 +28,6 @@ from oozie_service import oozie_service
 class OozieServer(Script):
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
     
   def configure(self, env):
     import params
@@ -39,6 +38,7 @@ class OozieServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
+    self.configure(env)
     oozie_service(action='start')
     
   def stop(self, env):

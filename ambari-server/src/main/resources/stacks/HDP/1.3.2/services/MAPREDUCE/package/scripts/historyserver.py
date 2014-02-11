@@ -28,12 +28,11 @@ from service import service
 class Historyserver(Script):
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
   
   def configure(self, env):
     import params
     env.set_params(params)
-    mapreduce()
+    mapreduce(name="historyserver")
 
   def start(self, env):
     import params

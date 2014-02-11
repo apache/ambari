@@ -29,13 +29,12 @@ from hbase_decommission import hbase_decommission
 class HbaseMaster(Script):
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
     
   def configure(self, env):
     import params
     env.set_params(params)
 
-    hbase(type='master')
+    hbase(name='master')
     
   def start(self, env):
     import params

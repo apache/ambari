@@ -24,8 +24,41 @@ from resource_management import *
 import sys
 
 
-def yarn():
+def yarn(name = None):
   import params
+
+
+  if name in ["nodemanager","historyserver"]:
+    if params.yarn_log_aggregation_enabled:
+      params.HdfsDirectory(params.yarn_nm_app_log_dir,
+                           action="create_delayed",
+                           owner=params.yarn_user,
+                           group=params.user_group,
+                           mode=0777,
+                           recursive_chmod=True
+      )
+    params.HdfsDirectory("/mapred",
+                         action="create_delayed",
+                         owner=params.mapred_user
+    )
+    params.HdfsDirectory("/mapred/system",
+                         action="create_delayed",
+                         owner=params.hdfs_user
+    )
+    params.HdfsDirectory(params.mapreduce_jobhistory_intermediate_done_dir,
+                         action="create_delayed",
+                         owner=params.mapred_user,
+                         group=params.user_group,
+                         mode=0777
+    )
+
+    params.HdfsDirectory(params.mapreduce_jobhistory_done_dir,
+                         action="create_delayed",
+                         owner=params.mapred_user,
+                         group=params.user_group,
+                         mode=01777
+    )
+    params.HdfsDirectory(None, action="create")
 
   Directory([params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,

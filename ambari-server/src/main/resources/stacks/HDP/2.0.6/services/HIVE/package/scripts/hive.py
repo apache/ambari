@@ -26,6 +26,19 @@ import os
 def hive(name=None):
   import params
 
+  if name == 'hiveserver2':
+
+    params.HdfsDirectory(params.hive_apps_whs_dir,
+                         action="create_delayed",
+                         owner=params.hive_user,
+                         mode=0777
+    )
+    params.HdfsDirectory(params.hive_hdfs_user_dir,
+                         action="create_delayed",
+                         owner=params.hive_user,
+                         mode=params.hive_hdfs_user_mode
+    )
+    params.HdfsDirectory(None, action="create")
   if name == 'metastore' or name == 'hiveserver2':
     hive_config_dir = params.hive_server_conf_dir
     config_file_mode = 0600
