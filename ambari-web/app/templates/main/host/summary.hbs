@@ -76,19 +76,21 @@
             </div>
             <div class="span5 row">
               {{#if App.isAdmin}}
-                <div class="btn-group pull-right">
-                  <button id="add_component" data-toggle="dropdown" {{bindAttr class=":btn :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
-                    {{t common.installed}}
-                    <span class="caret pull-right"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li>
-                      <a href="javascript:void(null)" {{bindAttr class="view.areClientWithStaleConfigs::disabled"}} data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
-                        {{t hosts.host.details.refreshConfigs}}
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+                {{#if view.clients.length}}
+                  <div class="btn-group pull-right">
+                    <button id="add_component" data-toggle="dropdown" {{bindAttr class=":btn :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
+                      {{t common.installed}}
+                      <span class="caret pull-right"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a href="javascript:void(null)" {{bindAttr class="view.areClientWithStaleConfigs::disabled"}} data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
+                          {{t hosts.host.details.refreshConfigs}}
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                {{/if}}
               {{/if}}
             </div>
           </div>
