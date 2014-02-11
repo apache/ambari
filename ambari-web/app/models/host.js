@@ -98,14 +98,6 @@ App.Host = DS.Model.extend({
   }.property('hostComponents.@each.passiveState'),
 
   /**
-   * Truncate hostName if it longer than 43 symbols
-   * @returns {String}
-   */
-  publicHostNameFormatted: function() {
-    return this.get('publicHostName').length < 43 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 40) + '...';
-  }.property('publicHostName'),
-
-  /**
    * Count of mounted on host disks
    * @returns {Number}
    */

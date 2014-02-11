@@ -98,7 +98,9 @@
           </td>
 
           <td class="name">
-            <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>
+            <span class="trim_hostname">
+              <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostName}}</a>
+            </span>
             {{#if host.criticalAlertsCount}}
               <span class="label label-important alerts-count" {{action "showAlertsPopup" host target="controller"}}>{{host.criticalAlertsCount}}</span>
             {{/if}}

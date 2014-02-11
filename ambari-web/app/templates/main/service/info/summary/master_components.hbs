@@ -19,7 +19,7 @@
 {{#each masterComp in view.mastersComp}}
   <tr>
      <td>
-      <a href="#" {{action showDetails masterComp.host}} title="{{unbound masterComp.host.publicHostNameFormatted}}" rel="UsageTooltip">
+      <a href="#" {{action showDetails masterComp.host}} title="{{unbound masterComp.host.publicHostName}}" rel="UsageTooltip">
        {{#if masterComp.displayNameAdvanced}}
          {{masterComp.displayNameAdvanced}}
        {{else}}
