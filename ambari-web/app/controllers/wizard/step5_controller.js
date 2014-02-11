@@ -536,58 +536,59 @@ App.WizardStep5Controller = Em.Controller.extend({
    */
   addComponent:function (componentName) {
     /*
-     *Logic: If ZooKeeper service is selected then there can be
-     * minimum 1 ZooKeeper master in total, and
-     * maximum 1 ZooKeeper on every host
+     * Logic: If ZooKeeper or Hbase service is selected then there can be
+     * minimum 1 ZooKeeper or Hbase master in total, and
+     * maximum 1 ZooKeeper or Hbase on every host
      */
 
-    var maxNumZooKeepers = this.get("hosts.length"),
-      currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
-      newZookeeper = null,
-      zookeeperHosts = null,
+    var maxNumMasters = this.get("hosts.length"),
+      currentMasters = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
+      newMaster = null,
+      masterHosts = null,
       suggestedHost = null,
       i = 0,
-      lastZoo = null;
+      lastMaster = null;
 
-    if (!currentZooKeepers.length) {
+    if (!currentMasters.length) {
       console.log('ALERT: Zookeeper service was not selected');
       return false;
     }
 
-    if (currentZooKeepers.get("length") < maxNumZooKeepers) {
+    if (currentMasters.get("length") < maxNumMasters) {
 
-      currentZooKeepers.set("lastObject.showAddControl", false);
-      currentZooKeepers.set("lastObject.showRemoveControl", true);
+      currentMasters.set("lastObject.showAddControl", false);
+      currentMasters.set("lastObject.showRemoveControl", true);
 
       //create a new zookeeper based on an existing one
-      newZookeeper = Ember.Object.create({});
-      lastZoo = currentZooKeepers.get("lastObject");
-      newZookeeper.set("display_name", lastZoo.get("display_name"));
-      newZookeeper.set("component_name", lastZoo.get("component_name"));
-      newZookeeper.set("selectedHost", lastZoo.get("selectedHost"));
-      newZookeeper.set("availableHosts", this.getAvailableHosts(componentName));
+      newMaster = Ember.Object.create({});
+      lastMaster = currentMasters.get("lastObject");
+      newMaster.set("display_name", lastMaster.get("display_name"));
+      newMaster.set("component_name", lastMaster.get("component_name"));
+      newMaster.set("selectedHost", lastMaster.get("selectedHost"));
+      newMaster.set("availableHosts", this.getAvailableHosts(componentName));
+      newMaster.set("isInstalled", false);
 
-      if (currentZooKeepers.get("length") === (maxNumZooKeepers - 1)) {
-        newZookeeper.set("showAddControl", false);
+      if (currentMasters.get("length") === (maxNumMasters - 1)) {
+        newMaster.set("showAddControl", false);
       } else {
-        newZookeeper.set("showAddControl", true);
+        newMaster.set("showAddControl", true);
       }
-      newZookeeper.set("showRemoveControl", true);
+      newMaster.set("showRemoveControl", true);
 
       //get recommended host for the new Zookeeper server
-      zookeeperHosts = currentZooKeepers.mapProperty("selectedHost").uniq();
+      masterHosts = currentMasters.mapProperty("selectedHost").uniq();
 
       for (i = 0; i < this.get("hosts.length"); i++) {
-        if (!(zookeeperHosts.contains(this.get("hosts")[i].get("host_name")))) {
+        if (!(masterHosts.contains(this.get("hosts")[i].get("host_name")))) {
           suggestedHost = this.get("hosts")[i].get("host_name");
           break;
         }
       }
 
-      newZookeeper.set("selectedHost", suggestedHost);
-      newZookeeper.set("zId", (currentZooKeepers.get("lastObject.zId") + 1));
+      newMaster.set("selectedHost", suggestedHost);
+      newMaster.set("zId", (currentMasters.get("lastObject.zId") + 1));
 
-      this.get("selectedServicesMasters").insertAt(this.get("selectedServicesMasters").indexOf(lastZoo) + 1, newZookeeper);
+      this.get("selectedServicesMasters").insertAt(this.get("selectedServicesMasters").indexOf(lastMaster) + 1, newMaster);
 
       if(componentName == 'ZOOKEEPER_SERVER' || componentName == 'HBASE_MASTER'){
         this.rebalanceComponentHosts(componentName);
@@ -605,23 +606,23 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @return {Boolean}
    */
   removeComponent:function (componentName, zId) {
-    var currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName);
+    var currentMasters = this.get("selectedServicesMasters").filterProperty("component_name", componentName);
 
     //work only if the Zookeeper service is selected in previous step
-    if (!currentZooKeepers.length) {
+    if (!currentMasters.length) {
       return false;
     }
 
-    if (currentZooKeepers.get("length") > 1) {
-      this.get("selectedServicesMasters").removeAt(this.get("selectedServicesMasters").indexOf(currentZooKeepers.findProperty("zId", zId)));
+    if (currentMasters.get("length") > 1) {
+      this.get("selectedServicesMasters").removeAt(this.get("selectedServicesMasters").indexOf(currentMasters.findProperty("zId", zId)));
 
-      currentZooKeepers = this.get("selectedServicesMasters").filterProperty("component_name", componentName);
-      if (currentZooKeepers.get("length") < this.get("hosts.length")) {
-        currentZooKeepers.set("lastObject.showAddControl", true);
+      currentMasters = this.get("selectedServicesMasters").filterProperty("component_name", componentName);
+      if (currentMasters.get("length") < this.get("hosts.length")) {
+        currentMasters.set("lastObject.showAddControl", true);
       }
 
-      if (currentZooKeepers.get("length") === 1) {
-        currentZooKeepers.set("lastObject.showRemoveControl", false);
+      if (currentMasters.get("length") === 1) {
+        currentMasters.set("lastObject.showRemoveControl", false);
       }
       if(componentName == 'ZOOKEEPER_SERVER' || componentName == 'HBASE_MASTER'){
         this.rebalanceComponentHosts(componentName);
