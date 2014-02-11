@@ -15,6 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+var App = require('app');
+
 module.exports =
 {
   "configProperties": [
@@ -298,7 +301,27 @@ module.exports =
       "category": "Advanced",
       "serviceName": "YARN"
     },
-
+    {
+      "id": "site property",
+      "name": "yarn.ats.leveldb-timeline-store.path",
+      "displayName": "yarn.ats.leveldb-timeline-store.path",
+      "value": "",
+      "defaultValue": "/var/log/hadoop-yarn/ats",
+      "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
+      "category": "AppTimelineServer",
+      "displayType": "directory",
+      "serviceName": "YARN"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.ats.store.class",
+      "displayName": "yarn.ats.store.class",
+      "value": "",
+      "defaultValue": "org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbApplicationTimelineStore",
+      "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
+      "category": "AppTimelineServer",
+      "serviceName": "YARN"
+    },
   /**********************************************MAPREDUCE2***************************************/
     {
       "id": "site property",
