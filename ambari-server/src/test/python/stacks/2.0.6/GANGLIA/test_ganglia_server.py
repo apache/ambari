@@ -161,6 +161,21 @@ class TestGangliaServer(RMFTestCase):
                                       '/bin',
                                       '/usr/bin'],
                               )
+    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPNimbus -m -o root -g hadoop',
+                              path = ['/usr/libexec/hdp/ganglia',
+                                      '/usr/sbin',
+                                      '/sbin:/usr/local/bin',
+                                      '/bin',
+                                      '/usr/bin'],
+                              )
+    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSupervisor -m -o root -g hadoop',
+                          path = ['/usr/libexec/hdp/ganglia',
+                                  '/usr/sbin',
+                                  '/sbin:/usr/local/bin',
+                                  '/bin',
+                                  '/usr/bin'],
+                          )
+
     self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -t -o root -g hadoop',
                               path = ['/usr/libexec/hdp/ganglia',
                                       '/usr/sbin',

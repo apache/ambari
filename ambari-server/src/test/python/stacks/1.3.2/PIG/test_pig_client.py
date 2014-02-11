@@ -20,7 +20,7 @@ limitations under the License.
 
 from stacks.utils.RMFTestCase import *
 
-class TestHcatClient(RMFTestCase):
+class TestPigClient(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("1.3.2/services/PIG/package/scripts/pig_client.py",

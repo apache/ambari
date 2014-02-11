@@ -25,7 +25,7 @@ from service import service
 from service_check import ServiceCheck
 
 
-class RestApi(Script):
+class StormRestApi(Script):
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -55,4 +55,4 @@ class RestApi(Script):
     check_process_status(status_params.pid_rest_api)
 
 if __name__ == "__main__":
-  RestApi().execute()
+  StormRestApi().execute()

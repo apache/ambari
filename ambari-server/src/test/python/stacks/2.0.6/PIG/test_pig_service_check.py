@@ -20,7 +20,7 @@ limitations under the License.
 
 from stacks.utils.RMFTestCase import *
 
-class TestServiceCheck(RMFTestCase):
+class TestPigServiceCheck(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/PIG/package/scripts/service_check.py",

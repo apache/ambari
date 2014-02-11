@@ -38,7 +38,7 @@ def yaml_config(
   owner = None,
   group = None
 ):
-    config_content = InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
+    config_content = source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
 {% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
 
     File (format("{conf_dir}/{filename}"),
