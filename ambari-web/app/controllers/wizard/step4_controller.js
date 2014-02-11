@@ -133,7 +133,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    */
   needToAddZooKeeper: function() {
-    return this.needAddService('ZOOKEEPER', ['HBASE','HIVE','WEBHCAT']);
+    return this.needAddService('ZOOKEEPER', ['HBASE','HIVE','WEBHCAT','STORM']);
   },
   /**
    * Check whether we should turn on <code>ZooKeeper</code> service (on 2.x stack)
