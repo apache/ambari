@@ -62,7 +62,7 @@ App.MainJobsController = Em.ArrayController.extend({
     if (yarnService != null) {
       this.set('loading', true);
       var historyServerHostName = yarnService.get('resourceManagerNode.hostName')
-      var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : App.apiPrefix + "/proxy?url=http://" + historyServerHostName
+      var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
           + ":8188/ws/v1/apptimeline/HIVE_QUERY_ID?fields=events,primaryfilters";
       if (jobsLimit > 0) {
         hiveQueriesUrl += ("?limit=" + jobsLimit);

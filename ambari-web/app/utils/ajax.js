@@ -1606,15 +1606,18 @@ var urls = {
 
   'jobs.tezDag.NametoID': {
     'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
-    'mock': '/data/jobs/tezDag-name-to-id.json'
+    'mock': '/data/jobs/tezDag-name-to-id.json',
+    'apiPrefix': ''
   },
   'jobs.tezDag.tezDagId': {
     'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities',
-    'mock': '/data/jobs/tezDag.json'
+    'mock': '/data/jobs/tezDag.json',
+    'apiPrefix': ''
   },
   'jobs.tezDag.tezDagVertexId': {
     'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
-    'mock': '/data/jobs/tezDagVertex.json'
+    'mock': '/data/jobs/tezDagVertex.json',
+    'apiPrefix': ''
   }
 };
 /**
@@ -1660,7 +1663,8 @@ var formatRequest = function (data) {
     opt.type = 'GET';
   }
   else {
-    opt.url = App.apiPrefix + formatUrl(this.real, data);
+    var prefix = this.apiPrefix != null ? this.apiPrefix : App.apiPrefix;
+    opt.url = prefix + formatUrl(this.real, data);
   }
 
   if (this.format) {

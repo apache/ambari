@@ -52,7 +52,7 @@ module.exports = {
     var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName')
     var hiveJobId = hiveJob.get('id');
     // First refresh query
-    var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : App.apiPrefix + "/proxy?url=http://" + historyServerHostName
+    var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : "/proxy?url=http://" + historyServerHostName
         + ":8188/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {
