@@ -22,121 +22,176 @@
   <property>
     <name>tez.lib.uris</name>
     <value>file:///usr/lib/tez/,file:///usr/lib/tez/lib/</value>
+    <description>The location of the Tez libraries which will be localized for DAGs</description>
   </property>
 
   <property>
     <name>tez.am.log.level</name>
     <value>INFO</value>
+    <description>Root Logging level passed to the Tez app master</description>
   </property>
 
   <property>
     <name>tez.staging-dir</name>
     <value>/tmp/${user.name}/staging</value>
+    <description>The staging dir used while submitting DAGs</description>
   </property>
 
   <property>
-    <name>tez.slowstart-vertex-scheduler.min-src-fraction</name>
-    <value>0.1</value>
+    <name>tez.am.resource.memory.mb</name>
+    <value>1536</value>
+    <description>The amount of memory to be used by the AppMaster</description>
+  </property>
+
+  <!-- tez picks the java opts from yarn.app.mapreduce.am.command-opts for MR tasks. Likewise for the AM memory MB -->
+  <property>
+    <name>tez.am.java.opts</name>
+    <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC</value>
+    <description>Java options for the Tez AppMaster process</description>
   </property>
 
   <property>
-    <name>tez.slowstart-vertex-scheduler.max-src-fraction</name>
-    <value>0.1</value>
+    <name>tez.am.shuffle-vertex-manager.min-src-fraction</name>
+    <value>0.2</value>
+    <description>In case of a ScatterGather connection, the fraction of source tasks which should
+      complete before tasks for the current vertex are schedule
+    </description>
+  </property>
+
+  <property>
+    <name>tez.am.shuffle-vertex-manager.max-src-fraction</name>
+    <value>0.4</value>
+    <description>In case of a ScatterGather connection, once this fraction of source tasks have
+      completed, all tasks on the current vertex can be scheduled. Number of tasks ready for
+      scheduling on the current vertex scales linearly between min-fraction and max-fraction
+    </description>
   </property>
 
   <property>
     <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
     <value>250</value>
-  </property>
-
-  <property>
-    <name>tez.runtime.broadcast.data-via-events.enabled</name>
-    <value>true</value>
-  </property>
-
-  <property>
-    <name>tez.runtime.broadcast.data-via-events.max-size</name>
-    <value>614400</value>
-  </property>
-
-    <property>
-    <name>tez.am.aggressive.scheduling</name>
-    <value>false</value>
-  </property>
-
-  <property>
-    <name>tez.am.resource.memory.mb</name>
-    <value>1024</value>
-  </property>
-
-  <property>
-    <name>tez.am.java.opts</name>
-    <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC</value>
+    <description>The maximum heartbeat interval between the AM and RM in milliseconds</description>
   </property>
 
   <property>
     <name>tez.am.grouping.split-waves</name>
-    <value>1.7</value>
+    <value>1.4</value>
+    <description>The multiplier for available queue capacity when determining number of tasks for
+      a Vertex. 1.4 with 100% queue available implies generating a number of tasks roughly equal
+      to 140% of the available containers on the queue
+    </description>
+  </property>
+
+  <property>
+    <name>tez.am.grouping.min-size</name>
+    <value>16777216</value>
+    <description>Lower bound on the size (in bytes) of a grouped split, to avoid generating
+      too many splits
+    </description>
+  </property>
+
+  <property>
+    <name>tez.am.grouping.max-size</name>
+    <value>1073741824</value>
+    <description>Upper bound on the size (in bytes) of a grouped split, to avoid generating
+      excessively large split
+    </description>
   </property>
 
   <property>
     <name>tez.am.container.reuse.enabled</name>
     <value>true</value>
+    <description>Configuration to specify whether container should be reused</description>
   </property>
 
   <property>
     <name>tez.am.container.reuse.rack-fallback.enabled</name>
     <value>true</value>
+    <description>Whether to reuse containers for rack local tasks. Active only if reuse is enabled
+    </description>
   </property>
 
   <property>
     <name>tez.am.container.reuse.non-local-fallback.enabled</name>
     <value>true</value>
+    <description>Whether to reuse containers for non-local tasks. Active only if reuse is enabled
+    </description>
   </property>
 
   <property>
     <name>tez.am.container.session.delay-allocation-millis</name>
-    <value>300000</value>
+    <value>10000</value>
+    <!-- TODO This value may change -->
+    <description>The amount of time to hold on to a container if no task can be assigned to
+      it immediately. Only active when reuse is enabled. Set to -1 to never release a container
+      in a session
+    </description>
   </property>
 
   <property>
     <name>tez.am.container.reuse.locality.delay-allocation-millis</name>
     <value>250</value>
-  </property>
-
-  <property>
-    <name>tez.runtime.intermediate-output.should-compress</name>
-    <value>true</value>
-  </property>
-
-  <property>
-    <name>tez.runtime.intermediate-output.compress.codec</name>
-    <value>org.apache.hadoop.io.compress.DefaultCodec</value>
-  </property>
-
-  <property>
-    <name>tez.runtime.intermdiate-input.is-compressed</name>
-    <value>true</value>
-  </property>
-
-  <property>
-    <name>tez.runtime.intermediate-input.compress.codec</name>
-    <value>org.apache.hadoop.io.compress.DefaultCodec</value>
+    <description>The amount of time to wait before assigning a container to the next level of
+      locality. NODE -> RACK -> NON_LOCAL
+    </description>
   </property>
 
   <property>
     <name>tez.task.get-task.sleep.interval-ms.max</name>
-    <value>100</value>
+    <value>200</value>
+    <description>The maximum amount of time, in seconds, to wait before a task asks an AM for
+      another task
+    </description>
+  </property>
+
+  <!-- Client Submission timeout value when submitting DAGs to a session -->
+  <property>
+    <name>tez.session.client.timeout.secs</name>
+    <value>60</value>
+    <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
+      the client
+    </description>
   </property>
 
   <property>
-    <name>tez.runtime.job.counters.max</name>
-    <value>5000</value>
+    <name>tez.session.am.dag.submit.timeout.secs</name>
+    <value>300</value>
+    <description>Time (in seconds) for which the Tez AM should wait for a DAG to be submitted
+      before shutting down
+    </description>
+  </property>
+
+
+  <!-- Configuration for runtime components -->
+
+  <!-- These properties can be set on a per edge basis by configuring the payload for each
+       edge independently. -->
+
+  <property>
+    <name>tez.runtime.intermediate-output.should-compress</name>
+    <value>false</value>
+    <description>Whether intermediate output should be compressed or not</description>
   </property>
 
   <property>
-    <name>tez.runtime.job.counters.groups.max</name>
-    <value>5000</value>
+    <name>tez.runtime.intermediate-output.compress.codec</name>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+    <description>The coded to be used if compressing intermediate output. Only
+      applicable if tez.runtime.intermediate-output.should-compress is enabled.
+    </description>
+  </property>
+
+  <property>
+    <name>tez.runtime.intermediate-input.is-compressed</name>
+    <value>false</value>
+    <description>Whether intermediate input is compressed</description>
+  </property>
+
+  <property>
+    <name>tez.runtime.intermediate-input.compress.codec</name>
+    <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+    <description>The coded to be used when reading intermediate compressed input.
+    Only applicable if tez.runtime.intermediate-input.is-compressed is enabled.
   </property>
 
 </configuration>
