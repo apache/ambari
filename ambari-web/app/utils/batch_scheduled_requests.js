@@ -70,7 +70,7 @@ module.exports = {
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly) {
     var service = App.Service.find(serviceName);
     if (service) {
-      var hostComponents = service.get('hostComponents').filterProperty('passiveState','ACTIVE');
+      var hostComponents = service.get('hostComponents');
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
