@@ -72,7 +72,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {{#each vertex in view.content.tezDag.vertices}}
+                  {{#each vertex in view.sortedVertices}}
                     <tr {{bindAttr class="vertex.isSelected:info"}}>
                       <td>
                         <a title="{{vertex.name}}" href="#" {{action "doSelectVertex" vertex target="view"}}>{{vertex.name}}</a>

@@ -31,6 +31,17 @@ App.MainHiveJobDetailsView = Em.View.extend({
     return Em.I18n.t('jobs.hive.tez.metric.'+this.get('summaryMetricType'));
   }.property('summaryMetricType'),
 
+  sortedVertices : function() {
+    var vertices = this.get('content.tezDag.vertices');
+    if (vertices != null) {
+      vertices = vertices.toArray();
+      return vertices.sort(function(v1, v2) {
+        return Ember.compare(v1.get('name'), v2.get('name'));
+      });
+    }
+    return vertices;
+  }.property('content.tezDag.vertices'),
+
   initialDataLoaded : function() {
     var loaded = this.get('controller.loaded');
     if (loaded) {
