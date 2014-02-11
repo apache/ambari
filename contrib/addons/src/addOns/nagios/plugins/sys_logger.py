@@ -30,27 +30,71 @@ degraded_alert_services = ['HBASEMASTER::HBase Master CPU utilization',
 fatal_alert_services = ['NAMENODE::NameNode process down']
 
 # dictionary of service->msg_id mappings
-msg_ids = {'Host::Ping':'host_down', 'HBASEMASTER::HBase Master CPU utilization':'master_cpu_utilization',
-           'HDFS::HDFS capacity utilization':'hdfs_percent_capacity', 'HDFS::Corrupt/Missing blocks':'hdfs_block',
-           'NAMENODE::NameNode edit logs directory status':'namenode_edit_log_write', 'HDFS::Percent DataNodes down':'datanode_down',
-           'DATANODE::DataNode process down':'datanode_process_down', 'HDFS::Percent DataNodes storage full':'datanodes_percent_storage_full',
-           'NAMENODE::NameNode process down':'namenode_process_down', 'HDFS::NameNode RPC latency':'namenode_rpc_latency',
-           'DATANODE::DataNode storage full':'datanodes_storage_full', 'JOBTRACKER::JobTracker process down':'jobtracker_process_down',
-           'MAPREDUCE::JobTracker RPC latency':'jobtracker_rpc_latency', 'MAPREDUCE::Percent TaskTrackers down':'tasktrackers_down',
-           'TASKTRACKER::TaskTracker process down':'tasktracker_process_down', 'HBASEMASTER::HBase Master process down':'hbasemaster_process_down',
-           'REGIONSERVER::RegionServer process down':'regionserver_process_down', 'HBASE::Percent RegionServers down':'regionservers_down',
-           'HIVE-METASTORE::Hive Metastore status check':'hive_metastore_process_down', 'ZOOKEEPER::Percent ZooKeeper Servers down':'zookeepers_down',
-           'ZOOKEEPER::ZooKeeper Server process down':'zookeeper_process_down', 'OOZIE::Oozie Server status check':'oozie_down',
-           'WEBHCAT::WebHCat Server status check':'templeton_down', 'PUPPET::Puppet agent down':'puppet_down',
-           'NAGIOS::Nagios status log staleness':'nagios_status_log_stale', 'GANGLIA::Ganglia [gmetad] process down':'ganglia_process_down',
+msg_ids = {'Host::Ping':'host_down',
+           'HBASEMASTER::HBase Master CPU utilization':'master_cpu_utilization',
+           'HDFS::HDFS capacity utilization':'hdfs_percent_capacity',
+           'HDFS::Corrupt/Missing blocks':'hdfs_block',
+           'NAMENODE::NameNode edit logs directory status':'namenode_edit_log_write',
+           'HDFS::Percent DataNodes down':'datanode_down',
+           'DATANODE::DataNode process down':'datanode_process_down',
+           'HDFS::Percent DataNodes storage full':'datanodes_percent_storage_full',
+           'NAMENODE::NameNode process down':'namenode_process_down',
+           'HDFS::NameNode RPC latency':'namenode_rpc_latency',
+           'DATANODE::DataNode storage full':'datanodes_storage_full',
+           'JOBTRACKER::JobTracker process down':'jobtracker_process_down',
+           'MAPREDUCE::JobTracker RPC latency':'jobtracker_rpc_latency',
+           'MAPREDUCE::Percent TaskTrackers down':'tasktrackers_down',
+           'TASKTRACKER::TaskTracker process down':'tasktracker_process_down',
+           'HBASEMASTER::HBase Master process down':'hbasemaster_process_down',
+           'REGIONSERVER::RegionServer process down':'regionserver_process_down',
+           'HBASE::Percent RegionServers down':'regionservers_down',
+           'HIVE-METASTORE::Hive Metastore status check':'hive_metastore_process_down',
+           'ZOOKEEPER::Percent ZooKeeper Servers down':'zookeepers_down',
+           'ZOOKEEPER::ZooKeeper Server process down':'zookeeper_process_down',
+           'OOZIE::Oozie Server status check':'oozie_down',
+           'WEBHCAT::WebHCat Server status check':'templeton_down',
+           'PUPPET::Puppet agent down':'puppet_down',
+           'NAGIOS::Nagios status log staleness':'nagios_status_log_stale',
+           'GANGLIA::Ganglia [gmetad] process down':'ganglia_process_down',
            'GANGLIA::Ganglia Collector [gmond] process down alert for HBase Master':'ganglia_collector_process_down',
            'GANGLIA::Ganglia Collector [gmond] process down alert for JobTracker':'ganglia_collector_process_down',
            'GANGLIA::Ganglia Collector [gmond] process down alert for NameNode':'ganglia_collector_process_down',
            'GANGLIA::Ganglia Collector [gmond] process down alert for slaves':'ganglia_collector_process_down',
            'NAMENODE::Secondary NameNode process down':'secondary_namenode_process_down',
            'JOBTRACKER::JobTracker CPU utilization':'jobtracker_cpu_utilization',
-           'HBASEMASTER::HBase Master Web UI down':'hbase_ui_down', 'NAMENODE::NameNode Web UI down':'namenode_ui_down',
-           'JOBTRACKER::JobHistory Web UI down':'jobhistory_ui_down', 'JOBTRACKER::JobTracker Web UI down':'jobtracker_ui_down'}
+           'HBASEMASTER::HBase Master Web UI down':'hbase_ui_down',
+           'NAMENODE::NameNode Web UI down':'namenode_ui_down',
+           'JOBTRACKER::JobHistory Web UI down':'jobhistory_ui_down',
+           'JOBTRACKER::JobTracker Web UI down':'jobtracker_ui_down',
+
+
+           'HBASEMASTER::HBaseMaster CPU utilization':'master_cpu_utilization',
+           'HDFS::HDFS Capacity utilization':'hdfs_percent_capacity',
+           'NAMENODE::Namenode Edit logs directory status':'namenode_edit_log_write',
+           'DATANODE::Process down':'datanode_process_down',
+           'NAMENODE::Namenode Process down':'namenode_process_down',
+           'HDFS::Namenode RPC Latency':'namenode_rpc_latency',
+           'DATANODE::Storage full':'datanodes_storage_full',
+           'JOBTRACKER::Jobtracker Process down':'jobtracker_process_down',
+           'MAPREDUCE::JobTracker RPC Latency':'jobtracker_rpc_latency',
+           'TASKTRACKER::Process down':'tasktracker_process_down',
+           'HBASEMASTER::HBaseMaster Process down':'hbasemaster_process_down',
+           'REGIONSERVER::Process down':'regionserver_process_down',
+           'HBASE::Percent region servers down':'regionservers_down',
+           'HIVE-METASTORE::HIVE-METASTORE status check':'hive_metastore_process_down',
+           'ZOOKEEPER::Percent zookeeper servers down':'zookeepers_down',
+           'ZKSERVERS::ZKSERVERS Process down':'zookeeper_process_down',
+           'Oozie status check':'oozie_down',
+           'WEBHCAT::WebHcat status check':'templeton_down',
+           'GANGLIA::Ganglia [gmetad] Process down':'ganglia_process_down',
+           'GANGLIA::Ganglia collector [gmond] Process down alert for hbasemaster':'ganglia_collector_process_down',
+           'GANGLIA::Ganglia collector [gmond] Process down alert for jobtracker':'ganglia_collector_process_down',
+           'GANGLIA::Ganglia collector [gmond] Process down alert for namenode':'ganglia_collector_process_down',
+           'GANGLIA::Ganglia collector [gmond] Process down alert for slaves':'ganglia_collector_process_down',
+           'NAMENODE::Secondary Namenode Process down':'secondary_namenode_process_down',
+           'JOBTRACKER::Jobtracker CPU utilization':'jobtracker_cpu_utilization',
+           'HBASEMASTER::HBase Web UI down':'hbase_ui_down',
+           'NAMENODE::Namenode Web UI down':'namenode_ui_down'}
 
 
 # Determine the severity of the TVI alert based on the Nagios alert state.
@@ -87,7 +131,7 @@ def determine_domain():
 
 # log the TVI msg to the syslog
 def log_tvi_msg(msg):
-    syslog.openlog('Hadoop', syslog.LOG_PID)
+    syslog.openlog('nagios', syslog.LOG_PID)
     syslog.syslog(msg)
 
 
