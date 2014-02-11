@@ -184,7 +184,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
           startTime: request.Requests.start_time,
           endTime: request.Requests.end_time,
           dependentService: requestParams.dependentService,
-          sourceRequestScheduleId: request.Requests.source_schedule_id,
+          sourceRequestScheduleId: request.Requests.request_schedule && request.Requests.request_schedule.schedule_id,
           previousTaskStatusMap: {},
           contextCommand: requestParams.contextCommand
         });
