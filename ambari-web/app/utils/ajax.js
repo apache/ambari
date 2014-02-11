@@ -1427,7 +1427,7 @@ var urls = {
         type : 'POST',
         data : JSON.stringify({
           "RequestInfo" : {
-            "context" : Em.I18n.t('restart.service.rest.context').format(serviceDisplayName, componentDisplayName),
+            "context" : Em.I18n.t('restart.service.rest.context').format(componentDisplayName),
             "command" : "RESTART",
             "service_name" : data.serviceName,
             "component_name" : data.componentName,
