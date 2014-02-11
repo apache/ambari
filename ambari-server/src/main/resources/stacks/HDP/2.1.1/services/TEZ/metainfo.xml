@@ -53,7 +53,7 @@
 
       <configuration-dependencies>
         <config-type>global</config-type>
-        <config-type>tez-site.xml</config-type>
+        <config-type>tez-site</config-type>
       </configuration-dependencies>
 
     </service>
