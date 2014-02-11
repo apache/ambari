@@ -19,11 +19,9 @@ limitations under the License.
 
 from resource_management import *
 from utils import service
-from utils import hdfs_directory
-import urlparse
 
 
-def namenode(action=None, format=True):
+def namenode(action=None, do_format=True):
   import params
   #we need this directory to be present before any action(HA manual steps for
   #additional namenode)
@@ -31,7 +29,7 @@ def namenode(action=None, format=True):
     create_name_dirs(params.dfs_name_dir)
 
   if action == "start":
-    if format:
+    if do_format:
       format_namenode()
       pass
 
@@ -48,11 +46,22 @@ def namenode(action=None, format=True):
       create_log_dir=True,
       principal=params.dfs_namenode_kerberos_principal
     )
+    if params.dfs_ha_enabled:
+      dfs_check_nn_status_cmd = format("su - {hdfs_user} -c 'hdfs haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
+    else:
+      dfs_check_nn_status_cmd = None
 
-    # TODO: extract creating of dirs to different services
-    create_app_directories()
-    create_user_directories()
+    namenode_safe_mode_off = format("su - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
 
+    if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user}"),
+              user = params.hdfs_user)
+    Execute(namenode_safe_mode_off,
+            tries=40,
+            try_sleep=10,
+            only_if=dfs_check_nn_status_cmd #skip when HA not active
+    )
+    create_hdfs_directories(dfs_check_nn_status_cmd)
   if action == "stop":
     service(
       action="stop", name="namenode", user=params.hdfs_user,
@@ -62,7 +71,6 @@ def namenode(action=None, format=True):
 
   if action == "decommission":
     decommission()
-
 
 def create_name_dirs(directories):
   import params
@@ -76,100 +84,22 @@ def create_name_dirs(directories):
   )
 
 
-def create_app_directories():
+def create_hdfs_directories(check):
   import params
 
-  hdfs_directory(name="/tmp",
-                 owner=params.hdfs_user,
-                 mode="777"
+  params.HdfsDirectory("/tmp",
+                       action="create_delayed",
+                       owner=params.hdfs_user,
+                       mode=0777
   )
-  #mapred directories
-  if params.has_histroryserver:
-    hdfs_directory(name="/mapred",
-                   owner=params.mapred_user
-    )
-    hdfs_directory(name="/mapred/system",
-                   owner=params.hdfs_user
-    )
-    #hbase directories
-  if len(params.hbase_master_hosts) != 0:
-    hdfs_directory(name=params.hbase_hdfs_root_dir,
-                   owner=params.hbase_user
-    )
-    hdfs_directory(name=params.hbase_staging_dir,
-                   owner=params.hbase_user,
-                   mode="711"
-    )
-    #hive directories
-  if len(params.hive_server_host) != 0:
-    hdfs_directory(name=params.hive_apps_whs_dir,
-                   owner=params.hive_user,
-                   mode="777"
-    )
-  if len(params.hcat_server_hosts) != 0:
-    hdfs_directory(name=params.webhcat_apps_dir,
-                   owner=params.webhcat_user,
-                   mode="755"
-    )
-  if len(params.hs_host) != 0:
-    if params.yarn_log_aggregation_enabled:
-      hdfs_directory(name=params.yarn_nm_app_log_dir,
-                     owner=params.yarn_user,
-                     group=params.user_group,
-                     mode="777",
-                     recursive_chmod=True
-      )
-    hdfs_directory(name=params.mapreduce_jobhistory_intermediate_done_dir,
-                   owner=params.mapred_user,
-                   group=params.user_group,
-                   mode="777"
-    )
-
-    hdfs_directory(name=params.mapreduce_jobhistory_done_dir,
-                   owner=params.mapred_user,
-                   group=params.user_group,
-                   mode="1777"
-    )
-
-  if params.has_falcon_host:
-    if params.falcon_store_uri[0:4] == "hdfs":
-      hdfs_directory(name=params.store_uri,
-                     owner=params.falcon_user,
-                     mode="755"
-      )
-
-
-def create_user_directories():
-  import params
-
-  hdfs_directory(name=params.smoke_hdfs_user_dir,
-                 owner=params.smoke_user,
-                 mode=params.smoke_hdfs_user_mode
+  params.HdfsDirectory(params.smoke_hdfs_user_dir,
+                       action="create_delayed",
+                       owner=params.smoke_user,
+                       mode=params.smoke_hdfs_user_mode
   )
-
-  if params.has_hive_server_host:
-    hdfs_directory(name=params.hive_hdfs_user_dir,
-                   owner=params.hive_user,
-                   mode=params.hive_hdfs_user_mode
-    )
-
-  if params.has_hcat_server_host:
-    if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
-      hdfs_directory(name=params.hcat_hdfs_user_dir,
-                     owner=params.hcat_user,
-                     mode=params.hcat_hdfs_user_mode
-      )
-    hdfs_directory(name=params.webhcat_hdfs_user_dir,
-                   owner=params.webhcat_user,
-                   mode=params.webhcat_hdfs_user_mode
-    )
-
-  if params.has_oozie_server:
-    hdfs_directory(name=params.oozie_hdfs_user_dir,
-                   owner=params.oozie_user,
-                   mode=params.oozie_hdfs_user_mode
-    )
-
+  params.HdfsDirectory(None, action="create",
+                       only_if=check #skip creation when HA not active
+  )
 
 def format_namenode(force=None):
   import params
@@ -208,10 +138,7 @@ def decommission():
        group=user_group
   )
 
-  if params.update_exclude_file_only == False:
-    ExecuteHadoop('dfsadmin -refreshNodes',
-                  user=hdfs_user,
-                  conf_dir=conf_dir,
-                  kinit_override=True)
-    pass
-  pass
+  ExecuteHadoop('dfsadmin -refreshNodes',
+                user=hdfs_user,
+                conf_dir=conf_dir,
+                kinit_override=True)

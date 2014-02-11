@@ -32,7 +32,6 @@ class TestStormServiceCheck(RMFTestCase):
                        command="service_check",
                        config_file="default.json"
     )
-    self.printResources()
 
     self.assertResourceCalled('File', '/tmp/wordCount.jar',
       content = StaticFile('wordCount.jar'),
