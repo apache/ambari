@@ -42,7 +42,7 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
               owner=user,
               recursive=True)
 
-  if params.security_enabled:
+  if params.security_enabled and name != "zkfc":
     principal_replaced = principal.replace("_HOST", params.hostname)
     kinit_cmd = format("kinit -kt {keytab} {principal_replaced}")
 
