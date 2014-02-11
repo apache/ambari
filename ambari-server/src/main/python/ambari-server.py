@@ -2032,9 +2032,7 @@ def download_jce_policy(properties, accpeted_bcl):
   if not os.path.exists(dest_file):
     print 'Downloading JCE Policy archive from ' + jce_url + ' to ' + dest_file
     jce_download_fail_msg = " Failed to download JCE Policy archive : {0}. " \
-        "Please check that JCE Policy archive is available " \
-        "at {1} . Also you may install JCE Policy archive manually using " \
-      "--jce-policy command line argument.".format("{0}", jce_url)
+        "Please check that JCE Policy archive is available at {1} . "
     try:
       size_command = JDK_DOWNLOAD_SIZE_CMD.format(jce_url);
       #Get Header from url,to get file size then
@@ -4183,8 +4181,6 @@ def main():
                   help="Use specified java_home.  Must be valid on all hosts")
   parser.add_option('-i', '--jdk-location', dest="jdk_location", default=None,
                     help="Use specified JDK file in local filesystem instead of downloading")
-  #parser.add_option('-c', '--jce-policy', default=None,
-  #                help="Use specified jce_policy.  Must be valid on all hosts", dest="jce_policy") 
   parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="Print verbose status messages")
