@@ -36,6 +36,16 @@
         </component>
 
         <component>
+          <name>STORM_REST_API</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/rest_api.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
           <name>SUPERVISOR</name>
           <category>SLAVE</category>
           <commandScript>

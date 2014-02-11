@@ -17,20 +17,42 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
+import sys
 from resource_management import *
+from storm import storm
+from service import service
+from service_check import ServiceCheck
 
-config = Script.get_config()
 
-pid_dir = config['configurations']['global']['storm_pid_dir']
-pid_nimbus = format("{pid_dir}/nimbus.pid")
-pid_supervisor = format("{pid_dir}/supervisor.pid")
-pid_drpc = format("{pid_dir}/drpc.pid")
-pid_ui = format("{pid_dir}/ui.pid")
-pid_logviewer = format("{pid_dir}/logviewer.pid")
-pid_rest_api = format("{pid_dir}/restapi.pid")
-pid_files = {"logviewer":pid_logviewer,
-             "ui": pid_ui,
-             "nimbus": pid_nimbus,
-             "supervisor": pid_supervisor,
-             "drpc": pid_drpc,
-             "rest_api": pid_rest_api}
+class RestApi(Script):
+  def install(self, env):
+    self.install_packages(env)
+    self.configure(env)
+
+  def configure(self, env):
+    import params
+    env.set_params(params)
+
+    storm()
+
+  def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env)
+
+    service("rest_api", action="start")
+
+  def stop(self, env):
+    import params
+    env.set_params(params)
+
+    service("rest_api", action="stop")
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_process_status(status_params.pid_rest_api)
+
+if __name__ == "__main__":
+  RestApi().execute()

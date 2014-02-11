@@ -33,24 +33,29 @@ def service(
   pid_file = status_params.pid_files[name]
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
+  if name == 'ui':
+    process_cmd = "^java.+backtype.storm.ui.core$"
+  elif name == "rest_api":
+    process_cmd = format("java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
+  else:
+    process_cmd = format("^java.+backtype.storm.daemon.{name}$")
+
+  crt_pid_cmd = format("pgrep -f \"{process_cmd}\" > {pid_file}")
+
   if action == "start":
-    cmd = ["/usr/bin/storm", name]
-    if name == "ui":
-      crt_pid_cmd = format("pgrep -f \"^java.+backtype.storm.ui.core$\" > {pid_file}")
-    else :
-      crt_pid_cmd = format("pgrep -f \"^java.+backtype.storm.daemon.{name}$\" > {pid_file}")
+    if name == "rest_api":
+      cmd = format("env PATH=$PATH:{java64_home}/bin {process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log")
+    else:
+      cmd = format("env PATH=$PATH:{java64_home}/bin /usr/bin/storm {name}")
 
-    #Execute(cmd,
-    #        not_if=no_op_test,
-    #        user=params.storm_user
-    #)
-
-    #TODO run from storm user
-
-    if call(no_op_test)[0]:
-      subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env={"PATH":format("{java64_home}/bin:/bin")})
+    Execute(cmd,
+           not_if=no_op_test,
+           user=params.storm_user,
+           wait_for_finish=False
+    )
 
     Execute(crt_pid_cmd,
+            user=params.storm_user,
             logoutput=True,
             tries=6,
             try_sleep=10

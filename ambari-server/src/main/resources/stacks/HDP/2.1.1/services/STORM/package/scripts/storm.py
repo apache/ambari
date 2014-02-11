@@ -31,6 +31,12 @@ def storm():
             recursive=True
   )
 
+  File(format("{conf_dir}/config.yaml"),
+            content=Template("config.yaml.j2"),
+            owner = params.storm_user,
+            group = params.user_group
+  )
+
   yaml_config( "storm.yaml",
                conf_dir = params.conf_dir,
                configurations = params.config['configurations']['storm-site'],
