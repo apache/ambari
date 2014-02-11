@@ -31,7 +31,12 @@ def hbase(type=None # 'master' or 'regionserver' or 'client'
       group = params.user_group,
       recursive = True
   )
-  
+
+  Directory (params.tmp_dir,
+             owner = params.hbase_user,
+             recursive = True
+  )
+
   XmlConfig( "hbase-site.xml",
             conf_dir = params.conf_dir,
             configurations = params.config['configurations']['hbase-site'],
@@ -45,7 +50,7 @@ def hbase(type=None # 'master' or 'regionserver' or 'client'
             owner = params.hbase_user,
             group = params.user_group
   )
-  
+
   if 'hbase-policy' in params.config['configurations']:
     XmlConfig( "hbase-policy.xml",
       configurations = params.config['configurations']['hbase-policy'],
@@ -76,7 +81,7 @@ def hbase(type=None # 'master' or 'regionserver' or 'client'
       recursive = True
     )
   
-    Directory ( [params.tmp_dir, params.log_dir],
+    Directory (params.log_dir,
       owner = params.hbase_user,
       recursive = True
     )

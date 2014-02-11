@@ -29,10 +29,14 @@ class TestHBaseClient(RMFTestCase):
                    command = "configure",
                    config_file="secured.json"
     )
-    
+
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
+      owner = 'hbase',
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -83,36 +87,40 @@ class TestHBaseClient(RMFTestCase):
                    command = "configure",
                    config_file="default.json"
     )
-    
+
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hbase-site'], # don't hardcode all the properties
-    )    
+    )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
-    )    
+    )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
-    )    
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hbase-env.sh',
       owner = 'hbase',
       template_tag = None,
-    )    
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics2-hbase.properties',
       owner = 'hbase',
       template_tag = 'GANGLIA-RS',
-    )    
+    )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/regionservers',
       owner = 'hbase',
       template_tag = None,

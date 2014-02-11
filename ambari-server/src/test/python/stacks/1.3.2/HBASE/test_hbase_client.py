@@ -35,6 +35,10 @@ class TestHBaseClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -88,7 +92,11 @@ class TestHBaseClient(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       recursive = True,
-    )    
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase',
+      owner = 'hbase',
+      recursive = True,
+    )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
       group = 'hadoop',
