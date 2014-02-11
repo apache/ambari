@@ -367,11 +367,26 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     }).target(function(d) {
       return {
         x : d.target.incomingX,
-        y : d.target.incomingY - 10
+        y : d.target.incomingY - 12
       }
     });
     var link = svgLayer.selectAll(".link").data(dagVisualModel.links).enter().append("g").attr("class", "link").attr("marker-end", "url(#arrow)");
-    link.append("path").attr("class", "link").attr("d", diagonal);
+    link.append("path").attr("class", function(l) {
+      var classes = "link ";
+      switch (l.edgeType) {
+      case App.TezDagVertexType.BROADCAST:
+        classes += "type-broadcast ";
+        break;
+      case App.TezDagVertexType.SCATTER_GATHER:
+        classes += "type-scatter-gather ";
+        break;
+      default:
+        break;
+      }
+      return classes;
+    }).attr("d", diagonal).append("title").text(function(l) {
+      return l.edgeType;
+    });
     // Create Nodes
     var node = svgLayer.selectAll(".node").data(dagVisualModel.nodes).enter().append("g").attr("class", "node");
     node.append("rect").attr("class", "background").attr("width", function(n) {

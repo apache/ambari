@@ -5529,7 +5529,15 @@ i.icon-asterisks {
     path.link {
       fill: none;
       stroke: #666;
-      stroke-width: 1.5px;
+      stroke-width: 5px;
+      opacity: 0.6;
+    }
+    path.link.type-broadcast {
+      stroke: teal;
+    }
+    path.link.type-scatter-gather {
+      stroke: orange;
+      stroke-dasharray: 10,3;
     }
   }
 }
