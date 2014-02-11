@@ -114,7 +114,7 @@ App.MainHostSummaryView = Em.View.extend({
       }
     }, this);
     return clients;
-  }.property('content'),
+  }.property('content.hostComponents.length'),
 
   /**
    * Check if some clients have stale configs
