@@ -445,7 +445,8 @@ App.config = Em.Object.create({
         }
       }
       if (configData.displayType === 'checkbox') {
-        configData.value = configData.defaultValue = configData.value === 'true'; // convert {String} value to {Boolean}
+        configData.value = configData.value === 'true'; // convert {String} value to {Boolean}
+        configData.defaultValue = configData.value;
       }
       mergedConfigs.push(configData);
     }, this);
@@ -597,7 +598,7 @@ App.config = Em.Object.create({
       break;
     }
     try {
-      if (typeof(config == "string") && config.defaultValue.indexOf("{firstHost}") >= 0) {
+      if (typeof(config.defaultValue) == "string" && config.defaultValue.indexOf("{firstHost}") >= 0) {
         serviceConfigProperty.set('value', serviceConfigProperty.value.replace(new RegExp("{firstHost}"), firstHost));
         serviceConfigProperty.set('defaultValue', serviceConfigProperty.defaultValue.replace(new RegExp("{firstHost}"), firstHost));
       }
