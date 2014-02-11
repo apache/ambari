@@ -2409,7 +2409,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")
-  def test_silent_reset(self, check_database_name_property_mock, is_root_mock, parse_properties_file_mock,
+  @patch.object(ambari_server, 'is_server_runing')
+  def test_silent_reset(self, is_server_runing_mock, check_database_name_property_mock, is_root_mock, parse_properties_file_mock,
                         run_os_command_mock, print_info_msg_mock,
                         setup_db_mock):
     is_root_mock.return_value = True
@@ -2419,6 +2420,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(ambari_server.SILENT)
     setup_db_mock.return_value = (0, None, None)
     run_os_command_mock.return_value = (0, None, None)
+    is_server_runing_mock.return_value = (False, 0)
 
     def signal_handler(signum, frame):
       self.fail("Timed out!")
@@ -3413,7 +3415,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")
-  def test_reset_remote_db_wo_client(self, check_database_name_property_mock, is_root_mock, run_os_command_mock,
+  @patch.object(ambari_server, 'is_server_runing')
+  def test_reset_remote_db_wo_client(self, is_server_runing_mock, check_database_name_property_mock, is_root_mock, run_os_command_mock,
                                      setup_db_mock,
                                      get_YN_inputMock, print_error_msg_mock, get_db_cli_tool_mock,
                                      parse_properties_file_mock):
@@ -3423,6 +3426,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.persistence_type = "remote"
     get_db_cli_tool_mock.return_value = None
     is_root_mock.return_value = True
+    is_server_runing_mock.return_value = (False, 0)
     try:
       ambari_server.reset(args)
       self.fail("Should throw exception")
