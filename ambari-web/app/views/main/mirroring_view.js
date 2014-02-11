@@ -24,6 +24,6 @@ App.MainMirroringView = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.loadDatasets();
+    controller.loadData();
   }
 });

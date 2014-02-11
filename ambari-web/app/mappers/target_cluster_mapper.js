@@ -20,36 +20,13 @@
 App.targetClusterMapper = App.QuickDataMapper.create({
   model: App.TargetCluster,
   config: {
-    id: 'id',
-    cluster_name: 'Clusters.name',
-    name_node_web_url: 'name_node_web_url',
-    name_node_rpc_url: 'name_node_rpc_url',
-    oozie_server_url: 'oozie_server_url'
-  },
-  map: function (json) {
-    if (!this.get('model')) {
-      return;
-    }
-    if (json && json.items && json.items.length > 0) {
-      var target_cluster_results = [];
-      json.items.forEach(function (item) {
-        try {
-          item.name_node_web_url = (item.Clusters.interfaces.interface.findProperty("type", "readonly")).endpoint;
-          item.name_node_rpc_url = (item.Clusters.interfaces.interface.findProperty("type", "write")).endpoint;
-          item.oozie_server_url = (item.Clusters.interfaces.interface.findProperty("type","workflow")).endpoint;
-          item.id = item.Clusters.name;
-
-          var re = new RegExp(" ", "g");
-          item.id = item.id.replace(re, "_");
-
-
-          item = this.parseIt(item, this.config);
-          target_cluster_results.push(item);
-        } catch (ex) {
-          console.error('Exception occurred: ' + ex);
-        }
-      }, this);
-      App.store.loadMany(this.get('model'), target_cluster_results);
-    }
+    id: 'name',
+    name: 'name',
+    execute: 'execute',
+    workflow: 'workflow',
+    readonly: 'readonly',
+    staging: 'staging',
+    working: 'working',
+    temp: 'temp'
   }
 });

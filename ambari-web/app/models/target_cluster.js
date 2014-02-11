@@ -20,20 +20,13 @@
 var App = require('app');
 
 App.TargetCluster = DS.Model.extend({
-  id: DS.attr('string'),
-  clusterName: DS.attr('string'),
-  nameNodeWebUrl: DS.attr('string'),
-  nameNodeRpcUrl: DS.attr('string'),
-  oozieServerUrl: DS.attr('string')
+  name: DS.attr('string'),
+  execute: DS.attr('string'),
+  workflow: DS.attr('string'),
+  readonly: DS.attr('string'),
+  staging: DS.attr('string'),
+  working: DS.attr('string'),
+  temp: DS.attr('string')
 });
 
-App.TargetCluster.FIXTURES = [/*
- {
- id: 1,
- cluster_name: 'cluster1',
- stack_name: 'HDP',
- hosts: [1, 2, 3, 4],
- racks: [1, 2, 3, 4, 5, 6],
- max_hosts_per_rack: 10
- }*/
-];
+App.TargetCluster.FIXTURES = [];

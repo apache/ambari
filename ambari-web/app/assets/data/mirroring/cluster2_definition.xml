@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cluster name="cluster2" description="" colo="default" xmlns="uri:falcon:cluster:0.1">
+    <interfaces>
+        <interface type="readonly" endpoint="hftp://c6401.ambari.apache.org:50070" version="2.2.0.2.0.6.0-76"/>
+        <interface type="write" endpoint="hdfs://c6401.ambari.apache.org:8020" version="2.2.0.2.0.6.0-76"/>
+        <interface type="execute" endpoint="c6401.ambari.apache.org:8050" version="2.2.0.2.0.6.0-76"/>
+        <interface type="workflow" endpoint="http://c6401.ambari.apache.org:11000/oozie" version="3.1.4"/>
+        <interface type="messaging" endpoint="tcp://c6401.ambari.apache.org:61616?daemon=true" version="5.1.6"/>
+    </interfaces>
+    <locations>
+        <location name="staging" path="/projects/falcon/staging"/>
+        <location name="temp" path="/tmp"/>
+        <location name="working" path="/projects/falcon/working"/>
+    </locations>
+</cluster>

@@ -1,0 +1,12 @@
+{
+  "entity": [
+    {
+      "name": "cluster1",
+      "type": "feed"
+    },
+    {
+      "name": "cluster2",
+      "type": "feed"
+    }
+  ]
+}

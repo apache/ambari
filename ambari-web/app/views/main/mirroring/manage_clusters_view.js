@@ -26,10 +26,10 @@ App.MainMirroringManageClusterstView = Em.View.extend({
     classNames: ['cluster-select'],
     multiple: true,
     content: function () {
-      var clusters = this.get('controller.clusters').slice();
-      clusters.unshift(App.get('clusterName'));
-      return clusters;
-    }.property('controller.clusters.@each', 'App.clusterName'),
+      return this.get('controller.clusters');
+    }.property('controller.clusters.@each'),
+
+    optionLabelPath: 'content.name',
 
     onSelect: function () {
       if (this.get('selection.length')) {
@@ -39,15 +39,31 @@ App.MainMirroringManageClusterstView = Em.View.extend({
           this.set('selection', [this.get('controller.selectedCluster')]);
         }
       } else {
-        this.set('controller.selectedCluster', null);
+        this.set('selection', [this.get('content')[0]]);
       }
-    }.observes('selection')
+    }.observes('selection'),
+
+    // set selected option in Cluster Select after adding or removing an option
+    onContentChange: function () {
+      if (this.get('controller.isLoaded')) {
+        var content = this.get('content');
+        if (content.length < this.get('element.options.length')) {
+          this.set('selection', [content[0]]);
+        } else {
+          this.set('selection', [content[content.length - 1]]);
+        }
+      }
+    }.observes('content.length', 'controller.isLoaded')
   }),
 
   removeDisabled: function () {
     var selectedCluster = this.get('controller.selectedCluster');
-    return !selectedCluster || selectedCluster === App.get('clusterName');
-  }.property('controller.selectedCluster', 'App.clusterName')
+    return !selectedCluster || selectedCluster.get('name') === App.get('clusterName');
+  }.property('controller.selectedCluster', 'App.clusterName'),
+
+  didInsertElement: function () {
+    this.get('controller').onLoad();
+  }
 });
 
 

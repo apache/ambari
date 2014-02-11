@@ -30,15 +30,15 @@
           <div style="margin-bottom: 15px">{{t mirroring.manageClusters.interfaces}}</div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.execute}}</label>
-            {{view Ember.TextField class="span8"}}
+            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.execute"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.readonly}}</label>
-            {{view Ember.TextField class="span8"}}
+            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.readonly"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
-            {{view Ember.TextField class="span8"}}
+            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.workflow"}}
           </div>
         </div>
         <div class="accordion control-group" id="advanced-fields">
@@ -52,15 +52,15 @@
               <div class="accordion-inner">
                 <div class="control-group">
                   <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>
-                  {{view Ember.TextField class="span8"}}
+                  {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.staging"}}
                 </div>
                 <div class="control-group">
                   <label class="control-label-manage-clusters">{{t mirroring.manageClusters.working}}</label>
-                  {{view Ember.TextField class="span8"}}
+                  {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.working"}}
                 </div>
                 <div class="control-group">
                   <label class="control-label-manage-clusters">{{t mirroring.manageClusters.temp}}</label>
-                  {{view Ember.TextField class="span8"}}
+                  {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.temp"}}
                 </div>
               </div>
             </div>

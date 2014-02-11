@@ -1798,12 +1798,7 @@ Em.I18n.translations = {
   'mirroring.manageClusters.staging':'Staging',
   'mirroring.manageClusters.working':'Working',
   'mirroring.manageClusters.temp':'Temp',
-
-  'mirroring.targetcluster.nameNodeWebUrl':'NameNode Web UI',
-  'mirroring.targetcluster.nameNodeRpcUrl':'NameNode RPC',
-  'mirroring.targetcluster.oozieServerUrl':'Oozie Server',
-  'mirroring.targetcluster.addCluster':'Add Cluster',
-  'mirroring.targetcluster.enterClusterName':'Name of the Target Cluster',
+  'mirroring.manageClusters.error' :'Error in saving changes',
 
   'mirroring.table.noDatasets':'No datasets to display',
   'mirroring.table.datasetStatus':'Status',

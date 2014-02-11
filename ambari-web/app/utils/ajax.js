@@ -1438,14 +1438,14 @@ var urls = {
     }
   },
 
-  'mirroring.get_all_datasets': {
-    'real': 'falcon/entities/list/feed',
-    'mock': '/data/mirroring/datasets.json'
+  'mirroring.get_all_entities': {
+    'real': '/falcon/entities/list/{type}',
+    'mock': '/data/mirroring/{type}s.json'
   },
 
-  'mirroring.get_dataset_definition': {
-    'real': 'falcon/entities/definition/feed/{dataset}',
-    'mock': '/data/mirroring/{dataset}_definition.xml',
+  'mirroring.get_definition': {
+    'real': '/falcon/entities/definition/{type}/{name}',
+    'mock': '/data/mirroring/{name}_definition.xml',
     'format': function () {
       return {
         dataType: 'xml'
@@ -1454,8 +1454,51 @@ var urls = {
   },
 
   'mirroring.dataset.get_all_instances': {
-    'real': 'falcon/instance/status/feed/{dataset}',
+    'real': '/falcon/instance/status/feed/{dataset}',
     'mock': '/data/mirroring/{dataset}_instances.json'
+  },
+
+
+  'mirroring.create_new_dataset': {
+    'real': '/falcon/entities/submitAndSchedule/feed',
+    'mock': '/data/mirroring/succeeded.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        contentType: 'text/xml',
+        data: data.dataset
+      }
+    }
+  },
+
+  'mirroring.submit_instance': {
+    'real': '/falcon/entities/submit/{type}',
+    'mock': '/data/mirroring/succeeded.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        contentType: 'text/xml',
+        data: data.instance
+      }
+    }
+  },
+
+  'mirroring.update_instance': {
+    'real': '/falcon/entities/update/{type}/{name}',
+    'mock': '/data/mirroring/succeeded.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        contentType: 'text/xml',
+        data: data.instance
+      }
+    }
+  },
+
+  'mirroring.delete_instance': {
+    'real': '/falcon/entities/delete/{type}/{name}',
+    'mock': '/data/mirroring/succeeded.json',
+    'type': 'DELETE'
   },
 
   'bulk_request.host_components': {
@@ -1561,17 +1604,6 @@ var urls = {
     }
   },
 
-  'mirroring.create_new_dataset': {
-    'real': '/falcon/entities/submitAndSchedule/feed',
-    'mock': '/data/mirroring/succeeded.json',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        contentType: 'text/xml',
-        data: data.dataset
-      }
-    }
-  },
   'jobs.tezDag.NametoID': {
     'real': '/proxy?url=http://{historyServerHostName}:8188/ws/v1/apptimeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
     'mock': '/data/jobs/tezDag-name-to-id.json'
