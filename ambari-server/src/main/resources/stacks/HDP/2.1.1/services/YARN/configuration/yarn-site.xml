@@ -340,12 +340,6 @@
   </property>
 
   <property>
-    <name>yarn.ahs.store.class</name>
-    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
-    <description></description>
-  </property>
-
-  <property>
     <name>yarn.ats.store.class</name>
     <value>org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbApplicationTimelineStore</value>
     <description></description>
