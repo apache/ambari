@@ -88,6 +88,36 @@ App.MainController = Em.Controller.extend({
           }
         }, App.pageReloadTime)
     );
-  }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled")
+  }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled"),
 
+  scRequest: function(request) {
+    return App.router.get('mainServiceController').get(request);
+  },
+
+  isAllServicesInstalled: function() {
+    return this.scRequest('isAllServicesInstalled');
+  }.property('App.router.mainServiceController.content.content.@each',
+      'App.router.mainServiceController.content.content.length'),
+
+  isStartAllDisabled: function() {
+    return this.scRequest('isStartAllDisabled');
+  }.property('App.router.mainServiceController.isStartStopAllClicked',
+      'App.router.mainServiceController.content.@each.healthStatus'),
+
+  isStopAllDisabled: function() {
+    return this.scRequest('isStopAllDisabled');
+  }.property('App.router.mainServiceController.isStartStopAllClicked',
+      'App.router.mainServiceController.content.@each.healthStatus'),
+
+  gotoAddService: function() {
+    App.router.get('mainServiceController').gotoAddService();
+  },
+
+  startAllService: function(event){
+    App.router.get('mainServiceController').startAllService(event);
+  },
+
+  stopAllService: function(event){
+    App.router.get('mainServiceController').stopAllService(event);
+  }
 });

@@ -151,6 +151,7 @@ require('views/main/dashboard/widgets/supervisor_live');
 
 
 require('views/main/service');
+require('views/main/service/all_services_actions');
 require('views/main/service/menu');
 require('views/main/service/item');
 require('views/main/service/reconfigure');

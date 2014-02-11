@@ -1,0 +1,56 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#if App.isAdmin}}
+  <div class="service-button" style="margin-top: 10px;">
+    <div class="btn-group display-inline-block span11 offset1">
+      <a class="btn dropdown-toggle span10" data-toggle="dropdown" href="#">{{t common.actions}}
+        <span class="caret"></span>
+      </a>
+      <ul class="pull-left dropdown-menu">
+        {{#if App.supports.addServices}}
+          <li {{bindAttr class="controller.isAllServicesInstalled:disabled"}}>
+            <a href="#"
+              {{bindAttr class="controller.isAllServicesInstalled:disabled"}}
+              {{action gotoAddService target="controller"}}>
+              <i class="icon-plus icon-white"></i> {{t services.service.add}}</a>
+          </li>
+          <li class="divider"></li>
+        {{/if}}
+        {{#if App.supports.startStopAllServices}}
+          <li {{bindAttr class="controller.isStartAllDisabled:disabled" }}>
+            <a href="#" data-toggle="modal"
+              {{bindAttr class="controller.isStartAllDisabled:disabled" }}
+              {{action "startAllService" target="controller"}}>
+              <i {{bindAttr class=":icon-play controller.isStartAllDisabled:disabled:enabled " }}></i>
+              {{t services.service.startAll}}
+            </a>
+          </li>
+          <li {{bindAttr class="controller.isStopAllDisabled:disabled" }}>
+            <a href="#" data-toggle="modal"
+              {{bindAttr class="controller.isStopAllDisabled:disabled" }}
+              {{action "stopAllService" target="controller"}}>
+              <i {{bindAttr class=":icon-stop controller.isStopAllDisabled:disabled:enabled" }}></i>
+              {{t services.service.stopAll}}
+            </a>
+          </li>
+        {{/if}}
+      </ul>
+    </div>
+  </div>
+{{/if}}

@@ -19,32 +19,7 @@
 <div class="row-fluid">
   <div class="services-menu well span2 service-menu-width" style="padding: 8px 0">
     {{view App.MainServiceMenuView}}
-    {{#if App.isAdmin}}
-      {{#if App.supports.addServices}}
-        <div class="add-service-button">
-          <a {{bindAttr class=":btn controller.isAllServicesInstalled:disabled"}} {{action gotoAddService target="controller"}}>
-            <i class="icon-plus"></i>
-            {{t services.service.add}}
-          </a>
-        </div>
-      {{/if}}
-      {{#if App.supports.startStopAllServices}}
-        <div class="start-stop-all-service-button">
-          <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartAllDisabled:disabled:btn-success" }}
-             data-toggle="modal" {{action "startAllService" target="controller"}}>
-            <i class="icon-play"></i>
-            {{t services.service.startAll}}
-          </a>
-        </div>
-        <div class="start-stop-all-service-button">
-          <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopAllDisabled:disabled:btn-danger" }}
-             data-toggle="modal" {{action "stopAllService" target="controller"}}>
-            <i class="icon-stop icon-white"></i>
-            {{t services.service.stopAll}}
-          </a>
-        </div>
-      {{/if}}
-    {{/if}}
+    {{view App.AllServicesActionView}}
   </div>
   <div class="span10 summary-width">
     {{outlet}}
