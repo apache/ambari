@@ -507,6 +507,9 @@
         },
         "zookeeper-log4j": {
             "property1": "value1"
+        },
+        "pig-log4j": {
+            "property1": "value1"
         }
     },
     "configurationTags": {

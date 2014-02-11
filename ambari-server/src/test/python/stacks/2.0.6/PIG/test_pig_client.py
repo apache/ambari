@@ -28,7 +28,6 @@ class TestPigClient(RMFTestCase):
                        command = "configure",
                        config_file="default.json"
     )
-
     self.assertResourceCalled('Directory', '/etc/pig/conf',
       owner = 'hdfs',
       group = 'hadoop',
@@ -39,20 +38,21 @@ class TestPigClient(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
     )
-    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
+    self.assertResourceCalled('PropertiesFile', 'log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0664,
+      dir = '/etc/pig/conf',
+      properties = self.getConfig()['configurations']['pig-log4j'],
     )
     self.assertNoMoreResources()
-
+    
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/PIG/package/scripts/pig_client.py",
                        classname = "PigClient",
                        command = "configure",
                        config_file="secured.json"
     )
-    
     self.assertResourceCalled('Directory', '/etc/pig/conf',
       owner = 'hdfs',
       group = 'hadoop',
@@ -63,9 +63,11 @@ class TestPigClient(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
     )
-    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
+    self.assertResourceCalled('PropertiesFile', 'log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0664,
+      dir = '/etc/pig/conf',
+      properties = self.getConfig()['configurations']['pig-log4j'],
     )
     self.assertNoMoreResources()
