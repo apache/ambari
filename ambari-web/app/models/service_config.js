@@ -551,6 +551,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
 
       mountPointAsRoot = mountPointsPerHost.findProperty('mountpoint', '/');
 
+      // If Server does not send any host details information then atleast one mountpoint should be presumed as root
+      // This happens in a single container Linux Docker environment.
+      if (!mountPointAsRoot) {
+        mountPointAsRoot = {mountpoint: '/'};
+      }
+
       mountPointsPerHost = mountPointsPerHost.filter(function (mPoint) {
         return !(['/', '/home', '/boot'].contains(mPoint.mountpoint) || ['devtmpfs', 'tmpfs', 'vboxsf'].contains(mPoint.type));
       });
