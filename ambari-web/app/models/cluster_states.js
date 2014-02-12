@@ -180,13 +180,15 @@ App.clusterStatus = Ember.Object.create({
   },
   clusterStatusErrorCallBack: function(request, ajaxOptions, error, opt) {
     console.log("ERROR");
-    if(opt.newValue.errorCallBack) {
-      opt.newValue.errorCallBack();
-    } else {
-      var doc = $.parseXML(request.responseText);
-      var msg = 'Error ' + (request.status) + ' ';
+    var msg, doc;
+    try {
+      msg = 'Error ' + (request.status) + ' ';
+      doc = $.parseXML(request.responseText);
       msg += $(doc).find("body p").text();
+    } catch (e) {
+      msg += JSON.parse(request.responseText).message;
     }
+
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       secondary: false,

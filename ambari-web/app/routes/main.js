@@ -113,7 +113,7 @@ module.exports = Em.Route.extend({
 
   jobs : Em.Route.extend({
     route : '/jobs',
-    enter: function () {
+    enter: function (router) {
       if(!App.db.getShowJobsForNonAdmin() && !App.get('isAdmin')){
         Em.run.next(function () {
           router.transitionTo('main.dashboard');

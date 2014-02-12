@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-module.exports = Em.Route.extend({
+var App = require('app');
+
+module.exports = App.WizardRoute.extend({
   route: 'admin/cluster/upgrade',
 
   enter: function (router) {

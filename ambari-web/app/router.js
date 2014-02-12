@@ -17,6 +17,13 @@
  */
 
 var App = require('app');
+
+App.WizardRoute = Em.Route.extend({
+  isRoutable: function() {
+    return (typeof this.get('route') === 'string' && App.router.getAuthenticated());
+  }.property().volatile()
+});
+
 App.Router = Em.Router.extend({
 
   enableLogging: true,

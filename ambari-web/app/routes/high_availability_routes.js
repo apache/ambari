@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-module.exports = Em.Route.extend({
+module.exports = App.WizardRoute.extend({
   route: '/highAvailability/enable',
 
   enter: function (router) {

@@ -17,7 +17,7 @@
  */
 var App = require('app');
 
-module.exports = Em.Route.extend({
+module.exports = App.WizardRoute.extend({
   route: '/addSecurity',
   enter: function (router) {
     console.log('in /security/add:enter');
