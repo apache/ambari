@@ -71,8 +71,15 @@ def yarn(name = None):
             group=params.user_group,
             recursive=True
   )
-
-  Directory([params.nm_local_dirs, params.nm_log_dirs, params.yarn_log_dir_prefix],
+  Directory(params.nm_local_dirs.split(','),
+            owner=params.yarn_user,
+            recursive=True
+  )
+  Directory(params.nm_log_dirs.split(','),
+            owner=params.yarn_user,
+            recursive=True
+  )
+  Directory(params.yarn_log_dir_prefix,
             owner=params.yarn_user,
             recursive=True
   )

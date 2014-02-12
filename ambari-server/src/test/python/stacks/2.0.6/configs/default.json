@@ -448,7 +448,7 @@
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
             "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor", 
-            "yarn.nodemanager.local-dirs": "/hadoop/yarn/local", 
+            "yarn.nodemanager.local-dirs": "/hadoop/yarn/local,/hadoop/yarn/local1",
             "yarn.resourcemanager.resource-tracker.address": "c6402.ambari.apache.org:8025", 
             "yarn.nodemanager.remote-app-log-dir-suffix": "logs", 
             "yarn.resourcemanager.hostname": "c6402.ambari.apache.org", 
@@ -466,7 +466,7 @@
             "yarn.nodemanager.log-aggregation.compression-type": "gz", 
             "yarn.nodemanager.log.retain-second": "604800", 
             "yarn.nodemanager.delete.debug-delay-sec": "0", 
-            "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 
+            "yarn.nodemanager.log-dirs": "/hadoop/yarn/log,/hadoop/yarn/log1",
             "yarn.nodemanager.health-checker.interval-ms": "135000", 
             "yarn.resourcemanager.am.max-attempts": "2", 
             "yarn.nodemanager.remote-app-log-dir": "/app-logs", 

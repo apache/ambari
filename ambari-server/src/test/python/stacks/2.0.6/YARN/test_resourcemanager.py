@@ -134,7 +134,15 @@ class TestResourceManager(RMFTestCase):
       owner = 'yarn',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
+      owner = 'yarn',
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+      owner = 'yarn',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
       owner = 'yarn',
       recursive = True,
     )
