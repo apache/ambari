@@ -975,7 +975,7 @@ App.config = Em.Object.create({
     var complexConfigName = this.get('complexConfigs').findProperty('filename', filename).name;
     var configsTextarea = configs.findProperty('name', complexConfigName);
     if (configsTextarea) {
-      var properties = configsTextarea.get('value').replace(/( |\n)+/g, '\n').split('\n');
+      var properties = configsTextarea.get('value').split('\n');
 
       properties.forEach(function (_property) {
         var name, value;
