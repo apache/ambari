@@ -42,7 +42,7 @@ hadoop_jar_location = "/usr/lib/hadoop/"
 ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
 oozie_libext_dir = "/usr/lib/oozie/libext"
 lzo_enabled = config['configurations']['global']['lzo_enabled']
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']

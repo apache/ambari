@@ -30,7 +30,7 @@ jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is a
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
 #security params
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 dfs_journalnode_keytab_file = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
 dfs_web_authentication_kerberos_keytab = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
 dfs_secondary_namenode_keytab_file =  config['configurations']['hdfs-site']['fs.secondary.namenode.keytab.file']

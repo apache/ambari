@@ -53,7 +53,7 @@ webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 webhcat_apps_dir = "/apps/webhcat"
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 smokeuser = config['configurations']['global']['smokeuser']
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 hcat_hdfs_user_dir = format("/user/{hcat_user}")

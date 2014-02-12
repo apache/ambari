@@ -72,7 +72,7 @@ clientPort = config['configurations']['global']['clientPort'] #ZK
 
 
 java64_home = config['hostLevelParams']['java_home']
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 
 nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

@@ -20,7 +20,7 @@ from resource_management import *
 
 config = Script.get_config()
 
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 smokeuser = config['configurations']['global']['smokeuser']
 user_group = config['configurations']['global']['user_group']
 

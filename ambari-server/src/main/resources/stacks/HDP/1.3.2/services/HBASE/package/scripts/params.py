@@ -35,7 +35,7 @@ hbase_drain_only = config['commandParams']['mark_draining_only']
 
 hbase_user = config['configurations']['global']['hbase_user']
 smokeuser = config['configurations']['global']['smokeuser']
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 user_group = config['configurations']['global']['user_group']
 
 # this is "hadoop-metrics2-hbase.properties" for 2.x stacks

@@ -54,7 +54,7 @@ smoke_test_sql = "/tmp/hiveserver2.sql"
 smoke_test_path = "/tmp/hiveserver2Smoke.sh"
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 
-security_enabled = config['configurations']['global']['security_enabled']
+security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
 
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
