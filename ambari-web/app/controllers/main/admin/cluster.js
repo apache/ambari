@@ -36,7 +36,7 @@ App.MainAdminClusterController = Em.Controller.extend({
         error: 'updateUpgradeVersionErrorCallback'
       });
     }
-  }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion'),
+  }.observes('App.router.clusterController.isLoaded', 'App.currentStackVersion','App.router.mainServiceController.content.length'),
 
   updateUpgradeVersionSuccessCallback: function(data) {
     var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
