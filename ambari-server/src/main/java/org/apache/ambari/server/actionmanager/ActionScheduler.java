@@ -228,7 +228,7 @@ class ActionScheduler implements Runnable {
         if (failed) {
           LOG.warn("Operation completely failed, aborting request id:"
               + s.getRequestId());
-          db.abortOperation(s.getRequestId());
+          abortOperationsForStage(s);
           return;
         }
 
@@ -394,26 +394,10 @@ class ActionScheduler implements Runnable {
             db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole());
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
-            ServiceComponentHostOpFailedEvent timeoutEvent =
-                new ServiceComponentHostOpFailedEvent(roleStr,
-                    host, now);
-            try {
-              Service svc = cluster.getService(c.getServiceName());
-              ServiceComponent svcComp = svc.getServiceComponent(
-                  roleStr);
-              ServiceComponentHost svcCompHost =
-                  svcComp.getServiceComponentHost(host);
-              svcCompHost.handleEvent(timeoutEvent);
-              LOG.warn("Operation timed out. Role: " + roleStr + ", host: " + host);
-            } catch (ServiceComponentNotFoundException scnex) {
-              LOG.debug(roleStr + " associated with service " + c.getServiceName() +
-                  " is not a service component, assuming it's an action.");
-            } catch (InvalidStateTransitionException e) {
-              LOG.info("Transition failed for host: " + host + ", role: "
-                  + roleStr, e);
-            } catch (AmbariException ex) {
-              LOG.warn("Invalid live state", ex);
-            }
+            transitionToFailedState(cluster.getClusterName(),
+              c.getServiceName(), roleStr, host, now, false);
+            LOG.warn("Operation timed out. Role: " + roleStr + ", host: " + host);
+
             // Dequeue command
             actionQueue.dequeue(host, c.getCommandId());
           } else {
@@ -428,6 +412,67 @@ class ActionScheduler implements Runnable {
       }
     }
     return roleStats;
+  }
+
+  /**
+   * Generate a OPFailed event before aborting all operations in the stage
+   * @param stage
+   */
+  private void abortOperationsForStage(Stage stage) {
+    long now = System.currentTimeMillis();
+
+    for (String hostName : stage.getHosts()) {
+      List<ExecutionCommandWrapper> commandWrappers =
+        stage.getExecutionCommands(hostName);
+
+      for(ExecutionCommandWrapper wrapper : commandWrappers) {
+        ExecutionCommand c = wrapper.getExecutionCommand();
+        transitionToFailedState(stage.getClusterName(), c.getServiceName(),
+          c.getRole(), hostName, now, true);
+      }
+    }
+
+    db.abortOperation(stage.getRequestId());
+  }
+
+  /**
+   * Raise a OPFailed event for a SCH
+   * @param clusterName
+   * @param serviceName
+   * @param componentName
+   * @param hostname
+   * @param timestamp
+   */
+  private void transitionToFailedState(String clusterName, String serviceName,
+                                       String componentName, String hostname,
+                                       long timestamp,
+                                       boolean ignoreTransitionException) {
+
+    try {
+      Cluster cluster = fsmObject.getCluster(clusterName);
+
+      ServiceComponentHostOpFailedEvent timeoutEvent =
+        new ServiceComponentHostOpFailedEvent(componentName,
+          hostname, timestamp);
+
+      Service svc = cluster.getService(serviceName);
+      ServiceComponent svcComp = svc.getServiceComponent(componentName);
+      ServiceComponentHost svcCompHost =
+        svcComp.getServiceComponentHost(hostname);
+      svcCompHost.handleEvent(timeoutEvent);
+
+    } catch (ServiceComponentNotFoundException scnex) {
+      LOG.debug(componentName + " associated with service " + serviceName +
+        " is not a service component, assuming it's an action.");
+    } catch (InvalidStateTransitionException e) {
+      if (ignoreTransitionException) {
+        LOG.debug("Unable to transition to failed state.", e);
+      } else {
+        LOG.warn("Unable to transition to failed state.", e);
+      }
+    } catch (AmbariException e) {
+      LOG.warn("Unable to transition to failed state.", e);
+    }
   }
 
 
@@ -472,8 +517,8 @@ class ActionScheduler implements Runnable {
       LOG.debug("Timing out action since agent is not heartbeating.");
       return true;
     }
-    if (currentTime > stage.getLastAttemptTime(host.getHostName(),
-      role) + taskTimeout) {
+    if (currentTime > stage.getLastAttemptTime(host.getHostName(), role)
+        + taskTimeout) {
       return true;
     }
     return false;

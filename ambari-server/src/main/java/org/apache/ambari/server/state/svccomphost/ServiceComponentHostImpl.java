@@ -156,6 +156,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
 
+       // Allow transition on abort
+     .addTransition(State.INSTALL_FAILED, State.INSTALL_FAILED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+         new ServiceComponentHostOpCompletedTransition())
+
      .addTransition(State.INSTALLED,
          State.STARTING,
          ServiceComponentHostEventType.HOST_SVCCOMP_START,
@@ -387,6 +392,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
          new ServiceComponentHostOpStartedTransition())
+      // Allow transition on abort
+     .addTransition(State.INSTALL_FAILED, State.INSTALL_FAILED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+         new ServiceComponentHostOpCompletedTransition())
 
     .addTransition(State.INSTALLED,
          State.INSTALLED,
