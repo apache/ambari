@@ -39,8 +39,9 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 
 @Path("/")
 public class ProxyService {
@@ -54,38 +55,39 @@ public class ProxyService {
   private static final String REQUEST_TYPE_PUT = "PUT";
   private static final String REQUEST_TYPE_DELETE = "DELETE";
   private static final String QUERY_PARAMETER_URL = "url";
+  private static final String AMBARI_PROXY_PREFIX = "AmbariProxy-";
   private static final String ERROR_PROCESSING_URL = "Error occurred during processing URL ";
 
   private final static Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 
   @GET
   public Response processGetRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_GET, ui, null, APPLICATION_FORM_URLENCODED);
+    return handleRequest(REQUEST_TYPE_GET, ui, null, headers);
   }
 
   @POST
   public Response processPostRequestForwarding(Object body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_POST, ui, body, headers.getMediaType().toString());
+    return handleRequest(REQUEST_TYPE_POST, ui, body, headers);
   }
 
   @PUT
   public Response processPutRequestForwarding(Object body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_PUT, ui, body, headers.getMediaType().toString());
+    return handleRequest(REQUEST_TYPE_PUT, ui, body, headers);
   }
 
   @DELETE
   public Response processDeleteRequestForwarding(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(REQUEST_TYPE_DELETE, ui, null, APPLICATION_FORM_URLENCODED);
+    return handleRequest(REQUEST_TYPE_DELETE, ui, null, headers);
   }
 
-  private Response handleRequest(String requestType, UriInfo ui, Object body, String mediaType) {
+  private Response handleRequest(String requestType, UriInfo ui, Object body, HttpHeaders headers) {
     URLStreamProvider urlStreamProvider = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
                                                 REPO_URL_READ_TIMEOUT, null, null, null);
     List<String> urlsToForward = ui.getQueryParameters().get(QUERY_PARAMETER_URL);
     if (!urlsToForward.isEmpty()) {
       String url = urlsToForward.get(0);
       try {
-        HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, mediaType);
+        HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, getHeaderParamsToForward(headers));
         int responseCode = connection.getResponseCode();
         if (responseCode >= HTTP_ERROR_RANGE_START) {
           throw new WebApplicationException(connection.getResponseCode());
@@ -103,6 +105,16 @@ public class ProxyService {
       }
     }
     return null;
+  }
+
+  private Map<String, List<String>> getHeaderParamsToForward(HttpHeaders headers) {
+    Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
+    for (String paramName: headers.getRequestHeaders().keySet()) {
+      if (paramName.startsWith(AMBARI_PROXY_PREFIX)) {
+        headerParamsToForward.put(paramName.replaceAll(AMBARI_PROXY_PREFIX,""), headers.getRequestHeader(paramName));
+      }
+    }
+    return headerParamsToForward;
   }
 
 }

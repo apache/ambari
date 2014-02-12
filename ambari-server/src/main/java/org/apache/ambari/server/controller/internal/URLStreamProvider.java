@@ -28,6 +28,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.KeyStore;
+import java.util.List;
+import java.util.Map;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 
@@ -49,6 +51,7 @@ public class URLStreamProvider implements StreamProvider {
   private static final String COOKIE = "Cookie";
   private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
   private static final String NEGOTIATE = "Negotiate";
+  private static final String CONTENT_TYPE_HEADER_PARAMETER = "Content-Type";
   private static Log LOG = LogFactory.getLog(URLStreamProvider.class);
 
   private final int connTimeout;
@@ -81,10 +84,11 @@ public class URLStreamProvider implements StreamProvider {
   
   @Override
   public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
-    return processURL(spec, requestMethod, params, APPLICATION_FORM_URLENCODED).getInputStream();
+    return processURL(spec, requestMethod, params, null).getInputStream();
   }
 
-  public HttpURLConnection processURL(String spec, String requestMethod, Object params, String mediaType) throws IOException {
+  public HttpURLConnection processURL(String spec, String requestMethod, Object params, Map<String, List<String>> headers)
+          throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("readFrom spec:" + spec);
     }
@@ -102,11 +106,18 @@ public class URLStreamProvider implements StreamProvider {
     connection.setReadTimeout(readTimeout);
     connection.setDoOutput(true);
     connection.setRequestMethod(requestMethod);
-    connection.setRequestProperty("Content-Type", mediaType);
+
+    if (headers != null) {
+      for (Map.Entry<String, List<String>> entry: headers.entrySet()) {
+        String paramValue = entry.getValue().toString();
+        connection.setRequestProperty(entry.getKey(), paramValue.substring(1, paramValue.length() - 1));
+      }
+    }
 
     if (params != null) {
       String strParams;
-      if (mediaType.equals(APPLICATION_JSON)) {
+      if (headers != null && headers.containsKey(CONTENT_TYPE_HEADER_PARAMETER) &&
+              headers.get(CONTENT_TYPE_HEADER_PARAMETER).toString().indexOf(APPLICATION_JSON) != -1) {
         strParams = new Gson().toJson(params);
       } else {
         strParams = (String)params;
