@@ -59,6 +59,7 @@ webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
 webhcat_hdfs_user_mode = 0755
 #for create_hdfs_directory
 hostname = config["hostname"]
+security_param = "true" if security_enabled else "false"
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']

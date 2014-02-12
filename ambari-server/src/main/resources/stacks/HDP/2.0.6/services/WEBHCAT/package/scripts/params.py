@@ -64,6 +64,7 @@ webhcat_apps_dir = "/apps/webhcat"
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
+security_param = "true" if security_enabled else "false"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
