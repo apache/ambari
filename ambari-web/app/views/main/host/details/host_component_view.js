@@ -57,9 +57,6 @@ App.HostComponentView = Em.View.extend({
    * @type {String}
    */
   componentTextStatus: function () {
-    if (this.get('content.passiveState') != 'ACTIVE') {
-      return Em.I18n.t('hosts.component.passive.short.mode');
-    }
     var workStatus = this.get("workStatus");
     var componentTextStatus = this.get('content.componentTextStatus');
     var hostComponent = this.get('hostComponent');
@@ -97,6 +94,20 @@ App.HostComponentView = Em.View.extend({
     return componentTextStatus;
   }.property('content.passiveState','workStatus','isDataNodeRecommissionAvailable', 'isDataNodeDecommissioning', 'isNodeManagerRecommissionAvailable', 'isNodeManagerDecommissioning',
       'isTaskTrackerRecommissionAvailable', 'isTaskTrackerDecommissioning', 'isRegionServerRecommissionAvailable', 'isRegionServerDecommissioning'),
+
+
+  /**
+   * Returns message for health tooltip
+   * in addition to workStatus it also displays passive state of component
+   * @type {String}
+   */
+  componentStatusTooltip: function() {
+    if (this.get('content.passiveState') != 'ACTIVE') {
+      return Em.I18n.t('hosts.component.passive.short.mode');
+    } else {
+      return this.get('componentTextStatus');
+    }
+  }.property('componentTextStatus','content.passiveState'),
 
   /**
    * @type {String}
