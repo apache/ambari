@@ -1845,6 +1845,13 @@ Em.I18n.translations = {
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
 
+  'jobs.table.custom.date.am':'AM',
+  'jobs.table.custom.date.pm':'PM',
+  'jobs.table.custom.date.header':'Select Custom Dates',
+  'jobs.customDateFilter.error.required':'This field is required',
+  'jobs.customDateFilter.error.date.order':'End Date must be after Start Date',
+  'jobs.customDateFilter.startTime':'Start Time',
+  'jobs.customDateFilter.endTime':'End Time',
   'jobs.hive.tez.tasks':'Tez Tasks',
   'jobs.hive.tez.hdfs':'HDFS',
   'jobs.hive.tez.localFiles':'Local Files',

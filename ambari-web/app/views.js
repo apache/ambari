@@ -215,6 +215,7 @@ require('views/main/charts/heatmap/heatmap_host');
 require('views/main/charts/heatmap/heatmap_host_detail');
 require('views/main/apps_view');
 require('views/main/jobs_view');
+require('views/main/jobs/select_custom_date_view');
 require('views/main/jobs/hive_job_details_view');
 require('views/main/jobs/hive_job_details_tez_dag_view');
 require('views/main/apps/item_view');

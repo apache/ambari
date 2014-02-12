@@ -69,6 +69,7 @@ App.MainJobsView = App.TableView.extend({
    */
   rowsPerPageSelectView: Em.Select.extend({
     content: ['10', '25', '50', '100', "250", "500"],
+    valueBinding: "controller.filterObject.jobsLimit",
     change: function () {
       this.get('parentView').saveDisplayLength();
     }
@@ -79,23 +80,16 @@ App.MainJobsView = App.TableView.extend({
    * @returns {String}
    */
   filteredJobs: function () {
-    return Em.I18n.t('jobs.filtered.jobs').format(this.get('filteredContent.length'), this.get('content').get('length'));
+    return Em.I18n.t('jobs.filtered.jobs').format(this.get('content').get('length'), this.get('controller.totalOfJobs'));
   }.property('content.length', 'filteredContent.length'),
 
   /**
    * Filter-field for Jobs ID.
    * Based on <code>filters</code> library
    */
-  /*jobsIdFilterView: filters.createTextView({
-    valueBinding: "controller.filterObject.id"
-  }),*/
-
   jobsIdFilterView: filters.createTextView({
     column: 0,
-    fieldType: 'width70',
-    onChangeValue: function(){
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
-    }
+    valueBinding: "controller.filterObject.id"
   }),
 
   /**
@@ -145,9 +139,7 @@ App.MainJobsView = App.TableView.extend({
       }.observes('users.length')
     }),
 
-    onChangeValue: function(){
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'multiple');
-    }
+    valueBinding: 'controller.filterObject.user'
   }),
 
   /**
@@ -157,10 +149,8 @@ App.MainJobsView = App.TableView.extend({
   startTimeFilterView: filters.createSelectView({
     fieldType: 'input-medium',
     column: 2,
-    content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
-    }
+    content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
+    valueBinding: "controller.filterObject.startTime"
   }),
 
   /**
