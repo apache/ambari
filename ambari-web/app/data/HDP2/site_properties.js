@@ -1403,320 +1403,6 @@ module.exports =
       "displayType": "string",
       "filename": "storm-site.xml"
     },
-
-  /**********************************************tez-site***************************************/
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.lib.uris",
-      "name": "tez.lib.uris",
-      "defaultValue": "file:///usr/lib/tez/,file:///usr/lib/tez/lib/",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.log.level",
-      "name": "tez.am.log.level",
-      "defaultValue": "INFO",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.staging-dir",
-      "name": "tez.staging-dir",
-      "defaultValue": "/tmp/${user.name}/staging",
-      "displayType": "directory"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.slowstart-vertex-scheduler.min-src-fraction",
-      "name": "tez.slowstart-vertex-scheduler.min-src-fraction",
-      "defaultValue": "0.1",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.slowstart-vertex-scheduler.max-src-fraction",
-      "name": "tez.slowstart-vertex-scheduler.max-src-fraction",
-      "defaultValue": "0.1",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.am-rm.heartbeat.interval-ms.max",
-      "name": "tez.am.am-rm.heartbeat.interval-ms.max",
-      "defaultValue": "250",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.broadcast.data-via-events.enabled",
-      "name": "tez.runtime.broadcast.data-via-events.enabled",
-      "defaultValue": "true",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.broadcast.data-via-events.max-size",
-      "name": "tez.runtime.broadcast.data-via-events.max-size",
-      "defaultValue": "614400",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.aggressive.scheduling",
-      "name": "tez.am.aggressive.scheduling",
-      "defaultValue": "false",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.resource.memory.mb",
-      "name": "tez.am.resource.memory.mb",
-      "defaultValue": "1024",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.java.opts",
-      "name": "tez.am.java.opts",
-      "defaultValue": "-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.grouping.split-waves",
-      "name": "tez.am.grouping.split-waves",
-      "defaultValue": "1.7",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.container.reuse.enabled",
-      "name": "tez.am.container.reuse.enabled",
-      "defaultValue": "true",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.container.reuse.rack-fallback.enabled",
-      "name": "tez.am.container.reuse.rack-fallback.enabled",
-      "defaultValue": "true",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.container.reuse.non-local-fallback.enabled",
-      "name": "tez.am.container.reuse.non-local-fallback.enabled",
-      "defaultValue": "true",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.container.session.delay-allocation-millis",
-      "name": "tez.am.container.session.delay-allocation-millis",
-      "defaultValue": "300000",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.am.container.reuse.locality.delay-allocation-millis",
-      "name": "tez.am.container.reuse.locality.delay-allocation-millis",
-      "defaultValue": "250",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.intermediate-output.should-compress",
-      "name": "tez.runtime.intermediate-output.should-compress",
-      "defaultValue": "true",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.intermediate-output.compress.codec",
-      "name": "tez.runtime.intermediate-output.compress.codec",
-      "defaultValue": "org.apache.hadoop.io.compress.DefaultCodec",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.intermdiate-input.is-compressed",
-      "name": "tez.runtime.intermdiate-input.is-compressed",
-      "defaultValue": "true",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.intermediate-input.compress.codec",
-      "name": "tez.runtime.intermediate-input.compress.codec",
-      "defaultValue": "org.apache.hadoop.io.compress.DefaultCodec",
-      "displayType": "string"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.task.get-task.sleep.interval-ms.max",
-      "name": "tez.task.get-task.sleep.interval-ms.max",
-      "defaultValue": "100",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.job.counters.max",
-      "name": "tez.runtime.job.counters.max",
-      "defaultValue": "5000",
-      "displayType": "int"
-    },
-    {
-      "id": "site property",
-      "description": "",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "isRequiredByAgent": true,
-      "serviceName": "TEZ",
-      "category": "General",
-      "displayName": "tez.runtime.job.counters.groups.max",
-      "name": "tez.runtime.job.counters.groups.max",
-      "defaultValue": "5000",
-      "displayType": "int"
-    },
   /*********************************************oozie-site for Falcon*****************************/
     {
       "id":"site property",
@@ -1725,7 +1411,7 @@ module.exports =
       "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
+      "category":"Falcon - Oozie integration",
       "displayName":"Falcon proxyuser hosts",
       "name":"oozie.service.ProxyUserService.proxyuser.falcon.hosts",
       "defaultValue":"*",
@@ -1738,7 +1424,7 @@ module.exports =
       "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
+      "category":"Falcon - Oozie integration",
       "displayName":"Falcon proxyuser groups",
       "name":"oozie.service.ProxyUserService.proxyuser.falcon.groups",
       "defaultValue":"*",
@@ -1748,11 +1434,11 @@ module.exports =
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-job-submit-instances",
       "name":"oozie.service.ELService.ext.functions.coord-job-submit-instances",
       "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,"
         + "today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,"
@@ -1764,17 +1450,17 @@ module.exports =
         + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,"
         + "latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,"
         + "future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
     {
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-action-create-inst",
       "name":"oozie.service.ELService.ext.functions.coord-action-create-inst",
       "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph2_now_inst,"
         + "today=org.apache.oozie.extensions.OozieELExtensions#ph2_today_inst,"
@@ -1787,17 +1473,17 @@ module.exports =
         + "future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,"
         + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,"
         + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
     {
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-action-create",
       "name": "oozie.service.ELService.ext.functions.coord-action-create",
       "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,"
         + "today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,"
@@ -1810,17 +1496,17 @@ module.exports =
         + "future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,"
         + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,"
         + "user=org.apache.oozie.coord.CoordELFunctions#coord_user,",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
     {
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-job-submit-data",
       "name":"oozie.service.ELService.ext.functions.coord-job-submit-data",
       "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,"
         + "today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,"
@@ -1834,17 +1520,17 @@ module.exports =
         + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,"
         + "dateOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dateOffset_echo,"
         + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
     {
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-action-start",
       "name":"oozie.service.ELService.ext.functions.coord-action-start",
       "defaultValue":"now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,"
         + "today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,"
@@ -1860,35 +1546,35 @@ module.exports =
         + "dateOffset=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dateOffset,"
         + "formatTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_formatTime,"
         + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
     {
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-sla-submit",
       "name":"oozie.service.ELService.ext.functions.coord-sla-submit",
       "defaultValue":"instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_fixed,"
         + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
     {
       "id":"site property",
       "description":"",
       "isReconfigurable":false,
-      "isVisible":false,
+      "isVisible":true,
       "isRequiredByAgent": true,
       "serviceName":"FALCON",
-      "category":"Advanced",
-      "displayName":"Falcon",
+      "category":"Falcon - Oozie integration",
+      "displayName":"oozie.service.ELService.ext.functions.coord-sla-create",
       "name":"oozie.service.ELService.ext.functions.coord-sla-create",
       "defaultValue":"instanceTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_nominalTime,"
         + "user=org.apache.oozie.coord.CoordELFunctions#coord_user",
-      "displayType":"multiLine"
+      "displayType":"custom"
     },
   /**********************************************webhcat-site***************************************/
     {

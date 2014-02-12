@@ -225,7 +225,8 @@ module.exports = [
     displayName: 'Falcon',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Falcon', displayName : 'Falcon Server'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Falcon - Oozie integration'})
+      App.ServiceConfigCategory.create({ name: 'Falcon - Oozie integration', displayName : 'Falcon - Oozie integration'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['global', 'oozie-site'],
     configs: []
@@ -256,6 +257,7 @@ module.exports = [
     filename: 'tez-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedTezSite', displayName : 'Custom tez-site.xml', siteFileName: 'tez-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'tez-site'],
