@@ -156,6 +156,7 @@
             <exclude>.idea/**</exclude>
             <exclude>package.json</exclude>
             <exclude>public/**</exclude>
+            <exclude>public-static/**</exclude>
             <exclude>app/assets/**</exclude>
             <exclude>vendor/**</exclude>
             <exclude>node_modules/**</exclude>
