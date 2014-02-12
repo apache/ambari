@@ -351,4 +351,11 @@
     <description></description>
   </property>
 
+  <property>
+    <name>yarn.ahs.fs-history-store.uri</name>
+    <value>/tmp/yarn/system/ahstore</value>
+    <description>
+      Location where YARN's Application History Server stores information.
+    </description>
+  </property>
 </configuration>

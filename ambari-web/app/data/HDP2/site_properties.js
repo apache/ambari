@@ -322,6 +322,17 @@ module.exports =
       "category": "AppTimelineServer",
       "serviceName": "YARN"
     },
+    {
+      "id": "site property",
+      "name": "yarn.ahs.fs-history-store.uri",
+      "displayName": "yarn.ahs.fs-history-store.uri",
+      "value": "",
+      "defaultValue": "/tmp/yarn/system/ahstore",
+      "displayType": "directory",
+      "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
+      "category": "AppTimelineServer",
+      "serviceName": "YARN"
+    },
   /**********************************************MAPREDUCE2***************************************/
     {
       "id": "site property",
