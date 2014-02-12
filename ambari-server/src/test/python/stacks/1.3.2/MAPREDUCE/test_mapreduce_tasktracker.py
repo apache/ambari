@@ -81,7 +81,7 @@ class TestTasktracker(RMFTestCase):
                          config_file="secured.json"
     )
 
-    self.assert_configure_default()
+    self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start tasktracker',
                               user = 'mapred',
                               not_if = 'ls /var/run/hadoop/mapred/hadoop-mapred-tasktracker.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-tasktracker.pid` >/dev/null 2>&1'
@@ -118,6 +118,11 @@ class TestTasktracker(RMFTestCase):
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred',
+      owner = 'mapred',
+      recursive = True,
+      mode = 493,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/mapred1',
       owner = 'mapred',
       recursive = True,
       mode = 493,

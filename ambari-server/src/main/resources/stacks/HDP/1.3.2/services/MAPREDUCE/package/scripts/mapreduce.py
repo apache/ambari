@@ -61,7 +61,7 @@ def mapreduce(name=None):
             recursive=True
   )
 
-  Directory(params.mapred_local_dir,
+  Directory(params.mapred_local_dir.split(','),
             owner=params.mapred_user,
             mode=0755,
             recursive=True

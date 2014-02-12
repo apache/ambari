@@ -80,7 +80,7 @@
             "mapreduce.history.server.http.address": "c6402.ambari.apache.org:51111", 
             "mapred.jobtracker.taskScheduler": "org.apache.hadoop.mapred.CapacityTaskScheduler", 
             "mapred.max.tracker.blacklists": "16", 
-            "mapred.local.dir": "/hadoop/mapred", 
+            "mapred.local.dir": "/hadoop/mapred,/hadoop/mapred1",
             "mapred.healthChecker.interval": "135000", 
             "mapred.jobtracker.restart.recover": "false", 
             "mapred.jobtracker.blacklist.fault-bucket-width": "15", 

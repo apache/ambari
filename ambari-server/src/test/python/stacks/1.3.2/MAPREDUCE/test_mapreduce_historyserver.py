@@ -179,6 +179,11 @@ class TestHistoryServer(RMFTestCase):
       recursive = True,
       mode = 493,
     )
+    self.assertResourceCalled('Directory', '/hadoop/mapred1',
+      owner = 'mapred',
+      recursive = True,
+      mode = 493,
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
       owner = 'mapred',
       group = 'hadoop',

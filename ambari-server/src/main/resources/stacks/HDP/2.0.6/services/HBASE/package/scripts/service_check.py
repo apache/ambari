@@ -29,6 +29,7 @@ class HbaseServiceCheck(Script):
     
     output_file = "/apps/hbase/data/ambarismoketest"
     test_cmd = format("fs -test -e {output_file}")
+    smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smoke_test_user};") if params.security_enabled else ""
     hbase_servicecheck_file = '/tmp/hbase-smoke.sh'
   
     File( '/tmp/hbaseSmokeVerify.sh',
@@ -56,8 +57,8 @@ class HbaseServiceCheck(Script):
         user = params.hbase_user,
       )
 
-    servicecheckcmd = format("{kinit_cmd} hbase --config {conf_dir} shell {hbase_servicecheck_file}")
-    smokeverifycmd = format("{kinit_cmd} /tmp/hbaseSmokeVerify.sh {conf_dir} {service_check_data}")
+    servicecheckcmd = format("{smokeuser_kinit_cmd} hbase --config {conf_dir} shell {hbase_servicecheck_file}")
+    smokeverifycmd = format("{smokeuser_kinit_cmd} /tmp/hbaseSmokeVerify.sh {conf_dir} {service_check_data}")
   
     Execute( servicecheckcmd,
       tries     = 3,
