@@ -75,7 +75,7 @@ sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-
 sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
 sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
 
-if [[ $security_enabled == "true" ]]; then
+if [[ $security_enabled == "True" ]]; then
   kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
 else 
   kinitcmd=""
