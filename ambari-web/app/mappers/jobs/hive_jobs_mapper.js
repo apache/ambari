@@ -38,10 +38,10 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
           entity.events.forEach(function(event) {
             switch (event.eventtype) {
             case "QUERY_SUBMITTED":
-              hiveJob.start_time = event.ts;
+              hiveJob.start_time = event.timestamp;
               break;
             case "QUERY_COMPLETED":
-              hiveJob.end_time = event.ts;
+              hiveJob.end_time = event.timestamp;
               break;
             default:
               break;
