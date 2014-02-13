@@ -26,6 +26,12 @@ import java.util.Map;
  * the current execution context.
  */
 public interface ViewContext {
+
+  /**
+   * Key for mapping a view context as a property.
+   */
+  public static final String CONTEXT_ATTRIBUTE = "ambari-view-context";
+
   /**
    * Get the current user name.
    *

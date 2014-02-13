@@ -48,6 +48,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
   public static final String LABEL_PROPERTY_ID      = "ViewInfo/label";
   public static final String VERSION_PROPERTY_ID    = "ViewInfo/version";
   public static final String PARAMETERS_PROPERTY_ID = "ViewInfo/parameters";
+  public static final String ARCHIVE_PROPERTY_ID    = "ViewInfo/archive";
 
 
   /**
@@ -67,6 +68,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
     propertyIds.add(LABEL_PROPERTY_ID);
     propertyIds.add(VERSION_PROPERTY_ID);
     propertyIds.add(PARAMETERS_PROPERTY_ID);
+    propertyIds.add(ARCHIVE_PROPERTY_ID);
   }
 
   
@@ -115,6 +117,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
           setResourceProperty(resource, VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
           setResourceProperty(resource, PARAMETERS_PROPERTY_ID,
               viewDefinition.getConfiguration().getParameters(), requestedIds);
+          setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewDefinition.getArchivePath(), requestedIds);
 
           resources.add(resource);
         }

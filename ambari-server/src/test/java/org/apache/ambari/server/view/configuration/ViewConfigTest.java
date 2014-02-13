@@ -147,42 +147,6 @@ public class ViewConfigTest {
     Assert.assertEquals("INSTANCE2", instances.get(1).getName());
   }
 
-  @Test
-  public void testGetServlets() throws Exception {
-    ViewConfig config = getConfig();
-    List<ServletConfig> servlets = config.getServlets();
-    Assert.assertEquals(1, servlets.size());
-    Assert.assertEquals("MyViewServlet", servlets.get(0).getName());
-  }
-
-  @Test
-  public void testGetMappings() throws Exception {
-    ViewConfig config = getConfig();
-    List<ServletMappingConfig> mappings = config.getMappings();
-    Assert.assertEquals(1, mappings.size());
-    Assert.assertEquals("MyViewServlet", mappings.get(0).getName());
-  }
-
-  @Test
-  public void testGetServletPathMap() throws Exception {
-    ViewConfig config = getConfig();
-    Map<String, Class<? extends HttpServlet>> servletPathMap = config.getServletPathMap(getClass().getClassLoader());
-
-    Assert.assertEquals(1, servletPathMap.size());
-    Assert.assertEquals("MyViewServlet", servletPathMap.keySet().iterator().next());
-    Assert.assertTrue(servletPathMap.values().iterator().next().equals(MyViewServlet.class));
-  }
-
-  @Test
-  public void testGetServletURLPatternMap() throws Exception {
-    ViewConfig config = getConfig();
-    Map<String, String> servletURLPatternMap = config.getServletURLPatternMap();
-
-    Assert.assertEquals(1, servletURLPatternMap.size());
-    Assert.assertEquals("MyViewServlet", servletURLPatternMap.keySet().iterator().next());
-    Assert.assertEquals("/ui", servletURLPatternMap.values().iterator().next());
-  }
-
   public static  ViewConfig getConfig() throws JAXBException {
       return getConfig(xml);
   }

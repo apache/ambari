@@ -30,6 +30,11 @@ import java.util.Map;
  */
 public class ViewInstanceDefinition {
   /**
+   * The prefix for every view instance context path.
+   */
+  public static final String VIEWS_CONTEXT_PATH_PREFIX = "/views/";
+
+  /**
    * The associated configuration.
    */
   private final InstanceConfig instanceConfig;
@@ -55,10 +60,9 @@ public class ViewInstanceDefinition {
   private final Map<String, Object> services = new HashMap<String, Object>();
 
   /**
-   * The mapping of servlet name to servlet path spec.
+   * The context path for the view web app.
    */
-  private final Map<String, String> servletMappings = new HashMap<String, String>();
-
+  private final String contextPath;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -72,6 +76,7 @@ public class ViewInstanceDefinition {
   public ViewInstanceDefinition(ViewDefinition viewDefinition, InstanceConfig instanceConfig) {
     this.instanceConfig = instanceConfig;
     this.viewDefinition = viewDefinition;
+    this.contextPath    = VIEWS_CONTEXT_PATH_PREFIX + viewDefinition.getName() + "/" + instanceConfig.getName();
   }
 
 
@@ -102,25 +107,6 @@ public class ViewInstanceDefinition {
    */
   public String getName() {
     return instanceConfig.getName();
-  }
-
-  /**
-   * Add a mapping from servlet name to path spec.
-   *
-   * @param servletName  the servlet name
-   * @param pathSpec     the path
-   */
-  public void addServletMapping(String servletName, String pathSpec) {
-    servletMappings.put(servletName, pathSpec);
-  }
-
-  /**
-   * Get the servlet mappings.
-   *
-   * @return the servlet mappings
-   */
-  public Map<String, String> getServletMappings() {
-    return servletMappings;
   }
 
   /**
@@ -194,5 +180,14 @@ public class ViewInstanceDefinition {
   public ResourceProvider getResourceProvider(String type) {
     String typeName = viewDefinition.getName() + "/" + type;
     return resourceProviders.get(Resource.Type.valueOf(typeName));
+  }
+
+  /**
+   * Get the context path for the UI for this view.
+   *
+   * @return the context path
+   */
+  public String getContextPath() {
+    return contextPath;
   }
 }

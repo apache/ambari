@@ -53,7 +53,7 @@ public class ViewDefinitionTest {
     properties.put("p3", "v3");
 
     Configuration ambariConfig = new Configuration(properties);
-    return new ViewDefinition(viewConfig, ambariConfig);
+    return new ViewDefinition(viewConfig, ambariConfig, ViewDefinitionTest.class.getClassLoader(), "view.jar");
   }
 
   @Test
@@ -174,5 +174,17 @@ public class ViewDefinitionTest {
     Assert.assertTrue(definitions.contains(definition));
 
     verify(definition);
+  }
+
+  @Test
+  public void testGetClassLoader() throws Exception {
+    ViewDefinition viewDefinition = getViewDefinition();
+    Assert.assertEquals(ViewDefinitionTest.class.getClassLoader(), viewDefinition.getClassLoader());
+  }
+
+  @Test
+  public void testGetArchivePath() throws Exception {
+    ViewDefinition viewDefinition = getViewDefinition();
+    Assert.assertEquals("view.jar", viewDefinition.getArchivePath());
   }
 }

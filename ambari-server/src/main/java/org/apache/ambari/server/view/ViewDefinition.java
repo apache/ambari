@@ -68,6 +68,16 @@ public class ViewDefinition {
    */
   private final Resource.Type externalResourceType;
 
+  /**
+   * The classloader used to load the view.
+   */
+  private final ClassLoader classLoader;
+
+  /**
+   * The archive path for the view.
+   */
+  private final String archivePath;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -76,10 +86,15 @@ public class ViewDefinition {
    *
    * @param configuration        the view configuration
    * @param ambariConfiguration  the Ambari configuration
+   * @param classLoader          the class loader
+   * @param archivePath          the path of the view archive
    */
-  public ViewDefinition(ViewConfig configuration, Configuration ambariConfiguration) {
+  public ViewDefinition(ViewConfig configuration, Configuration ambariConfiguration,
+                        ClassLoader classLoader, String archivePath) {
     this.configuration       = configuration;
     this.ambariConfiguration = ambariConfiguration;
+    this.classLoader         = classLoader;
+    this.archivePath         = archivePath;
 
     this.externalResourceType =
         new Resource.Type(getQualifiedResourceTypeName(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME));
@@ -260,5 +275,23 @@ public class ViewDefinition {
    */
   public String getQualifiedResourceTypeName(String resourceTypeName) {
     return configuration.getName() + "/" + resourceTypeName;
+  }
+
+  /**
+   * Get the class loader used to load the view classes.
+   *
+   * @return the class loader
+   */
+  public ClassLoader getClassLoader() {
+    return classLoader;
+  }
+
+  /**
+   * Get the path for the archive for the view.
+   *
+   * @return the archive path
+   */
+  public String getArchivePath() {
+    return archivePath;
   }
 }

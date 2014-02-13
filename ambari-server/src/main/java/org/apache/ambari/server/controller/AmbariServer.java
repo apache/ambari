@@ -64,9 +64,11 @@ import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.view.ViewInstanceDefinition;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -167,9 +169,10 @@ public class AmbariServer {
           ClassPathXmlApplicationContext(contextLocations, parentSpringAppContext);
       //setting ambari web context
 
-      ServletContextHandler root = new ServletContextHandler(server, CONTEXT_PATH,
+      ServletContextHandler root = new ServletContextHandler(
           ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
 
+      root.setContextPath(CONTEXT_PATH);
       root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
 
       //Changing session cookie name to avoid conflicts
@@ -277,7 +280,14 @@ public class AmbariServer {
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
-      ViewRegistry.readViewArchives(configs, root, springSecurityFilter);
+      HandlerList handlerList = new HandlerList();
+
+      for (ViewInstanceDefinition viewInstanceDefinition : ViewRegistry.readViewArchives(configs)){
+        handlerList.addHandler(ViewRegistry.getWebAppContext(viewInstanceDefinition));
+      }
+      handlerList.addHandler(root);
+
+      server.setHandler(handlerList);
 
       ServletHolder agent = new ServletHolder(ServletContainer.class);
       agent.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",

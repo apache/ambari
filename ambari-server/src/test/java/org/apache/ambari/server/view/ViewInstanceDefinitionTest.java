@@ -59,21 +59,6 @@ public class ViewInstanceDefinitionTest {
   }
 
   @Test
-  public void testAddGetServletMapping() throws Exception {
-    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
-
-    viewInstanceDefinition.addServletMapping("Servlet1", "path1");
-    viewInstanceDefinition.addServletMapping("Servlet2", "path2");
-
-    Map<String, String> mappings = viewInstanceDefinition.getServletMappings();
-
-    Assert.assertEquals(2, mappings.size());
-
-    Assert.assertEquals("path1", mappings.get("Servlet1"));
-    Assert.assertEquals("path2", mappings.get("Servlet2"));
-  }
-
-  @Test
   public void testAddGetProperty() throws Exception {
     ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
 
@@ -117,6 +102,14 @@ public class ViewInstanceDefinitionTest {
 
     Assert.assertEquals(provider, viewInstanceDefinition.getResourceProvider(type));
     Assert.assertEquals(provider, viewInstanceDefinition.getResourceProvider("myType"));
+  }
+
+  @Test
+  public void testContextPath() throws Exception {
+    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
+
+    Assert.assertEquals(ViewInstanceDefinition.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/INSTANCE1",
+        viewInstanceDefinition.getContextPath());
   }
 
   public static ViewInstanceDefinition getViewInstanceDefinition() throws Exception {

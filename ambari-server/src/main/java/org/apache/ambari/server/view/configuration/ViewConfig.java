@@ -67,23 +67,6 @@ public class ViewConfig {
   private List<InstanceConfig> instances;
 
   /**
-   * The list of servlets.
-   */
-  @XmlElement(name="servlet")
-  private List<ServletConfig> servlets;
-
-  /**
-   * The mapping of servlet names to servlet classes.
-   */
-  public Map<String, Class<? extends HttpServlet>> servletPathMap = null;
-
-  /**
-   * The list of servlet mappings.
-   */
-  @XmlElement(name="servlet-mapping")
-  private List<ServletMappingConfig> mappings;
-
-  /**
    * The mapping of servlet names to URL patterns.
    */
   public Map<String, String> servletURLPatternMap = null;
@@ -140,62 +123,5 @@ public class ViewConfig {
    */
   public List<InstanceConfig> getInstances() {
     return instances;
-  }
-
-  /**
-   * Get the list of servlets.
-   *
-   * @return the list of view servlets
-   */
-  public List<ServletConfig> getServlets() {
-    return servlets;
-  }
-
-  /**
-   * Get the list of servlet mappings.
-   *
-   * @return the list of view servlet mappings.
-   */
-  public List<ServletMappingConfig> getMappings() {
-    return mappings;
-  }
-
-  /**
-   * Get the mapping of servlet names to servlet classes.
-   *
-   * @param cl  the class loader
-   *
-   * @return the mapping of servlet names to servlet classes
-   *
-   * @throws ClassNotFoundException if a servlet class can not be loaded
-   */
-  public synchronized Map<String, Class<? extends HttpServlet>> getServletPathMap(ClassLoader cl)
-      throws ClassNotFoundException{
-    if (servletPathMap == null) {
-      servletPathMap = new HashMap<String, Class<? extends HttpServlet>>();
-      if (servlets != null) {
-        for (ServletConfig servletConfig : servlets) {
-          servletPathMap.put(servletConfig.getName(), servletConfig.getServletClass(cl));
-        }
-      }
-    }
-    return servletPathMap;
-  }
-
-  /**
-   * Get the mapping of servlet names to URL patterns.
-   *
-   * @return the mapping of servlet names to URL patterns
-   */
-  public synchronized Map<String, String> getServletURLPatternMap() {
-    if (servletURLPatternMap == null) {
-      servletURLPatternMap = new HashMap<String, String>();
-      if (mappings != null) {
-        for (ServletMappingConfig servletMappingConfig : mappings) {
-          servletURLPatternMap.put(servletMappingConfig.getName(), servletMappingConfig.getUrlPattern());
-        }
-      }
-    }
-    return servletURLPatternMap;
   }
 }

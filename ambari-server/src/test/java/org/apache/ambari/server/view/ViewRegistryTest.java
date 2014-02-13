@@ -21,8 +21,12 @@ package org.apache.ambari.server.view;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.view.configuration.InstanceConfig;
+import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
+import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -91,6 +95,22 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(1, subResourceDefinitions.size());
     Assert.assertEquals("myType", subResourceDefinitions.iterator().next().getType().name());
+  }
+
+  @Test
+  public void testInstallViewInstance() throws Exception {
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
+
+    ViewInstanceDefinition viewInstanceDefinition = ViewRegistry.installViewInstance(viewDefinition, instanceConfig);
+
+    Collection<ViewInstanceDefinition> viewInstanceDefinitions = registry.getInstanceDefinitions(viewDefinition);
+
+    Assert.assertEquals(1, viewInstanceDefinitions.size());
+
+    Assert.assertEquals(viewInstanceDefinition, viewInstanceDefinitions.iterator().next());
   }
 
   @Before

@@ -45,10 +45,10 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   /**
    * View instance property id constants.
    */
-  public static final String VIEW_NAME_PROPERTY_ID        = "ViewInstanceInfo/view_name";
-  public static final String INSTANCE_NAME_PROPERTY_ID    = "ViewInstanceInfo/instance_name";
-  public static final String PROPERTIES_PROPERTY_ID       = "ViewInstanceInfo/properties";
-  public static final String SERVLET_MAPPINGS_PROPERTY_ID = "ViewInstanceInfo/servlet_mappings";
+  public static final String VIEW_NAME_PROPERTY_ID     = "ViewInstanceInfo/view_name";
+  public static final String INSTANCE_NAME_PROPERTY_ID = "ViewInstanceInfo/instance_name";
+  public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
+  public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
 
   /**
    * The key property ids for a view instance resource.
@@ -67,7 +67,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(PROPERTIES_PROPERTY_ID);
-    propertyIds.add(SERVLET_MAPPINGS_PROPERTY_ID);
+    propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
   }
 
 
@@ -118,8 +118,8 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
               setResourceProperty(resource, INSTANCE_NAME_PROPERTY_ID, viewInstanceDefinition.getName(), requestedIds);
               setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
                   viewInstanceDefinition.getProperties(), requestedIds);
-              setResourceProperty(resource, SERVLET_MAPPINGS_PROPERTY_ID,
-                  viewInstanceDefinition.getServletMappings(), requestedIds);
+              setResourceProperty(resource, CONTEXT_PATH_PROPERTY_ID,
+                  viewInstanceDefinition.getContextPath(), requestedIds);
 
               resources.add(resource);
             }

@@ -34,14 +34,10 @@ import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.filter.DelegatingFilterProxy;
 
-import javax.servlet.http.HttpServlet;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import java.beans.IntrospectionException;
@@ -209,15 +205,14 @@ public class ViewRegistry {
   /**
    * Read the view archives.
    *
-   * @param configuration       Ambari configuration
-   * @param rootContextHandler  the root servlet context handler
-   * @param filterProxy         the security filter
+   * @param configuration  Ambari configuration
    */
-  public static void readViewArchives(Configuration configuration, ServletContextHandler rootContextHandler,
-                                      DelegatingFilterProxy filterProxy) {
+  public static Set<ViewInstanceDefinition> readViewArchives(Configuration configuration) {
 
     File   viewDir = configuration.getViewsDir();
     File[] files   = viewDir.listFiles();
+
+    Set<ViewInstanceDefinition> instanceDefinitions = new HashSet<ViewInstanceDefinition>();
 
     if (files != null) {
       for (final File fileEntry : files) {
@@ -229,12 +224,12 @@ public class ViewRegistry {
             JAXBContext    jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
             Unmarshaller   jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             ViewConfig     viewConfig       = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-            ViewDefinition viewDefinition   = installView(viewConfig, cl, configuration);
+            ViewDefinition viewDefinition   = installView(viewConfig, configuration, cl, fileEntry.getAbsolutePath());
 
             List<InstanceConfig> instances = viewConfig.getInstances();
 
             for (InstanceConfig instanceConfig : instances) {
-              installViewInstance(viewDefinition, instanceConfig, cl, rootContextHandler, filterProxy, configuration);
+              instanceDefinitions.add(installViewInstance(viewDefinition, instanceConfig));
             }
           } catch (Exception e) {
             LOG.error("Caught exception loading view from " + fileEntry.getAbsolutePath(), e);
@@ -242,6 +237,81 @@ public class ViewRegistry {
         }
       }
     }
+    return instanceDefinitions;
+  }
+
+  /**
+   * Install a view instance described by the given instance configuration
+   * for the view defined by the given view definition.
+   *
+   * @param viewDefinition  the view definition
+   * @param instanceConfig  the instance configuration
+   *
+   * @return the new view instance definition
+   *
+   * @throws ClassNotFoundException if the view classes in the given configuration can not be found
+   */
+  public static ViewInstanceDefinition installViewInstance(ViewDefinition viewDefinition,
+                                                            InstanceConfig instanceConfig)
+      throws ClassNotFoundException {
+
+    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+
+    List<PropertyConfig> propertyConfigs = instanceConfig.getProperties();
+
+    for (PropertyConfig propertyConfig : propertyConfigs) {
+      viewInstanceDefinition.addProperty(propertyConfig.getKey(), propertyConfig.getValue());
+    }
+
+    ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition);
+
+    ViewExternalSubResourceService externalSubResourceService =
+        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
+
+    viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
+
+    Collection<ViewSubResourceDefinition> resourceDefinitions = viewDefinition.getResourceDefinitions().values();
+    for (ViewSubResourceDefinition resourceDefinition : resourceDefinitions) {
+
+      Resource.Type  type           = resourceDefinition.getType();
+      ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
+
+      ViewResourceHandler viewResourceService =
+          new ViewSubResourceService(type, viewDefinition.getName(), instanceConfig.getName());
+
+      ClassLoader cl = viewDefinition.getClassLoader();
+
+      Object service = getService(resourceConfig.getServiceClass(cl), viewResourceService, viewInstanceContext);
+
+      if (resourceConfig.isExternal()) {
+        externalSubResourceService.addResourceService(resourceConfig.getName(), service);
+      } else {
+        viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(),service);
+        viewInstanceDefinition.addResourceProvider(type,
+            getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
+      }
+    }
+
+    viewDefinition.addInstanceDefinition(viewInstanceDefinition);
+    ViewRegistry.getInstance().addInstanceDefinition(viewDefinition, viewInstanceDefinition);
+
+    return viewInstanceDefinition;
+  }
+
+  /**
+   * Get a WebAppContext for the given view instance.
+   *
+   * @param viewInstanceDefinition  the view instance definition
+   *
+   * @return a web app context
+   */
+  public static WebAppContext getWebAppContext(ViewInstanceDefinition viewInstanceDefinition) {
+    ViewDefinition viewDefinition = viewInstanceDefinition.getViewDefinition();
+
+    WebAppContext context = new WebAppContext(viewDefinition.getArchivePath(), viewInstanceDefinition.getContextPath());
+    context.setClassLoader(viewDefinition.getClassLoader());
+    context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition));
+    return context;
   }
 
 
@@ -257,12 +327,13 @@ public class ViewRegistry {
   }
 
   // install a new view definition
-  private static ViewDefinition installView(ViewConfig viewConfig, ClassLoader cl, Configuration ambariConfig)
+  private static ViewDefinition installView(ViewConfig viewConfig, Configuration ambariConfig,
+                                            ClassLoader cl, String archivePath)
       throws ClassNotFoundException, IntrospectionException {
 
     List<ResourceConfig> resourceConfigurations = viewConfig.getResources();
 
-    ViewDefinition viewDefinition = new ViewDefinition(viewConfig, ambariConfig);
+    ViewDefinition viewDefinition = new ViewDefinition(viewConfig, ambariConfig, cl, archivePath);
 
     Resource.Type externalResourceType = viewDefinition.getExternalResourceType();
 
@@ -297,71 +368,6 @@ public class ViewRegistry {
     return viewDefinition;
   }
 
-  // install a new view instance definition
-  private static void installViewInstance(ViewDefinition viewDefinition,
-                                   InstanceConfig instanceConfig,
-                                   ClassLoader cl,
-                                   ServletContextHandler root,
-                                   DelegatingFilterProxy springSecurityFilter,
-                                   Configuration ambariConfig) throws ClassNotFoundException {
-
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
-
-    List<PropertyConfig> propertyConfigs = instanceConfig.getProperties();
-
-    for (PropertyConfig propertyConfig : propertyConfigs) {
-      viewInstanceDefinition.addProperty(propertyConfig.getKey(), propertyConfig.getValue());
-    }
-
-    ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition);
-
-    ViewExternalSubResourceService externalSubResourceService =
-        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
-
-    viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
-
-    Collection<ViewSubResourceDefinition> resourceDefinitions = viewDefinition.getResourceDefinitions().values();
-    for (ViewSubResourceDefinition resourceDefinition : resourceDefinitions) {
-
-      Resource.Type  type           = resourceDefinition.getType();
-      ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
-
-      ViewResourceHandler viewResourceService =
-          new ViewSubResourceService(type, viewDefinition.getName(), instanceConfig.getName());
-
-      Object service = getService(resourceConfig.getServiceClass(cl), viewResourceService, viewInstanceContext);
-
-      if (resourceConfig.isExternal()) {
-        externalSubResourceService.addResourceService(resourceConfig.getName(), service);
-      } else {
-        viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(),service);
-        viewInstanceDefinition.addResourceProvider(type,
-            getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
-      }
-    }
-
-    ViewConfig viewConfig = viewDefinition.getConfiguration();
-
-    Map<String, Class<? extends HttpServlet>> servletPathMap = viewConfig.getServletPathMap(cl);
-    Map<String, String> servletURLPatternMap = viewConfig.getServletURLPatternMap();
-
-    for (Map.Entry<String, Class<? extends HttpServlet>> entry : servletPathMap.entrySet()) {
-      HttpServlet servlet = getServlet(entry.getValue(), viewInstanceContext);
-      ServletHolder sh = new ServletHolder(servlet);
-      String servletName = entry.getKey();
-      String pathSpec = "/views/" + viewDefinition.getName() + "/" +
-          viewInstanceDefinition.getName() + servletURLPatternMap.get(servletName);
-      root.addServlet(sh, pathSpec);
-      viewInstanceDefinition.addServletMapping(servletName, pathSpec);
-
-      if (ambariConfig.getApiAuthentication()) {
-        root.addFilter(new FilterHolder(springSecurityFilter), pathSpec, 1);
-      }
-    }
-    viewDefinition.addInstanceDefinition(viewInstanceDefinition);
-    ViewRegistry.getInstance().addInstanceDefinition(viewDefinition, viewInstanceDefinition);
-  }
-
   // get the given service class from the given class loader; inject a handler and context
   private static <T> T getService(Class<T> clazz,
                                   final ViewResourceHandler viewResourceHandler,
@@ -371,19 +377,6 @@ public class ViewRegistry {
       protected void configure() {
         bind(ViewResourceHandler.class)
             .toInstance(viewResourceHandler);
-        bind(ViewContext.class)
-            .toInstance(viewInstanceContext);
-      }
-    });
-    return viewInstanceInjector.getInstance(clazz);
-  }
-
-  // get the given servlet class from the given class loader; inject a context
-  private static HttpServlet getServlet(Class<? extends HttpServlet> clazz,
-                                        final ViewContext viewInstanceContext) {
-    Injector viewInstanceInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
         bind(ViewContext.class)
             .toInstance(viewInstanceContext);
       }
