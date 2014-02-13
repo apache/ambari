@@ -332,6 +332,18 @@ module.exports = [
             isMaster: false
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'TEZ',
+        display_name: 'Tez',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Clients',
+            component_name: 'CLIENT',
+            component_value: '',
+            isMaster: false
+          })
+        ]
       })
     ]
   }
