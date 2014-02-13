@@ -309,11 +309,13 @@ App.MainServiceItemController = Em.Controller.extend({
 
   isStartDisabled: function () {
     if(this.get('isPending')) return true;
+    if (this.get('content.serviceName') == 'TEZ') return true;
     return !(this.get('content.healthStatus') == 'red');
   }.property('content.healthStatus','isPending'),
 
   isStopDisabled: function () {
     if(this.get('isPending')) return true;
+    if (this.get('content.serviceName') == 'TEZ') return true;
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
