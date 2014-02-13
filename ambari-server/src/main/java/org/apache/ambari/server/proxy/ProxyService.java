@@ -23,20 +23,22 @@ import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.MediaType;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.Map;
@@ -47,7 +49,7 @@ import java.util.HashMap;
 public class ProxyService {
 
   private static final int REPO_URL_CONNECT_TIMEOUT = 3000;
-  private static final int REPO_URL_READ_TIMEOUT = 1000;
+  private static final int REPO_URL_READ_TIMEOUT = 3000;
   private static final int HTTP_ERROR_RANGE_START = 400;
 
   private static final String REQUEST_TYPE_GET = "GET";
@@ -66,12 +68,14 @@ public class ProxyService {
   }
 
   @POST
-  public Response processPostRequestForwarding(Object body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  @Consumes({MediaType.WILDCARD, MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
+  public Response processPostRequestForwarding(InputStream body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_POST, ui, body, headers);
   }
 
   @PUT
-  public Response processPutRequestForwarding(Object body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  @Consumes({MediaType.WILDCARD, MediaType.TEXT_PLAIN, MediaType.TEXT_XML, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
+  public Response processPutRequestForwarding(InputStream body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(REQUEST_TYPE_PUT, ui, body, headers);
   }
 
@@ -80,7 +84,7 @@ public class ProxyService {
     return handleRequest(REQUEST_TYPE_DELETE, ui, null, headers);
   }
 
-  private Response handleRequest(String requestType, UriInfo ui, Object body, HttpHeaders headers) {
+  private Response handleRequest(String requestType, UriInfo ui, InputStream body, HttpHeaders headers) {
     URLStreamProvider urlStreamProvider = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
                                                 REPO_URL_READ_TIMEOUT, null, null, null);
     List<String> urlsToForward = ui.getQueryParameters().get(QUERY_PARAMETER_URL);

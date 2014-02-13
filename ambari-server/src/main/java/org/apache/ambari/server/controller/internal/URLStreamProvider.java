@@ -39,6 +39,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
@@ -115,14 +116,13 @@ public class URLStreamProvider implements StreamProvider {
     }
 
     if (params != null) {
-      String strParams;
-      if (headers != null && headers.containsKey(CONTENT_TYPE_HEADER_PARAMETER) &&
-              headers.get(CONTENT_TYPE_HEADER_PARAMETER).toString().indexOf(APPLICATION_JSON) != -1) {
-        strParams = new Gson().toJson(params);
+      byte[] info;
+      if (params instanceof InputStream) {
+        info = IOUtils.toByteArray((InputStream)params);
       } else {
-        strParams = (String)params;
+        info = ((String)params).getBytes();
       }
-      connection.getOutputStream().write(strParams.getBytes());
+      connection.getOutputStream().write(info);
     }
 
     int statusCode = connection.getResponseCode();

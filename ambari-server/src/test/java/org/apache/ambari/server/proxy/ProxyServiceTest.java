@@ -81,7 +81,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
-    PowerMock.expectNew(URLStreamProvider.class, 3000, 1000, null, null, null).andReturn(streamProviderMock);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
     expect(Response.status(200)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
@@ -114,18 +114,18 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(getHttpHeaders().getMediaType()).andReturn(APPLICATION_FORM_URLENCODED_TYPE);
-    expect(streamProviderMock.processURL("testurl", "POST", "testbody", headerParamsToForward)).andReturn(urlConnectionMock);
+    expect(streamProviderMock.processURL("testurl", "POST", is, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
-    PowerMock.expectNew(URLStreamProvider.class, 3000, 1000, null, null, null).andReturn(streamProviderMock);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
     expect(Response.status(200)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
     PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
-    Response resultForPostRequest = ps.processPostRequestForwarding("testbody", getHttpHeaders(), getUriInfo());
+    Response resultForPostRequest = ps.processPostRequestForwarding(is, getHttpHeaders(), getUriInfo());
     assertSame(resultForPostRequest, responseMock);
   }
 
@@ -151,18 +151,18 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(getHttpHeaders().getMediaType()).andReturn(APPLICATION_FORM_URLENCODED_TYPE);
-    expect(streamProviderMock.processURL("testurl", "PUT", "testbody", headerParamsToForward)).andReturn(urlConnectionMock);
+    expect(streamProviderMock.processURL("testurl", "PUT", is, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
-    PowerMock.expectNew(URLStreamProvider.class, 3000, 1000, null, null, null).andReturn(streamProviderMock);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
     expect(Response.status(200)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
     PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
-    Response resultForPutRequest = ps.processPutRequestForwarding("testbody", getHttpHeaders(), getUriInfo());
+    Response resultForPutRequest = ps.processPutRequestForwarding(is, getHttpHeaders(), getUriInfo());
     assertSame(resultForPutRequest, responseMock);
   }
 
@@ -191,7 +191,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
-    PowerMock.expectNew(URLStreamProvider.class, 3000, 1000, null, null, null).andReturn(streamProviderMock);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
     expect(Response.status(200)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
@@ -221,7 +221,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(405).times(2);
-    PowerMock.expectNew(URLStreamProvider.class, 3000, 1000, null, null, null).andReturn(streamProviderMock);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
     PowerMock.replay(streamProviderMock, URLStreamProvider.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());
@@ -252,7 +252,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("application/json");
     expect(urlConnectionMock.getInputStream()).andReturn(new ByteArrayInputStream("{ \"test\":\"test\" }".getBytes()));
-    PowerMock.expectNew(URLStreamProvider.class, 3000, 1000, null, null, null).andReturn(streamProviderMock);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
     expect(Response.status(200)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.entity(map)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("application/json")).andReturn(responseBuilderMock);
