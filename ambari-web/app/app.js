@@ -74,69 +74,130 @@ module.exports = Em.Application.create({
   }.property('router.clusterController.isLoaded'),
 
   /**
-   * List of exlcuded components for the current stack.
-   * Setup available versions by 'stackVersions' property.
-   *
-   * For example:
-   *  {
-   *   service_name: 'YARN',
-   *   component_name: 'APP_TIMELINE_SERVER',
-   *   display_name: 'App Timeline Server',
-   *   isMaster: true,
-   *   isClient: false,
-   *   stackVersions: ['2.1.1'], - this component available only for HDP-2.1.1 stack
-   *   description: ''
-   *  }
+   * List of disabled components for the current stack with related info.
+   * Each element has followed structure:
+   * @type {Em.Object}
+   *   @property componentName {String} - name of the component
+   *   @property properties {Object} - mapped properties by site files,
+   *    for example:
+   *      properties: { global_properties: [], site_properties: [], etc. }
+   *   @property reviewConfigs {Ember.Object} - reference review_configs.js
+   *   @property serviceComponent {Object} - reference service_components.js
    *
    * @type {Array}
    */
   stackDependedComponents: [],
+
   /**
-   * Resolve dependency in components. Check forbidden components and
-   * remove related data.
+   * Restore component data that was excluded from stack.
+   *
+   * @param component {Ember.Object} - #stackDependedComponents item
+   */
+  enableComponent: function(component) {
+    var propertyFileNames = ['global_properties', 'site_properties'];
+    var requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
+    // add component to service_components list
+    require('data/service_components').push(component.get('serviceComponent'));
+    // add properties
+    propertyFileNames.forEach(function(fileName) {
+      require(requirePrefix + fileName).configProperties = require(requirePrefix + fileName).configProperties.concat(component.get('properties.'+fileName));
+    });
+    var reviewConfigsService = require('data/review_configs')
+      .findProperty('config_name', 'services').config_value
+      .findProperty('service_name', component.get('serviceComponent.service_name'));
+    reviewConfigsService.get('service_components').pushObject(component.get('reviewConfigs'));
+  },
+  /**
+   * Disabling component. Remove related data from lists such as
+   * properties, review configs, service components.
+   *
+   * @param component {Object} - component info reference service_components.js
+   *
+   * @return {Ember.Object} - item of <code>stackDependedComponents</code> property
+   */
+  disableComponent: function(component) {
+    var componentCopy, propertyFileNames;
+    propertyFileNames = ['global_properties', 'site_properties'];
+    componentCopy = Em.Object.create({
+      componentName: component.component_name,
+      properties: {},
+      reviewConfigs: {},
+      configCategory: {},
+      serviceComponent: {}
+    });
+    componentCopy.set('serviceComponent', require('data/service_components').findProperty('component_name', component.component_name));
+    // remove component from service_components list
+    require('data/service_components').removeObject(componentCopy.get('serviceComponent'));
+    var serviceConfigsCategoryName, requirePrefix, serviceConfig;
+    // get service category name related to component
+    serviceConfig = require('data/service_configs').findProperty('serviceName', component.service_name);
+    serviceConfig.configCategories = serviceConfig.configCategories.filter(function(configCategory) {
+      if (configCategory.get('hostComponentNames')) {
+        serviceConfigsCategoryName = configCategory.get('name');
+        if (configCategory.get('hostComponentNames').contains(component.component_name)) {
+          componentCopy.set('configCategory', configCategory);
+        }
+      }
+      return true;
+    });
+    requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
+    var propertyObj = {};
+    propertyFileNames.forEach(function(propertyFileName) {
+      propertyObj[propertyFileName] = [];
+    });
+    // remove config properties related to this component
+    propertyFileNames.forEach(function(propertyFileName) {
+      var properties = require(requirePrefix + propertyFileName);
+      properties.configProperties = properties.configProperties.filter(function(property) {
+        if (property.category == serviceConfigsCategoryName) {
+          propertyObj[propertyFileName].push(property);
+          return false;
+        } else {
+          return true;
+        }
+      });
+    });
+    componentCopy.set('properties', propertyObj);
+    // remove component from review configs
+    var reviewConfigsService = require('data/review_configs')
+      .findProperty('config_name', 'services').config_value
+      .findProperty('service_name', component.service_name);
+    reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
+      if (serviceComponent.get('component_name') != component.component_name) {
+        return true;
+      } else {
+        componentCopy.set('reviewConfigs', serviceComponent);
+        return false;
+      }
+    }));
+    return componentCopy;
+  },
+  /**
+   * Resolve dependency in components. Check forbidden/allowed components and
+   * remove/restore related data.
    */
   handleStackDependedComponents: function() {
+    // need for unit testing
+    if (this.get('handleStackDependencyTest')) return;
     var stackVersion, stackDependedComponents;
     stackVersion = this.get('currentStackVersionNumber');
     stackDependedComponents = [];
+    // disable components
     require('data/service_components').filterProperty('stackVersions').forEach(function(component) {
       if (!component.stackVersions.contains(stackVersion))
-        stackDependedComponents.push(component);
-    });
-    if (stackDependedComponents.length > 0) {
-      // start clean info about each component
-      stackDependedComponents.forEach(function(component) {
-        // remove component from service_components list
-        require('data/service_components').removeObject(require('data/service_components').findProperty('component_name', component.component_name));
-        var serviceConfig = require('data/service_configs').findProperty('serviceName', component.service_name);
-        var serviceConfigsCategoryName, requirePrefix, propertyFileNames;
-        propertyFileNames = ['global_properties', 'site_properties'];
-        // remove config category assigned to this component
-        serviceConfig.configCategories = serviceConfig.configCategories.filter(function(configCategory) {
-          if (configCategory.get('hostComponentNames')) {
-            serviceConfigsCategoryName = configCategory.get('name');
-            return !configCategory.get('hostComponentNames').contains(component.component_name);
-          }
-          else
-            return true;
-        });
-        requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
-        // remove config properties related to this component
-        propertyFileNames.forEach(function(propertyFileName) {
-          var properties = require(requirePrefix + propertyFileName);
-          properties.configProperties = properties.configProperties.filter(function(property) {
-            return property.category != serviceConfigsCategoryName;
-          });
-        });
-        // remove component from review configs
-        var reviewConfigsService = require('data/review_configs').findProperty('config_name', 'services').config_value.findProperty('service_name', component.service_name);
-        reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
-          return serviceComponent.get('component_name') != component.component_name;
-        }));
+        stackDependedComponents.push(this.disableComponent(component));
+    }, this);
+    // enable components
+    if (this.get('stackDependedComponents').length > 0) {
+      this.get('stackDependedComponents').forEach(function(component) {
+        if (component.get('serviceComponent').stackVersions.contains(this.get('currentStackVersionNumber'))) {
+          this.enableComponent(component);
+          stackDependedComponents = this.get('stackDependedComponents').removeObject(component);
+        }
       }, this);
     }
-    this.set('stackDependedComponents', stackDependedComponents);
-  }.observes('currentStackVersion'),
+    this.set('stackDependedComponents', this.get('stackDependedComponents').concat(stackDependedComponents));
+  }.observes('currentStackVersionNumber'),
 
   /**
    * List of components with allowed action for them
