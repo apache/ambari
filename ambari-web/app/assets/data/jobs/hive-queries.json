@@ -1,92 +1,84 @@
 {
   "entities": [
     {
-      "otherinfo": {},
+      "starttime": 1390516278010,
+      "entitytype": "HIVE_QUERY_ID",
       "primaryfilters": {
         "user": "hiveuser1"
       },
       "events": [
         {
-          "ts": 1390516285963,
+          "timestamp": 1390516285963,
           "eventtype": "QUERY_COMPLETED",
           "eventinfo": {}
         },
         {
-          "ts": 1390516278010,
+          "timestamp": 1390516278010,
           "eventtype": "QUERY_SUBMITTED",
           "eventinfo": {}
         }
       ],
-      "keyts": 1390516278010,
-      "relatedentities": {},
-      "entity": "HIVE-Q3",
-      "entitytype": "HIVE_QUERY_ID"
+      "entity": "HIVE-Q3-0"
     },
     {
-      "otherinfo": {},
+      "starttime": 1390516133110,
+      "entitytype": "HIVE_QUERY_ID",
       "primaryfilters": {
         "user": "hiveuser2"
       },
       "events": [
         {
-          "ts": 1390516133110,
+          "timestamp": 1390516133110,
           "eventtype": "QUERY_COMPLETED",
           "eventinfo": {}
         },
         {
-          "ts": 1390516133110,
+          "timestamp": 1390516133110,
           "eventtype": "QUERY_SUBMITTED",
           "eventinfo": {}
         }
       ],
-      "keyts": 1390516133110,
-      "relatedentities": {},
-      "entity": "HIVE-Q2",
-      "entitytype": "HIVE_QUERY_ID"
+      "entity": "HIVE-Q2-0"
     },
     {
-      "otherinfo": {},
+      "starttime": 1390515264503,
+      "entitytype": "HIVE_QUERY_ID",
       "primaryfilters": {
         "user": "hiveuser1"
       },
       "events": [
         {
-          "ts": 1390515297205,
+          "timestamp": 1390515297205,
           "eventtype": "QUERY_COMPLETED",
           "eventinfo": {}
         },
         {
-          "ts": 1390515264503,
+          "timestamp": 1390515264503,
           "eventtype": "QUERY_SUBMITTED",
           "eventinfo": {}
         }
       ],
-      "keyts": 1390515264503,
-      "relatedentities": {},
-      "entity": "HIVE-Q1",
-      "entitytype": "HIVE_QUERY_ID"
+      "entity": "HIVE-Q1-0"
     },
     {
-      "otherinfo": {},
+      "starttime": 1389809461915,
+      "entitytype": "HIVE_QUERY_ID",
       "primaryfilters": {
         "user": "hiveuser2"
       },
       "events": [
         {
-          "ts": 1390516418183,
+          "timestamp": 1390516418183,
           "eventtype": "QUERY_COMPLETED",
           "eventinfo": {}
         },
         {
-          "ts": 1389809461915,
+          "timestamp": 1389809461915,
           "eventtype": "QUERY_SUBMITTED",
           "eventinfo": {}
         }
       ],
-      "keyts": 1389809461915,
-      "relatedentities": {},
-      "entity": "HIVE-Q4",
-      "entitytype": "HIVE_QUERY_ID"
+      "entity": "HIVE-Q4-0"
     }
   ]
 }

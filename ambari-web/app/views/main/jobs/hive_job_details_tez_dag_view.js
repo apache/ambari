@@ -385,7 +385,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       }
       return classes;
     }).attr("d", diagonal).append("title").text(function(l) {
-      return l.edgeType;
+      var lower = l.edgeType ? l.edgeType.toLowerCase() : '';
+      return Em.I18n.t("jobs.hive.tez.edge."+lower);
     });
     // Create Nodes
     var node = svgLayer.selectAll(".node").data(dagVisualModel.nodes).enter().append("g").attr("class", "node");

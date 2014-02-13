@@ -1872,6 +1872,8 @@ Em.I18n.translations = {
   'jobs.hive.tez.metric.recordsRead':'Records Read',
   'jobs.hive.tez.metric.recordsWrite':'Records Written',
   'jobs.hive.tez.metric.tezTasks':'Tez Tasks',
+  'jobs.hive.tez.edge.broadcast':'Broadcast',
+  'jobs.hive.tez.edge.scatter_gather':'Shuffle',
 
   'number.validate.empty': 'cannot be empty',
   'number.validate.notValidNumber': 'not a valid number',

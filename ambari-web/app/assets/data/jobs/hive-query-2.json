@@ -1,9 +1,6 @@
 {
-  "relatedentities": {},
-  "primaryfilters": {
-    "user": "hiveuser2"
-  },
-  "secondaryfilters": {},
+  "starttime": 1390516133110,
+  "entitytype": "HIVE_QUERY_ID",
   "otherinfo": {
     "startTime": 1390516133110,
     "query": {
@@ -218,6 +215,5 @@
     },
     "endTime": 1390516133110
   },
-  "entity": "HIVE-Q2",
-  "entitytype": "HIVE_QUERY_ID"
+  "entity": "HIVE-Q2-0"
 }

@@ -1,13 +1,86 @@
 {
   "entities": [
     {
-      "ts": 1390516133120,
-      "info": {
+      "starttime": 1390516133120,
+      "entitytype": "TEZ_DAG_ID",
+      "primaryfilters": {
         "dagName": "HIVE-Q2:1"
       },
-      "entity": "dag_1390516007863_0001_1",
-      "eventtype": "DAG_SUBMITTED"
+      "otherinfo": {
+        "dagPlan": {
+          "dagName": "HIVE-Q2:1",
+          "edges": [
+            {
+              "edgeId": "1167505869",
+              "inputVertexName": "Map 3",
+              "outputVertexName": "Map 2",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "360567249",
+              "inputVertexName": "Map 1",
+              "outputVertexName": "Map 2",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            }
+          ],
+          "vertices": [
+            {
+              "vertexName": "Map 1",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": "360567249",
+              "additionalInputs": {
+                "name": "z",
+                "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+              }
+            },
+            {
+              "vertexName": "Map 2",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "inEdgeIds": [
+                "1167505869",
+                "360567249"
+              ],
+              "additionalInputs": {
+                "name": "y",
+                "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+              },
+              "additionalOutputs": {
+                "name": "out_Map 2",
+                "class": "org.apache.tez.mapreduce.output.MROutput"
+              }
+            },
+            {
+              "vertexName": "Map 3",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": "1167505869",
+              "additionalInputs": {
+                "name": "x",
+                "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+              }
+            }
+          ]
+        }
+      },
+      "events": [
+        {
+          "timestamp": 1390516133120,
+          "eventtype": "DAG_SUBMITTED",
+          "eventinfo": {}
+        }
+      ],
+      "entity": "dag_1390516007863_0001_1-0",
+      "relatedentities": {}
     }
-  ],
-  "entitytype": "TEZ_DAG_ID"
+  ]
 }
