@@ -194,4 +194,13 @@
     Only applicable if tez.runtime.intermediate-input.is-compressed is enabled.</description>
   </property>
 
+  <!-- Configuration for ATS integration -->
+
+  <property>
+    <name>tez.yarn.ats.enabled</name>
+    <value>true</value>
+    <description>Whether to send history events to YARN Application Timeline Server</description>
+  </property>
+
 </configuration>
+
