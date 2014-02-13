@@ -31,6 +31,22 @@ App.MainJobsView = App.TableView.extend({
     this.set('filteredContent', this.get('controller.content'));
   },
 
+  /**
+   * If no jobs table rows to show.
+   */
+  noDataToShow:true,
+
+  /*
+   If no jobs to display set noDataToShow to true, else set emptyData to false.
+   */
+  noDataToShowObserver:function(){
+    if(this.get("controller.content.length") > 0){
+      this.set("noDataToShow",false);
+    }else{
+      this.set("noDataToShow",true);
+    }
+  }.observes("controller.content.length"),
+
   sortView: sort.wrapperView,
   idSort: sort.fieldView.extend({
     column: 0,
@@ -81,7 +97,7 @@ App.MainJobsView = App.TableView.extend({
    */
   filteredJobs: function () {
     return Em.I18n.t('jobs.filtered.jobs').format(this.get('content').get('length'), this.get('controller.totalOfJobs'));
-  }.property('content.length', 'filteredContent.length'),
+  }.property('content.length', 'filteredContent.length', 'controller.totalOfJobs'),
 
   /**
    * Filter-field for Jobs ID.

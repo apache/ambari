@@ -1847,6 +1847,7 @@ Em.I18n.translations = {
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
 
+  'jobs.nothingToShow': 'No jobs to display',
   'jobs.table.custom.date.am':'AM',
   'jobs.table.custom.date.pm':'PM',
   'jobs.table.custom.date.header':'Select Custom Dates',

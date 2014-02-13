@@ -387,14 +387,29 @@
     th, td {
       border-left-width: 0;
     }
-
+    .no-data{
+      text-align: center;
+    }
     td:first-child,
     th:first-child {
       border-left-width: 1px;
+      width: 35%;
+    }
+    td:first-child + td,
+    th:first-child + th,
+    td:first-child + td + td,
+    th:first-child + th + th,
+    td:first-child + td + td + td,
+    th:first-child + th + th + th{
+      width: 16%;
+    }
+    td:first-child + td + td + td + td,
+    th:first-child + th + th + th + th{
+      width: 17%;
     }
   }
   .table {
-
+    table-layout: fixed;
     th {
       border-top: none;
     }

@@ -48,9 +48,9 @@
         </tr>
         </thead>
         <tbody>
-        {{#if  view.emptyData}}
+        {{#if  view.noDataToShow}}
             <tr>
-                <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t apps.filters.nothingToShow}}</td>
+                <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t jobs.nothingToShow}}</td>
             </tr>
         {{else}}
           {{#each job in view.pageContent}}
