@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var date = require('utils/date');
 
 App.WizardStep9View = Em.View.extend({
 
@@ -217,6 +218,8 @@ App.HostStatusView = Em.View.extend({
               taskInfo.set('role', App.format.role(_task.Tasks.role));
               taskInfo.set('stderr', _task.Tasks.stderr);
               taskInfo.set('stdout', _task.Tasks.stdout);
+              taskInfo.set('startTime',  date.startTime(_task.Tasks.start_time));
+              taskInfo.set('duration', date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time));
               taskInfo.set('isVisible', true);
               taskInfo.set('icon', '');
               taskInfo.set('hostName', _task.Tasks.host_name);

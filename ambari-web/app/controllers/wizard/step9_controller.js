@@ -738,7 +738,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
     var requestId = requestId || this.get('content.cluster.requestId');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true';
     console.log("URL for step9 is: " + url);
     return url;
   },

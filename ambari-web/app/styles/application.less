@@ -1380,20 +1380,6 @@ width:100%;
     .operation-name-top {
       width: 33%;
       padding-left: 20px;
-    }
-    .task-name-top {
-      width: 23%;
-      padding-left: 20px;
-    }
-    .start-time-top {
-      width: 20%;
-      padding-left: 5px;
-    }
-    .duration-top {
-      width: 10%;
-      padding-left: 5px;
-    }
-    .operation-name-top,.task-name-top,.start-time-top,.duration-top {
       float: left;
       text-align: left;
     }
@@ -1515,6 +1501,7 @@ width:100%;
     text-align: center;
     font-size: 15px;
     padding: 0 0 10px 0;
+    height: 20px;
 
     .task-detail-back-to-hosts {
       float: left;
@@ -1531,6 +1518,25 @@ width:100%;
     .tasks-list-select{
       //margin-top: -28px;
     }
+
+    .task-name-top {
+      width: 23%;
+      padding-left: 20px;
+    }
+    .start-time-top {
+      width: 20%;
+      padding-left: 5px;
+    }
+    .duration-top {
+      width: 10%;
+      padding-left: 5px;
+    }
+    .task-name-top,.start-time-top,.duration-top {
+      float: left;
+      text-align: left;
+    }
+
+
   }
 
   #host-log {
@@ -1538,7 +1544,6 @@ width:100%;
       padding: 10px 10px 10px 20px;
       border-top: 1px solid #CCC;
       border-bottom: 1px solid #CCC;
-
       .show-details {
         float: right;
         cursor: pointer;
@@ -1547,6 +1552,34 @@ width:100%;
         i {
           color: #333;
         }
+      }
+
+      .task-list-line-cursor:before,.task-list-line-cursor:after {
+        display: table;
+        line-height: 0;
+        content: "";
+      }
+      .task-list-line-cursor:after {
+        clear: both;
+      }
+      .operation-name-icon-wrap {
+        float: left;
+        width: 35%;
+      }
+      .start-time-text {
+        margin-left: 5px;
+        width: 20%;
+        float: left;
+      }
+      .duration-text {
+        margin-left: 5px;
+        width: 10%;
+        float: left;
+      }
+      .time-summary {
+        padding-left: 0px;
+        color: #808080;
+        font-size: 12px;
       }
     }
   }
