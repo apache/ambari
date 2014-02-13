@@ -42,6 +42,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Map;
 import java.util.LinkedList;
 import java.util.HashMap;
@@ -53,7 +54,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ ProxyServiceTest.class, ProxyService.class, URLStreamProvider.class, Response.class, ResponseBuilderImpl.class })
+@PrepareForTest({ ProxyServiceTest.class, ProxyService.class, URLStreamProvider.class, Response.class,
+        ResponseBuilderImpl.class, URI.class })
 class ProxyServiceTest extends BaseServiceTest {
 
   @Test
@@ -61,12 +63,11 @@ class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    URI uriMock = PowerMock.createMock(URI.class);
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
     Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
     Response responseMock = createMock(ResponseImpl.class);
-    queryParams.add("url","testurl");
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<String>();
@@ -76,7 +77,8 @@ class ProxyServiceTest extends BaseServiceTest {
     PowerMock.mockStatic(Response.class);
     expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
-    expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uriMock);
+    expect(uriMock.getQuery()).andReturn("url=testurl");
     expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
@@ -86,7 +88,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
-    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock, uriMock, URI.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     Response resultForGetRequest = ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());
     assertSame(resultForGetRequest, responseMock);
@@ -97,12 +99,11 @@ class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    URI uriMock = PowerMock.createMock(URI.class);
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
     Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
     Response responseMock = createMock(ResponseImpl.class);
-    queryParams.add("url","testurl");
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<String>();
@@ -112,7 +113,8 @@ class ProxyServiceTest extends BaseServiceTest {
     PowerMock.mockStatic(Response.class);
     expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
-    expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uriMock);
+    expect(uriMock.getQuery()).andReturn("url=testurl");
     expect(getHttpHeaders().getMediaType()).andReturn(APPLICATION_FORM_URLENCODED_TYPE);
     expect(streamProviderMock.processURL("testurl", "POST", is, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
@@ -123,7 +125,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
-    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock, uriMock, URI.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     Response resultForPostRequest = ps.processPostRequestForwarding(is, getHttpHeaders(), getUriInfo());
     assertSame(resultForPostRequest, responseMock);
@@ -134,12 +136,11 @@ class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    URI uriMock = PowerMock.createMock(URI.class);
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
     Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
     Response responseMock = createMock(ResponseImpl.class);
-    queryParams.add("url","testurl");
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<String>();
@@ -149,7 +150,8 @@ class ProxyServiceTest extends BaseServiceTest {
     PowerMock.mockStatic(Response.class);
     expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
-    expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uriMock);
+    expect(uriMock.getQuery()).andReturn("url=testurl");
     expect(getHttpHeaders().getMediaType()).andReturn(APPLICATION_FORM_URLENCODED_TYPE);
     expect(streamProviderMock.processURL("testurl", "PUT", is, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
@@ -160,7 +162,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
-    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock, uriMock, URI.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     Response resultForPutRequest = ps.processPutRequestForwarding(is, getHttpHeaders(), getUriInfo());
     assertSame(resultForPutRequest, responseMock);
@@ -171,12 +173,11 @@ class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    URI uriMock = PowerMock.createMock(URI.class);
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
     Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
     Response responseMock = createMock(ResponseImpl.class);
-    queryParams.add("url","testurl");
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<String>();
@@ -186,7 +187,8 @@ class ProxyServiceTest extends BaseServiceTest {
     PowerMock.mockStatic(Response.class);
     expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
-    expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uriMock);
+    expect(uriMock.getQuery()).andReturn("url=testurl");
     expect(streamProviderMock.processURL("testurl", "DELETE", null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
@@ -196,7 +198,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(responseBuilderMock.entity(is)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("text/plain")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
-    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock, uriMock, URI.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     Response resultForDeleteRequest = ps.processDeleteRequestForwarding(getHttpHeaders(), getUriInfo());
     assertSame(resultForDeleteRequest, responseMock);
@@ -207,10 +209,9 @@ class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    URI uriMock = PowerMock.createMock(URI.class);
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
-    queryParams.add("url","testurl");
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<String>();
@@ -218,11 +219,12 @@ class ProxyServiceTest extends BaseServiceTest {
     headerParamsToForward.put("User-Remote", userRemoteParams);
     expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
-    expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uriMock);
+    expect(uriMock.getQuery()).andReturn("url=testurl");
     expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(405).times(2);
     PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
-    PowerMock.replay(streamProviderMock, URLStreamProvider.class);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class, uriMock, URI.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());
   }
@@ -232,12 +234,11 @@ class ProxyServiceTest extends BaseServiceTest {
     ProxyService ps = new ProxyService();
     URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+    URI uriMock = PowerMock.createMock(URI.class);
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
     Response.ResponseBuilder responseBuilderMock = PowerMock.createMock(ResponseBuilderImpl.class);
     Response responseMock = createMock(ResponseImpl.class);
-    queryParams.add("url","testurl");
     headerParams.add("AmbariProxy-User-Remote","testuser");
     headerParams.add("Content-Type","testtype");
     List<String> userRemoteParams = new LinkedList<String>();
@@ -247,7 +248,8 @@ class ProxyServiceTest extends BaseServiceTest {
     PowerMock.mockStatic(Response.class);
     expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
     expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
-    expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uriMock);
+    expect(uriMock.getQuery()).andReturn("url=testurl");
     expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("application/json");
@@ -257,7 +259,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(responseBuilderMock.entity(map)).andReturn(responseBuilderMock);
     expect(responseBuilderMock.type("application/json")).andReturn(responseBuilderMock);
     expect(responseBuilderMock.build()).andReturn(responseMock);
-    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class, Response.class, responseBuilderMock, uriMock, URI.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     Response resultForGetRequest = ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());
     assertSame(resultForGetRequest, responseMock);

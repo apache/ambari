@@ -56,7 +56,7 @@ public class ProxyService {
   private static final String REQUEST_TYPE_POST = "POST";
   private static final String REQUEST_TYPE_PUT = "PUT";
   private static final String REQUEST_TYPE_DELETE = "DELETE";
-  private static final String QUERY_PARAMETER_URL = "url";
+  private static final String QUERY_PARAMETER_URL = "url=";
   private static final String AMBARI_PROXY_PREFIX = "AmbariProxy-";
   private static final String ERROR_PROCESSING_URL = "Error occurred during processing URL ";
 
@@ -87,9 +87,9 @@ public class ProxyService {
   private Response handleRequest(String requestType, UriInfo ui, InputStream body, HttpHeaders headers) {
     URLStreamProvider urlStreamProvider = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
                                                 REPO_URL_READ_TIMEOUT, null, null, null);
-    List<String> urlsToForward = ui.getQueryParameters().get(QUERY_PARAMETER_URL);
-    if (!urlsToForward.isEmpty()) {
-      String url = urlsToForward.get(0);
+    String query = ui.getRequestUri().getQuery();
+    if (query != null && query.indexOf(QUERY_PARAMETER_URL) != -1) {
+      String url = query.replaceFirst(QUERY_PARAMETER_URL, "");
       try {
         HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, getHeaderParamsToForward(headers));
         int responseCode = connection.getResponseCode();
