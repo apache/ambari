@@ -151,8 +151,9 @@ public class JMXHostProviderTest {
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
-    configs.put(NAMENODE_PORT, "localhost:70070");
+    configs.put(NAMENODE_PORT, "localhost:${ambari.dfs.datanode.http.port}");
     configs.put(DATANODE_PORT, "localhost:70075");
+    configs.put("ambari.dfs.datanode.http.port", "70070");
     ConfigurationRequest cr = new ConfigurationRequest(clusterName,
       "hdfs-site", "version1", configs);
     controller.createConfiguration(cr);

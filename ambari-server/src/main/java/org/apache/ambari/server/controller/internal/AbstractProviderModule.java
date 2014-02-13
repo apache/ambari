@@ -233,6 +233,41 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     return clusterJmxPorts.get(componentName);
   }
 
+  /**Post process property value. If value has one ore some substrings
+   * started with "${" and ended with "}" these substrings will replace
+   * with properties from current propertiesMap. It is doing recursively.
+   * @param key - properties name
+   * @param value - properties value
+   * @param properties - map with properties
+   */
+  private String postProcessPropertyValue(String key, String value, Map<String, String> properties, Set<String> prevProps) {
+      if (value != null && key != null && value.contains("${")){
+          if (prevProps == null) prevProps = new HashSet<String>();
+          if (prevProps.contains(key)){
+            return value;
+          }
+          prevProps.add(key);
+          String refValueString = value;
+          Map<String, String> refMap = new HashMap<String, String>();
+          while(refValueString.contains("${")) {
+              int startValueRef = refValueString.indexOf("${") + 2;
+              int endValueRef = refValueString.indexOf("}");
+              String valueRef = refValueString.substring(startValueRef, endValueRef);
+              refValueString = refValueString.substring(endValueRef+1);
+              String trueValue = (String) postProcessPropertyValue(valueRef, properties.get(valueRef), properties, prevProps);
+              if (trueValue != null){
+               refMap.put("${"+valueRef+"}", trueValue);
+              } 
+          }
+          for (String keyRef : refMap.keySet()){
+            refValueString = refMap.get(keyRef);
+            value = ((String)value).replace(keyRef, refValueString);
+          }
+          properties.put(key, value);
+    }
+    return value;
+  } 
+  
   // ----- GangliaHostProvider -----------------------------------------------
 
   @Override
@@ -581,12 +616,28 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Map<String, String> mConfigs = new HashMap<String, String>();
     if (configResources != null) {
       for (Resource res : configResources) {
+       Map<String, String> evalutedProperties = null;                      
         for (String key : keys.keySet()) {
           String value = (String) res.getPropertyValue
             (PropertyHelper.getPropertyId(PROPERTIES_CATEGORY, keys.get(key)));
+          if (value != null && value.contains("${"))
+            if (evalutedProperties == null){
+              evalutedProperties = new HashMap<String, String>();
+              Map<String, Object> properties = res.getPropertiesMap().get(PROPERTIES_CATEGORY);
+              for (Map.Entry<String, Object> entry : properties.entrySet()) {
+                String keyString = entry.getKey();
+                Object object = entry.getValue();
+                String valueString;
+                if (object != null && object instanceof String){
+                  valueString = (String)object;
+                  evalutedProperties.put(keyString, valueString);
+                  postProcessPropertyValue(keyString, valueString, evalutedProperties, null);
+                }
+              }              
+            }
+          value = postProcessPropertyValue(keys.get(key), value, evalutedProperties, null);
           LOG.debug("PROPERTY -> key: " + keys.get(key) + ", " +
-            "value: " + value);
-
+          "value: " + value);
           mConfigs.put(key, value);
         }
       }
