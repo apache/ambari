@@ -146,9 +146,9 @@ The schedule is a Quartz scheduler cron expression minus the seconds specifier.
 
 <table>
   <tr>
-    <td>Field</td>
-    <td>Allowed values</td>
-    <td>Allowed special characters</td>
+    <th>Field</th>
+    <th>Allowed values</th>
+    <th>Allowed special characters</th>
   </tr>
   <tr>
     <td>Minutes</td>
