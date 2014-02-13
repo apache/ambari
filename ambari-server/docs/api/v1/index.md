@@ -295,6 +295,11 @@ Configuration resources are sets of key/value pairs that configure the services 
 
 [Configuration Resource Overview](configuration.md)
 
+#### config_groups
+Config group is type of resource that supports grouping of configuration resources and host resources for a service.
+
+[Config Group Overview](config-groups.md)
+
 #### requests
 Request resources are groups of tasks that were created to carry out an instruction.
 
@@ -304,6 +309,11 @@ Request resources are groups of tasks that were created to carry out an instruct
 Task resources are the individual tasks that make up a request resource.
 
 [Task Resources](task-resources.md)
+
+#### request_schedules
+A request schedule defines a batch of requests to be executed based on a schedule.
+
+[Request Schedule Resources](request-schedules.md)
 
 #### workflows
 Workflow resources are DAGs of MapReduce jobs in a Hadoop cluster.
@@ -1078,7 +1088,8 @@ The "end" keyword indicates the end of the set of resources and is equivalent to
     /api/v1/clusters/cl1/requests?to=-1&page_size=10
 
 
-The default ordering of the resources (by the natural ordering of the resource key properties) is implied.	
+The default ordering of the resources (by the natural ordering of the resource key properties) is implied.	
+
 	
 HTTP Return Codes
 ----

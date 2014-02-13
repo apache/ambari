@@ -75,21 +75,24 @@ To create a new configuration, the below call can be made. Creating a configurat
     }
 
 
-## Overrides
-Configurations are used by individual components on a host. The design is to define and apply configuration at the cluster level, with optional overrides per host.  The order of application is as follows:
-
-1. Set a configuration to the cluster.
-3. Set optional configuration overrides to a host.
-
-The optional host overrides contain only the properties which need to be changed on a host
-from the cluster level configuration. Be aware you cannot create ONLY an override and expect 
-it to be applied.  There must always be a cluster-level configuration of the same type.
-
 ## Desired Configuration
 Desired configurations is the set of `tag`s that defines what you desire the cluster to have.  It 
 is possible to save configurations, even if they are not applied.  You can define `tag`s having 
 the same type, but tag must be unique and only one of them is active for the cluster at any 
 time.
+
+## Overrides
+Overrides are enabled by the Config Group resource. (see [Config Groups](config-groups.md))
+Configurations are used by individual components on a host. The design is to define and apply configuration at the cluster level, with optional overrides per host. The order of application is as follows:
+
+For a given host:
+1. Get all desired configurations defined for the cluster.
+2. Find all config groups for the host.
+3. Apply the config group overrides on top of the cluster configurations.
+
+The optional config group overrides contain only the properties which need to be changed on a host from the cluster level configuration.
+There must always be a cluster-level configuration of the same type.
+
 
 ### Cluster
 There are two ways to apply a configuration to a cluster. 
@@ -138,38 +141,12 @@ The list of all desired configs is reported in a GET call:
              "tag" : "version1"
            },
            "core-site": {
-             "tag": "version1",
-             "host_overrides": [
-               {
-                 "host_name": "h0",
-                 "tag": "version2"
-               },
-               {
-                 "host_name": "h1",
-                 "tag": "version3"
-               }
-             ]
+             "tag": "version1"
            },
             /* etc */
          }
        }
     }
-Notice that a configuration type that is overridden shows the host name and override tag.
-
-### Host
-Host overrides are set the same way as clusters:
-
-    PUT /api/v1/clusters/c1/hosts/h0
-    {
-      "Hosts": {
-        "desired_config": {
-          "type": "core-site",
-          "tag": "version2",
-          "properties": { "a": "b" }
-        }
-      }
-    }
-Again, if you supply properties, the configuration is created, then assigned.  Otherwise, the configuration pair is simply assigned.
 
 To list the desired configs for a host:
     
@@ -180,12 +157,17 @@ To list the desired configs for a host:
         "host_name" : "h0",
         "desired_configs" : {
           "global" : {
-            "tag" : "version3"
+            "overrides" : {
+              "2" : "version10"
+            },
+            "default" : "version1"
           },
           /* etc */
         }
       }
     }
+
+Notice overrides for a configuration type are listed with the key as the config group id and value is the tag identifying the configuration resource.
 
 ##Actual Configuration
 Actual configuration represents the set of `tag`s that identify the cluster's current configuration.  When configurations are changed, they are saved into the backing database, even if the host has not yet received the change.  When a 

@@ -77,7 +77,7 @@ limitations under the License.
   </tr>
   <tr>
     <td>Hosts/disk_info</td>
-    <td>The host disk infromation</td>  
+    <td>The host disk information</td>
   </tr>
   <tr>
     <td>Hosts/host_status</td>
