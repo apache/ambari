@@ -2669,10 +2669,11 @@ table.graphs {
   #hosts-table {
     margin-top: 10px;
     margin-bottom: 10px;
+    font-size: 13px\9;
     .label-row {
       font-size: 0.9em;
       th {
-        padding: 4px 4px 4px 8px;
+        padding: 4px;
       }
       .active-sort {
         color: #555555;
@@ -2687,7 +2688,7 @@ table.graphs {
     #filter-row {
       th {
         padding: 0px;
-        padding-left: 8px;
+        padding-left: 4px;
       }
       .active-filter {
         color: #555555;
@@ -2871,8 +2872,8 @@ table.graphs {
   .progress {
     margin-bottom: 0;
   }
-  .width70{
-    width:70%;
+  .filter-input-width{
+    width:68%;
   }
   .table {
     table-layout: fixed;
@@ -2880,33 +2881,47 @@ table.graphs {
       border-top: none;
     }
     th, td {
+      padding-left: 4px;
+      padding-right: 4px;
       border-left-width: 0;
     }
-
+    input[type="checkbox"] {
+      margin: 0px;
+    }
     .col0,.col1,
     td:first-child,
     th:first-child,
     td:first-child + td,
     th:first-child + th{
-      width: 3%;
+      padding-left: 2px!important;
+      padding-right: 1px!important;
+      padding-right: 10px\9!important;
+      width: 1.6%;
       width: 13px\9!important;
     }
     .col2,
     td:first-child + td + td,
     th:first-child + th + th{
-      width: 22%;
+      width: 40%;
+      padding-left: 6px;
+      padding-right: 1px;
     }
     .col3, .col4,
     td:first-child + td + td + td,
     th:first-child + th + th + th,
     td:first-child + td + td + td + td,
     th:first-child + th + th + th + th{
-      width: 3%;
+      padding-left: 1px!important;
+      padding-right: 1px!important;
+      width: 1.6%;
       width: 13px\9!important;
     }
-    .col5,.col6,.col7,.col8,.col9,
+    .col5,
     td:first-child + td + td + td + td + td,
-    th:first-child + th + th + th + th + th,
+    th:first-child + th + th + th + th + th {
+      width: 12%!important;
+    }
+    .col6,.col7,.col8,.col9,
     td:first-child + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th,
     td:first-child + td + td + td + td + td + td + td,
@@ -2915,15 +2930,13 @@ table.graphs {
     th:first-child + th + th + th + th + th + th + th + th,
     td:first-child + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th{
-      width: 12%;
-      max-width: 12% !important;
+      width: 9%!important;
     }
 
     .col10,
     td:first-child + td + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th + th{
-      width: 16%;
-      max-width: 16% !important;
+      width: 16%!important;
     }
 
     td.name {
@@ -2934,7 +2947,7 @@ table.graphs {
     td.name .trim_hostname{
       display: block;
       float: left;
-      width: 90%!important;
+      width: 93%!important;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -2949,6 +2962,9 @@ table.graphs {
       height: 13px;
       margin: 5px 0 0 0;
       width: 13px;
+    }
+    td.health .icon-medkit {
+      margin: 3px 0 0 0;
     }
     ul.filter-components {
       padding: 5px 0;
@@ -3327,10 +3343,18 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
   }
 }
 
-#host-details, #hosts, .services-menu, #serviceConfig{
+.services-menu {
   .icon-refresh {
     color: @restart-indicator-color;
     margin-left: 4px;
+  }
+}
+#hosts, #host-details, #serviceConfig {
+  .icon-refresh {
+    color: @restart-indicator-color;
+  }
+  .alerts-count {
+    margin-left: 0;
   }
 }
 .background-operations {
@@ -4504,7 +4528,29 @@ ul.inline li {
       width: 120px;
     }
   }
-
+  #hosts {
+    .table {
+      .col2,
+      td:first-child + td + td,
+      th:first-child + th + th {
+        width: 27%!important;
+      }
+      .col6,.col7,.col8,.col9,
+      td:first-child + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th,
+      td:first-child + td + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th + th,
+      td:first-child + td + td + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th + th + th,
+      td:first-child + td + td + td + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th + th + th + th{
+        width: 10%!important;
+      }
+      td.name .trim_hostname{
+        width: 90%!important;
+      }
+    }
+  }
   // when the scree is narrow, the popup modal width is adjustable
   .full-width-modal {
     .modal{
