@@ -18,6 +18,7 @@
 var App = require('app');
 var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
+var dateUtils = require('utils/date');
 
 App.MainHiveJobDetailsView = Em.View.extend({
   templateName : require('templates/main/jobs/hive_job_details'),
@@ -124,7 +125,9 @@ App.MainHiveJobDetailsView = Em.View.extend({
    *  'records': {
    *    'read': '100 records',
    *    'write': '123 records'
-   *  }
+   *  },
+   *  'started': 'Feb 12, 2014 10:30am',
+   *  'ended': 'Feb 12, 2014 10:35am'
    * }
    */
   selectedVertexIODisplay : function() {
@@ -153,7 +156,9 @@ App.MainHiveJobDetailsView = Em.View.extend({
       records : {
         read : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordReadCount')),
         write : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordWriteCount')),
-      }
+      },
+      started: v.get('startTime') ? dateUtils.dateFormat(v.get('startTime')) : '',
+      ended: v.get('endTime') ? dateUtils.dateFormat(v.get('endTime')) : ''
     };
   }.property('selectedVertex.fileReadOps', 'selectedVertex.fileWriteOps', 'selectedVertex.hdfsReadOps', 'selectedVertex.hdfdWriteOps',
       'selectedVertex.fileReadBytes', 'selectedVertex.fileWriteBytes', 'selectedVertex.hdfsReadBytes', 'selectedVertex.hdfdWriteBytes',

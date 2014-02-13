@@ -158,7 +158,7 @@ module.exports = {
           var vertexRecord = App.TezDagVertex.find(tezDagId + "/" + data.otherinfo.vertexName);
           if (vertexRecord != null) {
             vertexRecord.set('startTime', data.otherinfo.startTime);
-            vertexRecord.set('endTime', data.otherinfo.startTime + +data.otherinfo.timeTaken);
+            vertexRecord.set('endTime', data.otherinfo.endTime);
             vertexRecord.set('tasksCount', data.otherinfo.numTasks);
             vertexRecord.set('state', data.otherinfo.status);
             // TODO Need additional vertex metrics
