@@ -19,10 +19,10 @@
 var App = require('app');
 
 module.exports = App.WizardRoute.extend({
-  route: '/hosts/add',
+  route: '/host/add',
 
   enter: function (router) {
-    console.log('in /hosts/add:enter');
+    console.log('in /host/add:enter');
 
     Ember.run.next(function () {
       var addHostController = router.get('addHostController');

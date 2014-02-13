@@ -19,7 +19,7 @@
 var App = require('app');
 
 module.exports = App.WizardRoute.extend({
-  route: '/services/add',
+  route: '/service/add',
 
   enter: function (router) {
     console.log('in /service/add:enter');

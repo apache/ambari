@@ -19,7 +19,7 @@
 var App = require('app');
 
 module.exports = App.WizardRoute.extend({
-  route: '/reassign',
+  route: '/service/reassign',
 
   enter: function (router) {
     console.log('in /service/reassign:enter');

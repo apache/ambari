@@ -652,9 +652,10 @@ module.exports = Em.Route.extend({
     }),
     showService: Em.Router.transitionTo('service'),
     addService: Em.Router.transitionTo('serviceAdd'),
-    reassign: require('routes/reassign_master_routes')
+    reassign: Em.Router.transitionTo('reassign')
   }),
 
+  reassign: require('routes/reassign_master_routes'),
 
   serviceAdd: require('routes/add_service_routes'),
 
