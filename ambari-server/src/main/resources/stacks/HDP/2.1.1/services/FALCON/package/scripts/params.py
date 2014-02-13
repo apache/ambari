@@ -36,7 +36,8 @@ falcon_host = config['clusterHostInfo']['falcon_server_hosts'][0]
 falcon_port = config['configurations']['global']['falcon_port']
 
 #for create_hdfs_directory
-security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']

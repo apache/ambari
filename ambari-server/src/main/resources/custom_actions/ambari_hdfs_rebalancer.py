@@ -30,7 +30,8 @@ class HdfsRebalance(Script):
     hdfs_user = config['configurations']['global']['hdfs_user']
     conf_dir = "/etc/hadoop/conf"
 
-    security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
+    _authentication = config['configurations']['core-site']['hadoop.security.authentication']
+    security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
     threshold = config['commandParams']['threshold']
 

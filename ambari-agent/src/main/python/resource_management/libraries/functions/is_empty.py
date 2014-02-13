@@ -19,10 +19,10 @@ limitations under the License.
 Ambari Agent
 
 """
+from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
-from resource_management.libraries.functions.default import *
-from resource_management.libraries.functions.format import *
-from resource_management.libraries.functions.get_kinit_path import *
-from resource_management.libraries.functions.get_unique_id_and_date import *
-from resource_management.libraries.functions.check_process_status import *
-from resource_management.libraries.functions.is_empty import *
+def is_empty(var):
+  """
+  Check if certain configuration sent from the server has been received.
+  """
+  return isinstance(var, UnknownConfiguration)

@@ -19,13 +19,10 @@ limitations under the License.
 Ambari Agent
 
 """
-from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+from resource_management import *
 
 def get_port_from_url(address):
   if not is_empty(address):
     return address.split(':')[-1]
   else:
     return address
-  
-def is_empty(var):
-  return isinstance(var, UnknownConfiguration)

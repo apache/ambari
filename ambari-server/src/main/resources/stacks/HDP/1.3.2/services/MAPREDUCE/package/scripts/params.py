@@ -45,7 +45,8 @@ update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
 hadoop_jar_location = "/usr/lib/hadoop/"
 smokeuser = config['configurations']['global']['smokeuser']
-security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 

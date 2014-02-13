@@ -33,7 +33,8 @@ yarn_user = status_params.yarn_user
 hdfs_user = config['configurations']['global']['hdfs_user']
 
 smokeuser = config['configurations']['global']['smokeuser']
-security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

@@ -29,7 +29,8 @@ else:
   ulimit_cmd = "ulimit -c unlimited; "
 
 #security params
-security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 dfs_journalnode_keytab_file = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
 dfs_web_authentication_kerberos_keytab = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
 dfs_secondary_namenode_keytab_file =  config['configurations']['hdfs-site']['dfs.secondary.namenode.keytab.file']

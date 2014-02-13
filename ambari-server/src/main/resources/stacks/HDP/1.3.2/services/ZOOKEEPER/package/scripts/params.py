@@ -64,7 +64,8 @@ keytab_path = "/etc/security/keytabs"
 zk_keytab_path = format("{keytab_path}/zk.service.keytab")
 zk_server_jaas_file = format("{config_dir}/zookeeper_jaas.conf")
 zk_client_jaas_file = format("{config_dir}/zookeeper_client_jaas.conf")
-security_enabled = (config['configurations']['core-site']['hadoop.security.authentication'] == 'kerberos')
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 smokeuser = config['configurations']['global']['smokeuser']
