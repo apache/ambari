@@ -83,6 +83,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 
 
 /**
@@ -123,9 +124,9 @@ public class AmbariCustomCommandExecutionHelper {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private ConfigHelper configHelper;
-  ;
 
-  private Boolean isServiceCheckCommand(String command, String service) {
+  private Boolean isServiceCheckCommand(String
+                                          command, String service) {
     List<String> actions = actionMetadata.getActions(service);
     if (actions == null || actions.size() == 0) {
       return false;
@@ -247,6 +248,8 @@ public class AmbariCustomCommandExecutionHelper {
 
     for (String hostName : actionRequest.getHosts()) {
 
+      Host host = clusters.getHost(hostName);
+
       stage.addHostRoleExecutionCommand(hostName, Role.valueOf(componentName),
           RoleCommand.CUSTOM_COMMAND,
           new ServiceComponentHostOpInProgressEvent(componentName,
@@ -273,6 +276,8 @@ public class AmbariCustomCommandExecutionHelper {
           StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
+      // Set parameters required for re-installing clients on restart
+      hostLevelParams.put(REPO_INFO, getRepoInfo(cluster, host));
       execCmd.setHostLevelParams(hostLevelParams);
 
       Map<String, String> commandParams = new TreeMap<String, String>();
@@ -285,11 +290,12 @@ public class AmbariCustomCommandExecutionHelper {
 
       String commandTimeout = configs.getDefaultAgentTaskTimeout();
 
+      ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+        stackId.getStackName(), stackId.getStackVersion(),
+        serviceName, componentName);
+
       if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
         // Service check command is not custom command
-        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-            stackId.getStackName(), stackId.getStackVersion(),
-            serviceName, componentName);
         CommandScriptDefinition script = componentInfo.getCommandScript();
 
         if (script != null) {
@@ -313,6 +319,13 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
       execCmd.setCommandParams(commandParams);
+
+      Map<String, String> roleParams = execCmd.getRoleParams();
+      if (roleParams == null) {
+        roleParams = new TreeMap<String, String>();
+      }
+      roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
+      execCmd.setRoleParams(roleParams);
     }
   }
 
@@ -698,19 +711,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     execCmd.setCommandParams(commandParams);
 
-    Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
-        stackId.getStackName(), stackId.getStackVersion());
-    String repoInfo = "";
-    if (!repos.containsKey(host.getOsType())) {
-      // FIXME should this be an error?
-      LOG.warn("Could not retrieve repo information for host"
-          + ", hostname=" + scHost.getHostName()
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
-    } else {
-      repoInfo = gson.toJson(repos.get(host.getOsType()));
-    }
-
+    String repoInfo = getRepoInfo(cluster, host);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent"
           + ", hostname=" + scHost.getHostName()
@@ -720,7 +721,6 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     Map<String, String> hostParams = new TreeMap<String, String>();
-    // TODO: Move parameter population to org.apache.ambari.server.controller.AmbariManagementControllerImpl.createAction()
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
     hostParams.put(JAVA_HOME, amc.getJavaHome());
@@ -769,8 +769,24 @@ public class AmbariCustomCommandExecutionHelper {
       hostParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     }
     execCmd.setHostLevelParams(hostParams);
+  }
 
-    Map<String, String> roleParams = new TreeMap<String, String>();
-    execCmd.setRoleParams(roleParams);
+  private String getRepoInfo(Cluster cluster, Host host) throws AmbariException {
+    StackId stackId = cluster.getDesiredStackVersion();
+
+    Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
+      stackId.getStackName(), stackId.getStackVersion());
+    String repoInfo = "";
+    if (!repos.containsKey(host.getOsType())) {
+      // FIXME should this be an error?
+      LOG.warn("Could not retrieve repo information for host"
+        + ", hostname=" + host.getHostName()
+        + ", clusterName=" + cluster.getClusterName()
+        + ", stackInfo=" + stackId.getStackId());
+    } else {
+      repoInfo = gson.toJson(repos.get(host.getOsType()));
+    }
+
+    return repoInfo;
   }
 }

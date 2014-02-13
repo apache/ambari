@@ -40,7 +40,6 @@ public class ExecutionCommand extends AgentCommand {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
 
-
   private String clusterName;
   private long taskId;
   private String commandId;
@@ -259,6 +258,7 @@ public class ExecutionCommand extends AgentCommand {
     String AMBARI_DB_RCA_DRIVER = "ambari_db_rca_driver";
     String AMBARI_DB_RCA_USERNAME = "ambari_db_rca_username";
     String AMBARI_DB_RCA_PASSWORD = "ambari_db_rca_password";
+    String COMPONENT_CATEGORY = "component_category";
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";

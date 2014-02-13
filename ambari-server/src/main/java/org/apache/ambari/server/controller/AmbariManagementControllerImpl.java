@@ -2088,7 +2088,6 @@ public class AmbariManagementControllerImpl implements
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     Stage stage = createNewStage(cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
 
-
     Map<String, String> params = createDefaultHostParams(cluster);
 
     if (actionRequest.isCommand()) {

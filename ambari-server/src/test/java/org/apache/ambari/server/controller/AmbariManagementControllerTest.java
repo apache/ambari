@@ -3886,6 +3886,95 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("h3", taskStatus.getHostName());
   }
 
+  @Test
+  public void testComponentCategorySentWithRestart() throws AmbariException {
+    setupClusterWithHosts("c1", "HDP-2.0.7",
+      new ArrayList<String>() {{
+        add("h1");
+      }},
+      "centos5");
+
+    Cluster cluster = clusters.getCluster("c1");
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
+    cluster.setCurrentStackVersion(new StackId("HDP-2.0.7"));
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config1 = cf.createNew(cluster, "global",
+      new HashMap<String, String>() {{
+        put("key1", "value1");
+      }});
+    config1.setVersionTag("version1");
+
+    Config config2 = cf.createNew(cluster, "core-site",
+      new HashMap<String, String>() {{
+        put("key1", "value1");
+      }});
+    config2.setVersionTag("version1");
+
+    cluster.addConfig(config1);
+    cluster.addConfig(config2);
+
+    Service hdfs = cluster.addService("HDFS");
+    hdfs.persist();
+
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost("h1").persist();
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost("h1").persist();
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h1").persist();
+
+    installService("c1", "HDFS", false, false);
+
+    startService("c1", "HDFS", false, false);
+
+    Cluster c = clusters.getCluster("c1");
+    Service s = c.getService("HDFS");
+
+    Assert.assertEquals(State.STARTED, s.getDesiredState());
+    for (ServiceComponent sc : s.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        if (sc.isClientComponent()) {
+          Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+        } else {
+          Assert.assertEquals(State.STARTED, sch.getDesiredState());
+        }
+      }
+    }
+
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("test", "test");
+    }};
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
+      "RESTART", null, "HDFS", "HDFS_CLIENT",
+      new ArrayList<String>() {{ add("h1"); }},
+      params);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
+
+    List<Stage> stages = actionDB.getAllStages(response.getRequestId());
+    Assert.assertNotNull(stages);
+
+    HostRoleCommand hrc = null;
+    for (Stage stage : stages) {
+      for (HostRoleCommand cmd : stage.getOrderedHostRoleCommands()) {
+        if (cmd.getRole().equals(Role.HDFS_CLIENT)) {
+          hrc = cmd;
+        }
+      }
+    }
+    Assert.assertNotNull(hrc);
+    Map<String, String> roleParams = hrc.getExecutionCommandWrapper()
+      .getExecutionCommand().getRoleParams();
+
+    Assert.assertNotNull(roleParams);
+    Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
+  }
+
   @SuppressWarnings("serial")
   @Test
   public void testCreateActionsFailures() throws Exception {

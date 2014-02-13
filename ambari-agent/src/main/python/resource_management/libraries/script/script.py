@@ -180,9 +180,20 @@ class Script(object):
     """
     Default implementation of restart command is to call stop and start methods
     Feel free to override restart() method with your implementation.
+    For client components we call install
     """
-    self.stop(env)
-    self.start(env)
+    config = self.get_config()
+    componentCategory = None
+    try :
+      componentCategory = config['roleParams']['component_category']
+    except KeyError:
+      pass
+
+    if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
+      self.install(env)
+    else:
+      self.stop(env)
+      self.start(env)
 
   def configure(self, env):
     """

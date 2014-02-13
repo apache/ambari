@@ -41,6 +41,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_T
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 
 /**
  * Helper class containing logic to process custom action execution requests
@@ -73,6 +75,7 @@ public class AmbariActionExecutionHelper {
     this.ambariMetaInfo = amcImpl.getAmbariMetaInfo();
   }
 
+  // TODO: validate should not return context, should make it consistent with Command Execution helper
   /**
    * Validates the request to execute an action
    *
@@ -128,6 +131,7 @@ public class AmbariActionExecutionHelper {
     }
 
     String targetComponent = expectedComponent;
+    String componentCategory = "";
     if (targetComponent == null || targetComponent.isEmpty()) {
       targetComponent = actualComponent;
     }
@@ -150,6 +154,7 @@ public class AmbariActionExecutionHelper {
         throw new AmbariException("Action " + actionRequest.getActionName() + " targets component " + targetComponent +
             " that does not exist.");
       }
+      componentCategory = compInfo.getCategory();
     }
 
     if (actionDef.getInputs() != null) {
@@ -182,9 +187,9 @@ public class AmbariActionExecutionHelper {
         + ", request=" + actionRequest.toString());
 
     ActionExecutionContext actionExecutionContext = new ActionExecutionContext(
-        actionRequest.getClusterName(), actionRequest.getActionName(), targetService, targetComponent,
-        actionRequest.getHosts(), actionRequest.getParameters(), actionDef.getTargetType(),
-        actionDef.getDefaultTimeout());
+      actionRequest.getClusterName(), actionRequest.getActionName(),
+      targetService, targetComponent, componentCategory, actionRequest.getHosts(),
+      actionRequest.getParameters(), actionDef.getTargetType(), actionDef.getDefaultTimeout());
 
     return actionExecutionContext;
   }
@@ -274,9 +279,6 @@ public class AmbariActionExecutionHelper {
           new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(), hostName,
               System.currentTimeMillis()), clusterName, actionContext.getServiceName());
 
-      stage.getExecutionCommandWrapper(hostName, actionContext.getActionName()).getExecutionCommand()
-          .setRoleParams(actionContext.getParameters());
-
       Cluster cluster = clusters.getCluster(clusterName);
 
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
@@ -304,6 +306,14 @@ public class AmbariActionExecutionHelper {
       execCmd.setCommandParams(commandParams);
       execCmd.setServiceName(serviceName);
       execCmd.setComponentName(componentName);
+
+      Map<String, String> roleParams = execCmd.getRoleParams();
+      if (roleParams == null) {
+        roleParams = new TreeMap<String, String>();
+      }
+      roleParams.putAll(actionContext.getParameters());
+      roleParams.put(COMPONENT_CATEGORY, actionContext.getComponentCategory());
+      execCmd.setRoleParams(roleParams);
 
       // Generate cluster host info
       execCmd.setClusterHostInfo(

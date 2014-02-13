@@ -37,7 +37,8 @@ PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
 
 class RMFTestCase(TestCase):
   def executeScript(self, path, classname=None, command=None, config_file=None,
-                    # common mocks for all the scripts 
+                    # common mocks for all the scripts
+                    config_overrides = None,
                     shell_mock_value = (0, "OK."), 
                     os_type=('Suse','11','Final'),
                     kinit_path_local="/usr/bin/kinit"
@@ -49,13 +50,19 @@ class RMFTestCase(TestCase):
     configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
     script_path = os.path.join(stacks_path, norm_path)
     config_file_path = os.path.join(configs_path, config_file)
-    
+
     try:
       with open(config_file_path, "r") as f:
-        self.config_dict = ConfigDictionary(json.load(f))
+        self.config_dict = json.load(f)
     except IOError:
       raise RuntimeError("Can not read config file: "+ config_file_path)
-    
+
+    if config_overrides:
+      for key, value in config_overrides.iteritems():
+        self.config_dict[key] = value
+
+    self.config_dict = ConfigDictionary(self.config_dict)
+
     # append basedir to PYTHONPATH
     scriptsdir = os.path.dirname(script_path)
     basedir = os.path.dirname(scriptsdir)

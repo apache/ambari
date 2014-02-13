@@ -19,6 +19,7 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.script.script import Script
 
 class TestYarnClient(RMFTestCase):
 
@@ -220,4 +221,105 @@ class TestYarnClient(RMFTestCase):
       mode = 420,
     )
     self.assertNoMoreResources()
+
+  def test_restart_client(self):
+    self.executeScript("2.0.6/services/YARN/package/scripts/yarn_client.py",
+                       classname = "YarnClient",
+                       command = "restart",
+                       config_file="default.json",
+                       config_overrides = { 'roleParams' : { "component_category": "CLIENT" } }
+    )
+
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+      owner = 'yarn',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
+      owner = 'yarn',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+      owner = 'yarn',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
+      owner = 'yarn',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
+      owner = 'yarn',
+      recursive = True,
+    )
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+      owner = 'hdfs',
+      group = 'hadoop',
+      mode = 420,
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+    )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+      owner = 'yarn',
+      group = 'hadoop',
+      mode = 420,
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['mapred-site'],
+    )
+    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
+      owner = 'yarn',
+      group = 'hadoop',
+      mode = 420,
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['yarn-site'],
+    )
+    self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
+      owner = 'yarn',
+      group = 'hadoop',
+      mode = 420,
+      conf_dir = '/etc/hadoop/conf',
+      configurations = self.getConfig()['configurations']['capacity-scheduler'],
+    )
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
+      owner = 'yarn',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/var/log/hadoop-mapreduce/mapred/hadoop-mapreduce.jobsummary.log',
+      owner = 'mapred',
+      group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
+      content = Template('yarn.conf.j2'),
+      mode = 420,
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
+      content = Template('mapreduce.conf.j2'),
+      mode = 420,
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
+      content = Template('yarn-env.sh.j2'),
+      owner = 'yarn',
+      group = 'hadoop',
+      mode = 493,
+    )
+    self.assertNoMoreResources()
+
 

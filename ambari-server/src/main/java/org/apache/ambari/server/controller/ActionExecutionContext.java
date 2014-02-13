@@ -33,6 +33,7 @@ public class ActionExecutionContext {
   private final String actionName;
   private final String serviceName;
   private final String componentName;
+  private final String componentCategory;
   private final List<String> hosts;
   private final Map<String, String> parameters;
   private final TargetHostType targetType;
@@ -42,12 +43,14 @@ public class ActionExecutionContext {
    * Create an ActionExecutionContext to execute an action from a request
    */
   public ActionExecutionContext(String clusterName, String actionName, String serviceName,
-                                String componentName, List<String> hosts, Map<String, String> parameters,
+                                String componentName, String componentCategory,
+                                List<String> hosts, Map<String, String> parameters,
                                 TargetHostType targetType, Short timeout) {
     this.clusterName = clusterName;
     this.actionName = actionName;
     this.serviceName = serviceName;
     this.componentName = componentName;
+    this.componentCategory = componentCategory;
     this.parameters = parameters;
     this.hosts = new ArrayList<String>();
     if (hosts != null) {
@@ -87,5 +90,9 @@ public class ActionExecutionContext {
 
   public Short getTimeout() {
     return timeout;
+  }
+
+  public String getComponentCategory() {
+    return componentCategory;
   }
 }
