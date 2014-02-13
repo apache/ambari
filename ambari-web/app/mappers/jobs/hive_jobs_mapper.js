@@ -51,10 +51,10 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
         hiveJobs.push(hiveJob);
       });
       // Delete IDs not seen from server
-      var currentModels = model.find();
-      currentModels.forEach(function(m) {
-        if (!currentEntityMap[m.get('id')]) {
-          this.deleteRecord(m);
+      var hiveJobsModel = model.find().toArray();
+      hiveJobsModel.forEach(function(job) {
+        if (job && !currentEntityMap[job.get('id')]) {
+          this.deleteRecord(job);
         }
       }, this);
     }
