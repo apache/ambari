@@ -88,7 +88,7 @@ define service {
         use                     hadoop-service
         service_description     AMBARI::Ambari Agent process
         servicegroups           AMBARI
-        check_command           check_tcp!{{all_ping_ports[loop.index-1]}}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{all_ping_ports[loop.index-1]}}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.25
         max_check_attempts      4
@@ -134,7 +134,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Server process
         servicegroups           GANGLIA
-        check_command           check_tcp!{{ ganglia_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ ganglia_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -145,7 +145,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for NameNode
         servicegroups           GANGLIA
-        check_command           check_tcp!{{ ganglia_collector_namenode_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ ganglia_collector_namenode_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -157,7 +157,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for JobTracker
         servicegroups           GANGLIA
-        check_command           check_tcp!{{ ganglia_collector_jobtracker_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ ganglia_collector_jobtracker_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -170,7 +170,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HBase Master
         servicegroups           GANGLIA
-        check_command           check_tcp!{{ ganglia_collector_hbase_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ ganglia_collector_hbase_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -183,7 +183,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for ResourceManager
         servicegroups           GANGLIA
-        check_command           check_tcp!{{ ganglia_collector_rm_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ ganglia_collector_rm_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -196,7 +196,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HistoryServer
         servicegroups           GANGLIA
-        check_command           check_tcp!{{ ganglia_collector_hs_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ ganglia_collector_hs_port }}!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -212,7 +212,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::Secondary NameNode process
         servicegroups           HDFS
-        check_command           check_tcp!{{ snamenode_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ snamenode_port }}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -264,7 +264,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode process on {{ namenode_hostname }}
         servicegroups           HDFS
-        check_command           check_tcp!{{ namenode_metadata_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ namenode_metadata_port }}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -352,7 +352,7 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager process
         servicegroups           YARN
-        check_command           check_tcp!{{ rm_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ rm_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -366,7 +366,7 @@ define service {
         use                     hadoop-service
         service_description     NODEMANAGER::NodeManager process
         servicegroups           YARN
-        check_command           check_tcp!{{ nm_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ nm_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -436,7 +436,7 @@ define service {
         use                     hadoop-service
         service_description     JOBHISTORY::HistoryServer process
         servicegroups           MAPREDUCE
-        check_command           check_tcp!{{ hs_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ hs_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -451,7 +451,7 @@ define service {
         use                     hadoop-service
         service_description     JOURNALNODE::JournalNode process
         servicegroups           HDFS
-        check_command           check_tcp!{{ journalnode_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ journalnode_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -504,7 +504,7 @@ define service {
         use                     hadoop-service
         service_description     FLUME::Flume Agent process
         servicegroups           FLUME
-        check_command           check_tcp!{{ flume_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ flume_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -519,7 +519,7 @@ define service {
         use                     hadoop-service
         service_description     ZOOKEEPER::ZooKeeper Server process
         servicegroups           ZOOKEEPER
-        check_command           check_tcp!{{ clientPort }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ clientPort }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -533,7 +533,7 @@ define service {
         use                     hadoop-service
         service_description     REGIONSERVER::RegionServer process
         servicegroups           HBASE
-        check_command           check_tcp!{{ hbase_rs_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ hbase_rs_port }}!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -568,7 +568,7 @@ define service {
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master process on {{ hbasemaster }}
         servicegroups           HBASE
-        check_command           check_tcp!{{ hbase_master_rpc_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{ hbase_master_rpc_port }}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
