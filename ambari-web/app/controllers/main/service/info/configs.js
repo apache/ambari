@@ -1641,10 +1641,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
     var globalConfigs = this.get('globalConfigs');
     var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).configs;
+    var hostComponents = App.HostComponent.find();
     //namenode_host is required to derive "fs.default.name" a property of core-site
     var nameNodeHost = this.get('serviceConfigs').findProperty('serviceName', 'HDFS').configs.findProperty('name', 'namenode_host');
     try {
-      nameNodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
+      nameNodeHost.defaultValue = hostComponents.filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
       globalConfigs.push(nameNodeHost);
     } catch (err) {
       console.log("No NameNode Host available.  This is expected if you're using GLUSTERFS rather than HDFS.");
@@ -1653,25 +1654,25 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //zooKeeperserver_host
     var zooKeperHost = this.get('serviceConfigs').findProperty('serviceName', 'ZOOKEEPER').configs.findProperty('name', 'zookeeperserver_hosts');
     if (serviceName === 'ZOOKEEPER' || serviceName === 'HBASE' || serviceName === 'WEBHCAT') {
-      zooKeperHost.defaultValue = App.Service.find('ZOOKEEPER').get('hostComponents').filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
+      zooKeperHost.defaultValue = hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
       globalConfigs.push(zooKeperHost);
     }
 
     switch (serviceName) {
       case 'HDFS':
-        if (this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE') && this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'MAINTENANCE') {
+        if (hostComponents.someProperty('componentName', 'SECONDARY_NAMENODE') && hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'MAINTENANCE') {
           var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
-          sNameNodeHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+          sNameNodeHost.defaultValue = hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
           globalConfigs.push(sNameNodeHost);
         }
         break;
       case 'MAPREDUCE':
         var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
-        jobTrackerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
+        jobTrackerHost.defaultValue = hostComponents.findProperty('componentName', 'JOBTRACKER').get('host.hostName');
         globalConfigs.push(jobTrackerHost);
       case 'MAPREDUCE2':
         var historyServerHost = serviceConfigs.findProperty('name', 'hs_host');
-        historyServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+        historyServerHost.defaultValue = hostComponents.findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
         globalConfigs.push(historyServerHost);
         break;
       case 'YARN':
@@ -1682,18 +1683,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           ATSProperty.defaultValue = ATSHost
           globalConfigs.push(ATSProperty);
         }
-        resourceManagerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
+        resourceManagerHost.defaultValue = hostComponents.findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
         globalConfigs.push(resourceManagerHost);
         //yarn.log.server.url config dependent on HistoryServer host
-        if (App.HostComponent.find().someProperty('componentName', 'HISTORYSERVER')) {
+        if (hostComponents.someProperty('componentName', 'HISTORYSERVER')) {
           historyServerHost = this.get('serviceConfigs').findProperty('serviceName', 'MAPREDUCE2').configs.findProperty('name', 'hs_host');
-          historyServerHost.defaultValue = App.HostComponent.find().findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+          historyServerHost.defaultValue = hostComponents.findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
           globalConfigs.push(historyServerHost);
         }
         break;
       case 'HIVE':
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
-        hiveMetastoreHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        hiveMetastoreHost.defaultValue = hostComponents.findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
         var hiveDb = globalConfigs.findProperty('name', 'hive_database').value;
         if (['Existing MySQL Database', 'Existing Oracle Database'].contains(hiveDb)) {
@@ -1703,7 +1704,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
       case 'OOZIE':
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
-        oozieServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+        oozieServerHost.defaultValue = hostComponents.findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         globalConfigs.push(oozieServerHost);
         var oozieDb = globalConfigs.findProperty('name', 'oozie_database').value;
         if (['Existing MySQL Database', 'Existing Oracle Database'].contains(oozieDb)) {
@@ -1712,20 +1713,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         break;
       case 'HBASE':
         var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
-        hbaseMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'HBASE_MASTER').mapProperty('host.hostName');
+        hbaseMasterHost.defaultValue = hostComponents.filterProperty('componentName', 'HBASE_MASTER').mapProperty('host.hostName');
         globalConfigs.push(hbaseMasterHost);
         break;
       case 'HUE':
         var hueServerHost = serviceConfigs.findProperty('name', 'hueserver_host');
-        hueServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HUE_SERVER').get('host.hostName');
+        hueServerHost.defaultValue = hostComponents.findProperty('componentName', 'HUE_SERVER').get('host.hostName');
         globalConfigs.push(hueServerHost);
         break;
       case 'WEBHCAT':
         var webhcatMasterHost = serviceConfigs.findProperty('name', 'webhcatserver_host');
-        webhcatMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('host.hostName');
+        webhcatMasterHost.defaultValue = hostComponents.filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('host.hostName');
         globalConfigs.push(webhcatMasterHost);
         var hiveMetastoreHost = this.get('serviceConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host');
-        hiveMetastoreHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        hiveMetastoreHost.defaultValue = hostComponents.findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
         break;
       case 'STORM':
@@ -1745,7 +1746,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globalConfigs.push(logviewerServerHostConfig);
         globalConfigs.push(drpcServerHostConfig);
 
-        var supervisorHosts = this.get('content.hostComponents').filterProperty('componentName','SUPERVISOR').mapProperty('host.hostName');
+        var supervisorHosts = hostComponents.filterProperty('componentName','SUPERVISOR').mapProperty('host.hostName');
         if (supervisorHosts.length > 0) {
           var supervisorHostsConfig = serviceConfigs.findProperty('name', 'supervisor_hosts');
           supervisorHostsConfig.defaultValue = supervisorHosts;
