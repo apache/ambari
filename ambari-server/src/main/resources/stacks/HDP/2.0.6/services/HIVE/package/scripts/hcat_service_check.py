@@ -50,7 +50,11 @@ def hcat_service_check():
     ExecuteHadoop(test_cmd,
                   user=params.hdfs_user,
                   logoutput=True,
-                  conf_dir=params.hadoop_conf_dir)
+                  conf_dir=params.hadoop_conf_dir,
+                  security_enabled=params.security_enabled,
+                  kinit_path_local=params.kinit_path_local,
+                  keytab=params.hdfs_user_keytab
+    )
 
     cleanup_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} cleanup")
 

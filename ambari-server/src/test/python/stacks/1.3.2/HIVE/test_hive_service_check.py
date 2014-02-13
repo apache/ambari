@@ -60,6 +60,9 @@ class TestServiceCheck(RMFTestCase):
                         logoutput = True,
                         user = 'hdfs',
                         conf_dir = '/etc/hadoop/conf',
+                        keytab=UnknownConfigurationMock(),
+                        kinit_path_local='/usr/bin/kinit',
+                        security_enabled=False
     )
     self.assertResourceCalled('Execute', 'sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
@@ -103,9 +106,12 @@ class TestServiceCheck(RMFTestCase):
                         try_sleep = 5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
-                        logoutput = True,
-                        user = 'hdfs',
-                        conf_dir = '/etc/hadoop/conf',
+                              logoutput = True,
+                              user = 'hdfs',
+                              conf_dir = '/etc/hadoop/conf',
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              kinit_path_local='/usr/bin/kinit',
+                              security_enabled=True
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
