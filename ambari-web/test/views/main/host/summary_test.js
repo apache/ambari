@@ -106,7 +106,12 @@ describe('App.MainHostSummaryView', function() {
 
     tests.forEach(function(test) {
       it(test.m, function() {
+        test.content.get('hostComponents').forEach(function(component) {
+          component.set('id', component.get('componentName'));
+        });
+        mainHostSummaryView.set('sortedComponents', []);
         mainHostSummaryView.set('content', test.content);
+        mainHostSummaryView.sortedComponentsFormatter();
         expect(mainHostSummaryView.get('sortedComponents').mapProperty('componentName')).to.eql(test.e);
       });
     });
@@ -248,8 +253,8 @@ describe('App.MainHostSummaryView', function() {
   describe('#isAddComponent', function() {
 
     var tests = Em.A([
-      {content: {healthClass: 'health-status-DEAD-YELLOW'}, e: false},
-      {content: {healthClass: 'OTHER_VALUE'}, e: true}
+      {content: {healthClass: 'health-status-DEAD-YELLOW', hostComponents: Em.A([])}, e: false},
+      {content: {healthClass: 'OTHER_VALUE', hostComponents: Em.A([])}, e: true}
     ]);
 
     tests.forEach(function(test) {

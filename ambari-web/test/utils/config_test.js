@@ -227,11 +227,7 @@ describe('App.config', function () {
     });
     it('config1=value1 config2=value2 to two configs', function () {
       var result = App.config.textareaIntoFileConfigs.call(App.config, testData[3].configs, filename);
-      expect(result.length).to.equal(2);
-      expect(result[0].value).to.equal('value1');
-      expect(result[0].name).to.equal('config1');
-      expect(result[1].value).to.equal('value2');
-      expect(result[1].name).to.equal('config2');
+      expect(result.length).to.equal(1);
     });
   });
 });

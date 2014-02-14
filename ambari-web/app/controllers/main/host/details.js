@@ -199,11 +199,19 @@ App.MainHostDetailsController = Em.Controller.extend({
       onPrimary: function () {
         if (!this.get('enablePrimary')) return;
         self._doDeleteHostComponent(component);
+        self.set('redrawComponents', true);
         this.hide();
       }
     });
 
   },
+
+  /**
+   * Trigger to reset list of master/slaves components on the view
+   * @type {bool}
+   */
+  redrawComponents: false,
+
   /**
    * Deletes the given host component, or all host components.
    * 

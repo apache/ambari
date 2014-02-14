@@ -667,9 +667,9 @@ describe('App.InstallerStep9Controller', function () {
     it('check requestId priority', function() {
       cluster.set('content.cluster.requestId', 123);
       var url = cluster.getUrl(321);
-      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
       url = cluster.getUrl();
-      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
     });
   });
 

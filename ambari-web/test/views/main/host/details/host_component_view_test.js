@@ -27,11 +27,12 @@ describe('App.HostComponentView', function() {
   beforeEach(function() {
     hostComponentView = App.HostComponentView.create({
       startBlinking: function(){},
-      doBlinking: function(){}
+      doBlinking: function(){},
+      getDesiredAdminState: function(){return $.ajax({});}
     });
   });
 
-  describe('#componentTextStatus', function() {
+  describe('#componentStatusTooltip', function() {
 
     var tests = Em.A([
       {
@@ -49,7 +50,7 @@ describe('App.HostComponentView', function() {
     tests.forEach(function(test) {
       it(test.m, function() {
         hostComponentView.set('content', test.content);
-        expect(hostComponentView.get('componentTextStatus')).to.equal(test.e);
+        expect(hostComponentView.get('componentStatusTooltip')).to.equal(test.e);
       });
     });
 

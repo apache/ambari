@@ -55,6 +55,23 @@ App.MainHostSummaryView = Em.View.extend({
     return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('content.componentsWithStaleConfigsCount'), word);
   }.property('content.componentsWithStaleConfigsCount'),
 
+  /**
+   * Reset <code>sortedComponents</code>
+   * Used when some component was deleted from host
+   */
+  redrawComponents: function() {
+    if (App.router.get('mainHostDetailsController.redrawComponents')) {
+      this.set('sortedComponents', []);
+      this.sortedComponentsFormatter();
+      App.router.set('mainHostDetailsController.redrawComponents', false);
+    }
+  }.observes('App.router.mainHostDetailsController.redrawComponents'),
+
+  willInsertElement: function() {
+    this.set('sortedComponents', []);
+    this.sortedComponentsFormatter();
+  },
+
   didInsertElement: function () {
     this.addToolTip();
   },
@@ -79,24 +96,58 @@ App.MainHostSummaryView = Em.View.extend({
   /**
    * List of installed masters and slaves
    * Masters first, then slaves
-   * @type {DS.Model[]}
+   * @type {App.HostComponent[]}
    */
-  sortedComponents: function () {
-    var slaveComponents = [];
-    var masterComponents = [];
+  sortedComponents: [],
+
+  /**
+   * Update <code>sortedComponents</code>
+   * Master components first, then slaves
+   */
+  sortedComponentsFormatter: function() {
+    var updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
+    var self = this;
+    // Remove deleted components
+    this.get('sortedComponents').forEach(function(sortedComponent, index) {
+      if (!self.get('content.hostComponents').findProperty('id', sortedComponent.get('id'))) {
+        self.get('sortedComponents').removeAt(index, 1);
+      }
+    });
+
     this.get('content.hostComponents').forEach(function (component) {
-      if (component.get('isMaster')) {
-        masterComponents.push(component);
-      } else if (component.get('isSlave')) {
-        slaveComponents.push(component);
+      if (component.get('isMaster') || component.get('isSlave')) {
+        var obj = this.get('sortedComponents').findProperty('id', component.get('id'));
+        if (obj) {
+          // Update existing component
+          updatebleProperties.forEach(function(property) {
+            obj.set(property, component.get(property));
+          });
+        }
+        else {
+          // Add new component
+          if (component.get('isMaster')) {
+            // Masters should be before slaves
+            var lastMasterIndex = 0, atLeastOneMasterExists = false;
+            this.get('sortedComponents').forEach(function(sortedComponent, index) {
+              if (sortedComponent.get('isMaster')) {
+                lastMasterIndex = index;
+                atLeastOneMasterExists = true;
+              }
+            });
+            this.get('sortedComponents').insertAt(atLeastOneMasterExists ? lastMasterIndex + 1 : 0, component);
+          }
+          else {
+            // it is slave 100%
+            this.get('sortedComponents').pushObject(component);
+          }
+        }
       }
     }, this);
-    return masterComponents.concat(slaveComponents);
-  }.property('content.hostComponents.length'),
+  }.observes('content.hostComponents.length'),
 
   /**
    * List of installed clients
-   * @type {DS.Model[]}
+   * @type {App.HostComponent[]}
    */
   clients: function () {
     var clients = [];

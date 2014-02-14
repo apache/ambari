@@ -383,6 +383,18 @@ App.HostComponentView = Em.View.extend({
   isDataNodeDecommissioning: null,
   isDataNodeDecommissionAvailable: null,
   isDataNodeRecommissionAvailable: null,
+
+  updateDecommissionStatus: function() {
+    if (this.get('isDataNode'))
+      Em.run.once(this, 'loadDataNodeDecommissionStatus');
+    if (this.get('isNodeManager'))
+      Em.run.once(this, 'loadNodeManagerDecommissionStatus');
+    if (this.get('isTaskTracker'))
+      Em.run.once(this, 'loadTaskTrackerDecommissionStatus');
+    if (this.get('isRegionServer'))
+      Em.run.once(this, 'loadRegionServerDecommissionStatus');
+  }.observes('content.workStatus', 'content.passiveState'),
+
   /**
    * load Recommission/Decommission status from adminState of each live node
    */
@@ -486,7 +498,7 @@ App.HostComponentView = Em.View.extend({
       dfd.resolve(curObj);
     });
     return dfd.promise();
-  }.observes('App.router.mainHostDetailsController.content'),
+  },
 
   /**
    * get datanodes decommission status: from NAMENODE component, liveNodes property
@@ -599,7 +611,7 @@ App.HostComponentView = Em.View.extend({
       dfd.resolve(desired_admin_state);
     });
     return dfd.promise();
-  }.observes('App.router.mainHostDetailsController.content'),
+  },
 
   /**
    * get NodeManager decommission status: from RESOURCEMANAGER component, rm_metrics/nodeManagers property
@@ -670,7 +682,7 @@ App.HostComponentView = Em.View.extend({
       dfd.resolve(desired_admin_state);
     });
     return dfd.promise();
-  }.observes('App.router.mainHostDetailsController.content'),
+  },
 
   /**
    * get TaskTracker decommission status: from JobTracker component, AliveNodes property
@@ -719,6 +731,6 @@ App.HostComponentView = Em.View.extend({
       deferred.resolve(desired_admin_state);
     });
     return deferred.promise();
-  }.observes('App.router.mainHostDetailsController.content')
+  }
 
 });
