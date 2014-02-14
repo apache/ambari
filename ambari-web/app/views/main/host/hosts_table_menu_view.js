@@ -41,7 +41,7 @@ App.HostTableMenuView = Em.View.extend({
    * @returns {Array}
    */
   getSlaveItemsTemplate: function(componentNameForDecommission, componentNameForOtherActions) {
-    return Em.A([
+    var menuItems = Em.A([
       Em.Object.create({
         label: Em.I18n.t('common.start'),
         operationData: Em.Object.create({
@@ -65,8 +65,10 @@ App.HostTableMenuView = Em.View.extend({
           message: Em.I18n.t('common.restart'),
           componentName: componentNameForOtherActions
         })
-      }),
-      Em.Object.create({
+      })
+    ]);
+    if(App.get('components.decommissionAllowed').contains(componentNameForOtherActions)) {
+      menuItems.pushObject(Em.Object.create({
         label: Em.I18n.t('common.decommission'),
         operationData: Em.Object.create({
           action: 'DECOMMISSION',
@@ -74,8 +76,8 @@ App.HostTableMenuView = Em.View.extend({
           componentName: componentNameForDecommission,
           realComponentName: componentNameForOtherActions
         })
-      }),
-      Em.Object.create({
+      }));
+      menuItems.pushObject(Em.Object.create({
         label: Em.I18n.t('common.recommission'),
         operationData: Em.Object.create({
           action: 'DECOMMISSION_OFF',
@@ -83,7 +85,9 @@ App.HostTableMenuView = Em.View.extend({
           componentName: componentNameForDecommission,
           realComponentName: componentNameForOtherActions
         })
-      }),
+      }));
+    }
+    menuItems.pushObjects(Em.A([
       Em.Object.create({
         label: Em.I18n.t('passiveState.turnOn'),
         operationData: Em.Object.create({
@@ -102,7 +106,8 @@ App.HostTableMenuView = Em.View.extend({
           componentName: componentNameForOtherActions
         })
       })
-    ]);
+    ]));
+    return menuItems;
   },
 
   /**
@@ -201,6 +206,14 @@ App.HostTableMenuView = Em.View.extend({
       slaveItemsForMapReduce.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.mapreduce.taskTrackers'));
       submenu.push({label: Em.I18n.t('dashboard.services.mapreduce.taskTrackers'), submenu: slaveItemsForMapReduce});
     }
+
+    if (!!App.Service.find().filterProperty('serviceName', 'STORM').length) {
+      var slaveItemsForStorm = this.getSlaveItemsTemplate('SUPERVISOR', 'SUPERVISOR');
+      slaveItemsForStorm.setEach('operationData.serviceName', 'STORM');
+      slaveItemsForStorm.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.storm.supervisors'));
+      submenu.push({label: Em.I18n.t('dashboard.services.storm.supervisors'), submenu: slaveItemsForStorm});
+    }
+
     submenu.forEach(function(item) {
       item.submenu.forEach(function(subitem) {
         subitem.operationData.selection = selection;
@@ -211,7 +224,7 @@ App.HostTableMenuView = Em.View.extend({
 
   /**
    * Menu-items for Hosts table
-   * {Object}
+   * @type {Object}
    */
   menuItems: function() {
     return {
