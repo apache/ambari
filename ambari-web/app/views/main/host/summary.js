@@ -89,9 +89,9 @@ App.MainHostSummaryView = Em.View.extend({
    * List of installed services
    * @type {String[]}
    */
-  installedServices: function() {
+  installedServices: function () {
     return App.Service.find().mapProperty('serviceName');
-  }.property('App.Service.@each'),
+  }.property('App.router.clusterController.dataLoadList.serviceMetrics'),
 
   /**
    * List of installed masters and slaves
