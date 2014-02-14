@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * An abstract provider module implementation.
@@ -68,12 +69,12 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private static final Map<Service.Type, String> serviceConfigVersions =
     Collections.synchronizedMap(new HashMap<Service.Type, String>());
   private static final Map<Service.Type, String> serviceConfigTypes = new HashMap<Service.Type, String>();
-  private static final Map<Service.Type, Map<String, String>> serviceDesiredProperties = new
-    HashMap<Service.Type, Map<String, String>>();
+  private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new
+    HashMap<Service.Type, Map<String, String[]>>();
   private static final Map<String, Service.Type> componentServiceMap = new
     HashMap<String, Service.Type>();
   
-  private static final Map<String, Map<String, String>> jmxDesiredProperties = new HashMap<String, Map<String,String>>();
+  private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String,String[]>>();
   private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
   
@@ -81,27 +82,35 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
     serviceConfigTypes.put(Service.Type.MAPREDUCE, "mapred-site");
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
+    serviceConfigTypes.put(Service.Type.YARN, "yarn-site");
  
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
     componentServiceMap.put("JOBTRACKER", Service.Type.MAPREDUCE);
     componentServiceMap.put("TASKTRACKER", Service.Type.MAPREDUCE);
     componentServiceMap.put("HBASE_MASTER", Service.Type.HBASE);
+    componentServiceMap.put("RESOURCEMANAGER", Service.Type.YARN);
 
-    Map<String, String> initPropMap = new HashMap<String, String>();
-    initPropMap.put("NAMENODE", "dfs.http.address");
-    initPropMap.put("DATANODE", "dfs.datanode.http.address");
+    Map<String, String[]> initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("NAMENODE", new String[] {"dfs.http.address", "dfs.namenode.http-address"});
+    initPropMap.put("DATANODE", new String[] {"dfs.datanode.http.address"});
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
-    initPropMap = new HashMap<String, String>();
-    initPropMap.put("JOBTRACKER", "mapred.job.tracker.http.address");
-    initPropMap.put("TASKTRACKER", "mapred.task.tracker.http.address");
-    serviceDesiredProperties.put(Service.Type.MAPREDUCE, initPropMap);
-    initPropMap = new HashMap<String, String>();
-    initPropMap.put("HBASE_MASTER", "hbase.master.info.port");
-    serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
     
-    initPropMap = new HashMap<String, String>();
-    initPropMap.put("NAMENODE", "hadoop.ssl.enabled");
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("JOBTRACKER", new String[] {"mapred.job.tracker.http.address"});
+    initPropMap.put("TASKTRACKER", new String[] {"mapred.task.tracker.http.address"});
+    serviceDesiredProperties.put(Service.Type.MAPREDUCE, initPropMap);
+    
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("HBASE_MASTER", new String[] {"hbase.master.info.port"});
+    serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("RESOURCEMANAGER", new String[] {"yarn.resourcemanager.webapp.address"});
+    serviceDesiredProperties.put(Service.Type.YARN, initPropMap);
+    
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("NAMENODE", new String[] {"hadoop.ssl.enabled"});
     jmxDesiredProperties.put("NAMENODE", initPropMap);
   }
 
@@ -208,6 +217,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       }
     }
     Service.Type service = componentServiceMap.get(componentName);
+    
     if (service != null) {
       try {
         String currVersion = getDesiredConfigVersion(clusterName,
@@ -216,9 +226,11 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         String oldVersion = serviceConfigVersions.get(service);
         if (!currVersion.equals(oldVersion)) {
           serviceConfigVersions.put(service, currVersion);
+          
           Map<String, String> portMap = getDesiredConfigMap(clusterName,
             currVersion, serviceConfigTypes.get(service),
             serviceDesiredProperties.get(service));
+          
           for (String compName : portMap.keySet()) {
             clusterJmxPorts.put(compName, getPortString(portMap.get
               (compName)));
@@ -594,7 +606,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   }
 
   private Map<String, String> getDesiredConfigMap(String clusterName,
-      String versionTag, String configType, Map<String, String> keys) throws
+      String versionTag, String configType, Map<String, String[]> keys) throws
         NoSuchParentResourceException, UnsupportedPropertyException,
         SystemException {
     // Get desired configs based on the tag
@@ -613,20 +625,30 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       LOG.info("Resource for the desired config not found. " + e);
       return Collections.emptyMap();
     }
+    
     Map<String, String> mConfigs = new HashMap<String, String>();
     if (configResources != null) {
       for (Resource res : configResources) {
        Map<String, String> evalutedProperties = null;                      
-        for (String key : keys.keySet()) {
-          String value = (String) res.getPropertyValue
-            (PropertyHelper.getPropertyId(PROPERTIES_CATEGORY, keys.get(key)));
-          if (value != null && value.contains("${"))
+        for (Entry<String,String[]> entry : keys.entrySet()) {
+          String propName = null;
+          String value = null;
+          
+          for (String pname : entry.getValue()) {
+            propName = pname;
+            value = (String) res.getPropertyValue(PropertyHelper.getPropertyId(
+                PROPERTIES_CATEGORY, pname));
+            if (null != value)
+              break;
+          }
+          
+          if (value != null && value.contains("${")) {
             if (evalutedProperties == null){
               evalutedProperties = new HashMap<String, String>();
               Map<String, Object> properties = res.getPropertiesMap().get(PROPERTIES_CATEGORY);
-              for (Map.Entry<String, Object> entry : properties.entrySet()) {
-                String keyString = entry.getKey();
-                Object object = entry.getValue();
+              for (Map.Entry<String, Object> subentry : properties.entrySet()) {
+                String keyString = subentry.getKey();
+                Object object = subentry.getValue();
                 String valueString;
                 if (object != null && object instanceof String){
                   valueString = (String)object;
@@ -635,10 +657,11 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                 }
               }              
             }
-          value = postProcessPropertyValue(keys.get(key), value, evalutedProperties, null);
-          LOG.debug("PROPERTY -> key: " + keys.get(key) + ", " +
-          "value: " + value);
-          mConfigs.put(key, value);
+          }
+          value = postProcessPropertyValue(propName, value, evalutedProperties, null);
+          LOG.debug("PROPERTY -> key: " + propName + ", " + "value: " + value);
+          
+          mConfigs.put(entry.getKey(), value);
         }
       }
     }

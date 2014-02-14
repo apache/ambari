@@ -17,13 +17,27 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.*;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentRequest;
+import org.apache.ambari.server.controller.ServiceRequest;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -36,17 +50,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class JMXHostProviderTest {
   private Injector injector;
   private Clusters clusters;
   static AmbariManagementController controller;
-  private static final String NAMENODE_PORT = "dfs.http.address";
+  private static final String NAMENODE_PORT_V1 = "dfs.http.address";
+  private static final String NAMENODE_PORT_V2 = "dfs.namenode.http-address";
   private static final String DATANODE_PORT = "dfs.datanode.http.address";
 
   @Before
@@ -106,7 +119,7 @@ public class JMXHostProviderTest {
     controller.createHostComponents(requests);
   }
 
-  private void createHDFSServiceConfigs() throws AmbariException {
+  private void createHDFSServiceConfigs(boolean version1) throws AmbariException {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
     controller.createCluster(r);
@@ -148,21 +161,32 @@ public class JMXHostProviderTest {
       host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName3,
       host2, null);
-
+    
     // Create configs
-    Map<String, String> configs = new HashMap<String, String>();
-    configs.put(NAMENODE_PORT, "localhost:${ambari.dfs.datanode.http.port}");
-    configs.put(DATANODE_PORT, "localhost:70075");
-    configs.put("ambari.dfs.datanode.http.port", "70070");
-    ConfigurationRequest cr = new ConfigurationRequest(clusterName,
-      "hdfs-site", "version1", configs);
-    controller.createConfiguration(cr);
+    if (version1) {
+      Map<String, String> configs = new HashMap<String, String>();
+      configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
+      configs.put(DATANODE_PORT, "localhost:70075");
+      configs.put("ambari.dfs.datanode.http.port", "70070");
+      
+      ConfigurationRequest cr = new ConfigurationRequest(clusterName,
+        "hdfs-site", "version1", configs);
+      ClusterRequest crequest = new ClusterRequest(null, clusterName, null, null);
+      crequest.setDesiredConfig(cr);
+      controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
+      
+    } else {
+      Map<String, String> configs = new HashMap<String, String>();
+      configs.put(NAMENODE_PORT_V2, "localhost:70071");
+      configs.put(DATANODE_PORT, "localhost:70075");
 
-    Map<String, String> configVersions = new HashMap<String, String>();
-    Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
-    configVersions.put("hdfs-site", "version1");
-    sReqs.add(new ServiceRequest(clusterName, serviceName, null));
-    ServiceResourceProviderTest.updateServices(controller, sReqs, mapRequestProps, true, false);
+      ConfigurationRequest cr = new ConfigurationRequest(clusterName,
+        "hdfs-site", "version2", configs);
+      
+      ClusterRequest crequest = new ClusterRequest(null, clusterName, null, null);
+      crequest.setDesiredConfig(cr);
+      controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
+    }
   }
 
   private void createConfigs() throws AmbariException {
@@ -207,8 +231,9 @@ public class JMXHostProviderTest {
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
-    configs.put(NAMENODE_PORT, "localhost:70070");
+    configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
     configs.put(DATANODE_PORT, "localhost:70075");
+    configs.put("ambari.dfs.datanode.http.port", "70070");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs);
@@ -219,18 +244,18 @@ public class JMXHostProviderTest {
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("hdfs-site")
       .getVersionTag());
-    Assert.assertEquals("localhost:70070", cluster.getDesiredConfigByType
-      ("hdfs-site").getProperties().get(NAMENODE_PORT));
+    Assert.assertEquals("localhost:${ambari.dfs.datanode.http.port}", cluster.getDesiredConfigByType
+      ("hdfs-site").getProperties().get(NAMENODE_PORT_V1));
   }
 
 
   @Test
-  public void testJMXPortMapInitAtServiceLevel() throws
+  public void testJMXPortMapInitAtServiceLevelVersion1() throws
     NoSuchParentResourceException,
     ResourceAlreadyExistsException, UnsupportedPropertyException,
     SystemException, AmbariException, NoSuchResourceException {
 
-    createHDFSServiceConfigs();
+    createHDFSServiceConfigs(true);
 
     JMXHostProviderModule providerModule = new JMXHostProviderModule();
     providerModule.registerResourceProvider(Resource.Type.Service);
@@ -243,6 +268,26 @@ public class JMXHostProviderTest {
     Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
     Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
   }
+  
+  @Test
+  public void testJMXPortMapInitAtServiceLevelVersion2() throws
+    NoSuchParentResourceException,
+    ResourceAlreadyExistsException, UnsupportedPropertyException,
+    SystemException, AmbariException, NoSuchResourceException {
+
+    createHDFSServiceConfigs(false);
+
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+    providerModule.registerResourceProvider(Resource.Type.Service);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    // Non default port addresses
+    Assert.assertEquals("70071", providerModule.getPort("c1", "NAMENODE"));
+    Assert.assertEquals("70075", providerModule.getPort("c1", "DATANODE"));
+    // Default port addresses
+    Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
+    Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
+  }  
 
   @Test
   public void testJMXPortMapInitAtClusterLevel() throws
