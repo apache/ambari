@@ -109,19 +109,19 @@ describe('string_utils', function () {
     });
   });
 
-    describe('#getPath', function() {
-        var tests = [
-          {t: undefined, e: ''},
-          {t: {}, e: ''},
-          {t: [], e: ''},
-          {t: '', e: ''},
-          {t: function(){}, e: ''},
-          {t: '/path/to/filename', e: '/path/to'},
-          {t: '/path/to/', e: '/path/to'},
-          {t: '/filename', e: '/'},
-          {t: 'filename', e: ''},
-          {t: '/path/', e: '/path'},
-          {t: 'filename/', e: ''}
+  describe('#getPath', function() {
+      var tests = [
+        {t: undefined, e: ''},
+        {t: {}, e: ''},
+        {t: [], e: ''},
+        {t: '', e: ''},
+        {t: function(){}, e: ''},
+        {t: '/path/to/filename', e: '/path/to'},
+        {t: '/path/to/', e: '/path/to'},
+        {t: '/filename', e: '/'},
+        {t: 'filename', e: ''},
+        {t: '/path/', e: '/path'},
+        {t: 'filename/', e: ''}
       ];
       tests.forEach(function(test) {
           it('Check ' + typeof test.t, function () {
@@ -130,4 +130,26 @@ describe('string_utils', function () {
       });
   });
 
+  describe('#getCamelCase', function () {
+    var tests = [
+      {i:'a',e:'A'},
+      {i:'aB',e:'Ab'},
+      {i:'a b',e:'A B'},
+      {i:'a.b',e:'A.B'},
+      {i:'a,b',e:'A,B'},
+      {i:'a;b',e:'A;B'},
+      {i:'a. b',e:'A. B'},
+      {i:'a   b',e:'A   B'},
+      {i:'aaa. bbb',e:'Aaa. Bbb'},
+      {i:'aAA. bBB',e:'Aaa. Bbb'},
+      {i:'STARTING',e:'Starting'},
+      {i:'starting',e:'Starting'},
+      {i:'starting,ending',e:'Starting,Ending'}
+    ];
+    tests.forEach(function(test) {
+      it(test.i + ' to ' + test.e + ' ', function () {
+        expect(string_utils.getCamelCase(test.i)).to.equal(test.e);
+      });
+    });
+  });
 });

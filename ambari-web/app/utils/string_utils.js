@@ -59,6 +59,20 @@ module.exports = {
     }
     return name.replace(/_\w/g,replacer);
   },
+
+  /**
+   * Forces given string into upper camel-case representation. The first
+   * character of each word will be capitalized with the rest in lower case.
+   */
+  getCamelCase : function(name) {
+    if (name != null) {
+      return name.toLowerCase().replace(/(\b\w)/g, function(f) {
+        return f.toUpperCase();
+      })
+    }
+    return name;
+  },
+
   /**
    * Compare two versions by following rules:
    * first higher than second then return 1

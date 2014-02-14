@@ -19,6 +19,7 @@ var App = require('app');
 var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
 var dateUtils = require('utils/date');
+var stringUtils = require('utils/string_utils');
 
 App.MainHiveJobDetailsView = Em.View.extend({
   templateName : require('templates/main/jobs/hive_job_details'),
@@ -136,11 +137,16 @@ App.MainHiveJobDetailsView = Em.View.extend({
    *    'write': '123 records'
    *  },
    *  'started': 'Feb 12, 2014 10:30am',
-   *  'ended': 'Feb 12, 2014 10:35am'
+   *  'ended': 'Feb 12, 2014 10:35am',
+   *  'status': 'Running'
    * }
    */
   selectedVertexIODisplay : function() {
     var v = this.get('selectedVertex');
+    var status = v.get('state');
+    if (status) {
+      status = stringUtils.getCamelCase(status);
+    }
     return {
       file : {
         read : {
@@ -164,12 +170,13 @@ App.MainHiveJobDetailsView = Em.View.extend({
       },
       records : {
         read : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordReadCount')),
-        write : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordWriteCount')),
+        write : Em.I18n.t('jobs.hive.tez.records.count').format(v.get('recordWriteCount'))
       },
       started: v.get('startTime') ? dateUtils.dateFormat(v.get('startTime')) : '',
-      ended: v.get('endTime') ? dateUtils.dateFormat(v.get('endTime')) : ''
+      ended: v.get('endTime') ? dateUtils.dateFormat(v.get('endTime')) : '',
+      status: status
     };
   }.property('selectedVertex.fileReadOps', 'selectedVertex.fileWriteOps', 'selectedVertex.hdfsReadOps', 'selectedVertex.hdfdWriteOps',
       'selectedVertex.fileReadBytes', 'selectedVertex.fileWriteBytes', 'selectedVertex.hdfsReadBytes', 'selectedVertex.hdfdWriteBytes',
-      'selectedVertex.recordReadCount', 'selectedVertes.recordWriteCount')
+      'selectedVertex.recordReadCount', 'selectedVertex.recordWriteCount', 'selectedVertex.status')
 });

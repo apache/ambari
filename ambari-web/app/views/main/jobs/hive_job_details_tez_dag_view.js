@@ -195,6 +195,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           node.metrics['recordsRead'] = vertex.get('recordReadCount');
           node.metrics['recordsWrite'] = vertex.get('recordWriteCount');
           node.metrics['tezTasks'] = vertex.get('tasksCount');
+          node.state = vertex.get('state');
           // Min metrics
           dagVisualModel.minMetrics.input = Math.min(dagVisualModel.minMetrics.input, node.metrics.input);
           dagVisualModel.minMetrics.output = Math.min(dagVisualModel.minMetrics.output, node.metrics.output);
@@ -213,7 +214,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     Ember.run.once(this, 'summaryMetricTypeUpdated');
   }.observes('content.tezDag.vertices.@each.fileReadBytes', 'content.tezDag.vertices.@each.fileWriteBytes', 
       'content.tezDag.vertices.@each.hdfsReadBytes', 'content.tezDag.vertices.@each.hdfsWriteBytes', 
-      'content.tezDag.vertices.@each.recordReadCount', 'content.tezDag.vertices.@each.recordWriteCount'),
+      'content.tezDag.vertices.@each.recordReadCount', 'content.tezDag.vertices.@each.recordWriteCount',
+      'content.tezDag.vertices.@each.state'),
 
   /**
    * Determines layout and creates Tez graph. In the process it populates the
@@ -258,6 +260,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         node = {
           id : vertex.get('id'),
           name : vertex.get('name'),
+          state: vertex.get('state'),
           isMap : vertex.get('isMap'),
           operations : vertex.get('operations'),
           depth : vertexObj.depth,
@@ -420,9 +423,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     metricNodes.append("rect").attr("width", 60).attr("height", 18).attr("rx", "3");
     metricNodes.append("title").attr("class", "metric-title");
     metricNodes.append("text").attr("class", "metric-text").attr("x", "2").attr("dy", "1em");
-    node.append("text").attr("x", "1em").attr("dy", "1.5em").text(function(d) {
+    node.append("text").attr("x", "1.9em").attr("dy", "1.5em").text(function(d) {
       return d.name;
     });
+    node.append('text').attr("x", "0.8em").attr("dy", "1.5em").attr("font-family", "FontAwesome").attr('class', 'vertex-icon-text');
     node.attr("transform", function(d) {
       return "translate(" + d.x + "," + d.y + ")";
     });
@@ -435,10 +439,12 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   refreshGraphUI: function () {
     var svgLayer = this.get('svgVerticesLayer');
     if (svgLayer!=null) {
+      var self = this;
       var metricNodes = svgLayer.selectAll(".metric");
       var metricNodeTexts = svgLayer.selectAll(".metric-text");
       var metricNodeTitles = svgLayer.selectAll(".metric-title");
       var nodeBackgrounds =svgLayer.selectAll(".background");
+      var vertexIconTexts = svgLayer.selectAll(".vertex-icon-text");
       metricNodes.attr("class", function(node) {
         var classes = "metric ";
         var percent = node.metricPercent;
@@ -479,7 +485,41 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         }
         return classes;
       });
+      vertexIconTexts.text(function(n) {
+        return self.getVertexIcon(n)
+      }).attr('class', function(n) {
+        var classes = 'vertex-icon-text ';
+        if (n.state != null) {
+          classes += n.state.toLowerCase();
+        }
+        return classes;
+      });
     }
+  },
+
+  getVertexIcon : function(node){
+    var icon = "";
+    switch (node.state) {
+    case App.TezDagVertexState.NEW:
+      icon = '\uF10C'; //icon-circle-blank
+    case App.TezDagVertexState.RUNNING:
+    case App.TezDagVertexState.FAILED:
+      icon = '\uF111'; //icon-circle
+      break;
+    case App.TezDagVertexState.SUCCEEDED:
+      icon = '\uF00C'; //icon-ok
+      break;
+    case App.TezDagVertexState.KILLED:
+    case App.TezDagVertexState.ERROR:
+      icon = '\uF057'; //icon-remove-sign
+      break;
+    case App.TezDagVertexState.INITED:
+    case App.TezDagVertexState.INITIALIZING:
+    case App.TezDagVertexState.TERMINATING:
+      icon = '\uF141'; //icon-ellipsis-horizontal
+      break;
+    }
+    return icon;
   },
 
   /**

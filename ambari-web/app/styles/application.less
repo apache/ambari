@@ -5674,6 +5674,29 @@ i.icon-asterisks {
           font-size: 80%;
         }
       }
+      .vertex-icon-text {
+        stroke-width: 0;
+        opacity: 0.9;
+      }
+      .vertex-icon-text.running,
+      .vertex-icon-text.initializing,
+      .vertex-icon-text.succeeded,
+      .vertex-icon-text.inited {
+        fill: green;
+        stroke: green;
+      }
+      .vertex-icon-text.new {
+        fill: #fde0dd;
+        stroke: cornflowerblue;
+        stroke-width: 1;
+      }
+      .vertex-icon-text.failed,
+      .vertex-icon-text.killed,
+      .vertex-icon-text.error,
+      .vertex-icon-text.terminating {
+        fill: red;
+        stroke: red;
+      }
     }
     .node text {
       pointer-events: none;
