@@ -160,9 +160,10 @@ host {
  *
  * At the very least, every gmond must expose its XML state to 
  * queriers from localhost.
+ * Also we use this port for Nagios monitoring
  */
 tcp_accept_channel {
-  bind = localhost
+  bind = 0.0.0.0
   port = ${gmondPort}
 }
 
@@ -492,13 +493,6 @@ udp_recv_channel {
   port = ${gmondPort}
 }
 
-/* The gmond cluster master must additionally provide an XML 
- * description of the cluster to the gmetad that will query it.
- */
-tcp_accept_channel {
-  bind = ${gmondMasterIP}
-  port = ${gmondPort}
-}
 END_OF_GMOND_MASTER_CONF
         else
             return 2;

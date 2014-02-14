@@ -112,8 +112,6 @@ define service {
 {% endif %}
 {% endif %}
 
-
-
 # GANGLIA SERVER Checks
 {% if hostgroup_defs['ganglia-server'] %}
 define service {
@@ -126,9 +124,12 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endif %}
 
+{% if hostgroup_defs['namenode'] %}
+{% for hostname in hostgroup_defs['namenode'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for NameNode
         servicegroups           GANGLIA
@@ -137,10 +138,13 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
+{% endif %}
 
 {% if hostgroup_defs['jobtracker'] %}
+{% for hostname in hostgroup_defs['jobtracker'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for JobTracker
         servicegroups           GANGLIA
@@ -149,11 +153,13 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
 {% endif %}
 
 {% if hostgroup_defs['hbasemasters'] %}
+{% for hostname in hostgroup_defs['hbasemasters'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HBase Master
         servicegroups           GANGLIA
@@ -162,11 +168,13 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
 {% endif %}
 
 {% if hostgroup_defs['resourcemanager'] %}
+{% for hostname in hostgroup_defs['resourcemanager'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for ResourceManager
         servicegroups           GANGLIA
@@ -175,11 +183,13 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
 {% endif %}
 
 {% if hostgroup_defs['historyserver2'] %}
+{% for hostname in hostgroup_defs['historyserver2'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HistoryServer
         servicegroups           GANGLIA
@@ -188,9 +198,9 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
 {% endif %}
 
-{% endif %}
 
 {% if hostgroup_defs['snamenode'] %}
 # Secondary namenode checks
