@@ -38,6 +38,8 @@ App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
 App.singleNodeInstall = false;
 App.singleNodeAlias = document.location.hostname;
+App.minDiskSpace = 2.0; // minimum disk space required for '/' for each host before install, unit GB
+App.minDiskSpaceUsrLib = 1.0; // minimum disk space for '/usr/lib' for each host before install, unit GB
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;

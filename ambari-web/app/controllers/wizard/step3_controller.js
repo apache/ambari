@@ -18,6 +18,7 @@
 
 var App = require('app');
 var lazyloading = require('utils/lazy_loading');
+var numberUtils = require('utils/number_utils');
 
 App.WizardStep3Controller = Em.Controller.extend({
   name: 'wizardStep3Controller',
@@ -539,6 +540,10 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.parseWarnings(jsonData);
     var repoWarnings = [];
     var hostsContext = [];
+    var diskWarnings = [];
+    var hostsDiskContext = [];
+    var hostsDiskNames = [];
+    var hostsRepoNames = [];
     hosts.forEach(function (_host) {
       var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
       if (App.skipBootstrap) {
@@ -556,19 +561,39 @@ App.WizardStep3Controller = Em.Controller.extend({
         var context = self.checkHostOSType(host.Hosts.os_type, host.Hosts.host_name);
         if(context) {
           hostsContext.push(context);
+          hostsRepoNames.push(host.Hosts.host_name);
         }
+        var diskContext = self.checkHostDiskSpace(host.Hosts.host_name, host.Hosts.disk_info);
+        if (diskContext) {
+          hostsDiskContext.push(diskContext);
+          hostsDiskNames.push(host.Hosts.host_name);
+        }
+
       }
     });
     if (hostsContext.length > 0) { // warning exist
       var repoWarning = {
         name: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.name'),
         hosts: hostsContext,
+        hostsNames: hostsRepoNames,
         category: 'repositories',
         onSingleHost: false
       };
       repoWarnings.push(repoWarning);
     }
+    if (hostsDiskContext.length > 0) { // disk space warning exist
+      var diskWarning = {
+        name: Em.I18n.t('installer.step3.hostWarningsPopup.disk.name'),
+        hosts: hostsDiskContext,
+        hostsNames: hostsDiskNames,
+        category: 'disk',
+        onSingleHost: false
+      };
+      diskWarnings.push(diskWarning);
+    }
+
     this.set('repoCategoryWarnings', repoWarnings);
+    this.set('diskCategoryWarnings', diskWarnings);
     this.set('bootHosts', hosts);
     this.stopRegistration();
   },
@@ -608,6 +633,35 @@ App.WizardStep3Controller = Em.Controller.extend({
         return null;
       }
     }else{
+      return null;
+    }
+  },
+
+  /**
+   * Check if current host has enough free disk usage.
+   */
+  checkHostDiskSpace: function (hostName, diskInfo) {
+    var minFreeRootSpace = App.minDiskSpace * 1024 * 1024; //in kilobyte
+    var minFreeUsrLibSpace = App.minDiskSpaceUsrLib * 1024 * 1024; //in kilobyte
+    var warningString = '';
+
+    diskInfo.forEach( function(info) {
+      switch (info.mountpoint) {
+        case '/':
+          warningString = info.available < minFreeRootSpace ? Em.I18n.t('installer.step3.hostWarningsPopup.disk.context2').format(App.minDiskSpace + 'GB', info.mountpoint) + ' ' + warningString : warningString;
+          break;
+        case '/usr':
+        case '/usr/lib':
+          warningString = info.available < minFreeUsrLibSpace ? Em.I18n.t('installer.step3.hostWarningsPopup.disk.context2').format(App.minDiskSpaceUsrLib + 'GB', info.mountpoint) + ' ' + warningString : warningString;
+          break;
+        default:
+          break;
+      }
+    });
+    if (warningString) {
+      console.log('WARNING: Getting host free disk space. ' + 'Host Name: '+ hostName);
+      return Em.I18n.t('installer.step3.hostWarningsPopup.disk.context1').format(hostName) + ' ' + warningString;
+    } else {
       return null;
     }
   },
@@ -967,6 +1021,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   hostWarningsPopup: function(event){
     var self = this;
     var repoCategoryWarnings = this.get('repoCategoryWarnings');
+    var diskCategoryWarnings = this.get('diskCategoryWarnings');
     App.ModalPopup.show({
 
       header: Em.I18n.t('installer.step3.warnings.popup.header'),
@@ -1046,37 +1101,47 @@ App.WizardStep3Controller = Em.Controller.extend({
         content: function () {
           var categoryWarnings = this.get('categoryWarnings');
           return [
-             Ember.Object.create({
-                warnings: repoCategoryWarnings,
-                title: Em.I18n.t('installer.step3.hostWarningsPopup.repositories'),
-                message: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.message'),
-                type: Em.I18n.t('common.issues'),
-                emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.repositories'),
-                action: Em.I18n.t('installer.step3.hostWarningsPopup.action.invalid'),
-                category: 'repositories',
-                isCollapsed: true
-             }),
-             Ember.Object.create({
-               warnings: categoryWarnings.filterProperty('category', 'firewall'),
-               title: Em.I18n.t('installer.step3.hostWarningsPopup.firewall'),
-               message: Em.I18n.t('installer.step3.hostWarningsPopup.firewall.message'),
-               type: Em.I18n.t('common.issues'),
-               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.firewall'),
-               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-               category: 'firewall',
-               isCollapsed: true
-             }),
-             Ember.Object.create({
-               warnings: categoryWarnings.filterProperty('category', 'processes'),
-               title: Em.I18n.t('installer.step3.hostWarningsPopup.process'),
-               message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
-               type: Em.I18n.t('common.process'),
-               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
-               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-               category: 'process',
-               isCollapsed: true
-             }),
-             Ember.Object.create({
+            Ember.Object.create({
+              warnings: diskCategoryWarnings,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.disk'),
+              message: Em.I18n.t('installer.step3.hostWarningsPopup.disk.message'),
+              type: Em.I18n.t('common.issues'),
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.disk'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
+              category: 'disk',
+              isCollapsed: true
+            }),
+            Ember.Object.create({
+              warnings: repoCategoryWarnings,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.repositories'),
+              message: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.message'),
+              type: Em.I18n.t('common.issues'),
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.repositories'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.invalid'),
+              category: 'repositories',
+              isCollapsed: true
+            }),
+            Ember.Object.create({
+             warnings: categoryWarnings.filterProperty('category', 'firewall'),
+             title: Em.I18n.t('installer.step3.hostWarningsPopup.firewall'),
+             message: Em.I18n.t('installer.step3.hostWarningsPopup.firewall.message'),
+             type: Em.I18n.t('common.issues'),
+             emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.firewall'),
+             action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
+             category: 'firewall',
+             isCollapsed: true
+            }),
+            Ember.Object.create({
+             warnings: categoryWarnings.filterProperty('category', 'processes'),
+             title: Em.I18n.t('installer.step3.hostWarningsPopup.process'),
+             message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
+             type: Em.I18n.t('common.process'),
+             emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
+             action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
+             category: 'process',
+             isCollapsed: true
+            }),
+            Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'packages'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.package'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.packages.message'),
@@ -1086,7 +1151,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               category: 'package',
               isCollapsed: true
             }),
-             Ember.Object.create({
+            Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.fileAndFolder'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders.message'),
@@ -1096,7 +1161,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               category: 'fileFolders',
               isCollapsed: true
             }),
-             Ember.Object.create({
+            Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'services'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.service'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.services.message'),
@@ -1106,7 +1171,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               category: 'service',
               isCollapsed: true
             }),
-             Ember.Object.create({
+            Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'users'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.user'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.users.message'),
@@ -1145,15 +1210,44 @@ App.WizardStep3Controller = Em.Controller.extend({
           this.$('#' + category.context.category).toggle('blind', 500);
           category.context.set("isCollapsed", !category.context.get("isCollapsed"));
         },
-        warningsNotice: function () {
-          var warnings = this.get('warnings');
+        /**
+         * generate number of hosts which had warnings, avoid duplicated host names in different warnings.
+         */
+        warningHostsNamesCount: function () {
+          var hostNameMap = Ember.Object.create();
           var warningsByHost = self.get('warningsByHost').slice();
           warningsByHost.shift();
-          var issuesNumber = warnings.length + repoCategoryWarnings.length;
+          warningsByHost.forEach( function( _host) {
+            if (_host.warnings.length) {
+              hostNameMap[_host.name] = true;
+            }
+          })
+          if (repoCategoryWarnings.length) {
+            repoCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
+              if (!hostNameMap[_hostName]) {
+                hostNameMap[_hostName] = true;
+              }
+            })
+          }
+          if (diskCategoryWarnings.length) {
+            diskCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
+              if (!hostNameMap[_hostName]) {
+                hostNameMap[_hostName] = true;
+              }
+            })
+          }
+          var size = 0;
+          for (var key in hostNameMap) {
+            if (hostNameMap.hasOwnProperty(key)) size++;
+          }
+          return size;
+        },
+        warningsNotice: function () {
+          var warnings = this.get('warnings');
+          var issuesNumber = warnings.length + repoCategoryWarnings.length + diskCategoryWarnings.length;
           var issues = issuesNumber + ' ' + (issuesNumber.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
-          var repoHostsNumber = (repoCategoryWarnings.length > 0 ? repoCategoryWarnings[0].hosts.length : 0);
-          var hostsNumber = repoHostsNumber + warningsByHost.length - warningsByHost.filterProperty('warnings.length', 0).length;
-          var hosts = hostsNumber + ' ' + (hostsNumber === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
+          var hostsCnt = this.warningHostsNamesCount();
+          var hosts = hostsCnt + ' ' + (hostsCnt === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
           return Em.I18n.t('installer.step3.hostWarningsPopup.summary').format(issues, hosts);
         }.property('warnings', 'warningsByHost'),
         /**
