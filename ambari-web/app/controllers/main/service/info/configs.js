@@ -293,11 +293,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
     var selectedConfigGroup;
     var siteToTagMap = {};
-    for (var site in data.Clusters.desired_configs) {
-      if (serviceConfigsDef.sites.indexOf(site) > -1) {
-        siteToTagMap[site] = data.Clusters.desired_configs[site].tag;
+    serviceConfigsDef.sites.forEach(function(siteName){
+      if(data.Clusters.desired_configs[siteName]){
+        siteToTagMap[siteName] = data.Clusters.desired_configs[siteName].tag;
+      } else {
+        siteToTagMap[siteName] = 'version1';
       }
-    }
+    }, this);
     this.loadedClusterSiteToTagMap = siteToTagMap;
     //parse loaded config groups
     if (App.supports.hostOverrides) {
