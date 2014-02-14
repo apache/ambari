@@ -62,10 +62,13 @@ def service(
     )
 
   elif action == "stop":
+    process_dont_exist = format("! ({no_op_test})")
     cmd = format("kill `cat {pid_file}` >/dev/null 2>&1")
-    Execute(cmd)
+    Execute(cmd,
+            not_if=process_dont_exist
+    )
 
-    Execute(format("! ({no_op_test})"),
+    Execute(process_dont_exist,
             tries=5,
             try_sleep=3
     )

@@ -64,12 +64,15 @@ class TestStormNimbus(RMFTestCase):
                        command = "stop",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
+      not_if = '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
+    )
     self.assertResourceCalled('Execute', '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
       tries = 5,
       try_sleep = 3,
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
+    self.assertNoMoreResources()
 
   def test_configure_default(self):
     self.executeScript("2.1.1/services/STORM/package/scripts/nimbus.py",
@@ -110,12 +113,15 @@ class TestStormNimbus(RMFTestCase):
                        command = "stop",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
+      not_if = '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
+    )
     self.assertResourceCalled('Execute', '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
       tries = 5,
       try_sleep = 3,
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
+    self.assertNoMoreResources()
 
   def assert_configure_default(self):
 
