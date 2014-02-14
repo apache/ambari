@@ -123,10 +123,9 @@ BOLD_OFF='\033[0m'
 PRESS_ENTER_MSG="Press <enter> to continue."
 
 #Common setup or upgrade message
-SETUP_OR_UPGRADE_MSG = "  If it is a new setup then only run \"ambari-server setup\" command to create user\n" \
-"  If it is an upgrade then run \"ambari-server upgrade\" command.\n" \
-"  For more information, see documentation at http://incubator.apache" \
-".org/ambari/current/installing-hadoop-using-ambari/content/"
+SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
+"- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
+"Refer to the Ambari documentation for more information on setup and upgrade."
 
 #SSL certificate metainfo
 COMMON_NAME_ATTR='CN'
@@ -2014,7 +2013,7 @@ def download_jdk(args):
             " all hosts have the JCE unlimited strength policy 6, files."
     print_error_msg("Failed to download JCE policy files:")
     if e.reason is not None:
-      print_error_msg("Reason: {0}".format(e.reason))
+      print_error_msg("\nREASON: {0}".format(e.reason))
     # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
   return 0
 
@@ -4324,7 +4323,7 @@ def main():
       pass
   except FatalException as e:
     if e.reason is not None:
-      print_error_msg("Exiting with exit code {0}. Reason: {1}".format(e.code, e.reason))
+      print_error_msg("Exiting with exit code {0}. \nREASON: {1}".format(e.code, e.reason))
     sys.exit(e.code)
   except NonFatalException as e:
     options.exit_message = "Ambari Server '%s' completed with warnings." % action
