@@ -333,6 +333,17 @@ module.exports =
       "category": "AppTimelineServer",
       "serviceName": "YARN"
     },
+    {
+      "id": "site property",
+      "name": "yarn.ahs.webapp.address",
+      "displayName": "yarn.ahs.webapp.address",
+      "value": "",
+      "defaultValue": "0.0.0.0:8188",
+      "displayType": "string",
+      "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
+      "category": "AppTimelineServer",
+      "serviceName": "YARN"
+    },
   /**********************************************MAPREDUCE2***************************************/
     {
       "id": "site property",
