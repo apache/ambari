@@ -17,6 +17,13 @@
 # limitations under the License.
 #
 
+if [ -d "/usr/lib/bigtop-tomcat" ]; then
+  export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
+  export CATALINA_BASE=${CATALINA_BASE:-/var/lib/oozie/oozie-server}
+  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
+  export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
+fi
+
 #Set JAVA HOME
 export JAVA_HOME={{java_home}}
 
