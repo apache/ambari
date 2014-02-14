@@ -395,7 +395,7 @@
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 
             "yarn.scheduler.capacity.root.capacity": "100", 
-            "yarn.scheduler.capacity.root.acl_administer_queues": "*", 
+            "yarn.scheduler.capacity.root.acl_administer_queue": "*",
             "yarn.scheduler.capacity.root.queues": "default", 
             "yarn.scheduler.capacity.maximum-applications": "10000", 
             "yarn.scheduler.capacity.root.default.user-limit-factor": "1", 
@@ -405,7 +405,7 @@
             "yarn.scheduler.capacity.maximum-am-resource-percent": "0.2", 
             "yarn.scheduler.capacity.root.default.acl_administer_jobs": "*", 
             "yarn.scheduler.capacity.root.default.capacity": "100", 
-            "yarn.scheduler.capacity.root.default.acl_submit_jobs": "*"
+            "yarn.scheduler.capacity.root.default.acl_submit_applications": "*"
         }, 
         "hdfs-site": {
             "dfs.namenode.avoid.write.stale.datanode": "true", 
