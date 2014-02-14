@@ -22,6 +22,7 @@ Ambari Agent
 
 __all__ = ["format"]
 import sys
+import pipes
 from string import Formatter
 from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
@@ -30,6 +31,12 @@ from resource_management.core.logger import Logger
 
 
 class ConfigurationFormatter(Formatter):
+  """
+  Flags:
+  !e - escape bash properties flag
+  !h - hide sensitive information from the logs
+  !p - password flag, !p=!s+!e. Has both !e, !h effect
+  """
   def format(self, format_string, *args, **kwargs):
     env = Environment.get_instance()
     variables = kwargs
@@ -48,18 +55,22 @@ class ConfigurationFormatter(Formatter):
     return result_unprotected
   
   def convert_field_unprotected(self, value, conversion):
-    if conversion == 'p':
-      return value
-      
-    return super(ConfigurationFormatter, self).convert_field(value, conversion)
+    return self._convert_field(value, conversion, False)
   
   def convert_field_protected(self, value, conversion):
     """
     Enable masking sensitive information like
     passwords from logs via !p (password) format flag.
     """
-    if conversion == 'p':
-      return "[PROTECTED]"
+    return self._convert_field(value, conversion, True)
+  
+  def _convert_field(self, value, conversion, is_protected):
+    if conversion == 'e':
+      return pipes.quote(value)
+    elif conversion == 'h':
+      return "[PROTECTED]" if is_protected else value
+    elif conversion == 'p':
+      return "[PROTECTED]" if is_protected else self._convert_field(value, 'e', is_protected)
       
     return super(ConfigurationFormatter, self).convert_field(value, conversion)
       

@@ -248,7 +248,7 @@ class TestNagiosServer(RMFTestCase):
                               mode=0755
     )
     self.assertResourceCalled('Execute',
-                              'htpasswd2 -c -b  /etc/nagios/htpasswd.users nagiosadmin q',
+                              'htpasswd2 -c -b  /etc/nagios/htpasswd.users nagiosadmin \'!`"\'"\'"\' 1\'',
                               not_if="grep nagiosadmin /etc/nagios/htpasswd.users"
     )
 

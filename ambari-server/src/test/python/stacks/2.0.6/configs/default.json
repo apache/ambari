@@ -231,7 +231,7 @@
             "yarn_log_dir_prefix": "/var/log/hadoop-yarn", 
             "zk_log_dir": "/var/log/zookeeper", 
             "hive_aux_jars_path": "/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar", 
-            "nagios_web_password": "asd", 
+            "nagios_web_password": "!`\"' 1", 
             "tickTime": "2000", 
             "hive_ambari_database": "MySQL", 
             "falcon_user": "falcon", 
@@ -410,7 +410,7 @@
         }, 
         "hive-site": {
             "hive.enforce.sorting": "true", 
-            "javax.jdo.option.ConnectionPassword": "asd", 
+            "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
             "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver", 
             "hive.optimize.bucketmapjoin.sortedmerge": "true", 
             "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider", 

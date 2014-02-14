@@ -196,7 +196,7 @@
             "nagios_web_login": "nagiosadmin", 
             "nagios_contact": "q@q.q", 
             "hive_database": "New MySQL Database", 
-            "nagios_web_password": "q", 
+            "nagios_web_password": "!`\"' 1",
             "clientPort": "2181", 
             "oozie_derby_database": "Derby", 
             "snappy_enabled": "true", 
@@ -320,7 +320,7 @@
         }, 
         "hive-site": {
             "hive.enforce.sorting": "true", 
-            "javax.jdo.option.ConnectionPassword": "q", 
+            "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
             "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver", 
             "hive.optimize.bucketmapjoin.sortedmerge": "true", 
             "fs.file.impl.disable.cache": "true", 

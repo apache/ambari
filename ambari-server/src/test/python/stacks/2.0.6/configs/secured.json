@@ -376,7 +376,7 @@
             "hive_user": "hive", 
             "resourcemanager_http_principal_name": "HTTP/_HOST", 
             "webHCat_http_primary_name": "HTTP", 
-            "nagios_web_password": "asd", 
+            "nagios_web_password": "!`\"' 1", 
             "smokeuser": "ambari-qa", 
             "hbase_master_heapsize": "1024m", 
             "kerberos_install_type": "MANUALLY_SET_KERBEROS", 
@@ -529,7 +529,7 @@
         }, 
         "hive-site": {
             "hive.enforce.sorting": "true", 
-            "javax.jdo.option.ConnectionPassword": "asd", 
+            "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
             "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver", 
             "hive.optimize.bucketmapjoin.sortedmerge": "true", 
             "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider", 
