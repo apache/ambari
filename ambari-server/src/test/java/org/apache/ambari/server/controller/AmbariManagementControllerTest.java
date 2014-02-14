@@ -3971,6 +3971,7 @@ public class AmbariManagementControllerTest {
       }
     }
     Assert.assertNotNull(hrc);
+    Assert.assertEquals("RESTART HDFS/HDFS_CLIENT", hrc.getCommandDetail());
     Map<String, String> roleParams = hrc.getExecutionCommandWrapper()
       .getExecutionCommand().getRoleParams();
 

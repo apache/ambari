@@ -212,7 +212,7 @@ public class AmbariCustomCommandExecutionHelper {
     StringBuffer sb = new StringBuffer();
     sb.append(actionRequest.getCommandName());
     if (actionRequest.getServiceName() != null && !actionRequest.getServiceName().equals("")) {
-      sb.append(" for " + actionRequest.getServiceName());
+      sb.append(" " + actionRequest.getServiceName());
     }
     if (actionRequest.getComponentName() != null && !actionRequest.getComponentName().equals("")) {
       sb.append("/" + actionRequest.getComponentName());
