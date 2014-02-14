@@ -38,6 +38,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import java.util.Set;
 
 /**
  * Provides high-level access to Users and Roles in database
@@ -179,6 +180,10 @@ public class Users {
   public synchronized void removeUser(User user) throws AmbariException {
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity != null) {
+      if (!isUserCanBeRemoved(userEntity)){
+        throw new AmbariException("Could not remove user " + userEntity.getUserName() +
+              ". System should have at least one user with administrator role.");
+      }
       userDAO.remove(userEntity);
     } else {
       throw new AmbariException("User " + user + " doesn't exist");
@@ -258,7 +263,13 @@ public class Users {
     if (roleEntity == null) {
       throw new AmbariException("Role " + role + " doesn't exist");
     }
-
+    if (role.equals(getAdminRole())){
+      if (!isUserCanBeRemoved(userEntity)){
+        throw new AmbariException("Could not remove admin role from user " + userEntity.getUserName() +
+        ". System should have at least one user with administrator role.");
+      }
+    }
+    
     if (userEntity.getRoleEntities().contains(roleEntity)) {
       userEntity.getRoleEntities().remove(roleEntity);
       roleEntity.getUserEntities().remove(userEntity);
@@ -270,6 +281,13 @@ public class Users {
 
   }
 
+  public synchronized boolean isUserCanBeRemoved(UserEntity userEntity){
+    RoleEntity roleEntity = new RoleEntity();
+    roleEntity.setRoleName(getAdminRole());
+    Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findAllLocalUsersByRole(roleEntity));
+    return (userEntitysSet.contains(userEntity) && userEntitysSet.size() < 2) ? false : true;
+  }  
+  
   public String getUserRole() {
     return configuration.getConfigsMap().get(Configuration.USER_ROLE_NAME_KEY);
   }

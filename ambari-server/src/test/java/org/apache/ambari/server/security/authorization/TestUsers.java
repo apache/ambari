@@ -114,13 +114,15 @@ public class TestUsers {
     fail("Exception was not thrown");
   }
 
-  @Test
+  @Test(expected = AmbariException.class)
   public void testPromoteUser() throws Exception {
     users.createUser("admin", "admin");
+    users.createUser("admin2", "admin2");
     User user = users.getLocalUser("admin");
     assertTrue(user.getRoles().contains(users.getUserRole()));
     assertFalse(user.getRoles().contains(users.getAdminRole()));
-
+    users.promoteToAdmin(user);
+    user = users.getLocalUser("admin2");
     users.promoteToAdmin(user);
 
     user = users.getLocalUser("admin");
@@ -130,14 +132,33 @@ public class TestUsers {
 
     user = users.getLocalUser("admin");
     assertFalse(user.getRoles().contains(users.getAdminRole()));
+    
+    user = users.getLocalUser("admin2");
+    users.demoteAdmin(user);
 
   }
+  
+  @Test(expected = AmbariException.class)
+  public void testRemoveUser() throws Exception {
+    users.createUser("admin", "admin");
+    User user = users.getLocalUser("admin");
+    users.promoteToAdmin(user);
+
+    user = users.getLocalUser("admin");
+    assertTrue(user.getRoles().contains(users.getAdminRole()));
+
+    users.removeUser(user);
+  }
+
 
   @Test
   public void testPromoteLdapUser() throws Exception {
     createLdapUser();
 
     User ldapUser = users.getLdapUser("ldapUser");
+    users.createUser("localadmin", "admin");
+    User localUser = users.getLocalUser("localadmin");
+    users.promoteToAdmin(localUser);
 
     users.promoteToAdmin(ldapUser);
 

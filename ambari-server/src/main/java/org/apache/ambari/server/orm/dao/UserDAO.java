@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import org.apache.ambari.server.orm.entities.RoleEntity;
 
 @Singleton
 public class UserDAO {
@@ -47,6 +48,13 @@ public class UserDAO {
     return daoUtils.selectList(query);
   }
 
+  @Transactional
+  public List<UserEntity> findAllLocalUsersByRole(RoleEntity roleEntity) {
+    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT role.userEntities FROM RoleEntity role WHERE role = :roleEntity", UserEntity.class);
+    query.setParameter("roleEntity", roleEntity);
+    return query.getResultList();
+  }
+  
   @Transactional
   public UserEntity findLocalUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("localUserByName", UserEntity.class);
