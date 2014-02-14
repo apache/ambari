@@ -1796,6 +1796,7 @@ Em.I18n.translations = {
   'mirroring.dataset.repeat.months':'months',
   'mirroring.dataset.middayPeriod.am':'AM',
   'mirroring.dataset.middayPeriod.pm':'PM',
+  'mirroring.dataset.entity':'entity',
 
   'mirroring.manageClusters.ambariServer':'Ambari Server',
   'mirroring.manageClusters.interfaces':'Interfaces',

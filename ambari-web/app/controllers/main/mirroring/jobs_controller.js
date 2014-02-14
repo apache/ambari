@@ -52,6 +52,38 @@ App.MainDatasetJobsController = Em.Controller.extend({
 
   schedule: function () {
     this.set('content.status', 'SCHEDULED');
-  }
+  },
 
+  downloadEntity: function () {
+    var xml = this.formatDatasetXML(this.get('content'));
+    if ($.browser.msie && $.browser.version < 10) {
+      this.openInfoInNewTab(xml);
+    } else {
+      try {
+        var blob = new Blob([xml], {type: 'text/xml;charset=utf-8;'});
+        saveAs(blob, Em.I18n.t('mirroring.dataset.entity') + '.xml');
+      } catch (e) {
+        this.openInfoInNewTab(xml);
+      }
+    }
+  },
+
+  openInfoInNewTab: function (xml) {
+    var newWindow = window.open('');
+    var newDocument = newWindow.document;
+    newDocument.write('<pre>' + App.config.escapeXMLCharacters(xml) + '</pre>');
+    newWindow.focus();
+  },
+
+  formatDatasetXML: function (dataset) {
+    return '<?xml version="1.0"?>\n' + '<feed description="" name="' + dataset.get('name') + '" xmlns="uri:falcon:feed:0.1">\n' +
+        '<frequency>' + dataset.get('frequencyUnit') + '(' + dataset.get('frequency') + ')' + '</frequency>\n' +
+        '<clusters>\n<cluster name="' + dataset.get('sourceClusterName') + '" type="source">\n' +
+        '<validity start="' + dataset.get('scheduleStartDate') + '" end="' + dataset.get('scheduleEndDate') + '"/>\n' +
+        '<retention limit="days(7)" action="delete"/>\n</cluster>\n<cluster name="' + dataset.get('targetClusterName') +
+        '" type="target">\n<validity start="' + dataset.get('scheduleStartDate') + '" end="' + dataset.get('scheduleEndDate') + '"/>\n' +
+        '<retention limit="months(1)" action="delete"/>\n<locations>\n<location type="data" path="' + dataset.get('targetDir') + '" />\n' +
+        '</locations>\n</cluster>\n</clusters>\n<locations>\n<location type="data" path="' + dataset.get('sourceDir') + '" />\n' +
+        '</locations>\n<ACL owner="hue" group="users" permission="0755" />\n<schema location="/none" provider="none"/>\n</feed>';
+  }
 });
