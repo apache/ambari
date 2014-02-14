@@ -18,6 +18,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.core.system import System
+from sets import Set
 
 config = Script.get_config()
 
@@ -37,21 +38,25 @@ rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
 
 hostname = config["hostname"]
-namenode_host = default("/clusterHostInfo/namenode_host", [])
-jtnode_host = default("/clusterHostInfo/jtnode_host", [])
-rm_host = default("/clusterHostInfo/rm_host", [])
-hs_host = default("/clusterHostInfo/hs_host", [])
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
+namenode_host = Set(default("/clusterHostInfo/namenode_host", []))
+jtnode_host = Set(default("/clusterHostInfo/jtnode_host", []))
+rm_host = Set(default("/clusterHostInfo/rm_host", []))
+hs_host = Set(default("/clusterHostInfo/hs_host", []))
+hbase_master_hosts = Set(default("/clusterHostInfo/hbase_master_hosts", []))
 # datanodes are marked as slave_hosts
-slave_hosts = default("/clusterHostInfo/slave_hosts", [])
-tt_hosts = default("/clusterHostInfo/mapred_tt_hosts", [])
-nm_hosts = default("/clusterHostInfo/nm_hosts", [])
-hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", [])
-flume_hosts = default("/clusterHostInfo/flume_hosts", [])
-jn_hosts = default("/clusterHostInfo/journalnode_hosts", [])
-nimbus_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
-supervisor_server_hosts = default("/clusterHostInfo/supervisor_hosts", [])
+slave_hosts = Set(default("/clusterHostInfo/slave_hosts", []))
+tt_hosts = Set(default("/clusterHostInfo/mapred_tt_hosts", []))
+nm_hosts = Set(default("/clusterHostInfo/nm_hosts", []))
+hbase_rs_hosts = Set(default("/clusterHostInfo/hbase_rs_hosts", []))
+flume_hosts = Set(default("/clusterHostInfo/flume_hosts", []))
+jn_hosts = Set(default("/clusterHostInfo/journalnode_hosts", []))
+nimbus_server_hosts = Set(default("/clusterHostInfo/nimbus_hosts", []))
+supervisor_server_hosts = Set(default("/clusterHostInfo/supervisor_hosts", []))
 
+pure_slave = not hostname in (namenode_host | jtnode_host | rm_host | hs_host |\
+                              hbase_master_hosts |slave_hosts | tt_hosts | hbase_rs_hosts |\
+                              flume_hosts | nm_hosts | jn_hosts | nimbus_server_hosts |\
+                              supervisor_server_hosts)
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
 is_rmnode_master = hostname in rm_host

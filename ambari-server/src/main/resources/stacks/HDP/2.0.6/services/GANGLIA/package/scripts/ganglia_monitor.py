@@ -117,17 +117,48 @@ class GangliaMonitor(Script):
                       owner = "root",
                       group = params.user_group)
 
-    pure_slave = not (params.is_namenode_master and
-                      params.is_jtnode_master and
-                      params.is_rmnode_master and
-                      params.is_hsnode_master and
-                      params.is_hbase_master) and params.is_slave
-    if pure_slave:
+    if params.pure_slave:
       generate_daemon("gmond",
                     name = "HDPSlaves",
                     role = "monitor",
                     owner = "root",
                     group = params.user_group)
+
+    if params.is_slave:
+      generate_daemon("gmond",
+                      name = "HDPDataNode",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_tasktracker:
+      generate_daemon("gmond",
+                      name = "HDPTaskTracker",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_hbase_rs:
+      generate_daemon("gmond",
+                      name = "HDPHBaseRegionServer",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_flume:
+      generate_daemon("gmond",
+                      name = "HDPFlumeServer",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.is_jn_host:
+      generate_daemon("gmond",
+                      name = "HDPJournalNode",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
 
     Directory(path.join(params.ganglia_dir, "conf.d"),
               owner="root",

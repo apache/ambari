@@ -180,6 +180,13 @@ class TestGangliaServer(RMFTestCase):
                                       '/bin',
                                       '/usr/bin'],
                               )
+    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSlaves -m -o root -g hadoop',
+                              path = ['/usr/libexec/hdp/ganglia',
+                                      '/usr/sbin',
+                                      '/sbin:/usr/local/bin',
+                                      '/bin',
+                                      '/usr/bin'],
+                              )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/dwoo',
                               owner = 'nobody',
                               recursive = True,

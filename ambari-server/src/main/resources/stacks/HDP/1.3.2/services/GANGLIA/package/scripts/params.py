@@ -18,6 +18,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.core.system import System
+from sets import Set
 
 config = Script.get_config()
 
@@ -37,20 +38,19 @@ rrdcached_base_dir = config['configurations']['global']["rrdcached_base_dir"]
 ganglia_server_host = config["clusterHostInfo"]["ganglia_server_host"][0]
 
 hostname = config["hostname"]
-namenode_host = default("/clusterHostInfo/namenode_host", [])
-jtnode_host = default("/clusterHostInfo/jtnode_host", [])
-rm_host = default("/clusterHostInfo/rm_host", [])
-hs_host = default("/clusterHostInfo/hs_host", [])
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
+namenode_host = Set(default("/clusterHostInfo/namenode_host", []))
+jtnode_host = Set(default("/clusterHostInfo/jtnode_host", []))
+hs_host = Set(default("/clusterHostInfo/hs_host", []))
+hbase_master_hosts = Set(default("/clusterHostInfo/hbase_master_hosts", []))
 # datanodes are marked as slave_hosts
-slave_hosts = default("/clusterHostInfo/slave_hosts", [])
-tt_hosts = default("/clusterHostInfo/mapred_tt_hosts", [])
-hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", [])
-flume_hosts = default("/clusterHostInfo/flume_hosts", [])
+slave_hosts = Set(default("/clusterHostInfo/slave_hosts", []))
+tt_hosts = Set(default("/clusterHostInfo/mapred_tt_hosts", []))
+hbase_rs_hosts = Set(default("/clusterHostInfo/hbase_rs_hosts", []))
+flume_hosts = Set(default("/clusterHostInfo/flume_hosts", []))
 
+pure_slave = not hostname in (namenode_host | jtnode_host | hs_host | hbase_master_hosts | slave_hosts | tt_hosts | hbase_rs_hosts | flume_hosts)
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
-is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
@@ -60,7 +60,6 @@ is_flume = hostname in flume_hosts
 
 has_namenodes = not len(namenode_host) == 0
 has_jobtracker = not len(jtnode_host) == 0
-has_resourcemanager = not len(rm_host) == 0
 has_historyserver = not len(hs_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_slaves = not len(slave_hosts) == 0

@@ -148,12 +148,19 @@ class GangliaServer(Script):
                       role = "server",
                       owner = "root",
                       group = params.user_group)
-
-    generate_daemon("gmetad",
-                    name = "gmetad",
-                    role = "server",
-                    owner = "root",
-                    group = params.user_group)
+                                
+    if params.ganglia_server_host == params.hostname:
+      generate_daemon("gmetad",
+                      name = "gmetad",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+                      
+      generate_daemon("gmond",
+          name = "HDPSlaves",
+          role = "server",
+          owner = "root",
+          group = params.user_group)
 
     change_permission()
     server_files()
