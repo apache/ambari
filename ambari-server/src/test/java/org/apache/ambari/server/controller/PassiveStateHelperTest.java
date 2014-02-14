@@ -78,10 +78,12 @@ public class PassiveStateHelperTest {
     
     replay(amc, cluster, sch);
     
-    PassiveStateHelper.createRequest(amc, sch.getClusterName(), sch.getServiceComponentName());
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("context", "abc");
+    PassiveStateHelper.createRequest(amc, sch.getClusterName(), map);
     
     ExecuteActionRequest ear = earCapture.getValue();
-    Map<String, String> map = rpCapture.getValue();
+    map = rpCapture.getValue();
     
     Assert.assertEquals("nagios_update_ignore", ear.getActionName());
     Assert.assertEquals("ACTIONEXECUTE", ear.getCommandName());
@@ -127,10 +129,12 @@ public class PassiveStateHelperTest {
     
     replay(amc, cluster, service, sch1, host);
     
-    PassiveStateHelper.createRequest(amc, cluster.getClusterName(), host.getHostName());
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("context", "abc");
+    PassiveStateHelper.createRequest(amc, cluster.getClusterName(), map);
     
     ExecuteActionRequest ear = earCapture.getValue();
-    Map<String, String> map = rpCapture.getValue();
+    rpCapture.getValue();
     
     Assert.assertEquals("nagios_update_ignore", ear.getActionName());
     Assert.assertEquals("ACTIONEXECUTE", ear.getCommandName());
@@ -176,10 +180,12 @@ public class PassiveStateHelperTest {
     
     replay(amc, cluster, service, sc1, sc2, sch1);
     
-    PassiveStateHelper.createRequest(amc, "c1", service.getName());
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("context", "abc");
+    PassiveStateHelper.createRequest(amc, "c1", map);
     
     ExecuteActionRequest ear = earCapture.getValue();
-    Map<String, String> map = rpCapture.getValue();
+    map = rpCapture.getValue();
     
     Assert.assertEquals("nagios_update_ignore", ear.getActionName());
     Assert.assertEquals("ACTIONEXECUTE", ear.getCommandName());

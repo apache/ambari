@@ -9220,7 +9220,8 @@ public class AmbariManagementControllerTest {
     // passivate a host
     HostRequest hr = new HostRequest(host1, clusterName, requestProperties);
     hr.setPassiveState(PassiveState.PASSIVE.name());
-    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr));
+    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr),
+        new HashMap<String, String>());
     
     Host host = hosts.get(host1);
     Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
@@ -9240,7 +9241,8 @@ public class AmbariManagementControllerTest {
     
     // reset
     hr.setPassiveState(PassiveState.ACTIVE.name());
-    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr));
+    HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr),
+        new HashMap<String, String>());
     
     host = hosts.get(host1);
     Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));

@@ -1538,7 +1538,8 @@ public class AmbariManagementControllerImpl implements
           } else {
             sch.setPassiveState(newPassive);
             try {
-              PassiveStateHelper.createRequest(this, sch.getClusterName(), sch.getServiceComponentName());
+              PassiveStateHelper.createRequest(this, sch.getClusterName(),
+                  requestProperties);
             } catch (AmbariException e) {
               LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
             }

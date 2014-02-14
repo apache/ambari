@@ -1143,10 +1143,11 @@ public class HostResourceProviderTest {
     provider.deleteHosts(requests);
   }
   
-  public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)
+  public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests,
+      Map<String, String> requestProperties)
       throws AmbariException {
     HostResourceProvider provider = getHostProvider(controller);
-    provider.updateHosts(requests);
+    provider.updateHosts(requests, requestProperties);
   }
   
 }

@@ -562,7 +562,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             s.setPassiveState(newPassive);
             try {
               PassiveStateHelper.createRequest(controller, cluster.getClusterName(),
-                  s.getName());
+                  requestProperties);
             } catch (Exception e) {
               LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
             }

@@ -241,7 +241,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResources(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<HostRequest>();
@@ -252,7 +252,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     modifyResources(new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        updateHosts(requests);
+        updateHosts(requests, request.getRequestInfoProperties());
         return null;
       }
     });
@@ -518,7 +518,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     return response;
   }
 
-  protected synchronized void updateHosts(Set<HostRequest> requests)
+  protected synchronized void updateHosts(Set<HostRequest> requests,
+      Map<String, String> requestProperties)
       throws AmbariException {
 
     if (requests.isEmpty()) {
@@ -576,7 +577,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           } else {
             h.setPassiveState(c.getClusterId(), newState);
             try {
-              PassiveStateHelper.createRequest(controller, c.getClusterName(), h.getHostName());
+              PassiveStateHelper.createRequest(controller, c.getClusterName(),
+                  requestProperties);
             } catch (Exception e) {
               LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
             }

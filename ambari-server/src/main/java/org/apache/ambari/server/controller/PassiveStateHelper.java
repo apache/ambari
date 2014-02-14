@@ -120,7 +120,7 @@ public class PassiveStateHelper {
   }
   
   public static RequestStatusResponse createRequest(AmbariManagementController amc,
-      String clusterName, String desc) throws AmbariException {
+      String clusterName, Map<String, String> requestProperties) throws AmbariException {
     
     Map<String, String> params = new HashMap<String, String>();
     
@@ -128,10 +128,7 @@ public class PassiveStateHelper {
         clusterName, RoleCommand.ACTIONEXECUTE.name(),
         NAGIOS_ACTION_NAME, NAGIOS_SERVICE, NAGIOS_COMPONENT, null, params);
 
-    Map<String, String> map = new HashMap<String, String>();
-    map.put("context", "Update " + desc + " passive state");
-    
-    return amc.createAction(actionRequest, map);
+    return amc.createAction(actionRequest, requestProperties);
   }  
   
 }
