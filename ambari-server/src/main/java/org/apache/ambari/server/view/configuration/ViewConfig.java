@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +105,7 @@ public class ViewConfig {
    * @return the list of parameters
    */
   public List<ParameterConfig> getParameters() {
-    return parameters;
+    return parameters == null ? Collections.<ParameterConfig>emptyList() : parameters;
   }
 
   /**
@@ -113,7 +114,7 @@ public class ViewConfig {
    * @return return the list of resources
    */
   public List<ResourceConfig> getResources() {
-    return resources;
+    return resources == null ? Collections.<ResourceConfig>emptyList() : resources;
   }
 
   /**
@@ -122,6 +123,6 @@ public class ViewConfig {
    * @return the list of view instances
    */
   public List<InstanceConfig> getInstances() {
-    return instances;
+    return instances == null ? Collections.<InstanceConfig>emptyList() : instances;
   }
 }

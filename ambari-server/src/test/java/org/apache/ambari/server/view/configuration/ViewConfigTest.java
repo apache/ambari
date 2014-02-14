@@ -73,14 +73,6 @@ public class ViewConfigTest {
       "        <provider-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResourceProvider</provider-class>\n" +
       "        <service-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResourceService</service-class>\n" +
       "    </resource>\n" +
-      "    <servlet>\n" +
-      "        <servlet-name>MyViewServlet</servlet-name>\n" +
-      "        <servlet-path>org.apache.ambari.server.view.configuration.ViewConfigTest$MyViewServlet</servlet-path>\n" +
-      "    </servlet>\n" +
-      "    <servlet-mapping>\n" +
-      "        <servlet-name>MyViewServlet</servlet-name>\n" +
-      "        <url-pattern>/ui</url-pattern>\n" +
-      "    </servlet-mapping>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
       "        <property>\n" +
@@ -99,6 +91,13 @@ public class ViewConfigTest {
       "            <value>v1-2</value>\n" +
       "        </property>\n" +
       "    </instance>\n" +
+      "</view>";
+
+
+  private static String minimal_xml = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
       "</view>";
 
 
@@ -127,6 +126,12 @@ public class ViewConfigTest {
     Assert.assertEquals(2, parameters.size());
     Assert.assertEquals("p1", parameters.get(0).getName());
     Assert.assertEquals("p2", parameters.get(1).getName());
+
+    // check the case where no parameters are specified for the view...
+    config = getConfig(minimal_xml);
+    parameters = config.getParameters();
+    Assert.assertNotNull(parameters);
+    Assert.assertEquals(0, parameters.size());
   }
 
   @Test
@@ -136,15 +141,27 @@ public class ViewConfigTest {
     Assert.assertEquals(2, resources.size());
     Assert.assertEquals("resource", resources.get(0).getName());
     Assert.assertEquals("subresource", resources.get(1).getName());
+
+    // check the case where no resources are specified for the view...
+    config = getConfig(minimal_xml);
+    resources = config.getResources();
+    Assert.assertNotNull(resources);
+    Assert.assertEquals(0, resources.size());
   }
 
   @Test
   public void testGetInstances() throws Exception {
-    ViewConfig config = getConfig();
+    ViewConfig config = getConfig(xml);
     List<InstanceConfig> instances = config.getInstances();
     Assert.assertEquals(2, instances.size());
     Assert.assertEquals("INSTANCE1", instances.get(0).getName());
     Assert.assertEquals("INSTANCE2", instances.get(1).getName());
+
+    // check the case where no instances are specified for the view...
+    config = getConfig(minimal_xml);
+    instances = config.getInstances();
+    Assert.assertNotNull(instances);
+    Assert.assertEquals(0, instances.size());
   }
 
   public static  ViewConfig getConfig() throws JAXBException {
@@ -152,7 +169,7 @@ public class ViewConfigTest {
   }
 
   public static  ViewConfig getConfig(String xml) throws JAXBException {
-      InputStream configStream =  new ByteArrayInputStream(xml.getBytes());
+    InputStream configStream =  new ByteArrayInputStream(xml.getBytes());
     JAXBContext jaxbContext = JAXBContext.newInstance(ViewConfig.class);
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     return (ViewConfig) unmarshaller.unmarshal(configStream);
