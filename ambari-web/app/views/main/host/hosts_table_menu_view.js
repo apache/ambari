@@ -93,7 +93,7 @@ App.HostTableMenuView = Em.View.extend({
         operationData: Em.Object.create({
           state: 'PASSIVE',
           action: 'PASSIVE_STATE',
-          message: Em.I18n.t('passiveState.turnOnFor'),
+          message: Em.I18n.t('passiveState.turnOnFor').format(App.format.components[componentNameForOtherActions]),
           componentName: componentNameForOtherActions
         })
       }),
@@ -102,7 +102,7 @@ App.HostTableMenuView = Em.View.extend({
         operationData: Em.Object.create({
           state: 'ACTIVE',
           action: 'PASSIVE_STATE',
-          message: Em.I18n.t('passiveState.turnOffFor'),
+          message: Em.I18n.t('passiveState.turnOffFor').format(App.format.components[componentNameForOtherActions]),
           componentName: componentNameForOtherActions
         })
       })
@@ -152,7 +152,7 @@ App.HostTableMenuView = Em.View.extend({
         operationData: Em.Object.create({
           state: 'PASSIVE',
           action: 'PASSIVE_STATE',
-          message: Em.I18n.t('passiveState.turnOn')
+          message: Em.I18n.t('passiveState.turnOnFor').format('hosts')
         })
       }),
       Em.Object.create({
@@ -160,7 +160,7 @@ App.HostTableMenuView = Em.View.extend({
         operationData: Em.Object.create({
           state: 'ACTIVE',
           action: 'PASSIVE_STATE',
-          message: Em.I18n.t('passiveState.turnOff')
+          message: Em.I18n.t('passiveState.turnOffFor').format('hosts')
         })
       })
     ]);

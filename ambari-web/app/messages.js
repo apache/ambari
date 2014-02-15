@@ -190,8 +190,8 @@ Em.I18n.translations = {
   'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
-  'passiveState.turnOnFor':'Turn On Maintenance Mode for',
-  'passiveState.turnOffFor':'Turn Off Maintenance Mode for',
+  'passiveState.turnOnFor':'Turn On Maintenance Mode for {0}',
+  'passiveState.turnOffFor':'Turn Off Maintenance Mode for {0}',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
