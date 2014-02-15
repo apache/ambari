@@ -231,6 +231,7 @@ module.exports = App.WizardRoute.extend({
       if (!controller.get('isSubmitDisabled')) {
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       }
+      location.reload();
     }
   }),
 

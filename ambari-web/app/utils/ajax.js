@@ -1029,7 +1029,7 @@ var urls = {
     'mock': '',
     'type': 'GET'
   },
-  'admin.high_availability.delete_component': {
+  'admin.delete_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
     'type': 'DELETE'
