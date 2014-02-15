@@ -205,8 +205,52 @@ App.format = {
     'ZOOKEEPER_SERVICE_CHECK': 'ZooKeeper Service Check'
   },
 
+  /**
+   * @type Object
+   */
+  command: {
+    'INSTALL': 'Install',
+    'UNINSTALL': 'Uninstall',
+    'START': 'Start',
+    'STOP': 'Stop',
+    'EXECUTE': 'Execute',
+    'ABORT': 'Abort',
+    'UPGRADE': 'Upgrade',
+    'RESTART': 'Restart',
+    'SERVICE_CHECK': 'Check',
+    'DECOMMISSION,': 'Decommission,'
+  },
+
+  /**
+   * convert role to readable string
+   * @param role
+   */
   role:function (role) {
     return this.components[role] ? this.components[role] : '';
+  },
+
+  /**
+   * convert command_detail to readable string, show the string for all tasks name
+   * @param command_detail
+   */
+  commandDetail: function (command_detail) {
+    var detailArr = command_detail.split(' ');
+    var self = this;
+    var result = '';
+    detailArr.forEach( function(item) {
+      // if the item has the pattern SERVICE/COMPONENT, drop the SERVICE part
+      if (item.contains('/')) {
+        item = item.split('/')[1];
+      }
+      if (self.components[item]) {
+        result = result + ' ' + self.components[item];
+      } else if (self.command[item]) {
+        result = result + ' ' + self.command[item];
+      } else {
+        result = result + ' ' + item;
+      }
+    });
+    return result;
   },
 
   /**

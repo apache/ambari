@@ -269,6 +269,7 @@ App.HostPopup = Em.Object.create({
       id: _task.Tasks.id,
       hostName: _task.Tasks.host_name,
       command: ( _task.Tasks.command.toLowerCase() != 'service_check') ? _task.Tasks.command.toLowerCase() : '',
+      commandDetail: App.format.commandDetail(_task.Tasks.command_detail),
       status: App.format.taskStatus(_task.Tasks.status),
       role: App.format.role(_task.Tasks.role),
       outputLog: Em.I18n.t('common.hostLog.popup.logDir.path') + Em.I18n.t('common.hostLog.popup.outputLog.value').format(_task.Tasks.id),
