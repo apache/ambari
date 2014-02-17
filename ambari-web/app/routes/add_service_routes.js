@@ -323,6 +323,7 @@ module.exports = App.WizardRoute.extend({
       addServiceController.finish();
       // We need to do recovery based on whether we are in Add Host or Installer wizard
       addServiceController.saveClusterState('DEFAULT');
+      location.reload();
     }
   }),
 
