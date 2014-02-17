@@ -150,8 +150,8 @@ var wrapperView = Em.View.extend({
  * @type {*}
  */
 var fieldView = Em.View.extend({
-  template:Em.Handlebars.compile('{{view.displayName}}'),
-  classNameBindings: ['status', 'viewNameClass'],
+  template:Em.Handlebars.compile('<span {{bindAttr class="view.status :column-name"}}>{{view.displayName}}</span>'),
+  classNameBindings: ['viewNameClass'],
   tagName: 'th',
   name: null,
   displayName: null,

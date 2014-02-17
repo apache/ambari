@@ -2713,6 +2713,12 @@ table.graphs {
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: 13px\9;
+
+    .column-name {
+      cursor: pointer;
+      padding-right: 15px;
+    }
+
     .label-row {
       font-size: 0.9em;
       th {
@@ -2945,7 +2951,7 @@ table.graphs {
     .col2,
     td:first-child + td + td,
     th:first-child + th + th{
-      width: 40%;
+      width: 39%;
       padding-left: 6px;
       padding-right: 1px;
     }
@@ -2962,18 +2968,29 @@ table.graphs {
     .col5,
     td:first-child + td + td + td + td + td,
     th:first-child + th + th + th + th + th {
+      width: 11%!important;
+    }
+    .col6,
+    td:first-child + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th {
       width: 12%!important;
     }
-    .col6,.col7,.col8,.col9,
-    td:first-child + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th,
+    .col7,
     td:first-child + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th,
+    th:first-child + th + th + th + th + th + th + th{
+      width: 9%!important;
+    }
+
+    .col8,
     td:first-child + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th,
+    th:first-child + th + th + th + th + th + th + th + th{
+      width: 9%!important;
+    }
+
+    .col9,
     td:first-child + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th{
-      width: 9%!important;
+      width: 8%!important;
     }
 
     .col10,
@@ -4578,11 +4595,20 @@ ul.inline li {
       th:first-child + th + th {
         width: 27%!important;
       }
-      .col6,.col7,.col8,.col9,
+
+      .col6,
       td:first-child + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th,
+      th:first-child + th + th + th + th + th + th{
+        width: 12%!important;
+      }
+
+      .col7,
       td:first-child + td + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th + th,
+      th:first-child + th + th + th + th + th + th + th{
+        width: 9%!important;
+      }
+
+      .col8,.col9,
       td:first-child + td + td + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th + th + th,
       td:first-child + td + td + td + td + td + td + td + td + td,
