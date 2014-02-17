@@ -385,6 +385,7 @@ module.exports =
       "isVisible": true,
       "category": "Oozie Server",
       "serviceName": "OOZIE",
+      "filename": "oozie-site.xml",
       "index": 5
     },
     {
