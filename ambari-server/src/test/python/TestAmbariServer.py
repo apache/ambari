@@ -3315,7 +3315,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "configure_os_settings")
   @patch('__builtin__.raw_input')
-  def test_setup_remote_db_wo_client(self, raw_input, configure_os_settings_mock,
+  @patch.object(ambari_server, "check_selinux")
+  def test_setup_remote_db_wo_client(self, check_selinux_mock, raw_input, configure_os_settings_mock,
                                      download_jdk_mock, check_ambari_user_mock, is_root_mock,
                                      check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
                                      store_remote_properties_mock, get_db_cli_tool_mock, get_YN_input,
@@ -3325,6 +3326,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     is_root_mock.return_value = True
     is_local_db_mock.return_value = False
     get_YN_input.return_value = False
+    check_selinux_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
     store_remote_properties_mock.return_value = 0
     get_db_cli_tool_mock.return_value = None
