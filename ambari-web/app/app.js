@@ -205,19 +205,22 @@ module.exports = Em.Application.create({
    */
   components: Ember.Object.create({
     reassignable: ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'],
-    restartable: ['APP_TIMELINE_SERVER'],
+    restartable: function() {
+      return this.get('masters');
+    }.property('masters'),
     deletable: ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER'],
     rollinRestartAllowed: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "SUPERVISOR"],
     decommissionAllowed: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"],
     addableToHost: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR"],
     slaves: function() {
       return require('data/service_components').filter(function(component){
-        return !component.isClient && !component.isMaster
-      }).mapProperty('component_name').uniq().without("DASHBOARD");
+        return !component.isClient && !component.isMaster;
+      }).mapProperty('component_name').uniq().without("DASHBOARD").without("MYSQL_SERVER");
     }.property().cacheable(),
 
     masters: function() {
-      return require('data/service_components').filterProperty('isMaster', true).mapProperty('component_name').uniq();
+      return require('data/service_components').filterProperty('isMaster', true)
+        .mapProperty('component_name').concat(['MYSQL_SERVER']).uniq();
     }.property().cacheable(),
     clients: function() {
       return require('data/service_components').filterProperty('isClient', true).mapProperty('component_name').uniq();
