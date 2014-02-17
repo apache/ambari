@@ -177,8 +177,8 @@ module.exports = Em.Application.create({
    * remove/restore related data.
    */
   handleStackDependedComponents: function() {
-    // need for unit testing
-    if (this.get('handleStackDependencyTest')) return;
+    // need for unit testing and test mode
+    if (this.get('handleStackDependencyTest') || this.testMode) return;
     var stackVersion, stackDependedComponents;
     stackVersion = this.get('currentStackVersionNumber');
     stackDependedComponents = [];

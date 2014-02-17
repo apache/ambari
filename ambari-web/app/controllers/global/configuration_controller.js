@@ -73,8 +73,8 @@ App.ConfigurationController = Em.Controller.extend({
       // Access the Local storage App.db.data.app.configs object only if its defined
       var storedSite = !!storedConfigs && storedConfigs.findProperty('type', loadedSite.type);
       if (storedSite) {
-        storedConfigs.tag = loadedSite.tag;
-        storedConfigs.properties = loadedSite.properties;
+        storedConfigs.findProperty('type', storedSite.type).tag = loadedSite.tag;
+        storedConfigs.findProperty('type', storedSite.type).properties = loadedSite.properties;
       } else {
         // Initialize storedConfigs object if it's undefined
         if (storedConfigs === undefined) {

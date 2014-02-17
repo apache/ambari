@@ -37,6 +37,10 @@ App.YARNService = App.Service.extend({
   appsCompleted: DS.attr('number'),
   appsKilled: DS.attr('number'),
   appsFailed: DS.attr('number'),
+  ahsWebPort: function() {
+    return App.db.getConfigs().findProperty('type', 'yarn-site').properties['yarn.ahs.webapp.address']
+      .match(/:(\d+)/)[1];
+  }.property(),
   yarnClientNodes: function(){
     return this.get('hostComponents').filterProperty('componentName', 'YARN_CLIENT').mapProperty('host');
   }.property('hostComponents.length'),

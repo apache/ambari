@@ -49,11 +49,13 @@ module.exports = {
   refreshHiveJobDetails : function(hiveJob, successCallback) {
     var self = this;
     // TODO - to be changed to history server when implemented in stack.
-    var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName')
+    var yarnService = App.YARNService.find().objectAt(0);
+    var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
+    var ahsWebPort = yarnService.get('ahsWebPort');
     var hiveJobId = hiveJob.get('id');
     // First refresh query
     var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : "/proxy?url=http://" + historyServerHostName
-        + ":8188/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
+        + ":" + ahsWebPort + "/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
@@ -79,7 +81,8 @@ module.exports = {
             sender : sender,
             data : {
               historyServerHostName : historyServerHostName,
-              tezDagName : tezDagName
+              tezDagName : tezDagName,
+              ahsWebPort: ahsWebPort
             },
             success : 'dagNameToIdSuccess',
             error : 'dagNameToIdError'
@@ -102,7 +105,9 @@ module.exports = {
    */
   refreshTezDagDetails : function(tezDagId, successCallback) {
     var self = this;
-    var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName');
+    var yarnService = App.YARNService.find().objectAt(0);
+    var ahsWebPort = yarnService.get('ahsWebPort');
+    var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
     var tezDag = App.TezDag.find(tezDagId);
     if (tezDag) {
       var tezDagInstanceId = tezDag.get('instanceId');
@@ -129,7 +134,8 @@ module.exports = {
         sender : sender,
         data : {
           historyServerHostName : historyServerHostName,
-          tezDagId : tezDagInstanceId
+          tezDagId : tezDagInstanceId,
+          ahsWebPort: ahsWebPort
         },
         success : 'loadTezDagSuccess',
         error : 'loadTezDagError'
@@ -151,7 +157,9 @@ module.exports = {
    *          successCallback
    */
   refreshTezDagVertex : function(tezDagId, tezVertexInstanceId, successCallback) {
-    var historyServerHostName = App.YARNService.find().objectAt(0).get('resourceManagerNode.hostName');
+    var yarnService = App.YARNService.find().objectAt(0);
+    var ahsWebPort = yarnService.get('ahsWebPort');
+    var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
     var sender = {
       loadTezDagVertexSuccess : function(data) {
         if (data && data.otherinfo) {
@@ -185,7 +193,8 @@ module.exports = {
       sender : sender,
       data : {
         historyServerHostName : historyServerHostName,
-        tezDagVertexId : tezVertexInstanceId
+        tezDagVertexId : tezVertexInstanceId,
+        ahsWebPort: ahsWebPort
       },
       success : 'loadTezDagVertexSuccess',
       error : 'loadTezDagVertexError'
