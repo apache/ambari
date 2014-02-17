@@ -637,6 +637,9 @@
         },
         "pig-log4j": {
             "property1": "value1"
+        },
+        "oozie-log4j": {
+            "property1": "value1"
         }
     }, 
     "configurationTags": {
