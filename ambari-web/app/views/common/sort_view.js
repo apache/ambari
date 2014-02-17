@@ -29,6 +29,8 @@ var App = require('app');
 var wrapperView = Em.View.extend({
   tagName: 'tr',
 
+  classNames: ['sort-wrapper'],
+
   /**
    * Load sort statuses from local storage
    * Works only after finish filtering in the parent View

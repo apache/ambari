@@ -25,6 +25,15 @@ App.MainHiveJobDetailsView = Em.View.extend({
 
   selectedVertex : null,
   content : null,
+
+  showQuery : false,
+  toggleShowQuery : function () {
+    this.toggleProperty('showQuery');
+  },
+  toggleShowQueryText : function () {
+    return this.get('showQuery') ? Em.I18n.t('jobs.hive.less') : Em.I18n.t('jobs.hive.more');
+  }.property('showQuery'),
+
   summaryMetricType: 'input',
   summaryMetricTypesDisplay : [ Em.I18n.t('jobs.hive.tez.metric.input'), Em.I18n.t('jobs.hive.tez.metric.output'), Em.I18n.t('jobs.hive.tez.metric.recordsRead'),
                                 Em.I18n.t('jobs.hive.tez.metric.recordsWrite'), Em.I18n.t('jobs.hive.tez.metric.tezTasks') ],

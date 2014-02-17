@@ -17,13 +17,26 @@
 }}
 
 <div id="hive-job-details">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <a {{action "routeToJobs" target="controller"}} href="#">{{t menu.item.jobs}}</a> > {{view.content.name}}
-    <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
-  </div>
 
   {{#if controller.loaded}}
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <a {{action "routeToJobs" target="controller"}} href="#">{{t menu.item.jobs}}</a> > {{view.content.name}}
+      <a {{action "toggleShowQuery" target="view"}} href="#" id="toggle-query">{{view.toggleShowQueryText}}</a>
+      <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
+      <div {{bindAttr class="view.showQuery::hidden"}}>
+        <div class="query-section"><span class="query-title">{{t jobs.hive.query}}</span> {{view.content.queryText}}</div>
+        <div class="query-section">
+          <span class="query-title">{{t jobs.hive.stages}}</span>
+          <ol>
+            {{#each stage in view.content.stages}}
+              <li>{{stage.id}}{{stage.description}}.</li>
+            {{/each}}
+          </ol>
+        </div>
+      </div>
+    </div>
+
     <!-- Sections -->
     <div class="row-fluid">
       <div class="span12 sections">

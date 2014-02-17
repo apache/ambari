@@ -20,7 +20,7 @@ var App = require('app');
 App.HiveJob = App.AbstractJob.extend({
   jobType : App.JobType.HIVE,
   queryText : DS.attr('string'),
-  stages : DS.hasMany('string'),
+  stages : DS.attr('array'),
   tezDag : DS.belongsTo('App.TezDag')
 });
 

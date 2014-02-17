@@ -38,6 +38,15 @@ App.hiveJobMapper = App.QuickDataMapper.create({
   model : App.HiveJob,
   map : function(json) {
     var model = this.get('model');
+    var sortById = function (a, b) {
+      if (a.id > b.id) {
+        return 1;
+      } else if (a.id < b.id) {
+        return -1;
+      } else {
+        return 0;
+      };
+    };
     if (!model) {
       return;
     }
@@ -51,8 +60,14 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       hiveJob.stages = [];
       var stagePlans = json.otherinfo.query.queryPlan["STAGE PLANS"];
       for ( var stage in stagePlans) {
-        hiveJob.stages.push(stage);
         var stageValue = stagePlans[stage];
+        var stageItem = {};
+        stageItem.id = stage;
+        stageItem.description = '. ';
+        for (var item in stageValue) {
+          stageItem.description += item;
+        };
+        hiveJob.stages.push(stageItem);
         if (stageValue.Tez != null && hiveJob.tezDag == null) {
           var dagName = stageValue.Tez.DagName;
           // Vertices
@@ -145,7 +160,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       var hiveJobRecord = App.HiveJob.find(hiveJob.id);
       if (hiveJobRecord != null) {
         hiveJobRecord.set('queryText', hiveJob.queryText);
-        hiveJobRecord.set('stages', hiveJob.stages);
+        hiveJobRecord.set('stages', hiveJob.stages.sort(sortById));
         hiveJobRecord.set('startTime', hiveJob.startTime);
         hiveJobRecord.set('endTime', hiveJob.endTime);
         hiveJobRecord.set('tezDag', App.TezDag.find(hiveJob.tezDag));
