@@ -74,7 +74,7 @@ var wrapperView = Ember.View.extend({
       return;
     }
     // get the sort view element in the same column to current filter view to highlight them together
-    var relatedSort = $('.sort-view-' + this.get('column'));
+    var relatedSort = $(this.get('element')).parents('thead').find('.sort-view-' + this.get('column'));
     if(this.isEmpty()){
       this.get('parentNode').removeClass('active-filter');
       this.get('parentNode').addClass('notActive');

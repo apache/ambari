@@ -41,11 +41,13 @@ App.MainDatasetsView = App.TableView.extend({
 
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
+    column: '1',
     name: 'name',
     displayName: Em.I18n.t('common.name')
   }),
 
   statusSort: sort.fieldView.extend({
+    column: '2',
     name: 'status',
     displayName: Em.I18n.t('mirroring.table.datasetStatus')
   }),

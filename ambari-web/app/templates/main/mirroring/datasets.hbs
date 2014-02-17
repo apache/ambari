@@ -46,13 +46,13 @@
       <table class="table table-bordered">
         <thead>
         <tr>
-          {{#view view.sortView contentBinding="view.filteredContent"}}
+          {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
           <th class="first"></th>
           {{view view.parentView.nameSort}}
           {{view view.parentView.statusSort}}
           {{/view}}
         </tr>
-        <tr>
+        <tr class="filter-row">
           <th class="first"></th>
           <th>{{view view.nameFilterView}}</th>
           <th>{{view view.statusFilterView}}</th>

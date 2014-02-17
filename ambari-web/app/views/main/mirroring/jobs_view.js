@@ -32,16 +32,19 @@ App.MainDatasetJobsView = App.TableView.extend({
 
   sortView: sort.wrapperView,
   idSort: sort.fieldView.extend({
+    column: 1,
     name: 'name',
     displayName: Em.I18n.t('mirroring.table.jobId'),
     type: 'string'
   }),
   startSort: sort.fieldView.extend({
+    column: 2,
     name: 'startDate',
     displayName: Em.I18n.t('mirroring.table.start'),
     type: 'number'
   }),
   endSort: sort.fieldView.extend({
+    column: 3,
     name: 'endDate',
     displayName: Em.I18n.t('mirroring.table.end'),
     type: 'number'
