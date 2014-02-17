@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<a href="#/main/services/{{unbound view.content.id}}/summary">
+<a {{bindAttr href="view.link"}}>
   {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
   <span>{{unbound view.content.displayName}}</span>
   {{#if view.alertsCount}}
