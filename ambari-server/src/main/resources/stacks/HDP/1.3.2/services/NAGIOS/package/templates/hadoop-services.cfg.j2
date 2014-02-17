@@ -124,7 +124,6 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
-{% endif %}
 
 {% if hostgroup_defs['namenode'] %}
 {% for hostname in hostgroup_defs['namenode'] %}
@@ -201,6 +200,7 @@ define service {
 {% endfor %}
 {% endif %}
 
+{% endif %}
 
 {% if hostgroup_defs['snamenode'] %}
 # Secondary namenode checks
