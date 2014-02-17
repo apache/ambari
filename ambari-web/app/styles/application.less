@@ -2682,6 +2682,16 @@ table.graphs {
 #hosts {
 
   .bulk-menu {
+
+    .dropdown-submenu {
+      &> a:after {
+        border-left-color: #333;
+      }
+      &> a.disabled:after {
+        border-left-color: #ccc;
+      }
+    }
+
     a {
       &.disabled {
         color: gray;
