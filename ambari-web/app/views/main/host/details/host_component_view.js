@@ -128,6 +128,21 @@ App.HostComponentView = Em.View.extend({
    * @type {String}
    */
   statusClass: function () {
+    //Class when install failed
+    if (this.get('workStatus') === App.HostComponentStatus.install_failed) {
+      return 'health-status-color-red icon-cog';
+    }
+
+    //Class when installing
+    if (this.get('workStatus') === App.HostComponentStatus.installing) {
+      return 'health-status-color-blue icon-cog';
+    }
+
+    //Class when maintenance
+    if (this.get('content.passiveState') != "ACTIVE") {
+      return 'icon-medkit';
+    }
+
     //If the component is DataNode
     if (this.get('isDataNode')) {
       if (this.get('isDataNodeRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
@@ -154,21 +169,6 @@ App.HostComponentView = Em.View.extend({
       if (this.get('isRegionServerRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
         return 'health-status-DEAD-ORANGE';
       }
-    }
-
-    //Class when install failed
-    if (this.get('workStatus') === App.HostComponentStatus.install_failed) {
-      return 'health-status-color-red icon-cog';
-    }
-
-    //Class when installing
-    if (this.get('workStatus') === App.HostComponentStatus.installing) {
-      return 'health-status-color-blue icon-cog';
-    }
-
-    //Class when maintenance
-    if (this.get('content.passiveState') != "ACTIVE") {
-      return 'icon-medkit';
     }
 
     //For all other cases
