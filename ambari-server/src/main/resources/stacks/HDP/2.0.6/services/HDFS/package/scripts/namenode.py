@@ -27,14 +27,14 @@ class NameNode(Script):
 
     self.install_packages(env)
     env.set_params(params)
-    #TODO remove when config action will be implemented
-    self.config(env)
+    #TODO we need this for HA because of manual steps
+    self.configure(env)
 
   def start(self, env):
     import params
 
     env.set_params(params)
-    self.config(env)
+    self.configure(env)
     namenode(action="start")
 
   def stop(self, env):
@@ -43,7 +43,7 @@ class NameNode(Script):
     env.set_params(params)
     namenode(action="stop")
 
-  def config(self, env):
+  def configure(self, env):
     import params
 
     env.set_params(params)
