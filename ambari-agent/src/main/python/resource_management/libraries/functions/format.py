@@ -66,7 +66,7 @@ class ConfigurationFormatter(Formatter):
   
   def _convert_field(self, value, conversion, is_protected):
     if conversion == 'e':
-      return pipes.quote(value)
+      return pipes.quote(str(value))
     elif conversion == 'h':
       return "[PROTECTED]" if is_protected else value
     elif conversion == 'p':
