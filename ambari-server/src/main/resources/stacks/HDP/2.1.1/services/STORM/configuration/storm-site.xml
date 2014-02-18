@@ -118,7 +118,7 @@
   </property>
   <property>
     <name>nimbus.childopts</name>
-    <value></value>
+    <value>-Xmx1024m</value>
     <description></description>
   </property>
   <property>
@@ -264,7 +264,7 @@
   </property>
   <property>
     <name>supervisor.childopts</name>
-    <value></value>
+    <value>-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=56431</value>
     <description></description>
   </property>
   <property>
@@ -299,7 +299,7 @@
   </property>
   <property>
     <name>worker.childopts</name>
-    <value></value>
+    <value>-Xmx768m</value>
     <description></description>
   </property>
   <property>

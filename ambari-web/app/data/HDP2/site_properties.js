@@ -1027,7 +1027,7 @@ module.exports =
       "name": "nimbus.childopts",
       "displayName": "nimbus.childopts",
       "description": "This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.",
-      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM -Xmx1024m",
+      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM",
       "isReconfigurable": true,
       "isOverridable": false,
       "isVisible": false,
@@ -1183,7 +1183,7 @@ module.exports =
       "category":"Supervisor",
       "displayName":"supervisor.childopts",
       "name":"supervisor.childopts",
-      "defaultValue":"-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM -Xmx256m",
+      "defaultValue":"-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM",
       "displayType":"string",
       "filename": "storm-site.xml"
     },
@@ -1411,7 +1411,7 @@ module.exports =
       "category": "Advanced",
       "displayName": "worker.childopts",
       "name": "worker.childopts",
-      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM -Xmx768m",
+      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM",
       "displayType": "string",
       "filename": "storm-site.xml"
     },
