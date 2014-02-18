@@ -23,6 +23,25 @@ App.MainHostSummaryView = Em.View.extend({
   templateName: require('templates/main/host/summary'),
 
   /**
+   * List of custom view for some host components
+   * @type {Em.Object}
+   * Format:
+   *  <code>
+   *    {
+   *      COMPONENT_NAME1: VIEW1,
+   *      COMPONENT_NAME2: VIEW2
+   *      ....
+   *    }
+   *  </code>
+   */
+  hostComponentViewMap: Em.Object.create({
+    'DATANODE': App.DataNodeComponentView,
+    'NODEMANAGER': App.NodeManagerComponentView,
+    'HBASE_REGIONSERVER': App.RegionServerComponentView,
+    'TASKTRACKER': App.TaskTrackerComponentView
+  }),
+
+  /**
    * @type {bool}
    */
   isStopCommand:true,
@@ -107,6 +126,7 @@ App.MainHostSummaryView = Em.View.extend({
   sortedComponentsFormatter: function() {
     var updatebleProperties = Em.A(['workStatus', 'passiveState', 'staleConfigs', 'haStatus']);
     var self = this;
+    var hostComponentViewMap = this.get('hostComponentViewMap');
     // Remove deleted components
     this.get('sortedComponents').forEach(function(sortedComponent, index) {
       if (!self.get('content.hostComponents').findProperty('id', sortedComponent.get('id'))) {
@@ -125,6 +145,7 @@ App.MainHostSummaryView = Em.View.extend({
         }
         else {
           // Add new component
+          component.set('view', hostComponentViewMap[component.get('componentName')] ? hostComponentViewMap[component.get('componentName')] : App.HostComponentView);
           if (component.get('isMaster')) {
             // Masters should be before slaves
             var lastMasterIndex = 0, atLeastOneMasterExists = false;

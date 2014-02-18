@@ -32,7 +32,7 @@
     {{component.displayName}}
   {{/if}}
   &nbsp;/&nbsp;
-  <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
+  <a href="#" {{action routeToService component.service target="controller"}}>{{component.service.displayName}}</a>
   &nbsp;
   {{#if component.staleConfigs}}
     <i class="text-warning icon-refresh"></i>
@@ -46,69 +46,19 @@
         <span class="caret pull-right"></span>
       </a>
       <ul class="dropdown-menu">
-        {{#if view.isDataNode}}
-          {{#if view.isDataNodeDecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                {{t common.decommission}}
-              </a>
-            </li>
-          {{/if}}
-          {{#if view.isDataNodeRecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                {{t common.recommission}}
-              </a>
-            </li>
-          {{/if}}
+        {{#if view.isComponentDecommissionAvailable}}
+          <li {{bindAttr class="view.noActionAvailable"}}>
+            <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
+              {{t common.decommission}}
+            </a>
+          </li>
         {{/if}}
-        {{#if view.isNodeManager}}
-          {{#if view.isNodeManagerDecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                {{t common.decommission}}
-              </a>
-            </li>
-          {{/if}}
-          {{#if view.isNodeManagerRecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                {{t common.recommission}}
-              </a>
-            </li>
-          {{/if}}
-        {{/if}}
-        {{#if view.isTaskTracker}}
-          {{#if view.isTaskTrackerDecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                {{t common.decommission}}
-              </a>
-            </li>
-          {{/if}}
-          {{#if view.isTaskTrackerRecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                {{t common.recommission}}
-              </a>
-            </li>
-          {{/if}}
-        {{/if}}
-        {{#if view.isRegionServer}}
-          {{#if view.isRegionServerDecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-                {{t common.decommission}}
-              </a>
-            </li>
-          {{/if}}
-          {{#if view.isRegionServerRecommissionAvailable}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-                {{t common.recommission}}
-              </a>
-            </li>
-          {{/if}}
+        {{#if view.isComponentRecommissionAvailable}}
+          <li {{bindAttr class="view.noActionAvailable"}}>
+            <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
+              {{t common.recommission}}
+            </a>
+          </li>
         {{/if}}
         {{#if view.isDeletableComponent}}
           <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
@@ -126,56 +76,49 @@
         {{/if}}
         {{#unless view.isInstalling}}
           {{#if view.isStart}}
-            <li {{bindAttr class=" view.isDecommissioning:hidden view.noActionAvailable"}}>
-              <a href="javascript:void(null)"
-                 data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
+            <li {{bindAttr class="view.isComponentDecommissioning:hidden view.noActionAvailable"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
                 {{t common.stop}}
               </a>
             </li>
           {{/if}}
           {{#unless view.isStart}}
             <li {{bindAttr class="view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable"}}>
-              <a href="javascript:void(null)"
-                 data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
                 {{t common.start}}
               </a>
             </li>
           {{/unless}}
           {{#if view.isUpgradeFailed}}
             <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)"
-                 data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
                 {{t common.reUpgrade}}
               </a>
             </li>
           {{/if}}
           {{#if view.isInstallFailed}}
             <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)"
-                 data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
                 {{t common.reinstall}}
               </a>
             </li>
           {{/if}}
           {{#if view.isReassignable}}
             <li {{bindAttr class="view.noActionAvailable"}}>
-              <a href="javascript:void(null)"
-                 data-toggle="modal" {{action "moveComponent" view.content target="controller"}}>
+              <a href="javascript:void(null)" data-toggle="modal" {{action "moveComponent" view.content target="controller"}}>
                 {{t common.move}}
               </a>
             </li>
           {{/if}}
           {{#if view.isActive}}
             <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}}
-                 data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
+              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
                 {{t passiveState.turnOn}}
               </a>
             </li>
           {{else}}
             <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}}
-                 data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
+              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
                 {{t passiveState.turnOff}}
               </a>
             </li>

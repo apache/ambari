@@ -348,23 +348,11 @@ var urls = {
   },
   'host.host_component.slave_desired_admin_state': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
-    'mock': '',
-    'type': 'GET'
+    'mock': ''
   },
-  'host.host_component.datanodes_decommission_status': {
-    'real': '/clusters/{clusterName}/services/HDFS/components/NAMENODE/?fields=ServiceComponentInfo',
-    'mock': '',
-    'type': 'GET'
-  },
-  'host.host_component.nodemanager_decommission_status': {
-    'real': '/clusters/{clusterName}/services/YARN/components/RESOURCEMANAGER/?fields=ServiceComponentInfo',
-    'mock': '',
-    'type': 'GET'
-  },
-  'host.host_component.tasktracker_decommission_status': {
-    'real': '/clusters/{clusterName}/services/MAPREDUCE/components/JOBTRACKER/?fields=ServiceComponentInfo',
-    'mock': '',
-    'type': 'GET'
+  'host.host_component.decommission_status': {
+    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo',
+    'mock': ''
   },
   'host.host_component.decommission_slave': {
     'real' : '/clusters/{clusterName}/requests',
@@ -1683,7 +1671,7 @@ var ajax = Em.Object.extend({
    * Send ajax request
    *
    * @param {Object} config
-   * @return Object jquery ajax object
+   * @return {$.ajax} jquery ajax object
    *
    * config fields:
    *  name - url-key in the urls-object *required*

@@ -36,14 +36,19 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({passiveState: 'PASSIVE'}),
+        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'PASSIVE'}),
         m: 'PASSIVE state',
         e: Em.I18n.t('hosts.component.passive.short.mode')
       },
       {
-        content: Em.Object.create({passiveState: 'IMPLIED'}),
+        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'IMPLIED'}),
         m: 'IMPLIED state',
         e: Em.I18n.t('hosts.component.passive.short.mode')
+      },
+      {
+        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'ACTIVE'}),
+        m: 'ACTIVE state',
+        e: 'status'
       }
     ]);
 
@@ -308,6 +313,135 @@ describe('App.HostComponentView', function() {
       it(test.workStatus, function() {
         hostComponentView.set('content', {workStatus: test.workStatus});
         expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#componentTextStatus', function() {
+
+    var tests = Em.A([
+      {
+        content: Em.Object.create({componentTextStatus: 'status'}),
+        hostComponent: null,
+        e: 'status',
+        m: 'get content status'
+      },
+      {
+        content: Em.Object.create({componentTextStatus: 'status'}),
+        hostComponent: Em.Object.create({componentTextStatus: 'new_status'}),
+        e: 'new_status',
+        m: 'get hostComponent status'
+      }
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        hostComponentView = App.HostComponentView.create({
+          startBlinking: function(){},
+          doBlinking: function(){},
+          getDesiredAdminState: function(){return $.ajax({});},
+          content: test.content,
+          hostComponent: test.hostComponent
+        });
+        expect(hostComponentView.get('componentTextStatus')).to.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#workStatus', function() {
+
+    var tests = Em.A([
+      {
+        content: Em.Object.create({workStatus: 'status'}),
+        hostComponent: null,
+        e: 'status',
+        m: 'get content workStatus'
+      },
+      {
+        content: Em.Object.create({workStatus: 'status'}),
+        hostComponent: Em.Object.create({workStatus: 'new_status'}),
+        e: 'new_status',
+        m: 'get hostComponent workStatus'
+      }
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        hostComponentView = App.HostComponentView.create({
+          startBlinking: function(){},
+          doBlinking: function(){},
+          getDesiredAdminState: function(){return $.ajax({});},
+          content: test.content,
+          hostComponent: test.hostComponent
+        });
+        expect(hostComponentView.get('workStatus')).to.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#statusClass', function() {
+
+    var tests = Em.A([
+      {
+        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'ACTIVE'}),
+        e: 'health-status-color-red icon-cog'
+      },
+      {
+        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'ACTIVE'}),
+        e: 'health-status-color-blue icon-cog'
+      },
+      {
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'PASSIVE'}),
+        e: 'icon-medkit'
+      },
+      {
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'IMPLIED'}),
+        e: 'icon-medkit'
+      },
+      {
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ACTIVE'}),
+        e: 'health-status-started'
+      }
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.content.get('workStatus') + ' ' + test.content.get('passiveState'), function() {
+        hostComponentView = App.HostComponentView.create({
+          startBlinking: function(){},
+          doBlinking: function(){},
+          getDesiredAdminState: function(){return $.ajax({});},
+          content: test.content
+        });
+        expect(hostComponentView.get('statusClass')).to.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#isInProgress', function() {
+
+    var tests = Em.A([
+      {
+        workStatus: App.HostComponentStatus.stopping,
+        e: true
+      },
+      {
+        workStatus: App.HostComponentStatus.starting,
+        e: true
+      },
+      {
+        workStatus: 'other_status',
+        e: false
+      }
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.workStatus, function() {
+        hostComponentView.set('content', Em.Object.create({workStatus: test.workStatus}));
+        expect(hostComponentView.get('isInProgress')).to.equal(test.e);
       });
     });
 
