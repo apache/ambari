@@ -247,11 +247,14 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         map.put("actual_status", NagiosAlert.getStatusString(alert.getStatus()));
         
         String longOut = alert.getLongPluginOutput();
-        if (null != longOut && longOut.startsWith(PASSIVE_TOKEN)) {
+        int index = (null == longOut) ? -1 : longOut.indexOf(PASSIVE_TOKEN);
+        if (-1 != index) {
           int actualStatus = 3;
           try {
             int len = PASSIVE_TOKEN.length();
-            actualStatus = Integer.parseInt(longOut.substring(len, len+1));
+            
+            actualStatus = Integer.parseInt(longOut.substring(
+                index + len, index + len+1));
           } catch (Exception e) {
             // do nothing
           }

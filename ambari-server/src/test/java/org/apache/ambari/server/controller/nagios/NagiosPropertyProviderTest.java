@@ -151,7 +151,6 @@ public class NagiosPropertyProviderTest {
   @Test
   public void testNagiosServiceAlerts() throws Exception {
 
-    
     TestStreamProvider streamProvider = new TestStreamProvider("nagios_alerts.txt");
 
     NagiosPropertyProvider npp = new NagiosPropertyProvider(Resource.Type.Service,
@@ -430,6 +429,58 @@ public class NagiosPropertyProviderTest {
     Assert.assertEquals(Integer.valueOf(0), summary.get("CRITICAL"));
     Assert.assertEquals(Integer.valueOf(1), summary.get("PASSIVE"));
   }
+  
+  @Test
+  public void testNagiosHostAlertsSubstringPassiveMarker() throws Exception {
+    
+    TestStreamProvider streamProvider = new TestStreamProvider("nagios_alerts.txt");
+
+    NagiosPropertyProvider npp = new NagiosPropertyProvider(Resource.Type.Host,
+        streamProvider,
+        "Hosts/cluster_name",
+        "Hosts/host_name");
+    npp.forceReset();
+    
+    Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty("Hosts/cluster_name", "c1");
+    resource.setProperty("Hosts/host_name", "c6404.ambari.apache.org");
+    
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), new HashMap<String, TemporalInfo>());
+
+    Set<Resource> set = npp.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, set.size());
+    
+    Resource res = set.iterator().next();
+    
+    Map<String, Map<String, Object>> values = res.getPropertiesMap();
+    
+    Assert.assertTrue(values.containsKey("alerts"));
+    Assert.assertTrue(values.containsKey("alerts/summary"));
+    Assert.assertTrue(values.get("alerts").containsKey("detail"));
+    Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
+    
+    List<?> list = (List<?>) values.get("alerts").get("detail");
+    Assert.assertEquals(Integer.valueOf(1), Integer.valueOf(list.size()));
+    for (Object o : list) {
+      Assert.assertTrue(Map.class.isInstance(o));
+      Map<?, ?> map = (Map<?, ?>) o;
+      Assert.assertTrue(map.containsKey("host_name"));
+      String host = map.get("host_name").toString();
+      Assert.assertEquals("c6404.ambari.apache.org", host);
+    }
+    
+    Map<String, Object> summary = values.get("alerts/summary");
+    Assert.assertTrue(summary.containsKey("OK"));
+    Assert.assertTrue(summary.containsKey("WARNING"));
+    Assert.assertTrue(summary.containsKey("CRITICAL"));
+    Assert.assertTrue(summary.containsKey("PASSIVE"));
+    
+    Assert.assertEquals(Integer.valueOf(0), summary.get("OK"));
+    Assert.assertEquals(Integer.valueOf(0), summary.get("WARNING"));
+    Assert.assertEquals(Integer.valueOf(0), summary.get("CRITICAL"));
+    Assert.assertEquals(Integer.valueOf(1), summary.get("PASSIVE"));
+  }   
   
   private static class GuiceModule implements Module {
 

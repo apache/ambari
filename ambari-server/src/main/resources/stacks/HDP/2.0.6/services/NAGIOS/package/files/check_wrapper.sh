@@ -2,7 +2,15 @@
 
 function real_service() {
   desc=$NAGIOS_SERVICEGROUPNAME
-  eval "$1='$NAGIOS_SERVICEGROUPNAME'"
+  case "$desc" in
+    HIVE-METASTORE)
+      desc="HIVE"
+    ;;
+    *)
+    ;;
+  esac
+
+  eval "$1='$desc'"
 }
 
 function real_component() {
@@ -19,6 +27,18 @@ function real_component() {
     ;;
     JOBHISTORY)
       realCompName="MAPREDUCE2"
+    ;;
+    HIVE-METASTORE)
+      realCompName="HIVE_METASTORE"
+    ;;
+    FLUME)
+      realCompName="FLUME_SERVER"
+    ;;
+    HUE)
+      realCompName="HUE_SERVER"
+    ;;
+    WEBHCAT)
+      realCompName="WEBHCAT_SERVER"
     ;;
     *)
       realCompName=$compName
@@ -49,7 +69,7 @@ if [ ! -f /var/nagios/ignore.dat ]; then
 else
   count=`grep $NAGIOS_HOSTNAME /var/nagios/ignore.dat | grep $real_service_var | grep $real_comp_var | wc -l`
   if [ "$count" -ne "0" ]; then
-    echo "$wrapper_output\nAMBARIPASSIVE=${wrapper_result}"
+    echo "$wrapper_output\nAMBARIPASSIVE=${wrapper_result}" | sed 's/^[ \t]*//g'
     exit 0
   else
     echo "$wrapper_output"

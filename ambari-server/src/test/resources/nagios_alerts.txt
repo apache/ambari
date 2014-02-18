@@ -576,10 +576,27 @@
             "is_flapping": "0",
             "last_check": "1389288671",
             "service_type": "ZOOKEEPER"
+        },
+        {
+          "service_description" : "Hive Metastore status",
+          "host_name" : "c6404.ambari.apache.org",
+          "current_attempt" : "1",
+          "current_state" : "0",
+          "plugin_output" : "CRITICAL: Error accessing Hive Metastore status [Exception in thread &quot;main&quot; java.lang.RuntimeException: java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.metastore.HiveMetaStoreClient",
+          "last_hard_state_change" : "1392736649",
+          "last_hard_state" : "0",
+          "last_time_ok" : "1392736799",
+          "last_time_warning" : "0",
+          "last_time_unknown" : "0",
+          "last_time_critical" : "1392736619",
+          "is_flapping" : "0",
+          "last_check" : "1392736799",
+          "long_plugin_output" : "at org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:319)\\nat org.apache.hive.hcatalog.cli.HCatCli.main(HCatCli.java:138)\\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\\nat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\\nat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\\nat java.lang.reflect.Method.invoke(Method.java:597)\\nat org.apache.hadoop.util.RunJar.main(RunJar.java:212)\\nCaused by: java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.metastore.HiveMetaStoreClient\\nat org.apache.hadoop.hive.metastore.MetaStoreUtils.newInstance(MetaStoreUtils.java:1345)\\nat org.apache.hadoop.hive.metastore.RetryingMetaStoreClient.&lt;init&gt;(RetryingMetaStoreClient.java:62)\\nat org.apache.hadoop.hive.metastore.RetryingMetaStoreClient.getProxy(RetryingMetaStoreClient.java:72)\\nat org.apache.hadoop.hive.ql.metadata.Hive.createMetaStoreClient(Hive.java:2434)\\nat org.apache.hadoop.hive.ql.metadata.Hive.getMSC(Hive.java:2446)\\nat org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:313)\\n... 6 more\\nCaused by: java.lang.reflect.InvocationTargetException\\nat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\\nat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:39)\\nat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)\\nat java.lang.reflect.Constructor.newInstance(Constructor.java:513)\\nat org.apache.hadoop.hive.metastore.MetaStoreUtils.newInstance(MetaStoreUtils.java:1343)\\n... 11 more\\nCaused by: MetaException(message:Could not connect to meta store using any of the URIs provided. Most recent failure: org.apache.thrift.transport.TTransportException: java.net.ConnectException: Connection refused\\nat org.apache.thrift.transport.TSocket.open(TSocket.java:185)\\nat org.apache.hadoop.hive.metastore.HiveMetaStoreClient.open(HiveMetaStoreClient.java:300)\\nat org.apache.hadoop.hive.metastore.HiveMetaStoreClient.&lt;init&gt;(HiveMetaStoreClient.java:181)\\nat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\\nat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:39)\\nat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)\\nat java.lang.reflect.Constructor.newInstance(Constructor.java:513)\\nat org.apache.hadoop.hive.metastore.MetaStoreUtils.newInstance(MetaStoreUtils.java:1343)\\nat org.apache.hadoop.hive.metastore.RetryingMetaStoreClient.&lt;init&gt;(RetryingMetaStoreClient.java:62)\\nat org.apache.hadoop.hive.metastore.RetryingMetaStoreClient.getProxy(RetryingMetaStoreClient.java:72)\\nat org.apache.hadoop.hive.ql.metadata.Hive.createMetaStoreClient(Hive.java:2434)\\nat org.apache.hadoop.hive.ql.metadata.Hive.getMSC(Hive.java:2446)\\nat org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:313)\\nat org.apache.hive.hcatalog.cli.HCatCli.main(HCatCli.java:138)\\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\\nat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\\nat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\\nat java.lang.reflect.Method.invoke(Method.java:597)\\nat org.apache.hadoop.util.RunJar.main(RunJar.java:212)\\nCaused by: java.net.ConnectException: Connection refused\\nat java.net.PlainSocketImpl.socketConnect(Native Method)\\nat java.net.PlainSocketImpl.doConnect(PlainSocketImpl.java:351)\\nat java.net.PlainSocketImpl.connectToAddress(PlainSocketImpl.java:213)\\nat java.net.PlainSocketImpl.connect(PlainSocketImpl.java:200)\\nat java.net.SocksSocketImpl.connect(SocksSocketImpl.java:366)\\nat java.net.Socket.connect(Socket.java:529)\\nat org.apache.thrift.transport.TSocket.open(TSocket.java:180)\\n... 18 more\\n)\\nat org.apache.hadoop.hive.metastore.HiveMetaStoreClient.open(HiveMetaStoreClient.java:346)\\nat org.apache.hadoop.hive.metastore.HiveMetaStoreClient.&lt;init&gt;(HiveMetaStoreClient.java:181)\\n... 16 more]\\nAMBARIPASSIVE=2\\n",
+          "service_type" : "HIVE"
         }
     ],
     "hostcounts": {
-        "up_hosts": "3",
+        "up_hosts": "4",
         "down_hosts": "0"
     },
     "servicestates": {
