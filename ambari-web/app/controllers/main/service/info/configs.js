@@ -59,23 +59,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   }.property('App.isHadoop2Stack'),
 
   /**
-   * During page load time, we get the host overrides from the server.
-   * The current host -> site:tag map is stored below. This will be
-   * useful during save, so that removals can also be determined.
-   *
-   * Example:
-   * {
-   *  'hostname1':{
-   *    'global': 'version1',
-   *    'core-site': 'version1',
-   *    'hdfs-site', 'tag3187261938'
-   *  }
-   * }
-   *
-   * @see savedHostToOverrideSiteToTagMap
+   * Map, which contains relation between group and site
+   * to upload overriden properties
    */
   loadedGroupToOverrideSiteToTagMap: {},
-
   /**
    * During page load time the cluster level site to tag
    * mapping is stored here.
@@ -88,29 +75,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * }
    */
   loadedClusterSiteToTagMap: {},
-
-  /**
-   * During page save time, we set the host overrides to the server.
-   * The new host -> site:tag map is stored below. This will be
-   * useful during save, to update the host's host components. Also,
-   * it will be useful in deletion of overrides.
-   *
-   * Example:
-   * {
-   *  'hostname1': {
-   *    'global': {
-   *      'tagName': 'tag3187261938_hostname1',
-   *      'map': {
-   *        'hadoop_heapsize': '2048m'
-   *      }
-   *    }
-   *  }
-   * }
-   *
-   * @see loadedHostToOverrideSiteToTagMap
-   */
-  savedHostToOverrideSiteToTagMap: {},
-
   /**
    * Holds the actual base service-config server data uploaded.
    * This is used by the host-override mechanism to update host
@@ -158,7 +122,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.get('uiConfigs').clear();
     this.get('customConfig').clear();
     this.set('loadedGroupToOverrideSiteToTagMap', {});
-    this.set('savedHostToOverrideSiteToTagMap', {});
     this.set('savedSiteNameToServerServiceConfigDataMap', {});
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
@@ -402,8 +365,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.addHostNamesToGlobalConfig();
 
     var allConfigs = this.get('globalConfigs').concat(configs);
-    //STEP 9: Load and add host override configs
-    this.loadServiceConfigHostsOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'));
+    //STEP 9: Load and add overriden configs of group
+    App.config.loadServiceConfigGroupOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'));
     var restartData = this.loadActualConfigsAndCalculateRestarts();
     //STEP 10: creation of serviceConfig object which contains configs for current service
     var serviceConfig = App.config.createServiceConfig(serviceName);
@@ -425,10 +388,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('isInit', false);
 
   }.observes('selectedConfigGroup'),
-
-  loadServiceConfigHostsOverrides: function (allConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
-    App.config.loadServiceConfigHostsOverrides(allConfigs, loadedGroupToOverrideSiteToTagMap, configGroups);
-  },
 
   /**
    * Changes format from Object to Array
@@ -1404,85 +1363,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return result;
   },
 
-
-  /**
-   * Creates host level overrides for service configuration.
-   *
-   */
-  doPUTHostOverridesConfigurationSites: function () {
-    var singlePUTHostData = [];
-    var savedHostSiteArray = [];
-    for (var host in this.savedHostToOverrideSiteToTagMap) {
-      for (var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
-        var tagName = this.savedHostToOverrideSiteToTagMap[host][siteName].tagName;
-        var map = this.savedHostToOverrideSiteToTagMap[host][siteName].map;
-        savedHostSiteArray.push(host + "///" + siteName);
-        singlePUTHostData.push({
-          RequestInfo: {
-            query: 'Hosts/host_name=' + host
-          },
-          Body: {
-            Hosts: {
-              desired_config: {
-                type: siteName,
-                tag: tagName,
-                properties: map
-              }
-            }
-          }
-        });
-      }
-    }
-    // Now cleanup removed overrides
-    for (var loadedHost in this.loadedGroupToOverrideSiteToTagMap) {
-      for (var loadedSiteName in this.loadedGroupToOverrideSiteToTagMap[loadedHost]) {
-        if (!(savedHostSiteArray.contains(loadedHost + "///" + loadedSiteName))) {
-          // This host-site combination was loaded, but not saved.
-          // Meaning it is not needed anymore. Hence send a DELETE command.
-          singlePUTHostData.push({
-            RequestInfo: {
-              query: 'Hosts/host_name=' + loadedHost
-            },
-            Body: {
-              Hosts: {
-                desired_config: {
-                  type: loadedSiteName,
-                  tag: this.loadedGroupToOverrideSiteToTagMap[loadedHost][loadedSiteName],
-                  selected: false
-                }
-              }
-            }
-          });
-        }
-      }
-    }
-    console.debug("createHostOverrideConfigSites(): PUTting host-overrides. Data=", singlePUTHostData);
-    if (singlePUTHostData.length > 0) {
-      var url = this.getUrl('', '/hosts');
-      var hostOverrideResult = true;
-      $.ajax({
-        type: 'PUT',
-        url: url,
-        data: JSON.stringify(singlePUTHostData),
-        async: false,
-        dataType: 'text',
-        timeout: 5000,
-        success: function (data) {
-          var jsonData = jQuery.parseJSON(data);
-          hostOverrideResult = true;
-          console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:", jsonData);
-        },
-        error: function (request, ajaxOptions, error) {
-          hostOverrideResult = false;
-          console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:", request.responseText);
-        },
-        statusCode: require('data/statusCodes')
-      });
-      return hostOverrideResult;
-    }
-    return true;
-  },
-
   /**
    * add newTagName property to each config in serviceConfigs
    * @param serviceConfigs
@@ -1519,52 +1399,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return {"type": "global", "tag": tagName, "properties": globalSiteProperties};
   },
 
-  recordHostOverride: function (serviceConfigObj, siteName, tagName, self) {
-    var overrides = null;
-    var name = '';
-    if ('get' in serviceConfigObj) {
-      overrides = serviceConfigObj.get('overrides');
-      name = serviceConfigObj.get('name');
-    } else {
-      overrides = serviceConfigObj.overrides;
-      name = serviceConfigObj.name;
-    }
-    if(overrides){
-      if('get' in overrides) {
-        overrides.forEach(function (override) {
-          override.get('selectedHostOptions').forEach(function (host) {
-            var value = override.get('value');
-            self._recordHostOverride(value, host, name, siteName, tagName, self);
-          });
-        });
-      } else {
-        for (var value in overrides) {
-          overrides[value].forEach(function (host) {
-            self._recordHostOverride(value, host, name, siteName, tagName, self);
-          });
-        }
-      }
-    }
-  },
-
-  /**
-   * Records all the host overrides per site/tag
-   */
-
-  _recordHostOverride: function(value, host, serviceConfigObjName, siteName, tagName, self) {
-    if (!(host in self.savedHostToOverrideSiteToTagMap)) {
-      self.savedHostToOverrideSiteToTagMap[host] = {};
-    }
-    if (!(siteName in self.savedHostToOverrideSiteToTagMap[host])) {
-      self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
-      self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
-    }
-    var finalTag = tagName + '_' + host;
-    console.log("recordHostOverride(): Saving host override for host=" + host + ", site=" + siteName + ", tag=" + finalTag + ", (key,value)=(" + serviceConfigObjName + "," + value + ")");
-    self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
-    self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObjName] = value;
-  },
-
   /**
    * create core site object
    * @param tagName
@@ -1595,37 +1429,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
-
-  /**
-   * Set display names of the property from the puppet/global names
-   * @param {Array} displayNames a field to be set with displayNames
-   * @param {Array} names array of property puppet/global names
-   */
-  setPropertyDisplayNames: function (displayNames, names) {
-    var stepConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).configs;
-    names.forEach(function (_name, index) {
-      if (stepConfigs.someProperty('name', _name)) {
-        displayNames.push(stepConfigs.findProperty('name', _name).displayName);
-      }
-    }, this);
-  },
-
-  /**
-   * Set property of the site variable
-   */
-  setSiteProperty: function (key, value, filename) {
-    if (filename === 'core-site.xml' && this.get('uiConfigs').filterProperty('filename', 'core-site.xml').someProperty('name', key)) {
-      this.get('uiConfigs').filterProperty('filename', 'core-site.xml').findProperty('name', key).value = value;
-      return;
-    }
-    this.get('uiConfigs').pushObject({
-      "id": "site property",
-      "name": key,
-      "value": value,
-      "filename": filename
-    });
-  },
-
   /**
    * return either specific url for request if testMode is false or testUrl
    * @param testUrl

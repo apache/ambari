@@ -79,7 +79,7 @@ App.db.cleanUp = function () {
 
 App.db.updateStorage = function() {
   App.db.data = localStorage.getObject('ambari');
-  if (App.db.data && App.db.data.app && App.db.data.app.tables) {
+  if (App.db.data && App.db.data.app && App.db.data.app.tables && App.db.data.app.configs) {
     return true;
   }
   console.warn("local storage is deprecated!");

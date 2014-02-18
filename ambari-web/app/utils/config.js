@@ -21,7 +21,6 @@ var stringUtils = require('utils/string_utils');
 
 var serviceComponents = {};
 var configGroupsByTag = [];
-var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
   /**
@@ -743,54 +742,10 @@ App.config = Em.Object.create({
   },
 
   /**
-   * Determine the map which shows which services
-   * each global property effects.
-   *
-   * @return {*}
-   * Example:
-   * {
-   *  'hive_pid_dir': ['HIVE'],
-   *  ...
-   * }
+   * Get properties from server by type and tag with properties, that belong to group
+   * push them to common {serviceConfigs}
    */
-  loadGlobalPropertyToServicesMap: function () {
-    if (globalPropertyToServicesMap == null) {
-      App.ajax.send({
-        name: 'config.advanced.global',
-        sender: this,
-        data: {
-          stack2VersionUrl: App.get('stack2VersionURL')
-        },
-        success: 'loadGlobalPropertyToServicesMapSuccess'
-      });
-    }
-    return globalPropertyToServicesMap;
-  },
-
-  loadGlobalPropertyToServicesMapSuccess: function (data) {
-    globalPropertyToServicesMap = {};
-    if (data.items != null) {
-      data.items.forEach(function (service) {
-        service.configurations.forEach(function (config) {
-          if ("global.xml" === config.StackConfigurations.type) {
-            if (!(config.StackConfigurations.property_name in globalPropertyToServicesMap)) {
-              globalPropertyToServicesMap[config.StackConfigurations.property_name] = [];
-            }
-            globalPropertyToServicesMap[config.StackConfigurations.property_name].push(service.StackServices.service_name);
-          }
-        });
-      });
-    }
-  },
-
-  /**
-   * Hosts can override service configurations per property. This method GETs
-   * the overriden configurations and sets only the changed properties into
-   * the 'overrides' of serviceConfig.
-   *
-   *
-   */
-  loadServiceConfigHostsOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
+  loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
     var configKeyToConfigMap = {};
     serviceConfigs.forEach(function (item) {
       configKeyToConfigMap[item.name] = item;
@@ -815,12 +770,11 @@ App.config = Em.Object.create({
           configKeyToConfigMap: configKeyToConfigMap,
           typeTagToGroupMap: typeTagToGroupMap
         },
-        success: 'loadServiceConfigHostsOverridesSuccess'
+        success: 'loadServiceConfigGroupOverridesSuccess'
       });
     }
   },
-  loadServiceConfigHostsOverridesSuccess: function (data, opt, params) {
-    console.debug("loadServiceConfigHostsOverrides: Data=", data);
+  loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
     data.items.forEach(function (config) {
       App.config.loadedConfigurationsCache[config.type + "_" + config.tag] = config.properties;
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
@@ -851,12 +805,11 @@ App.config = Em.Object.create({
           if (!serviceConfig.overrides) {
            serviceConfig.set('overrides', []);
           }
-          console.log("loadServiceConfigHostsOverrides(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
+          console.log("loadServiceConfigGroupOverridesSuccess(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
           serviceConfig.overrides.push({value: hostOverrideValue, group: group});
         }
       }
     });
-    console.log("loadServiceConfigHostsOverrides(): Finished loading.");
   },
 
   /**

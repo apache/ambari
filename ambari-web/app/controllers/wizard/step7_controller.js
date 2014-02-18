@@ -193,7 +193,7 @@ App.WizardStep7Controller = Em.Controller.extend({
           }, this);
         }, this);
       }
-      App.config.loadServiceConfigHostsOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'));
+      App.config.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'));
       var serviceConfig = App.config.createServiceConfig(serviceName);
       if (serviceConfig.get('serviceName') === 'HDFS') {
         App.config.OnNnHAHideSnn(serviceConfig);
@@ -607,70 +607,6 @@ App.WizardStep7Controller = Em.Controller.extend({
   activateSpecialConfigs: function () {
     var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
     miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, this.get('selectedServiceNames'));
-  },
-
-  /**
-   * @param {String} siteProperty
-   * @param {Array} displayNames An array of display names
-   */
-  setDisplayMessage: function (siteProperty, displayNames) {
-    var displayMsg = null;
-    if (displayNames && displayNames.length) {
-      if (displayNames.length === 1) {
-        displayMsg = siteProperty + ' ' + Em.I18n.t('as') + ' ' + displayNames[0];
-      } else {
-        var name = null;
-        displayNames.forEach(function (_name, index) {
-          if (index === 0) {
-            name = _name;
-          } else if (index === displayNames.length - 1) {
-            name = name + ' ' + Em.I18n.t('and') + ' ' + _name;
-          } else {
-            name = name + ', ' + _name;
-          }
-        }, this);
-        displayMsg = siteProperty + ' ' + Em.I18n.t('as') + ' ' + name;
-      }
-    } else {
-      displayMsg = siteProperty;
-    }
-    return displayMsg;
-  },
-
-  /**
-   * Set display names of the property tfrom he puppet/global names
-   * @param {Array} displayNames a field to be set with displayNames
-   * @param {Array} names array of property puppet/global names
-   * @param {Array} configProperties array of config properties of the respective service to the name param
-   */
-  setPropertyDisplayNames: function (displayNames, names, configProperties) {
-    names.forEach(function (_name, index) {
-      if (configProperties.someProperty('name', _name)) {
-        displayNames.push(configProperties.findProperty('name', _name).displayName);
-      }
-    }, this);
-  },
-
-  /**
-   * Display Error Message with service name, its custom configuration name and displaynames on the page
-   * @param {Array} customConfig array with custom configuration, serviceName and displayNames relative to custom configuration
-   */
-  showCustomConfigErrMsg: function (customConfig) {
-
-    App.ModalPopup.show({
-      header: Em.I18n.t('installer.step7.ConfigErrMsg.header'),
-      primary: Em.I18n.t('ok'),
-      secondary: null,
-      bodyClass: Ember.View.extend({
-        message: Em.I18n.t('installer.step7.ConfigErrMsg.message'),
-        siteProperties: customConfig,
-        getDisplayMessage: function () {
-
-        }.property('customConfig.@each.siteProperties.@each.siteProperty'),
-        customConfig: customConfig,
-        templateName: require('templates/wizard/step7_custom_config_error')
-      })
-    });
   },
 
   submit: function () {
