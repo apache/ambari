@@ -58,7 +58,6 @@
                     <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
                   {{else}}
                     {{view App.SelectHostView
-                      contentBinding="availableHosts"
                       optionValuePath="content.host_name"
                       optionLabelPath="content.host_info"
                       selectedHostBinding="selectedHost"

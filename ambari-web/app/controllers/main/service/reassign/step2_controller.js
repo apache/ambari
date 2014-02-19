@@ -27,7 +27,8 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
     this._super();
     if(this.get('content.reassign.component_name') == "NAMENODE" && !this.get('content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE")){
       this.set('showCurrentHost', false);
-      this.rebalanceComponentHosts('NAMENODE');
+      this.set('componentToRebalance', 'NAMENODE');
+      this.incrementProperty('rebalanceComponentHostsCounter');
     }else{
       this.set('showCurrentHost', true);
       this.rebalanceSingleComponentHosts(this.get('content.reassign.component_name'));
@@ -51,7 +52,6 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
         selectedHost: master.hostName,
         isInstalled: true,
         serviceId: App.HostComponent.find().findProperty('componentName', master.component).get('serviceName'),
-        availableHosts: [],
         isHiveCoHost: ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(master.component),
         color: color
       });
@@ -77,7 +77,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       if (item.get('selectedHost') == this.get('currentHostId') && item.get('component_name') == this.get('content.reassign.component_name')) {
         item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
       }
-      preparedAvailableHosts.sort(this.sortHostsByName, this);
+      preparedAvailableHosts.sortBy('host_name');
       item.set("availableHosts", preparedAvailableHosts);
     }, this);
   }

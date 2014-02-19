@@ -39,19 +39,58 @@ App.SelectHostView = Em.Select.extend({
   componentName:null,
   attributeBindings:['disabled'],
   isLoaded: false,
+  isLazyLoading: false,
 
-  change:function () {
+  change: function () {
     this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
+    this.get('controller').set('componentToRebalance', this.get("componentName"));
+    this.get('controller').incrementProperty('rebalanceComponentHostsCounter');
   },
+
+  /**
+   * recalculate available hosts
+   */
+  rebalanceComponentHosts: function () {
+    if (this.get('componentName') === this.get('controller.componentToRebalance')) {
+      this.get('content').clear();
+      this.set('isLoaded', false);
+      this.initContent();
+    }
+  }.observes('controller.rebalanceComponentHostsCounter'),
+
+  /**
+   * get available hosts
+   * Since ZOOKEEPER_SERVER or HBASE_MASTER component can be assigned to multiple hosts,
+   * shared hosts among the same component should be filtered out
+   * @return {*}
+   */
+  getAvailableHosts: function () {
+    var hosts = this.get('controller.hosts').slice();
+    var componentName = this.get('componentName');
+    var occupiedHosts = this.get('controller.selectedServicesMasters')
+      .filterProperty('component_name', componentName)
+      .mapProperty('selectedHost').without(this.get('selectedHost'));
+    if (componentName == 'ZOOKEEPER_SERVER' || componentName == 'HBASE_MASTER') {
+      return hosts.filter(function (host) {
+        return !occupiedHosts.contains(host.get('host_name'));
+      }, this);
+    }
+    return hosts;
+  },
+  /**
+   * on click start lazy loading
+   */
   click: function () {
     var source = [];
+    var componentName = this.get('componentName');
+    var availableHosts = this.getAvailableHosts();
     var selectedHost = this.get('selectedHost');
-    var content = this.get('content');
-    if (!this.get('isLoaded') && this.get('controller.isLazyLoading')) {
+
+    if (!this.get('isLoaded') && this.get('isLazyLoading')) {
       //filter out hosts, which already pushed in select
-      source = this.get('controller.hosts').filter(function(_host){
-        return !content.someProperty('host_name', _host.host_name);
-      }, this);
+      source = availableHosts.filter(function(_host){
+        return !this.get('content').someProperty('host_name', _host.host_name);
+      }, this).slice();
       lazyloading.run({
         destination: this.get('content'),
         source: source,
@@ -63,8 +102,31 @@ App.SelectHostView = Em.Select.extend({
     }
   },
 
-  didInsertElement:function () {
+  didInsertElement: function () {
+    //The lazy loading for select elements supported only by Firefox and Chrome
+    var isBrowserSupported = $.browser.mozilla || ($.browser.safari && navigator.userAgent.indexOf('Chrome') !== -1);
+    var isLazyLoading = isBrowserSupported && this.get('controller.hosts').length > 100;
+    this.set('isLazyLoading', isLazyLoading);
+    this.initContent();
     this.set("value", this.get("selectedHost"));
+  },
+  /**
+   * extract hosts from controller,
+   * filter out available to selection and
+   * push them into Em.Select content
+   */
+  initContent: function () {
+    var hosts = this.getAvailableHosts();
+    if (this.get('isLazyLoading')) {
+      //select need at least 30 hosts to have scrollbar
+      var initialHosts = hosts.slice(0, 30);
+      if (!initialHosts.someProperty('host_name', this.get('selectedHost'))) {
+        initialHosts.unshift(hosts.findProperty('host_name', this.get('selectedHost')));
+      }
+      this.set("content", initialHosts);
+    } else {
+      this.set("content", hosts);
+    }
   }
 });
 

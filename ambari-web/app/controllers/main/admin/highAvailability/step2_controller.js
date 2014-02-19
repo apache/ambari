@@ -58,7 +58,7 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
       mapping.pushObject(mappingObject);
     }, this);
 
-    mapping.sort(this.sortHostsByName);
+    mapping.sortBy('host_name');
 
     return mapping;
 
@@ -82,7 +82,6 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
     for (var index = 0; index < 3; index++) {
       masterComponents.push(
         {
-          availableHosts: [],
           component_name: "JOURNALNODE",
           display_name: "JournalNode",
           isHiveCoHost: false,
@@ -96,7 +95,6 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
     //Create Additional NameNode
     masterComponents.push(
       {
-        availableHosts: [],
         component_name: "NAMENODE",
         display_name: "NameNode",
         isHiveCoHost: false,
@@ -120,8 +118,10 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
     components.push.apply(components, result.filterProperty('component_name',"JOURNALNODE"));
 
     this.set('servicesMasters', components);
-    this.rebalanceComponentHosts("NAMENODE");
-    this.rebalanceComponentHosts("JOURNALNODE");
+    this.set('componentToRebalance', "NAMENODE");
+    this.incrementProperty('rebalanceComponentHostsCounter');
+    this.set('componentToRebalance', "JOURNALNODE");
+    this.incrementProperty('rebalanceComponentHostsCounter');
   }
 
 });
