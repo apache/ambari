@@ -60,7 +60,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -239,8 +239,8 @@ public class ComponentResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getEffectivePassiveState(
-        capture(new Capture<ServiceComponentHost>()))).andReturn(PassiveState.ACTIVE).anyTimes();
+    expect(managementController.getEffectiveMaintenanceState(
+        capture(new Capture<ServiceComponentHost>()))).andReturn(MaintenanceState.OFF).anyTimes();
     
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);

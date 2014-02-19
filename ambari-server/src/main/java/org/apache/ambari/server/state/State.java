@@ -68,7 +68,7 @@ public enum State {
   /**
    * Disabled master's backup state
    */
-  MAINTENANCE,
+  DISABLED,
   /**
    * State could not be determined.
    */
@@ -85,7 +85,7 @@ public enum State {
       case INSTALLED:
       case STARTED:
       case UNINSTALLED:
-      case MAINTENANCE:
+      case DISABLED:
         return true;
       default:
         return false;
@@ -121,7 +121,7 @@ public enum State {
       case INSTALL_FAILED:
       case UNINSTALLED:
       case UNKNOWN:
-      case MAINTENANCE:
+      case DISABLED:
         return true;
       default:
         return false;
@@ -148,7 +148,7 @@ public enum State {
             || startState == State.UPGRADING
             || startState == State.STOPPING
             || startState == State.UNKNOWN
-            || startState == State.MAINTENANCE) {
+            || startState == State.DISABLED) {
           return true;
         }
         break;
@@ -171,7 +171,7 @@ public enum State {
             || startState == State.WIPING_OUT) {
           return true;
         }
-      case MAINTENANCE:
+      case DISABLED:
         if (startState == State.INSTALLED
             || startState == State.UNKNOWN) {
           return true;

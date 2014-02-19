@@ -385,7 +385,7 @@ public class ServiceImpl implements Service {
             getDesiredStackVersion().getStackId(),
             getDesiredState().toString());
         
-        r.setPassiveState(getPassiveState().name());
+        r.setMaintenanceState(getMaintenanceState().name());
         return r;
       } finally {
         readWriteLock.readLock().unlock();
@@ -652,12 +652,12 @@ public class ServiceImpl implements Service {
   }
   
   @Override
-  public void setPassiveState(PassiveState state) {
+  public void setMaintenanceState(MaintenanceState state) {
     clusterGlobalLock.readLock().lock();
     try {
       try {
         readWriteLock.writeLock().lock();
-        serviceDesiredStateEntity.setPassiveState(state);
+        serviceDesiredStateEntity.setMaintenanceState(state);
         saveIfPersisted();
       } finally {
         readWriteLock.writeLock().unlock();
@@ -668,8 +668,8 @@ public class ServiceImpl implements Service {
   }
   
   @Override
-  public PassiveState getPassiveState() {
-    return serviceDesiredStateEntity.getPassiveState();
+  public MaintenanceState getMaintenanceState() {
+    return serviceDesiredStateEntity.getMaintenanceState();
   }
 
 }

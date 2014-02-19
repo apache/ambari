@@ -95,7 +95,7 @@ import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -2363,7 +2363,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     HostRoleCommand command = storedTasks.get(0);
     Assert.assertTrue("DECOMMISSION, Excluded: h2".equals(command.getCommandDetail()));
     Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
@@ -2401,7 +2401,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     cInfo = execCmd.getClusterHostInfo();
     Assert.assertTrue(cInfo.containsKey("decom_hbase_rs_hosts"));
     command = storedTasks.get(0);
@@ -2428,7 +2428,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     command = storedTasks.get(0);
     Assert.assertTrue("DECOMMISSION, Included: h2".equals(command.getCommandDetail()));
     Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
@@ -5975,7 +5975,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     HostRoleCommand command =  storedTasks.get(0);
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
@@ -6006,7 +6006,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     cInfo = execCmd.getClusterHostInfo();
     Assert.assertTrue(cInfo.containsKey("decom_dn_hosts"));
     Assert.assertEquals("0,1", cInfo.get("decom_dn_hosts").iterator().next());
@@ -6042,7 +6042,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     scHost = s.getServiceComponent("DATANODE").getServiceComponentHost("h2");
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.ACTIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.OFF, scHost.getMaintenanceState());
     execCmd = storedTasks.get(0).getExecutionCommandWrapper
         ().getExecutionCommand();
     Assert.assertNotNull(storedTasks);
@@ -6064,7 +6064,7 @@ public class AmbariManagementControllerTest {
     // Slave components will have admin state as INSERVICE even if the state in DB is null
     scHost.setComponentAdminState(null);
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.ACTIVE, scHost.getPassiveState());
+    Assert.assertEquals(MaintenanceState.OFF, scHost.getMaintenanceState());
   }
 
   @Test
@@ -8001,7 +8001,7 @@ public class AmbariManagementControllerTest {
     sc3.getServiceComponentHosts().values().iterator().next().setState(State.INSTALL_FAILED);
     ServiceComponent sc4 = s2.getServiceComponent(componentName4);
     sc4.getServiceComponentHosts().values().iterator().next().setDesiredState(State.INSTALLED);
-    sc4.getServiceComponentHosts().values().iterator().next().setState(State.MAINTENANCE);
+    sc4.getServiceComponentHosts().values().iterator().next().setState(State.DISABLED);
     ServiceComponent sc5 = s2.getServiceComponent(componentName5);
     sc5.getServiceComponentHosts().values().iterator().next().setState(State.INSTALLED);
     ServiceComponent sc6 = s2.getServiceComponent(componentName6);
@@ -8082,9 +8082,9 @@ public class AmbariManagementControllerTest {
     }
 
     Set<ServiceComponentHostRequest> schRequests = new HashSet<ServiceComponentHostRequest>();
-    // maintenance HC for non-clients
-    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "MAINTENANCE"));
-    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, "MAINTENANCE"));
+    // disable HC for non-clients
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "DISABLED"));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, "DISABLED"));
     controller.updateHostComponents(schRequests, new HashMap<String,String>(), false);
 
     // delete HC
@@ -8266,8 +8266,8 @@ public class AmbariManagementControllerTest {
     sch.handleEvent(new ServiceComponentHostStoppedEvent (sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis()));
 
     schRequests.clear();
-    // maintenance HC, DN was already stopped
-    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "MAINTENANCE"));
+    // disable HC, DN was already stopped
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "DISABLED"));
     controller.updateHostComponents(schRequests, new HashMap<String,String>(), false);
 
     // delete HC
@@ -8495,7 +8495,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testMaintenanceAndDeleteStates() throws Exception {
+  public void testDisableAndDeleteStates() throws Exception {
     Map<String,String> mapRequestProps = new HashMap<String, String>();
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -8623,11 +8623,11 @@ public class AmbariManagementControllerTest {
       }
 
       componentHostRequests.clear();
-      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "MAINTENANCE"));
+      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "DISABLED"));
 
       amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
 
-      Assert.assertEquals(State.MAINTENANCE, componentHost.getState());
+      Assert.assertEquals(State.DISABLED, componentHost.getState());
 
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "INSTALLED"));
@@ -8637,11 +8637,11 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals(State.INSTALLED, componentHost.getState());
 
       componentHostRequests.clear();
-      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "MAINTENANCE"));
+      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", "DISABLED"));
 
       amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
 
-      Assert.assertEquals(State.MAINTENANCE, componentHost.getState());
+      Assert.assertEquals(State.DISABLED, componentHost.getState());
 
       componentHostRequests.clear();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host2", null));
@@ -8706,26 +8706,26 @@ public class AmbariManagementControllerTest {
       }
       assertNotNull(sch);
 
-      // make maintenance
+      // make disabled
       componentHostRequests.clear();
-      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", "MAINTENANCE"));
+      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", "DISABLED"));
       amc.updateHostComponents(componentHostRequests, mapRequestProps, false);
-      org.junit.Assert.assertEquals(State.MAINTENANCE, sch.getState());
+      org.junit.Assert.assertEquals(State.DISABLED, sch.getState());
 
-      // ServiceComponentHost remains in maintenance after service stop
+      // ServiceComponentHost remains in disabled after service stop
       assertEquals(sch.getServiceComponentName(),"DATANODE");
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", "INSTALLED"));
       ServiceResourceProviderTest.updateServices(amc, serviceRequests,
         mapRequestProps, true, false);
-      assertEquals(State.MAINTENANCE, sch.getState());
+      assertEquals(State.DISABLED, sch.getState());
 
-      // ServiceComponentHost remains in maintenance after service start
+      // ServiceComponentHost remains in disabled after service start
       serviceRequests.clear();
       serviceRequests.add(new ServiceRequest("c1", "HDFS", "STARTED"));
       ServiceResourceProviderTest.updateServices(amc, serviceRequests,
         mapRequestProps, true, false);
-      assertEquals(State.MAINTENANCE, sch.getState());
+      assertEquals(State.DISABLED, sch.getState());
 
       // confirm delete
       componentHostRequests.clear();
@@ -9150,7 +9150,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testPassiveStates() throws Exception {
+  public void testMaintenanceState() throws Exception {
     String clusterName = "c1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -9194,133 +9194,133 @@ public class AmbariManagementControllerTest {
     
     // test updating a service
     ServiceRequest sr = new ServiceRequest(clusterName, serviceName, null);
-    sr.setPassiveState(PassiveState.PASSIVE.name());
+    sr.setMaintenanceState(MaintenanceState.ON.name());
     ServiceResourceProviderTest.updateServices(controller, Collections.singleton(sr),
         requestProperties, false, false);
-    Assert.assertEquals(PassiveState.PASSIVE, service.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, service.getMaintenanceState());
     
     // check the host components implied state vs desired state
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        Assert.assertEquals(PassiveState.IMPLIED,
-            controller.getEffectivePassiveState(sch));
-        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+        Assert.assertEquals(MaintenanceState.IMPLIED,
+            controller.getEffectiveMaintenanceState(sch));
+        Assert.assertEquals(MaintenanceState.OFF, sch.getMaintenanceState());
       }
     }
     
     // reset
-    sr.setPassiveState(PassiveState.ACTIVE.name());
+    sr.setMaintenanceState(MaintenanceState.OFF.name());
     ServiceResourceProviderTest.updateServices(controller, Collections.singleton(sr),
         requestProperties, false, false);
-    Assert.assertEquals(PassiveState.ACTIVE, service.getPassiveState());
+    Assert.assertEquals(MaintenanceState.OFF, service.getMaintenanceState());
     
     // check the host components implied state vs desired state
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        Assert.assertEquals(PassiveState.ACTIVE,
-            controller.getEffectivePassiveState(sch));
-        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+        Assert.assertEquals(MaintenanceState.OFF,
+            controller.getEffectiveMaintenanceState(sch));
+        Assert.assertEquals(MaintenanceState.OFF, sch.getMaintenanceState());
       }
     }
     
     // passivate a host
     HostRequest hr = new HostRequest(host1, clusterName, requestProperties);
-    hr.setPassiveState(PassiveState.PASSIVE.name());
+    hr.setMaintenanceState(MaintenanceState.ON.name());
     HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr),
         new HashMap<String, String>());
     
     Host host = hosts.get(host1);
-    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
+    Assert.assertEquals(MaintenanceState.ON, host.getMaintenanceState(cluster.getClusterId()));
     
     // check the host components implied state vs desired state, only for affected hosts
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        PassiveState implied = controller.getEffectivePassiveState(sch);
+        MaintenanceState implied = controller.getEffectiveMaintenanceState(sch);
         if (sch.getHostName().equals(host1)) {
-          Assert.assertEquals(PassiveState.IMPLIED, implied);
+          Assert.assertEquals(MaintenanceState.IMPLIED, implied);
         } else {
-          Assert.assertEquals(PassiveState.ACTIVE, implied);
+          Assert.assertEquals(MaintenanceState.OFF, implied);
         }
-        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+        Assert.assertEquals(MaintenanceState.OFF, sch.getMaintenanceState());
       }
     }
     
     // reset
-    hr.setPassiveState(PassiveState.ACTIVE.name());
+    hr.setMaintenanceState(MaintenanceState.OFF.name());
     HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr),
         new HashMap<String, String>());
     
     host = hosts.get(host1);
-    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));
+    Assert.assertEquals(MaintenanceState.OFF, host.getMaintenanceState(cluster.getClusterId()));
     
     // check the host components active state vs desired state
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        Assert.assertEquals(PassiveState.ACTIVE,
-            controller.getEffectivePassiveState(sch));
-        Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
+        Assert.assertEquals(MaintenanceState.OFF,
+            controller.getEffectiveMaintenanceState(sch));
+        Assert.assertEquals(MaintenanceState.OFF, sch.getMaintenanceState());
       }
     }
     
     // passivate several hosts
     HostRequest hr1 = new HostRequest(host1, clusterName, requestProperties);
-    hr1.setPassiveState(PassiveState.PASSIVE.name());
+    hr1.setMaintenanceState(MaintenanceState.ON.name());
     HostRequest hr2 = new HostRequest(host2, clusterName, requestProperties);
-    hr2.setPassiveState(PassiveState.PASSIVE.name());
+    hr2.setMaintenanceState(MaintenanceState.ON.name());
     Set<HostRequest> set = new HashSet<HostRequest>();
     set.add(hr1);
     set.add(hr2);
     HostResourceProviderTest.updateHosts(controller, set, new HashMap<String, String>());
 
     host = hosts.get(host1);
-    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
+    Assert.assertEquals(MaintenanceState.ON, host.getMaintenanceState(cluster.getClusterId()));
     host = hosts.get(host2);
-    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
+    Assert.assertEquals(MaintenanceState.ON, host.getMaintenanceState(cluster.getClusterId()));
     
     // reset
     hr1 = new HostRequest(host1, clusterName, requestProperties);
-    hr1.setPassiveState(PassiveState.ACTIVE.name());
+    hr1.setMaintenanceState(MaintenanceState.OFF.name());
     hr2 = new HostRequest(host2, clusterName, requestProperties);
-    hr2.setPassiveState(PassiveState.ACTIVE.name());
+    hr2.setMaintenanceState(MaintenanceState.OFF.name());
     set = new HashSet<HostRequest>();
     set.add(hr1);
     set.add(hr2);
 
     HostResourceProviderTest.updateHosts(controller, set, new HashMap<String, String>());
     host = hosts.get(host1);
-    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));
+    Assert.assertEquals(MaintenanceState.OFF, host.getMaintenanceState(cluster.getClusterId()));
     host = hosts.get(host2);
-    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));
+    Assert.assertEquals(MaintenanceState.OFF, host.getMaintenanceState(cluster.getClusterId()));
 
     
     // only do one SCH
     ServiceComponentHost targetSch = service.getServiceComponent(
         componentName2).getServiceComponentHosts().get(host2);
     Assert.assertNotNull(targetSch);
-    targetSch.setPassiveState(PassiveState.PASSIVE);
+    targetSch.setMaintenanceState(MaintenanceState.ON);
 
     // check the host components active state vs desired state
-    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(targetSch));
+    Assert.assertEquals(MaintenanceState.ON, controller.getEffectiveMaintenanceState(targetSch));
     
     // update the service
-    service.setPassiveState(PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(targetSch));
+    service.setMaintenanceState(MaintenanceState.ON);
+    Assert.assertEquals(MaintenanceState.ON, controller.getEffectiveMaintenanceState(targetSch));
     
     // make SCH active
-    targetSch.setPassiveState(PassiveState.ACTIVE);
-    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(targetSch));
+    targetSch.setMaintenanceState(MaintenanceState.OFF);
+    Assert.assertEquals(MaintenanceState.IMPLIED, controller.getEffectiveMaintenanceState(targetSch));
     
     // update the service
-    service.setPassiveState(PassiveState.ACTIVE);
-    Assert.assertEquals(PassiveState.ACTIVE, controller.getEffectivePassiveState(targetSch));
+    service.setMaintenanceState(MaintenanceState.OFF);
+    Assert.assertEquals(MaintenanceState.OFF, controller.getEffectiveMaintenanceState(targetSch));
     
     host = hosts.get(host2);
     // update host
-    host.setPassiveState(cluster.getClusterId(), PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.IMPLIED, controller.getEffectivePassiveState(targetSch));
+    host.setMaintenanceState(cluster.getClusterId(), MaintenanceState.ON);
+    Assert.assertEquals(MaintenanceState.IMPLIED, controller.getEffectiveMaintenanceState(targetSch));
     
-    targetSch.setPassiveState(PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.PASSIVE, controller.getEffectivePassiveState(targetSch));
+    targetSch.setMaintenanceState(MaintenanceState.ON);
+    Assert.assertEquals(MaintenanceState.ON, controller.getEffectiveMaintenanceState(targetSch));
 
     // check the host components active state vs desired state
     for (ServiceComponent sc : service.getServiceComponents().values()) {
@@ -9428,7 +9428,7 @@ public class AmbariManagementControllerTest {
     }
     
     Service service2 = cluster.getService(serviceName2);
-    service2.setPassiveState(PassiveState.PASSIVE);
+    service2.setMaintenanceState(MaintenanceState.ON);
     
     Set<ServiceRequest> srs = new HashSet<ServiceRequest>();
     srs.add(new ServiceRequest(clusterName, serviceName1, State.INSTALLED.name()));
@@ -9448,7 +9448,7 @@ public class AmbariManagementControllerTest {
         Assert.assertEquals(State.INSTALLED, service.getDesiredState());
     }
     
-    service2.setPassiveState(PassiveState.ACTIVE);
+    service2.setMaintenanceState(MaintenanceState.OFF);
     ServiceResourceProviderTest.updateServices(controller, srs, requestProperties, false, false);
     for (Service service : cluster.getServices().values()) {
       Assert.assertEquals(State.INSTALLED, service.getDesiredState());
@@ -9459,7 +9459,7 @@ public class AmbariManagementControllerTest {
     
     // test host
     Host h1 = clusters.getHost(host1);
-    h1.setPassiveState(cluster.getClusterId(), PassiveState.PASSIVE);
+    h1.setMaintenanceState(cluster.getClusterId(), MaintenanceState.ON);
     
     srs = new HashSet<ServiceRequest>();
     srs.add(new ServiceRequest(clusterName, serviceName1, State.INSTALLED.name()));
@@ -9471,10 +9471,10 @@ public class AmbariManagementControllerTest {
       Assert.assertFalse(sts.getHostName().equals(host1));
     }
     
-    h1.setPassiveState(cluster.getClusterId(), PassiveState.ACTIVE);
+    h1.setMaintenanceState(cluster.getClusterId(), MaintenanceState.OFF);
     startService(clusterName, serviceName2, false, false);
     
-    service2.setPassiveState(PassiveState.PASSIVE);
+    service2.setMaintenanceState(MaintenanceState.ON);
     
     ServiceRequest sr = new ServiceRequest(clusterName, serviceName2, State.INSTALLED.name());
     rsr = ServiceResourceProviderTest.updateServices(controller,

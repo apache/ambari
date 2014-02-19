@@ -40,7 +40,7 @@ START_ON_RELOCATE = False
 
 # Supported Actions
 RELOCATE_ACTION = 'relocate'
-ALLOWED_ACTUAL_STATES_FOR_RELOCATE = [ 'INIT', 'UNKNOWN', 'MAINTENANCE', 'UNINSTALLED' ]
+ALLOWED_ACTUAL_STATES_FOR_RELOCATE = [ 'INIT', 'UNKNOWN', 'DISABLED', 'UNINSTALLED' ]
 ALLOWED_HOST_STATUS_FOR_RELOCATE = [ 'HEALTHY' ]
 STATUS_WAIT_TIMEOUT = 120 # seconds
 STATUS_CHECK_INTERVAL = 10 # seconds
@@ -129,7 +129,7 @@ class AmbariResource:
 
     # Put host component in Maintenance state
     self.updateHostComponentStatus(self.old_hostname, self.componentName,
-                                   "Maintenance", "MAINTENANCE")
+                                   "Disable", "DISABLED")
 
     # Delete current host component
     self.deleteHostComponent(self.old_hostname, self.componentName)

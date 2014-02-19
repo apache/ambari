@@ -29,60 +29,64 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests the PassiveAlertHelper class
+ * Tests the {@link MaintenanceStateHelper} class
  */
-public class PassiveStateHelperTest {
+public class MaintenanceStateHelperTest {
 
   @Test
   public void testService() throws Exception {
-    testService(PassiveState.PASSIVE);
-    testService(PassiveState.ACTIVE);
+    testService(MaintenanceState.ON);
+    testService(MaintenanceState.OFF);
   }
   
   @Test
   public void testHost() throws Exception {
-    testHost(PassiveState.PASSIVE);
-    testHost(PassiveState.ACTIVE);
+    testHost(MaintenanceState.ON);
+    testHost(MaintenanceState.OFF);
   }
   
   @Test
   public void testHostComponent() throws Exception {
-    testHostComponent(PassiveState.PASSIVE);
-    testHostComponent(PassiveState.ACTIVE);
+    testHostComponent(MaintenanceState.ON);
+    testHostComponent(MaintenanceState.OFF);
   }
   
-  private void testHostComponent(PassiveState state) throws Exception {
+  private void testHostComponent(MaintenanceState state) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<ExecuteActionRequest> earCapture = new Capture<ExecuteActionRequest>();
     Capture<Map<String, String>> rpCapture = new Capture<Map<String, String>>();
     expect(amc.createAction(capture(earCapture), capture(rpCapture))).andReturn(null);
     
+    Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);
     expect(sch.getClusterName()).andReturn("c1");
-    expect(sch.getPassiveState()).andReturn(state);
+    expect(sch.getClusterId()).andReturn(1L);
+    expect(sch.getMaintenanceState()).andReturn(state);
     expect(sch.getServiceName()).andReturn("HDFS");
     expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
     expect(sch.getHostName()).andReturn("h1");
     
-    replay(amc, cluster, sch);
+    replay(amc, clusters, cluster, sch);
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    PassiveStateHelper.createRequests(amc, map,
+    MaintenanceStateHelper.createRequests(amc, map,
         Collections.singleton(sch.getClusterName()));
     
     ExecuteActionRequest ear = earCapture.getValue();
@@ -96,14 +100,14 @@ public class PassiveStateHelperTest {
     Assert.assertTrue(map.containsKey("context"));  
   }
   
-  private void testHost(PassiveState state) throws Exception {
+  private void testHost(MaintenanceState state) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<ExecuteActionRequest> earCapture = new Capture<ExecuteActionRequest>();
     Capture<Map<String, String>> rpCapture = new Capture<Map<String, String>>();
     expect(amc.createAction(capture(earCapture), capture(rpCapture))).andReturn(null);
-    
-    Cluster cluster = createMock(Cluster.class);
 
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
     Service service = createMock(Service.class);
     
     ServiceComponent sc1 = createMock(ServiceComponent.class);
@@ -120,6 +124,8 @@ public class PassiveStateHelperTest {
     
     List<ServiceComponentHost> schList = new ArrayList<ServiceComponentHost>(schMap.values());
     
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     expect(cluster.getService("HDFS")).andReturn(service).anyTimes();
     expect(cluster.getClusterId()).andReturn(Long.valueOf(1L));
@@ -128,13 +134,13 @@ public class PassiveStateHelperTest {
     
     Host host = createMock(Host.class);
     expect(host.getHostName()).andReturn("h1").anyTimes();
-    expect(host.getPassiveState(1L)).andReturn(state);
+    expect(host.getMaintenanceState(1L)).andReturn(state);
     
-    replay(amc, cluster, service, sch1, host);
+    replay(amc, clusters, cluster, service, sch1, host);
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    PassiveStateHelper.createRequests(amc, map,
+    MaintenanceStateHelper.createRequests(amc, map,
         Collections.singleton(cluster.getClusterName()));
     
     ExecuteActionRequest ear = earCapture.getValue();
@@ -149,12 +155,13 @@ public class PassiveStateHelperTest {
   }
   
   
-  private void testService(PassiveState state) throws Exception {
+  private void testService(MaintenanceState state) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<ExecuteActionRequest> earCapture = new Capture<ExecuteActionRequest>();
     Capture<Map<String, String>> rpCapture = new Capture<Map<String, String>>();
     expect(amc.createAction(capture(earCapture), capture(rpCapture))).andReturn(null);
     
+    Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
     Service service = createMock(Service.class);
     
@@ -176,17 +183,20 @@ public class PassiveStateHelperTest {
     scMap.put("NAMENODE", sc1);
     scMap.put("HDFS_CLIENT", sc2);
     
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
     expect(cluster.getClusterName()).andReturn("c1");
+    expect(cluster.getClusterId()).andReturn(1L);
     expect(service.getCluster()).andReturn(cluster);
     expect(service.getServiceComponents()).andReturn(scMap);
-    expect(service.getPassiveState()).andReturn(state);
+    expect(service.getMaintenanceState()).andReturn(state);
     expect(service.getName()).andReturn("HDFS");
     
-    replay(amc, cluster, service, sc1, sc2, sch1);
+    replay(amc, clusters, cluster, service, sc1, sc2, sch1);
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    PassiveStateHelper.createRequests(amc, map,
+    MaintenanceStateHelper.createRequests(amc, map,
         Collections.singleton("c1"));
     
     ExecuteActionRequest ear = earCapture.getValue();

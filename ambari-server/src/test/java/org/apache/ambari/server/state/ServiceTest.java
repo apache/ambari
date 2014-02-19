@@ -285,7 +285,7 @@ public class ServiceTest {
   }
 
   @Test
-  public void testServicePassive() throws Exception {
+  public void testServiceMaintenance() throws Exception {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
@@ -297,15 +297,15 @@ public class ServiceTest {
     ClusterServiceDAO dao = injector.getInstance(ClusterServiceDAO.class);
     ClusterServiceEntity entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
     Assert.assertNotNull(entity);
-    Assert.assertEquals(PassiveState.ACTIVE, entity.getServiceDesiredStateEntity().getPassiveState());
-    Assert.assertEquals(PassiveState.ACTIVE, service.getPassiveState());
+    Assert.assertEquals(MaintenanceState.OFF, entity.getServiceDesiredStateEntity().getMaintenanceState());
+    Assert.assertEquals(MaintenanceState.OFF, service.getMaintenanceState());
     
-    service.setPassiveState(PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.PASSIVE, service.getPassiveState());
+    service.setMaintenanceState(MaintenanceState.ON);
+    Assert.assertEquals(MaintenanceState.ON, service.getMaintenanceState());
 
     entity = dao.findByClusterAndServiceNames(clusterName, serviceName);
     Assert.assertNotNull(entity);
-    Assert.assertEquals(PassiveState.PASSIVE, entity.getServiceDesiredStateEntity().getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, entity.getServiceDesiredStateEntity().getMaintenanceState());
     
     
   }

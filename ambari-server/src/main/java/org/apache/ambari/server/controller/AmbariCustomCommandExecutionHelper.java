@@ -37,7 +37,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -566,16 +566,16 @@ public class AmbariCustomCommandExecutionHelper {
         sch.setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
         listOfExcludedHosts.add(sch.getHostName());
         if (alignMtnState) {
-          sch.setPassiveState(PassiveState.PASSIVE);
+          sch.setMaintenanceState(MaintenanceState.ON);
         }
-        LOG.info("Decommissioning " + slaveCompType + " and marking it PASSIVE on " + sch.getHostName());
+        LOG.info("Decommissioning " + slaveCompType + " and marking Maintenance=ON on " + sch.getHostName());
       }
       if (includedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
         if (alignMtnState) {
-          sch.setPassiveState(PassiveState.ACTIVE);
+          sch.setMaintenanceState(MaintenanceState.OFF);
         }
-        LOG.info("Recommissioning " + slaveCompType + " and marking it ACTIVE on " + sch.getHostName());
+        LOG.info("Recommissioning " + slaveCompType + " and marking Maintenance=OFF on " + sch.getHostName());
       }
     }
 
@@ -787,8 +787,8 @@ public class AmbariCustomCommandExecutionHelper {
 
     Map<String, String> roleParams = new TreeMap<String, String>();
     execCmd.setRoleParams(roleParams);
-
-    execCmd.setPassiveInfo(PassiveStateHelper.getPassiveHostComponents(clusters, cluster));
+    
+    execCmd.setPassiveInfo(MaintenanceStateHelper.getMaintenanceHostCompoments(clusters, cluster));
   }
 
   private String getRepoInfo(Cluster cluster, Host host) throws AmbariException {

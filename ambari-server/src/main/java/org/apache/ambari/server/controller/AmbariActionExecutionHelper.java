@@ -325,7 +325,7 @@ public class AmbariActionExecutionHelper {
       
       // cluster passive map
       execCmd.setPassiveInfo(
-          PassiveStateHelper.getPassiveHostComponents(clusters, cluster));
+          MaintenanceStateHelper.getMaintenanceHostCompoments(clusters, cluster));
           
     }
   }

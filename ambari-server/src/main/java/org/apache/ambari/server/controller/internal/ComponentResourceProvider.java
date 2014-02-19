@@ -49,7 +49,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -708,7 +708,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         State oldSchState = sch.getState();
-        if (oldSchState == State.MAINTENANCE || oldSchState == State.UNKNOWN) {
+        if (oldSchState == State.DISABLED || oldSchState == State.UNKNOWN) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + request.getClusterName()
@@ -736,15 +736,15 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         }
 
         // do not update or alter any HC that is not active
-        PassiveState schPassive = controller.getEffectivePassiveState(sch);
-        if (PassiveState.ACTIVE != schPassive) {
+        MaintenanceState schMaint = controller.getEffectiveMaintenanceState(sch);
+        if (MaintenanceState.OFF != schMaint) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + request.getClusterName()
                 + ", serviceName=" + s.getName()
                 + ", componentName=" + sc.getName()
                 + ", hostname=" + sch.getHostName()
-                + ", passive=" + schPassive);
+                + ", maintenance=" + schMaint);
           }
           continue;
         }

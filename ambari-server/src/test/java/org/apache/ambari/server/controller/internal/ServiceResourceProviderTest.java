@@ -669,7 +669,7 @@ public class ServiceResourceProviderTest {
   }
 
   @Test
-  public void testDefaultServiceState_MAINTENANCE() throws Exception{
+  public void testDefaultServiceState_DISABLED() throws Exception{
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -677,7 +677,7 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "MAINTENANCE", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "DISABLED", "", null, null, null);
     ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
     ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
 

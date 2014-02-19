@@ -1,29 +1,11 @@
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.state.State;
-import org.eclipse.persistence.jpa.JpaEntityManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -31,11 +13,26 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.state.State;
+import org.eclipse.persistence.jpa.JpaEntityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog150.class);
@@ -208,9 +205,9 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     // ========================================================================
     // Add columns
 
-    dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo("passive_state", String.class, 32, "ACTIVE", false));
-    dbAccessor.addColumn("servicedesiredstate", new DBColumnInfo("passive_state", String.class, 32, "ACTIVE", false));
-    dbAccessor.addColumn("hoststate", new DBColumnInfo("passive_state", String.class, 512, null, true));
+    dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo("maintenance_state", String.class, 32, "OFF", false));
+    dbAccessor.addColumn("servicedesiredstate", new DBColumnInfo("maintenance_state", String.class, 32, "OFF", false));
+    dbAccessor.addColumn("hoststate", new DBColumnInfo("maintenance_state", String.class, 512, null, true));
     dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo("admin_state", String.class, 32, null, true));
     dbAccessor.addColumn("hosts", new DBColumnInfo("ph_cpu_count", Integer.class, 32, null, true));
     dbAccessor.addColumn("clusterstate", new DBColumnInfo("current_stack_version", String.class, 255, null, false));

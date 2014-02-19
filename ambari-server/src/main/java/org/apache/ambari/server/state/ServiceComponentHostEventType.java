@@ -68,11 +68,11 @@ public enum ServiceComponentHostEventType {
    */
   HOST_SVCCOMP_UPGRADE,
   /**
-   * Putting host component into maintenance state
+   * Putting host component into disabled state
    */
-  HOST_SVCCOMP_MAINTENANCE,
+  HOST_SVCCOMP_DISABLE,
   /**
-   * Recovering host component from maintenance state
+   * Recovering host component from disable state
    */
   HOST_SVCCOMP_RESTORE
 

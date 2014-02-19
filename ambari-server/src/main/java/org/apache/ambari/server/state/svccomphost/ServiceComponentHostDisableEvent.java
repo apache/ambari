@@ -21,9 +21,9 @@ package org.apache.ambari.server.state.svccomphost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 
-public class ServiceComponentHostMaintenanceEvent extends ServiceComponentHostEvent {
-  public ServiceComponentHostMaintenanceEvent(String serviceComponentName, String hostName, long opTimestamp) {
-    super(ServiceComponentHostEventType.HOST_SVCCOMP_MAINTENANCE,
+public class ServiceComponentHostDisableEvent extends ServiceComponentHostEvent {
+  public ServiceComponentHostDisableEvent(String serviceComponentName, String hostName, long opTimestamp) {
+    super(ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
         serviceComponentName, hostName, opTimestamp);
   }
 }

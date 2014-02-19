@@ -71,7 +71,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -1389,9 +1389,9 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb2);
     assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
     
-    // mark the installed DN as passive
+    // mark the installed DN as maintenance
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(
-        DummyHostname1).setPassiveState(PassiveState.PASSIVE);
+        DummyHostname1).setMaintenanceState(MaintenanceState.ON);
     HeartBeat hb2a = new HeartBeat();
     hb2a.setResponseId(2);
     hb2a.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
@@ -1414,7 +1414,7 @@ public class TestHeartbeatHandler {
     assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
     
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(
-        DummyHostname1).setPassiveState(PassiveState.ACTIVE);
+        DummyHostname1).setMaintenanceState(MaintenanceState.OFF);
     
     //Some masters are down
     HeartBeat hb3 = new HeartBeat();

@@ -706,7 +706,7 @@ def delete_mr(options):
   SERVICE_URL_FORMAT = URL_FORMAT + '/services/MAPREDUCE'
   COMPONENT_URL_FORMAT = URL_FORMAT + '/hosts/{2}/host_components/{3}'
   NON_CLIENTS = ["JOBTRACKER", "TASKTRACKER"]
-  PUT_IN_MAINTENANCE = """{"HostRoles": {"state": "MAINTENANCE"}}"""
+  PUT_IN_DISABLED = """{"HostRoles": {"state": "DISABLED"}}"""
   hostmapping = read_mapping()
 
   for key, value in hostmapping.items():
@@ -716,7 +716,7 @@ def delete_mr(options):
                         AUTH_FORMAT.format(options.user, options.password),
                         '-H', 'X-Requested-By: ambari',
                         '-X', 'PUT', '-d',
-                        PUT_IN_MAINTENANCE,
+                        PUT_IN_DISABLED,
                         COMPONENT_URL_FORMAT.format(options.hostname, options.clustername, host, key))
         retcode, errdata = validate_response(response, False)
         if not retcode == 0:

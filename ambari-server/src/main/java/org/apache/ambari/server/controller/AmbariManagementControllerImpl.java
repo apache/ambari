@@ -71,7 +71,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -89,7 +89,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostMaintenanceEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -734,7 +734,7 @@ public class AmbariManagementControllerImpl implements
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
             }
-            r.setPassiveState(getEffectivePassiveState(sch).name());
+            r.setMaintenanceState(getEffectiveMaintenanceState(sch).name());
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
@@ -767,7 +767,7 @@ public class AmbariManagementControllerImpl implements
               continue;
             }
             
-            r.setPassiveState(getEffectivePassiveState(sch).name());
+            r.setMaintenanceState(getEffectiveMaintenanceState(sch).name());
             response.add(r);
           }
         }
@@ -777,11 +777,11 @@ public class AmbariManagementControllerImpl implements
   }
   
   @Override
-  public PassiveState getEffectivePassiveState(ServiceComponentHost sch)
+  public MaintenanceState getEffectiveMaintenanceState(ServiceComponentHost sch)
       throws AmbariException {
-    PassiveStateHelper psh = injector.getInstance(PassiveStateHelper.class);
+    MaintenanceStateHelper msh = injector.getInstance(MaintenanceStateHelper.class);
     
-    return psh.getEffectiveState(sch);
+    return msh.getEffectiveState(sch);
   }
   
 
@@ -1452,7 +1452,6 @@ public class AmbariManagementControllerImpl implements
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<ServiceComponentHost, State>();
     Set<String> maintenanceClusters = new HashSet<String>();
     
-    
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -1517,21 +1516,21 @@ public class AmbariManagementControllerImpl implements
         }
       }
       
-      if (null != request.getPassiveState()) {
-        PassiveStateHelper psh = injector.getInstance(PassiveStateHelper.class);
+      if (null != request.getMaintenanceState()) {
+        MaintenanceStateHelper psh = injector.getInstance(MaintenanceStateHelper.class);
         
-        PassiveState newPassive = PassiveState.valueOf(request.getPassiveState());
-        PassiveState oldPassive = psh.getEffectiveState(sch);
+        MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());
+        MaintenanceState oldMaint = psh.getEffectiveState(sch);
         
-        if (newPassive != oldPassive) {
+        if (newMaint != oldMaint) {
           if (sc.isClientComponent()) {
             throw new IllegalArgumentException("Invalid arguments, cannot set " +
-              "passive state on a client component");
-          } else if (newPassive.equals(PassiveState.IMPLIED)) {
+              "maintenance state on a client component");
+          } else if (newMaint.equals(MaintenanceState.IMPLIED)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
-              "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
+              "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
-            sch.setPassiveState(newPassive);
+            sch.setMaintenanceState(newMaint);
             
             maintenanceClusters.add(sch.getClusterName());
           }
@@ -1634,8 +1633,8 @@ public class AmbariManagementControllerImpl implements
       ServiceComponentHostEvent event;
       componentHost.setDesiredState(newState);
       switch (newState) {
-        case MAINTENANCE:
-          event = new ServiceComponentHostMaintenanceEvent(
+        case DISABLED:
+          event = new ServiceComponentHostDisableEvent(
               componentHost.getServiceComponentName(),
               componentHost.getHostName(),
               timestamp);
@@ -1659,10 +1658,10 @@ public class AmbariManagementControllerImpl implements
     
     if (maintenanceClusters.size() > 0) {
       try {
-        PassiveStateHelper.createRequests(this, requestProperties,
+        MaintenanceStateHelper.createRequests(this, requestProperties,
             maintenanceClusters);
       } catch (Exception e) {
-        LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+        LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
       }
     }
 
@@ -1714,11 +1713,11 @@ public class AmbariManagementControllerImpl implements
   private boolean isDirectTransition(State oldState, State newState) {
     switch (newState) {
       case INSTALLED:
-        if (oldState == State.MAINTENANCE) {
+        if (oldState == State.DISABLED) {
           return true;
         }
         break;
-      case MAINTENANCE:
+      case DISABLED:
         if (oldState == State.INSTALLED ||
           oldState == State.UNKNOWN) {
           return true;
@@ -1834,13 +1833,13 @@ public class AmbariManagementControllerImpl implements
             + ", request=" + request);
       }
 
-      // Only allow removing master/slave components in MAINTENANCE/UNKNOWN/INSTALL_FAILED/INIT state without stages
+      // Only allow removing master/slave components in DISABLED/UNKNOWN/INSTALL_FAILED/INIT state without stages
       // generation.
       // Clients may be removed without a state check.
       if (!component.isClientComponent() &&
           !componentHost.getState().isRemovableState()) {
         throw new AmbariException("To remove master or slave components they must be in " +
-            "MAINTENANCE/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
+            "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
       }
 
       if (!safeToRemoveSCHs.containsKey(component)) {

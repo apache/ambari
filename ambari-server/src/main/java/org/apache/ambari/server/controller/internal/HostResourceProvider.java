@@ -37,7 +37,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.PassiveStateHelper;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -53,7 +53,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,8 +101,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   
   protected static final String HOST_HOST_STATUS_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_status");
-  protected static final String HOST_PASSIVE_STATE_PROPERTY_ID = 
-      PropertyHelper.getPropertyId("Hosts", "passive_state");
+  protected static final String HOST_MAINTENANCE_STATE_PROPERTY_ID = 
+      PropertyHelper.getPropertyId("Hosts", "maintenance_state");
   
   protected static final String HOST_HOST_HEALTH_REPORT_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_health_report");
@@ -230,9 +230,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           response.getDesiredHostConfigs(), requestedIds);
       
       // only when a cluster request
-      if (null != response.getPassiveState()) {
-        setResourceProperty(resource, HOST_PASSIVE_STATE_PROPERTY_ID,
-            response.getPassiveState(), requestedIds);
+      if (null != response.getMaintenanceState()) {
+        setResourceProperty(resource, HOST_MAINTENANCE_STATE_PROPERTY_ID,
+            response.getMaintenanceState(), requestedIds);
       }
       
       resources.add(resource);
@@ -322,9 +322,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     hostRequest.setPublicHostName((String) properties.get(HOST_PUBLIC_NAME_PROPERTY_ID));
     hostRequest.setRackInfo((String) properties.get(HOST_RACK_INFO_PROPERTY_ID));
     
-    Object o = properties.get(HOST_PASSIVE_STATE_PROPERTY_ID);
+    Object o = properties.get(HOST_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o)
-      hostRequest.setPassiveState(o.toString());
+      hostRequest.setMaintenanceState(o.toString());
     
     ConfigurationRequest cr = getConfigurationRequest("Hosts", properties);
     
@@ -498,7 +498,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           
           r.setClusterName(clusterName);
           r.setDesiredHostConfigs(h.getDesiredHostConfigs(cluster));
-          r.setPassiveState(h.getPassiveState(cluster.getClusterId()));
+          r.setMaintenanceState(h.getMaintenanceState(cluster.getClusterId()));
 
           response.add(r);
         } else if (hostName != null) {
@@ -530,7 +530,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
     Set<String>                maintenanceClusters = new HashSet<String>();
-
+    
     for (HostRequest request : requests) {
       if (request.getHostname() == null
           || request.getHostname().isEmpty()) {
@@ -567,16 +567,16 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         h.setPublicHostName(request.getPublicHostName());
       }
       
-      if (null != request.getClusterName() && null != request.getPassiveState()) {
+      if (null != request.getClusterName() && null != request.getMaintenanceState()) {
         Cluster c = clusters.getCluster(request.getClusterName());
-        PassiveState newState = PassiveState.valueOf(request.getPassiveState());
-        PassiveState oldState = h.getPassiveState(c.getClusterId());
+        MaintenanceState newState = MaintenanceState.valueOf(request.getMaintenanceState());
+        MaintenanceState oldState = h.getMaintenanceState(c.getClusterId());
         if (!newState.equals(oldState)) {
-          if (newState.equals(PassiveState.IMPLIED)) {
+          if (newState.equals(MaintenanceState.IMPLIED)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
-              "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
+              "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
-            h.setPassiveState(c.getClusterId(), newState);
+            h.setMaintenanceState(c.getClusterId(), newState);
             
             maintenanceClusters.add(c.getClusterName());
           }
@@ -624,10 +624,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     
     if (maintenanceClusters.size() > 0) {
       try {
-        PassiveStateHelper.createRequests(controller, requestProperties,
+        MaintenanceStateHelper.createRequests(controller, requestProperties,
             maintenanceClusters);
       } catch (Exception e) {
-        LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+        LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
       }
     }
   }

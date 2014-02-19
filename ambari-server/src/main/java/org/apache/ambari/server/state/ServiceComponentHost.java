@@ -115,14 +115,14 @@ public interface ServiceComponentHost {
   public HostState getHostState();
 
   /**
-   * @param state the passive state
+   * @param state the maintenance state
    */
-  public void setPassiveState(PassiveState state);
+  public void setMaintenanceState(MaintenanceState state);
   
   /**
-   * @return the passive state
+   * @return the maintenance state
    */
-  public PassiveState getPassiveState();
+  public MaintenanceState getMaintenanceState();
 
   
 }

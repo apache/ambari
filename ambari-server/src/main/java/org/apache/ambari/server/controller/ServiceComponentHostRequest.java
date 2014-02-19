@@ -30,7 +30,7 @@ public class ServiceComponentHostRequest {
   private String desiredStackId; // UPDATE
   private String staleConfig; // GET - predicate
   private String adminState; // GET - predicate
-  private String passiveState; // UPDATE
+  private String maintenanceState; // UPDATE
   
   public ServiceComponentHostRequest(String clusterName,
                                      String serviceName,
@@ -173,16 +173,16 @@ public class ServiceComponentHostRequest {
   }
 
   /**
-   * @param state the passive state
+   * @param state the maintenance state
    */
-  public void setPassiveState(String state) {
-    passiveState = state;
+  public void setMaintenanceState(String state) {
+    maintenanceState = state;
   }
   
   /**
-   * @return the passive state
+   * @return the maintenance state
    */
-  public String getPassiveState() {
-    return passiveState;
+  public String getMaintenanceState() {
+    return maintenanceState;
   }
 }

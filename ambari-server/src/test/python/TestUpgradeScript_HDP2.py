@@ -183,11 +183,11 @@ class TestUpgradeHDP2Script(TestCase):
       "MAPREDUCE_CLIENT": ["c6401"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "DISABLED"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/TASKTRACKER"),
-      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "DISABLED"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/TASKTRACKER"),
-      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "DISABLED"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/JOBTRACKER"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "DELETE",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE")]

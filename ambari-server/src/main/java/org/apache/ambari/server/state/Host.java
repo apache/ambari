@@ -331,15 +331,15 @@ public interface Host {
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
   
   /**
-   * Sets the passive state for the host.
+   * Sets the maintenance state for the host.
    * @param clusterId the cluster id
    * @param state the state
    */
-  public void setPassiveState(long clusterId, PassiveState state);
+  public void setMaintenanceState(long clusterId, MaintenanceState state);
   
   /**
    * @param clusterId the cluster id
-   * @return the passive state
+   * @return the maintenance state
    */
-  public PassiveState getPassiveState(long clusterId);
+  public MaintenanceState getMaintenanceState(long clusterId);
 }

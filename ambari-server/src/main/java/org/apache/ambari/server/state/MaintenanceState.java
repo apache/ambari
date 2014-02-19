@@ -21,17 +21,17 @@ package org.apache.ambari.server.state;
  * Indicates when a Service or Host participates in automated opererations, and
  * if alerts are enabled.
  */
-public enum PassiveState {
+public enum MaintenanceState {
   /**
    * All group-targeted commands are available.  Alerts enabled.
    */
-  ACTIVE,
+  OFF,
   /**
-   * Target was actively put into passive state.  Alerts disabled.
+   * Target was explicitly put into maintenance state.  Alerts disabled.
    */
-  PASSIVE,
+  ON,
   /**
-   * Target is passive, implied by a parent target.
+   * Target is in maintenance, implied by a parent target.
    */
   IMPLIED
 }

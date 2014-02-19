@@ -18,7 +18,6 @@
 package org.apache.ambari.server.agent;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
@@ -48,8 +47,8 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostMaintenanceEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.junit.After;
@@ -441,8 +440,8 @@ public class TestHeartbeatMonitor {
         sch.handleEvent(new ServiceComponentHostOpSucceededEvent(sch.getServiceComponentName(),
           sch.getHostName(), System.currentTimeMillis()));
 
-        // maintenance
-        sch.handleEvent(new ServiceComponentHostMaintenanceEvent(sch.getServiceComponentName(),
+        // disabled
+        sch.handleEvent(new ServiceComponentHostDisableEvent(sch.getServiceComponentName(),
           sch.getHostName(), System.currentTimeMillis()));
       }
     }
@@ -474,7 +473,7 @@ public class TestHeartbeatMonitor {
       else if (sc.isClientComponent())
         assertEquals(sch.getServiceComponentName(), State.INIT, sch.getState());
       else if (sch.getServiceComponentName().equals("SECONDARY_NAMENODE"))
-        assertEquals(sch.getServiceComponentName(), State.MAINTENANCE,
+        assertEquals(sch.getServiceComponentName(), State.DISABLED,
           sch.getState());
     }
   }

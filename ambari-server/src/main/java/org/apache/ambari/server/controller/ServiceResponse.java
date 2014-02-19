@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.state.PassiveState;
 
 public class ServiceResponse {
 
@@ -27,7 +26,7 @@ public class ServiceResponse {
   private String serviceName;
   private String desiredStackVersion;
   private String desiredState;
-  private String passiveState;
+  private String maintenanceState;
 
   public ServiceResponse(Long clusterId, String clusterName,
                          String serviceName,
@@ -134,12 +133,12 @@ public class ServiceResponse {
     return true;
   }
   
-  public void setPassiveState(String state) {
-    passiveState = state;
+  public void setMaintenanceState(String state) {
+    maintenanceState = state;
   }
   
-  public String getPassiveState() {
-    return passiveState;
+  public String getMaintenanceState() {
+    return maintenanceState;
   }
 
   @Override

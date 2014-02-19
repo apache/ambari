@@ -45,7 +45,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -329,21 +329,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          new ServiceComponentHostOpStartedTransition())
 
       .addTransition(State.INSTALLED,
-          State.MAINTENANCE,
-          ServiceComponentHostEventType.HOST_SVCCOMP_MAINTENANCE,
+          State.DISABLED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
           new ServiceComponentHostOpCompletedTransition())
-      .addTransition(State.MAINTENANCE,
-          State.MAINTENANCE,
-          ServiceComponentHostEventType.HOST_SVCCOMP_MAINTENANCE,
+      .addTransition(State.DISABLED,
+          State.DISABLED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
           new ServiceComponentHostOpCompletedTransition())
-      .addTransition(State.MAINTENANCE,
+      .addTransition(State.DISABLED,
           State.INSTALLED,
           ServiceComponentHostEventType.HOST_SVCCOMP_RESTORE,
           new ServiceComponentHostOpCompletedTransition())
       
       .addTransition(State.UNKNOWN,
-          State.MAINTENANCE,
-          ServiceComponentHostEventType.HOST_SVCCOMP_MAINTENANCE,
+          State.DISABLED,
+          ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
           new ServiceComponentHostOpCompletedTransition())
 
      .installTopology();
@@ -1383,12 +1383,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
   
   @Override
-  public void setPassiveState(PassiveState state) {
+  public void setMaintenanceState(MaintenanceState state) {
     clusterGlobalLock.readLock().lock();
     try {
       writeLock.lock();
       try {
-        desiredStateEntity.setPassiveState(state);
+        desiredStateEntity.setMaintenanceState(state);
         saveIfPersisted();
       } finally {
         writeLock.unlock();
@@ -1399,12 +1399,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public PassiveState getPassiveState() {
+  public MaintenanceState getMaintenanceState() {
     clusterGlobalLock.readLock().lock();
     try {
       readLock.lock();
       try {
-        return desiredStateEntity.getPassiveState();
+        return desiredStateEntity.getMaintenanceState();
       } finally {
         readLock.unlock();
       }

@@ -18,13 +18,18 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PassiveState;
-import org.apache.commons.lang.StringUtils;
-
-import javax.persistence.*;
-
 import static org.apache.commons.lang.StringUtils.defaultString;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+
+import org.apache.ambari.server.state.HostState;
 
 @javax.persistence.Table(name = "hoststate")
 @Entity
@@ -54,8 +59,8 @@ public class HostStateEntity {
   @Enumerated(value = EnumType.STRING)
   private HostState currentState = HostState.INIT;
   
-  @Column(name="passive_state", nullable = true, insertable = true, updatable = true)
-  private String passiveState = null;
+  @Column(name="maintenance_state", nullable = true, insertable = true, updatable = true)
+  private String maintenanceState = null;
   
 
   @OneToOne
@@ -110,12 +115,12 @@ public class HostStateEntity {
     this.currentState = currentState;
   }
 
-  public String getPassiveState() {
-    return passiveState;
+  public String getMaintenanceState() {
+    return maintenanceState;
   }  
   
-  public void setPassiveState(String state) {
-    passiveState = state;
+  public void setMaintenanceState(String state) {
+    maintenanceState = state;
   }
 
   @Override

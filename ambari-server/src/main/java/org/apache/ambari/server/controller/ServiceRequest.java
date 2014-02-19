@@ -24,7 +24,7 @@ public class ServiceRequest {
   private String clusterName; // REF
   private String serviceName; // GET/CREATE/UPDATE/DELETE
   private String desiredState; // CREATE/UPDATE
-  private String passiveState; // UPDATE
+  private String maintenanceState; // UPDATE
 
   public ServiceRequest(String clusterName, String serviceName,
                         String desiredState) {
@@ -76,14 +76,17 @@ public class ServiceRequest {
   }
   
   /**
-   * @param state the new passive state
+   * @param state the new maintenance state
    */
-  public void setPassiveState(String state) {
-    passiveState = state;
+  public void setMaintenanceState(String state) {
+    maintenanceState = state;
   }
   
-  public String getPassiveState() {
-    return passiveState;
+  /**
+   * @return the maintenance state
+   */
+  public String getMaintenanceState() {
+    return maintenanceState;
   }
 
   public String toString() {

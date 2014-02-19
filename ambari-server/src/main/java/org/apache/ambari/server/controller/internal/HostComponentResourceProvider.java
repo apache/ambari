@@ -17,9 +17,12 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -38,14 +41,10 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.PassiveState;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for host component resources.
@@ -77,8 +76,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "stale_configs");
   protected static final String HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
-  protected static final String HOST_COMPONENT_PASSIVE_STATE_PROPERTY_ID
-      = "HostRoles/passive_state";
+  protected static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID
+      = "HostRoles/maintenance_state";
   
   //Component name mappings
   private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
@@ -203,9 +202,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
             response.getAdminState(), requestedIds);
       }
       
-      if (null != response.getPassiveState()) {
-        setResourceProperty(resource, HOST_COMPONENT_PASSIVE_STATE_PROPERTY_ID,
-            response.getPassiveState(), requestedIds);
+      if (null != response.getMaintenanceState()) {
+        setResourceProperty(resource, HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID,
+            response.getMaintenanceState(), requestedIds);
       }
 
       String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
@@ -319,9 +318,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
     }
     
-    Object o = properties.get(HOST_COMPONENT_PASSIVE_STATE_PROPERTY_ID);
+    Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
-      serviceComponentHostRequest.setPassiveState (o.toString());
+      serviceComponentHostRequest.setMaintenanceState (o.toString());
     }
 
     return serviceComponentHostRequest;

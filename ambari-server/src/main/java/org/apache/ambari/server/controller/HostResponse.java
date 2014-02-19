@@ -29,7 +29,7 @@ import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 
 public class HostResponse {
 
@@ -145,7 +145,7 @@ public class HostResponse {
    */
   private String status;
 
-  private PassiveState passiveState = null;
+  private MaintenanceState maintenanceState = null;
 
   public HostResponse(String hostname, String clusterName,
                       String ipv4, String ipv6, int cpuCount, int phCpuCount, String osArch, String osType,
@@ -523,16 +523,16 @@ public class HostResponse {
   }
 
   /**
-   * @param state
+   * @param state the maintenance state
    */
-  public void setPassiveState(PassiveState state) {
-    passiveState = state;
+  public void setMaintenanceState(MaintenanceState state) {
+    maintenanceState = state;
   }
   
   /**
-   * @return the passive state
+   * @return the maintenance state
    */
-  public PassiveState getPassiveState() {
-    return passiveState;
+  public MaintenanceState getMaintenanceState() {
+    return maintenanceState;
   }
 }

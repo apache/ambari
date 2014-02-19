@@ -29,7 +29,7 @@ public class HostRequest {
   private Map<String, String> hostAttributes; // CREATE/UPDATE
   private String rackInfo;
   private ConfigurationRequest desiredConfig; // UPDATE
-  private String passiveState; // UPDATE
+  private String maintenanceState; // UPDATE
 
   public HostRequest(String hostname, String clusterName, Map<String, String> hostAttributes) {
     this.hostname = hostname;
@@ -85,12 +85,12 @@ public class HostRequest {
     return desiredConfig;
   }
   
-  public void setPassiveState(String state) {
-    passiveState = state;
+  public void setMaintenanceState(String state) {
+    maintenanceState = state;
   }
   
-  public String getPassiveState() {
-    return passiveState;
+  public String getMaintenanceState() {
+    return maintenanceState;
   }
 
   public String toString() {

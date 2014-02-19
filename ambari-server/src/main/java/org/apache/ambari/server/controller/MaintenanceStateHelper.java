@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,7 +28,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -38,9 +37,9 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
- * Used to help manage passive state checks.
+ * Used to help manage maintenance state checks.
  */
-public class PassiveStateHelper {
+public class MaintenanceStateHelper {
   private static final String NAGIOS_SERVICE = "NAGIOS";
   private static final String NAGIOS_COMPONENT = "NAGIOS_SERVER";
   private static final String NAGIOS_ACTION_NAME = "nagios_update_ignore";
@@ -49,23 +48,23 @@ public class PassiveStateHelper {
   private Clusters clusters;
   
   @Inject
-  public PassiveStateHelper(Injector injector) {
+  public MaintenanceStateHelper(Injector injector) {
     injector.injectMembers(this);
   }
 
   /**
    * Gets the effective state for a HostComponents
    * @param sch the host component
-   * @return the passive state
+   * @return the maintenance state
    * @throws AmbariException
    */
-  public PassiveState getEffectiveState(ServiceComponentHost sch) throws AmbariException {
+  public MaintenanceState getEffectiveState(ServiceComponentHost sch) throws AmbariException {
     Cluster cluster = clusters.getCluster(sch.getClusterName());
     Service service = cluster.getService(sch.getServiceName());
     
     Map<String, Host> map = clusters.getHostsForCluster(cluster.getClusterName());
     if (null == map)
-      return PassiveState.ACTIVE;
+      return MaintenanceState.OFF;
     
     Host host = clusters.getHostsForCluster(cluster.getClusterName()).get(sch.getHostName());
     if (null == host) // better not
@@ -74,23 +73,33 @@ public class PassiveStateHelper {
     return getEffectiveState(cluster.getClusterId(), service, host, sch);
   }
   
-  private static PassiveState getEffectiveState(long clusterId, Service service,
+  /**
+   * @param clusterId the cluster id
+   * @param service the service
+   * @param host the host
+   * @param sch the host component
+   * @return the effective maintenance state
+   */
+  private static MaintenanceState getEffectiveState(long clusterId, Service service,
       Host host, ServiceComponentHost sch) {
-    if (PassiveState.PASSIVE == sch.getPassiveState())
-      return PassiveState.PASSIVE;
+    if (MaintenanceState.ON == sch.getMaintenanceState())
+      return MaintenanceState.ON;
 
-    if (PassiveState.ACTIVE != service.getPassiveState() ||
-        PassiveState.ACTIVE != host.getPassiveState(clusterId))
-      return PassiveState.IMPLIED;
+    if (MaintenanceState.OFF != service.getMaintenanceState() ||
+        MaintenanceState.OFF != host.getMaintenanceState(clusterId))
+      return MaintenanceState.IMPLIED;
     
-    return sch.getPassiveState();
+    return sch.getMaintenanceState();
   }
 
   /**
-   * @param cluster
-   * @return
+   * @param clusters the collection of clusters
+   * @param cluster the specific cluster to check
+   * @return a property map of all host components that are in a
+   * maintenance state (either {@link MaintenanceState#ON} or
+   * {@link MaintenanceState#IMPLIED})
    */
-  public static Set<Map<String, String>> getPassiveHostComponents(Clusters clusters,
+  public static Set<Map<String, String>> getMaintenanceHostCompoments(Clusters clusters,
       Cluster cluster) throws AmbariException {
     
     Set<Map<String, String>> set = new HashSet<Map<String, String>>();
@@ -104,7 +113,7 @@ public class PassiveStateHelper {
           Host host = clusters.getHostsForCluster(
               cluster.getClusterName()).get(sch.getHostName());
           
-          if (PassiveState.ACTIVE != getEffectiveState(cluster.getClusterId(),
+          if (MaintenanceState.OFF != getEffectiveState(cluster.getClusterId(),
               service, host, sch)) {
             Map<String, String> map = new HashMap<String, String>();
             map.put("host", sch.getHostName());
@@ -142,8 +151,7 @@ public class PassiveStateHelper {
       
       if (null == response)
         response = amc.createAction(actionRequest, requestProperties);
-    }
-    
+    }    
     return response;
   }  
   

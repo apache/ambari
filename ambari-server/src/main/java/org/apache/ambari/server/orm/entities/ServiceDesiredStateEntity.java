@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
@@ -49,9 +49,9 @@ public class ServiceDesiredStateEntity {
   @Basic
   private String desiredStackVersion = "";
 
-  @Column(name = "passive_state", nullable = false, insertable = true, updatable = true)
+  @Column(name = "maintenance_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
-  private PassiveState passiveState = PassiveState.ACTIVE;
+  private MaintenanceState maintenanceState = MaintenanceState.OFF;
   
   
   @OneToOne
@@ -102,12 +102,12 @@ public class ServiceDesiredStateEntity {
     this.desiredStackVersion = desiredStackVersion;
   }
   
-  public PassiveState getPassiveState() {
-    return passiveState;
+  public MaintenanceState getMaintenanceState() {
+    return maintenanceState;
   }  
   
-  public void setPassiveState(PassiveState state) {
-    passiveState = state;
+  public void setMaintenanceState(MaintenanceState state) {
+    maintenanceState = state;
   }
 
   @Override

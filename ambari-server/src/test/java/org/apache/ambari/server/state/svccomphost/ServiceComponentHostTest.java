@@ -39,7 +39,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -802,7 +802,7 @@ public class ServiceComponentHostTest {
   }
   
   @Test
-  public void testPassive() throws Exception {
+  public void testMaintenance() throws Exception {
     String stackVersion="HDP-2.0.6";
     String clusterName = "c2";
     String hostName = "h3";
@@ -830,14 +830,14 @@ public class ServiceComponentHostTest {
     
     HostComponentDesiredStateDAO dao = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntity entity = dao.findByPK(pk);
-    Assert.assertEquals(PassiveState.ACTIVE, entity.getPassiveState());
-    Assert.assertEquals(PassiveState.ACTIVE, sch1.getPassiveState());
+    Assert.assertEquals(MaintenanceState.OFF, entity.getMaintenanceState());
+    Assert.assertEquals(MaintenanceState.OFF, sch1.getMaintenanceState());
     
-    sch1.setPassiveState(PassiveState.PASSIVE);
-    Assert.assertEquals(PassiveState.PASSIVE, sch1.getPassiveState());
+    sch1.setMaintenanceState(MaintenanceState.ON);
+    Assert.assertEquals(MaintenanceState.ON, sch1.getMaintenanceState());
     
     entity = dao.findByPK(pk);
-    Assert.assertEquals(PassiveState.PASSIVE, entity.getPassiveState());
+    Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
 
   }
 

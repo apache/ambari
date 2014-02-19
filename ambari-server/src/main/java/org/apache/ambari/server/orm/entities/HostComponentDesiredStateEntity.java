@@ -20,7 +20,7 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.*;
 
 import org.apache.ambari.server.state.HostComponentAdminState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
@@ -71,8 +71,8 @@ public class HostComponentDesiredStateEntity {
   private HostEntity hostEntity;
   
   @Enumerated(value = EnumType.STRING)
-  @Column(name="passive_state", nullable = false, insertable = true, updatable = true)
-  private PassiveState passiveState = PassiveState.ACTIVE;
+  @Column(name="maintenance_state", nullable = false, insertable = true, updatable = true)
+  private MaintenanceState maintenanceState = MaintenanceState.OFF;
 
   public Long getClusterId() {
     return clusterId;
@@ -131,12 +131,12 @@ public class HostComponentDesiredStateEntity {
     this.adminState = attribute;
   }
   
-  public PassiveState getPassiveState() {
-    return passiveState;
+  public MaintenanceState getMaintenanceState() {
+    return maintenanceState;
   }
   
-  public void setPassiveState(PassiveState state) {
-    passiveState = state;
+  public void setMaintenanceState(MaintenanceState state) {
+    maintenanceState = state;
   }
 
   @Override

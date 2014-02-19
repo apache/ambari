@@ -51,7 +51,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -414,7 +414,7 @@ public class HostTest {
   }
   
   @Test
-  public void testHostPassive() throws Exception {
+  public void testHostMaintenance() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
     metaInfo.init();
     
@@ -433,14 +433,14 @@ public class HostTest {
 
     HostEntity entity = hostDAO.findByName("h1");
     HostStateEntity stateEntity = entity.getHostStateEntity();
-    Assert.assertNull(stateEntity.getPassiveState());
-    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(c1.getClusterId()));
+    Assert.assertNull(stateEntity.getMaintenanceState());
+    Assert.assertEquals(MaintenanceState.OFF, host.getMaintenanceState(c1.getClusterId()));
     
-    host.setPassiveState(c1.getClusterId(), PassiveState.PASSIVE);
+    host.setMaintenanceState(c1.getClusterId(), MaintenanceState.ON);
 
     entity = hostDAO.findByName("h1");
     stateEntity = entity.getHostStateEntity();
-    Assert.assertNotNull(stateEntity.getPassiveState());
-    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(c1.getClusterId()));
+    Assert.assertNotNull(stateEntity.getMaintenanceState());
+    Assert.assertEquals(MaintenanceState.ON, host.getMaintenanceState(c1.getClusterId()));
   }
 }

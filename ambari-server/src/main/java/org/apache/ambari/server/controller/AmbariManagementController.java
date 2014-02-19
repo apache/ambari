@@ -24,7 +24,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -526,13 +526,12 @@ public interface AmbariManagementController {
   public String getJobTrackerHost(Cluster cluster);
 
   /**
-   * Gets the effective passive state for a host component
-   * @param cluster the cluster
-   * @param service the service
+   * Gets the effective maintenance state for a host component
    * @param sch the service component host
-   * @return the passive state
+   * @return the maintenance state
    * @throws AmbariException
    */
-  public PassiveState getEffectivePassiveState(ServiceComponentHost sch) throws AmbariException;
+  public MaintenanceState getEffectiveMaintenanceState(ServiceComponentHost sch)
+      throws AmbariException;
 }
   

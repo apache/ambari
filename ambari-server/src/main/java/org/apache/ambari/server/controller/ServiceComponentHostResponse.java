@@ -37,7 +37,7 @@ public class ServiceComponentHostResponse {
   private String desiredState;
   private boolean staleConfig = false;
   private String adminState = null;
-  private String passiveState = null;
+  private String maintenanceState = null;
 
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
@@ -254,17 +254,17 @@ public class ServiceComponentHostResponse {
   }
 
   /**
-   * @return the passive state
+   * @return the maintenance state
    */
-  public String getPassiveState() {
-    return passiveState;
+  public String getMaintenanceState() {
+    return maintenanceState;
   }
   
   /**
-   * @param state the passive state
+   * @param state the maintenance state
    */
-  public void setPassiveState(String state) {
-    passiveState = state;
+  public void setMaintenanceState(String state) {
+    maintenanceState = state;
   }
 
 }

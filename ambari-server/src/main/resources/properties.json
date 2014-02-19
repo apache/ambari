@@ -11,7 +11,7 @@
         "ServiceInfo/service_name",
         "ServiceInfo/cluster_name",
         "ServiceInfo/state",
-        "ServiceInfo/passive_state",
+        "ServiceInfo/maintenance_state",
         "Services/description",
         "Services/display_name",
         "Services/attributes",
@@ -38,7 +38,7 @@
         "Hosts/host_health_report",
         "Hosts/public_host_name",
         "Hosts/host_state",
-        "Hosts/passive_state",
+        "Hosts/maintenance_state",
         "Hosts/desired_configs",
         "_"
     ],
@@ -67,7 +67,7 @@
         "HostRoles/nagios_alerts",
         "HostRoles/stale_configs",
         "HostRoles/desired_admin_state",
-        "HostRoles/passive_state",
+        "HostRoles/maintenance_state",
         "_"
     ],
     "Configuration":[

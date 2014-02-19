@@ -37,7 +37,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.PassiveStateHelper;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
@@ -56,7 +56,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -81,7 +81,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   protected static final String SERVICE_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "cluster_name");
   protected static final String SERVICE_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
   protected static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
-  protected static final String SERVICE_PASSIVE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "passive_state");
+  protected static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state");
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -176,8 +176,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
           calculateServiceState(response.getClusterName(), response.getServiceName()),
           requestedIds);
-      setResourceProperty(resource, SERVICE_PASSIVE_STATE_PROPERTY_ID,
-          response.getPassiveState(), requestedIds);
+      setResourceProperty(resource, SERVICE_MAINTENANCE_STATE_PROPERTY_ID,
+          response.getMaintenanceState(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -277,9 +277,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID));
     
-    Object o = properties.get(SERVICE_PASSIVE_STATE_PROPERTY_ID);
+    Object o = properties.get(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o)
-      svcRequest.setPassiveState(o.toString());
+      svcRequest.setMaintenanceState(o.toString());
 
     return svcRequest;
   }
@@ -505,6 +505,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
     Set<State> seenNewStates = new HashSet<State>();
 
+
     Clusters       clusters        = controller.getClusters();
     AmbariMetaInfo ambariMetaInfo   = controller.getAmbariMetaInfo();
     Set<String> maintenanceClusters = new HashSet<String>();
@@ -553,14 +554,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
       }
       
-      if (null != request.getPassiveState()) {
-        PassiveState newPassive = PassiveState.valueOf(request.getPassiveState());
-        if (newPassive  != s.getPassiveState()) {
-          if (newPassive.equals(PassiveState.IMPLIED)) {
+      if (null != request.getMaintenanceState()) {
+        MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());
+        if (newMaint  != s.getMaintenanceState()) {
+          if (newMaint.equals(MaintenanceState.IMPLIED)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
-              "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
+              "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
-            s.setPassiveState(newPassive);
+            s.setMaintenanceState(newMaint);
             
             maintenanceClusters.add(cluster.getClusterName());
           }
@@ -577,9 +578,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         continue;
       }
       
-      if (requests.size() > 1 && PassiveState.ACTIVE != s.getPassiveState()) {
+      if (requests.size() > 1 && MaintenanceState.OFF != s.getMaintenanceState()) {
         LOG.info("Operations cannot be applied to service " + s.getName() +
-            " in the passive state of " + s.getPassiveState());
+            " in the maintenance state of " + s.getMaintenanceState());
         continue;
       }
       
@@ -638,7 +639,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()){
           State oldSchState = sch.getState();
-          if (oldSchState == State.MAINTENANCE || oldSchState == State.UNKNOWN) {
+          if (oldSchState == State.DISABLED || oldSchState == State.UNKNOWN) {
             //Ignore host components updates in this state
             if (LOG.isDebugEnabled()) {
               LOG.debug("Ignoring ServiceComponentHost"
@@ -666,12 +667,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             continue;
           }
           
-          PassiveState schPassive = controller.getEffectivePassiveState(sch);
-          if (PassiveState.PASSIVE == schPassive ||
-              (requests.size() > 1 && PassiveState.ACTIVE != schPassive)) {
+          MaintenanceState schMaint = controller.getEffectiveMaintenanceState(sch);
+          if (MaintenanceState.ON == schMaint ||
+              (requests.size() > 1 && MaintenanceState.OFF != schMaint)) {
             ignoredScHosts.add(sch);
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Ignoring " + schPassive + " ServiceComponentHost"
+              LOG.debug("Ignoring " + schMaint + " ServiceComponentHost"
                   + ", clusterName=" + request.getClusterName()
                   + ", serviceName=" + s.getName()
                   + ", componentName=" + sc.getName()
@@ -738,12 +739,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           + " changes for a set of services at the same time");
     }
     
-    if (maintenanceClusters.size() > -0) {
+    if (maintenanceClusters.size() > 0) {
       try {
-        PassiveStateHelper.createRequests(controller, requestProperties,
+        MaintenanceStateHelper.createRequests(controller, requestProperties,
             maintenanceClusters);
       } catch (Exception e) {
-        LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+        LOG.warn("Could not send maintenance state to Nagios (" + e.getMessage() + ")");
       }
     }
 
@@ -830,7 +831,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                   State state = getHostComponentState(hostComponentResponse);
                   switch (state) {
                     case STARTED:
-                    case MAINTENANCE:
+                    case DISABLED:
                       break;
                     default:
                       return state;
@@ -900,7 +901,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
                   switch (state) {
                     case STARTED:
-                    case MAINTENANCE:
+                    case DISABLED:
                       if (isNameNode) {
                         ++nameNodeActiveCount;
                       }
@@ -964,7 +965,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
                   switch (state) {
                     case STARTED:
-                    case MAINTENANCE:
+                    case DISABLED:
                       String componentName = hostComponentResponse.getComponentName();
                       if (componentName.equals("HBASE_MASTER")) {
                         ++hBaseMasterActiveCount;

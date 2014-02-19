@@ -90,15 +90,15 @@ public interface Service {
   ReadWriteLock getClusterGlobalLock();
   
   /**
-   * Sets the passive state for the service
-   * @param state the status
+   * Sets the maintenance state for the service
+   * @param state the state
    */
-  public void setPassiveState(PassiveState state);
+  public void setMaintenanceState(MaintenanceState state);
   
   /**
-   * @return the passive state
+   * @return the maintenance state
    */
-  public PassiveState getPassiveState();
+  public MaintenanceState getMaintenanceState();
 
   public enum Type {
     HDFS,

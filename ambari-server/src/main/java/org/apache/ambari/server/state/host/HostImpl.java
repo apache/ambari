@@ -52,7 +52,7 @@ import org.apache.ambari.server.state.HostEventType;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PassiveState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -93,8 +93,8 @@ public class HostImpl implements Host {
 
   private static final Type hostAttributesType =
       new TypeToken<Map<String, String>>() {}.getType();
-  private static final Type passiveMapType =
-      new TypeToken<Map<Long, PassiveState>>() {}.getType();
+  private static final Type maintMapType =
+      new TypeToken<Map<Long, MaintenanceState>>() {}.getType();
 
   ReadWriteLock rwLock;
   private final Lock readLock;
@@ -115,7 +115,7 @@ public class HostImpl implements Host {
   private Integer currentPingPort = null;
   
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
-  private Map<Long, PassiveState> passiveMap = null;
+  private Map<Long, MaintenanceState> maintMap = null;
 
   
   
@@ -1230,32 +1230,32 @@ public class HostImpl implements Host {
     return findSelectedByType;
   }
   
-  private void ensurePassiveMap() {
-    if (null == passiveMap) {
-      String entity = hostStateEntity.getPassiveState();
+  private void ensureMaintMap() {
+    if (null == maintMap) {
+      String entity = hostStateEntity.getMaintenanceState();
       if (null == entity) {
-        passiveMap = new HashMap<Long, PassiveState>();
+        maintMap = new HashMap<Long, MaintenanceState>();
       } else {
         try {
-          passiveMap = gson.fromJson(entity, passiveMapType);
+          maintMap = gson.fromJson(entity, maintMapType);
         } catch (Exception e) {
-          passiveMap = new HashMap<Long, PassiveState>();
+          maintMap = new HashMap<Long, MaintenanceState>();
         }
       }
     }
   }
   
   @Override
-  public void setPassiveState(long clusterId, PassiveState state) {
+  public void setMaintenanceState(long clusterId, MaintenanceState state) {
     try {
       writeLock.lock();
       
-      ensurePassiveMap();
+      ensureMaintMap();
       
-      passiveMap.put(Long.valueOf(clusterId), state);
-      String json = gson.toJson(passiveMap, passiveMapType);
+      maintMap.put(Long.valueOf(clusterId), state);
+      String json = gson.toJson(maintMap, maintMapType);
       
-      hostStateEntity.setPassiveState(json);
+      hostStateEntity.setMaintenanceState(json);
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -1263,18 +1263,18 @@ public class HostImpl implements Host {
   }
   
   @Override
-  public PassiveState getPassiveState(long clusterId) {
+  public MaintenanceState getMaintenanceState(long clusterId) {
     try {
       readLock.lock();
 
-      ensurePassiveMap();
+      ensureMaintMap();
       
       Long id = Long.valueOf(clusterId);
       
-      if (!passiveMap.containsKey(id))
-        passiveMap.put(id, PassiveState.ACTIVE);
+      if (!maintMap.containsKey(id))
+        maintMap.put(id, MaintenanceState.OFF);
         
-      return passiveMap.get(id);
+      return maintMap.get(id);
     } finally {
       readLock.unlock();
     }
