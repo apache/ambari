@@ -395,6 +395,7 @@ function hdp_mon_generate_response( $response_data )
         $pieces[0] = "MAPREDUCE2";
         break;
       case "RESOURCEMANAGER":
+      case "APP_TIMELINE_SERVER":
       case "NODEMANAGER":
         $pieces[0] = "YARN";
         break;

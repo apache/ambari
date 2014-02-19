@@ -65,6 +65,7 @@ flume_port = "4159"
 hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
 hbase_rs_port = "60030"
+ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.ahs.webapp.address'])
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"
@@ -126,6 +127,7 @@ _zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", None)
 _flume_hosts = default("/clusterHostInfo/flume_hosts", None)
 _nagios_server_host = default("/clusterHostInfo/nagios_server_host",None)
 _ganglia_server_host = default("/clusterHostInfo/ganglia_server_host",None)
+_app_timeline_server_hosts = default("/clusterHostInfo/app_timeline_server_hosts",None)
 
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
 _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
@@ -160,5 +162,6 @@ hostgroup_defs = {
     'resourcemanager' : _rm_host,
     'nodemanagers' : _nm_hosts,
     'historyserver2' : _hs_host,
-    'journalnodes' : _journalnode_hosts
+    'journalnodes' : _journalnode_hosts,
+    'ats-servers' : _app_timeline_server_hosts
 }

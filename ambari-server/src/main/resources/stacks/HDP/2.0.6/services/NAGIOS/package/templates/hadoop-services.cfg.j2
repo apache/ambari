@@ -654,3 +654,15 @@ define service {
 }
 {% endif %}
 
+{% if hostgroup_defs['ats-servers'] %}
+define service {
+        hostgroup_name          ats-servers
+        use                     hadoop-service
+        service_description     APP_TIMELINE_SERVER::ATS process
+        servicegroups           YARN
+        check_command           check_tcp_wrapper!{{ ahs_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{% endif %}
