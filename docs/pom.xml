@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>1.4.3</version>
+    <version>1.4.4</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
