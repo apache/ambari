@@ -20,16 +20,28 @@ var jobsUtils = require('utils/jobs');
 
 App.MainHiveJobDetailsController = Em.Controller.extend({
   name : 'mainHiveJobDetailsController',
+
   content : null,
   loaded : false,
-  loadJobDetails : function() {
+  loadTimeout: null,
+
+  loadJobDetails : function(job) {
     var self = this;
-    this.set('loaded', false);
-    var content = this.get('content');
-    if (content != null) {
-      jobsUtils.refreshJobDetails(content, function() {
-        self.set('loaded', true);
-      });
+    var timeout = this.get('loadTimeout');
+    var yarnService = App.YARNService.find().objectAt(0);
+    if (yarnService != null) {
+      var self = this;
+      this.set('loaded', false);
+      if (job != null) {
+        jobsUtils.refreshJobDetails(job, function() {
+          self.set('loaded', true);
+        });
+      }
+    }else{
+      clearTimeout(timeout);
+      timeout = setTimeout(function(){
+        self.loadJobDetails(job);
+      }, 300);
     }
   },
 

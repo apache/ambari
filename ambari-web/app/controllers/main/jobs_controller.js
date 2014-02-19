@@ -272,7 +272,6 @@ App.MainJobsController = Em.ArrayController.extend({
       'filterObject.jobsLimit',
       'filterObject.user',
       'filterObject.windowStart',
-      'filterObject.windowEnd',
-      'App.router.clusterController.isLoaded'
+      'filterObject.windowEnd'
   )
 })

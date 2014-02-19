@@ -143,10 +143,8 @@ module.exports = Em.Route.extend({
       route : '/:job_id',
       connectOutlets : function(router, job) {
         if (job) {
-          if (job.get('jobType') === App.JobType.HIVE) {
-            router.get('mainController').connectOutlet('mainHiveJobDetails', job);
-            router.get('mainHiveJobDetailsController').loadJobDetails();
-          }
+          router.get('mainHiveJobDetailsController').loadJobDetails(job);
+          router.get('mainController').connectOutlet('mainHiveJobDetails');
         }
       }
     }),

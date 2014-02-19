@@ -27,15 +27,7 @@ module.exports = {
    *          successCallback
    */
   refreshJobDetails : function(job, successCallback) {
-    if (job) {
-      switch (job.get('jobType')) {
-      case App.JobType.HIVE:
-        this.refreshHiveJobDetails(job, successCallback);
-        break;
-      default:
-        break;
-      }
-    }
+    this.refreshHiveJobDetails(job, successCallback);
   },
 
   /**
@@ -60,6 +52,7 @@ module.exports = {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
         var hiveRecord = App.HiveJob.find(hiveJobId);
+        App.router.get('mainHiveJobDetailsController').set('content', hiveRecord);
         var tezDagName = hiveRecord.get('tezDag.name');
         if (tezDagName != null) {
           var sender = {

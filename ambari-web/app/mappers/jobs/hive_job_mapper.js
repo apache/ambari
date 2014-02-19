@@ -157,6 +157,9 @@ App.hiveJobMapper = App.QuickDataMapper.create({
           hiveJob.tezDag = tezDag.id;
         }
       }
+      if(App.HiveJob.find().get('content').length == 0){
+        App.store.load(model, hiveJob);
+      }
       var hiveJobRecord = App.HiveJob.find(hiveJob.id);
       if (hiveJobRecord != null) {
         hiveJobRecord.set('queryText', hiveJob.queryText);
