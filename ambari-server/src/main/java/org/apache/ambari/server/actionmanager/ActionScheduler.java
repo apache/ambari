@@ -541,7 +541,7 @@ class ActionScheduler implements Runnable {
               svcComp.getServiceComponentHost(hostname);
           svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr).getEvent());
         } catch (ServiceComponentNotFoundException scnex) {
-          LOG.info("Not a service component, assuming its an action", scnex);
+          LOG.debug("Not a service component, assuming its an action");
         } catch (InvalidStateTransitionException e) {
           LOG.info(
               "Transition failed for host: " + hostname + ", role: "
