@@ -42,7 +42,7 @@ App.YARNService = App.Service.extend({
     if(yarnConf){
       return yarnConf.properties['yarn.ahs.webapp.address'].match(/:(\d+)/)[1];;
     }
-    return "";
+    return "8188";
   }.property(),
   yarnClientNodes: function(){
     return this.get('hostComponents').filterProperty('componentName', 'YARN_CLIENT').mapProperty('host');

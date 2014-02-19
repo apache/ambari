@@ -54,8 +54,9 @@ App.hiveJobMapper = App.QuickDataMapper.create({
     if (json && json.entity) {
       var hiveJob = {};
       hiveJob.id = json.entity;
-      hiveJob.startTime = json.otherinfo.startTime;
-      hiveJob.endTime = json.otherinfo.endTime;
+      hiveJob.startTime = json.starttime;
+      hiveJob.endTime = json.endtime;
+      json.otherinfo.query = $.parseJSON(json.otherinfo.query).query;
       hiveJob.queryText = json.otherinfo.query.queryText;
       hiveJob.stages = [];
       var stagePlans = json.otherinfo.query.queryPlan["STAGE PLANS"];
@@ -69,7 +70,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
         };
         hiveJob.stages.push(stageItem);
         if (stageValue.Tez != null && hiveJob.tezDag == null) {
-          var dagName = stageValue.Tez.DagName;
+          var dagName = stageValue.Tez['DagName:'];
           // Vertices
           var vertices = [];
           var vertexIds = [];
