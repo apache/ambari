@@ -189,6 +189,7 @@ App.format = {
     'SECONDARY_NAMENODE': 'SNameNode',
     'SQOOP': 'Sqoop',
     'SQOOP_SERVICE_CHECK': 'Sqoop Service Check',
+    'STORM_REST_API': 'Storm REST API Server',
     'STORM_SERVICE_CHECK': 'Storm Service Check',
     'STORM_UI_SERVER': 'Storm UI Server',
     'SUPERVISOR': 'Supervisor',

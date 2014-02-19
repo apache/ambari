@@ -1535,21 +1535,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globalConfigs.push(hiveMetastoreHost);
         break;
       case 'STORM':
-        var stormUIServerHost = this.getMasterComponentHostValue('STORM_UI_SERVER');
-        var logviewerServerHost = this.getMasterComponentHostValue('LOGVIEWER_SERVER');
-        var drpcServerHost = this.getMasterComponentHostValue('DRPC_SERVER');
+        var masterHostComponents = [
+          { name: 'STORM_UI_SERVER', propertyName: 'stormuiserver_host' },
+          { name: 'LOGVIEWER_SERVER', propertyName: 'logviewerserver_host' },
+          { name: 'DRPC_SERVER', propertyName: 'drpcserver_host' },
+          { name: 'STORM_REST_API', propertyName: 'storm_rest_api_host' }
+        ];
 
-        var stormUIServerHostConfig = serviceConfigs.findProperty('name','stormuiserver_host');
-        var logviewerServerHostConfig = serviceConfigs.findProperty('name','logviewerserver_host');
-        var drpcServerHostConfig = serviceConfigs.findProperty('name','drpcserver_host');
-
-        stormUIServerHostConfig.defaultValue = stormUIServerHost;
-        logviewerServerHostConfig.defaultValue = logviewerServerHost;
-        drpcServerHostConfig.defaultValue = drpcServerHost;
-
-        globalConfigs.push(stormUIServerHostConfig);
-        globalConfigs.push(logviewerServerHostConfig);
-        globalConfigs.push(drpcServerHostConfig);
+        masterHostComponents.forEach(function(component) {
+          var hostValue = this.getMasterComponentHostValue(component.name);
+          var config = serviceConfigs.findProperty('name', component.propertyName);
+          config.defaultValue = hostValue;
+          globalConfigs.push(config);
+        }, this);
 
         var supervisorHosts = hostComponents.filterProperty('componentName','SUPERVISOR').mapProperty('host.hostName');
         if (supervisorHosts.length > 0) {

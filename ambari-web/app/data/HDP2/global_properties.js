@@ -1460,6 +1460,21 @@ module.exports =
       "category": "Supervisor",
       "filename": "global.xml"
     },
+    {
+      "id": "puppet var",
+      "name": "storm_rest_api_host",
+      "displayName": "Storm REST API host",
+      "description": "The host that has been assigned to run Storm REST API Server",
+      "defaultValue": "",
+      "displayType": "masterHost",
+      "isReconfigurable": false,
+      "isVisible": true,
+      "isRequiredByAgent": false,
+      "serviceName": "STORM",
+      "isOverridable": false,
+      "category": "StormRestApi",
+      "filename": "global.xml"
+    },
   /**********************************************MISC***************************************/
     {
       "id": "puppet var",

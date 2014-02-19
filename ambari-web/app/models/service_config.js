@@ -415,6 +415,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'stormuiserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'STORM_UI_SERVER').hostName);
         break;
+      case 'storm_rest_api_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'STORM_REST_API').hostName);
+        break;
       case 'supervisor_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR').hosts.mapProperty('hostName'));
         break;

@@ -397,6 +397,14 @@ module.exports = new Ember.Set([
     isMaster: true,
     isClient: false,
     description: 'Master component for STORM'
+  },
+  {
+    service_name: 'STORM',
+    component_name: 'STORM_REST_API',
+    display_name: 'Storm REST API Server',
+    isMaster: true,
+    isClient: false,
+    description: 'Master component for STORM'
   }
 ]);
 

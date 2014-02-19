@@ -284,6 +284,12 @@ module.exports = [
             isMaster: true
           }),
           Ember.Object.create({
+            display_name: 'Storm REST API Server',
+            component_name: 'STORM_REST_API',
+            component_value: '',
+            isMaster: true
+          }),
+          Ember.Object.create({
             display_name: 'Storm UI Server',
             component_name: 'STORM_UI_SERVER',
             component_value: '',
