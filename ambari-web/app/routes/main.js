@@ -26,9 +26,13 @@ module.exports = Em.Route.extend({
     console.log('in /main:enter');
     if (router.getAuthenticated()) {
       App.router.get('clusterController').loadClusterName(false);
-      App.router.get('clusterController').loadClientServerClockDistance().done(function() {
+      if(App.testMode){
         router.get('mainController').initialize();
-      });
+      }else{
+        App.router.get('clusterController').loadClientServerClockDistance().done(function() {
+          router.get('mainController').initialize();
+        });
+      }
       // TODO: redirect to last known state
     } else {
       Ember.run.next(function () {
