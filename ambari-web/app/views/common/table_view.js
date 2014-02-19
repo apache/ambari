@@ -146,7 +146,9 @@ App.TableView = Em.View.extend({
     console.log('Persist did NOT find the key');
     var displayLengthDefault = "10";
     this.set('displayLengthOnLoad', displayLengthDefault);
-    this.postUserPref(this.displayLengthKey(), displayLengthDefault);
+    if (App.get('isAdmin')) {
+      this.postUserPref(this.displayLengthKey(), displayLengthDefault);
+    }
     return displayLengthDefault;
   },
 
@@ -310,7 +312,9 @@ App.TableView = Em.View.extend({
     Em.run.next(function() {
       App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
       if (!App.testMode) {
-        self.postUserPref(self.displayLengthKey(), self.get('displayLength'));
+        if (App.get('isAdmin')) {
+          self.postUserPref(self.displayLengthKey(), self.get('displayLength'));
+        }
       }
     });
   },
