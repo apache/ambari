@@ -37,6 +37,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -263,6 +264,36 @@ class ProxyServiceTest extends BaseServiceTest {
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     Response resultForGetRequest = ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());
     assertSame(resultForGetRequest, responseMock);
+  }
+
+  @Test
+  public void testEscapedURL() throws Exception {
+    ProxyService ps = new ProxyService();
+    URLStreamProvider streamProviderMock = PowerMock.createNiceMock(URLStreamProvider.class);
+    MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
+    HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
+    URI uri = UriBuilder.fromUri("http://dev01.hortonworks.com:8080/proxy?url=http%3a%2f%2fserver%3a8188%2fws%2fv1%2f" +
+     "apptimeline%2fHIVE_QUERY_ID%3ffields=events%2cprimaryfilters%26limit=10%26primaryFilter=user%3ahiveuser1").build();
+    Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
+    InputStream is = new ByteArrayInputStream("test".getBytes());
+    List<String> userRemoteParams = new LinkedList<String>();
+    userRemoteParams.add("testuser");
+    headerParams.add("AmbariProxy-User-Remote","testuser");
+    headerParams.add("Content-Type","testtype");
+    headerParamsToForward.put("User-Remote", userRemoteParams);
+    expect(getHttpHeaders().getRequestHeaders()).andReturn(headerParams);
+    expect(getHttpHeaders().getRequestHeader("AmbariProxy-User-Remote")).andReturn(userRemoteParams);
+    expect(getUriInfo().getRequestUri()).andReturn(uri);
+    expect(urlConnectionMock.getResponseCode()).andReturn(200);
+    expect(urlConnectionMock.getContentType()).andReturn("text/plain");
+    expect(urlConnectionMock.getInputStream()).andReturn(is);
+    PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
+    expect(streamProviderMock.processURL("http://server:8188/ws/v1/apptimeline/HIVE_QUERY_ID?fields=events,primary" +
+     "filters&limit=10&primaryFilter=user:hiveuser1", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
+    PowerMock.replay(streamProviderMock, URLStreamProvider.class);
+    replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
+    ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());
+
   }
 
   @Override
