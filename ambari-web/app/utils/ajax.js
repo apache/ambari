@@ -1322,7 +1322,8 @@ var urls = {
     'mock': ''
   },
   'ambari.service.load_server_clock': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock'
+    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock',
+    'mock': ''
   },
   'dashboard.get.user_pref': {
     'real': '/persist/{key}',

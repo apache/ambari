@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+require('utils/helper');
 require('controllers/main/apps_controller');
 
 describe('MainAppsController', function () {
