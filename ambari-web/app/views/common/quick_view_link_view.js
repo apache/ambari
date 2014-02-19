@@ -120,6 +120,8 @@ App.QuickViewLinks = Em.View.extend({
           } else {
             host = component.get('host.publicHostName');
           }
+        } else {
+          host = 'noActiveHbaseMaster';
         }
         break;
       case "YARN":
@@ -144,7 +146,7 @@ App.QuickViewLinks = Em.View.extend({
       ];
     } else {
       quickLinks = this.get('content.quickLinks').map(function (item) {
-        if (host == 'noActiveNN') {
+        if (host == 'noActiveNN' || host == 'noActiveHbaseMaster') {
           item.set('disabled', true);
         } else {
           item.set('disabled', false);
