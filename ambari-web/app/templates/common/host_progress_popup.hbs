@@ -136,8 +136,6 @@
     <div class="task-top-wrap">
       <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToHostList}} ><i class="icon-arrow-left"></i>&nbsp;{{t common.hosts}}</a>
       <div class="task-name-top task-detail-log-rolename">{{t common.tasks}}</div>
-      <div class="start-time-top">{{t common.startTime}}</div>
-      <div class="duration-top">{{t common.duration}}</div>
       <div class="select-wrap tasks-list-select">
         {{t common.show}}:
         {{view Ember.Select
@@ -161,8 +159,6 @@
                   {{taskInfo.commandDetail}}
                 </a>
               </div>
-              <div class="time-summary start-time-text">{{taskInfo.startTime}}</div>
-              <div class="time-summary duration-text">{{taskInfo.duration}}</div>
               <div class="show-details"><i class="icon-caret-right"></i></div>
             </div>
           </div>

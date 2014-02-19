@@ -18,8 +18,6 @@
 <div {{bindAttr class="view.isLogWrapHidden::hidden :task-list-main-warp"}}>
   <div class="task-top-wrap">
     <div class="task-name-top task-detail-log-rolename">{{t common.tasks}}</div>
-    <div class="start-time-top">{{t common.startTime}}</div>
-    <div class="duration-top">{{t common.duration}}</div>
     <div class="select-wrap">
       {{t common.show}}:
       {{view Ember.Select
@@ -40,8 +38,6 @@
               {{taskInfo.role}} {{taskInfo.command}}
             </a>
           </div>
-          <div class="time-summary start-time-text">{{taskInfo.startTime}}</div>
-          <div class="time-summary duration-text">{{taskInfo.duration}}</div>
           <div class="show-details"><i class="icon-caret-right"></i></div>
         </div>
       </div>
