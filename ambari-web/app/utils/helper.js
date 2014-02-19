@@ -250,6 +250,9 @@ App.format = {
         result = result + ' ' + item;
       }
     });
+    if (result === ' nagios_update_ignore ACTIONEXECUTE') {
+       result = Em.I18n.t('common.maintenance.task');
+    }
     return result;
   },
 
