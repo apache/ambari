@@ -124,7 +124,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       );
     });
     this.get('tasks').findProperty('id', taskId).set('hosts', hosts);
-    this.set('serviceTimestamp', new Date().getTime());
+    this.set('serviceTimestamp', App.dateTime());
   },
 
   retryTask: function () {

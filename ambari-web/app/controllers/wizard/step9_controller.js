@@ -602,7 +602,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       };
       if (this.isSuccess(polledData)) {
         clusterStatus.status = 'STARTED';
-        var serviceStartTime = new Date().getTime();
+        var serviceStartTime = App.dateTime();
         clusterStatus.installTime = ((parseInt(serviceStartTime) - parseInt(this.get('content.cluster.installStartTime'))) / 60000).toFixed(2);
       } else {
         clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed

@@ -17,6 +17,7 @@
  */
 
 var validator = require('utils/validator');
+var App = require('app');
 
 module.exports = {
   dateMonths:['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -53,7 +54,7 @@ module.exports = {
     return date.toDateString();
   },
   /**
-   * Convert starTimestamp to 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES, lasted for DURATION', except for the case: year equals 1969
+   * Convert starTimestamp to 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES', except for the case: year equals 1969
    * @param startTimestamp
    * @return string startTimeSummary
    */
@@ -88,13 +89,16 @@ module.exports = {
     var durationSummary = '';
     var startDate = new Date(startTimestamp);
     var endDate = new Date(endTimestamp);
+    var self = this;
     if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
       return '';
     }
     if (endDate.getFullYear() != 1969 && endTimestamp > 0) {
-      durationSummary = '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
+      return '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
     } else {
-      durationSummary = '' + this.timingFormat(new Date().getTime() - startTimestamp, 1);
+      // still running, duration till now
+      var time =  (App.dateTime() - startTimestamp) < 0? 0 : (App.dateTime() - startTimestamp) ;
+      durationSummary = '' + this.timingFormat( time , 1);
     }
     return durationSummary;
   },
@@ -117,7 +121,7 @@ module.exports = {
    */
   timingFormat:function (time, /* optional */ zeroValid) {
     var intTime  = parseInt(time);
-    if (zeroValid && intTime == 0) return 0 + '';
+    if (zeroValid && intTime == 0) return 0 + ' secs';
     if (!intTime) return null;
     var timeStr = intTime.toString();
     var lengthOfNumber = timeStr.length;
@@ -154,7 +158,7 @@ module.exports = {
     var duration = 0;
     if (startTime && startTime > 0) {
       if (!endTime || endTime < 1) {
-        endTime = new Date().getTime();
+        endTime = App.dateTime();
       }
       duration = endTime - startTime;
     }

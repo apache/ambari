@@ -100,7 +100,7 @@ App.Alert = Em.Object.extend({
   }.property('date', 'status'),
   
   makeTimeAtleastMinuteAgo: function(d){
-    var diff = new Date().getTime() - d.getTime();
+    var diff = App.dateTime() - d.getTime();
     if (diff < 60000) {
       diff = 60000 - diff;
       return new Date(d.getTime() - diff );

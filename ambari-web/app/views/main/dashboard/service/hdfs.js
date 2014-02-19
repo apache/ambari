@@ -101,7 +101,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   nodeUptime: function () {
     var uptime = this.get('service').get('nameNodeStartTime');
     if (uptime && uptime > 0){
-      var diff = (new Date()).getTime() - uptime;
+      var diff = App.dateTime() - uptime;
       if (diff < 0) {
         diff = 0;
       }

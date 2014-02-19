@@ -382,7 +382,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   startRegistration: function () {
     if (this.get('registrationStartedAt') == null) {
-      this.set('registrationStartedAt', new Date().getTime());
+      this.set('registrationStartedAt', App.dateTime());
       console.log('registration started at ' + this.get('registrationStartedAt'));
       this.isHostsRegistered();
     }
@@ -439,7 +439,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           _host.set('bootStatus', 'REGISTERING');
           _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
           // update registration timestamp so that the timeout is computed from the last host that finished bootstrapping
-          this.set('registrationStartedAt', new Date().getTime());
+          this.set('registrationStartedAt', App.dateTime());
           stopPolling = false;
           break;
         case 'REGISTERING':
@@ -462,7 +462,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
     if (stopPolling) {
       this.getHostInfo();
-    } else if (hosts.someProperty('bootStatus', 'RUNNING') || new Date().getTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
+    } else if (hosts.someProperty('bootStatus', 'RUNNING') || App.dateTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
       // we want to keep polling for registration status if any of the hosts are still bootstrapping (so we check for RUNNING).
       var self = this;
       window.setTimeout(function () {

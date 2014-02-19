@@ -131,7 +131,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }, this);
     request.set('previousTaskStatusMap', currentTaskStatusMap);
     request.set('hostsMap', hostsMap);
-    this.set('serviceTimestamp', new Date().getTime());
+    this.set('serviceTimestamp', App.dateTime());
   },
   /**
    * Update task, with uploading two additional properties: stdout and stderr
@@ -146,7 +146,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     task.Tasks.status = data.Tasks.status;
     task.Tasks.stdout = data.Tasks.stdout;
     task.Tasks.stderr = data.Tasks.stderr;
-    this.set('serviceTimestamp', new Date().getTime());
+    this.set('serviceTimestamp', App.dateTime());
   },
 
   /**
@@ -199,7 +199,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
       }
     });
     self.set("allOperationsCount", runningServices);
-    self.set('serviceTimestamp', new Date().getTime());
+    self.set('serviceTimestamp', App.dateTime());
   },
 
   /**

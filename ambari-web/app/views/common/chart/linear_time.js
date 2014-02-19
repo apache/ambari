@@ -162,7 +162,7 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   getDataForAjaxRequest: function() {
-    var toSeconds = Math.round(new Date().getTime() / 1000);
+    var toSeconds = Math.round(App.dateTime() / 1000);
     var hostName = (this.get('content')) ? this.get('content.hostName') : "";
 
     var HDFSService = App.HDFSService.find().objectAt(0);
@@ -262,8 +262,8 @@ App.ChartLinearTimeView = Ember.View.extend({
         // Same number applies to all time.
         var number = seriesData;
         seriesData = [];
-        seriesData.push([number, new Date().getTime()-(60*60)]);
-        seriesData.push([number, new Date().getTime()]);
+        seriesData.push([number, App.dateTime()-(60*60)]);
+        seriesData.push([number, App.dateTime()]);
       }
       // We have valid data
       var series = {};
@@ -416,7 +416,7 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @param {Array} data
    */
   dataShiftFix: function(data) {
-    var nowTime = Math.round(new Date().getTime() / 1000);
+    var nowTime = Math.round(App.dateTime() / 1000);
     data.forEach(function(series){
       var l = series.data.length;
       var shiftDiff = nowTime - series.data[l - 1].x;

@@ -115,7 +115,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   masterStartedTime: function () {
     var uptime = this.get('service').get('masterStartTime');
     if (uptime && uptime > 0) {
-      var diff = (new Date()).getTime() - uptime;
+      var diff = App.dateTime() - uptime;
       if (diff < 0) {
         diff = 0;
       }
@@ -128,7 +128,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   masterActivatedTime: function () {
     var uptime = this.get('service').get('masterActiveTime');
     if (uptime && uptime > 0) {
-      var diff = (new Date()).getTime() - uptime;
+      var diff = App.dateTime() - uptime;
       if (diff < 0) {
         diff = 0;
       }

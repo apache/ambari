@@ -77,7 +77,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         services.push(newService);
       }
     });
-    this.set('serviceTimestamp', new Date().getTime());
+    this.set('serviceTimestamp', App.dateTime());
   }.observes('stages.@each.polledData'),
 
   loadStages: function () {

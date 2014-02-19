@@ -58,7 +58,7 @@ App.HttpClient = Em.Object.create({
     }
 
     var xhr = new XMLHttpRequest();
-    var curTime = new Date().getTime();
+    var curTime = App.dateTime();
 
     xhr.open('GET', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
     xhr.send(null);

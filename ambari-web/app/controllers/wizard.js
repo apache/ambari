@@ -302,7 +302,7 @@ App.WizardController = Em.Controller.extend({
   },
 
   installServicesSuccessCallback: function (jsonData) {
-    var installStartTime = new Date().getTime();
+    var installStartTime = App.dateTime();
     console.log("TRACE: In success function for the installService call");
     if (jsonData) {
       var requestId = jsonData.Requests.id;

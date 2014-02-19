@@ -296,6 +296,15 @@ App.tooltip = function(self, options) {
   });
 };
 
+/**
+ * wrapper to Date().getTime()
+ * fix issue when client clock and server clock not sync
+ * @return timeStamp of current server clock
+ */
+App.dateTime = function() {
+  return new Date().getTime() + App.clockDistance;
+};
+
 /*
  * Helper function for bound property helper registration
  * @params name {String} - name of helper

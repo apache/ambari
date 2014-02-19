@@ -1321,6 +1321,9 @@ var urls = {
     'real': '/services/AMBARI/components/AMBARI_SERVER',
     'mock': ''
   },
+  'ambari.service.load_server_clock': {
+    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock'
+  },
   'dashboard.get.user_pref': {
     'real': '/persist/{key}',
     'mock': '',

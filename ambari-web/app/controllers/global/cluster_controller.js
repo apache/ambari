@@ -93,6 +93,36 @@ App.ClusterController = Em.Controller.extend({
     this.set('isLoaded', true);
   },
 
+  /**
+   * load current server clock in milli-seconds
+   */
+  loadClientServerClockDistance: function () {
+    var dfd = $.Deferred();
+    this.getServerClock().done(function () {
+      dfd.resolve();
+    });
+    return dfd.promise();
+  },
+
+  getServerClock: function(){
+    return App.ajax.send({
+      name: 'ambari.service.load_server_clock',
+      sender: this,
+      success: 'getServerClockSuccessCallback',
+      error: 'getServerClockErrorCallback'
+    });
+  },
+  getServerClockSuccessCallback: function (data) {
+    var clientClock = new Date().getTime();
+    var serverClock = (data.RootServiceComponents.server_clock).toString();
+    serverClock = serverClock.length < 13? serverClock+ '000': serverClock;
+    App.set('clockDistance', serverClock - clientClock );
+    console.log('loading ambari server clock distance');
+  },
+  getServerClockErrorCallback: function () {
+    console.log('Cannot load ambari server clock');
+  },
+
   getUrl:function (testUrl, url) {
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },

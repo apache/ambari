@@ -53,6 +53,7 @@ module.exports = Em.Application.create({
     return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   clusterName: null,
+  clockDistance:null, // server clock - client clock
   currentStackVersion: '',
   currentStackVersionNumber: function(){
     return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
@@ -250,6 +251,7 @@ Em.View.reopen({
  * only in seconds whereas Javascript's Date needs
  * milliseconds representation.
  */
+var App = require('app');
 DS.attr.transforms.date = {
   from: function (serialized) {
     var type = typeof serialized;
@@ -261,7 +263,7 @@ DS.attr.transforms.date = {
       // The number could be seconds or milliseconds.
       // If seconds, then multiplying with 1000 should still
       // keep it below the current time.
-      if (serialized * 1000 < new Date().getTime()) {
+      if (serialized * 1000 < App.dateTime()) {
         serialized = serialized * 1000;
       }
       return new Date(serialized);

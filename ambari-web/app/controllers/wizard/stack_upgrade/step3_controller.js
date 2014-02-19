@@ -357,7 +357,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
         }
       }, this);
     }
-    this.set('serviceTimestamp', new Date().getTime());
+    this.set('serviceTimestamp', App.dateTime());
     return continuePolling;
   },
   /**

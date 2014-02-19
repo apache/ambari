@@ -96,7 +96,7 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
 
   uptimeProcessing: function(uptime) {
     var uptimeString = this.timeConverter(uptime);
-    var diff = (new Date()).getTime() - uptime;
+    var diff = App.dateTime() - uptime;
     if (diff < 0) {
       diff = 0;
     }

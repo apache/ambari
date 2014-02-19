@@ -25,6 +25,9 @@
  * All inner views implemented below this view.
  * @type {*}
  */
+
+var App = require('app');
+
 var wrapperView = Ember.View.extend({
   classNames: ['view-wrapper'],
   layout: Ember.Handlebars.compile('<a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close"></a> {{yield}}'),
@@ -368,7 +371,7 @@ module.exports = {
       case 'date':
         return function (rowValue, rangeExp) {
           var match = false;
-          var timePassed = new Date().getTime() - rowValue;
+          var timePassed = App.dateTime() - rowValue;
           switch (rangeExp) {
             case 'Past 1 hour':
               match = timePassed <= 3600000;

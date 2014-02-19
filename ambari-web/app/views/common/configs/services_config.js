@@ -918,7 +918,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     }, this);
     adminConfig.set('value', admin.join(' '));
     submitConfig.set('value', submit.join(' '));
-    this.set('queueObserver', new Date().getTime());
+    this.set('queueObserver', App.dateTime());
   },
   /**
    * delete queue
@@ -935,7 +935,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         i--;
       }
     }
-    this.set('queueObserver', new Date().getTime());
+    this.set('queueObserver', App.dateTime());
   },
   /**
    * save changes that was made to queue
@@ -966,7 +966,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         _config.set('name', configName.replace(queueNamePrefix + queue.name, queueNamePrefix + queue.configs.findProperty('name', 'queueName').get('value')));
       }
     }, this);
-    this.set('queueObserver', new Date().getTime());
+    this.set('queueObserver', App.dateTime());
   },
   pieChart: App.ChartPieView.extend({
     w: 200,

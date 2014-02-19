@@ -220,7 +220,7 @@ App.MainAppsController = Em.ArrayController.extend({
         min:"",
         max:""
       };
-      var nowTime = new Date().getTime();
+      var nowTime = App.dateTime();
 
       switch (value){
         case 'Any':

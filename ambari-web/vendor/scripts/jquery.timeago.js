@@ -139,11 +139,16 @@
   }
 
   function inWords(date) {
-    return $t.inWords(distance(date));
+    return $t.inWords(distanceToServerClock(date));
   }
 
   function distance(date) {
     return (new Date().getTime() - date.getTime());
+  }
+
+  function distanceToServerClock(date) {
+    var App = require('app');
+    return (App.dateTime() - date.getTime());
   }
 
   // fix for IE6 suckage
