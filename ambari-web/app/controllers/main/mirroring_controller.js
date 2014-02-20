@@ -35,6 +35,8 @@ App.MainMirroringController = Em.ArrayController.extend({
 
   datasets: [],
 
+  selectedDataset: null,
+
   isDatasetsLoaded: false,
 
   isTargetClustersLoaded: false,
@@ -60,7 +62,8 @@ App.MainMirroringController = Em.ArrayController.extend({
       name: 'mirroring.get_all_entities',
       sender: this,
       data: {
-        type: 'feed'
+        type: 'feed',
+        falconServer: App.get('falconServerURL')
       },
       success: 'onLoadDatasetsListSuccess',
       error: 'onLoadDatasetsListError'
@@ -68,22 +71,27 @@ App.MainMirroringController = Em.ArrayController.extend({
   },
 
   onLoadDatasetsListSuccess: function (data) {
-    if (data && data.entity) {
-      this.set('datasetCount', data.entity.length);
-      data.entity.mapProperty('name').forEach(function (dataset) {
+    var parsedData = misc.xmlToObject(data);
+    var datasets = parsedData.entities.entity;
+    if (data && datasets) {
+      datasets = Em.isArray(datasets) ? datasets : [datasets];
+      this.set('datasetCount', datasets.length);
+      datasets.forEach(function (dataset) {
         App.ajax.send({
           name: 'mirroring.get_definition',
           sender: this,
           data: {
-            name: dataset,
-            type: 'feed'
+            name: dataset.name['#text'],
+            type: 'feed',
+            status: dataset.status['#text'],
+            falconServer: App.get('falconServerURL')
           },
           success: 'onLoadDatasetDefinitionSuccess',
           error: 'onLoadDatasetDefinitionError'
         });
       }, this);
     } else {
-      this.onLoadDatasetsListError();
+      this.set('isDatasetsLoaded', true);
     }
   },
 
@@ -106,6 +114,7 @@ App.MainMirroringController = Em.ArrayController.extend({
     this.get('datasetsData').push(
         Ember.Object.create({
           name: parsedData.feed['@attributes'].name,
+          status: arguments[2].status,
           sourceClusterName: sourceCluster['@attributes'].name,
           targetClusterName: targetCluster['@attributes'].name,
           sourceDir: parsedData.feed.locations.location['@attributes'].path,
@@ -121,7 +130,10 @@ App.MainMirroringController = Em.ArrayController.extend({
       name: 'mirroring.dataset.get_all_instances',
       sender: this,
       data: {
-        dataset: parsedData.feed['@attributes'].name
+        dataset: parsedData.feed['@attributes'].name,
+        start: sourceCluster.validity['@attributes'].start,
+        end: sourceCluster.validity['@attributes'].end,
+        falconServer: App.get('falconServerURL')
       },
       success: 'onLoadDatasetInstancesSuccess',
       error: 'onLoadDatasetsInstancesError'
@@ -133,21 +145,23 @@ App.MainMirroringController = Em.ArrayController.extend({
   },
 
   onLoadDatasetInstancesSuccess: function (data, sender, opts) {
-    var datasetJobs = [];
     var datasetsData = this.get('datasetsData');
-    data.instances.forEach(function (instance) {
-      datasetJobs.push({
-        dataset: opts.dataset,
-        id: instance.instance,
-        status: instance.status,
-        endTime: new Date(instance.endTime).getTime(),
-        startTime: new Date(instance.startTime).getTime()
-      });
-    }, this);
-    datasetsData.findProperty('name', opts.dataset).set('instances', datasetJobs);
+    if (data.instances) {
+      var datasetJobs = [];
+      data.instances.forEach(function (instance) {
+        datasetJobs.push({
+          dataset: opts.dataset,
+          id: instance.instance,
+          status: instance.status,
+          endTime: new Date(instance.endTime).getTime(),
+          startTime: new Date(instance.startTime).getTime()
+        });
+      }, this);
+      datasetsData.findProperty('name', opts.dataset).set('instances', datasetJobs);
+    }
     this.set('datasetCount', this.get('datasetCount') - 1);
-    var sortedDatasets = [];
     if (this.get('datasetCount') < 1) {
+      var sortedDatasets = [];
       App.dataSetMapper.map(datasetsData);
       sortedDatasets = App.Dataset.find().toArray().sort(function (a, b) {
         if (a.get('name') < b.get('name'))  return -1;
@@ -172,7 +186,8 @@ App.MainMirroringController = Em.ArrayController.extend({
       name: 'mirroring.get_all_entities',
       sender: this,
       data: {
-        type: 'cluster'
+        type: 'cluster',
+        falconServer: App.get('falconServerURL')
       },
       success: 'onLoadClustersListSuccess',
       error: 'onLoadClustersListError'
@@ -180,38 +195,63 @@ App.MainMirroringController = Em.ArrayController.extend({
   },
 
   onLoadClustersListSuccess: function (data) {
-    if (data && data.entity) {
-      this.set('clusterCount', data.entity.length);
-      this.set('clustersData.items', [
-        {
-          name: App.get('clusterName'),
-          execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName') + ':8050',
-          readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('host.hostName') + ':50070',
-          workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('host.hostName') + ':11000/oozie',
-          staging: '',
-          working: '',
-          temp: ''
-        }
-      ]);
-      data.entity.mapProperty('name').forEach(function (cluster) {
+    var clustersData = this.get('clustersData');
+    clustersData.items = [];
+    var parsedData = misc.xmlToObject(data);
+    var clusters = parsedData.entities.entity;
+    if (data && clusters) {
+      clusters = Em.isArray(clusters) ? clusters : [clusters];
+      this.set('clusterCount', clusters.length);
+      clusters.mapProperty('name.#text').forEach(function (cluster) {
         App.ajax.send({
           name: 'mirroring.get_definition',
           sender: this,
           data: {
             name: cluster,
-            type: 'cluster'
+            type: 'cluster',
+            falconServer: App.get('falconServerURL')
           },
           success: 'onLoadClusterDefinitionSuccess',
           error: 'onLoadClusterDefinitionError'
         });
       }, this);
     } else {
-      this.onLoadClustersListError();
+      var sourceCluster = Ember.Object.create({
+        name: App.get('clusterName'),
+        execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName') + ':8050',
+        readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('host.hostName') + ':50070',
+        workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('host.hostName') + ':11000/oozie',
+        staging: '/apps/falcon/sandbox/staging',
+        working: '/apps/falcon/sandbox/working',
+        temp: '/tmp'
+      });
+      var sourceClusterData = App.router.get('mainMirroringManageClustersController').formatClusterXML(sourceCluster);
+      App.ajax.send({
+        name: 'mirroring.submit_entity',
+        sender: this,
+        data: {
+          type: 'cluster',
+          entity: sourceClusterData,
+          falconServer: App.get('falconServerURL')
+        },
+        success: 'onSourceClusterCreateSuccess',
+        error: 'onSourceClusterCreateError'
+      });
+      clustersData.items.push(sourceCluster);
     }
   },
 
   onLoadClustersListError: function () {
     console.error('Failed to load clusters list.');
+  },
+
+  onSourceClusterCreateSuccess: function () {
+    App.targetClusterMapper.map(this.get('clustersData'));
+    this.set('isTargetClustersLoaded', true);
+  },
+
+  onSourceClusterCreateError: function () {
+    console.error('Error in creating source cluster entity.');
   },
 
   onLoadClusterDefinitionSuccess: function (data) {
@@ -251,6 +291,7 @@ App.MainMirroringController = Em.ArrayController.extend({
   }.observes('isLoaded'),
 
   manageClusters: function () {
+    var self = this;
     var manageClustersController = App.router.get('mainMirroringManageClustersController');
     var popup = App.ModalPopup.show({
       header: Em.I18n.t('mirroring.dataset.manageClusters'),
@@ -263,6 +304,7 @@ App.MainMirroringController = Em.ArrayController.extend({
         manageClustersController.save();
       },
       hide: function () {
+        self.loadData();
         App.router.send('gotoShowJobs');
         this._super();
       },

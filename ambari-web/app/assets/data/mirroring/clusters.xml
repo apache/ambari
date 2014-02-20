@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entities>
+    <entity>
+        <type>cluster</type>
+        <name>cluster1</name>
+    </entity>
+    <entity>
+        <type>cluster</type>
+        <name>cluster2</name>
+    </entity>
+</entities>

@@ -21,6 +21,7 @@ var App = require('app');
 
 App.Dataset = DS.Model.extend({
   name: DS.attr('string'),
+  status: DS.attr('string'),
   sourceClusterName: DS.attr('string'),
   targetClusterName: DS.attr('string'),
   sourceDir: DS.attr('string'),
@@ -31,19 +32,11 @@ App.Dataset = DS.Model.extend({
   scheduleEndDate: DS.attr('string'),
   datasetJobs: DS.hasMany('App.DataSetJob'),
 
-  status: function () {
-    var jobs = this.get('datasetJobs').toArray();
-    if (jobs.someProperty('status', 'RUNNING')) {
-      return 'RUNNING';
-    } else if (jobs.someProperty('status', 'SUSPENDED')) {
-      return 'SUSPENDED';
-    } else {
-      return 'SCHEDULED';
-    }
-  }.property('datasetJobs', 'datasetJobs.@each.status'),
-
   statusFormatted: function (){
-    return this.get('status').toLowerCase().capitalize();
+    var status = this.get('status');
+    if (status) {
+      return status.toLowerCase().capitalize();
+    }
   }.property('status'),
 
   isRunning: function () {
@@ -55,7 +48,7 @@ App.Dataset = DS.Model.extend({
   }.property('status'),
 
   isScheduled: function () {
-    return this.get('status') === 'SCHEDULED';
+    return this.get('status') === 'SUBMITTED';
   }.property('status'),
 
   //Last succeeded date. Will be calculated later.

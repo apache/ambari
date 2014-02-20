@@ -65,7 +65,7 @@ App.MainDatasetsView = App.TableView.extend({
   }),
 
   statusFilterView: filters.createSelectView({
-    fieldType: 'input-medium',
+    fieldType: 'input-small',
     column: 2,
     content: ['Any', 'Scheduled', 'Suspended', 'Running'],
     onClearValue: function () {

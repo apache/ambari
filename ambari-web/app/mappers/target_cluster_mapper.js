@@ -28,5 +28,25 @@ App.targetClusterMapper = App.QuickDataMapper.create({
     staging: 'staging',
     working: 'working',
     temp: 'temp'
+  },
+
+  map: function (json) {
+    var model = this.get('model');
+    if (!model) {
+      return;
+    }
+
+    if (json.items) {
+      var result = [];
+      var clustersToDelete = model.find().mapProperty('name');
+      json.items.forEach(function (item) {
+        result.push(this.parseIt(item, this.config));
+        clustersToDelete = clustersToDelete.without(item.name);
+      }, this);
+      clustersToDelete.forEach(function (name) {
+        this.deleteRecord(model.find().findProperty('name', name));
+      }, this);
+      App.store.loadMany(model, result);
+    }
   }
 });

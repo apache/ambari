@@ -221,20 +221,36 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
     // Compose XML data, that will be sended to server
     var dataToSend = '<?xml version="1.0"?><feed description="" name="' + datasetName + '" xmlns="uri:falcon:feed:0.1"><frequency>' + repeatOptionSelected + '(' + datasetFrequency + ')' +
-        '</frequency><clusters><cluster name="' + targetCluster + '" type="source"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
-        '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="' + targetCluster + '" type="target"><validity start="' + scheduleStartDateFormatted + '" end="' +
+        '</frequency><clusters><cluster name="' + sourceCluster + '" type="source"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
+        '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="' + targetCluster + '" type="target"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleStartDateFormatted +
         '"/><retention limit="months(1)" action="delete"/><locations><location type="data" path="' + targetDir + '" /></locations></cluster></clusters><locations><location type="data" path="' +
         sourceDir + '" /></locations><ACL owner="hue" group="users" permission="0755" /><schema location="/none" provider="none"/></feed>';
-
-    // Send request to server to create dataset
-    App.ajax.send({
-      name: 'mirroring.create_new_dataset',
-      sender: this,
-      data: {
-        dataset: dataToSend
-      },
-      error: 'onCreateNewDatasetError'
-    });
+    if (this.get('isEdit')) {
+      App.ajax.send({
+        name: 'mirroring.update_entity',
+        sender: this,
+        data: {
+          name: datasetName,
+          type: 'feed',
+          entity: dataToSend,
+          falconServer: App.get('falconServerURL')
+        },
+        success: 'onSaveSuccess',
+        error: 'onSaveError'
+      });
+    } else {
+      // Send request to server to create dataset
+      App.ajax.send({
+        name: 'mirroring.create_new_dataset',
+        sender: this,
+        data: {
+          dataset: dataToSend,
+          falconServer: App.get('falconServerURL')
+        },
+        success: 'onSaveSuccess',
+        error: 'onSaveError'
+      });
+    }
 
     var newDataset = {
       id: datasetName,
@@ -248,7 +264,11 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     App.store.load(App.Dataset, newDataset);
   },
 
-  onCreateNewDatasetError: function () {
+  onSaveSuccess: function () {
+    App.router.get('mainMirroringController').loadData();
+  },
+
+  onSaveError: function () {
     console.error('Error in sending new dataset data to server.');
   },
 

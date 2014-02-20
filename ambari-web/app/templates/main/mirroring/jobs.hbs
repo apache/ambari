@@ -15,6 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+{{#if view.dataset}}
 <div class="dataset-details">
   <div class="top-left">
     <h4>{{view.dataset.name}}</h4>
@@ -43,7 +44,7 @@
         <ul class="dropdown-menu pull-right">
           {{#if view.dataset.isRunning}}
             <li>
-              <a href="javascript:void(null);">
+              <a href="javascript:void(null);" {{action suspend target="controller"}}>
                 {{t mirroring.dataset.suspendInstance}}
               </a>
             </li>
@@ -55,13 +56,13 @@
           {{else}}
             {{#if view.dataset.isSuspended}}
               <li>
-                <a href="javascript:void(null);">
+                <a href="javascript:void(null);" {{action schedule target="controller"}}>
                   {{t mirroring.dataset.schedule}}
                 </a>
               </li>
             {{else}}
               <li>
-                <a href="javascript:void(null);">
+                <a href="javascript:void(null);" {{action suspend target="controller"}}>
                   {{t mirroring.dataset.suspend}}
                 </a>
               </li>
@@ -72,7 +73,7 @@
               </a>
             </li>
             <li>
-              <a href="javascript:void(null);">
+              <a href="javascript:void(null);" {{action delete target="controller"}}>
                 {{t common.delete}}
               </a>
             </li>
@@ -85,6 +86,7 @@
   {{/if}}
   <div class="bottom-right">{{t common.download}}: <a href="javascript:void(null);" {{action downloadEntity target="controller"}}>{{t mirroring.dataset.entity}}.xml</a></div>
 </div>
+{{/if}}
 <div>
   <table class="table table-bordered table-striped">
     <thead>

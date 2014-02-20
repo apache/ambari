@@ -31,8 +31,9 @@ App.MainMirroringEditDataSetView = Em.View.extend({
     classNames: ['target-cluster-select'],
 
     content: function () {
-      return [App.get('clusterName'), Em.I18n.t('mirroring.dataset.addTargetCluster')]
-    }.property(),
+      if (!this.get('parentView.isLoaded')) return [];
+      return App.TargetCluster.find().mapProperty('name').without(App.get('clusterName')).concat(Em.I18n.t('mirroring.dataset.addTargetCluster'));
+    }.property('parentView.isLoaded'),
 
     change: function () {
       if (this.get('selection') === Em.I18n.t('mirroring.dataset.addTargetCluster')) {
@@ -51,11 +52,14 @@ App.MainMirroringEditDataSetView = Em.View.extend({
 
   minuteOptions: ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'],
 
+  isLoaded: function () {
+    return App.router.get('mainMirroringController.isLoaded');
+  }.property('App.router.mainMirroringController.isLoaded'),
+
   fillForm: function () {
     var isEdit = this.get('controller.isEdit');
-    var isLoaded = App.router.get('mainMirroringController.isLoaded');
     var selectedDataset = App.router.get('mainMirroringController.selectedDataset');
-    if (isLoaded && selectedDataset && isEdit) {
+    if (this.get('isLoaded') && selectedDataset && isEdit) {
       var dataset = App.Dataset.find().findProperty('name', selectedDataset.get('id'));
       var scheduleStartDate = dataset.get('scheduleStartDate');
       var scheduleEndDate = dataset.get('scheduleEndDate');
@@ -77,7 +81,7 @@ App.MainMirroringEditDataSetView = Em.View.extend({
       formFields.set('middayPeriodForStart', startHours > 12 || startHours === '00' ? 'PM' : 'AM');
       formFields.set('middayPeriodForEnd', endHours > 12 || endHours === '00' ? 'PM' : 'AM');
     }
-  }.observes('App.router.mainMirroringController.isLoaded', 'App.router.mainMirroringController.selectedDataset', 'controller.isEdit'),
+  }.observes('isLoaded', 'App.router.mainMirroringController.selectedDataset', 'controller.isEdit'),
 
   didInsertElement: function () {
     $('.datepicker').datepicker({

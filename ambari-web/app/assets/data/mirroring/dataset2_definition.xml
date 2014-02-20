@@ -8,7 +8,7 @@
 
         <cluster name="tdk" type="target">
             <validity end="2014-12-31T00:00Z" start="2013-10-24T00:00Z"/>
-            <retention action="delete" limit="months(1)"/>-
+            <retention action="delete" limit="months(1)"/>
             <locations>
                 <location type="data" path="/backup/app-logs2"/>
             </locations>

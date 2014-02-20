@@ -113,11 +113,12 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
       this.get('queryErrors').clear();
       clustersToDelete.forEach(function (cluster) {
         App.ajax.send({
-          name: 'mirroring.delete_instance',
+          name: 'mirroring.delete_entity',
           sender: this,
           data: {
             name: cluster,
-            type: 'cluster'
+            type: 'cluster',
+            falconServer: App.get('falconServerURL')
           },
           success: 'onQueryResponse',
           error: 'onQueryResponse'
@@ -125,11 +126,12 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
       }, this);
       clustersToCreate.forEach(function (cluster) {
         App.ajax.send({
-          name: 'mirroring.submit_instance',
+          name: 'mirroring.submit_entity',
           sender: this,
           data: {
             type: 'cluster',
-            instance: this.formatClusterXML(clusters.findProperty('name', cluster))
+            entity: this.formatClusterXML(clusters.findProperty('name', cluster)),
+            falconServer: App.get('falconServerURL')
           },
           success: 'onQueryResponse',
           error: 'onQueryResponse'
@@ -137,12 +139,13 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
       }, this);
       clustersToModify.forEach(function (cluster) {
         App.ajax.send({
-          name: 'mirroring.update_instance',
+          name: 'mirroring.update_entity',
           sender: this,
           data: {
             name: cluster,
             type: 'cluster',
-            instance: this.formatClusterXML(clusters.findProperty('name', cluster))
+            entity: this.formatClusterXML(clusters.findProperty('name', cluster)),
+            falconServer: App.get('falconServerURL')
           },
           success: 'onQueryResponse',
           error: 'onQueryResponse'
@@ -176,11 +179,13 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
    * @return {String}
    */
   formatClusterXML: function (cluster) {
-    return '<?xml version="1.0"?><cluster colo="default" description="" name="' + cluster.get('name') +
-        '" xmlns="uri:falcon:cluster:0.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><interfaces><interface type="readonly" endpoint="' + cluster.get('readonly') +
-        '" version="2.2.0.2.0.6.0-76" /><interface type="execute" endpoint="' + cluster.get('execute') +
-        '" version="2.2.0.2.0.6.0-76" /><interface type="workflow" endpoint="' + cluster.get('workflow') +
-        '" version="3.1.4" /></interfaces><locations><location name="staging" path="' + cluster.get('staging') +
+    return '<?xml version="1.0"?><cluster colo="local" description="" name="' + cluster.get('name') +
+        '" xmlns="uri:falcon:cluster:0.1"><interfaces><interface type="readonly" endpoint="' + cluster.get('readonly') +
+        '" version="2.2.0" /><interface type="execute" endpoint="' + cluster.get('execute') +
+        '" version="2.2.0" /><interface type="workflow" endpoint="' + cluster.get('workflow') +
+        '" version="4.0.0" />' + '<interface type="messaging" endpoint="tcp://' + App.get('falconServerURL') +':61616?daemon=true" version="5.1.6" />' +
+        '<interface type="write" endpoint="hdfs://c6401.ambari.apache.org:8020" version="2.2.0" />' +
+        '</interfaces><locations><location name="staging" path="' + cluster.get('staging') +
         '" /><location name="temp" path="' + cluster.get('temp') +
         '" /><location name="working" path="' + cluster.get('working') +
         '" /></locations></cluster>';

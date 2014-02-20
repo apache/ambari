@@ -52,6 +52,14 @@ module.exports = Em.Application.create({
     }
     return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
+
+  falconServerURL: function () {
+    var falconService = this.Service.find().findProperty('serviceName', 'FALCON');
+    if (falconService) {
+      return falconService.get('hostComponents').findProperty('componentName', 'FALCON_SERVER').get('host.hostName');
+    }
+  }.property().volatile(),
+
   clusterName: null,
   clockDistance:null, // server clock - client clock
   currentStackVersion: '',

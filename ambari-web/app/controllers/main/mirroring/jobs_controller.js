@@ -47,11 +47,66 @@ App.MainDatasetJobsController = Em.Controller.extend({
   }.property('content.status'),
 
   suspend: function () {
+    App.ajax.send({
+      name: 'mirroring.suspend_entity',
+      sender: this,
+      data: {
+        name: this.get('content.name'),
+        type: 'feed',
+        falconServer: App.get('falconServerURL')
+      },
+      success: 'onSuspendSuccess',
+      error: 'onError'
+    });
+  },
+
+  onSuspendSuccess: function() {
     this.set('content.status', 'SUSPENDED');
   },
 
   schedule: function () {
-    this.set('content.status', 'SCHEDULED');
+    App.ajax.send({
+      name: 'mirroring.schedule_entity',
+      sender: this,
+      data: {
+        name: this.get('content.name'),
+        type: 'feed',
+        falconServer: App.get('falconServerURL')
+      },
+      success: 'onScheduleSuccess',
+      error: 'onError'
+    });
+  },
+
+  onScheduleSuccess: function() {
+    this.set('content.status', 'RUNNING');
+  },
+
+
+  delete: function () {
+    var self = this;
+    App.showConfirmationPopup(function () {
+      App.ajax.send({
+        name: 'mirroring.delete_entity',
+        sender: self,
+        data: {
+          name: self.get('content.name'),
+          type: 'feed',
+          falconServer: App.get('falconServerURL')
+        },
+        success: 'onDeleteSuccess',
+        error: 'onError'
+      });
+    });
+  },
+
+  onDeleteSuccess: function() {
+    this.get('content').deleteRecord();
+    App.store.commit();
+  },
+
+  onError: function () {
+    App.showAlertPopup(Em.I18n.t('common.error'), arguments[2]);
   },
 
   downloadEntity: function () {
