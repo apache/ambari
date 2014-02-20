@@ -486,7 +486,7 @@
         },
         "tez-site": {
             "tez.am.log.level": "WARN",
-            "tez.lib.uris": "file:///usr/lib/tez/,file:///usr/lib/tez/lib/",
+            "tez.lib.uris": "hdfs:///apps/tez/,hdfs:///apps/tez/lib/",
             "tez.staging-dir": "/tmp/${user.name}/staging",
             "tez.am.am-rm.heartbeat.interval-ms.max": "250"
         },

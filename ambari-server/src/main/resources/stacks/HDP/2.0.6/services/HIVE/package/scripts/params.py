@@ -150,6 +150,14 @@ hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
+# Tez libraries
+tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
+tez_local_api_jars = '/usr/lib/tez/tez*.jar'
+tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
+tez_stub_path = '/tmp/tez_jars_copied'
+tez_user = 'tez'
+
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

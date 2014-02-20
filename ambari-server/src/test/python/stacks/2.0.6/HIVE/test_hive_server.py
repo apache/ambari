@@ -71,6 +71,56 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop'
     )
+
+    self.assertResourceCalled('HdfsDirectory', '/apps/tez/',
+                              action = ['create_delayed'],
+                              mode = 0755,
+                              owner = 'tez',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit"
+    )
+
+    self.assertResourceCalled('HdfsDirectory', '/apps/tez/lib/',
+                              action = ['create_delayed'],
+                              mode = 0755,
+                              owner = 'tez',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit"
+    )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              action = ['create']
+                              )
+
+    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/tez/tez*.jar /apps/tez/',
+                              not_if = ' hadoop fs -ls /tmp/tez_jars_copied >/dev/null 2>&1',
+                              user = 'tez',
+                              conf_dir = '/etc/hadoop/conf',
+                              ignore_failures=True
+    )
+
+    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/tez/lib/*.jar /apps/tez/lib/',
+                              not_if = ' hadoop fs -ls /tmp/tez_jars_copied >/dev/null 2>&1',
+                              user = 'tez',
+                              conf_dir = '/etc/hadoop/conf',
+                              ignore_failures=True
+    )
+
+    self.assertResourceCalled('ExecuteHadoop', 'dfs -touchz /tmp/tez_jars_copied',
+                              user = 'tez',
+                              conf_dir = '/etc/hadoop/conf'
+    )
+
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
                               user = 'hive'
