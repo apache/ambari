@@ -38,6 +38,9 @@ esac
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
+# Because Ambari rpm unpacks modules here on all systems
+export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
+
 if [ -a /usr/bin/python2.6 ]; then
   PYTHON=/usr/bin/python2.6
 fi
