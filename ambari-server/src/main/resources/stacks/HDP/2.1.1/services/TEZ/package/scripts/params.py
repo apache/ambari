@@ -23,10 +23,35 @@ from resource_management import *
 # server configurations
 config = Script.get_config()
 
-conf_dir = "/etc/tez/conf"
+config_dir = "/etc/tez/conf"
 
 hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']
 
 tez_user = 'tez'
 user_group = config['configurations']['global']['user_group']
+
+tez_lib_uris = config['configurations']['tez-site']['tez.lib.uris']
+tez_local_api_jars = '/usr/lib/tez/tez*.jar'
+tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
+
+stub_path = '/tmp/tez_jars_copied'
+
+hadoop_conf_dir = "/etc/hadoop/conf"
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
+hdfs_user = config['configurations']['global']['hdfs_user']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local
+)

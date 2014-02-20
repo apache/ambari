@@ -72,7 +72,9 @@ class UnknownConfiguration():
     self.name = name
    
   def __getattr__(self, name):
-    raise Fail("Configuration parameter '"+self.name+"' was not found in configurations dictionary!")
+#    raise Fail("Configuration parameter '"+self.name+"' was not found in
+# configurations dictionary!")
+    pass
   
   def __getitem__(self, name):
     """
