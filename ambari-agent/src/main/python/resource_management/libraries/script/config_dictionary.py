@@ -55,7 +55,7 @@ class ConfigDictionary(dict):
     else: 
       try:
         value = int(value)
-      exce  pt (ValueError, TypeError):
+      except (ValueError, TypeError):
         try:
           value =  float(value)
         except (ValueError, TypeError):
