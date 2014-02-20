@@ -137,7 +137,7 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
 
   private Map<String, Integer> addTaskCountToProperties(Map<String, Object> properties,
                                         Map<String, Integer> oldCounts,
-                                        BatchRequestResponse batchRequestResponse) throws AmbariException {
+                                        BatchRequestResponse batchRequestResponse) {
 
     Map<String, Integer> taskCounts = new HashMap<String, Integer>();
 
