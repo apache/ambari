@@ -115,7 +115,7 @@ MAPREDUCE_LIBS={{mapreduce_libs_path}}
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
 
 if [ -d "/usr/lib/tez" ]; then
-  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*
+  export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/usr/lib/tez/*:/usr/lib/tez/lib/*:/etc/tez/conf
 fi
 
 # Setting path to hdfs command line

@@ -24,8 +24,6 @@ from resource_management import *
 config = Script.get_config()
 
 conf_dir = "/etc/tez/conf"
-pid_dir = default('/configurations/global/tez_pid_dir', '/var/run/hadoop-tez/')
-log_dir = default('/configurations/global/tez_log_dir', '/var/log/hadoop-tez/')
 
 hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']
