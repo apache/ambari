@@ -437,8 +437,11 @@ App.config = Em.Object.create({
         configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
         if (isAdvanced) {
           var advanced = advancedConfigs.findProperty('name', configData.name);
+          // Password fields should be made blank by default in installer wizard
+          // irrespective of whatever value is sent from stack definition.
+          // This forces the user to fill the password field.
           configData.value = configData.displayType == "password" ? '' : advanced.value;
-          configData.defaultValue = advanced.value;
+          configData.defaultValue = configData.value;
           configData.filename = advanced.filename;
           configData.description = advanced.description;
         }
