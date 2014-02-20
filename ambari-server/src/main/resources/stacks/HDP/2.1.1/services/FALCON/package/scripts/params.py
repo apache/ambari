@@ -19,6 +19,9 @@ limitations under the License.
 
 from resource_management import *
 
+import status_params
+from status_params import server_pid_file
+
 config = Script.get_config()
 
 oozie_user = config['configurations']['global']['oozie_user']

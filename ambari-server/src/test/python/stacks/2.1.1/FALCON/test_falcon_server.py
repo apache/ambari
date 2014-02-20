@@ -56,6 +56,9 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Execute',
                           'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-stop',
                           user='falcon', )
+    self.assertResourceCalled('File',
+                              '/var/run/falcon/falcon.pid',
+                              action=['delete'])
     self.assertNoMoreResources()
 
   def test_configure_default(self):

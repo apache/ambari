@@ -63,3 +63,6 @@ def falcon(type, action = None):
                      '{falcon_home}/bin/falcon-stop'),
               user=params.falcon_user
       )
+      File(params.server_pid_file,
+           action='delete'
+      )
