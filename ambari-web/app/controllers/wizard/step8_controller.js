@@ -956,6 +956,16 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
+            case 'TEZ_CLIENT':
+              //install TEZ client on HIVE_SERVER, HIVE_CLIENT hosts.
+              //HIVE_CLIENT always installed on NAGIOS_SERVER host, so it is the same host with NAGIOS_SERVER and HIVE_CLIENT
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
           }
           hostNames = hostNames.uniq();
 
