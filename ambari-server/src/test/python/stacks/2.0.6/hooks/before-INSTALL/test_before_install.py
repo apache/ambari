@@ -22,7 +22,7 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestHookBeforeInstall(RMFTestCase):
-  def test_configure_default(self):
+  def test_hook_default(self):
     self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
                        classname="BeforeConfigureHook",
                        command="hook",
