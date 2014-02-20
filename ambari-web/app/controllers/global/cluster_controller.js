@@ -233,7 +233,7 @@ App.ClusterController = Em.Controller.extend({
       return false;
     }
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json' : '/data/dashboard/services.json';
-    var statusUrl = '/hosts?fields=Hosts/host_status,Hosts/passive_state,host_components/HostRoles/state,host_components/HostRoles/passive_state&minimal_response=true';
+    var statusUrl = '/hosts?fields=Hosts/host_status,Hosts/passive_state,host_components/HostRoles/state,host_components/HostRoles/passive_state,alerts/summary&minimal_response=true';
     if (isInitialLoad) {
       testUrl = '/data/hosts/HDP2/hosts_init.json';
       statusUrl = '/hosts?fields=Hosts/host_name,Hosts/passive_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +

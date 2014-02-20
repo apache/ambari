@@ -77,16 +77,13 @@ App.hostsMapper = App.QuickDataMapper.create({
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + hostName;
         }, this);
-        //check whether Nagios installed and started
-        if (item.alerts) {
-          item.critical_alerts_count = item.alerts.summary.CRITICAL + item.alerts.summary.WARNING;
-        }
 
         hostIds[hostName] = true;
         currentHostStatuses[hostName] = item.Hosts.host_status;
 
-        var parsedItem = this.parseIt(item, this.config);
         var hostCache = cacheData[hostName];
+        item.critical_alerts_count = hostCache.critical_alerts_count;
+        var parsedItem = this.parseIt(item, this.config);
 
         hostsWithFullInfo.push(parsedItem);
         if (hostCache) {

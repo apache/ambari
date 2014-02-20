@@ -89,6 +89,14 @@ App.statusMapper = App.QuickDataMapper.create({
          */
         if (hostsCache[hostName]) {
           hostsCache[hostName].host_components = hostComponentsOnHost;
+        } else {
+          hostsCache[hostName] = {};
+        }
+        //check whether Nagios installed and started
+        if (host.alerts) {
+          hostsCache[hostName].critical_alerts_count = host.alerts.summary.CRITICAL + host.alerts.summary.WARNING;
+        } else {
+          hostsCache[hostName].critical_alerts_count = 0;
         }
       }, this);
 
@@ -108,8 +116,12 @@ App.statusMapper = App.QuickDataMapper.create({
       var hostRecords = App.Host.find();
       hostRecords.forEach(function (host) {
         var status = hostStatuses[host.get('id')];
+        var hostCache = hostsCache[host.get('id')];
         if (status) {
           host.set('healthStatus', status);
+        }
+        if (hostCache) {
+          host.set('criticalAlertsCount', hostCache.critical_alerts_count);
         }
       });
 
