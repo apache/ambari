@@ -149,7 +149,9 @@ module.exports = Em.Route.extend({
       }
     }),
     showJobDetails : function(router, event) {
-      router.transitionTo('jobDetails', event.context);
+      if (event.context && event.context.get('hasTezDag')) {
+        router.transitionTo('jobDetails', event.context);
+      }
     }
   }),
 

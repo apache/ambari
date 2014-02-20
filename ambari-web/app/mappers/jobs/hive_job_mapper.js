@@ -57,7 +57,6 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       hiveJob.startTime = json.starttime;
       hiveJob.endTime = json.endtime;
       json.otherinfo.query = $.parseJSON(json.otherinfo.query).query;
-      hiveJob.queryText = json.otherinfo.query.queryText;
       hiveJob.stages = [];
       var stagePlans = json.otherinfo.query.queryPlan["STAGE PLANS"];
       for ( var stage in stagePlans) {
@@ -163,11 +162,13 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       }
       var hiveJobRecord = App.HiveJob.find(hiveJob.id);
       if (hiveJobRecord != null) {
-        hiveJobRecord.set('queryText', hiveJob.queryText);
         hiveJobRecord.set('stages', hiveJob.stages.sort(sortById));
         hiveJobRecord.set('startTime', hiveJob.startTime);
         hiveJobRecord.set('endTime', hiveJob.endTime);
-        hiveJobRecord.set('tezDag', App.TezDag.find(hiveJob.tezDag));
+        if (hiveJob.tezDag != null) {
+          // Some hive queries dont use Tez
+          hiveJobRecord.set('tezDag', App.TezDag.find(hiveJob.tezDag));
+        }
       }
     }
   },

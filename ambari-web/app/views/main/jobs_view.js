@@ -99,6 +99,16 @@ App.MainJobsView = App.TableView.extend({
     return Em.I18n.t('jobs.filtered.jobs').format(this.get('content').get('length'), this.get('controller.totalOfJobs'));
   }.property('content.length', 'filteredContent.length', 'controller.totalOfJobs'),
 
+  pageContentObserver: function () {
+    Ember.run.later(this, function() {
+      $('.job-link').tooltip();
+    }, 1000);
+  }.observes('pageContent', 'pageContent.length', 'pageContent.@each.id'),
+
+  willDestroyElement : function() {
+    $('.job-link').tooltip('destroy');
+  },
+
   /**
    * Filter-field for Jobs ID.
    * Based on <code>filters</code> library

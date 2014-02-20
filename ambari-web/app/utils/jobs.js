@@ -162,17 +162,41 @@ module.exports = {
             vertexRecord.set('endTime', data.otherinfo.endTime);
             vertexRecord.set('tasksCount', data.otherinfo.numTasks);
             vertexRecord.set('state', data.otherinfo.status);
-            // TODO Need additional vertex metrics
-            vertexRecord.set('fileReadBytes', 0);
-            vertexRecord.set('fileReadOps', 0);
-            vertexRecord.set('fileWriteOps', 0);
-            vertexRecord.set('fileWriteBytes', 0);
-            vertexRecord.set('hdfsReadOps', 0);
-            vertexRecord.set('hdfsReadBytes', 0);
-            vertexRecord.set('hdfsWriteOps', 0);
-            vertexRecord.set('hdfsWriteBytes', 0);
-            vertexRecord.set('recordReadCount', 0);
-            vertexRecord.set('recordWriteCount', 0);
+            if (data.otherinfo.counters && data.otherinfo.counters.counterGroups) {
+              data.otherinfo.counters.counterGroups.forEach(function(cGroup) {
+                var cNameToPropetyMap = {};
+                switch (cGroup.counterGroupName) {
+                case 'org.apache.tez.common.counters.FileSystemCounter':
+                  cNameToPropetyMap = {
+                    'FILE_BYTES_READ' : 'fileReadBytes',
+                    'FILE_BYTES_WRITTEN' : 'fileWriteBytes',
+                    'FILE_READ_OPS' : 'fileReadOps',
+                    'FILE_WRITE_OPS' : 'fileWriteOps',
+                    'HDFS_BYTES_READ' : 'hdfsReadBytes',
+                    'HDFS_BYTES_WRITTEN' : 'hdfsWriteBytes',
+                    'HDFS_READ_OPS' : 'hdfsReadOps',
+                    'HDFS_WRITE_OPS' : 'hdfsWriteOps'
+                  };
+                  break;
+                case 'HIVE':
+                  cNameToPropetyMap = {
+                    'RECORDS_READ' : 'recordReadCount',
+                    'RECORDS_WRITE' : 'recordWriteCount'
+                  };
+                  break;
+                default:
+                  break;
+                }
+                if (cGroup.counters) {
+                  cGroup.counters.forEach(function(counter) {
+                    var prop = cNameToPropetyMap[counter.counterName];
+                    if (prop != null) {
+                      vertexRecord.set(prop, counter.counterValue);
+                    }
+                  });
+                }
+              });
+            }
             successCallback();
           }
         }

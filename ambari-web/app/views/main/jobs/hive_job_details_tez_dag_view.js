@@ -375,7 +375,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     });
     var link = svgLayer.selectAll(".link").data(dagVisualModel.links).enter().append("g").attr("class", "link").attr("marker-end", "url(#arrow)");
     link.append("path").attr("class", function(l) {
-      var classes = "link ";
+      var classes = "link svg-tooltip ";
       switch (l.edgeType) {
       case App.TezDagVertexType.BROADCAST:
         classes += "type-broadcast ";
@@ -387,7 +387,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         break;
       }
       return classes;
-    }).attr("d", diagonal).append("title").text(function(l) {
+    }).attr("d", diagonal).attr("title", function(l) {
       var lower = l.edgeType ? l.edgeType.toLowerCase() : '';
       return Em.I18n.t("jobs.hive.tez.edge."+lower);
     });
@@ -412,7 +412,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         var column = opIndex % 3;
         return "translate(" + (10 + column * 50) + "," + (37 + row * 20) + ")";
       }).attr("clip-path", "url(#operatorClipPath)");
-      opGroups.append("rect").attr("class", "operation").attr("width", "44").attr("height", "16").append("title").text(function(op) {
+      opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "44").attr("height", "16").attr("title", function(op) {
         return op;
       });
       opGroups.append("text").attr("x", "2").attr("dy", "1em").text(function(op) {
@@ -420,8 +420,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       })
     })
     var metricNodes = node.append("g").attr("class", "metric").attr("transform", "translate(92,7)");
-    metricNodes.append("rect").attr("width", 60).attr("height", 18).attr("rx", "3");
-    metricNodes.append("title").attr("class", "metric-title");
+    metricNodes.append("rect").attr("width", 60).attr("height", 18).attr("rx", "3").attr("class", "metric-title svg-tooltip");
     metricNodes.append("text").attr("class", "metric-text").attr("x", "2").attr("dy", "1em");
     node.append("text").attr("x", "1.9em").attr("dy", "1.5em").text(function(d) {
       return d.name;
@@ -431,6 +430,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       return "translate(" + d.x + "," + d.y + ")";
     });
     this.vertexMetricsUpdated();
+    $('.svg-tooltip').tooltip({
+      placement : 'left'
+    });
   },
 
   /**
@@ -470,7 +472,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       metricNodeTexts.text(function(node){
         return node.metricDisplay;
       });
-      metricNodeTitles.text(function(node){
+      metricNodeTitles.attr("title", function(node){
+        return node.metricType;
+      }).attr("data-original-title", function(node){
         return node.metricType;
       });
       nodeBackgrounds.attr("class", function(n) {

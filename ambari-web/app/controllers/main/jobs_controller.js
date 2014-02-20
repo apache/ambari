@@ -192,7 +192,7 @@ App.MainJobsController = Em.ArrayController.extend({
      * @return {String}
      */
     createJobsFiltersLink: function() {
-      var link = "?fields=events,primaryfilters";
+      var link = "?fields=events,primaryfilters,otherinfo";
 
       if(this.get("id") !== "") {
         link = "/" + this.get("id") + link;

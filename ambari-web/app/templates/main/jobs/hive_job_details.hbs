@@ -140,11 +140,14 @@
                       <td>{{view.selectedVertexIODisplay.file.read.ops}} / {{view.selectedVertexIODisplay.file.read.bytes}}</td>
                       <td>{{view.selectedVertexIODisplay.file.write.ops}} / {{view.selectedVertexIODisplay.file.write.bytes}}</td>
                     </tr>
+                    {{#if view.selectedVertexIODisplay.records.read}}
+                      <tr>
+                        <td>{{t jobs.hive.tez.records}}</td>
+                        <td>{{view.selectedVertexIODisplay.records.read}}</td>
+                        <td>{{view.selectedVertexIODisplay.records.write}}</td>
+                      </tr>
+                    {{/if}}
                     <tr>
-                      <td>{{t jobs.hive.tez.records}}</td>
-                      <td>{{view.selectedVertexIODisplay.records.read}}</td>
-                      <td>{{view.selectedVertexIODisplay.records.write}}</td>
-                    </tr>
                       <td>{{t jobs.hive.tez.operatorPlan}}</td>
                       <td></td>
                       <td></td>

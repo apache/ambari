@@ -34,6 +34,15 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
           name : entity.entity,
           user : entity.primaryfilters.user
         }
+        hiveJob.has_tez_dag = false;
+        hiveJob.query_text = '';
+        if (entity.otherinfo && entity.otherinfo.query) {
+          hiveJob.has_tez_dag = entity.otherinfo.query.match("\"Tez\".*\"DagName:\"");
+          var queryJson = $.parseJSON(entity.otherinfo.query);
+          if (queryJson && queryJson.query) {
+            hiveJob.query_text = queryJson.query.queryText;
+          }
+        }
         if (entity.events != null) {
           entity.events.forEach(function(event) {
             switch (event.eventtype) {
@@ -47,6 +56,12 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
               break;
             }
           });
+        }
+        if (!hiveJob.start_time && entity.starttime > 0) {
+          hiveJob.start_time = entity.starttime;
+        }
+        if (!hiveJob.end_time && entity.endtime > 0) {
+          hiveJob.end_time = entity.endtime;
         }
         hiveJobs.push(hiveJob);
       });
