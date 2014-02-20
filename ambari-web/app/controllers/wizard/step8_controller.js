@@ -1292,12 +1292,12 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
   },
 
-  createLog4jObj: function (serviceName) {
-    var fileName = serviceName.toLowerCase();
+  createLog4jObj: function (fileName) {
+    fileName = fileName.toLowerCase();
     var Log4jObj = this.get('configs').filterProperty('filename', fileName + '-log4j.xml');
     var Log4jProperties = {};
     Log4jObj.forEach(function (_configProperty) {
-      Log4jProperties[_configProperty.name] = _configProperty.value;
+      Log4jProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       this._recordHostOverrideFromObj(_configProperty, fileName + '-log4j', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
