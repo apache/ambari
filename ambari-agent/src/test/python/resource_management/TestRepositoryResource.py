@@ -1,0 +1,131 @@
+'''
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+'''
+
+from unittest import TestCase
+from mock.mock import patch
+
+from resource_management import *
+from resource_management.libraries.providers.repository \
+    import RepositoryProvider
+from resource_management.libraries.resources.repository \
+    import Repository
+
+
+class TestRepositoryResource(TestCase):
+    @patch.object(System, "os_family", new='redhat')
+    @patch("resource_management.libraries.providers.repository.File")
+    def test_create_repo_redhat(self, file_mock):
+        with Environment('/') as env:
+            Repository('hadoop',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_file_name='Repository')
+
+            self.assertTrue('hadoop' in env.resources['Repository'])
+            defined_arguments = env.resources['Repository']['hadoop'].arguments
+            expected_arguments = {'base_url': 'http://download.base_url.org/rpm/',
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'repo_file_name': 'Repository'}
+
+            self.assertEqual(defined_arguments, expected_arguments)
+            self.assertEqual(file_mock.call_args[0][0], '/etc/yum.repos.d/Repository.repo')
+
+            template_item = file_mock.call_args[1]['content']
+            template = str(template_item.name)
+            expected_arguments.update({'repo_id': 'hadoop'})
+
+            self.assertEqual(expected_arguments, template_item.context._dict)
+            self.assertEqual("""[{{repo_id}}]
+name={{repo_file_name}}
+{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
+path=/
+enabled=1
+gpgcheck=0""", template)
+
+
+    @patch.object(System, "os_family", new='suse')
+    @patch("resource_management.libraries.providers.repository.File")
+    def test_create_repo_suse(self, file_mock):
+        with Environment('/') as env:
+            Repository('hadoop',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_file_name='Repository')
+
+            self.assertTrue('hadoop' in env.resources['Repository'])
+            defined_arguments = env.resources['Repository']['hadoop'].arguments
+            expected_arguments = {'base_url': 'http://download.base_url.org/rpm/',
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'repo_file_name': 'Repository'}
+
+            self.assertEqual(defined_arguments, expected_arguments)
+            self.assertEqual(file_mock.call_args[0][0], '/etc/zypp/repos.d/Repository.repo')
+
+            template_item = file_mock.call_args[1]['content']
+            template = str(template_item.name)
+            expected_arguments.update({'repo_id': 'hadoop'})
+
+            self.assertEqual(expected_arguments, template_item.context._dict)
+            self.assertEqual("""[{{repo_id}}]
+name={{repo_file_name}}
+{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
+path=/
+enabled=1
+gpgcheck=0""", template)
+
+
+    @patch.object(System, "os_family", new='redhat')
+    @patch("resource_management.libraries.providers.repository.File")
+    def test_remove_repo_redhat(self, file_mock):
+        with Environment('/') as env:
+            Repository('hadoop',
+                       action='remove',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_file_name='Repository')
+
+            self.assertTrue('hadoop' in env.resources['Repository'])
+            defined_arguments = env.resources['Repository']['hadoop'].arguments
+            expected_arguments = {'action': ['remove'],
+                                  'base_url': 'http://download.base_url.org/rpm/',
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'repo_file_name': 'Repository'}
+            self.assertEqual(defined_arguments, expected_arguments)
+            self.assertEqual(file_mock.call_args[1]['action'], 'delete')
+            self.assertEqual(file_mock.call_args[0][0], '/etc/yum.repos.d/Repository.repo')
+
+
+    @patch.object(System, "os_family", new='suse')
+    @patch("resource_management.libraries.providers.repository.File")
+    def test_remove_repo_suse(self, file_mock):
+        with Environment('/') as env:
+            Repository('hadoop',
+                       action='remove',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_file_name='Repository')
+
+            self.assertTrue('hadoop' in env.resources['Repository'])
+            defined_arguments = env.resources['Repository']['hadoop'].arguments
+            expected_arguments = {'action': ['remove'],
+                                  'base_url': 'http://download.base_url.org/rpm/',
+                                  'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                                  'repo_file_name': 'Repository'}
+            self.assertEqual(defined_arguments, expected_arguments)
+            self.assertEqual(file_mock.call_args[1]['action'], 'delete')
+            self.assertEqual(file_mock.call_args[0][0], '/etc/zypp/repos.d/Repository.repo')
