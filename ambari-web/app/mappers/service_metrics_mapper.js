@@ -432,8 +432,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     // Map
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [ 23, 24, 25, 26 ];
-    if (App.supports.appTimelineServer)
-      finalJson.quick_links.push(33);
     return finalJson;
   },
 

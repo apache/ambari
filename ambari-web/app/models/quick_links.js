@@ -400,18 +400,5 @@ App.QuickLinks.FIXTURES = [
     site: 'storm-site',
     regex: portRegex,
     default_http_port: 8744
-  },
-  // @todo Add real info about link
-  {
-    id:33,
-    label:'App Timeline Server UI',
-    url:'%@://%@:%@/ats',
-    service_id: 'YARN',
-    template:'%@://%@:%@/ats',
-    http_config: 'yarn.resourcemanager.webapp.address',
-    https_config: 'yarn.resourcemanager.webapp.https.address',
-    site: 'yarn-site',
-    regex: portRegex,
-    default_http_port: 8088
   }
 ];

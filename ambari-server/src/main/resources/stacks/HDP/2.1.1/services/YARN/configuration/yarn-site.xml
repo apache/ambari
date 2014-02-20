@@ -342,21 +342,23 @@
   <property>
     <name>yarn.ats.store.class</name>
     <value>org.apache.hadoop.yarn.server.applicationhistoryservice.apptimeline.LeveldbApplicationTimelineStore</value>
-    <description></description>
+    <description>
+      Store class name for timeline service
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.ahs.store.class</name>
+    <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
+    <description>
+      Store class name for history service
+    </description>
   </property>
 
   <property>
     <name>yarn.ats.leveldb-timeline-store.path</name>
     <value>/var/log/hadoop-yarn/ats</value>
     <description></description>
-  </property>
-
-  <property>
-    <name>yarn.ahs.fs-history-store.uri</name>
-    <value>/tmp/yarn/system/ahstore</value>
-    <description>
-      Location where YARN's Application History Server stores information.
-    </description>
   </property>
 
   <property>

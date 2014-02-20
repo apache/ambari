@@ -324,11 +324,10 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "yarn.ahs.fs-history-store.uri",
-      "displayName": "yarn.ahs.fs-history-store.uri",
+      "name": "yarn.ahs.store.class",
+      "displayName": "yarn.ahs.store.class",
       "value": "",
-      "defaultValue": "/tmp/yarn/system/ahstore",
-      "displayType": "directory",
+      "defaultValue": "org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore",
       "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
       "category": "AppTimelineServer",
       "serviceName": "YARN"
