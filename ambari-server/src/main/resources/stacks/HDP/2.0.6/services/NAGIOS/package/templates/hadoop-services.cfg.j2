@@ -658,7 +658,7 @@ define service {
 define service {
         hostgroup_name          ats-servers
         use                     hadoop-service
-        service_description     APP_TIMELINE_SERVER::ATS process
+        service_description     APP_TIMELINE_SERVER::App Timeline Server process
         servicegroups           YARN
         check_command           check_tcp_wrapper!{{ ahs_port }}!-w 1 -c 1
         normal_check_interval   1
