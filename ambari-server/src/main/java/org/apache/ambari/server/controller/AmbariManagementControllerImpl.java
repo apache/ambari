@@ -18,17 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -117,6 +106,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -925,7 +916,7 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
-  private String getJobTrackerHost(Cluster cluster) {
+  public String getJobTrackerHost(Cluster cluster) {
     try {
       Service svc = cluster.getService("MAPREDUCE");
       ServiceComponent sc = svc.getServiceComponent(Role.JOBTRACKER.toString());
@@ -1350,6 +1341,7 @@ public class AmbariManagementControllerImpl implements
     hostLevelParams.put(JCE_NAME, getJCEName());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+    hostLevelParams.put(DB_NAME, getServerDB());
     hostLevelParams.putAll(getRcaParameters());
     return hostLevelParams;
   }

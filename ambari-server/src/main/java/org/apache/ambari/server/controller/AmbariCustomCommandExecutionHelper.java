@@ -675,6 +675,15 @@ public class AmbariCustomCommandExecutionHelper {
           Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "", true);
     }
 
+    String jobtrackerHost = amc.getJobTrackerHost(cluster);
+    if (!scHost.getHostName().equals(jobtrackerHost)) {
+      if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
+        configHelper.applyCustomConfig(
+          configurations, Configuration.GLOBAL_CONFIG_TAG,
+          Configuration.RCA_ENABLED_PROPERTY, "false", false);
+      }
+    }
+
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationTags(configTags);
     if (commandParams == null) { // if not defined

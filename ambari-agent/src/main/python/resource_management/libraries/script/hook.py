@@ -21,6 +21,8 @@ limitations under the License.
 __all__ = ["Hook"]
 
 from resource_management.libraries.script import Script
+import subprocess
+import sys
 
 class Hook(Script):
   """
@@ -33,6 +35,26 @@ class Hook(Script):
 
   def choose_method_to_execute(self, command_name):
     """
-    Changes loogics of resolving method name
+    Changes logics of resolving method name
     """
     return super(Hook, self).choose_method_to_execute(self.HOOK_METHOD_NAME)
+
+
+  def run_custom_hook(self, command):
+    """
+    Runs custom hook
+    """
+    args = sys.argv
+    #Hook script to run
+    args[0] = args[0].replace(args[1], command)
+    #Hook script base directory
+    args[3] = args[3].replace(args[1], command)
+
+
+    cmd = [sys.executable]
+    cmd.extend(args)
+
+    if subprocess.call(cmd) != 0:
+      self.fail_with_error("Error: Unable to run the custom hook script " +
+                           cmd.__str__())
+

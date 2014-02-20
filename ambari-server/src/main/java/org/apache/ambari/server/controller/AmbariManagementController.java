@@ -521,6 +521,11 @@ public interface AmbariManagementController {
   public ExecutionScheduleManager getExecutionScheduleManager();
 
   /**
+   * Get JobTracker hostname
+   */
+  public String getJobTrackerHost(Cluster cluster);
+
+  /**
    * Gets the effective passive state for a host component
    * @param cluster the cluster
    * @param service the service

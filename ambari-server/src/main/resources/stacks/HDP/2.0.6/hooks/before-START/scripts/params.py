@@ -116,7 +116,10 @@ ambari_db_rca_driver = config['hostLevelParams']['ambari_db_rca_driver'][0]
 ambari_db_rca_username = config['hostLevelParams']['ambari_db_rca_username'][0]
 ambari_db_rca_password = config['hostLevelParams']['ambari_db_rca_password'][0]
 
-rca_enabled = config['configurations']['global']['rca_enabled']
+if 'rca_enabled' in config['configurations']['global']:
+  rca_enabled =  config['configurations']['global']['rca_enabled']
+else:
+  rca_enabled = False
 rca_disabled_prefix = "###"
 if rca_enabled == True:
   rca_prefix = ""
