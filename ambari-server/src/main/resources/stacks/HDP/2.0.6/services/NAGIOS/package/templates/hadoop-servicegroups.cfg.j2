@@ -78,3 +78,9 @@ define servicegroup {
   alias  HUE Checks
 }
 {% endif %}
+{% if hostgroup_defs['falcon-server'] %}
+define servicegroup {
+  servicegroup_name  FALCON
+  alias  FALCON Checks
+}
+{% endif %}

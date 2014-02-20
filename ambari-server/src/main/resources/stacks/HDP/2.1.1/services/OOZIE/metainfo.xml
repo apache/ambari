@@ -44,6 +44,10 @@
               <type>rpm</type>
               <name>falcon</name>
             </package>
+            <package>
+              <type>rpm</type>
+              <name>zip</name>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

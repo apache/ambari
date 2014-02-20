@@ -407,6 +407,7 @@ function hdp_mon_generate_response( $response_data )
       case "OOZIE":
       case "WEBHCAT":
       case "GANGLIA":
+      case "FALCON":
       case "PUPPET":
         break;
       default:

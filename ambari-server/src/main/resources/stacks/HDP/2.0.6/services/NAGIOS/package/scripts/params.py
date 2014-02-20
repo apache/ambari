@@ -65,6 +65,7 @@ flume_port = "4159"
 hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
 hbase_rs_port = "60030"
+falcon_port = config['configurations']['global']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.ahs.webapp.address'])
 
 # this is different for HDP1
@@ -133,6 +134,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
 _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
 _oozie_server = default("/clusterHostInfo/oozie_server",None)
 _webhcat_server_host = default("/clusterHostInfo/webhcat_server_host",None)
+_falcon_host = config['clusterHostInfo']['falcon_server_hosts']
 # can differ on HDP1
 #_mapred_tt_hosts = _slave_hosts
 #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
@@ -163,5 +165,6 @@ hostgroup_defs = {
     'nodemanagers' : _nm_hosts,
     'historyserver2' : _hs_host,
     'journalnodes' : _journalnode_hosts,
+    'falcon-server' : _falcon_host
     'ats-servers' : _app_timeline_server_hosts
 }

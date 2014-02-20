@@ -78,7 +78,14 @@ historyserver2)
       exit 1;
     fi
     ;;
-*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode|resourcemanager|historyserver2]"
+falconserver)
+    hsweburl="http://$host:$port/"
+    if [[ `checkurl "$hsweburl"` -ne 0 ]]; then
+      echo "WARNING: FalconServer Web UI not accessible : $hsweburl";
+      exit 1;
+    fi
+    ;;
+*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode|resourcemanager|historyserver2|falconserver]"
    exit 3
    ;;
 esac
