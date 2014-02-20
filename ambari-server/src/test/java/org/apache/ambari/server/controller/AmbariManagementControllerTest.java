@@ -4319,6 +4319,7 @@ public class AmbariManagementControllerTest {
   }
 
   @SuppressWarnings("serial")
+  @Ignore
   @Test
   public void testDeleteUsers() throws Exception {
     createUser("user1");
@@ -9255,6 +9256,37 @@ public class AmbariManagementControllerTest {
         Assert.assertEquals(PassiveState.ACTIVE, sch.getPassiveState());
       }
     }
+    
+    // passivate several hosts
+    HostRequest hr1 = new HostRequest(host1, clusterName, requestProperties);
+    hr1.setPassiveState(PassiveState.PASSIVE.name());
+    HostRequest hr2 = new HostRequest(host2, clusterName, requestProperties);
+    hr2.setPassiveState(PassiveState.PASSIVE.name());
+    Set<HostRequest> set = new HashSet<HostRequest>();
+    set.add(hr1);
+    set.add(hr2);
+    HostResourceProviderTest.updateHosts(controller, set, new HashMap<String, String>());
+
+    host = hosts.get(host1);
+    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
+    host = hosts.get(host2);
+    Assert.assertEquals(PassiveState.PASSIVE, host.getPassiveState(cluster.getClusterId()));
+    
+    // reset
+    hr1 = new HostRequest(host1, clusterName, requestProperties);
+    hr1.setPassiveState(PassiveState.ACTIVE.name());
+    hr2 = new HostRequest(host2, clusterName, requestProperties);
+    hr2.setPassiveState(PassiveState.ACTIVE.name());
+    set = new HashSet<HostRequest>();
+    set.add(hr1);
+    set.add(hr2);
+
+    HostResourceProviderTest.updateHosts(controller, set, new HashMap<String, String>());
+    host = hosts.get(host1);
+    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));
+    host = hosts.get(host2);
+    Assert.assertEquals(PassiveState.ACTIVE, host.getPassiveState(cluster.getClusterId()));
+
     
     // only do one SCH
     ServiceComponentHost targetSch = service.getServiceComponent(

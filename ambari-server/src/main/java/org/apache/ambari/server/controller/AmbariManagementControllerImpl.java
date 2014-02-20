@@ -1458,6 +1458,9 @@ public class AmbariManagementControllerImpl implements
         new HashMap<String, Map<String, Map<String, Set<String>>>>();
     Set<State> seenNewStates = new HashSet<State>();
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<ServiceComponentHost, State>();
+    Set<String> maintenanceClusters = new HashSet<String>();
+    
+    
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -1537,12 +1540,8 @@ public class AmbariManagementControllerImpl implements
               "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
           } else {
             sch.setPassiveState(newPassive);
-            try {
-              PassiveStateHelper.createRequest(this, sch.getClusterName(),
-                  requestProperties);
-            } catch (AmbariException e) {
-              LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
-            }
+            
+            maintenanceClusters.add(sch.getClusterName());
           }
         }
       }
@@ -1663,6 +1662,15 @@ public class AmbariManagementControllerImpl implements
       } catch (InvalidStateTransitionException e) {
         //Should not occur, must be covered by previous checks
         throw new AmbariException("Internal error - not supported transition", e);
+      }
+    }
+    
+    if (maintenanceClusters.size() > 0) {
+      try {
+        PassiveStateHelper.createRequests(this, requestProperties,
+            maintenanceClusters);
+      } catch (Exception e) {
+        LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
       }
     }
 

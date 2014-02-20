@@ -119,16 +119,32 @@ public class PassiveStateHelper {
     return set;
   }
   
-  public static RequestStatusResponse createRequest(AmbariManagementController amc,
-      String clusterName, Map<String, String> requestProperties) throws AmbariException {
+  /**
+   * Creates the requests to send to the clusters
+   * @param amc the controller
+   * @param requestProperties the request properties
+   * @param clusterNames the names of all the clusters to update
+   * @return the response
+   * @throws AmbariException
+   */
+  public static RequestStatusResponse createRequests(AmbariManagementController amc,
+      Map<String, String> requestProperties, Set<String> clusterNames) throws AmbariException {
     
     Map<String, String> params = new HashMap<String, String>();
     
-    ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-        clusterName, RoleCommand.ACTIONEXECUTE.name(),
-        NAGIOS_ACTION_NAME, NAGIOS_SERVICE, NAGIOS_COMPONENT, null, params);
-
-    return amc.createAction(actionRequest, requestProperties);
+    // return the first one, just like amc.createStages()
+    RequestStatusResponse response = null;
+    
+    for (String clusterName : clusterNames) {
+      ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+          clusterName, RoleCommand.ACTIONEXECUTE.name(),
+          NAGIOS_ACTION_NAME, NAGIOS_SERVICE, NAGIOS_COMPONENT, null, params);
+      
+      if (null == response)
+        response = amc.createAction(actionRequest, requestProperties);
+    }
+    
+    return response;
   }  
   
 }

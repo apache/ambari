@@ -505,8 +505,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
     Set<State> seenNewStates = new HashSet<State>();
 
-    Clusters       clusters       = controller.getClusters();
-    AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+    Clusters       clusters        = controller.getClusters();
+    AmbariMetaInfo ambariMetaInfo   = controller.getAmbariMetaInfo();
+    Set<String> maintenanceClusters = new HashSet<String>();
 
     for (ServiceRequest request : requests) {
       if (request.getClusterName() == null
@@ -560,12 +561,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
           } else {
             s.setPassiveState(newPassive);
-            try {
-              PassiveStateHelper.createRequest(controller, cluster.getClusterName(),
-                  requestProperties);
-            } catch (Exception e) {
-              LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
-            }
+            
+            maintenanceClusters.add(cluster.getClusterName());
           }
         }
       }
@@ -739,6 +736,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       // TODO should we handle this scenario
       throw new IllegalArgumentException("Cannot handle different desired state"
           + " changes for a set of services at the same time");
+    }
+    
+    if (maintenanceClusters.size() > -0) {
+      try {
+        PassiveStateHelper.createRequests(controller, requestProperties,
+            maintenanceClusters);
+      } catch (Exception e) {
+        LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+      }
     }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());

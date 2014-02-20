@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -80,7 +82,8 @@ public class PassiveStateHelperTest {
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    PassiveStateHelper.createRequest(amc, sch.getClusterName(), map);
+    PassiveStateHelper.createRequests(amc, map,
+        Collections.singleton(sch.getClusterName()));
     
     ExecuteActionRequest ear = earCapture.getValue();
     map = rpCapture.getValue();
@@ -131,7 +134,8 @@ public class PassiveStateHelperTest {
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    PassiveStateHelper.createRequest(amc, cluster.getClusterName(), map);
+    PassiveStateHelper.createRequests(amc, map,
+        Collections.singleton(cluster.getClusterName()));
     
     ExecuteActionRequest ear = earCapture.getValue();
     rpCapture.getValue();
@@ -182,7 +186,8 @@ public class PassiveStateHelperTest {
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    PassiveStateHelper.createRequest(amc, "c1", map);
+    PassiveStateHelper.createRequests(amc, map,
+        Collections.singleton("c1"));
     
     ExecuteActionRequest ear = earCapture.getValue();
     map = rpCapture.getValue();
@@ -194,8 +199,5 @@ public class PassiveStateHelperTest {
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));
   }
-  
-  
-  
   
 }

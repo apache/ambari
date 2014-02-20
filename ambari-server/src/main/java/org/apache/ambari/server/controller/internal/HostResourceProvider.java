@@ -529,6 +529,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
+    Set<String>                maintenanceClusters = new HashSet<String>();
 
     for (HostRequest request : requests) {
       if (request.getHostname() == null
@@ -576,12 +577,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
               "passive state to one of " + EnumSet.of(PassiveState.ACTIVE, PassiveState.PASSIVE));
           } else {
             h.setPassiveState(c.getClusterId(), newState);
-            try {
-              PassiveStateHelper.createRequest(controller, c.getClusterName(),
-                  requestProperties);
-            } catch (Exception e) {
-              LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
-            }
+            
+            maintenanceClusters.add(c.getClusterName());
           }
         }
       }
@@ -623,6 +620,15 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
       //todo: if attempt was made to update a property other than those
       //todo: that are allowed above, should throw exception
+    }
+    
+    if (maintenanceClusters.size() > 0) {
+      try {
+        PassiveStateHelper.createRequests(controller, requestProperties,
+            maintenanceClusters);
+      } catch (Exception e) {
+        LOG.warn("Could not send passive status to Nagios (" + e.getMessage() + ")");
+      }
     }
   }
 
