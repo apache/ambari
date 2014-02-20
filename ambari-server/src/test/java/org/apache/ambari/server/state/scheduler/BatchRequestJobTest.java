@@ -18,20 +18,29 @@
 
 package org.apache.ambari.server.state.scheduler;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.scheduler.AbstractLinearExecutionJob;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
-
-import java.lang.reflect.Method;
+import org.quartz.JobKey;
+import org.quartz.Trigger;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.captureLong;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 public class BatchRequestJobTest {
 
@@ -92,5 +101,47 @@ public class BatchRequestJobTest {
     Assert.assertEquals(executionId, executionIdCapture.getValue().longValue());
     Assert.assertEquals(batchId, batchIdCapture.getValue().longValue());
     Assert.assertEquals(clusterName, clusterNameCapture.getValue());
+  }
+
+  @Test
+  public void testTaskCountsPersistedWithTrigger() throws Exception {
+    ExecutionScheduleManager scheduleManagerMock = createNiceMock
+      (ExecutionScheduleManager.class);
+    BatchRequestJob batchRequestJobMock = createMockBuilder
+      (BatchRequestJob.class).withConstructor(scheduleManagerMock, 100L)
+      .addMockedMethods("doWork")
+      .createMock();
+    JobExecutionContext executionContext = createNiceMock(JobExecutionContext.class);
+    JobDataMap jobDataMap = createNiceMock(JobDataMap.class);
+    JobDetail jobDetail = createNiceMock(JobDetail.class);
+    Map<String, Object> properties = new HashMap<String, Object>();
+    properties.put(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY, 10);
+    properties.put(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY, 20);
+
+    expect(scheduleManagerMock.continueOnMisfire(executionContext)).andReturn(true);
+    expect(executionContext.getMergedJobDataMap()).andReturn(jobDataMap);
+    expect(executionContext.getJobDetail()).andReturn(jobDetail);
+    expect(jobDetail.getKey()).andReturn(JobKey.jobKey("testJob", "testGroup"));
+    expect(jobDataMap.getWrappedMap()).andReturn(properties);
+    expect(jobDataMap.getString((String) anyObject())).andReturn("testJob").anyTimes();
+
+    Capture<Trigger> triggerCapture = new Capture<Trigger>();
+    scheduleManagerMock.scheduleJob(capture(triggerCapture));
+    expectLastCall().once();
+
+    replay(scheduleManagerMock, executionContext, jobDataMap, jobDetail);
+
+    batchRequestJobMock.execute(executionContext);
+
+    verify(scheduleManagerMock, executionContext, jobDataMap, jobDetail);
+
+    Trigger trigger = triggerCapture.getValue();
+    Assert.assertNotNull(trigger);
+    JobDataMap savedMap = trigger.getJobDataMap();
+    Assert.assertNotNull(savedMap);
+    Assert.assertEquals(10, savedMap.getIntValue
+      (BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY));
+    Assert.assertEquals(20, savedMap.getIntValue
+      (BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY));
   }
 }

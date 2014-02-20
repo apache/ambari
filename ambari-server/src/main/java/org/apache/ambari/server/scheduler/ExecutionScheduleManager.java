@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.lang.text.StrBuilder;
 import org.quartz.CronExpression;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -300,8 +301,7 @@ public class ExecutionScheduleManager {
       List<BatchRequest> batchRequests = batch.getBatchRequests();
       if (batchRequests != null) {
         Collections.sort(batchRequests);
-        ListIterator<BatchRequest> iterator = batchRequests.listIterator
-          (batchRequests.size());
+        ListIterator<BatchRequest> iterator = batchRequests.listIterator(batchRequests.size());
         String nextJobName = null;
         while (iterator.hasPrevious()) {
           BatchRequest batchRequest = iterator.previous();
@@ -726,3 +726,4 @@ public class ExecutionScheduleManager {
     }
   }
 }
+

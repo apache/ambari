@@ -18,6 +18,7 @@
 package org.apache.ambari.server.scheduler;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.scheduler.BatchRequestJob;
 import org.quartz.DateBuilder;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobDataMap;
@@ -42,8 +43,6 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * template method "doWork()" (where the extending Job class's real work goes)
  * and then it schedules the follow-up job.
  */
-@PersistJobDataAfterExecution
-@DisallowConcurrentExecution
 public abstract class AbstractLinearExecutionJob implements ExecutionJob {
   private static Logger LOG = LoggerFactory.getLogger(AbstractLinearExecutionJob.class);
   protected ExecutionScheduleManager executionScheduleManager;
@@ -129,13 +128,20 @@ public abstract class AbstractLinearExecutionJob implements ExecutionJob {
     }
 
     int separationSeconds = jobDataMap.getIntValue(NEXT_EXECUTION_SEPARATION_SECONDS);
+    Object failedCount = properties.get(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY);
+    Object totalCount = properties.get(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY);
 
     // Create trigger for next job execution
+    // Persist counts with trigger, so that they apply to current batch only
     Trigger trigger = newTrigger()
       .forJob(nextJobName, nextJobGroup)
       .withIdentity("TriggerForJob-" + nextJobName, LINEAR_EXECUTION_TRIGGER_GROUP)
       .withSchedule(simpleSchedule().withMisfireHandlingInstructionFireNow())
       .startAt(futureDate(separationSeconds, DateBuilder.IntervalUnit.SECOND))
+      .usingJobData(BatchRequestJob.BATCH_REQUEST_FAILED_TASKS_KEY,
+        failedCount != null ? (Integer) failedCount : 0)
+      .usingJobData(BatchRequestJob.BATCH_REQUEST_TOTAL_TASKS_KEY,
+        totalCount != null ? (Integer) totalCount : 0)
       .build();
 
     executionScheduleManager.scheduleJob(trigger);

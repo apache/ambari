@@ -23,12 +23,15 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.scheduler.AbstractLinearExecutionJob;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 
+@PersistJobDataAfterExecution
+@DisallowConcurrentExecution
 public class BatchRequestJob extends AbstractLinearExecutionJob {
   private static final Logger LOG = LoggerFactory.getLogger(BatchRequestJob.class);
 
@@ -106,7 +109,7 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
             + ", execution_id = " + executionId
             + ", processed batch_id = " + batchId
             + ", failed tasks = " + aggregateCounts.get(BATCH_REQUEST_FAILED_TASKS_KEY)
-            + ", total tasks = " + aggregateCounts.get(BATCH_REQUEST_TOTAL_TASKS_KEY));
+            + ", total tasks completed = " + aggregateCounts.get(BATCH_REQUEST_TOTAL_TASKS_KEY));
       }
     }
   }
@@ -134,7 +137,7 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
 
   private Map<String, Integer> addTaskCountToProperties(Map<String, Object> properties,
                                         Map<String, Integer> oldCounts,
-                                        BatchRequestResponse batchRequestResponse) {
+                                        BatchRequestResponse batchRequestResponse) throws AmbariException {
 
     Map<String, Integer> taskCounts = new HashMap<String, Integer>();
 
@@ -147,10 +150,11 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
       Integer totalCount = oldCounts.get(BATCH_REQUEST_TOTAL_TASKS_KEY) +
         batchRequestResponse.getTotalTaskCount();
 
-      properties.put(BATCH_REQUEST_FAILED_TASKS_KEY, failedCount);
       taskCounts.put(BATCH_REQUEST_FAILED_TASKS_KEY, failedCount);
-      properties.put(BATCH_REQUEST_TOTAL_TASKS_KEY, totalCount);
       taskCounts.put(BATCH_REQUEST_TOTAL_TASKS_KEY, totalCount);
+
+      properties.put(BATCH_REQUEST_FAILED_TASKS_KEY, failedCount);
+      properties.put(BATCH_REQUEST_TOTAL_TASKS_KEY, totalCount);
     }
 
     return taskCounts;
