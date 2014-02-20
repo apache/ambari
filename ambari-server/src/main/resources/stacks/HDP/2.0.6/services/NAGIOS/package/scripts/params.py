@@ -165,6 +165,6 @@ hostgroup_defs = {
     'nodemanagers' : _nm_hosts,
     'historyserver2' : _hs_host,
     'journalnodes' : _journalnode_hosts,
-    'falcon-server' : _falcon_host
+    'falcon-server' : _falcon_host,
     'ats-servers' : _app_timeline_server_hosts
 }
