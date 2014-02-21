@@ -114,20 +114,22 @@ public class ExecutionScheduleManager {
   }
 
   protected void buildApiClient() {
+
+    Client client = Client.create();
+    this.ambariClient = client;
+
+    String pattern;
+    String url;
+
     if (configuration.getApiSSLAuthentication()) {
-      //TODO build SSL client
-
+      pattern = "https://localhost:%s/";
+      url = String.format(pattern, configuration.getClientSSLApiPort());
     } else {
-      Client client = Client.create();
-
-      this.ambariClient = client;
-
-      String pattern = "http://localhost:%s/";
-      String url = String.format(pattern, configuration.getClientApiPort());
-
-      this.ambariWebResource = client.resource(url);
-
+      pattern = "http://localhost:%s/";
+      url = String.format(pattern, configuration.getClientApiPort());
     }
+
+    this.ambariWebResource = client.resource(url);
 
     //Install auth filters
     ClientFilter csrfFilter = new CsrfProtectionFilter("RequestSchedule");
