@@ -18,8 +18,15 @@
 
 package org.apache.ambari.server.api.query;
 
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.services.Result;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
 import java.util.Set;
 
@@ -93,9 +100,11 @@ public interface Query {
   public void setPageRequest(PageRequest pageRequest);
 
   /**
-   * Set a flag to indicate whether or not the response should be minimal.
+   * Set the corresponding renderer.
+   * The renderer is responsible for the rendering of the query result, including which
+   * properties are contained and the format of the result.
    *
-   * @param minimal  minimal flag; true indicates that the response should be minimal
+   * @param renderer  renderer for the query
    */
-  public void setMinimal(boolean minimal);
+  public void setRenderer(Renderer renderer);
 }

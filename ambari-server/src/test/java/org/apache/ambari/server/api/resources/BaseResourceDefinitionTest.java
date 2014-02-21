@@ -22,8 +22,12 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.anyObject;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.apache.ambari.server.api.handlers.BaseManagementHandler;
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.MinimalRenderer;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -45,7 +49,6 @@ import java.util.Set;
  * BaseResourceDefinition tests.
  */
 public class BaseResourceDefinitionTest {
-
 
   @Test
   public void testGetPostProcessors() {
@@ -101,6 +104,22 @@ public class BaseResourceDefinitionTest {
     href = configGroupNode.getProperty("href");
 
     Assert.assertEquals("http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/config_groups/2", href);
+  }
+
+  @Test
+  public void testGetRenderer() {
+    ResourceDefinition resource = getResourceDefinition();
+
+    assertTrue(resource.getRenderer(null) instanceof DefaultRenderer);
+    assertTrue(resource.getRenderer("default") instanceof DefaultRenderer);
+    assertTrue(resource.getRenderer("minimal") instanceof MinimalRenderer);
+
+    try {
+      resource.getRenderer("foo");
+      fail("Should have thrown an exception due to invalid renderer type");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
   }
 
   private BaseResourceDefinition getResourceDefinition() {

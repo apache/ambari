@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.api.util.TreeNode;
@@ -67,6 +68,16 @@ public interface ResourceDefinition {
    * @return list of resource specific result processors
    */
   public List<PostProcessor> getPostProcessors();
+
+  /**
+   * Obtain the associated renderer based on name.
+   *
+   * @param name  name of the renderer to obtain
+   *
+   * @return associated renderer instance
+   * @throws IllegalArgumentException if name is invalid for this resource
+   */
+  public Renderer getRenderer(String name) throws IllegalArgumentException;
 
   /**
    * Resource specific result processor.

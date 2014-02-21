@@ -20,14 +20,15 @@ package org.apache.ambari.server.api.resources;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.ambari.server.api.query.render.ClusterBlueprintRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Cluster resource definition.
  */
 public class ClusterResourceDefinition extends BaseResourceDefinition {
-
-
   /**
    * Constructor.
    */
@@ -44,6 +45,15 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
   @Override
   public String getSingularName() {
     return "cluster";
+  }
+
+  @Override
+  public Renderer getRenderer(String name) {
+    if (name != null && name.equals("blueprint")) {
+      return new ClusterBlueprintRenderer();
+    } else {
+      return super.getRenderer(name);
+    }
   }
 
   @Override

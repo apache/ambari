@@ -23,8 +23,12 @@ import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.query.Query;
-import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +50,7 @@ public class ReadHandler implements RequestHandler {
     Query query = request.getResource().getQuery();
 
     query.setPageRequest(request.getPageRequest());
-    query.setMinimal(request.isMinimal());
+    query.setRenderer(request.getRenderer());
 
     try {
       addFieldsToQuery(request, query);
@@ -95,7 +99,7 @@ public class ReadHandler implements RequestHandler {
    * Add partial response fields to the provided query.
    *
    * @param request  the current request
-   * @param query    the associated query   *
+   * @param query    the associated query
    */
   private void addFieldsToQuery(Request request, Query query) {
     //Partial response

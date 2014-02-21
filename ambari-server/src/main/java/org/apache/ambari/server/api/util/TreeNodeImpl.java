@@ -125,6 +125,13 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   }
 
   @Override
+  public void removeProperty(String name) {
+    if (m_mapNodeProps != null) {
+      m_mapNodeProps.remove(name);
+    }
+  }
+
+  @Override
   public TreeNode<T> getChild(String name) {
     if (name != null && name.contains("/")) {
       int i = name.indexOf('/');

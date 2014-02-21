@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.PageRequest;
@@ -116,9 +117,10 @@ public interface Request {
   public PageRequest getPageRequest();
 
   /**
-   * Is the minimal response parameter specified as true.
+   * Obtain the renderer for the request.
    *
-   * @return true if the minimal response parameter is specified as true
+   * @return renderer instance
    */
-  public boolean isMinimal();
+  public Renderer getRenderer();
+
 }

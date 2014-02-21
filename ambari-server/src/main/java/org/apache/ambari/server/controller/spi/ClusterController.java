@@ -24,7 +24,7 @@ import java.util.Set;
  * from the backend sources.  A cluster controller maintains a mapping of
  * resource providers keyed by resource types.
  */
-public interface ClusterController {
+public interface ClusterController extends SchemaFactory {
 
 
   // ----- Monitoring ------------------------------------------------------

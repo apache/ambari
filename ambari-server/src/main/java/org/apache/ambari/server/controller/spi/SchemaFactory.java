@@ -16,31 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.api.services.serializers;
-
-
-import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.api.services.Result;
+package org.apache.ambari.server.controller.spi;
 
 /**
- * Format internal result to format expected by client.
+ * Factory for Schema instances.
  */
-public interface ResultSerializer {
+public interface SchemaFactory {
   /**
-   * Serialize the given result to a format expected by client.
+   * Obtain a schema instance for a given resource type.
    *
-   * @param result  internal result
-   *
-   * @return the serialized result
+   * @param type  resource type
+   * @return schema instance for the specified type
    */
-  Object serialize(Result result);
-
-  /**
-   * Serialize an error result to the format expected by the client.
-   *
-   * @param error  the error result
-   *
-   * @return the serialized error result
-   */
-  Object serializeError(ResultStatus error);
+  public Schema getSchema(Resource.Type type);
 }

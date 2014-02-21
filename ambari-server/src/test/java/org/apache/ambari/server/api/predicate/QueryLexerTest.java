@@ -159,6 +159,42 @@ public class QueryLexerTest {
   }
 
   @Test
+  public void testTokens_ignoreFormatSyntax___noPredicate() throws InvalidQueryException {
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("format=default");
+    assertEquals(0, tokens.length);
+  }
+
+  @Test
+  public void testTokens_ignoreFormatSyntax___formatFirst() throws InvalidQueryException {
+
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("format=default&foo=1");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_ignoreFormatSyntax___formatLast() throws InvalidQueryException {
+
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("foo=1&format=foo");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
   public void testTokens_ignoreUnderscoreSyntax___noPredicate() throws InvalidQueryException {
 
     QueryLexer lexer = new QueryLexer();

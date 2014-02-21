@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.handlers;
 
+import org.apache.ambari.server.api.query.Query;
 import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
@@ -61,10 +62,12 @@ public abstract class BaseManagementHandler implements RequestHandler {
 
   @Override
   public Result handleRequest(Request request) {
+    Query query = request.getResource().getQuery();
     Predicate queryPredicate = request.getQueryPredicate();
 
+    query.setRenderer(request.getRenderer());
     if (queryPredicate != null) {
-      request.getResource().getQuery().setUserPredicate(queryPredicate);
+      query.setUserPredicate(queryPredicate);
     }
     return persist(request.getResource(), request.getBody());
   }

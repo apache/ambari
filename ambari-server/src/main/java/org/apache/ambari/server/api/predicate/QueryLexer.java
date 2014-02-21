@@ -38,6 +38,7 @@ public class QueryLexer {
    * Query string constants.
    */
   public static final String QUERY_FIELDS    = "fields";
+  public static final String QUERY_FORMAT    = "format";
   public static final String QUERY_PAGE_SIZE = "page_size";
   public static final String QUERY_TO        = "to";
   public static final String QUERY_FROM      = "from";
@@ -178,6 +179,7 @@ public class QueryLexer {
   static {
     // ignore values
     SET_IGNORE.add(QUERY_FIELDS);
+    SET_IGNORE.add(QUERY_FORMAT);
     SET_IGNORE.add(QUERY_PAGE_SIZE);
     SET_IGNORE.add(QUERY_TO);
     SET_IGNORE.add(QUERY_FROM);

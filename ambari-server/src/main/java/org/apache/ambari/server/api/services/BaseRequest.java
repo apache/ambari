@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.predicate.QueryLexer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
@@ -75,6 +76,12 @@ public abstract class BaseRequest implements Request {
   private static final int DEFAULT_PAGE_SIZE = 20;
 
   /**
+   * Associated resource renderer.
+   * Will default to the default renderer if non is specified.
+   */
+  private Renderer m_renderer;
+
+  /**
    *  Logger instance.
    */
   private final static Logger LOG = LoggerFactory.getLogger(Request.class);
@@ -104,11 +111,15 @@ public abstract class BaseRequest implements Request {
 
     Result result;
     try {
+      parseRenderer();
       parseQueryPredicate();
       result = getRequestHandler().handleRequest(this);
     } catch (InvalidQueryException e) {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
           "Unable to compile query predicate: " + e.getMessage()));
+    } catch (IllegalArgumentException e) {
+      result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
+          "Invalid Request: " + e.getMessage()));
     }
 
     if (! result.getStatus().isErrorState()) {
@@ -186,6 +197,11 @@ public abstract class BaseRequest implements Request {
   }
 
   @Override
+  public Renderer getRenderer() {
+   return m_renderer;
+  }
+
+  @Override
   public Map<String, List<String>> getHttpHeaders() {
     return m_headers.getRequestHeaders();
   }
@@ -229,12 +245,6 @@ public abstract class BaseRequest implements Request {
   }
 
   @Override
-  public boolean isMinimal() {
-    String minimal = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_MINIMAL);
-    return minimal != null && minimal.equalsIgnoreCase("true");
-  }
-
-  @Override
   public RequestBody getBody() {
     return m_body;
   }
@@ -245,8 +255,7 @@ public abstract class BaseRequest implements Request {
    * @return the result post processor
    */
   protected ResultPostProcessor getResultPostProcessor() {
-    //todo: inject
-    return new ResultPostProcessorImpl(this);
+    return m_renderer.getResultPostProcessor(this);
   }
 
   /**
@@ -257,6 +266,16 @@ public abstract class BaseRequest implements Request {
    */
   protected PredicateCompiler getPredicateCompiler() {
     return new PredicateCompiler();
+  }
+
+  /**
+   * Check to see if 'minimal_response=true' is specified in the query string.
+   *
+   * @return true if 'minimal_response=true' is specified, false otherwise
+   */
+  private boolean isMinimal() {
+    String minimal = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_MINIMAL);
+    return minimal != null && minimal.equalsIgnoreCase("true");
   }
 
   /**
@@ -278,6 +297,17 @@ public abstract class BaseRequest implements Request {
     if (queryString != null) {
       m_predicate = getPredicateCompiler().compile(queryString);
     }
+  }
+
+  /**
+   * Parse the query string for the {@link QueryLexer#QUERY_FORMAT} property and obtain
+   * a renderer from the associated resource definition based on this property value.
+   */
+  private void parseRenderer() {
+    String rendererName = isMinimal() ? "minimal" :
+        m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_FORMAT);
+    m_renderer = m_resource.getResourceDefinition().
+        getRenderer(rendererName);
   }
 
   /**

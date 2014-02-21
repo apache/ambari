@@ -100,6 +100,13 @@ public interface TreeNode<T> {
   public String getProperty(String name);
 
   /**
+   * Remove a property from the node.
+   *
+   * @param name  name of property to be removed
+   */
+  public void removeProperty(String name);
+
+  /**
    * Find a child node by name.
    * The name may contain '/' to delimit names to find a child more then one level deep.
    * To find a node named 'bar' that is a child of a child named 'foo', use the name 'foo/bar'.

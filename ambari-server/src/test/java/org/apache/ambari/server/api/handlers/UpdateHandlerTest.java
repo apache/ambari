@@ -19,6 +19,8 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.query.Query;
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
@@ -49,6 +51,7 @@ public class UpdateHandlerTest {
     Resource resource2 = createMock(Resource.class);
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -58,8 +61,10 @@ public class UpdateHandlerTest {
     expect(request.getResource()).andReturn(resource).anyTimes();
     expect(request.getBody()).andReturn(body).anyTimes();
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
 
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    query.setRenderer(renderer);
     query.setUserPredicate(userPredicate);
 
     expect(pm.update(resource, body)).andReturn(status);
@@ -105,6 +110,7 @@ public class UpdateHandlerTest {
     Resource resource2 = createMock(Resource.class);
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -114,8 +120,10 @@ public class UpdateHandlerTest {
     expect(request.getResource()).andReturn(resource).anyTimes();
     expect(request.getBody()).andReturn(body).anyTimes();
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
 
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    query.setRenderer(renderer);
     query.setUserPredicate(userPredicate);
 
     expect(pm.update(resource, body)).andReturn(status);
@@ -162,7 +170,7 @@ public class UpdateHandlerTest {
     Resource requestResource = createMock(Resource.class);
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
-
+    Renderer renderer = new DefaultRenderer();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -172,8 +180,10 @@ public class UpdateHandlerTest {
     expect(request.getResource()).andReturn(resource).anyTimes();
     expect(request.getBody()).andReturn(body).anyTimes();
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
 
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    query.setRenderer(renderer);
     query.setUserPredicate(userPredicate);
 
     expect(pm.update(resource, body)).andReturn(status);

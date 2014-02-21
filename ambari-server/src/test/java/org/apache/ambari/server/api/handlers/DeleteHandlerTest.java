@@ -19,6 +19,8 @@ package org.apache.ambari.server.api.handlers;
  */
 
 import org.apache.ambari.server.api.query.Query;
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
@@ -50,6 +52,7 @@ public class DeleteHandlerTest {
     Resource resource2 = createMock(Resource.class);
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -61,6 +64,9 @@ public class DeleteHandlerTest {
 
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
+
+    query.setRenderer(renderer);
     query.setUserPredicate(userPredicate);
 
     expect(pm.delete(resource, body)).andReturn(status);
@@ -106,6 +112,7 @@ public class DeleteHandlerTest {
     Resource resource2 = createMock(Resource.class);
     Predicate userPredicate = createNiceMock(Predicate.class);
     Query query = createNiceMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
@@ -117,6 +124,9 @@ public class DeleteHandlerTest {
 
     expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
     expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
+
+    query.setRenderer(renderer);
     query.setUserPredicate(userPredicate);
 
     expect(pm.delete(resource, body)).andReturn(status);
@@ -162,16 +172,21 @@ public class DeleteHandlerTest {
     Resource resource1 = createMock(Resource.class);
     Resource resource2 = createMock(Resource.class);
     Resource requestResource = createMock(Resource.class);
+    Query query = createNiceMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
 
     Set<Resource> setResources = new HashSet<Resource>();
     setResources.add(resource1);
     setResources.add(resource2);
 
     // expectations
-    expect(request.getResource()).andReturn(resource);
+    expect(request.getResource()).andReturn(resource).anyTimes();
     expect(request.getBody()).andReturn(body).atLeastOnce();
     // test delete with no user predicate
     expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
+    expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
+    query.setRenderer(renderer);
 
     expect(pm.delete(resource, body)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
@@ -180,7 +195,7 @@ public class DeleteHandlerTest {
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(status.getRequestResource()).andReturn(requestResource).anyTimes();
 
-    replay(request, body, resource, pm, status, resource1, resource2, requestResource);
+    replay(request, body, resource, pm, status, resource1, resource2, requestResource, query);
 
     Result result = new TestDeleteHandler(pm).handleRequest(request);
 
@@ -208,7 +223,7 @@ public class DeleteHandlerTest {
     assertSame(requestResource, statusNode.getObject());
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
 
-    verify(request, body, resource, pm, status, resource1, resource2, requestResource);
+    verify(request, body, resource, pm, status, resource1, resource2, requestResource, query);
   }
 
   private class TestDeleteHandler extends DeleteHandler {

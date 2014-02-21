@@ -20,6 +20,7 @@
 package org.apache.ambari.server.api.query;
 
 
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;
@@ -111,7 +112,6 @@ public class QueryImplTest {
 
     //test
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
-
     Result result = instance.execute();
 
     verify(resourceDefinition);
@@ -536,6 +536,7 @@ public class QueryImplTest {
   public static class TestQuery extends QueryImpl {
     public TestQuery(Map<Resource.Type, String> mapIds, ResourceDefinition resourceDefinition) {
       super(mapIds, resourceDefinition, new ClusterControllerImpl(new ClusterControllerImplTest.TestProviderModule()));
+      setRenderer(new DefaultRenderer());
     }
   }
 }

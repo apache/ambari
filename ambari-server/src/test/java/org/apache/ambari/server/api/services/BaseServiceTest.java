@@ -93,7 +93,6 @@ public abstract class BaseServiceTest {
     List<ServiceTestInvocation> listTestInvocations = getTestInvocations();
     for (ServiceTestInvocation testInvocation : listTestInvocations) {
       testMethod(testInvocation);
-      testMethodMinimal(testInvocation);
       testMethod_bodyParseException(testInvocation);
       testMethod_resultInErrorState(testInvocation);
     }
@@ -110,7 +109,7 @@ public abstract class BaseServiceTest {
     expect(request.process()).andReturn(result);
     expect(result.getStatus()).andReturn(status).atLeastOnce();
     expect(status.getStatusCode()).andReturn(testMethod.getStatusCode()).atLeastOnce();
-    expect(serializer.serialize(result, false)).andReturn(serializedResult);
+    expect(serializer.serialize(result)).andReturn(serializedResult);
 
     replayMocks();
 
@@ -121,34 +120,13 @@ public abstract class BaseServiceTest {
     verifyAndResetMocks();
   }
 
-  private void testMethodMinimal(ServiceTestInvocation testMethod) throws InvocationTargetException, IllegalAccessException {
-    try {
-      expect(bodyParser.parse(testMethod.getBody())).andReturn(Collections.singleton(requestBody));
-    } catch (BodyParseException e) {
-      // needed for compiler
-    }
 
-    expect(requestFactory.createRequest(httpHeaders, requestBody, uriInfo, testMethod.getRequestType(), resourceInstance)).andReturn(request);
-    expect(request.isMinimal()).andReturn(true);
-    expect(request.process()).andReturn(result);
-    expect(result.getStatus()).andReturn(status).atLeastOnce();
-    expect(status.getStatusCode()).andReturn(testMethod.getStatusCode()).atLeastOnce();
-    expect(serializer.serialize(result, true)).andReturn(serializedResult);
-
-    replayMocks();
-
-    Response r = testMethod.invoke();
-
-    assertEquals(serializedResult, r.getEntity());
-    assertEquals(testMethod.getStatusCode(), r.getStatus());
-    verifyAndResetMocks();
-  }
 
   private void testMethod_bodyParseException(ServiceTestInvocation testMethod) throws Exception {
     Capture<Result> resultCapture = new Capture<Result>();
     BodyParseException e = new BodyParseException("TEST MSG");
     expect(bodyParser.parse(testMethod.getBody())).andThrow(e);
-    expect(serializer.serialize(capture(resultCapture), eq(false))).andReturn(serializedResult);
+    expect(serializer.serialize(capture(resultCapture))).andReturn(serializedResult);
 
     replayMocks();
 
@@ -170,7 +148,7 @@ public abstract class BaseServiceTest {
     expect(request.process()).andReturn(result);
     expect(result.getStatus()).andReturn(status).atLeastOnce();
     expect(status.getStatusCode()).andReturn(400).atLeastOnce();
-    expect(serializer.serialize(result, false)).andReturn(serializedResult);
+    expect(serializer.serialize(result)).andReturn(serializedResult);
 
     replayMocks();
 

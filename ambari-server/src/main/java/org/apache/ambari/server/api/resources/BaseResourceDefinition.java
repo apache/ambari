@@ -19,6 +19,9 @@
 package org.apache.ambari.server.api.resources;
 
 
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.MinimalRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -67,6 +70,18 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     listProcessors.add(new BaseHrefPostProcessor());
 
     return listProcessors;
+  }
+
+  @Override
+  public Renderer getRenderer(String name) {
+    if (name == null || name.equals("default")) {
+      return new DefaultRenderer();
+    } else if (name.equals("minimal")) {
+      return new MinimalRenderer();
+    } else {
+      throw new IllegalArgumentException("Invalid renderer name: " + name +
+          " for resource of type: " + m_type);
+    }
   }
 
   ClusterController getClusterController() {

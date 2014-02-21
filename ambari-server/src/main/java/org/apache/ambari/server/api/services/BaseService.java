@@ -66,9 +66,7 @@ public abstract class BaseService {
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo,
                                    Request.Type requestType, ResourceInstance resource) {
 
-    Result  result  = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
-    boolean minimal = false;
-
+    Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
     try {
       Set<RequestBody> requestBodySet = getBodyParser().parse(body);
 
@@ -79,7 +77,6 @@ public abstract class BaseService {
         Request request = getRequestFactory().createRequest(
             headers, requestBody, uriInfo, requestType, resource);
 
-        minimal = request.isMinimal();
         result  = request.process();
       }
     } catch (BodyParseException e) {
@@ -87,7 +84,7 @@ public abstract class BaseService {
     }
 
     return Response.status(result.getStatus().getStatusCode()).entity(
-        getResultSerializer().serialize(result, minimal)).build();
+        getResultSerializer().serialize(result)).build();
   }
 
   /**

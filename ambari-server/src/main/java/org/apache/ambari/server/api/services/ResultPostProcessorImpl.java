@@ -91,6 +91,17 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
     for (TreeNode<Resource> child : node.getChildren()) {
       processNode(child, href);
     }
+
+    finalizeNode(node);
+  }
+
+  /**
+   * Allows subclasses to finalize node
+   *
+   * @param node  node to finalize
+   */
+  protected void finalizeNode(TreeNode<Resource> node) {
+    // no-op
   }
 
   /**
@@ -119,5 +130,4 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
     // always add Request post processors since they may be returned but will not be a child
     m_mapPostProcessors.put(Resource.Type.Request, new RequestResourceDefinition().getPostProcessors());
   }
-
 }

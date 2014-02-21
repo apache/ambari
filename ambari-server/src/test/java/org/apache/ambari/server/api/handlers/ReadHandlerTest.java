@@ -19,6 +19,8 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.query.Query;
+import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
@@ -49,13 +51,15 @@ public class ReadHandlerTest {
 
     Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<String, TemporalInfo>();
     mapPartialResponseFields.put("foo/bar", null);
+    Renderer renderer = new DefaultRenderer();
 
     expect(request.getResource()).andReturn(resource);
     expect(request.getFields()).andReturn(mapPartialResponseFields);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(resource.getQuery()).andReturn(query);
 
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
     query.addProperty("foo/bar", null);
     expectLastCall().andThrow(new IllegalArgumentException("testMsg"));
 
@@ -77,6 +81,7 @@ public class ReadHandlerTest {
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
     Result result = createStrictMock(Result.class);
+    Renderer renderer = new DefaultRenderer();
     Capture<ResultStatus> resultStatusCapture = new Capture<ResultStatus>();
 
     Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<String, TemporalInfo>();
@@ -89,8 +94,9 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
-    expect(request.isMinimal()).andReturn(false);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(mapPartialResponseFields);
+
     query.addProperty("foo", null);
     query.addProperty("bar/c", null);
     query.addProperty("bar/d/e", null);
@@ -99,7 +105,7 @@ public class ReadHandlerTest {
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
     expect(query.execute()).andReturn(result);
     result.setResultStatus(capture(resultStatusCapture));
 
@@ -118,18 +124,19 @@ public class ReadHandlerTest {
     ResourceInstance resource = createStrictMock(ResourceInstance.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
+    Renderer renderer = new DefaultRenderer();
 
     expect(request.getResource()).andReturn(resource);
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
-    expect(request.isMinimal()).andReturn(false);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
     SystemException systemException = new SystemException("testMsg", new RuntimeException());
     expect(query.execute()).andThrow(systemException);
 
@@ -150,18 +157,19 @@ public class ReadHandlerTest {
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
     NoSuchParentResourceException exception = new NoSuchParentResourceException("exceptionMsg", new RuntimeException());
+    Renderer renderer = new DefaultRenderer();
 
     expect(request.getResource()).andReturn(resource);
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
-    expect(request.isMinimal()).andReturn(false);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
 
@@ -181,6 +189,7 @@ public class ReadHandlerTest {
     ResourceInstance resource = createStrictMock(ResourceInstance.class);
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
+    Renderer renderer = new DefaultRenderer();
     UnsupportedPropertyException exception = new UnsupportedPropertyException(
         Resource.Type.Cluster, Collections.singleton("foo"));
 
@@ -188,13 +197,13 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
-    expect(request.isMinimal()).andReturn(false);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
 
@@ -215,18 +224,19 @@ public class ReadHandlerTest {
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
     NoSuchResourceException exception = new NoSuchResourceException("msg", new RuntimeException());
+    Renderer renderer = new DefaultRenderer();
 
     expect(request.getResource()).andReturn(resource);
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
-    expect(request.isMinimal()).andReturn(false);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate).anyTimes();
     query.setUserPredicate(predicate);
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
 
@@ -246,18 +256,19 @@ public class ReadHandlerTest {
     ResourceInstance resource = createStrictMock(ResourceInstance.class);
     Query query = createMock(Query.class);
     NoSuchResourceException exception = new NoSuchResourceException("msg", new RuntimeException());
+    Renderer renderer = new DefaultRenderer();
 
     expect(request.getResource()).andReturn(resource);
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getPageRequest()).andReturn(null);
-    expect(request.isMinimal()).andReturn(false);
+    expect(request.getRenderer()).andReturn(renderer);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(null).anyTimes();
     query.setUserPredicate(null);
     query.setPageRequest(null);
-    query.setMinimal(false);
+    query.setRenderer(renderer);
 
     expect(query.execute()).andThrow(exception);
 
@@ -271,34 +282,4 @@ public class ReadHandlerTest {
     assertEquals(exception.getMessage(), result.getStatus().getMessage());
     verify(request, resource, query);
   }
-
-//todo: reverted to just logging the exception and re-throwing it
-//  @Test
-//  public void testHandleRequest__RuntimeException() throws Exception {
-//    Request request = createStrictMock(Request.class);
-//    ResourceInstance resource = createStrictMock(ResourceInstance.class);
-//    Query query = createMock(Query.class);
-//    RuntimeException exception = new RuntimeException("msg");
-//
-//    expect(request.getResource()).andReturn(resource);
-//    expect(resource.getQuery()).andReturn(query);
-//
-//    expect(request.getPageRequest()).andReturn(null);
-//    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
-//
-//    expect(request.getQueryPredicate()).andReturn(null).anyTimes();
-//    query.setUserPredicate(null);
-//
-//    expect(query.execute()).andThrow(exception);
-//
-//    replay(request, resource, query);
-//
-//    //test
-//    ReadHandler handler = new ReadHandler();
-//    Result result = handler.handleRequest(request);
-//    // not a query, so not found
-//    assertEquals(ResultStatus.STATUS.SERVER_ERROR, result.getStatus().getStatus());
-//    assertEquals(exception.toString(), result.getStatus().getMessage());
-//    verify(request, resource, query);
-//  }
 }
