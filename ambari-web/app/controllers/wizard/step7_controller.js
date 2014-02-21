@@ -75,7 +75,11 @@ App.WizardStep7Controller = Em.Controller.extend({
   }.property('content.services').cacheable(),
 
   installedServiceNames: function () {
-    return this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
+    var serviceNames = this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
+    if(this.get('content.controllerName') !== 'installerController') {
+      return serviceNames.without('SQOOP');
+    }
+    return serviceNames;
   }.property('content.services').cacheable(),
 
   masterComponentHosts: function () {

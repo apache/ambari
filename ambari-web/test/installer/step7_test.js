@@ -17,9 +17,100 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 require('controllers/wizard/step7_controller');
 
-/*
+var installerStep7Controller;
+
 describe('App.InstallerStep7Controller', function () {
 
-})*/
+  describe('#installedServiceNames', function() {
+
+    var tests = Em.A([
+      {
+        content: Em.Object.create({
+          controllerName: 'installerController',
+          services: Em.A([
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'SQOOP'
+            }),
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HDFS'
+            })
+          ])
+        }),
+        e: ['SQOOP', 'HDFS'],
+        m: 'installerController with SQOOP'
+      },
+      {
+        content: Em.Object.create({
+          controllerName: 'installerController',
+          services: Em.A([
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HIVE'
+            }),
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HDFS'
+            })
+          ])
+        }),
+        e: ['HIVE', 'HDFS'],
+        m: 'installerController without SQOOP'
+      },
+      {
+        content: Em.Object.create({
+          controllerName: 'addServiceController',
+          services: Em.A([
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HIVE'
+            }),
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HDFS'
+            })
+          ])
+        }),
+        e: ['HIVE', 'HDFS'],
+        m: 'addServiceController without SQOOP'
+      },
+      {
+        content: Em.Object.create({
+          controllerName: 'addServiceController',
+          services: Em.A([
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'SQOOP'
+            }),
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HIVE'
+            }),
+            Em.Object.create({
+              isInstalled: true,
+              serviceName: 'HDFS'
+            })
+          ])
+        }),
+        e: ['HIVE', 'HDFS'],
+        m: 'addServiceController with SQOOP'
+      }
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        installerStep7Controller = App.WizardStep7Controller.create({
+          content: test.content
+        });
+        expect(installerStep7Controller.get('installedServiceNames')).to.include.members(test.e);
+        expect(test.e).to.include.members(installerStep7Controller.get('installedServiceNames'));
+      });
+    });
+
+  });
+
+});
