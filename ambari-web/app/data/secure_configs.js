@@ -47,19 +47,18 @@ module.exports = [
     sites: ['core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
-
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker and Job History Server'}),
+      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker'}),
+      App.ServiceConfigCategory.create({ name: 'JobHistoryServer', displayName: 'History Server'}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName: 'TaskTracker'})
     ],
     sites: ['mapred-site'],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
   },
-
   {
     serviceName: 'HIVE',
     displayName: 'Hive',

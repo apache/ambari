@@ -126,53 +126,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           acl: '440'
         });
       }
-      if(host.get('hostComponents').someProperty('componentName', 'NAMENODE') ||
-        host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE') ||  host.get('hostComponents').someProperty('componentName', 'JOURNALNODE')){
-        result.push({
-          host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
-          principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + hadoopHttpPrincipal.unit,
-          keytabFile: stringUtils.getFileFromPath(hadoopHttpKeytabPath),
-          keytab: stringUtils.getPath(hadoopHttpKeytabPath),
-          owner: 'root',
-          group: hadoopGroupId,
-          acl: '440'
-        });
-      }
 
-      if (host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER')) {
-        var webHcatConfigs = configs.filterProperty('serviceName', 'WEBHCAT');
-        var webHCatHttpPrincipal = webHcatConfigs.findProperty('name', 'webHCat_http_principal_name');
-        var webHCatHttpKeytabPath = webHcatConfigs.findProperty('name', 'webhcat_http_keytab').value;
-        result.push({
-          host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
-          principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + webHCatHttpPrincipal.unit,
-          keytabFile: stringUtils.getFileFromPath(webHCatHttpKeytabPath),
-          keytab: stringUtils.getPath(webHCatHttpKeytabPath),
-          owner: 'root',
-          group: hadoopGroupId,
-          acl: '440'
-        });
+      this.setComponentConfig(result,host,'NAMENODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'SECONDARY_NAMENODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'JOURNALNODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'WEBHCAT_SERVER','WEBHCAT','webHCat_http_principal_name','webhcat_http_keytab',Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'OOZIE_SERVER','OOZIE','oozie_http_principal_name','oozie_http_keytab',Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),hadoopGroupId);
+      //Derive Principal name and Keytabs only if its HDP-2 stack
+      if (App.get('isHadoop2Stack')) {
+        this.setComponentConfig(result,host,'HISTORYSERVER','MAPREDUCE2','jobhistory_http_principal_name','jobhistory_http_keytab',Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),hadoopGroupId);
+        this.setComponentConfig(result,host,'RESOURCEMANAGER','YARN','resourcemanager_http_principal_name','resourcemanager_http_keytab',Em.I18n.t('admin.addSecurity.rm.user.httpUser'),hadoopGroupId);
+        this.setComponentConfig(result,host,'NODEMANAGER','YARN','nodemanager_http_principal_name','nodemanager_http_keytab',Em.I18n.t('admin.addSecurity.nm.user.httpUser'),hadoopGroupId);
       }
-      if (host.get('hostComponents').someProperty('componentName', 'OOZIE_SERVER')) {
-        var oozieConfigs = configs.filterProperty('serviceName', 'OOZIE');
-        var oozieHttpPrincipal = oozieConfigs.findProperty('name', 'oozie_http_principal_name');
-        var oozieHttpKeytabPath = oozieConfigs.findProperty('name', 'oozie_http_keytab').value;
-        result.push({
-          host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
-          principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + oozieHttpPrincipal.unit,
-          keytabFile: stringUtils.getFileFromPath(oozieHttpKeytabPath),
-          keytab: stringUtils.getPath(oozieHttpKeytabPath),
-          owner: 'root',
-          group: hadoopGroupId,
-          acl: '440'
-        });
-      }
-      this.setComponentConfig(result,host,'HISTORYSERVER','MAPREDUCE2','jobhistory_http_principal_name','jobhistory_http_keytab',Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'RESOURCEMANAGER','YARN','resourcemanager_http_principal_name','resourcemanager_http_keytab',Em.I18n.t('admin.addSecurity.rm.user.httpUser'),hadoopGroupId);
-      this.setComponentConfig(result,host,'NODEMANAGER','YARN','nodemanager_http_principal_name','nodemanager_http_keytab',Em.I18n.t('admin.addSecurity.nm.user.httpUser'),hadoopGroupId);
 
       host.get('hostComponents').forEach(function(hostComponent){
         if(componentsToDisplay.contains(hostComponent.get('componentName'))){
