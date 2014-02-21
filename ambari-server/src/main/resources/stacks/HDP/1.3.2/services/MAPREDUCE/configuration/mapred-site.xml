@@ -285,14 +285,8 @@
   </property>
 
   <property>
-    <name>ambari.mapred.child.java.opts.memory</name>
-    <value>768</value>
-    <description>Java options Memory for the TaskTracker child processes</description>
-  </property>
-
-  <property>
     <name>mapred.child.java.opts</name>
-    <value>-server -Xmx${ambari.mapred.child.java.opts.memory}m -Djava.net.preferIPv4Stack=true</value>
+    <value>-server -Xmx768m -Djava.net.preferIPv4Stack=true</value>
     <description>Java options for the TaskTracker child processes</description>
   </property>
 

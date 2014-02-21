@@ -336,12 +336,11 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "ambari.mapred.child.java.opts.memory",
+      "name": "mapred.child.java.opts",
       "displayName": "Java options for MapReduce tasks",
       "description": "Java options for the TaskTracker child processes.",
       "defaultValue": "",
-      "displayType": "int",
-      "unit": "MB",
+      "displayType": "advanced",
       "category": "TaskTracker",
       "serviceName": "MAPREDUCE",
       "index": 4

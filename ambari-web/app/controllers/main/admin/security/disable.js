@@ -104,11 +104,11 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
             var configName = _config.name;
             if (configName in _serviceConfigTags.configs) {
               switch (configName) {
-                case 'ambari.dfs.datanode.port':
-                  _serviceConfigTags.configs[configName] = '50010';
+                case 'dfs.datanode.address':
+                  _serviceConfigTags.configs[configName] = '0.0.0.0:50010';
                   break;
-                case 'ambari.dfs.datanode.http.port':
-                  _serviceConfigTags.configs[configName] = '50075';
+                case 'dfs.datanode.http.address':
+                  _serviceConfigTags.configs[configName] = '0.0.0.0:50075';
                   break;
                 case 'mapred.task.tracker.task-controller':
                   _serviceConfigTags.configs[configName] = 'org.apache.hadoop.mapred.DefaultTaskController';

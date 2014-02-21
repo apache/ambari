@@ -146,18 +146,18 @@ module.exports = [
     "serviceName": "HDFS"
   },
   {
-    "name": "ambari.dfs.datanode.port",
+    "name": "dfs.datanode.address",
     "templateName": ["dfs_datanode_address"],
     "foreignKey": null,
-    "value": "<templateName[0]>",
+    "value": "0.0.0.0:<templateName[0]>",
     "filename": "hdfs-site.xml",
     "serviceName": "HDFS"
   },
   {
-    "name": "ambari.dfs.datanode.http.port",
+    "name": "dfs.datanode.http.address",
     "templateName": ["dfs_datanode_http_address"],
     "foreignKey": null,
-    "value": "<templateName[0]>",
+    "value": "0.0.0.0:<templateName[0]>",
     "filename": "hdfs-site.xml",
     "serviceName": "HDFS"
   },
