@@ -142,7 +142,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/hadoop-hdfs',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0750,
+                              mode = 0751,
                               recursive = True,
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs',
@@ -160,7 +160,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/hadoop-hdfs',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0750,
+                              mode = 0751,
                               recursive = True,
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs',
