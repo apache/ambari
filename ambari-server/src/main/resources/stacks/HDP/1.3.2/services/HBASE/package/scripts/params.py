@@ -65,7 +65,7 @@ rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #
 
 smoke_test_user = config['configurations']['global']['smokeuser']
 smokeuser_permissions = default('smokeuser_permissions', "RWXCA")
-service_check_data = get_unique_id_and_date()
+service_check_data = functions.get_unique_id_and_date()
 
 if security_enabled:
   
