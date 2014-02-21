@@ -100,36 +100,12 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('health_check-v2.j2'),
                               owner = 'hdfs',
                               )
-    self.assertResourceCalled('PropertiesFile',
+    self.assertResourceCalled('File',
                               '/etc/hadoop/conf/log4j.properties',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+                              mode=0644,
+                              group='hadoop',
                               owner='hdfs',
-                              group='hadoop'
-    )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.driver=.*~###ambari.jobhistory.driver=o~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA=.*~###log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.driver=.*~###log4j.appender.JHA.driver=${ambari.jobhistory.driver}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.database=.*~###log4j.appender.JHA.database=${ambari.jobhistory.database}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.logger=.*~###ambari.jobhistory.logger=DEBUG,JHA~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.password=.*~###log4j.appender.JHA.password=${ambari.jobhistory.password}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.database=.*~###ambari.jobhistory.database=j~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=.*~###log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=.*~###log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=${ambari.jobhistory.logger}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.user=.*~###log4j.appender.JHA.user=${ambari.jobhistory.user}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.user=.*~###ambari.jobhistory.user=m~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.password=.*~###ambari.jobhistory.password=m~' /etc/hadoop/conf/log4j.properties",
+                              content='log4jproperties\nline2log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),
@@ -278,35 +254,12 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('health_check-v2.j2'),
                               owner = 'root',
                               )
-    self.assertResourceCalled('PropertiesFile', '/etc/hadoop/conf/log4j.properties',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              mode = 0664,
-                              properties = self.getConfig()['configurations']['hdfs-log4j'],
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.driver=.*~###ambari.jobhistory.driver=o~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA=.*~###log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.driver=.*~###log4j.appender.JHA.driver=${ambari.jobhistory.driver}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.database=.*~###log4j.appender.JHA.database=${ambari.jobhistory.database}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.logger=.*~###ambari.jobhistory.logger=DEBUG,JHA~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.password=.*~###log4j.appender.JHA.password=${ambari.jobhistory.password}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.database=.*~###ambari.jobhistory.database=j~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=.*~###log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=.*~###log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=${ambari.jobhistory.logger}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?log4j.appender.JHA.user=.*~###log4j.appender.JHA.user=${ambari.jobhistory.user}~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.user=.*~###ambari.jobhistory.user=m~' /etc/hadoop/conf/log4j.properties",
-                              )
-    self.assertResourceCalled('Execute', "sed -i 's~\\(###\\)\\?ambari.jobhistory.password=.*~###ambari.jobhistory.password=m~' /etc/hadoop/conf/log4j.properties",
+    self.assertResourceCalled('File',
+                              '/etc/hadoop/conf/log4j.properties',
+                              mode=0644,
+                              group='hadoop',
+                              owner='hdfs',
+                              content='log4jproperties\nline2log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
                               content = Template('hadoop-metrics2.properties.j2'),

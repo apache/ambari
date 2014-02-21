@@ -71,13 +71,12 @@ class TestHBaseClient(RMFTestCase):
       owner = 'hbase',
       template_tag = None,
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'log4j.properties',
-                              dir='/etc/hbase/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hbase/conf/log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hbase',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
     
@@ -125,13 +124,12 @@ class TestHBaseClient(RMFTestCase):
       owner = 'hbase',
       template_tag = None,
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'log4j.properties',
-                              dir='/etc/hbase/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hbase/conf/log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hbase',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
     

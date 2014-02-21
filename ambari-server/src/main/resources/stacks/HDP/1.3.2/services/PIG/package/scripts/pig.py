@@ -34,12 +34,11 @@ def pig():
   pig_TemplateConfig( ['pig-env.sh','pig.properties'])
 
   if (params.log4j_props != None):
-    PropertiesFile('log4j.properties',
-                   dir=params.pig_conf_dir,
-                   properties=params.log4j_props,
-                   mode=0664,
-                   owner=params.hdfs_user,
-                   group=params.user_group,
+    File(format("{params.pig_conf_dir}/log4j.properties"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hdfs_user,
+         content=params.log4j_props
     )
   elif (os.path.exists(format("{params.pig_conf_dir}/log4j.properties"))):
     File(format("{params.pig_conf_dir}/log4j.properties"),

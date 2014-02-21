@@ -29,21 +29,19 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="default.json"
     )
     self.assert_configure_default()
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-exec-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-exec-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
 
@@ -55,21 +53,19 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-exec-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-exec-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server',
                               not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
@@ -99,21 +95,19 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="secured.json"
     )
     self.assert_configure_default()
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-exec-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-exec-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
 
@@ -125,21 +119,19 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assert_configure_secured()
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-exec-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-exec-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server',
                               not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',

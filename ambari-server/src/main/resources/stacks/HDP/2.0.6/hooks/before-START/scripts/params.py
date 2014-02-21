@@ -178,26 +178,9 @@ if dfs_ha_enabled:
 dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
 #log4j.properties
-rca_property_map = {
-  'ambari.jobhistory.database': ambari_db_rca_url,
-  'ambari.jobhistory.driver': ambari_db_rca_driver,
-  'ambari.jobhistory.user': ambari_db_rca_username,
-  'ambari.jobhistory.password': ambari_db_rca_password,
-  'ambari.jobhistory.logger': 'DEBUG,JHA',
-
-  'log4j.appender.JHA': 'org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender',
-  'log4j.appender.JHA.database': '${ambari.jobhistory.database}',
-  'log4j.appender.JHA.driver': '${ambari.jobhistory.driver}',
-  'log4j.appender.JHA.user': '${ambari.jobhistory.user}',
-  'log4j.appender.JHA.password': '${ambari.jobhistory.password}',
-
-  'log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger': '${ambari.jobhistory.logger}',
-  'log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger': 'true'
-}
-
-if ('hdfs-log4j' in config['configurations']):
-  log4j_props = config['configurations']['hdfs-log4j']
-  if 'yarn-log4j' in config['configurations']:
-    log4j_props.update(config['configurations']['yarn-log4j'])
+if (('hdfs-log4j' in config['configurations']) and ('content' in config['configurations']['hdfs-log4j'])):
+  log4j_props = config['configurations']['hdfs-log4j']['content']
+  if (('yarn-log4j' in config['configurations']) and ('content' in config['configurations']['yarn-log4j'])):
+    log4j_props += config['configurations']['yarn-log4j']['content']
 else:
   log4j_props = None

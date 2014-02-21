@@ -128,14 +128,14 @@ hcat_log_dir = config['configurations']['global']['hcat_log_dir']
 hadoop_conf_dir = '/etc/hadoop/conf'
 
 #hive-log4j.properties.template
-if ('hive-log4j' in config['configurations']):
-  log4j_props = config['configurations']['hive-log4j']
+if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
+  log4j_props = config['configurations']['hive-log4j']['content']
 else:
   log4j_props = None
 
 #hive-exec-log4j.properties.template
-if ('hive-exec-log4j' in config['configurations']):
-  log4j_exec_props = config['configurations']['hive-exec-log4j']
+if (('hive-exec-log4j' in config['configurations']) and ('content' in config['configurations']['hive-exec-log4j'])):
+  log4j_exec_props = config['configurations']['hive-exec-log4j']['content']
 else:
   log4j_exec_props = None
 

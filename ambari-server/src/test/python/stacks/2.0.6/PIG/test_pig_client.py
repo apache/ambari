@@ -20,7 +20,7 @@ limitations under the License.
 
 from stacks.utils.RMFTestCase import *
 
-class TestPigClient(RMFTestCase):
+class TestHcatClient(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/PIG/package/scripts/pig_client.py",
@@ -28,6 +28,7 @@ class TestPigClient(RMFTestCase):
                        command = "configure",
                        config_file="default.json"
     )
+
     self.assertResourceCalled('Directory', '/etc/pig/conf',
       owner = 'hdfs',
       group = 'hadoop',
@@ -38,21 +39,21 @@ class TestPigClient(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
     )
-    self.assertResourceCalled('PropertiesFile', 'log4j.properties',
+    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0664,
-      dir = '/etc/pig/conf',
-      properties = self.getConfig()['configurations']['pig-log4j'],
+      mode = 0644,
+      content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()
-    
+
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/PIG/package/scripts/pig_client.py",
                        classname = "PigClient",
                        command = "configure",
                        config_file="secured.json"
     )
+    
     self.assertResourceCalled('Directory', '/etc/pig/conf',
       owner = 'hdfs',
       group = 'hadoop',
@@ -63,11 +64,10 @@ class TestPigClient(RMFTestCase):
     self.assertResourceCalled('TemplateConfig', '/etc/pig/conf/pig.properties',
       owner = 'hdfs',
     )
-    self.assertResourceCalled('PropertiesFile', 'log4j.properties',
+    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0664,
-      dir = '/etc/pig/conf',
-      properties = self.getConfig()['configurations']['pig-log4j'],
+      mode = 0644,
+      content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()

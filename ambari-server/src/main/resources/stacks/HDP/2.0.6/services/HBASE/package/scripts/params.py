@@ -94,8 +94,8 @@ else:
   kinit_cmd = ""
 
 #log4j.properties
-if ('hbase-log4j' in config['configurations']):
-  log4j_props = config['configurations']['hbase-log4j']
+if (('hbase-log4j' in config['configurations']) and ('content' in config['configurations']['hbase-log4j'])):
+  log4j_props = config['configurations']['hbase-log4j']['content']
 else:
   log4j_props = None
 

@@ -236,13 +236,12 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       recursive = True,
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'log4j.properties',
-                              dir='/etc/hbase/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hbase/conf/log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hbase',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
   
   def assert_configure_secured(self):
@@ -322,11 +321,10 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       recursive = True,
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'log4j.properties',
-                              dir='/etc/hbase/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hbase/conf/log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hbase',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )

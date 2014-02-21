@@ -98,12 +98,11 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
     )
 
   if (params.log4j_props != None):
-    PropertiesFile('log4j.properties',
-      dir=params.conf_dir,
-      properties=params.log4j_props,
-      mode=0664,
-      owner=params.hbase_user,
-      group=params.user_group,
+    File(format("{params.conf_dir}/log4j.properties"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hbase_user,
+         content=params.log4j_props
     )
   elif (os.path.exists(format("{params.conf_dir}/log4j.properties"))):
     File(format("{params.conf_dir}/log4j.properties"),

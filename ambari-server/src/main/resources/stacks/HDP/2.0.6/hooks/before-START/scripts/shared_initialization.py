@@ -147,11 +147,11 @@ def setup_hadoop():
 
   log4j_filename = os.path.join(params.hadoop_conf_dir, "log4j.properties")
   if (params.log4j_props != None):
-    PropertiesFile(log4j_filename,
-                   properties=params.log4j_props,
-                   mode=0664,
-                   owner=params.hdfs_user,
-                   group=params.user_group,
+    File(log4j_filename,
+         mode=0644,
+         group=params.user_group,
+         owner=params.hdfs_user,
+         content=params.log4j_props
     )
   elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
     File(log4j_filename,
@@ -159,8 +159,6 @@ def setup_hadoop():
          group=params.user_group,
          owner=params.hdfs_user,
     )
-
-  update_log4j_props(log4j_filename)
 
   File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
        owner=params.hdfs_user,
@@ -281,15 +279,6 @@ def setup_configs():
     )
 
   generate_include_file()
-
-def update_log4j_props(file):
-  import params
-
-  for key in params.rca_property_map:
-    value = params.rca_property_map[key]
-    Execute(format(
-      "sed -i 's~\\({rca_disabled_prefix}\\)\\?{key}=.*~{rca_prefix}{key}={value}~' {file}")
-    )
 
 
 def generate_include_file():

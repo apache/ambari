@@ -40,7 +40,7 @@ java64_home = config['hostLevelParams']['java_home']
 hadoop_home = "/usr"
 
 #log4j.properties
-if ('pig-log4j' in config['configurations']):
-  log4j_props = config['configurations']['pig-log4j']
+if (('pig-log4j' in config['configurations']) and ('content' in config['configurations']['pig-log4j'])):
+  log4j_props = config['configurations']['pig-log4j']['content']
 else:
   log4j_props = None

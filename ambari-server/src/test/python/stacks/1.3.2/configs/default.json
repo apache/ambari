@@ -351,28 +351,28 @@
             "hive.optimize.mapjoin.mapreduce": "true"
         },
         "hdfs-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
-        "yarn-log4j": {
-            "property1": "value1"
+        "mapreduce-log4j": {
+            "content": "log4jproperties\nline2"
         },
         "hbase-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hive-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hive-exec-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "zookeeper-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "pig-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "oozie-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         }
     }, 
     "configurationTags": {
@@ -398,6 +398,30 @@
             "tag": "version1"
         }, 
         "hive-site": {
+            "tag": "version1"
+        },
+        "hdfs-log4j": {
+            "tag": "version1"
+        },
+        "yarn-log4j": {
+            "tag": "version1"
+        },
+        "hbase-log4j": {
+            "tag": "version1"
+        },
+        "hive-log4j": {
+            "tag": "version1"
+        },
+        "hive-exec-log4j": {
+            "tag": "version1"
+        },
+        "zookeeper-log4j": {
+            "tag": "version1"
+        },
+        "oozie-log4j": {
+            "tag": "version1"
+        },
+        "pig-log4j": {
             "tag": "version1"
         }
     }, 

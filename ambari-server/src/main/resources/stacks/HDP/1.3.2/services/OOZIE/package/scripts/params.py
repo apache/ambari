@@ -65,8 +65,8 @@ else:
     jar_path = "{lzo_jar_suffix}{jdbc_driver_jar}"
 
 #oozie-log4j.properties
-if ('oozie-log4j' in config['configurations']):
-  log4j_props = config['configurations']['oozie-log4j']
+if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):
+  log4j_props = config['configurations']['oozie-log4j']['content']
 else:
   log4j_props = None
 

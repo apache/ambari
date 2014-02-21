@@ -456,28 +456,28 @@
             "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab"
         },
         "hdfs-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "yarn-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hbase-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hive-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hive-exec-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "zookeeper-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "pig-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "oozie-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         }
     }, 
     "configurationTags": {
@@ -503,6 +503,30 @@
             "tag": "version1389980437965"
         }, 
         "hive-site": {
+            "tag": "version1389980437965"
+        },
+        "hdfs-log4j": {
+            "tag": "version1389980437965"
+        },
+        "yarn-log4j": {
+            "tag": "version1389980437965"
+        },
+        "hbase-log4j": {
+            "tag": "version1389980437965"
+        },
+        "hive-log4j": {
+            "tag": "version1389980437965"
+        },
+        "hive-exec-log4j": {
+            "tag": "version1389980437965"
+        },
+        "zookeeper-log4j": {
+            "tag": "version1389980437965"
+        },
+        "oozie-log4j": {
+            "tag": "version1389980437965"
+        },
+        "pig-log4j": {
             "tag": "version1389980437965"
         }
     }, 

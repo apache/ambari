@@ -95,12 +95,11 @@ def hive(name=None):
 
   log4j_exec_filename = 'hive-exec-log4j.properties'
   if (params.log4j_exec_props != None):
-    PropertiesFile(log4j_exec_filename,
-                   dir=params.hive_conf_dir,
-                   properties=params.log4j_exec_props,
-                   mode=0664,
-                   owner=params.hive_user,
-                   group=params.user_group
+    File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=params.log4j_exec_props
     )
   elif (os.path.exists("{params.hive_conf_dir}/{log4j_exec_filename}.template")):
     File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
@@ -112,12 +111,11 @@ def hive(name=None):
 
   log4j_filename = 'hive-log4j.properties'
   if (params.log4j_props != None):
-    PropertiesFile(log4j_filename,
-                   dir=params.hive_conf_dir,
-                   properties=params.log4j_props,
-                   mode=0664,
-                   owner=params.hive_user,
-                   group=params.user_group
+    File(format("{params.hive_conf_dir}/{log4j_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.hive_user,
+         content=params.log4j_props
     )
   elif (os.path.exists("{params.hive_conf_dir}/{log4j_filename}.template")):
     File(format("{params.hive_conf_dir}/{log4j_filename}"),

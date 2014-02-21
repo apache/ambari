@@ -618,28 +618,28 @@
             "yarn.nodemanager.aux-services.mapreduce_shuffle.class": "org.apache.hadoop.mapred.ShuffleHandler"
         },
         "hdfs-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "yarn-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hbase-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hive-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "hive-exec-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "zookeeper-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "pig-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         },
         "oozie-log4j": {
-            "property1": "value1"
+            "content": "log4jproperties\nline2"
         }
     }, 
     "configurationTags": {
@@ -693,8 +693,13 @@
         },
         "zookeeper-log4j": {
             "tag": "version1389972945450"
+        },
+        "oozie-log4j": {
+            "tag": "version1389972945450"
+        },
+        "pig-log4j": {
+            "tag": "version1389972945450"
         }
-
     },
     "commandId": "9-1", 
     "clusterHostInfo": {

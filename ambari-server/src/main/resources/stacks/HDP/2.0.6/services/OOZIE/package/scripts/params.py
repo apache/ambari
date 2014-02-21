@@ -78,8 +78,8 @@ has_falcon_host = not len(falcon_host)  == 0
 falcon_home = '/usr/lib/falcon'
 
 #oozie-log4j.properties
-if ('oozie-log4j' in config['configurations']):
-  log4j_props = config['configurations']['oozie-log4j']
+if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):
+  log4j_props = config['configurations']['oozie-log4j']['content']
 else:
   log4j_props = None
 

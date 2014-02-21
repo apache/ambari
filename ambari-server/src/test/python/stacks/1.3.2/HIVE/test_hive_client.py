@@ -56,21 +56,19 @@ class TestHiveClient(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-exec-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-exec-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
 
@@ -110,20 +108,18 @@ class TestHiveClient(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-exec-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-exec-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('PropertiesFile',
-                              'hive-log4j.properties',
-                              dir='/etc/hive/conf',
-                              properties={'property1': 'value1'},
-                              mode=0664,
+    self.assertResourceCalled('File',
+                              '/etc/hive/conf/hive-log4j.properties',
+                              mode=0644,
+                              group='hadoop',
                               owner='hive',
-                              group='hadoop'
+                              content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()

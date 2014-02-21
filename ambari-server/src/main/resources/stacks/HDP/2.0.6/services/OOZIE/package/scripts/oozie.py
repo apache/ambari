@@ -51,12 +51,11 @@ def oozie(is_server=False # TODO: see if see can remove this
   )
 
   if (params.log4j_props != None):
-    PropertiesFile('oozie-log4j.properties',
-      dir=params.conf_dir,
-      properties=params.log4j_props,
-      mode=0664,
-      owner=params.oozie_user,
+    File(format("{params.conf_dir}/oozie-log4j.properties"),
+      mode=0644,
       group=params.user_group,
+      owner=params.oozie_user,
+      content=params.log4j_props
     )
   elif (os.path.exists(format("{params.conf_dir}/oozie-log4j.properties"))):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
