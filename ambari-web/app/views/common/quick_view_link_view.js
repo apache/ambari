@@ -244,6 +244,7 @@ App.QuickViewLinks = Em.View.extend({
       case "nagios":
       case "hue":
       case "storm":
+      case "falcon":
         return "_blank";
         break;
       default:

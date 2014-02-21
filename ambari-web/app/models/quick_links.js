@@ -400,5 +400,17 @@ App.QuickLinks.FIXTURES = [
     site: 'storm-site',
     regex: portRegex,
     default_http_port: 8744
+  },
+  {
+    id:32,
+    label:'Falcon Web UI',
+    url:'%@://%@:%@/',
+    service_id: 'FALCON',
+    template:'%@://%@:%@/',
+    http_config: 'falconserver.host',
+    https_config: 'falconserver.host',
+    site: 'oozie-site',
+    regex: portRegex,
+    default_http_port: 15000
   }
 ];
