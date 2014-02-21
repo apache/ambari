@@ -25,7 +25,13 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
       return;
     }
     var hiveJobs = []
-    if (json && json.entities) {
+    if (json) {
+      if(!json.entities) {
+        json.entities = [];
+        if(json.entity){
+          json.entities = [json];
+        }
+      }
       var currentEntityMap = {}
       json.entities.forEach(function(entity) {
         currentEntityMap[entity.entity] = entity.entity;
