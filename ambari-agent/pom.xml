@@ -45,6 +45,9 @@
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
+    <ambari.server.module>../ambari-server</ambari.server.module>
+    <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
+    <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
   </properties>
   <profiles>
     <profile>
@@ -135,6 +138,7 @@
             </goals>
           </execution>
           <execution>
+            <!-- TODO: Looks like section is unused, maybe remove? -->
             <configuration>
               <executable>python2.6</executable>
               <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
@@ -148,6 +152,24 @@
               </environmentVariables>
             </configuration>
             <id>python-package</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+          <execution>
+            <configuration>
+              <executable>python2.6</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <arguments>
+                <argument>${resource.keeper.script}</argument>
+                <argument>${target.cache.dir}</argument>
+              </arguments>
+              <environmentVariables>
+                <PYTHONPATH>target/ambari-agent-${project.version}:$PYTHONPATH</PYTHONPATH>
+              </environmentVariables>
+            </configuration>
+            <id>generate-hash-files</id>
             <phase>package</phase>
             <goals>
               <goal>exec</goal>
@@ -336,22 +358,13 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-agent/cache/stacks</directory>
-              <sources>
-                <source>
-                  <location>../ambari-server/src/main/resources/stacks</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <!-- custom actions root-->
-              <directory>/var/lib/ambari-agent/cache/custom_actions</directory>
+              <directory>/var/lib/ambari-agent/cache</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>../ambari-server/src/main/resources/custom_actions</location>
+                  <location>${target.cache.dir}</location>
                 </source>
               </sources>
             </mapping>
@@ -385,6 +398,32 @@
                   <targetPath>${project.build.directory}/lib</targetPath>
                   <file>${puppet.tar}</file>
                   <unpack>true</unpack>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${target.cache.dir}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${ambari.server.module}/src/main/resources</directory>
+                  <includes>
+                    <include>stacks/**/*</include>
+                    <include>custom_actions/**/*</include>
+                  </includes>
+                  <filtering>false</filtering>
                 </resource>
               </resources>
             </configuration>

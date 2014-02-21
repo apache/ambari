@@ -53,9 +53,13 @@ class ResourceFilesKeeper():
   # Change that to True to see debug output at stderr
   DEBUG=False
 
-  def __init__(self, resources_dir, verbose=False):
+  def __init__(self, resources_dir, verbose=False, nozip=False):
+    """
+      nozip = create only hash files and skip creating zip archives
+    """
     self.resources_dir = resources_dir
     self.verbose = verbose
+    self.nozip = nozip
 
 
   def perform_housekeeping(self):
@@ -116,7 +120,8 @@ class ResourceFilesKeeper():
     cur_hash = self.count_hash_sum(directory)
     saved_hash = self.read_hash_sum(directory)
     if cur_hash != saved_hash:
-      self.zip_directory(directory)
+      if not self.nozip:
+        self.zip_directory(directory)
       self.write_hash_sum(directory, cur_hash)
 
 
@@ -255,4 +260,18 @@ class ResourceFilesKeeper():
         return xml_element
     return None
 
+
+def main(argv=None):
+  """
+  This method is called by maven during rpm creation.
+  Params:
+    1: Path to resources root directory
+  """
+  path = argv[1]
+  resource_files_keeper = ResourceFilesKeeper(path, nozip=True)
+  resource_files_keeper.perform_housekeeping()
+
+
+if __name__ == '__main__':
+  main(sys.argv)
 

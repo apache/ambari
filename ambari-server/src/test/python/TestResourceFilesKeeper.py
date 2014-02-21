@@ -178,6 +178,21 @@ class TestResourceFilesKeeper(TestCase):
     self.assertTrue(zip_directory_mock.called)
     self.assertFalse(write_hash_sum_mock.called)
 
+    read_hash_sum_mock.reset_mock()
+    count_hash_sum_mock.reset_mock()
+    zip_directory_mock.reset_mock()
+    write_hash_sum_mock.reset_mock()
+
+    # Test nozip option
+    read_hash_sum_mock.return_value = None
+    count_hash_sum_mock.return_value = self.YA_HASH
+    resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH, nozip=True)
+    resource_files_keeper.update_directory_archive(self.SOME_PATH)
+    self.assertTrue(read_hash_sum_mock.called)
+    self.assertTrue(count_hash_sum_mock.called)
+    self.assertFalse(zip_directory_mock.called)
+    self.assertTrue(write_hash_sum_mock.called)
+
 
   def test_count_hash_sum(self):
     # Test normal flow
