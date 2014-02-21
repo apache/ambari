@@ -41,7 +41,7 @@
     <puppet.tar>http://downloads.puppetlabs.com/puppet/puppet-2.7.9.tar.gz</puppet.tar>
     <agent.install.dir>/usr/lib/python2.6/site-packages/ambari_agent</agent.install.dir>
     <resmgmt.install.dir>/usr/lib/python2.6/site-packages/resource_management</resmgmt.install.dir>
-    <jinja.install.dir>/usr/lib64/python2.6/site-packages/jinja2</jinja.install.dir>
+    <jinja.install.dir>/usr/lib/python2.6/site-packages/jinja2</jinja.install.dir>
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
