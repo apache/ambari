@@ -111,7 +111,8 @@ App.MainAlertsController = Em.Controller.extend({
   statusNumberMap: {
     "OK" : "0",
     "WARNING": "1",
-    "CRITICAL": "2"
+    "CRITICAL": "2",
+    "PASSIVE": "3"
   },
 
   getAlertsSuccessCallback: function (json) {
@@ -122,7 +123,7 @@ App.MainAlertsController = Em.Controller.extend({
           title: _alert.description,
           serviceType: _alert.service_name,
           lastTime: _alert.status_time,
-          status: this.get('statusNumberMap')[_alert.status] || "3",
+          status: this.get('statusNumberMap')[_alert.status] || "4",
           message: _alert.output,
           hostName: _alert.host_name,
           lastCheck: _alert.last_status_time

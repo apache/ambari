@@ -57,6 +57,13 @@ App.Alert = Em.Object.extend({
   }.property('status'),
 
   /**
+   * Used to show correct icon in UI
+   */
+  isPassive: function() {
+    return this.get('status') == '3';
+  }.property('status'),
+
+  /**
    * Used to show only required alerts at the service level
    */
   ignoredForServices: function() {
@@ -87,6 +94,9 @@ App.Alert = Em.Object.extend({
           prefix = this.t('services.alerts.CRIT.timePrefix');
           break;
         case "3":
+          prefix = this.t('services.alerts.MAINT.timePrefix');
+          break;
+        case "4":
           prefix = this.t('services.alerts.UNKNOWN.timePrefix');
           break;
       }

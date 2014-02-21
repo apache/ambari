@@ -28,7 +28,11 @@
               {{#if isCritical}}
                   <i class="icon-remove icon-large"></i>
               {{else}}
-                  <i class="icon-question-sign icon-large"></i>
+                {{#if isPassive}}
+                    <i class="icon-medkit icon-large"></i>
+                {{else}}
+                    <i class="icon-question-sign icon-large"></i>
+                {{/if}}
               {{/if}}
 	          {{/if}}
           {{/if}}
