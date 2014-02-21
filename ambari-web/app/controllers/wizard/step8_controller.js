@@ -1254,17 +1254,25 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null;
     var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
     var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
+    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
+
+    // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
+    if (!isGLUSTERFSSelected) {
+      coreSiteObj = coreSiteObj.filter(function(_config) {
+        return _config.name.indexOf("fs.glusterfs") < 0;
+      });
+    }
 
     coreSiteObj.forEach(function (_coreSiteObj) {
       if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       }
-      if (_coreSiteObj.name == "fs.default.name") {
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
-      if (_coreSiteObj.name == "fs.defaultFS") {
-          coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
-        }
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
+        coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
+      }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
       console.log("STEP8: value of the property is: " + _coreSiteObj.value);
     }, this);
