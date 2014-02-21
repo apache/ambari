@@ -22,7 +22,7 @@ from resource_management import *
 from resource_management.libraries.resources.execute_hadoop\
   import ExecuteHadoop
 
-
+@patch.object(System, "os_family", new = 'redhat')
 class TestExecuteHadoopResource(TestCase):
   @patch("resource_management.core.providers.system.ExecuteProvider")
   def test_run_default_args(self, execute_mock):

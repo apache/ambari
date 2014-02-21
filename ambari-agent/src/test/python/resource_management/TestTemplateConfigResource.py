@@ -22,7 +22,7 @@ from resource_management import *
 from resource_management.libraries.resources.template_config \
   import TemplateConfig
 
-
+@patch.object(System, "os_family", new = 'redhat')
 class TestTemplateConfigResource(TestCase):
 
   @patch("resource_management.libraries.providers.template_config.Template")
