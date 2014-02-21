@@ -150,12 +150,8 @@ App.RollingRestartView = Em.View.extend({
    * @type {String}
    */
   restartMessage : function() {
-    var rhc = this.get('restartHostComponents.length');
-    if (rhc > 1) {
-      return Em.I18n.t('rollingrestart.dialog.msg.restart.plural').format(rhc, this.get('hostComponentDisplayName'))
-    }
-    return Em.I18n.t('rollingrestart.dialog.msg.restart').format(rhc, this.get('hostComponentDisplayName'))
-  }.property('restartHostComponents', 'hostComponentDisplayName'),
+    return Em.I18n.t('rollingrestart.dialog.msg.restart').format(this.get('hostComponentDisplayName'))
+  }.property('hostComponentDisplayName'),
 
   /**
    * @type {String}
