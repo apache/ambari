@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -84,6 +85,7 @@ public class UpgradeCatalogTest {
     injector.getInstance(PersistService.class).stop();
   }
 
+  @Ignore
   @Test
   public void testUpgradePath() throws Exception {
     SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance

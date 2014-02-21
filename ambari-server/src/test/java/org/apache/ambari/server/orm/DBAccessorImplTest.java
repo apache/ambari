@@ -240,7 +240,8 @@ public class DBAccessorImplTest {
 
     Assert.assertTrue(dbAccessor.tableExists("testTable"));
   }
-
+  
+  @Ignore
   @Test
   public void testColumnExists() throws Exception {
     createMyTable("mytable6");
