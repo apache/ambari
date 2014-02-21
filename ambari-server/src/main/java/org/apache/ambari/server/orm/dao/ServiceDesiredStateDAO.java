@@ -26,6 +26,9 @@ import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.List;
 
 @Singleton
 public class ServiceDesiredStateDAO {
@@ -62,4 +65,15 @@ public class ServiceDesiredStateDAO {
     remove(findByPK(primaryKey));
   }
 
+  @Transactional
+  public List<ServiceDesiredStateEntity> findAll() {
+    TypedQuery<ServiceDesiredStateEntity> query =
+      entityManagerProvider.get().
+        createQuery("SELECT sd from ServiceDesiredStateEntity sd", ServiceDesiredStateEntity.class);
+    try {
+      return query.getResultList();
+    } catch (NoResultException ignored) {
+    }
+    return null;
+  }
 }

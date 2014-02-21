@@ -97,6 +97,7 @@ public class Configuration {
   public static final String POSTGRES_DB_NAME = "postgres";
   public static final String ORACLE_DB_NAME = "oracle";
   public static final String MYSQL_DB_NAME = "mysql";
+  public static final String DERBY_DB_NAME = "derby";
   public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
   public static final String MYSQL_JAR_NAME_KEY = "db.mysql.jdbc.name";
@@ -224,7 +225,7 @@ public class Configuration {
       "/var/lib/ambari-server/resources/custom_action_definitions";
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
-  private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari-server";
+  private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari";
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
   private static final String SERVER_JDBC_RCA_USER_PASSWD_DEFAULT = "mapred";
@@ -235,7 +236,7 @@ public class Configuration {
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
   private static final String RESOURCES_DIR_DEFAULT =
-      "/var/share/ambari/resources/";
+      "/var/lib/ambari-server/resources/";
   private static final String ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
   private static final String CLIENT_SECURITY_DEFAULT = "local";
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
@@ -601,11 +602,19 @@ public class Configuration {
   }
 
   public String getDatabaseDriver() {
-    return properties.getProperty(SERVER_JDBC_DRIVER_KEY, JDBC_LOCAL_DRIVER);
+    if (getPersistenceType() != PersistenceType.IN_MEMORY) {
+      return properties.getProperty(SERVER_JDBC_DRIVER_KEY, JDBC_LOCAL_DRIVER);
+    } else {
+      return JDBC_IN_MEMROY_DRIVER;
+    }
   }
 
   public String getDatabaseUrl() {
-    return properties.getProperty(SERVER_JDBC_URL_KEY, getLocalDatabaseUrl());
+    if (getPersistenceType() != PersistenceType.IN_MEMORY) {
+      return properties.getProperty(SERVER_JDBC_URL_KEY, getLocalDatabaseUrl());
+    } else {
+      return JDBC_IN_MEMORY_URL;
+    }
   }
 
   public String getLocalDatabaseUrl() {
@@ -929,4 +938,7 @@ public class Configuration {
     }
   }
 
+  public String getResourceDirPath() {
+    return properties.getProperty(RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT);
+  }
 }

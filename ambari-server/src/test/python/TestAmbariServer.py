@@ -28,6 +28,7 @@ import signal
 import stat
 import datetime
 import operator
+import json
 from pwd import getpwnam
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
@@ -2715,16 +2716,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(removeMock.called)
 
 
-  @patch.object(ambari_server, "configure_database_username_password")
-  @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")
-  @patch.object(ambari_server, "parse_properties_file")
-  @patch.object(ambari_server, "get_db_cli_tool")
-  @patch.object(ambari_server, "remote_stack_upgrade")
-  def test_upgrade_stack(self, remote_stack_upgrade_mock, get_db_cli_tool_mock, parse_properties_file_mock,
-                         check_database_name_property_mock, is_root_mock, run_os_command_mock,
-                         configure_postgres_username_password_mock):
+  @patch.object(ambari_server, "run_stack_upgrade")
+  def test_upgrade_stack(self, run_stack_upgrade_mock,
+                         check_database_name_property_mock, is_root_mock):
     args = MagicMock()
     args.persistence_type = "local"
 
@@ -2740,40 +2736,78 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Testing calls under root
     is_root_mock.return_value = True
-    run_os_command_mock.return_value = (0, '', '')
-    check_database_name_property_mock.return_value = 1
+    run_stack_upgrade_mock.return_value = 0
     ambari_server.upgrade_stack(args, 'HDP-2.0')
 
-    self.assertTrue(configure_postgres_username_password_mock.called)
+    self.assertTrue(run_stack_upgrade_mock.called)
+    run_stack_upgrade_mock.assert_called_with("HDP", "2.0")
+
+  @patch.object(ambari_server, 'get_conf_dir')
+  @patch.object(ambari_server, 'get_ambari_classpath')
+  @patch.object(ambari_server, 'run_os_command')
+  @patch.object(ambari_server, 'find_jdk')
+  def test_run_stack_upgrade(self, jdk_path_mock, run_os_command_mock,
+                             get_ambari_classpath_mock, get_conf_dir_mock):
+    jdk_path_mock.return_value = "/usr/lib/java"
+    run_os_command_mock.return_value = (0, None, None)
+    get_ambari_classpath_mock.return_value = 'test:path12'
+    get_conf_dir_mock.return_value = '/etc/conf'
+    stackIdMap = {'HDP' : '2.0'}
+
+    ambari_server.run_stack_upgrade('HDP', '2.0')
+
+    self.assertTrue(jdk_path_mock.called)
+    self.assertTrue(get_ambari_classpath_mock.called)
+    self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp '
+        'test:path12:/etc/conf org.apache.ambari.server.upgrade.StackUpgradeHelper '
+        'updateStackId ' + json.dumps(stackIdMap))
 
-    # Test remote oracle/mysql
-    configure_postgres_username_password_mock.reset_mock()
-    run_os_command_mock.reset_mock()
-    args.persistence_type = "remote"
-    args.database = "oracle"
 
-    get_db_cli_tool_mock.return_value = "psql"
-    remote_stack_upgrade_mock.return_value = (0, "test", "test")
+  @patch.object(ambari_server, 'get_conf_dir')
+  @patch.object(ambari_server, 'get_ambari_classpath')
+  @patch.object(ambari_server, 'run_os_command')
+  @patch.object(ambari_server, 'find_jdk')
+  def test_run_schema_upgrade(self, jdk_path_mock, run_os_command_mock,
+                              get_ambari_classpath_mock, get_conf_dir_mock):
+    jdk_path_mock.return_value = "/usr/lib/java"
+    run_os_command_mock.return_value = (0, None, None)
+    get_ambari_classpath_mock.return_value = 'test:path12'
+    get_conf_dir_mock.return_value = '/etc/conf'
 
-    ambari_server.upgrade_stack(args, 'HDP-2.0')
+    ambari_server.run_schema_upgrade('1.4.9.40')
 
-    self.assertTrue(get_db_cli_tool_mock.called)
-    self.assertTrue(remote_stack_upgrade_mock.called)
-    self.assertFalse(run_os_command_mock.called)
+    self.assertTrue(jdk_path_mock.called)
+    self.assertTrue(get_ambari_classpath_mock.called)
+    self.assertTrue(get_conf_dir_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp '
+        'test:path12:/etc/conf org.apache.ambari.server.upgrade.SchemaUpgradeHelper '
+        '1.4.9.40')
 
-    get_db_cli_tool_mock.reset_mock()
-    remote_stack_upgrade_mock.reset_mock()
-    run_os_command_mock.reset_mock()
 
-    args.database = "mysql"
-    get_db_cli_tool_mock.return_value = "mysql"
-    remote_stack_upgrade_mock.return_value = (0, "test_mysql_stack_upgrade", "test_mysql_stack_upgrade")
-    ambari_server.upgrade_stack(args, 'HDP-2.0')
+  @patch.object(ambari_server, 'get_conf_dir')
+  @patch.object(ambari_server, 'get_ambari_classpath')
+  @patch.object(ambari_server, 'run_os_command')
+  @patch.object(ambari_server, 'find_jdk')
+  def test_run_metainfo_upgrade(self, jdk_path_mock, run_os_command_mock,
+                                get_ambari_classpath_mock, get_conf_dir_mock):
+    jdk_path_mock.return_value = "/usr/lib/java"
+    run_os_command_mock.return_value = (0, None, None)
+    get_ambari_classpath_mock.return_value = 'test:path12'
+    get_conf_dir_mock.return_value = '/etc/conf'
 
-    self.assertTrue(get_db_cli_tool_mock.called)
-    self.assertTrue(remote_stack_upgrade_mock.called)
-    self.assertFalse(run_os_command_mock.called)
+    json_map = {'a': 'http://newurl'}
+    ambari_server.run_metainfo_upgrade(json_map)
+
+    self.assertTrue(jdk_path_mock.called)
+    self.assertTrue(get_ambari_classpath_mock.called)
+    self.assertTrue(get_conf_dir_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp '
+        'test:path12:/etc/conf org.apache.ambari.server.upgrade.StackUpgradeHelper '
+        'updateMetaInfo ' + json.dumps(json_map))
 
 
   @patch("__builtin__.open")
@@ -2782,35 +2816,25 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "adjust_directory_permissions")
   @patch.object(ambari_server, "print_warning_msg")
   @patch.object(ambari_server, "read_ambari_user")
-  @patch.object(ambari_server, "check_db_consistency")
-  @patch.object(ambari_server, "execute_db_script")
-  @patch.object(ambari_server, "check_postgre_up")
+  @patch.object(ambari_server, "run_schema_upgrade")
   @patch.object(ambari_server, "update_ambari_properties")
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "get_ambari_properties")
-  @patch.object(ambari_server, "get_db_cli_tool")
-  @patch.object(ambari_server, "execute_remote_script")
   @patch.object(ambari_server, "upgrade_local_repo")
-  def test_upgrade(self, upgrade_local_repo_mock, execute_remote_script_mock,
-                   get_db_cli_tool_mock, get_ambari_properties_mock, is_root_mock,
+  def test_upgrade(self, upgrade_local_repo_mock,
+                   get_ambari_properties_mock, is_root_mock,
                    parse_properties_file_mock,
-                   update_ambari_properties_mock,
-                   check_postgre_up_mock, execute_db_script_mock,
-                   check_db_consistency_mock, read_ambari_user_mock,
-                   print_warning_msg_mock, adjust_directory_permissions_mock,
+                   update_ambari_properties_mock, run_schema_upgrade_mock,
+                   read_ambari_user_mock, print_warning_msg_mock,
+                   adjust_directory_permissions_mock,
                    find_properties_file_mock, properties_store_mock, open_mock):
 
     args = MagicMock()
     check_database_name_property_mock = MagicMock()
 
-    args.upgrade_script_file = "/var/lib/" \
-                               "ambari-server/resources/upgrade/ddl/" \
-                               "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql"
     update_ambari_properties_mock.return_value = 0
-    check_postgre_up_mock.return_value = 0
-    execute_db_script_mock.return_value = 0
-    check_db_consistency_mock.return_value = 0
+    run_schema_upgrade_mock.return_value = 0
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -2827,6 +2851,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Testing with undefined custom user
     read_ambari_user_mock.return_value = None
+    run_schema_upgrade_mock.return_value = 0
     ambari_server.upgrade(args)
     self.assertTrue(print_warning_msg_mock.called)
     warning_args = print_warning_msg_mock.call_args[0][0]
@@ -2838,94 +2863,17 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_server.upgrade(args)
     self.assertTrue(adjust_directory_permissions_mock.called)
 
-    # Test if check_database_name_property raise exception, added default
-    # JDBC_DATABASE_PROPERTY and upgrade process doesn't fails
-    def effect():
-      raise FatalException()
-
     properties = ambari_server.Properties()
     get_ambari_properties_mock.return_value = properties
-
-    check_database_name_property_mock.side_effect = effect
+    run_schema_upgrade_mock.return_value = 0
     parse_properties_file_mock.called = False
     retcode = ambari_server.upgrade(args)
     self.assertTrue(get_ambari_properties_mock.called)
 
-    self.assertTrue(properties.get_property(ambari_server.JDBC_DATABASE_PROPERTY))
     self.assertNotEqual(-1, retcode)
     self.assertTrue(parse_properties_file_mock.called)
+    self.assertTrue(run_schema_upgrade_mock.called)
 
-    #Test remote upgrade
-    get_db_cli_tool_mock.return_value = "psql"
-    execute_remote_script_mock.return_value = (0, "test", "test")
-    args.persistence_type = "remote"
-    args.database = "oracle"
-
-    ambari_server.upgrade(args)
-
-    self.assertTrue(get_db_cli_tool_mock.called)
-    self.assertTrue(execute_remote_script_mock.called)
-
-
-  def test_prepare_schema_upgrade_command(self):
-    test_command = "sqlplus -S -L " \
-                   "'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' " \
-                   "@/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Oracle-UPGRADE.sql user"
-    args = MagicMock()
-    args.database="oracle"
-    args.database_username="user"
-    args.database_password="pass"
-    args.database_host="oraclehost"
-    args.sid_or_sname="sid"
-    args.jdbc_url="fake"
-    args.database_port="1521"
-    args.database_name="db_SID"
-
-    command = ambari_server.prepare_schema_upgrade_command(args)
-
-    self.assertEqual(command, test_command)
-
-    pass
-
-  def test_prepare_local_repo_upgrade_commands(self):
-    test_commands = [
-      "sqlplus -S -L 'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' @/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql key value",
-      "sqlplus -S -L 'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' @/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-FIX_LOCAL_REPO.sql"
-    ]
-    args = MagicMock()
-    args.database="oracle"
-    args.database_username="user"
-    args.database_password="pass"
-    args.database_host="oraclehost"
-    args.sid_or_sname="sid"
-    args.jdbc_url="fake"
-    args.database_port="1521"
-    args.database_name="db_SID"
-
-    commands = ambari_server.prepare_local_repo_upgrade_commands(args, "key", "value")
-
-    self.assertEqual(commands, test_commands)
-
-    pass
-
-  def test_prepare_stack_upgrade_command(self):
-    test_command = "sqlplus -S -L 'user/pass@(description=(address=(protocol=TCP)(host=oraclehost)(port=1521))(connect_data=(sid=db_SID)))' " \
-                   "@/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-UPGRADE_STACK.sql HDP 2.1.1"
-    args = MagicMock()
-    args.database="oracle"
-    args.database_username="user"
-    args.database_password="pass"
-    args.database_host="oraclehost"
-    args.sid_or_sname="sid"
-    args.jdbc_url="fake"
-    args.database_port="1521"
-    args.database_name="db_SID"
-
-    command = ambari_server.prepare_stack_upgrade_command(args, "HDP-2.1.1")
-
-    self.assertEqual(command, test_command)
-
-    pass
 
   def test_print_info_msg(self):
     out = StringIO.StringIO()
@@ -4628,13 +4576,13 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("os.path.exists")
   @patch.object(ambari_server, "load_stack_values")
   @patch.object(ambari_server, "get_ambari_properties")
-  @patch.object(ambari_server, "upgrade_local_repo_db")
+  @patch.object(ambari_server, "run_metainfo_upgrade")
   def test_upgrade_local_repo(self,
-                         upgrade_local_repo_db_mock,
-                         get_ambari_properties_mock,
-                         load_stack_values_mock,
-                         os_path_exists_mock,
-                         os_listdir_mock):
+                           run_metainfo_upgrade_mock,
+                           get_ambari_properties_mock,
+                           load_stack_values_mock,
+                           os_path_exists_mock,
+                           os_listdir_mock):
 
     from mock.mock import call
     args = MagicMock()
@@ -4658,15 +4606,16 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertTrue(get_ambari_properties_mock.called)
     self.assertTrue(load_stack_values_mock.called)
-    self.assertTrue(upgrade_local_repo_db_mock.called)
+    self.assertTrue(run_metainfo_upgrade_mock.called)
+    run_metainfo_upgrade_mock.assert_called_with({'a': 'http://newurl'})
 
   @patch("os.listdir")
   @patch("os.path.exists")
   @patch.object(ambari_server, "load_stack_values")
   @patch.object(ambari_server, "get_ambari_properties")
-  @patch.object(ambari_server, "upgrade_local_repo_db")
+  @patch.object(ambari_server, "run_metainfo_upgrade")
   def test_upgrade_local_repo_nochange(self,
-                         upgrade_local_repo_db_mock,
+                         run_metainfo_upgrade_mock,
                          get_ambari_properties_mock,
                          load_stack_values_mock,
                          os_path_exists_mock,
@@ -4692,6 +4641,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertTrue(get_ambari_properties_mock.called)
     self.assertTrue(load_stack_values_mock.called)
-    self.assertFalse(upgrade_local_repo_db_mock.called)
+    self.assertTrue(run_metainfo_upgrade_mock.called)
+    run_metainfo_upgrade_mock.assert_called_with({})
 
 

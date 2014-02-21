@@ -16,82 +16,6 @@
 -- limitations under the License.
 --
 
-
--- DDL
--- add user_name column to the tables
-ALTER TABLE clusterconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
-
-ALTER TABLE hostconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
-
-ALTER TABLE stage ADD (cluster_host_info BLOB DEFAULT NULL);
-
--- add decommission state
-ALTER TABLE hostcomponentdesiredstate ADD (admin_state VARCHAR2 (32) DEFAULT NULL);
-ALTER TABLE hostcomponentdesiredstate ADD (passive_state VARCHAR2 (32) NOT NULL DEFAULT 'ACTIVE');
-
--- DML
---Upgrade version to current
-UPDATE metainfo SET "metainfo_value" = '${ambariVersion}' WHERE "metainfo_key" = 'version';
-
-INSERT INTO ambari_sequences(sequence_name, value) values ('configgroup_id_seq', 1);
-
--- drop deprecated tables componentconfigmapping and hostcomponentconfigmapping
--- not required after Config Group implementation
---DROP TABLE componentconfigmapping;
---DROP TABLE hostcomponentconfigmapping;
-
--- required for Config Group implementation
-CREATE TABLE configgroup (group_id NUMBER(19), cluster_id NUMBER(19) NOT NULL, group_name VARCHAR2(255) NOT NULL, tag VARCHAR2(1024) NOT NULL, description VARCHAR2(1024), create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(group_id), UNIQUE(group_name));
-CREATE TABLE confgroupclusterconfigmapping (config_group_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_type VARCHAR2(255) NOT NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR2(255) DEFAULT '_db', create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
-CREATE TABLE configgrouphostmapping (config_group_id NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
-
-ALTER TABLE configgroup ADD CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
-ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confg FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id);
-ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_cgid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_hname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
-
--- Don't set not null constraint
--- ALTER TABLE stage MODIFY (cluster_host_info NOT NULL);
-
--- blueprint related tables
-CREATE TABLE blueprint (blueprint_name VARCHAR2(255) NOT NULL, stack_name VARCHAR2(255) NOT NULL, stack_version VARCHAR2(255) NOT NULL, PRIMARY KEY(blueprint_name));
-CREATE TABLE hostgroup (blueprint_name VARCHAR2(255) NOT NULL, name VARCHAR2(255) NOT NULL, cardinality VARCHAR2(255) NOT NULL, PRIMARY KEY(blueprint_name, name));
-CREATE TABLE hostgroup_component (blueprint_name VARCHAR2(255) NOT NULL, hostgroup_name VARCHAR2(255) NOT NULL, name VARCHAR2(255) NOT NULL, PRIMARY KEY(blueprint_name, hostgroup_name, name));
-
-ALTER TABLE hostgroup ADD FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name);
-ALTER TABLE hostgroup_component ADD FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES ambari.hostgroup(blueprint_name, name);
-
--- Abort all tasks in progress due to format change
-UPDATE host_role_command SET status = 'ABORTED' WHERE status IN ('PENDING', 'QUEUED', 'IN_PROGRESS');
-
-ALTER TABLE hosts DROP COLUMN disks_info;
-
---Added end_time and structured output support to command execution result
-ALTER TABLE host_role_command ADD (end_time NUMBER(19) DEFAULT NULL);
-ALTER TABLE host_role_command ADD (structured_out BLOB DEFAULT NULL);
-ALTER TABLE host_role_command ADD (command_detail VARCHAR(255) DEFAULT NULL);
-ALTER TABLE host_role_command ADD (custom_command_name VARCHAR(255) DEFAULT NULL);
-
---1.5.0 upgrade
-CREATE TABLE request (request_id NUMBER(19) NOT NULL, cluster_id NUMBER(19), request_schedule_id NUMBER(19), command_name VARCHAR(255), create_time NUMBER(19) NOT NULL, end_time NUMBER(19) NOT NULL, inputs CLOB, request_context VARCHAR(255), request_type VARCHAR(255), start_time NUMBER(19) NOT NULL, status VARCHAR(255), target_component VARCHAR(255), target_hosts CLOB, target_service VARCHAR(255), PRIMARY KEY (request_id))
-
-INSERT INTO request(request_id, cluster_id, request_context, start_time, end_time, create_time)
-  SELECT DISTINCT s.request_id, s.cluster_id, s.request_context, nvl(cmd.start_time, -1), nvl(cmd.end_time, -1), -1
-  FROM
-    (SELECT DISTINCT request_id, cluster_id, request_context FROM stage ) s
-    LEFT JOIN
-    (SELECT request_id, min(start_time) as start_time, max(end_time) as end_time FROM host_role_command GROUP BY request_id) cmd
-    ON s.request_id=cmd.request_id;
-
-CREATE TABLE requestschedule (schedule_id NUMBER(19), cluster_id NUMBER(19) NOT NULL, description VARCHAR2(255), status VARCHAR2(255), batch_separation_seconds smallint, batch_toleration_limit smallint, create_user VARCHAR2(255), create_timestamp NUMBER(19), update_user VARCHAR2(255), update_timestamp NUMBER(19), minutes VARCHAR2(10), hours VARCHAR2(10), days_of_month VARCHAR2(10), month VARCHAR2(10), day_of_week VARCHAR2(10), yearToSchedule VARCHAR2(10), startTime VARCHAR2(50), endTime VARCHAR2(50), last_execution_status VARCHAR2(255), PRIMARY KEY(schedule_id));
-CREATE TABLE requestschedulebatchrequest (schedule_id NUMBER(19), batch_id NUMBER(19), request_id NUMBER(19), request_type VARCHAR2(255), request_uri VARCHAR2(1024), request_body BLOB, request_status VARCHAR2(255), return_code smallint, return_message VARCHAR2(2000), PRIMARY KEY(schedule_id, batch_id));
-
-ALTER TABLE stage ADD CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id);
-ALTER TABLE request ADD CONSTRAINT FK_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
-ALTER TABLE request ADD CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id);
-ALTER TABLE requestschedulebatchrequest ADD CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id)
-
 --quartz tables
 CREATE TABLE qrtz_job_details ( SCHED_NAME VARCHAR2(120) NOT NULL, JOB_NAME  VARCHAR2(200) NOT NULL, JOB_GROUP VARCHAR2(200) NOT NULL, DESCRIPTION VARCHAR2(250) NULL, JOB_CLASS_NAME   VARCHAR2(250) NOT NULL, IS_DURABLE VARCHAR2(1) NOT NULL, IS_NONCONCURRENT VARCHAR2(1) NOT NULL, IS_UPDATE_DATA VARCHAR2(1) NOT NULL, REQUESTS_RECOVERY VARCHAR2(1) NOT NULL, JOB_DATA BLOB NULL, CONSTRAINT QRTZ_JOB_DETAILS_PK PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP) );
 CREATE TABLE qrtz_triggers ( SCHED_NAME VARCHAR2(120) NOT NULL, TRIGGER_NAME VARCHAR2(200) NOT NULL, TRIGGER_GROUP VARCHAR2(200) NOT NULL, JOB_NAME  VARCHAR2(200) NOT NULL, JOB_GROUP VARCHAR2(200) NOT NULL, DESCRIPTION VARCHAR2(250) NULL, NEXT_FIRE_TIME NUMBER(13) NULL, PREV_FIRE_TIME NUMBER(13) NULL, PRIORITY NUMBER(13) NULL, TRIGGER_STATE VARCHAR2(16) NOT NULL, TRIGGER_TYPE VARCHAR2(8) NOT NULL, START_TIME NUMBER(13) NOT NULL, END_TIME NUMBER(13) NULL, CALENDAR_NAME VARCHAR2(200) NULL, MISFIRE_INSTR NUMBER(2) NULL, JOB_DATA BLOB NULL, CONSTRAINT QRTZ_TRIGGERS_PK PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP), CONSTRAINT QRTZ_TRIGGER_TO_JOBS_FK FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP) REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP) );
@@ -127,8 +51,5 @@ create index idx_qrtz_ft_j_g on qrtz_fired_triggers(SCHED_NAME,JOB_NAME,JOB_GROU
 create index idx_qrtz_ft_jg on qrtz_fired_triggers(SCHED_NAME,JOB_GROUP);
 create index idx_qrtz_ft_t_g on qrtz_fired_triggers(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
 create index idx_qrtz_ft_tg on qrtz_fired_triggers(SCHED_NAME,TRIGGER_GROUP);
-
-ALTER TABLE hoststate ADD (passive_state VARCHAR2(512) DEFAULT NULL);
-ALTER TABLE servicedesiredstate ADD (passive_state VARCHAR2(32) NOT NULL DEFAULT 'ACTIVE');
 
 commit;

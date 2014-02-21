@@ -129,4 +129,18 @@ public class VersionUtils {
   public static boolean areVersionsEqual(String version1, String version2, boolean allowEmptyVersions) {
     return 0 == compareVersions(version1, version2, allowEmptyVersions);
   }
+
+  /**
+   * Return N.N.N from N.N.N.xyz
+   * @param version
+   * @return
+   */
+  public static String getVersionSubstring(String version) {
+    String[] versionParts = version.split("\\.");
+    if (versionParts.length < 3) {
+      throw  new IllegalArgumentException("Invalid version number");
+    }
+
+    return versionParts[0] + "." + versionParts[1] + "." + versionParts[2];
+  }
 }

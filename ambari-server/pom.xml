@@ -350,19 +350,7 @@
               <directory>/var/lib/ambari-server/resources/upgrade/ddl</directory>
               <sources>
                 <source>
-                  <location>target/classes/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.sql</location>
-                </source>
-                <source>
-                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.Fix.sql</location>
-                </source>
-                <source>
-                  <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.Check.sql</location>
-                </source>
-                <source>
-                  <location>target/classes/upgrade/ddl/Ambari-DDL-Oracle-UPGRADE.sql</location>
-                </source>
-                <source>
-                  <location>target/classes/upgrade/ddl/Ambari-DDL-MySQL-UPGRADE.sql</location>
+                  <location>src/main/resources/upgrade/ddl</location>
                 </source>
               </sources>
             </mapping>
@@ -616,6 +604,11 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-servlet</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-multibindings</artifactId>
+      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.derby</groupId>

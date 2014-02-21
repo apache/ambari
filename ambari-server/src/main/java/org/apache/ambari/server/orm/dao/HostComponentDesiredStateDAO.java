@@ -26,6 +26,9 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.List;
 
 @Singleton
 public class HostComponentDesiredStateDAO {
@@ -62,4 +65,14 @@ public class HostComponentDesiredStateDAO {
     remove(findByPK(primaryKey));
   }
 
+  @Transactional
+  public List<HostComponentDesiredStateEntity> findAll() {
+    TypedQuery<HostComponentDesiredStateEntity> query = entityManagerProvider.get()
+      .createQuery("SELECT hcd from HostComponentDesiredStateEntity hcd", HostComponentDesiredStateEntity.class);
+    try {
+      return query.getResultList();
+    } catch (NoResultException ignored) {
+    }
+    return null;
+  }
 }

@@ -40,6 +40,7 @@ import tempfile
 import random
 import pwd
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+import json
 
 # debug settings
 VERBOSE = False
@@ -174,6 +175,17 @@ SECURITY_PROVIDER_KEY_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           ".MasterKeyServiceImpl {3} {4} {5} " +\
                           "> " + SERVER_OUT_FILE + " 2>&1"
 
+SCHEMA_UPGRADE_HELPER_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
+                          os.pathsep + "{2} " +\
+                          "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" +\
+                          " {3}"
+
+STACK_UPGRADE_HELPER_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
+                          os.pathsep + "{2} " +\
+                          "org.apache.ambari.server.upgrade.StackUpgradeHelper" +\
+                          " {3} {4}"
+
+
 SECURITY_KEYS_DIR = "security.server.keys_dir"
 SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
 SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
@@ -249,6 +261,8 @@ PG_HBA_CONF_FILE = os.path.join(PG_HBA_DIR, "pg_hba.conf")
 PG_HBA_CONF_FILE_BACKUP = os.path.join(PG_HBA_DIR, "pg_hba_bak.conf.old")
 POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
 
+SERVER_VERSION_FILE_PATH = "server.version.file"
+
 JDBC_DATABASE_PROPERTY = "server.jdbc.database"
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
@@ -316,12 +330,6 @@ DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-R
 DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
-DATABASE_UPGRADE_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Postgres-REMOTE-UPGRADE.sql',
-                            '/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Oracle-UPGRADE.sql',
-                            '/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-MySQL-UPGRADE.sql']
-DATABASE_STACK_UPGRADE_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-REMOTE-UPGRADE_STACK.sql',
-                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-UPGRADE_STACK.sql',
-                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-UPGRADE_STACK.sql']
 
 JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
 DATABASE_JDBC_PROPERTIES = [
@@ -387,15 +395,6 @@ DEFAULT_DB_NAME = "ambari"
 # stack repo upgrade
 STACK_LOCATION_KEY = 'metadata.path'
 STACK_LOCATION_DEFAULT = '/var/lib/ambari-server/resources/stacks'
-DATABASE_INSERT_METAINFO_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-INSERT_METAINFO.sql',
-                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql',
-                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-INSERT_METAINFO.sql']
-DATABASE_FIX_LOCAL_REPO_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-FIX_LOCAL_REPO.sql',
-                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-FIX_LOCAL_REPO.sql',
-                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-FIX_LOCAL_REPO.sql']
-INSERT_METAINFO_CMD = ['su', 'postgres',
-        '--command=psql -f {0} -v metainfo_key="\'{1}\'" -v metainfo_value="\'{2}\'" -v dbname="{3}"']
-FIX_LOCAL_REPO_CMD = ['su', 'postgres', '--command=psql -f {0} -v dbname="{1}"']
 
 #Apache License Header
 ASF_LICENSE_HEADER = '''
@@ -1331,51 +1330,6 @@ def get_db_cli_tool(args):
   return None
 
 
-def remote_stack_upgrade(args, scriptPath, stackId):
-  tool = get_db_cli_tool(args)
-  if not tool:
-    args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    if VERBOSE:
-      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    return -1, "Client wasn't found", "Client wasn't found"
-
-  #TODO add support of other databases with scripts
-  stack_name, stack_version = stackId.split(STACK_NAME_VER_SEP)
-  if args.database == "oracle":
-    sid_or_sname = "sid"
-    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
-        (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
-      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
-      sid_or_sname = "service_name"
-
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      scriptPath,
-      sid_or_sname,
-      stack_name,
-      stack_version
-    )))
-    return retcode, out, err
-  elif args.database == "mysql":
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_UPGRADE_STACK_ARGS.format(
-      args.database_host,
-      args.database_port,
-      args.database_username,
-      args.database_password,
-      args.database_name,
-      scriptPath,
-      stack_name,
-      stack_version
-    )))
-    return retcode, out, err
-
-  return -2, "Wrong database", "Wrong database"
-  pass
-
 #execute SQL script on remote database
 def execute_remote_script(args, scriptPath):
   tool = get_db_cli_tool(args)
@@ -1426,136 +1380,6 @@ def execute_remote_script(args, scriptPath):
     return retcode, out, err
 
   return -2, "Wrong database", "Wrong database"
-
-def prepare_stack_upgrade_command(args, stackId):
-  db_index = DATABASE_NAMES.index(args.database)
-  tool = DATABASE_CLI_TOOLS_DESC[db_index]
-
-  scriptPath = DATABASE_STACK_UPGRADE_SCRIPTS[db_index]
-
-  stack_name, stack_version = stackId.split(STACK_NAME_VER_SEP)
-  if args.database == "oracle":
-    sid_or_sname = "sid"
-    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
-      (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
-      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
-      sid_or_sname = "service_name"
-
-    command = '{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      scriptPath,
-      sid_or_sname,
-      stack_name,
-      stack_version
-    )).strip()
-    return command
-  elif args.database == "mysql":
-    command = '{0} {1}'.format(tool, MYSQL_UPGRADE_STACK_ARGS.format(
-      args.database_host,
-      args.database_port,
-      args.database_username,
-      args.database_password,
-      args.database_name,
-      scriptPath,
-      stack_name,
-      stack_version
-    )).strip()
-    return command
-  pass
-
-
-def prepare_schema_upgrade_command(args):
-  db_index = DATABASE_NAMES.index(args.database)
-  tool = DATABASE_CLI_TOOLS_DESC[db_index]
-
-  scriptPath = DATABASE_UPGRADE_SCRIPTS[db_index]
-
-  if args.database == "postgres":
-    os.environ["PGPASSWORD"] = args.database_password
-    command = '{0} {1}'.format(tool,  POSTGRES_EXEC_ARGS.format(
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      args.database_username,
-      scriptPath
-    )).strip()
-    return command
-  elif args.database == "oracle":
-    sid_or_sname = "sid"
-    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
-      (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
-      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
-      sid_or_sname = "service_name"
-
-    command = '{0} {1}'.format(tool, ORACLE_EXEC_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      scriptPath,
-      sid_or_sname
-    )).strip()
-
-    return command
-  elif args.database == "mysql":
-    MYSQL_EXEC_ARGS = MYSQL_EXEC_ARGS_WO_USER_VARS if MYSQL_INIT_SCRIPT == scriptPath else MYSQL_EXEC_ARGS_WITH_USER_VARS
-    command = '{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
-      args.database_host,
-      args.database_port,
-      args.database_username,
-      args.database_password,
-      args.database_name,
-      scriptPath
-    )).strip()
-    return command
-  pass
-
-def prepare_local_repo_upgrade_commands(args, dbkey, dbvalue):
-  db_index = DATABASE_NAMES.index(args.database)
-  tool = DATABASE_CLI_TOOLS_DESC[db_index]
-
-  scriptPath = DATABASE_INSERT_METAINFO_SCRIPTS[db_index]
-
-  command_list = []
-
-  if args.database == "oracle":
-    sid_or_sname = "sid"
-    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
-      (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
-      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
-      sid_or_sname = "service_name"
-
-    command_list.append('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      scriptPath,
-      sid_or_sname,
-      dbkey,
-      dbvalue
-    )).strip())
-
-    command_list.append('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      DATABASE_FIX_LOCAL_REPO_SCRIPTS[db_index],
-      sid_or_sname,
-      '',
-      ''
-    )).strip())
-
-
-  return command_list
 
 def configure_database_password(showDefault=True):
   passwordDefault = PG_DEFAULT_PASSWORD
@@ -1686,6 +1510,7 @@ def parse_properties_file(args):
     print_error_msg ("Error getting ambari properties")
     return -1
 
+  args.server_version_file_path = properties[SERVER_VERSION_FILE_PATH]
   args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
   args.jdbc_url = properties[JDBC_URL_PROPERTY]
 
@@ -2661,43 +2486,13 @@ def upgrade_stack(args, stack_id):
     raise FatalException(4, err)
   check_database_name_property()
 
-  parse_properties_file(args)
-  if args.persistence_type == "remote":
-    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
-    client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_STACK_UPGRADE_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                                       BLIND_PASSWORD, args.database_name)
-    #TODO temporarty code
-    if not args.database in ["oracle", "mysql"]:
-      raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
+  stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
+  retcode = run_stack_upgrade(stack_name, stack_version)
 
-    if get_db_cli_tool(args):
-      retcode, out, err = remote_stack_upgrade(args, DATABASE_STACK_UPGRADE_SCRIPTS[DATABASE_INDEX], stack_id)
-      if not retcode == 0:
-        raise NonFatalException(err)
+  if not retcode == 0:
+    raise FatalException(retcode, 'Stack upgrade failed.')
 
-    else:
-      command = prepare_stack_upgrade_command(args, stack_id)
-      err = 'Cannot find ' + client_desc + ' client in the path to upgrade the Ambari ' + \
-            'Server stack. To upgrade stack of Ambari Server ' + \
-            'you must run the following command:' + \
-            os.linesep + command
-      args.warnings.append(err)
-
-    pass
-  else:
-    #password access to ambari-server and mapred
-    configure_database_username_password(args)
-    dbname = args.database_name
-    file = args.upgrade_stack_script_file
-    stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-    command = UPGRADE_STACK_CMD[:]
-    command[-1] = command[-1].format(file, stack_name, stack_version, dbname)
-    retcode, outdata, errdata = run_os_command(command)
-    if not retcode == 0:
-      raise FatalException(retcode, errdata)
-    if errdata:
-      print_warning_msg(errdata)
-    return retcode
+  return retcode
 
 def load_stack_values(version, filename):
   import xml.etree.ElementTree as ET
@@ -2718,108 +2513,6 @@ def load_stack_values(version, filename):
         values[key] = baseurltag.text
 
   return values
-
-def upgrade_local_repo_remote_db(args, sqlfile, dbkey, dbvalue):
-  tool = get_db_cli_tool(args)
-  if not tool:
-    # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    if VERBOSE:
-      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    return -1, "Client wasn't found", "Client wasn't found"
-
-  #TODO add support of other databases with scripts
-  if args.database == "oracle":
-    sid_or_sname = "sid"
-    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
-        (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
-      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
-      sid_or_sname = "service_name"
-
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      sqlfile,
-      sid_or_sname,
-      dbkey,
-      dbvalue
-    )))
-
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
-      args.database_username,
-      args.database_password,
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      DATABASE_FIX_LOCAL_REPO_SCRIPTS[DATABASE_INDEX],
-      sid_or_sname,
-      '',
-      ''
-    )))
-    return retcode, out, err
-
-  return -2, "Wrong database", "Wrong database"
-  pass
-
-def upgrade_local_repo_db(args, dbkey, dbvalue):
-  if not is_root():
-    err = 'Ambari-server upgrade_local_repo_db should be run with ' \
-          'root-level privileges'
-    raise FatalException(4, err)
-  check_database_name_property()
-
-  parse_properties_file(args)
-  if args.persistence_type == "remote":
-    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
-    client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INSERT_METAINFO_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                                       BLIND_PASSWORD, args.database_name)
-    #TODO temporary code
-    if not args.database == "oracle":
-      raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
-
-    if get_db_cli_tool(args):
-      retcode, out, err = upgrade_local_repo_remote_db(args, DATABASE_INSERT_METAINFO_SCRIPTS[DATABASE_INDEX],
-        dbkey, dbvalue)
-      if not retcode == 0:
-        raise NonFatalException(err)
-
-    else:
-      commands = prepare_local_repo_upgrade_commands(args, dbkey, dbvalue)
-      err = 'Cannot find ' + client_desc + ' client in the path to upgrade the local ' + \
-            'repo information. To upgrade local repo information. ' + \
-            'you must run the following commands:'
-      for command in commands:
-        err = err + os.linesep + command
-        pass
-      args.warnings.append(err)
-
-    pass
-  else:
-    #password access to ambari-server and mapred
-    configure_database_username_password(args)
-    dbname = args.database_name
-    sqlfile = DATABASE_INSERT_METAINFO_SCRIPTS[0]
-    command = INSERT_METAINFO_CMD[:]
-    command[-1] = command[-1].format(sqlfile, dbkey, dbvalue, dbname)
-    retcode, outdata, errdata = run_os_command(command)
-    if not retcode == 0:
-      raise FatalException(retcode, errdata)
-    if errdata:
-      print_warning_msg(errdata)
-
-    sqlfile = DATABASE_FIX_LOCAL_REPO_SCRIPTS[0]
-    command = FIX_LOCAL_REPO_CMD[:]
-    command[-1] = command[-1].format(sqlfile, dbname)
-    retcode, outdata, errdata = run_os_command(command)
-    if not retcode == 0:
-      raise FatalException(retcode, errdata)
-    if errdata:
-      print_warning_msg(errdata)
-
-    return retcode
-  pass
 
 
 def get_stack_location(properties):
@@ -2855,6 +2548,8 @@ def upgrade_local_repo(args):
     print_info_msg("Local repo file: " + repo_file_local)
     print_info_msg("Repo file: " + repo_file_local)
 
+    metainfo_update_items = {}
+
     if os.path.exists(repo_file_local) and os.path.exists(repo_file):
       local_values = load_stack_values(stack_version_local, repo_file_local)
       repo_values = load_stack_values(stack_version_local, repo_file)
@@ -2863,7 +2558,65 @@ def upgrade_local_repo(args):
           local_url = local_values[k]
           repo_url = repo_values[k]
           if repo_url != local_url:
-            upgrade_local_repo_db(args, k, local_url)
+            metainfo_update_items[k] = local_url
+
+    run_metainfo_upgrade(metainfo_update_items)
+
+
+def run_schema_upgrade(version):
+  jdk_path = find_jdk()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + JDK_INSTALL_DIR)
+    return 1
+  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_ambari_classpath(),
+                                             get_conf_dir(), version)
+  (retcode, stdout, stderr) = run_os_command(command)
+  print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
+  if retcode > 0:
+    print_error_msg("Error executing schema upgrade, please check the server logs.")
+  return retcode
+
+def run_stack_upgrade(stackName, stackVersion):
+  jdk_path = find_jdk()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + JDK_INSTALL_DIR)
+    return 1
+  stackId = {}
+  stackId[stackName] = stackVersion
+
+  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_ambari_classpath(),
+                                            get_conf_dir(), "updateStackId",
+                                            json.dumps(stackId))
+  (retcode, stdout, stderr) = run_os_command(command)
+  print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
+  if retcode > 0:
+    print_error_msg("Error executing stack upgrade, please check the server logs.")
+  return retcode
+
+def run_metainfo_upgrade(keyValueMap = None):
+  jdk_path = find_jdk()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + JDK_INSTALL_DIR)
+
+  retcode = 1
+  if keyValueMap:
+    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_ambari_classpath(),
+                                              get_conf_dir(), 'updateMetaInfo',
+                                              json.dumps(keyValueMap))
+    (retcode, stdout, stderr) = run_os_command(command)
+    print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
+    if retcode > 0:
+      print_error_msg("Error executing metainfo upgrade, please check the "
+                      "server logs.")
+
+  return retcode
+
 
 #
 # Upgrades the Ambari Server.
@@ -2898,58 +2651,18 @@ def upgrade(args):
       return -1
 
   parse_properties_file(args)
-  if args.persistence_type == "remote":
-    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
-    client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_UPGRADE_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                                            BLIND_PASSWORD, args.database_name)
+  server_version = None
+  if args.server_version_file_path:
+    with open(args.server_version_file_path, 'r') as f:
+      server_version = f.read()
 
-    #TODO temporarty code
-    if not args.database in ["oracle", "mysql"]:
-      raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
+  if not server_version:
+    raise FatalException('Cannot determine server version from version file '
+                         '%s' % args.server_version_file_path)
 
-    if get_db_cli_tool(args):
-      retcode, out, err = execute_remote_script(args, DATABASE_UPGRADE_SCRIPTS[DATABASE_INDEX])
-      if not retcode == 0:
-        raise NonFatalException(err)
-
-    else:
-      command = prepare_schema_upgrade_command(args)
-      err = 'Cannot find ' + client_desc + ' client in the path to upgrade the Ambari ' + \
-            'Server schema. To upgrade Ambari Server schema ' + \
-            'you must run the following command:' + \
-            os.linesep + command
-      args.warnings.append(err)
-
-    pass
-  else:
-    print 'Checking PostgreSQL...'
-    retcode = check_postgre_up()
-    if not retcode == 0:
-      err = 'PostgreSQL server not running. Exiting'
-      raise FatalException(retcode, err)
-
-    file = args.upgrade_script_file
-    print 'Upgrading database...'
-    retcode = execute_db_script(args, file)
-    if not retcode == 0:
-      err = 'Database upgrade script has failed. Exiting.'
-      raise FatalException(retcode, err)
-
-
-    print 'Checking database integrity...'
-    check_file = file[:-3] + "Check" + file[-4:]
-    retcode = check_db_consistency(args, check_file)
-
-    if not retcode == 0:
-      print 'Found inconsistency. Trying to fix...'
-      fix_file = file[:-3] + "Fix" + file[-4:]
-      retcode = execute_db_script(args, fix_file)
-
-      if not retcode == 0:
-        err = 'Database cannot be fixed. Exiting.'
-        raise FatalException(retcode, err)
-    else:
-      print 'Database is consistent.'
+  retcode = run_schema_upgrade(server_version.strip())
+  if not retcode == 0:
+    raise FatalException('Scehma upgrade failed.')
 
   user = read_ambari_user()
   if user is None:
