@@ -134,7 +134,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
 _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
 _oozie_server = default("/clusterHostInfo/oozie_server",None)
 _webhcat_server_host = default("/clusterHostInfo/webhcat_server_host",None)
-_falcon_host = config['clusterHostInfo']['falcon_server_hosts']
+_falcon_host = default("/clusterHostInfo/falcon_server_hosts", None)
 # can differ on HDP1
 #_mapred_tt_hosts = _slave_hosts
 #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
