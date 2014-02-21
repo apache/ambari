@@ -134,7 +134,7 @@ class TestZookeeperServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('PropertiesFile',
                               'log4j.properties',
@@ -187,7 +187,7 @@ class TestZookeeperServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('PropertiesFile',
                               'log4j.properties',

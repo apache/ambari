@@ -205,7 +205,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 384,
+      mode = 0600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -214,24 +214,24 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
       content = StaticFile('startHiveserver2.sh'),
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
@@ -290,7 +290,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 384,
+      mode = 0600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -299,24 +299,24 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
       content = StaticFile('startHiveserver2.sh'),
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',

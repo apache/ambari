@@ -149,7 +149,7 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
       content = StaticFile('task-log4j.properties'),
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hdfs',

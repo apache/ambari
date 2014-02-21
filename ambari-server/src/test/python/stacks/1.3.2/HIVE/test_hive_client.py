@@ -36,7 +36,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hive/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -90,7 +90,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hive/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
     )

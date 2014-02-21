@@ -40,7 +40,7 @@ class TestPigServiceCheck(RMFTestCase):
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
       content = StaticFile('pigSmoke.sh'),
-      mode = 493,
+      mode = 0755,
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',
@@ -76,7 +76,7 @@ class TestPigServiceCheck(RMFTestCase):
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
       content = StaticFile('pigSmoke.sh'),
-      mode = 493,
+      mode = 0755,
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',

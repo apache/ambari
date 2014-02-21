@@ -32,7 +32,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
                           content = StaticFile('validateYarnComponentStatus.py'),
-                          mode = 493,
+                          mode = 0755,
     )
     self.assertResourceCalled('Execute', '/usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
                           logoutput = True,
@@ -54,7 +54,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
                           content = StaticFile('validateYarnComponentStatus.py'),
-                          mode = 493,
+                          mode = 0755,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
                           logoutput = True,

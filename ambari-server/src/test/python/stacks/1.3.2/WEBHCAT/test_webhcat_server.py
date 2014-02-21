@@ -128,13 +128,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
@@ -200,13 +200,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',

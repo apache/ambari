@@ -33,7 +33,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hiveserver2Smoke.sh',
                         content = StaticFile('hiveserver2Smoke.sh'),
-                        mode = 493,
+                        mode = 0755,
     )
     self.assertResourceCalled('File', '/tmp/hiveserver2.sql',
                         content = StaticFile('hiveserver2.sql'),
@@ -47,7 +47,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
-                        mode = 493,
+                        mode = 0755,
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 sh /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
@@ -82,7 +82,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hiveserver2Smoke.sh',
                         content = StaticFile('hiveserver2Smoke.sh'),
-                        mode = 493,
+                        mode = 0755,
     )
     self.assertResourceCalled('File', '/tmp/hiveserver2.sql',
                         content = StaticFile('hiveserver2.sql'),
@@ -96,7 +96,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
-                        mode = 493,
+                        mode = 0755,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 sh /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,

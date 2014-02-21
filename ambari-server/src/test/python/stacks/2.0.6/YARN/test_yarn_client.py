@@ -73,28 +73,28 @@ class TestYarnClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
     )
@@ -108,17 +108,17 @@ class TestYarnClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
       content = Template('mapreduce.conf.j2'),
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
       content = Template('yarn-env.sh.j2'),
       owner = 'yarn',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
     )
     self.assertNoMoreResources()
 
@@ -164,28 +164,28 @@ class TestYarnClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
     )
@@ -199,26 +199,26 @@ class TestYarnClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
       content = Template('mapreduce.conf.j2'),
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
       content = Template('yarn-env.sh.j2'),
       owner = 'yarn',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
     )
     self.assertResourceCalled('File', '/usr/lib/hadoop-yarn/bin/container-executor',
       group = 'hadoop',
-      mode = 3112,
+      mode = 06050,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
       content = Template('container-executor.cfg.j2'),
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
     )
     self.assertNoMoreResources()
 
@@ -273,28 +273,28 @@ class TestYarnClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['core-site'],
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['yarn-site'],
     )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
       owner = 'yarn',
       group = 'hadoop',
-      mode = 420,
+      mode = 0644,
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
     )
@@ -308,17 +308,17 @@ class TestYarnClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/mapreduce.conf',
       content = Template('mapreduce.conf.j2'),
-      mode = 420,
+      mode = 0644,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn-env.sh',
       content = Template('yarn-env.sh.j2'),
       owner = 'yarn',
       group = 'hadoop',
-      mode = 493,
+      mode = 0755,
     )
     self.assertNoMoreResources()
 
