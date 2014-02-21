@@ -73,43 +73,49 @@ var configs = [
     "templateName": ["fs_glusterfs_impl"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "serviceName": "GLUSTERFS"
   },
   {
     "name": "fs.glusterfs.volname",
     "templateName": ["fs_glusterfs_volname"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "serviceName": "GLUSTERFS"
   },
   {
     "name": "fs.glusterfs.mount",
     "templateName": ["fs_glusterfs_mount"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "serviceName": "GLUSTERFS"
   },
   {
     "name": "fs.glusterfs.getfattrcmd",
     "templateName": ["fs_glusterfs_getfattrcmd"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "serviceName": "GLUSTERFS"
   },
   {
     "name": "fs.AbstractFileSystem.glusterfs.impl",
     "templateName": ["fs_AbstractFileSystem_glusterfs_impl"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "serviceName": "GLUSTERFS"
   },
   {
-	    "name": "gluster.daemon.user",
-	    "templateName": ["gluster_daemon_user"],
-	    "foreignKey": null,
-	    "value": "<templateName[0]>",
-	    "filename": "core-site.xml"
-	  }
+    "name": "gluster.daemon.user",
+    "templateName": ["gluster_daemon_user"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "serviceName": "GLUSTERFS"
+  }
 ];
 
 /**

@@ -1112,7 +1112,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigProperties = configs.filterProperty('id', 'site property');
     this.formatConfigValues(serviceConfigProperties);
     var storedConfigs = serviceConfigProperties.filterProperty('value');
-    var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
+    var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping').all(), App.Service.find().mapProperty('serviceName'));
+    var allUiConfigs = this.loadUiSideConfigs(mappedConfigs);
     this.set('uiConfigs', storedConfigs.concat(allUiConfigs));
   },
 

@@ -1037,6 +1037,16 @@ App.config = Em.Object.create({
       });
     }
   },
+  /**
+   * exclude configs that depends on services which are uninstalled
+   * if config doesn't have serviceName or dependent service is installed then
+   * config not excluded
+   */
+  excludeUnsupportedConfigs: function (configs, installedServices) {
+    return configs.filter(function (config) {
+      return !(config.serviceName && !installedServices.contains(config.serviceName));
+    });
+  },
 
   launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, configProperty, callback, isInstaller) {
     var self = this;

@@ -189,13 +189,14 @@ App.WizardStep8Controller = Em.Controller.extend({
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });
     var storedConfigs = serviceConfigProperties.filterProperty('value');
-    var uiConfigs = this.loadUiSideConfigs();
+    var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
+    var uiConfigs = this.loadUiSideConfigs(mappedConfigs);
     this.set('configs', storedConfigs.concat(uiConfigs));
   },
 
-  loadUiSideConfigs: function () {
+  loadUiSideConfigs: function (configMapping) {
     var uiConfig = [];
-    var configs = this.get('configMapping').filterProperty('foreignKey', null);
+    var configs = configMapping.filterProperty('foreignKey', null);
     this.addDynamicProperties(configs);
     configs.forEach(function (_config) {
       var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
@@ -207,7 +208,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         "overrides": valueWithOverrides.overrides
       });
     }, this);
-    var dependentConfig = $.extend(true, [], this.get('configMapping').filterProperty('foreignKey'));
+    var dependentConfig = $.extend(true, [], configMapping.filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
       App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config, this.get('globals'));
       uiConfig.pushObject({
@@ -614,7 +615,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.createConfigurationGroups();
     }
     this.createAllHostComponents();
-    this.createHostOverrideConfigurations();
 
     this.ajaxQueueFinished = function () {
       console.log('everything is loaded');
@@ -1238,7 +1238,6 @@ App.WizardStep8Controller = Em.Controller.extend({
           globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
         }
       }
-      this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);
     }, this);
     // we don't expose gmond_user to the user; it needs to be the same as gmetad_user
     globalSiteProperties['gmond_user'] = globalSiteProperties['gmetad_user'];
@@ -1255,23 +1254,15 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null;
     var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
     var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
-    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
-    
-    // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
-    if (!isGLUSTERFSSelected) {
-       coreSiteObj = coreSiteObj.filter(function(_config) {
-         return _config.name.indexOf("fs.glusterfs") < 0;
-      });
-    }
+
     coreSiteObj.forEach(function (_coreSiteObj) {
       if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
-        this._recordHostOverrideFromObj(_coreSiteObj, 'core-site', 'version1', this);
       }
-      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
+      if (_coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
-      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.defaultFS") {
+      if (_coreSiteObj.name == "fs.defaultFS") {
           coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'glusterfs_defaultFS_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'glusterfs_defaultFS_name').value) : null;
         }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
@@ -1285,7 +1276,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hdfsProperties = {};
     hdfsSiteObj.forEach(function (_configProperty) {
       hdfsProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'hdfs-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1298,7 +1288,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var Log4jProperties = {};
     Log4jObj.forEach(function (_configProperty) {
       Log4jProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, fileName + '-log4j', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1310,7 +1299,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hueProperties = {};
     hueSiteObj.forEach(function (_configProperty) {
       hueProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'hue-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1322,7 +1310,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'mapred-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1334,7 +1321,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'yarn-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1346,7 +1332,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var csProperties = {};
     configs.forEach(function (_configProperty) {
       csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'capacity-scheduler', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1358,7 +1343,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var mqProperties = {};
     configs.forEach(function (_configProperty) {
      mqProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-     this._recordHostOverrideFromObj(_configProperty, 'mapred-queue-acls', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1370,7 +1354,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hbaseProperties = {};
     configs.forEach(function (_configProperty) {
       hbaseProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'hbase-site', 'version1', this);
     }, this);
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
   },
@@ -1380,7 +1363,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var oozieProperties = {};
     configs.forEach(function (_configProperty) {
       oozieProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'oozie-site', 'version1', this);
     }, this);
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
@@ -1390,7 +1372,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hiveProperties = {};
     configs.forEach(function (_configProperty) {
       hiveProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'hive-site', 'version1', this);
     }, this);
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
@@ -1400,7 +1381,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var webHCatProperties = {};
     configs.forEach(function (_configProperty) {
       webHCatProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'webhcat-site', 'version1', this);
     }, this);
     return {type: 'webhcat-site', tag: 'version1', properties: webHCatProperties};
   },
@@ -1410,7 +1390,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var csProperties = {};
     configs.forEach(function (_configProperty) {
       csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'zoo.cfg', 'version1', this);
     }, this);
     return {type: 'zoo.cfg', tag: 'version1', properties: csProperties};
   },
@@ -1429,7 +1408,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       } else {
         stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
       }
-      this._recordHostOverrideFromObj(_configProperty, 'storm-site', 'version1', this);
     }, this);
     return {type: 'storm-site', tag: 'version1', properties: stormProperties};
   },
@@ -1439,7 +1417,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var tezProperty = {};
     configs.forEach(function (_configProperty) {
       tezProperty[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'tez-site', 'version1', this);
     }, this);
     return {type: 'tez-site', tag: 'version1', properties: tezProperty};
   },
@@ -1450,7 +1427,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var falconProperties = {};
     configs.forEach(function (_configProperty) {
       falconProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      this._recordHostOverrideFromObj(_configProperty, 'oozie-site', 'version1', this);
     }, this);
     return {type: 'oozie-site', tag: 'version1', properties: falconProperties};
   },
@@ -1478,73 +1454,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.set('ajaxBusy', true);
     $.ajax(first);
 
-  },
-
-  /**
-   * Records all the host overrides per site/tag
-   */
-  _recordHostOverrideFromObj: function(serviceConfigObj, siteName, tagName, self){
-    var overrides = serviceConfigObj.overrides;
-    if(overrides && overrides.length>0){
-      overrides.forEach(function(override){
-        override.hosts.forEach(function(host){
-          if(!(host in self.savedHostToOverrideSiteToTagMap)){
-            self.savedHostToOverrideSiteToTagMap[host] = {};
-          }
-          if(!(siteName in self.savedHostToOverrideSiteToTagMap[host])){
-            self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
-            self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
-          }
-          var finalTag = tagName + '_' + host;
-          console.log("recordHostOverride(): Saving host override for host="+host+", site="+siteName+", tag="+finalTag+", (key,value)=("+serviceConfigObj.name+","+override.value+")");
-          self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
-          self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = override.value;
-        });
-      });
-    }
-  },
-
-  /**
-   * Creates host level overrides for service configuration.
-   *
-   */
-  createHostOverrideConfigurations: function () {
-    var singlePUTHostData = [];
-    var savedHostSiteArray = [];
-    for ( var host in this.savedHostToOverrideSiteToTagMap) {
-      for ( var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
-        var tagName = this.savedHostToOverrideSiteToTagMap[host][siteName].tagName;
-        var map = this.savedHostToOverrideSiteToTagMap[host][siteName].map;
-        savedHostSiteArray.push(host + "///" + siteName);
-        singlePUTHostData.push({
-          RequestInfo: {
-            query: 'Hosts/host_name='+host
-          },
-          Body: {
-            Hosts: {
-              desired_config: {
-                type: siteName,
-                tag: tagName,
-                properties: map
-              }
-            }
-          }
-        });
-      }
-    }
-    console.log("createHostOverrideConfigSites(): PUTting host-overrides. Data=", singlePUTHostData);
-    if(singlePUTHostData.length>0){
-      var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts';
-      this.ajax({
-        type: 'PUT',
-        url: url,
-        data: JSON.stringify(singlePUTHostData),
-        dataType: 'text',
-        beforeSend: function () {
-          console.log("createHostOverrideConfigSites() PUT override=", singlePUTHostData);
-        }
-      });
-    }
   },
 
   /**
