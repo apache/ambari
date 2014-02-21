@@ -19,6 +19,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
+var categotyConfigs = require('data/service_configs');
 var serviceComponents = {};
 var configGroupsByTag = [];
 
@@ -48,6 +49,11 @@ App.config = Em.Object.create({
    * filename exceptions used to support substandard sitenames which don't have "xml" extension
    */
   filenameExceptions: ['zoo.cfg'],
+
+  log4jNotDefaultFilenames: [
+    {serviceName: 'HIVE', tagName: 'hive-exec-log4j.xml', configCroupName: 'AdvancedHiveExecLog4j', fileName:  'hive-exec-log4j.properties'},
+    {serviceName: 'HIVE', tagName: 'hive-log4j.xml', configCroupName: 'AdvancedHiveLog4j', fileName:  'hive-log4j.properties'}
+  ],
 
   /**
    * Since values end up in XML files (core-sit.xml, etc.), certain
@@ -245,7 +251,7 @@ App.config = Em.Object.create({
       properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
         var configsPropertyDef =  null;
-        var preDefinedConfig = preDefinedConfigs.filterProperty('name', index);
+        var preDefinedConfig = preDefinedConfigs.filterProperty('serviceName',serviceName).filterProperty('name', index);
         preDefinedConfig.forEach(function(_preDefinedConfig){
           if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
             configsPropertyDef = _preDefinedConfig;
@@ -358,10 +364,15 @@ App.config = Em.Object.create({
     }, this);
 
     this.get('preDefinedSiteProperties').mapProperty('name').forEach(function (name) {
-      var _site = siteConfigs.findProperty('name', name);
-      if (_site) {
-        siteStart.push(_site);
-        siteConfigs = siteConfigs.without(_site);
+      var _site = siteConfigs.filterProperty('name', name);
+      if (_site.length == 1) {
+        siteStart.push(_site[0]);
+        siteConfigs = siteConfigs.without(_site[0]);
+      } else if (_site.length >1) {
+        _site.forEach(function(site){
+          siteStart.push(site);
+          siteConfigs = siteConfigs.without(site);
+        }, this);
       }
     }, this);
 
@@ -388,69 +399,87 @@ App.config = Em.Object.create({
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs, selectedServiceNames) {
     var mergedConfigs = [];
     var preDefinedConfigs = $.extend(true, [], this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')));
-    var categoryMetaData = null;
+
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
     var preDefinedNames = preDefinedConfigs.mapProperty('name');
     var storedNames = storedConfigs.mapProperty('name');
     var names = preDefinedNames.concat(storedNames).uniq();
     names.forEach(function (name) {
-      var stored = storedConfigs.findProperty('name', name);
-      var preDefined;
+      var storedCfgs = storedConfigs.filterProperty('name', name);
+      var preDefinedCfgs = [];
       var preDefinedConfig = preDefinedConfigs.filterProperty('name', name);
-         preDefinedConfig.forEach(function(_preDefinedConfig){
-           if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
-             preDefined = _preDefinedConfig;
-           }
-         },this);
+      preDefinedConfig.forEach(function (_preDefinedConfig) {
+        if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
+          preDefinedCfgs.push(_preDefinedConfig);
+        }
+      }, this);
 
       var configData = {};
-      var isAdvanced = advancedConfigs.someProperty('name', name);
-      if (preDefined && stored) {
-        configData = preDefined;
-        configData.value = stored.value;
-        configData.defaultValue = stored.defaultValue;
-        configData.overrides = stored.overrides;
-        configData.filename = stored.filename;
-        configData.description = stored.description;
-        configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
-      } else if (!preDefined && stored) {
+      if (storedCfgs.length <= 1 && preDefinedCfgs.length <= 1) {
+        var stored = storedCfgs[0];
+        var preDefined = preDefinedCfgs[0];
+        var isAdvanced = advancedConfigs.someProperty('name', name);
+        if (preDefined && stored) {
+          configData = preDefined;
+          configData.value = stored.value;
+          configData.defaultValue = stored.defaultValue;
+          configData.overrides = stored.overrides;
+          configData.filename = stored.filename;
+          configData.description = stored.description;
+          configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
+        } else if (!preDefined && stored) {
 
-        configData = {
-          id: stored.id,
-          name: stored.name,
-          displayName: stored.name,
-          serviceName: stored.serviceName,
-          value: stored.value,
-          defaultValue: stored.defaultValue,
-          displayType: stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine',
-          filename: stored.filename,
-          category: 'Advanced',
-          isUserProperty: stored.isUserProperty === true,
-          isOverridable: true,
-          overrides: stored.overrides,
-          isRequired: true
-        };
-        this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
-      } else if (preDefined && !stored) {
-        configData = preDefined;
-        configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
-        if (isAdvanced) {
-          var advanced = advancedConfigs.findProperty('name', configData.name);
-          // Password fields should be made blank by default in installer wizard
-          // irrespective of whatever value is sent from stack definition.
-          // This forces the user to fill the password field.
-          configData.value = configData.displayType == "password" ? '' : advanced.value;
-          configData.defaultValue = configData.value;
-          configData.filename = advanced.filename;
-          configData.description = advanced.description;
+          configData = {
+            id: stored.id,
+            name: stored.name,
+            displayName: stored.name,
+            serviceName: stored.serviceName,
+            value: stored.value,
+            defaultValue: stored.defaultValue,
+            displayType: stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine',
+            filename: stored.filename,
+            category: 'Advanced',
+            isUserProperty: stored.isUserProperty === true,
+            isOverridable: true,
+            overrides: stored.overrides,
+            isRequired: true
+          };
+          this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
+        } else if (preDefined && !stored) {
+          configData = preDefined;
+          configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
+          if (isAdvanced) {
+            var advanced = advancedConfigs.findProperty('name', configData.name);
+            // Password fields should be made blank by default in installer wizard
+            // irrespective of whatever value is sent from stack definition.
+            // This forces the user to fill the password field.
+            configData.value = configData.displayType == "password" ? '' : advanced.value;
+            configData.defaultValue = configData.value;
+            configData.filename = advanced.filename;
+            configData.description = advanced.description;
+          }
         }
+        if (configData.displayType === 'checkbox') {
+          configData.value = configData.value === 'true'; // convert {String} value to {Boolean}
+          configData.defaultValue = configData.value;
+        }
+        mergedConfigs.push(configData);
+      } else {
+        preDefinedCfgs.forEach(function (cfg) {
+          configData = cfg;
+          var storedCfg = storedCfgs.findProperty('filename', cfg.filename);
+          if (storedCfg) {
+            configData.value = storedCfg.value;
+            configData.defaultValue = storedCfg.defaultValue;
+            configData.overrides = storedCfg.overrides;
+            configData.filename = storedCfg.filename;
+            configData.description = storedCfg.description;
+            configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
+          }
+          mergedConfigs.push(configData);
+        }, this);
       }
-      if (configData.displayType === 'checkbox') {
-        configData.value = configData.value === 'true'; // convert {String} value to {Boolean}
-        configData.defaultValue = configData.value;
-      }
-      mergedConfigs.push(configData);
     }, this);
     return mergedConfigs;
   },
@@ -953,6 +982,65 @@ App.config = Em.Object.create({
     }
     console.log('ERROR: textarea config - ' + complexConfigName + ' is missing');
     return configs;
+  },
+
+
+  addLog4jConfig: function (configs, serviceName) {
+    var fileName = serviceName.toLowerCase() + '-log4j.xml';
+    var content = configs.filterProperty('serviceName', serviceName).findProperty('name', 'content');
+    if (!content || !content.value.length) {
+      var category = categotyConfigs.findProperty('serviceName', serviceName) && categotyConfigs.findProperty('serviceName', serviceName).configCategories.findProperty('siteFileName', fileName);
+      if (category) {
+        if (serviceName == 'HIVE') {
+          this.get('log4jNotDefaultFilenames').forEach(function (info) {
+            this.loadLog4jDefaultProperties(configs, 'HIVE', info.tagName, info.configCroupName, info.fileName);
+          }, this);
+        } else {
+          this.loadLog4jDefaultProperties(configs, serviceName, category.siteFileName, category.name);
+        }
+      }
+    }
+    /**
+     * Filtering properties to exclude {serviceName}-log4j.xml file. We don't use properties from this file,
+     * instead we load log4j.properties file as one property named "content".
+     * Filter can be deleted after {serviceName}-log4j.xml will be deleted from server
+     */
+    return configs.filter(function (_config) {
+      return (_config.filename !== fileName || _config.name == "content");
+    });
+  },
+
+  loadLog4jDefaultProperties: function(configs, serviceName, fileName, categoryName, log4jFile) {
+    var url = "/resources//stacks/HDP/" + App.get('currentStackVersionNumber') + "/services/" + serviceName + "/configuration/" + (log4jFile || "log4j.properties");
+    $.ajax({
+      type: "GET",
+      url: url,
+      async: false,
+      success: function(data) {
+        var log4jObj = new Object({
+          "id": "puppet var",
+          "name": "content",
+          "displayName": "content",
+          "value": data,
+          "defaultValue": data,
+          "description": "log4j properties",
+          "displayType": "custom",
+          "isOverridable": true,
+          "isRequired": true,
+          "isVisible": true,
+          "serviceName": serviceName,
+          "filename": fileName,
+          "category": categoryName
+        });
+        var cfg = configs.findProperty('filename',fileName);
+        if (!cfg) {
+          configs.push(log4jObj);
+        } else {
+          cfg.value = data;
+          cfg.defaultValue = data;
+        }
+      }
+    });
   },
 
   /**

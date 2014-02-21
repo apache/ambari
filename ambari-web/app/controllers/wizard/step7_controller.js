@@ -357,6 +357,9 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (this.get('allSelectedServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
+    this.get('allSelectedServiceNames').forEach(function(serviceName) {
+      App.config.addLog4jConfig(configs, serviceName);
+    });
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     var localDB = {
       hosts: this.get('wizardController').getDBProperty('hosts'),
