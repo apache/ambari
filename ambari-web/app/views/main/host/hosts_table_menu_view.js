@@ -194,7 +194,7 @@ App.HostTableMenuView = Em.View.extend({
     }
 
     if (!!App.HBaseService.find().content.length) {
-      var slaveItemsForHBase = this.getSlaveItemsTemplate('HBASE_REGIONSERVER', 'HBASE_REGIONSERVER'); // @todo provide proper component for decommission
+      var slaveItemsForHBase = this.getSlaveItemsTemplate('HBASE_MASTER', 'HBASE_REGIONSERVER');
       slaveItemsForHBase.setEach('operationData.serviceName', 'HBASE');
       slaveItemsForHBase.setEach('operationData.componentNameFormatted', Em.I18n.t('dashboard.services.hbase.regionServers'));
       submenu.push({label: Em.I18n.t('dashboard.services.hbase.regionServers'), submenu: slaveItemsForHBase});
