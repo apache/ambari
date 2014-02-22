@@ -73,7 +73,7 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
 
 
   loadSecureServices: function () {
-    var secureServices = require('data/secure_configs');
+    var secureServices = App.get('isHadoop2Stack')?require('data/HDP2/secure_configs'):require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
     this.get('secureServices').pushObject(secureServices.findProperty('serviceName', 'GENERAL'));
     //General (only non service tab) tab is always displayed
@@ -97,8 +97,6 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
             }
           }, this);
           _serviceConfigTags.configs.security_enabled = 'false';
-          _serviceConfigTags.configs.dfs_datanode_address = '50010';
-          _serviceConfigTags.configs.dfs_datanode_http_address = '50075';
         } else {
           this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
             var configName = _config.name;
