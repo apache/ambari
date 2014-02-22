@@ -21,28 +21,35 @@ var date = require('utils/date');
 
 App.WizardStep9View = Em.View.extend({
 
-  templateName:require('templates/wizard/step9'),
-  barColor:'',
-  resultMsg:'',
-  resultMsgColor:'',
+  templateName: require('templates/wizard/step9'),
+  barColor: '',
+  resultMsg: '',
+  resultMsgColor: '',
+  isStepCompleted: function() {
+   return (this.get('controller.progress') === '100');
+  }.property('controller.progress'),
 
-  didInsertElement:function () {
+  didInsertElement: function () {
     var controller = this.get('controller');
     this.get('controller.hosts').setEach('status', 'info');
     this.onStatus();
     controller.navigateStep();
   },
 
-  barWidth:function () {
+  isHostHeartbeatLost: function () {
+    return (this.get('controller.hostsWithHeartbeatLost').length > 0);
+  }.property('controller.hostsWithHeartbeatLost.@each'),
+
+  barWidth: function () {
     var controller = this.get('controller');
     return 'width: ' + controller.get('progress') + '%;';
   }.property('controller.progress'),
 
-  progressMessage: function() {
+  progressMessage: function () {
     return Em.I18n.t('installer.step9.overallProgress').format(this.get('controller.progress'));
   }.property('controller.progress'),
 
-  onStatus:function () {
+  onStatus: function () {
     if (this.get('controller.status') === 'info') {
       this.set('resultMsg', '');
       this.set('barColor', 'progress-info');
@@ -52,16 +59,41 @@ App.WizardStep9View = Em.View.extend({
       this.set('resultMsgColor', 'alert-warning');
     } else if (this.get('controller.status') === 'failed') {
       this.set('barColor', 'progress-danger');
-      console.log('TRACE: Inside error view step9');
-      this.set('resultMsg', Em.I18n.t('installer.step9.status.failed'));
       this.set('resultMsgColor', 'alert-error');
+      console.log('TRACE: Inside error view step9');
+      if (this.get('isHostHeartbeatLost')) {
+        // When present requests succeeds but some host components are in UNKNOWN or INSTALL_FAILED state and
+        // hosts are in HEARTBEAT_LOST state
+        this.set('resultMsg', Em.I18n.t('installer.step9.status.hosts.heartbeat_lost').format(this.get('controller.hostsWithHeartbeatLost').length));
+      } else {
+        this.set('resultMsg', Em.I18n.t('installer.step9.status.failed'));
+      }
     } else if (this.get('controller.status') === 'success') {
       console.log('TRACE: Inside success view step9');
       this.set('barColor', 'progress-success');
       this.set('resultMsg', Em.I18n.t('installer.step9.status.success'));
       this.set('resultMsgColor', 'alert-success');
     }
-  }.observes('controller.status')
+  }.observes('controller.status', 'isHostHeartbeatLost'),
+
+
+  hostWithInstallFailed: function (event, context) {
+    var controller = this.get('controller');
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step9.host.heartbeat_lost.header'),
+      classNames: ['sixty-percent-width-modal'],
+      autoHeight: false,
+      secondary: null,
+
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/wizard/step9_install_host_popup'),
+        c: controller,
+        failedHosts: function () {
+          return controller.get('hostsWithHeartbeatLost');
+        }.property()
+      })
+    });
+  }
 });
 
 App.HostStatusView = Em.View.extend({
@@ -76,15 +108,15 @@ App.HostStatusView = Em.View.extend({
   controller: null,
   barColor: '',
 
-  didInsertElement:function () {
+  didInsertElement: function () {
     this.onStatus();
   },
 
-  barWidth:function () {
+  barWidth: function () {
     return 'width: ' + this.get('obj.progress') + '%;';
   }.property('obj.progress'),
 
-  onStatus:function () {
+  onStatus: function () {
     if (this.get('obj.status') === 'info') {
       this.set('barColor', 'progress-info');
     } else if (this.get('obj.status') === 'warning') {
@@ -97,31 +129,34 @@ App.HostStatusView = Em.View.extend({
       if (this.get('obj.progress') === '100') {
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
       }
-    } else {
-      if (this.get('obj.status') === 'success' && this.get('isHostCompleted') && parseInt(this.get('controller.progress')) > 34) {
+    } else if (this.get('obj.status') === 'heartbeat_lost') {
+      this.set('barColor', 'progress-danger');
+      if (this.get('obj.progress') === '100') {
+        this.set('obj.message', Em.I18n.t('installer.step9.host.heartbeat_lost'));
+      }
+    } else if (this.get('obj.status') === 'success' && this.get('isHostCompleted') && parseInt(this.get('controller.progress')) > 34) {
         this.set('barColor', 'progress-success');
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
-      }
     }
   }.observes('obj.status', 'obj.progress', 'controller.progress'),
 
-  isFailed:function () {
-    return (this.get('isHostCompleted') && this.get('obj.status') === 'failed');
+  isFailed: function () {
+    return (this.get('isHostCompleted') && (this.get('obj.status') === 'failed' || this.get('obj.status') === 'heartbeat_lost'));
   }.property('obj.status', 'isHostCompleted'),
 
-  isSuccess:function () {
+  isSuccess: function () {
     return (this.get('isHostCompleted') && this.get('obj.status') === 'success');
   }.property('obj.status', 'isHostCompleted'),
 
-  isWarning:function () {
+  isWarning: function () {
     return(this.get('isHostCompleted') && this.get('obj.status') === 'warning');
   }.property('obj.status', 'isHostCompleted'),
 
-  isHostCompleted:function () {
+  isHostCompleted: function () {
     return this.get('obj.progress') == 100;
   }.property('obj.progress'),
 
-  hostLogPopup:function (event, context) {
+  hostLogPopup: function (event, context) {
     var controller = this.get('controller');
     var host = this.get('obj');
 
@@ -129,7 +164,7 @@ App.HostStatusView = Em.View.extend({
       header: host.get('name'),
       classNames: ['sixty-percent-width-modal'],
       autoHeight: false,
-      secondary:null,
+      secondary: null,
       /**
        * Current host
        */
@@ -139,13 +174,19 @@ App.HostStatusView = Em.View.extend({
        */
       c: controller,
 
-      onClose: function() {
+      onClose: function () {
         this.set('c.currentOpenTaskId', 0);
         this.hide();
       },
 
-      bodyClass:Ember.View.extend({
-        templateName:require('templates/wizard/step9HostTasksLogPopup'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/wizard/step9HostTasksLogPopup'),
+        isHeartbeatLost: function() {
+          return (host.get('status') === 'heartbeat_lost');
+        }.property('host.status'),
+        isNoTasksScheduled: function() {
+          return host.get('isNoTasksForInstall');
+        }.property('host.isNoTasksForInstall'),
 
         isLogWrapHidden: true,
 
@@ -190,13 +231,13 @@ App.HostStatusView = Em.View.extend({
         }.observes('category', 'tasks'),
 
         categories: [
-            Ember.Object.create({value: 'all', label: Em.I18n.t('installer.step9.hostLog.popup.categories.all') }),
-            Ember.Object.create({value: 'pending', label: Em.I18n.t('installer.step9.hostLog.popup.categories.pending')}),
-            Ember.Object.create({value: 'in_progress', label: Em.I18n.t('installer.step9.hostLog.popup.categories.in_progress')}),
-            Ember.Object.create({value: 'failed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.failed') }),
-            Ember.Object.create({value: 'completed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.completed') }),
-            Ember.Object.create({value: 'aborted', label: Em.I18n.t('installer.step9.hostLog.popup.categories.aborted') }),
-            Ember.Object.create({value: 'timedout', label: Em.I18n.t('installer.step9.hostLog.popup.categories.timedout') })
+          Ember.Object.create({value: 'all', label: Em.I18n.t('installer.step9.hostLog.popup.categories.all') }),
+          Ember.Object.create({value: 'pending', label: Em.I18n.t('installer.step9.hostLog.popup.categories.pending')}),
+          Ember.Object.create({value: 'in_progress', label: Em.I18n.t('installer.step9.hostLog.popup.categories.in_progress')}),
+          Ember.Object.create({value: 'failed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.failed') }),
+          Ember.Object.create({value: 'completed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.completed') }),
+          Ember.Object.create({value: 'aborted', label: Em.I18n.t('installer.step9.hostLog.popup.categories.aborted') }),
+          Ember.Object.create({value: 'timedout', label: Em.I18n.t('installer.step9.hostLog.popup.categories.timedout') })
         ],
 
         category: null,
@@ -205,7 +246,7 @@ App.HostStatusView = Em.View.extend({
           var tasksArr = [];
           var host = this.get('parentView.host');
           var tasks = this.getStartedTasks(host);
-          tasks = tasks.sort(function(a,b){
+          tasks = tasks.sort(function (a, b) {
             return a.Tasks.id - b.Tasks.id;
           });
           if (tasks.length) {
@@ -244,25 +285,25 @@ App.HostStatusView = Em.View.extend({
           return tasksArr;
         }.property('parentView.c.logTasksChangesCounter'),
 
-        backToTaskList: function(event, context) {
+        backToTaskList: function (event, context) {
           this.destroyClipBoard();
-          this.set("isLogWrapHidden",true);
+          this.set("isLogWrapHidden", true);
         },
 
-        getStartedTasks:function (host) {
+        getStartedTasks: function (host) {
           return host.logTasks.filter(function (task) {
             return task.Tasks.status;
           });
         },
 
-        openTaskLogInDialog: function(){
-          var newwindow=window.open();
-          var newdocument=newwindow.document;
+        openTaskLogInDialog: function () {
+          var newwindow = window.open();
+          var newdocument = newwindow.document;
           newdocument.write($(".task-detail-log-info").html());
           newdocument.close();
         },
 
-        openedTask: function() {
+        openedTask: function () {
           return this.get('tasks').findProperty('id', this.get('parentView.c.currentOpenTaskId'))
         }.property('parentView.c.currentOpenTaskId', 'tasks.@each'),
 
@@ -283,8 +324,8 @@ App.HostStatusView = Em.View.extend({
           }
         },
 
-        textTrigger:function (event) {
-          if($(".task-detail-log-clipboard").length > 0) {
+        textTrigger: function (event) {
+          if ($(".task-detail-log-clipboard").length > 0) {
             this.destroyClipBoard();
           }
           else {
@@ -292,21 +333,21 @@ App.HostStatusView = Em.View.extend({
           }
         },
 
-        createClipBoard:function() {
+        createClipBoard: function () {
           var log = $(".task-detail-log-maintext");
           $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
           $(".task-detail-log-clipboard")
-              .html("stderr: \n"+$(".stderr").html()+"\n stdout:\n"+$(".stdout").html())
-              .css("display","block")
-              .width(log.width())
-              .height(log.height())
-              .select();
-          log.css("display","none")
+            .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
+            .css("display", "block")
+            .width(log.width())
+            .height(log.height())
+            .select();
+          log.css("display", "none")
         },
 
-        destroyClipBoard:function(){
+        destroyClipBoard: function () {
           $(".task-detail-log-clipboard").remove();
-          $(".task-detail-log-maintext").css("display","block");
+          $(".task-detail-log-maintext").css("display", "block");
         }
       })
     });

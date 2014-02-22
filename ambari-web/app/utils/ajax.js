@@ -1177,6 +1177,15 @@ var urls = {
       };
     }
   },
+  'wizard.step9.installer.get_host_status': {
+    'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
+    'mock': '/data/wizard/deploy/5_hosts/get_host_status.json',
+    'format': function (data, opt) {
+      return {
+        async: false
+      };
+    }
+  },
   'wizard.step9.installer.launch_start_services': {
     'real': '/clusters/{cluster}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true&params/reconfigure_client=false',
     'mock': '/data/wizard/deploy/5_hosts/poll_6.json',

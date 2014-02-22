@@ -21,12 +21,10 @@
   <h2>{{t installer.step9.header}}</h2>
 
   <p class="alert alert-info">{{t installer.step9.body}}</p>
-
   <div id="overallProgress">
-    {{view.isStepCompleted}}
     <div class="row-fluid">
       <div class="span10">
-        <div {{bindAttr class="isStepCompleted::progress-striped isStepCompleted::active view.barColor :progress"}}>
+        <div {{bindAttr class="view.isStepCompleted::progress-striped view.isStepCompleted::active view.barColor :progress"}}>
           <div class="bar" {{bindAttr style="view.barWidth"}}>
           </div>
         </div>
@@ -116,7 +114,11 @@
 
   <div>
     {{#if view.resultMsg}}
-    <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}</p>
+      <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}
+      {{#if view.isHostHeartbeatLost}}
+        <a href="javascript:void(null)" data-toggle="modal" {{action hostWithInstallFailed target="view"}}>{{t common.showDetails}}</a>
+      {{/if}}
+      </p>
     {{/if}}
     <div class="btn-area">
       <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
