@@ -40,7 +40,7 @@ App.YARNService = App.Service.extend({
   ahsWebPort: function() {
     var yarnConf = App.db.getConfigs().findProperty('type', 'yarn-site')
     if(yarnConf){
-      return yarnConf.properties['yarn.ahs.webapp.address'].match(/:(\d+)/)[1];;
+      return yarnConf.properties['yarn.timeline-service.webapp.address'].match(/:(\d+)/)[1];;
     }
     return "8188";
   }.property(),

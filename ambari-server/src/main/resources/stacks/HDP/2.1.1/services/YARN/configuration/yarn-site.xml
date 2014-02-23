@@ -340,30 +340,34 @@
   </property>
 
   <property>
-    <name>yarn.ats.store.class</name>
+    <name>yarn.timeline-service.store-class</name>
     <value>org.apache.hadoop.yarn.server.applicationhistoryservice.apptimeline.LeveldbApplicationTimelineStore</value>
     <description>
-      Store class name for timeline service
+      Store class name for timeline store
     </description>
   </property>
 
   <property>
-    <name>yarn.ahs.store.class</name>
+    <name>yarn.timeline-service.generic-application-history.store-class</name>
     <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
     <description>
-      Store class name for history service
+      Store class name for history store, defaulting to file system store
     </description>
   </property>
 
   <property>
-    <name>yarn.ats.leveldb-timeline-store.path</name>
-    <value>/var/log/hadoop-yarn/ats</value>
-    <description></description>
+    <name>yarn.timeline-service.leveldb-timeline-store.path</name>
+    <value>/var/log/hadoop-yarn/timeline</value>
+    <description>
+      Store file name for leveldb timeline store
+    </description>
   </property>
 
   <property>
-    <name>yarn.ahs.webapp.address</name>
+    <name>yarn.timeline-service.webapp.address</name>
     <value>0.0.0.0:8188</value>
-    <description></description>
+    <description>
+      The http address of the timeline service web application.
+    </description>
   </property>
 </configuration>

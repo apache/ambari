@@ -303,10 +303,10 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "yarn.ats.leveldb-timeline-store.path",
-      "displayName": "yarn.ats.leveldb-timeline-store.path",
+      "name": "yarn.timeline-service.leveldb-timeline-store.path",
+      "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
       "value": "",
-      "defaultValue": "/var/log/hadoop-yarn/ats",
+      "defaultValue": "/var/log/hadoop-yarn/timeline",
       "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
       "category": "AppTimelineServer",
       "displayType": "directory",
@@ -314,8 +314,8 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "yarn.ats.store.class",
-      "displayName": "yarn.ats.store.class",
+      "name": "yarn.timeline-service.store-class",
+      "displayName": "yarn.timeline-service.store-class",
       "value": "",
       "defaultValue": "org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbApplicationTimelineStore",
       "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving

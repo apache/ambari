@@ -66,7 +66,7 @@ hive_metastore_port = config['configurations']['global']['hive_metastore_port'] 
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
 hbase_rs_port = "60030"
 falcon_port = config['configurations']['global']['falcon_port']
-ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.ahs.webapp.address'])
+ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"

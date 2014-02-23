@@ -243,7 +243,7 @@ App.MainJobsController = Em.ArrayController.extend({
       var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
       var filtersLink = this.get('filterObject').createJobsFiltersLink();
       var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
-          + ":" + yarnService.get('ahsWebPort') + "/ws/v1/apptimeline/HIVE_QUERY_ID" + filtersLink;
+          + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;
       App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
         complete : function(jqXHR, textStatus) {
           self.set('loading', false);

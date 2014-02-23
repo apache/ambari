@@ -342,7 +342,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
         this.setDefaultValue("(\\w*)(?=:)",rmHost);
         break;
-      case 'yarn.ahs.webapp.address':
+      case 'yarn.timeline-service.webapp.address':
         var hsHost = masterComponentHostsInDB.findProperty('component', 'HISTORYSERVER').hostName;
         this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
         break;

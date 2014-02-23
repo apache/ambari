@@ -1686,17 +1686,17 @@ var urls = {
   },
 
   'jobs.tezDag.NametoID': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/apptimeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
     'mock': '/data/jobs/tezDag-name-to-id.json',
     'apiPrefix': ''
   },
   'jobs.tezDag.tezDagId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/apptimeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities',
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities',
     'mock': '/data/jobs/tezDag.json',
     'apiPrefix': ''
   },
   'jobs.tezDag.tezDagVertexId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/apptimeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
     'mock': '/data/jobs/tezDagVertex.json',
     'apiPrefix': ''
   }

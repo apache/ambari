@@ -48,7 +48,7 @@ describe('#App', function() {
       componentName: 'APP_TIMELINE_SERVER',
       properties: {
         global_properties: ['ats_host', 'apptimelineserver_heapsize'],
-        site_properties: ['yarn.ahs.store.class', 'yarn.ats.store.class', 'yarn.ats.leveldb-timeline-store.path']
+        site_properties: ['yarn.timeline-service.generic-application-history.store-class', 'yarn.timeline-service.store-class', 'yarn.timeline-service.leveldb-timeline-store.path']
       },
       reviewConfigs: {
         component_name: 'APP_TIMELINE_SERVER'

@@ -273,7 +273,7 @@ class ProxyServiceTest extends BaseServiceTest {
     MultivaluedMap<String, String> headerParams = new MultivaluedMapImpl();
     HttpURLConnection urlConnectionMock = createMock(HttpURLConnection.class);
     URI uri = UriBuilder.fromUri("http://dev01.hortonworks.com:8080/proxy?url=http%3a%2f%2fserver%3a8188%2fws%2fv1%2f" +
-     "apptimeline%2fHIVE_QUERY_ID%3ffields=events%2cprimaryfilters%26limit=10%26primaryFilter=user%3ahiveuser1").build();
+     "timeline%2fHIVE_QUERY_ID%3ffields=events%2cprimaryfilters%26limit=10%26primaryFilter=user%3ahiveuser1").build();
     Map<String, List<String>> headerParamsToForward = new HashMap<String, List<String>>();
     InputStream is = new ByteArrayInputStream("test".getBytes());
     List<String> userRemoteParams = new LinkedList<String>();
@@ -288,7 +288,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
     PowerMock.expectNew(URLStreamProvider.class, 3000, 3000, null, null, null).andReturn(streamProviderMock);
-    expect(streamProviderMock.processURL("http://server:8188/ws/v1/apptimeline/HIVE_QUERY_ID?fields=events,primary" +
+    expect(streamProviderMock.processURL("http://server:8188/ws/v1/timeline/HIVE_QUERY_ID?fields=events,primary" +
      "filters&limit=10&primaryFilter=user:hiveuser1", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
     PowerMock.replay(streamProviderMock, URLStreamProvider.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());

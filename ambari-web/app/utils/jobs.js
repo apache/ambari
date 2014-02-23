@@ -47,7 +47,7 @@ module.exports = {
     var hiveJobId = hiveJob.get('id');
     // First refresh query
     var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : "/proxy?url=http://" + historyServerHostName
-        + ":" + ahsWebPort + "/ws/v1/apptimeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
+        + ":" + ahsWebPort + "/ws/v1/timeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
