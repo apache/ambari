@@ -343,6 +343,28 @@ module.exports =
       "category": "AppTimelineServer",
       "serviceName": "YARN"
     },
+    {
+      "id": "site property",
+      "name": "yarn.timeline-service.webapp.https.address",
+      "displayName": "yarn.timeline-service.webapp.https.address",
+      "value": "",
+      "defaultValue": "0.0.0.0:8190",
+      "displayType": "string",
+      "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
+      "category": "AppTimelineServer",
+      "serviceName": "YARN"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.timeline-service.address",
+      "displayName": "yarn.timeline-service.address",
+      "value": "",
+      "defaultValue": "0.0.0.0:10200",
+      "displayType": "string",
+      "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
+      "category": "AppTimelineServer",
+      "serviceName": "YARN"
+    },
   /**********************************************MAPREDUCE2***************************************/
     {
       "id": "site property",

@@ -343,7 +343,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.setDefaultValue("(\\w*)(?=:)",rmHost);
         break;
       case 'yarn.timeline-service.webapp.address':
-        var hsHost = masterComponentHostsInDB.findProperty('component', 'HISTORYSERVER').hostName;
+        var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
+        this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
+        break;
+      case 'yarn.timeline-service.webapp.https.address':
+        var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
         this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
         break;
       case 'nm_hosts':
