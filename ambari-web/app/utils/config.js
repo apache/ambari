@@ -251,7 +251,14 @@ App.config = Em.Object.create({
       properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
         var configsPropertyDef =  null;
-        var preDefinedConfig = preDefinedConfigs.filterProperty('serviceName',serviceName).filterProperty('name', index);
+        var preDefinedConfig;
+        if (_tag.siteName === 'global') {
+        // Unlike other site where one site maps to ones service, global site contains configurations for multiple services
+        // So Global Configuration should not be filtered out with serviceName.
+          preDefinedConfig = preDefinedConfigs.filterProperty('name', index);
+        } else {
+          preDefinedConfig = preDefinedConfigs.filterProperty('serviceName',serviceName).filterProperty('name', index);
+        }
         preDefinedConfig.forEach(function(_preDefinedConfig){
           if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
             configsPropertyDef = _preDefinedConfig;
