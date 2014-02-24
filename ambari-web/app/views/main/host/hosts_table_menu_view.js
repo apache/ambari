@@ -91,7 +91,7 @@ App.HostTableMenuView = Em.View.extend({
       Em.Object.create({
         label: Em.I18n.t('passiveState.turnOn'),
         operationData: Em.Object.create({
-          state: 'PASSIVE',
+          state: 'ON',
           action: 'PASSIVE_STATE',
           message: Em.I18n.t('passiveState.turnOnFor').format(App.format.components[componentNameForOtherActions]),
           componentName: componentNameForOtherActions
@@ -100,7 +100,7 @@ App.HostTableMenuView = Em.View.extend({
       Em.Object.create({
         label: Em.I18n.t('passiveState.turnOff'),
         operationData: Em.Object.create({
-          state: 'ACTIVE',
+          state: 'OFF',
           action: 'PASSIVE_STATE',
           message: Em.I18n.t('passiveState.turnOffFor').format(App.format.components[componentNameForOtherActions]),
           componentName: componentNameForOtherActions
@@ -150,7 +150,7 @@ App.HostTableMenuView = Em.View.extend({
       Em.Object.create({
         label: Em.I18n.t('passiveState.turnOn'),
         operationData: Em.Object.create({
-          state: 'PASSIVE',
+          state: 'ON',
           action: 'PASSIVE_STATE',
           message: Em.I18n.t('passiveState.turnOnFor').format('hosts')
         })
@@ -158,7 +158,7 @@ App.HostTableMenuView = Em.View.extend({
       Em.Object.create({
         label: Em.I18n.t('passiveState.turnOff'),
         operationData: Em.Object.create({
-          state: 'ACTIVE',
+          state: 'OFF',
           action: 'PASSIVE_STATE',
           message: Em.I18n.t('passiveState.turnOffFor').format('hosts')
         })

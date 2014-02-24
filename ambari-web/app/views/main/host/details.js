@@ -27,7 +27,7 @@ App.MainHostDetailsView = Em.View.extend({
   }.property('App.router.mainHostDetailsController.content'),
 
   isActive: function() {
-    return this.get('controller.content.passiveState') === "ACTIVE";
+    return this.get('controller.content.passiveState') === "OFF";
   }.property('controller.content.passiveState'),
 
   maintenance: function(){

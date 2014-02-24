@@ -105,7 +105,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   sendStartComponentCommand: function(component, context) {
     var url = component !== null ?
         '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/passive_state=ACTIVE';
+        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/maintenance_state=OFF';
     var dataToSend = {
       RequestInfo : {
         "context" : context
@@ -120,7 +120,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       var allComponents = this.get('content.hostComponents');
       var startable = [];
       allComponents.forEach(function (c) {
-        if (c.get('passiveState') == 'ACTIVE') {
+        if (c.get('passiveState') == 'OFF') {
           if (c.get('isMaster') || c.get('isSlave')) {
             startable.push(c.get('componentName'));
           }
@@ -312,7 +312,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   sendStopComponentCommand: function(component, context){
     var url = component !== null ?
         '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/passive_state=ACTIVE';
+        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/maintenance_state=OFF';
     var dataToSend = {
       RequestInfo : {
         "context" : context
@@ -327,7 +327,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       var allComponents = this.get('content.hostComponents');
       var startable = [];
       allComponents.forEach(function (c) {
-        if (c.get('passiveState') == 'ACTIVE') {
+        if (c.get('passiveState') == 'OFF') {
           if (c.get('isMaster') || c.get('isSlave')) {
             startable.push(c.get('componentName'));
           }
@@ -978,7 +978,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   onOffPassiveModeForHost: function(context) {
-    var state = context.active ? 'PASSIVE' : 'ACTIVE';
+    var state = context.active ? 'ON' : 'OFF';
     var self = this;
     var message = context.label + ' for host';
     App.showConfirmationPopup(function() {
@@ -1031,7 +1031,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   doRestartAllComponents: function() {
-    var components = this.get('content.hostComponents').filterProperty('passiveState','ACTIVE');
+    var components = this.get('content.hostComponents').filterProperty('passiveState','OFF');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {
@@ -1234,13 +1234,13 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var state, onOff, message;
-    if (component.get("passiveState") == "PASSIVE") {
+    if (component.get("passiveState") == "ON") {
       onOff = "Off";
-      state = "ACTIVE";
+      state = "OFF";
       message =  Em.I18n.t('passiveState.turnOffFor').format(component.get('displayName'));
     } else {
       onOff = "On";
-      state = "PASSIVE";
+      state = "ON";
       message = Em.I18n.t('passiveState.turnOnFor').format(component.get('displayName'));
     }
     App.showConfirmationPopup(function() {

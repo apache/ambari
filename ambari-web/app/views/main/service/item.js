@@ -63,10 +63,10 @@ App.MainServiceItemView = Em.View.extend({
         default:
           options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
       }
-      var requestLabel = service.get('passiveState') === "ACTIVE" ?
+      var requestLabel = service.get('passiveState') === "OFF" ?
           Em.I18n.t('passiveState.turnOnFor').format(App.Service.DisplayNames[serviceName]) :
           Em.I18n.t('passiveState.turnOffFor').format(App.Service.DisplayNames[serviceName]);
-      var passiveLabel = service.get('passiveState') === "ACTIVE" ?
+      var passiveLabel = service.get('passiveState') === "OFF" ?
           Em.I18n.t('passiveState.turnOn') :
           Em.I18n.t('passiveState.turnOff');
       options.push({action:'turnOnOffPassive', cssClass: 'icon-medkit', context:requestLabel, 'label':passiveLabel , disabled: false});

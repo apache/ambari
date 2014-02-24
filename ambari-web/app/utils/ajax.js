@@ -110,7 +110,7 @@ var urls = {
           },
           Body: {
             ServiceInfo: {
-              passive_state: data.passive_state
+              maintenance_state: data.passive_state
             }
           }
         })
@@ -238,7 +238,7 @@ var urls = {
           },
           Body: {
             HostRoles: {
-              passive_state: data.passive_state
+              maintenance_state: data.passive_state
             }
           }
         })
@@ -1633,7 +1633,7 @@ var urls = {
         data: JSON.stringify({
           RequestInfo: {
             context: data.requestInfo,
-            query: 'HostRoles/component_name=' + data.componentName + '&HostRoles/host_name.in(' + data.hostNames + ')&HostRoles/passive_state=ACTIVE'
+            query: 'HostRoles/component_name=' + data.componentName + '&HostRoles/host_name.in(' + data.hostNames + ')&HostRoles/maintenance_state=OFF'
           },
           Body: {
             HostRoles: {
@@ -1698,7 +1698,7 @@ var urls = {
           },
           Body: {
             Hosts: {
-              passive_state: data.passive_state
+              maintenance_state: data.passive_state
             }
           }
         })
@@ -1719,7 +1719,7 @@ var urls = {
           },
           Body: {
             HostRoles: {
-              passive_state: data.passive_state
+              maintenance_state: data.passive_state
             }
           }
         })

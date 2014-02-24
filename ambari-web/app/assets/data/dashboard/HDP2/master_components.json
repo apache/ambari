@@ -16,6 +16,7 @@
             "cluster_name" : "perf",
             "component_name" : "GANGLIA_SERVER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           }
         }
@@ -36,6 +37,7 @@
             "cluster_name" : "perf",
             "component_name" : "HBASE_MASTER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           },
           "metrics" : {
@@ -70,6 +72,7 @@
             "cluster_name" : "perf",
             "component_name" : "NAMENODE",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           },
           "metrics" : {
@@ -126,6 +129,7 @@
             "cluster_name" : "perf",
             "component_name" : "SECONDARY_NAMENODE",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           }
         }
@@ -146,6 +150,7 @@
             "cluster_name" : "perf",
             "component_name" : "HISTORYSERVER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           },
           "metrics" : {
@@ -172,6 +177,7 @@
             "cluster_name" : "perf",
             "component_name" : "NAGIOS_SERVER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           }
         }
@@ -192,6 +198,7 @@
             "cluster_name" : "perf",
             "component_name" : "OOZIE_SERVER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           }
         }
@@ -212,6 +219,7 @@
             "cluster_name" : "perf",
             "component_name" : "RESOURCEMANAGER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           },
           "metrics" : {
@@ -297,6 +305,7 @@
             "cluster_name" : "perf",
             "component_name" : "ZOOKEEPER_SERVER",
             "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
             "state" : "STARTED"
           }
         }

@@ -57,7 +57,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
     ip: 'Hosts.ip',
-    passive_state: 'Hosts.passive_state'
+    passive_state: 'Hosts.maintenance_state'
   },
   map: function (json) {
     console.time('App.hostsMapper execution time');

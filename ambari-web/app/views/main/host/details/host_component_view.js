@@ -71,7 +71,7 @@ App.HostComponentView = Em.View.extend({
    * @type {String}
    */
   componentStatusTooltip: function() {
-    if (this.get('content.passiveState') != 'ACTIVE') {
+    if (this.get('content.passiveState') != 'OFF') {
       return Em.I18n.t('hosts.component.passive.short.mode');
     } else {
       return this.get('componentTextStatus');
@@ -82,11 +82,11 @@ App.HostComponentView = Em.View.extend({
    * @type {String}
    */
   passiveImpliedTextStatus: function() {
-    if(this.get('parentView.content.passiveState') === 'PASSIVE') {
+    if(this.get('parentView.content.passiveState') === 'ON') {
       return Em.I18n.t('hosts.component.passive.implied.host.mode.tooltip');
     }
     else
-      if(this.get('content.service.passiveState') === 'PASSIVE') {
+      if(this.get('content.service.passiveState') === 'ON') {
         return Em.I18n.t('hosts.component.passive.implied.service.mode.tooltip').format(this.get('content.service.serviceName'));
       }
     return '';
@@ -108,7 +108,7 @@ App.HostComponentView = Em.View.extend({
     }
 
     //Class when maintenance
-    if (this.get('content.passiveState') != "ACTIVE") {
+    if (this.get('content.passiveState') != "OFF") {
       return 'icon-medkit';
     }
 
@@ -189,11 +189,11 @@ App.HostComponentView = Em.View.extend({
   }.property('workStatus'),
 
   /**
-   * For ACTIVE <code>passiveState</code> of host component
+   * For OFF <code>passiveState</code> of host component
    * @type {bool}
    */
   isActive: function () {
-    return (this.get('content.passiveState') == "ACTIVE");
+    return (this.get('content.passiveState') == "OFF");
   }.property('content.passiveState'),
 
   /**
@@ -201,7 +201,7 @@ App.HostComponentView = Em.View.extend({
    * @type {bool}
    */
   isImplied: function() {
-    return (this.get('parentView.content.passiveState') === 'PASSIVE' || this.get('content.service.passiveState') === 'PASSIVE');
+    return (this.get('parentView.content.passiveState') === 'ON' || this.get('content.service.passiveState') === 'ON');
   }.property('parentView.content.passiveState', 'content.service.passiveState'),
 
   /**

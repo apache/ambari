@@ -171,8 +171,8 @@ describe('MainHostController', function () {
         hosts: [
           Em.Object.create({
             hostComponents: Em.A([
-              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE', passiveState: 'ACTIVE'}),
-              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'ACTIVE'})
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE', passiveState: 'OFF'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'OFF'})
             ])
           })
         ],
@@ -186,8 +186,8 @@ describe('MainHostController', function () {
         hosts: [
           Em.Object.create({
             hostComponents: Em.A([
-              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE', passiveState: 'ACTIVE'}),
-              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'ACTIVE'})
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'NAMENODE', passiveState: 'OFF'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'OFF'})
             ])
           })
         ],
@@ -201,8 +201,8 @@ describe('MainHostController', function () {
         hosts: [
           Em.Object.create({
             hostComponents: Em.A([
-              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'INSTALLED', componentName: 'NAMENODE', passiveState: 'ACTIVE'}),
-              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'ACTIVE'})
+              Em.Object.create({isMaster: true, isSlave: false, host: {hostName:'host1'}, workStatus: 'INSTALLED', componentName: 'NAMENODE', passiveState: 'OFF'}),
+              Em.Object.create({isMaster: false, isSlave: true, host: {hostName:'host1'}, workStatus: 'STARTED', componentName: 'DATANODE', passiveState: 'OFF'})
             ])
           })
         ],
@@ -240,7 +240,7 @@ describe('MainHostController', function () {
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({passiveState: 'ACTIVE'}), Em.Object.create({passiveState: 'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({passiveState: 'OFF'}), Em.Object.create({passiveState: 'OFF'})])
           })
         ]),
         m: 'One host',
@@ -278,11 +278,11 @@ describe('MainHostController', function () {
       {
         hosts: Em.A([
           Em.Object.create({
-            passiveState: 'ACTIVE'
+            passiveState: 'OFF'
           })
         ]),
         operationData: {
-          state: 'ACTIVE'
+          state: 'OFF'
         },
         m: 'One host, but in state that should get',
         e: false
@@ -290,11 +290,11 @@ describe('MainHostController', function () {
       {
         hosts: Em.A([
           Em.Object.create({
-            passiveState: 'ACTIVE'
+            passiveState: 'OFF'
           })
         ]),
         operationData: {
-          state: 'PASSIVE'
+          state: 'ON'
         },
         m: 'One host with proper state',
         e: true
@@ -331,15 +331,15 @@ describe('MainHostController', function () {
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ACTIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           }),
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ACTIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           })
         ]),
         operationData: {
           componentName: 'CN',
-          state: 'ACTIVE'
+          state: 'OFF'
         },
         m: 'Two hosts with components in state that they should get',
         e: false
@@ -347,65 +347,65 @@ describe('MainHostController', function () {
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ACTIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           }),
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'PASSIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ON'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           })
         ]),
         operationData: {
           componentName: 'CN',
-          state: 'PASSIVE'
+          state: 'ON'
         },
-        m: 'One host with component in proper state (ACTIVE)',
+        m: 'One host with component in proper state (OFF)',
         e: true
       },
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ACTIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           }),
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'PASSIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ON'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           })
         ]),
         operationData: {
           componentName: 'CN',
-          state: 'PASSIVE'
+          state: 'ON'
         },
-        m: 'One host with component in proper state (PASSIVE)',
+        m: 'One host with component in proper state (ON)',
         e: true
       },
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ACTIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           }),
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'IMPLIED'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'IMPLIED'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           })
         ]),
         operationData: {
           componentName: 'CN',
-          state: 'PASSIVE'
+          state: 'ON'
         },
-        m: 'One host with component in proper state (ACTIVE)',
+        m: 'One host with component in proper state (OFF)',
         e: true
       },
       {
         hosts: Em.A([
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ACTIVE'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           }),
           Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'IMPLIED'}), Em.Object.create({componentName:'ACN',passiveState:'ACTIVE'})])
+            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'IMPLIED'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
           })
         ]),
         operationData: {
           componentName: 'CN',
-          state: 'ACTIVE'
+          state: 'OFF'
         },
-        m: 'One host with component in proper state (PASSIVE)',
+        m: 'One host with component in proper state (ON)',
         e: true
       }
     ];

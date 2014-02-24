@@ -129,7 +129,7 @@ App.RollingRestartView = Em.View.extend({
    */
   nonMaintainanceHostComponents : function() {
     return this.get('allHostComponents').filter(function(item) {
-      return item.get('passiveState') == 'ACTIVE';
+      return item.get('passiveState') == 'OFF';
     });
   }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
 

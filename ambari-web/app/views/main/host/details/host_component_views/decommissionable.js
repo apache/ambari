@@ -79,7 +79,7 @@ App.Decommissionable = Em.Mixin.create({
     }
 
     //Class when maintenance
-    if (this.get('content.passiveState') != "ACTIVE") {
+    if (this.get('content.passiveState') != "OFF") {
       return 'icon-medkit';
     }
 

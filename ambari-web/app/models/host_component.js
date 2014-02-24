@@ -158,7 +158,7 @@ App.HostComponent = DS.Model.extend({
    * @returns {String}
    */
   isActive: function() {
-    return (this.get('passiveState') == 'ACTIVE');
+    return (this.get('passiveState') == 'OFF');
   }.property('passiveState'),
 
   passiveTooltip: function() {

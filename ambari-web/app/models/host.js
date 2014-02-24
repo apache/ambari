@@ -93,7 +93,7 @@ App.Host = DS.Model.extend({
    */
   componentsInPassiveStateCount: function() {
     return this.get('hostComponents').filter(function(component) {
-      return component.get('passiveState') !== 'ACTIVE';
+      return component.get('passiveState') !== 'OFF';
     }).length;
   }.property('hostComponents.@each.passiveState'),
 
@@ -201,7 +201,7 @@ App.Host = DS.Model.extend({
    * @returns {String}
    */
   healthClass: function(){
-    if (this.get('passiveState')!= 'ACTIVE') {
+    if (this.get('passiveState')!= 'OFF') {
       return 'icon-medkit';
     }
     var statusMap = {
@@ -223,7 +223,7 @@ App.Host = DS.Model.extend({
       return item.get('workStatus') !== App.HostComponentStatus.started;
     });
     var output = '';
-    if (this.get('passiveState') != 'ACTIVE') {
+    if (this.get('passiveState') != 'OFF') {
       return Em.I18n.t('hosts.host.passive.mode');
     }
     switch (this.get('healthClass')){

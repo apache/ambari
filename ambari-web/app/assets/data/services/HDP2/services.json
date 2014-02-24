@@ -4,6 +4,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/GANGLIA",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "GANGLIA"
       },
@@ -18,6 +19,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/HBASE",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "HBASE"
       },
@@ -32,6 +34,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/HCATALOG",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "HCATALOG"
       },
@@ -46,6 +49,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/HDFS",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "HDFS"
       },
@@ -60,6 +64,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/MAPREDUCE2",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "MAPREDUCE2"
       },
@@ -74,6 +79,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/NAGIOS",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "NAGIOS"
       },
@@ -88,6 +94,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/OOZIE",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "OOZIE"
       },
@@ -102,6 +109,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/SQOOP",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "SQOOP"
       },
@@ -116,6 +124,7 @@
 		{
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/PIG",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "PIG"
       },
@@ -130,6 +139,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/YARN",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "YARN"
       },
@@ -144,6 +154,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/ZOOKEEPER",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "ZOOKEEPER"
       },
@@ -158,6 +169,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/FALCON",
       "ServiceInfo" : {
+        "maintenance_state" : "OFF",
         "cluster_name" : "cl",
         "service_name" : "FALCON"
       },
@@ -172,6 +184,7 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/STORM",
       "ServiceInfo" : {
+        "maintenance_state" : "ON",
         "cluster_name" : "cl",
         "service_name" : "STORM"
       },
@@ -186,7 +199,8 @@
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/TEZ",
       "ServiceInfo" : {
-        "cluster_name" : "cl",
+        "maintenance_state" : "OFF",
+        "state": "STARTED",
         "service_name" : "TEZ"
       },
       "alerts" : {

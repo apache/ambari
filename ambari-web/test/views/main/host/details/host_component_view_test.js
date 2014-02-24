@@ -36,8 +36,8 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'PASSIVE'}),
-        m: 'PASSIVE state',
+        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'ON'}),
+        m: 'ON state',
         e: Em.I18n.t('hosts.component.passive.short.mode')
       },
       {
@@ -46,8 +46,8 @@ describe('App.HostComponentView', function() {
         e: Em.I18n.t('hosts.component.passive.short.mode')
       },
       {
-        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'ACTIVE'}),
-        m: 'ACTIVE state',
+        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'OFF'}),
+        m: 'OFF state',
         e: 'status'
       }
     ]);
@@ -65,21 +65,21 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: {service: {passiveState: 'PASSIVE'}},
-        parentView: {content: {passiveState: 'PASSIVE'}},
-        m: 'service in PASSIVE, host in PASSIVE',
+        content: {service: {passiveState: 'ON'}},
+        parentView: {content: {passiveState: 'ON'}},
+        m: 'service in ON, host in ON',
         e: Em.I18n.t('hosts.component.passive.implied.host.mode.tooltip')
       },
       {
-        content: {service: {passiveState: 'PASSIVE', serviceName:'SERVICE_NAME'}},
-        parentView: {content: {passiveState: 'ACTIVE'}},
-        m: 'service in PASSIVE, host in ACTIVE',
+        content: {service: {passiveState: 'ON', serviceName:'SERVICE_NAME'}},
+        parentView: {content: {passiveState: 'OFF'}},
+        m: 'service in ON, host in OFF',
         e: Em.I18n.t('hosts.component.passive.implied.service.mode.tooltip').format('SERVICE_NAME')
       },
       {
-        content: {service: {passiveState: 'ACTIVE'}},
-        parentView: {content: {passiveState: 'ACTIVE'}},
-        m: 'service in ACTIVE, host in ACTIVE',
+        content: {service: {passiveState: 'OFF'}},
+        parentView: {content: {passiveState: 'OFF'}},
+        m: 'service in OFF, host in OFF',
         e: ''
       }
     ]);
@@ -226,8 +226,8 @@ describe('App.HostComponentView', function() {
   describe('#isActive', function() {
 
     var tests = Em.A([
-      {passiveState: 'ACTIVE', e: true},
-      {passiveState: 'PASSIVE', e: false},
+      {passiveState: 'OFF', e: true},
+      {passiveState: 'ON', e: false},
       {passiveState: 'IMPLIED', e: false}
     ]);
 
@@ -244,27 +244,27 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: {service: {passiveState: 'PASSIVE'}},
-        parentView: {content: {passiveState: 'PASSIVE'}},
-        m: 'service in PASSIVE, host in PASSIVE',
+        content: {service: {passiveState: 'ON'}},
+        parentView: {content: {passiveState: 'ON'}},
+        m: 'service in ON, host in ON',
         e: true
       },
       {
-        content: {service: {passiveState: 'PASSIVE', serviceName:'SERVICE_NAME'}},
-        parentView: {content: {passiveState: 'ACTIVE'}},
-        m: 'service in PASSIVE, host in ACTIVE',
+        content: {service: {passiveState: 'ON', serviceName:'SERVICE_NAME'}},
+        parentView: {content: {passiveState: 'OFF'}},
+        m: 'service in ON, host in OFF',
         e: true
       },
       {
-        content: {service: {passiveState: 'ACTIVE', serviceName:'SERVICE_NAME'}},
-        parentView: {content: {passiveState: 'PASSIVE'}},
-        m: 'service in ACTIVE, host in PASSIVE',
+        content: {service: {passiveState: 'OFF', serviceName:'SERVICE_NAME'}},
+        parentView: {content: {passiveState: 'ON'}},
+        m: 'service in OFF, host in ON',
         e: true
       },
       {
-        content: {service: {passiveState: 'ACTIVE'}},
-        parentView: {content: {passiveState: 'ACTIVE'}},
-        m: 'service in ACTIVE, host in ACTIVE',
+        content: {service: {passiveState: 'OFF'}},
+        parentView: {content: {passiveState: 'OFF'}},
+        m: 'service in OFF, host in OFF',
         e: false
       }
     ]);
@@ -386,15 +386,15 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'OFF'}),
         e: 'health-status-color-red icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'OFF'}),
         e: 'health-status-color-blue icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'PASSIVE'}),
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ON'}),
         e: 'icon-medkit'
       },
       {
@@ -402,7 +402,7 @@ describe('App.HostComponentView', function() {
         e: 'icon-medkit'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
         e: 'health-status-started'
       }
     ]);

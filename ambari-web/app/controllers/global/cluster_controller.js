@@ -233,11 +233,11 @@ App.ClusterController = Em.Controller.extend({
       return false;
     }
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json' : '/data/dashboard/services.json';
-    var statusUrl = '/hosts?fields=Hosts/host_status,Hosts/passive_state,host_components/HostRoles/state,host_components/HostRoles/passive_state,alerts/summary&minimal_response=true';
+    var statusUrl = '/hosts?fields=Hosts/host_status,Hosts/maintenance_state,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,alerts/summary&minimal_response=true';
     if (isInitialLoad) {
       testUrl = '/data/hosts/HDP2/hosts_init.json';
-      statusUrl = '/hosts?fields=Hosts/host_name,Hosts/passive_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
-        'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/passive_state,' +
+      statusUrl = '/hosts?fields=Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/total_mem,' +
+        'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,' +
         'Hosts/disk_info,metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,' +
         'metrics/memory/mem_total,metrics/memory/mem_free,alerts/summary&minimal_response=true';
     }

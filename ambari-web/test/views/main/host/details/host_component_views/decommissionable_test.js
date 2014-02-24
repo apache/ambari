@@ -99,17 +99,17 @@ describe('App.Decommissionable', function() {
 
     var tests = Em.A([
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: App.HostComponentStatus.install_failed,passiveState: 'OFF'}),
         isComponentRecommissionAvailable: false,
         e: 'health-status-color-red icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: App.HostComponentStatus.installing, passiveState: 'OFF'}),
         isComponentRecommissionAvailable: false,
         e: 'health-status-color-blue icon-cog'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'PASSIVE'}),
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ON'}),
         isComponentRecommissionAvailable: false,
         e: 'icon-medkit'
       },
@@ -119,22 +119,22 @@ describe('App.Decommissionable', function() {
         e: 'icon-medkit'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
         isComponentRecommissionAvailable: false,
         e: 'health-status-started'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
         isComponentRecommissionAvailable: true,
         e: 'health-status-DEAD-ORANGE'
       },
       {
-        content: Em.Object.create({workStatus: 'STARTING', passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: 'STARTING', passiveState: 'OFF'}),
         isComponentRecommissionAvailable: true,
         e: 'health-status-DEAD-ORANGE'
       },
       {
-        content: Em.Object.create({workStatus: 'INSTALLED', passiveState: 'ACTIVE'}),
+        content: Em.Object.create({workStatus: 'INSTALLED', passiveState: 'OFF'}),
         isComponentRecommissionAvailable: true,
         e: 'health-status-DEAD-ORANGE'
       }

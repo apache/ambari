@@ -195,8 +195,8 @@ App.MainServiceItemController = Em.Controller.extend({
 
   turnOnOffPassive: function(label) {
     var self = this;
-    var state = this.get('content.passiveState') == 'ACTIVE' ? 'PASSIVE' : 'ACTIVE';
-    var onOff = state === 'PASSIVE' ? "On" : "Off";
+    var state = this.get('content.passiveState') == 'OFF' ? 'ON' : 'OFF';
+    var onOff = state === 'ON' ? "On" : "Off";
     App.showConfirmationPopup(function() {
           self.turnOnOffPassiveRequest(state, label)
         },

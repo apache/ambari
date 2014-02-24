@@ -57,14 +57,14 @@ App.statusMapper = App.QuickDataMapper.create({
 
           if (existedComponent || existedPassiveComponent) {
             //update host-components, which have status changed
-            if (existedComponent !== host_component.HostRoles.state || existedPassiveComponent !== host_component.HostRoles.passive_state) {
+            if (existedComponent !== host_component.HostRoles.state || existedPassiveComponent !== host_component.HostRoles.maintenance_state) {
               updatedHostComponents.push(host_component);
             }
           } else {
             addedHostComponents.push({
               id: host_component.id,
               component_name: host_component.HostRoles.component_name,
-              passive_state: host_component.HostRoles.passive_state,
+              passive_state: host_component.HostRoles.maintenance_state,
               work_status: host_component.HostRoles.state,
               host_id: hostName,
               service_id: service
@@ -73,7 +73,7 @@ App.statusMapper = App.QuickDataMapper.create({
             if (hostsCache[hostName]) hostsCache[hostName].is_modified = true;
           }
           currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
-          currentComponentPassiveStates[host_component.id] = host_component.HostRoles.passive_state;
+          currentComponentPassiveStates[host_component.id] = host_component.HostRoles.maintenance_state;
           //host-components to host relations
           hostComponentsOnHost.push(host_component.id);
           //host-component to service relations
@@ -109,7 +109,7 @@ App.statusMapper = App.QuickDataMapper.create({
         var hostComponentRecord = hostComponentRecordsMap[hostComponent.id];
         if (hostComponentRecord) {
           hostComponentRecord.set('workStatus', hostComponent.HostRoles.state);
-          hostComponentRecord.set('passiveState', hostComponent.HostRoles.passive_state);
+          hostComponentRecord.set('passiveState', hostComponent.HostRoles.maintenance_state);
         }
       }, this);
 

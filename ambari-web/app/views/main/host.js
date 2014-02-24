@@ -233,7 +233,7 @@ App.MainHostView = App.TableView.extend({
      */
     componentsInPassiveStateMessage: function() {
       var componentsInPassiveState = this.get('content.hostComponents').filter(function(component) {
-        return component.get('passiveState') !== 'ACTIVE';
+        return component.get('passiveState') !== 'OFF';
       });
       var count = componentsInPassiveState.length;
       if (count <= 5) {
