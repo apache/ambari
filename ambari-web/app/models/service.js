@@ -60,6 +60,11 @@ App.Service = DS.Model.extend({
     return this.get('workStatus') === 'STARTED';
   }.property('workStatus'),
 
+  isClientsOnly: function() {
+    var clientsOnly = ['SQOOP','PIG','TEZ'];
+    return clientsOnly.contains(this.get('serviceName'));
+  }.property('serviceName'),
+
   isConfigurable: function () {
     var configurableServices = [
       "HDFS",
@@ -72,7 +77,6 @@ App.Service = DS.Model.extend({
       "WEBHCAT",
       "ZOOKEEPER",
       "PIG",
-      "SQOOP",
       "NAGIOS",
       "GANGLIA",
       "HUE",
@@ -198,15 +202,15 @@ App.Service.servicesSortOrder = [
   'HCATALOG',
   'WEBHCAT',
   'FLUME',
+  'FALCON',
+  'STORM',
   'OOZIE',
   'GANGLIA',
   'NAGIOS',
   'ZOOKEEPER',
   'PIG',
   'SQOOP',
-  'HUE',
-  'FALCON',
-  'STORM'
+  'HUE'
 ];
 
 App.Service.FIXTURES = [];

@@ -28,40 +28,49 @@ App.MainServiceItemView = Em.View.extend({
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var disabled = this.get('controller.isStopDisabled');
     var serviceName = service.get('serviceName');
-    // Restart All action
-    options.push({action:'restartAllHostComponents', cssClass: 'icon-forward', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
-    // Rolling Restart action
-    var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
-    if (rrComponentName) {
-      var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
-      options.push({action:'rollingRestart', cssClass: 'icon-time', context: rrComponentName, 'label': label, disabled: false});
+
+    if (service.get('isClientsOnly')) {
+      var disableRefreshConfgis = !service.get('isRestartRequired');
+      if (serviceName != 'TEZ') {
+        options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke')});
+      }
+      options.push({action: 'refreshConfigs', cssClass: 'icon-refresh', 'label': Em.I18n.t('hosts.host.details.refreshConfigs'), disabled: disableRefreshConfgis});
+    } else {
+      // Restart All action
+      options.push({action:'restartAllHostComponents', cssClass: 'icon-forward', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
+      // Rolling Restart action
+      var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
+      if (rrComponentName) {
+        var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
+        options.push({action:'rollingRestart', cssClass: 'icon-time', context: rrComponentName, 'label': label, disabled: false});
+      }
+      // Service Check and Reassign Master actions
+      switch (serviceName) {
+        case 'GANGLIA':
+        case 'NAGIOS':
+          break;
+        case 'YARN':
+        case 'HDFS':
+        case 'MAPREDUCE':
+          if (App.supports.reassignMaster && hosts > 1) {
+            allMasters.forEach(function (hostComponent) {
+              if (App.get('components.reassignable').contains(hostComponent)) {
+                options.push({action: 'reassignMaster', context: hostComponent, cssClass: 'icon-share-alt',
+                  'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
+              }
+            })
+          }
+        default:
+          options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
+      }
+      var requestLabel = service.get('passiveState') === "ACTIVE" ?
+          Em.I18n.t('passiveState.turnOnFor').format(App.Service.DisplayNames[serviceName]) :
+          Em.I18n.t('passiveState.turnOffFor').format(App.Service.DisplayNames[serviceName]);
+      var passiveLabel = service.get('passiveState') === "ACTIVE" ?
+          Em.I18n.t('passiveState.turnOn') :
+          Em.I18n.t('passiveState.turnOff');
+      options.push({action:'turnOnOffPassive', cssClass: 'icon-medkit', context:requestLabel, 'label':passiveLabel , disabled: false});
     }
-    // Service Check and Reassign Master actions
-    switch (serviceName) {
-      case 'GANGLIA':
-      case 'NAGIOS':
-        break;
-      case 'YARN':
-      case 'HDFS':
-      case 'MAPREDUCE':
-        if (App.supports.reassignMaster && hosts > 1) {
-          allMasters.forEach(function (hostComponent) {
-            if (App.get('components.reassignable').contains(hostComponent)) {
-              options.push({action: 'reassignMaster', context: hostComponent, cssClass: 'icon-share-alt', 
-                'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
-            }
-          })
-        }
-      default:
-        options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
-    }
-    var requestLabel = service.get('passiveState') === "ACTIVE" ?
-      Em.I18n.t('passiveState.turnOnFor').format(App.Service.DisplayNames[serviceName]) :
-      Em.I18n.t('passiveState.turnOffFor').format(App.Service.DisplayNames[serviceName]);
-    var passiveLabel = service.get('passiveState') === "ACTIVE" ?
-      Em.I18n.t('passiveState.turnOn') :
-      Em.I18n.t('passiveState.turnOff');
-    options.push({action:'turnOnOffPassive', cssClass: 'icon-medkit', context:requestLabel, 'label':passiveLabel , disabled: false});
     return options;
   }.property('controller.content', 'controller.isStopDisabled'),
   isMaintenanceActive: function() {

@@ -71,6 +71,12 @@
             {{#if view.serviceStatus.tez}}
               {{template "templates/main/service/info/summary/tez"}}
             {{/if}}
+            {{#if view.serviceStatus.pig}}
+              {{template "templates/main/service/info/summary/pig"}}
+            {{/if}}
+            {{#if view.serviceStatus.sqoop}}
+              {{template "templates/main/service/info/summary/sqoop"}}
+            {{/if}}
           </tbody>
         </table>
       </div>

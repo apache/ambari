@@ -50,22 +50,24 @@
         <!-- dropdown menu links -->
 
         <!-- Start/Stop service actions -->
-        {{#if controller.isServiceRestartable}}
-          <li {{bindAttr class="controller.isStartDisabled:disabled"}}>
-            <a href="javascript:void(null)" {{bindAttr class="controller.isStartDisabled:disabled" }}
-              {{action "startService" target="controller"}}>
-              <i {{bindAttr class=":icon-play controller.isStartDisabled:disabled:enabled" }}></i>
-              {{t services.service.start}}
-            </a>
-          </li>
-          <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
-            <a href="javascript:void(null)" {{bindAttr class="controller.isStopDisabled:disabled" }}
-              data-toggle="modal" {{action "stopService" target="controller"}}>
-              <i {{bindAttr class=":icon-stop controller.isStopDisabled:disabled:enabled" }}></i>
-              {{t services.service.stop}}
-            </a>
-          </li>
-        {{/if}}
+        {{#unless controller.content.isClientsOnly}}
+          {{#if controller.isServiceRestartable}}
+            <li {{bindAttr class="controller.isStartDisabled:disabled"}}>
+              <a href="javascript:void(null)" {{bindAttr class="controller.isStartDisabled:disabled" }}
+                {{action "startService" target="controller"}}>
+                <i {{bindAttr class=":icon-play controller.isStartDisabled:disabled:enabled" }}></i>
+                {{t services.service.start}}
+              </a>
+            </li>
+            <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
+              <a href="javascript:void(null)" {{bindAttr class="controller.isStopDisabled:disabled" }}
+                data-toggle="modal" {{action "stopService" target="controller"}}>
+                <i {{bindAttr class=":icon-stop controller.isStopDisabled:disabled:enabled" }}></i>
+                {{t services.service.stop}}
+              </a>
+            </li>
+          {{/if}}
+        {{/unless}}
 
         <!-- Other service actions -->
         {{#each option in view.maintenance}}

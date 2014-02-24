@@ -285,6 +285,18 @@ App.MainServiceItemController = Em.Controller.extend({
     }
   },
 
+  /**
+   * Restart clients host components to apply config changes
+   */
+  refreshConfigs: function() {
+    var self = this;
+    if (this.get('content.isClientsOnly')) {
+      App.showConfirmationPopup(function() {
+        batchUtils.restartHostComponents(self.get('content.hostComponents'));
+      });
+    }
+  },
+
   setStartStopState: function () {
     var serviceName = this.get('content.serviceName');
     var backgroundOperations = App.router.get('backgroundOperationsController.services');
@@ -309,13 +321,11 @@ App.MainServiceItemController = Em.Controller.extend({
 
   isStartDisabled: function () {
     if(this.get('isPending')) return true;
-    if (this.get('content.serviceName') == 'TEZ') return true;
     return !(this.get('content.healthStatus') == 'red');
   }.property('content.healthStatus','isPending'),
 
   isStopDisabled: function () {
     if(this.get('isPending')) return true;
-    if (this.get('content.serviceName') == 'TEZ') return true;
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }

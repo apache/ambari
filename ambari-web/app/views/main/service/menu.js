@@ -20,7 +20,7 @@ var App = require('app');
 var misc = require('utils/misc');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
-  disabledServices: ['PIG', 'SQOOP', 'HCATALOG'],
+  disabledServices: ['HCATALOG'],
 
   content:function () {
     var items = App.router.get('mainServiceController.content').filter(function(item){
@@ -75,7 +75,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 
     link: function() {
       var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
-        ? App.router.get('currentState.name')
+        ? this.get('content.isConfigurable') ?  App.router.get('currentState.name') : 'summary'
         : 'summary';
       return "#/main/services/" + this.get('content.id') + "/" + stateName;
     }.property('App.router.currentState.name', 'parentView.activeServiceId'),

@@ -59,6 +59,9 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   },
 
   healthStatus: function () {
+    if (this.get('service.isClientsOnly')) {
+      return 'icon-laptop';
+    }
     if (this.get('service.passiveState') != 'ACTIVE') {
       return 'icon-medkit';
     }
@@ -86,7 +89,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     }
 
     return 'health-status-' + status;
-  }.property('service.healthStatus','service.passiveState'),
+  }.property('service.healthStatus','service.passiveState','service.isClientsOnly'),
 
   didInsertElement: function () {
     this.updateToolTip();

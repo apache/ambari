@@ -1350,6 +1350,10 @@ Em.I18n.translations = {
 
   'services.tez.client': 'Tez client',
   'services.tez.clients': 'Tez clients',
+  'services.pig.client': 'Pig client',
+  'services.pig.clients': 'Pig clients',
+  'services.sqoop.client': 'Sqoop client',
+  'services.sqoop.clients': 'Sqoop clients',
 
   'services.hbase.master.error':'None of the HBase masters is active',
 
