@@ -74,8 +74,11 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     }.property('content.criticalAlertsCount'),
 
     link: function() {
-      return "#/main/services/" + this.get('content.id') + "/" + App.router.get('currentState.name');
-    }.property('App.router.currentState.name'),
+      var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
+        ? App.router.get('currentState.name')
+        : 'summary';
+      return "#/main/services/" + this.get('content.id') + "/" + stateName;
+    }.property('App.router.currentState.name', 'parentView.activeServiceId'),
 
     refreshRestartRequiredMessage: function() {
       var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
