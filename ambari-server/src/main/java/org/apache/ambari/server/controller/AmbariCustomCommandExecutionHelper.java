@@ -64,6 +64,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
@@ -83,7 +84,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 
 
 /**
@@ -110,6 +110,7 @@ public class AmbariCustomCommandExecutionHelper {
   private static String DECOM_SLAVE_COMPONENT = "slave_type";
   private static String HBASE_MARK_DRAINING_ONLY = "mark_draining_only";
   private static String UPDATE_EXCLUDE_FILE_ONLY = "update_exclude_file_only";
+  private static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
   @Inject
   private ActionMetadata actionMetadata;
   @Inject
@@ -124,7 +125,6 @@ public class AmbariCustomCommandExecutionHelper {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private ConfigHelper configHelper;
-
 
   private Boolean isServiceCheckCommand(String command, String service) {
     List<String> actions = actionMetadata.getActions(service);
@@ -291,8 +291,8 @@ public class AmbariCustomCommandExecutionHelper {
       String commandTimeout = configs.getDefaultAgentTaskTimeout();
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-        stackId.getStackName(), stackId.getStackVersion(),
-        serviceName, componentName);
+          stackId.getStackName(), stackId.getStackVersion(),
+          serviceName, componentName);
 
       if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
         // Service check command is not custom command
@@ -557,18 +557,24 @@ public class AmbariCustomCommandExecutionHelper {
       }
     }
 
+    String alignMtnStateStr = request.getParameters().get(ALIGN_MAINTENANCE_STATE);
+    boolean alignMtnState = "true".equals(alignMtnStateStr);
     // Set/reset decommissioned flag on all components
     List<String> listOfExcludedHosts = new ArrayList<String>();
     for (ServiceComponentHost sch : svcComponents.get(slaveCompType).getServiceComponentHosts().values()) {
       if (excludedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
         listOfExcludedHosts.add(sch.getHostName());
-        sch.setPassiveState(PassiveState.PASSIVE);
+        if (alignMtnState) {
+          sch.setPassiveState(PassiveState.PASSIVE);
+        }
         LOG.info("Decommissioning " + slaveCompType + " and marking it PASSIVE on " + sch.getHostName());
       }
       if (includedHosts.contains(sch.getHostName())) {
         sch.setComponentAdminState(HostComponentAdminState.INSERVICE);
-        sch.setPassiveState(PassiveState.ACTIVE);
+        if (alignMtnState) {
+          sch.setPassiveState(PassiveState.ACTIVE);
+        }
         LOG.info("Recommissioning " + slaveCompType + " and marking it ACTIVE on " + sch.getHostName());
       }
     }
@@ -679,8 +685,8 @@ public class AmbariCustomCommandExecutionHelper {
     if (!scHost.getHostName().equals(jobtrackerHost)) {
       if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
         configHelper.applyCustomConfig(
-          configurations, Configuration.GLOBAL_CONFIG_TAG,
-          Configuration.RCA_ENABLED_PROPERTY, "false", false);
+            configurations, Configuration.GLOBAL_CONFIG_TAG,
+            Configuration.RCA_ENABLED_PROPERTY, "false", false);
       }
     }
 
@@ -781,7 +787,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     Map<String, String> roleParams = new TreeMap<String, String>();
     execCmd.setRoleParams(roleParams);
-    
+
     execCmd.setPassiveInfo(PassiveStateHelper.getPassiveHostComponents(clusters, cluster));
   }
 
@@ -789,14 +795,14 @@ public class AmbariCustomCommandExecutionHelper {
     StackId stackId = cluster.getDesiredStackVersion();
 
     Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
-      stackId.getStackName(), stackId.getStackVersion());
+        stackId.getStackName(), stackId.getStackVersion());
     String repoInfo = "";
     if (!repos.containsKey(host.getOsType())) {
       // FIXME should this be an error?
       LOG.warn("Could not retrieve repo information for host"
-        + ", hostname=" + host.getHostName()
-        + ", clusterName=" + cluster.getClusterName()
-        + ", stackInfo=" + stackId.getStackId());
+          + ", hostname=" + host.getHostName()
+          + ", clusterName=" + cluster.getClusterName()
+          + ", stackInfo=" + stackId.getStackId());
     } else {
       repoInfo = gson.toJson(repos.get(host.getOsType()));
     }

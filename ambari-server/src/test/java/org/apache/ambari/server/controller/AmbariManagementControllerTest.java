@@ -2346,6 +2346,7 @@ public class AmbariManagementControllerTest {
     // Decommission one RS
     Map<String, String> params = new HashMap<String, String>() {{
       put("excluded_hosts", "h2");
+      put("align_maintenance_state", "true");
     }};
     ExecuteActionRequest request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HBASE", "HBASE_MASTER",
         null, params);
@@ -2387,6 +2388,7 @@ public class AmbariManagementControllerTest {
           put("excluded_hosts", "h2");
           put("mark_draining_only", "true");
           put("slave_type", "HBASE_REGIONSERVER");
+          put("align_maintenance_state", "true");
         }};
     request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HBASE", "HBASE_MASTER", null, params);
 
@@ -2426,7 +2428,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
-    Assert.assertEquals(PassiveState.ACTIVE, scHost.getPassiveState());
+    Assert.assertEquals(PassiveState.PASSIVE, scHost.getPassiveState());
     command = storedTasks.get(0);
     Assert.assertTrue("DECOMMISSION, Included: h2".equals(command.getCommandDetail()));
     Assert.assertTrue("DECOMMISSION".equals(command.getCustomCommandName()));
@@ -5955,6 +5957,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> params = new HashMap<String, String>(){{
       put("test", "test");
       put("excluded_hosts", "h2");
+      put("align_maintenance_state", "true");
     }};
     ExecuteActionRequest request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HDFS", "NAMENODE",
         null, params);
@@ -5987,6 +5990,7 @@ public class AmbariManagementControllerTest {
     params = new HashMap<String, String>(){{
       put("test", "test");
       put("excluded_hosts", "h1");
+      put("align_maintenance_state", "true");
     }};
     request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HDFS", "NAMENODE", null, params);
 
@@ -6027,6 +6031,7 @@ public class AmbariManagementControllerTest {
     params = new HashMap<String, String>(){{
       put("test", "test");
       put("included_hosts", "h1 , h2");
+      put("align_maintenance_state", "true");
     }};
     request = new ExecuteActionRequest(clusterName, "DECOMMISSION", null, "HDFS", "NAMENODE", null, params);
 
