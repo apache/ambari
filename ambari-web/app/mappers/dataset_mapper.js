@@ -41,7 +41,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
   },
   jobs_config: {
     id: 'id',
-    name: 'id',
+    name: 'name',
     status : 'status',
     start_date: 'startTime',
     end_date: 'endTime',

@@ -49,6 +49,12 @@ App.MainDatasetJobsView = App.TableView.extend({
     displayName: Em.I18n.t('mirroring.table.end'),
     type: 'number'
   }),
+  statusSort: sort.fieldView.extend({
+    column: 4,
+    name: 'statusFormatted',
+    displayName: Em.I18n.t('mirroring.table.status'),
+    type: 'string'
+  }),
 
   /**
    * Filter view for name column
@@ -72,11 +78,29 @@ App.MainDatasetJobsView = App.TableView.extend({
   }),
 
   endFilterView: filters.createSelectView({
-    fieldType: 'input-medium',
+    fieldType: 'input-small',
     column: 3,
     content: ['Any', 'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days'],
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
+    }
+  }),
+
+  statusFilterView: filters.createSelectView({
+    fieldType: 'input-small',
+    column: 4,
+    content: ['Any', 'Waiting', 'Running', 'Suspended', 'Killed', 'Failed', 'Succeeded', 'Error'],
+    onClearValue: function () {
+      if (this.get('value') === '') {
+        this.set('value', 'Any');
+      }
+    }.observes('value'),
+    onChangeValue: function () {
+      var value = this.get('value');
+      if (value === 'Any') {
+        value = '';
+      }
+      this.get('parentView').updateFilter(this.get('column'), value, 'string');
     }
   }),
 
@@ -165,6 +189,7 @@ App.MainDatasetJobsView = App.TableView.extend({
     associations[1] = 'name';
     associations[2] = 'startDate';
     associations[3] = 'endDate';
+    associations[4] = 'statusFormatted';
     return associations;
   }.property()
 

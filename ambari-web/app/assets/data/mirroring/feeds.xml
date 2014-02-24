@@ -1,22 +1,18 @@
-<?xml version="1.0"?>
-<feed description="" name="dataset1" xmlns="uri:falcon:feed:0.1">
-    <frequency>minutes(10)</frequency>
-    <clusters>
-        <cluster name="mycluster" type="source">
-            <validity start="2014-02-17T06:00Z" end="2014-02-19T01:00Z"/>
-            <retention limit="days(7)" action="delete"/>
-        </cluster>
-        <cluster name="cluster1" type="target">
-            <validity start="2014-02-17T06:00Z" end="2014-02-17T06:00Z"/>
-            <retention limit="months(1)" action="delete"/>
-            <locations>
-                <location type="data" path="/backup/app-logs"/>
-            </locations>
-        </cluster>
-    </clusters>
-    <locations>
-        <location type="data" path="/app-logs"/>
-    </locations>
-    <ACL owner="hue" group="users" permission="0755"/>
-    <schema location="/none" provider="none"/>
-</feed>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entities>
+    <entity>
+        <type>feed</type>
+        <name>dataset1</name>
+        <status>RUNNING</status>
+    </entity>
+    <entity>
+        <type>feed</type>
+        <name>dataset2</name>
+        <status>RUNNING</status>
+    </entity>
+    <entity>
+        <type>feed</type>
+        <name>dataset3</name>
+        <status>RUNNING</status>
+    </entity>
+</entities>

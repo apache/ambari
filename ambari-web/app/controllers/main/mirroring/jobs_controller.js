@@ -105,6 +105,48 @@ App.MainDatasetJobsController = Em.Controller.extend({
     App.store.commit();
   },
 
+  suspendInstance: function (event) {
+    App.ajax.send({
+      name: 'mirroring.suspend_instance',
+      sender: this,
+      data: {
+        feed: this.get('content.name'),
+        name: event.context.get('name'),
+        job: event.context,
+        falconServer: App.get('falconServerURL')
+      },
+      error: 'onError'
+    });
+  },
+
+  resumeInstance: function (event) {
+    App.ajax.send({
+      name: 'mirroring.resume_instance',
+      sender: this,
+      data: {
+        feed: this.get('content.name'),
+        name: event.context.get('name'),
+        job: event.context,
+        falconServer: App.get('falconServerURL')
+      },
+      error: 'onError'
+    });
+  },
+
+  killInstance: function (event) {
+    App.ajax.send({
+      name: 'mirroring.kill_instance',
+      sender: this,
+      data: {
+        feed: this.get('content.name'),
+        name: event.context.get('name'),
+        job: event.context,
+        falconServer: App.get('falconServerURL')
+      },
+      error: 'onError'
+    });
+  },
+
   onError: function () {
     App.showAlertPopup(Em.I18n.t('common.error'), arguments[2]);
   },

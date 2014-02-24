@@ -1825,6 +1825,7 @@ Em.I18n.translations = {
   'mirroring.table.jobId':'Instance ID',
   'mirroring.table.start':'Start',
   'mirroring.table.end':'End',
+  'mirroring.table.status':'Status',
 
   'mirroring.required.error': 'This field is required',
   'mirroring.dateOrder.error': 'End Date must be after Start Date',

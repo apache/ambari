@@ -27,6 +27,18 @@ App.DataSetJob = DS.Model.extend({
   startDate: DS.attr('number'),
   endDate: DS.attr('number'),
 
+  statusFormatted: function () {
+    return this.get('status').toLowerCase().capitalize();
+  }.property('status'),
+
+  isCompleted: function () {
+    return ['KILLED', 'FAILED', 'SUCCEEDED', 'ERROR'].contains(this.get('status'));
+  }.property('status'),
+
+  isSuspended: function () {
+    return this.get('status') === 'SUSPENDED';
+  }.property('status'),
+
   startFormatted: function () {
     if (this.get('startDate')) {
       return $.timeago(this.get('startDate'));

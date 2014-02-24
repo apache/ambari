@@ -151,7 +151,8 @@ App.MainMirroringController = Em.ArrayController.extend({
       data.instances.forEach(function (instance) {
         datasetJobs.push({
           dataset: opts.dataset,
-          id: instance.instance,
+          id: instance.instance + '_' + opts.dataset,
+          name: instance.instance,
           status: instance.status,
           endTime: new Date(instance.endTime).getTime(),
           startTime: new Date(instance.startTime).getTime()

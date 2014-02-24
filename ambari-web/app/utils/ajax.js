@@ -1582,6 +1582,48 @@ var urls = {
     }
   },
 
+  'mirroring.suspend_instance': {
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/suspend/feed/{feed}?start={name}',
+    'mock': '/data/mirroring/succeeded.json',
+    'apiPrefix': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        headers: {
+          'AmbariProxy-Remote-user': 'ambari-qa'
+        }
+      }
+    }
+  },
+
+  'mirroring.resume_instance': {
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/resume/feed/{feed}?start={name}',
+    'mock': '/data/mirroring/succeeded.json',
+    'apiPrefix': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        headers: {
+          'AmbariProxy-Remote-user': 'ambari-qa'
+        }
+      }
+    }
+  },
+
+  'mirroring.kill_instance': {
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/kill/feed/{feed}?start={name}',
+    'mock': '/data/mirroring/succeeded.json',
+    'apiPrefix': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        headers: {
+          'AmbariProxy-Remote-user': 'ambari-qa'
+        }
+      }
+    }
+  },
+
   'bulk_request.host_components': {
     'real': '/clusters/{clusterName}/host_components',
     'mock': '',

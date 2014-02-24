@@ -42,42 +42,29 @@
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu pull-right">
-          {{#if view.dataset.isRunning}}
+          {{#if view.dataset.isSuspended}}
             <li>
-              <a href="javascript:void(null);" {{action suspend target="controller"}}>
-                {{t mirroring.dataset.suspendInstance}}
-              </a>
-            </li>
-            <li>
-              <a href="javascript:void(null);">
-                {{t mirroring.dataset.killInstance}}
+              <a href="javascript:void(null);" {{action schedule target="controller"}}>
+                {{t mirroring.dataset.schedule}}
               </a>
             </li>
           {{else}}
-            {{#if view.dataset.isSuspended}}
-              <li>
-                <a href="javascript:void(null);" {{action schedule target="controller"}}>
-                  {{t mirroring.dataset.schedule}}
-                </a>
-              </li>
-            {{else}}
-              <li>
-                <a href="javascript:void(null);" {{action suspend target="controller"}}>
-                  {{t mirroring.dataset.suspend}}
-                </a>
-              </li>
-            {{/if}}
             <li>
-              <a {{action editDataset}} href="javascript:void(null);">
-                {{t common.edit}}
-              </a>
-            </li>
-            <li>
-              <a href="javascript:void(null);" {{action delete target="controller"}}>
-                {{t common.delete}}
+              <a href="javascript:void(null);" {{action suspend target="controller"}}>
+                {{t mirroring.dataset.suspend}}
               </a>
             </li>
           {{/if}}
+          <li>
+            <a {{action editDataset}} href="javascript:void(null);">
+              {{t common.edit}}
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(null);" {{action delete target="controller"}}>
+              {{t common.delete}}
+            </a>
+          </li>
         </ul>
       </div>
       <span {{bindAttr class=":label view.dataset.isRunning:label-info  view.dataset.isSuspended:label-warning  view.dataset.isScheduled:label-success :pull-right :dataset-status"}}>
@@ -96,6 +83,7 @@
       {{view view.parentView.idSort}}
       {{view view.parentView.startSort}}
       {{view view.parentView.endSort}}
+      {{view view.parentView.statusSort}}
       {{/view}}
     </tr>
     <tr class="filter-row">
@@ -103,34 +91,60 @@
       <th>{{view view.idFilterView}}</th>
       <th>{{view view.startFilterView}}</th>
       <th>{{view view.endFilterView}}</th>
+      <th>{{view view.statusFilterView}}</th>
     </tr>
     </thead>
     <tbody>
     {{#if controller.isLoaded}}
       {{#if view.pageContent}}
         {{#each job in view.pageContent}}
-        {{#view view.JobView contentBinding="job"}}
+          {{#view view.JobView contentBinding="job"}}
+          <td class="first">
+            <span {{ bindAttr class="job.healthClass"}}></span>
+          </td>
 
-        <td class="first">
-          <span {{ bindAttr class="job.healthClass"}}></span>
-        </td>
-
-        <td>{{unbound job.id}}</td>
-        <td>{{unbound job.startFormatted}}</td>
-        <td>{{unbound job.endFormatted}}</td>
-        {{/view}}
+          <td>{{unbound job.name}}</td>
+          <td>{{unbound job.startFormatted}}</td>
+          <td>{{unbound job.endFormatted}}</td>
+          <td>
+            {{#if job.isCompleted}}
+              {{job.statusFormatted}}
+            {{else}}
+              <div class="btn-group display-inline-block">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                  {{job.statusFormatted}}
+                  <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                  {{#if job.isSuspended}}
+                    <li>
+                      <a href="javascript:void(null)" {{action resumeInstance job target="controller"}}>{{t mirroring.dataset.resumeInstance}}</a>
+                    </li>
+                  {{else}}
+                    <li>
+                      <a href="javascript:void(null)" {{action suspendInstance job target="controller"}}>{{t mirroring.dataset.suspendInstance}}</a>
+                    </li>
+                  {{/if}}
+                  <li>
+                    <a href="javascript:void(null)" {{action killInstance job target="controller"}}>{{t mirroring.dataset.killInstance}}</a>
+                  </li>
+                </ul>
+              </div>
+            {{/if}}
+          </td>
+          {{/view}}
         {{/each}}
       {{else}}
         <tr>
           <td class="first"></td>
-          <td colspan="3">
+          <td colspan="4">
             {{t mirroring.table.noJobs}}
           </td>
         </tr>
       {{/if}}
     {{else}}
       <tr>
-        <td colspan="4">
+        <td colspan="5">
           <div class="spinner"></div>
         </td>
       </tr>
