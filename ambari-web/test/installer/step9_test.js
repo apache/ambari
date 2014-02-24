@@ -598,7 +598,6 @@ describe('App.InstallerStep9Controller', function () {
       expect(controller.get('hosts.length')).to.equal(0);
       expect(controller.get('status')).to.equal('info');
       expect(controller.get('progress')).to.equal('0');
-      expect(controller.get('isStepCompleted')).to.equal(false);
       expect(controller.get('numPolls')).to.equal(1);
     });
   });
@@ -771,110 +770,6 @@ describe('App.InstallerStep9Controller', function () {
       var controller = App.WizardStep9Controller.create({content: {cluster: {status: 'FAKE_STATUS'}}});
       var result = controller.finishState();
       expect(result).to.equal(false);
-    });
-  });
-
-  describe('#setTasksPerHost', function () {
-    var tests = [
-      {
-        hosts: [
-          Em.Object.create({
-            name: 'host1',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          }),
-          Em.Object.create({
-            name: 'host2',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          }),
-          Em.Object.create({
-            name: 'host3',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          })
-        ],
-        polledData: [
-          {Tasks: {host_name: 'host1'}},
-          {Tasks: {host_name: 'host1'}},
-          {Tasks: {host_name: 'host1'}},
-          {Tasks: {host_name: 'host2'}},
-          {Tasks: {host_name: 'host2'}},
-          {Tasks: {host_name: 'host3'}}
-        ],
-        e: {
-          host1: {count: 3},
-          host2: {count: 2},
-          host3: {count: 1}
-        },
-        m: 'Several tasks for each host'
-      },
-      {
-        hosts: [
-          Em.Object.create({
-            name: 'host1',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          }),
-          Em.Object.create({
-            name: 'host2',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          }),
-          Em.Object.create({
-            name: 'host3',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          })
-        ],
-        polledData: [
-          {Tasks: {host_name: 'host1'}},
-          {Tasks: {host_name: 'host2'}}
-        ],
-        e: {
-          host1: {count: 1},
-          host2: {count: 1},
-          host3: {count: 0}
-        },
-        m: 'Some hosts without tasks'
-      },
-      {
-        hosts: Em.A([
-          Em.Object.create({
-            name: 'host1',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          }),
-          Em.Object.create({
-            name: 'host2',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          }),
-          Em.Object.create({
-            name: 'host3',
-            tasks: [],
-            bootStatus: 'REGISTERED'
-          })
-        ]),
-        polledData: [],
-        e: {
-          host1: {count: 0},
-          host2: {count: 0},
-          host3: {count: 0}
-        },
-        m: 'No tasks'
-      }
-    ];
-    tests.forEach(function (test) {
-      it(test.m, function () {
-        var controller = App.WizardStep9Controller.create({polledData: test.polledData, hosts: test.hosts});
-        controller.setTasksPerHost();
-        for (var name in test.e.hosts) {
-          if (test.e.hosts.hasOwnProperty(name)) {
-            expect(controller.get('hosts').findProperty('name', name).get('tasks.length')).to.equal(test.e[name].count);
-          }
-        }
-      });
     });
   });
 

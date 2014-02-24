@@ -41,6 +41,9 @@ App.MainServiceController = Em.ArrayController.extend({
       this.loadAvailableServices();
       availableServices = App.db.getServices();
     }
+    if (!App.supports.hue) {
+      availableServices = availableServices.without('HUE');
+    }
     return this.get('content.content').length == availableServices.length;
   }.property('content.content.@each', 'content.content.length'),
 
