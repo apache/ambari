@@ -24,23 +24,24 @@ App.MainHiveJobDetailsController = Em.Controller.extend({
   content : null,
   loaded : false,
   loadTimeout: null,
+  job: null,
 
-  loadJobDetails : function(job) {
+  loadJobDetails : function() {
     var self = this;
     var timeout = this.get('loadTimeout');
     var yarnService = App.YARNService.find().objectAt(0);
     if (yarnService != null) {
-      var self = this;
-      this.set('loaded', false);
-      if (job != null) {
-        jobsUtils.refreshJobDetails(job, function() {
+      var content = this.get('content');
+      if (content != null) {
+        jobsUtils.refreshJobDetails(content, function() {
+          self.set('content', self.get('job'));
           self.set('loaded', true);
         });
       }
     }else{
       clearTimeout(timeout);
       timeout = setTimeout(function(){
-        self.loadJobDetails(job);
+        self.loadJobDetails();
       }, 300);
     }
   },

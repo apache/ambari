@@ -126,6 +126,9 @@ module.exports = Em.Route.extend({
         });
       }
     },
+    exit: function(router) {
+      clearInterval(router.get('mainJobsController').jobsUpdate);
+    },
     index: Ember.Route.extend({
       route: '/',
       connectOutlets : function(router) {
@@ -135,6 +138,7 @@ module.exports = Em.Route.extend({
           });
         } else {
           router.get('mainJobsController').loadJobs();
+          router.get('mainJobsController').updateJobs('mainJobsController', 'refreshLoadedJobs');
           router.get('mainController').connectOutlet('mainJobs');
         }
       }
@@ -143,8 +147,9 @@ module.exports = Em.Route.extend({
       route : '/:job_id',
       connectOutlets : function(router, job) {
         if (job) {
-          router.get('mainHiveJobDetailsController').loadJobDetails(job);
-          router.get('mainController').connectOutlet('mainHiveJobDetails');
+          router.get('mainController').connectOutlet('mainHiveJobDetails', job);
+          router.get('mainHiveJobDetailsController').loadJobDetails();
+          router.get('mainJobsController').updateJobs('mainHiveJobDetailsController', 'loadJobDetails');
         }
       }
     }),

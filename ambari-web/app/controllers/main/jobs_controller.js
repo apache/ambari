@@ -27,6 +27,17 @@ App.MainJobsController = Em.ArrayController.extend({
   loaded : false,
   loading : false,
   loadJobsTimeout: null,
+  jobsUpdateInterval: 6000,
+  jobsUpdate: null,
+
+  updateJobs: function (controllerName, funcName) {
+    clearInterval(this.get('jobsUpdate'));
+    var self = this;
+    var interval = setInterval(function () {
+      App.router.get(controllerName)[funcName]();
+    }, this.jobsUpdateInterval);
+    this.set('jobsUpdate', interval);
+  },
 
   totalOfJobs: 0,
   setTotalOfJobs: function () {

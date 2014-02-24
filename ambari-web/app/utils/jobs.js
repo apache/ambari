@@ -52,7 +52,7 @@ module.exports = {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
         var hiveRecord = App.HiveJob.find(hiveJobId);
-        App.router.get('mainHiveJobDetailsController').set('content', hiveRecord);
+        App.router.get('mainHiveJobDetailsController').set('job', hiveRecord);
         var tezDagName = hiveRecord.get('tezDag.name');
         if (tezDagName != null) {
           var sender = {
