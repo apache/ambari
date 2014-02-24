@@ -1741,14 +1741,16 @@ public class AmbariManagementControllerImpl implements
             request.getPassword());
       }
 
-      if (request.getRoles().size() > 0) {
-        for (String role : u.getRoles()) {
-          users.removeRoleFromUser(u, role);
-        }
-
-        for (String role : request.getRoles()) {
-          users.addRoleToUser(u, role);
-        }
+      Set<String> roolesToDelete = new HashSet<String>(u.getRoles());
+      Set<String> roolesToAdd = request.getRoles();
+      roolesToDelete.removeAll(request.getRoles());
+      for (String role : roolesToDelete) {
+        users.removeRoleFromUser(u, role);
+        u.getRoles().remove(role);
+      }      
+      roolesToAdd.removeAll(u.getRoles());
+      for (String role : roolesToAdd) {
+        users.addRoleToUser(u, role);
       }
 
     }
