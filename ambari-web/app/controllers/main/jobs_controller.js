@@ -129,8 +129,8 @@ App.MainJobsController = Em.ArrayController.extend({
           var windowStart = self.createCustomStartDate();
           var windowEnd = self.createCustomEndDate();
 
-          self.set("windowEnd", windowStart.getTime());
-          self.set("windowStart", windowEnd.getTime());
+          self.set("windowStart", windowStart.getTime());
+          self.set("windowEnd", windowEnd.getTime());
           this.hide();
         },
         onSecondary: function () {
