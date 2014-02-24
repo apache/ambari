@@ -134,10 +134,11 @@ class RMFTestCase(TestCase):
       print
   
   def assertResourceCalled(self, resource_type, name, **kwargs):
-    resource = RMFTestCase.env.resource_list.pop(0)
-    self.assertEquals(resource_type, resource.__class__.__name__)
-    self.assertEquals(name, resource.name)
-    self.assertEquals(kwargs, resource.arguments)
+    with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"): 
+      resource = RMFTestCase.env.resource_list.pop(0)
+      self.assertEquals(resource_type, resource.__class__.__name__)
+      self.assertEquals(name, resource.name)
+      self.assertEquals(kwargs, resource.arguments)
     
   def assertNoMoreResources(self):
     self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
@@ -170,4 +171,7 @@ class UnknownConfigurationMock():
 
   def __ne__(self, other):
     return not self.__eq__(other)
+  
+  def __repr__(self):
+    return "UnknownConfigurationMock()"
 
