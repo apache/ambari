@@ -141,6 +141,11 @@ class TestStormSupervisor(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/etc/storm/conf',
+      owner = 'storm',
+      group = 'hadoop',
+      recursive = True,
+    )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
@@ -165,6 +170,11 @@ class TestStormSupervisor(RMFTestCase):
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
+      owner = 'storm',
+      group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
