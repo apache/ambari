@@ -1425,10 +1425,30 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createSiteObj: function (siteName, tagName, siteObj) {
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
-      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
+      siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, _siteObj.value);
       //this.recordHostOverride(_siteObj, siteName, tagName, this);
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
+  },
+  /**
+   * This method will be moved to config's decorators class.
+   *
+   * For now, provide handling for special properties that need
+   * be specified in special format required for server.
+   *
+   * @param configName {String} - name of config property
+   * @param value {Mixed} - value of config property
+   *
+   * @return {String} - formated value
+   */
+  setServerConfigValue: function (configName, value) {
+    switch (configName) {
+      case 'storm.zookeeper.servers':
+        return JSON.stringify(value).replace(/"/g, "'");
+        break;
+      default:
+        return App.config.escapeXMLCharacters(value);
+    }
   },
   /**
    * return either specific url for request if testMode is false or testUrl
