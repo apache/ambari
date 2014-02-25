@@ -1094,7 +1094,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
     }
     if (selectedServices.someProperty('serviceName', 'FALCON')) {
-      this.get('serviceConfigTags').pushObject(this.createFalconSiteObj('FALCON'));
+      this.get('serviceConfigTags').pushObject(this.createFalconStartupSiteObj('FALCON'));
+      this.get('serviceConfigTags').pushObject(this.createFalconRuntimeSiteObj('FALCON'));
     }
     if (selectedServices.someProperty('serviceName', 'STORM')) {
       this.get('serviceConfigTags').pushObject(this.createStormSiteObj());
@@ -1430,13 +1431,22 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
 
-  createFalconSiteObj: function (s) {
-    var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
-    var falconProperties = {};
+  createFalconStartupSiteObj: function (s) {
+    var configs = this.get('configs').filterProperty('filename', 'falcon-startup.properties.xml');
+    var falconStartupProperties = {};
     configs.forEach(function (_configProperty) {
-      falconProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      falconStartupProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
     }, this);
-    return {type: 'oozie-site', tag: 'version' + (new Date()).getTime(), properties: falconProperties};
+    return {type: 'falcon-startup.properties', tag: 'version1', properties: falconStartupProperties};
+  },
+
+  createFalconRuntimeSiteObj: function (s) {
+    var configs = this.get('configs').filterProperty('filename', 'falcon-runtime.properties.xml');
+    var falconRuntimeProperties = {};
+    configs.forEach(function (_configProperty) {
+      falconRuntimeProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+    }, this);
+    return {type: 'falcon-runtime.properties', tag: 'version1', properties: falconRuntimeProperties};
   },
 
   ajaxQueueFinished: function () {

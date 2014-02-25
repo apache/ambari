@@ -226,7 +226,9 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Falcon', displayName : 'Falcon Server'}),
       App.ServiceConfigCategory.create({ name: 'Falcon - Oozie integration', displayName : 'Falcon - Oozie integration'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedFalconStartupSite', displayName : 'Custom startup.properties', siteFileName: 'falcon-startup.properties.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedFalconRuntimeSite', displayName : 'Custom runtime.properties', siteFileName: 'falcon-runtime.properties.xml', canAddProperty: true})
     ],
     sites: ['global', 'oozie-site'],
     configs: []

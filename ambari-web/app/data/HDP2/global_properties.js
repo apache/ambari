@@ -1376,6 +1376,32 @@ module.exports =
       "serviceName": "FALCON",
       "category": "Falcon"
     },
+    {
+      "id": "puppet var",
+      "name": "falcon_log_dir",
+      "displayName": "Falcon Log Dir",
+      "description": "Directory for Falcon logs",
+      "defaultValue": "/var/log/falcon",
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "FALCON",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon_pid_dir",
+      "displayName": "Falcon PID Dir",
+      "description": "Directory in which the pid files for Falcon processes will be created",
+      "defaultValue": "/var/run/falcon",
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "serviceName": "FALCON",
+      "category": "Advanced"
+    },
   /**********************************************STORM***************************************/
     {
       "id": "puppet var",
