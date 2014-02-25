@@ -1436,7 +1436,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     configs.forEach(function (_configProperty) {
       falconProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
     }, this);
-    return {type: 'oozie-site', tag: 'version1', properties: falconProperties};
+    return {type: 'oozie-site', tag: 'version' + (new Date()).getTime(), properties: falconProperties};
   },
 
   ajaxQueueFinished: function () {
