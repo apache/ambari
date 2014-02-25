@@ -236,7 +236,8 @@ App.format = {
     'UPGRADE': 'Upgrade',
     'RESTART': 'Restart',
     'SERVICE_CHECK': 'Check',
-    'DECOMMISSION,': 'Decommission,'
+    'Excluded:': 'Decommission:',
+    'Included:': 'Recommission:'
   },
 
   /**
@@ -259,6 +260,10 @@ App.format = {
       // if the item has the pattern SERVICE/COMPONENT, drop the SERVICE part
       if (item.contains('/')) {
         item = item.split('/')[1];
+      }
+      // ignore 'DECOMMISSION', command came from 'excluded/included'
+      if (item == 'DECOMMISSION,') {
+        item = '';
       }
       if (self.components[item]) {
         result = result + ' ' + self.components[item];
