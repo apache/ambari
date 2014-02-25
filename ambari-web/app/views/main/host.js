@@ -352,6 +352,8 @@ App.MainHostView = App.TableView.extend({
      * Update <code>hostsCount</code> in current category
      */
     updateOnce: function() {
+      //skip update when view is destroyed
+      if(!this.get('view.content')) return;
       var statusString = this.get('healthStatusValue');
       if (this.get('isHealthStatus')) {
         if (statusString == "") {
