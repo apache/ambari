@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -94,12 +93,9 @@ public class MaintenanceStateHelperTest {
     map = rpCapture.getValue();
     
     Assert.assertEquals("nagios_update_ignore", ear.getActionName());
-    Assert.assertEquals(null, ear.getCommandName());
-    Assert.assertEquals(1, ear.getResourceFilters().size());
-    RequestResourceFilter resourceFilter = ear.getResourceFilters().get(0);
-
-    Assert.assertEquals("NAGIOS", resourceFilter.getServiceName());
-    Assert.assertEquals("NAGIOS_SERVER", resourceFilter.getComponentName());
+    Assert.assertEquals("ACTIONEXECUTE", ear.getCommandName());
+    Assert.assertEquals("NAGIOS", ear.getServiceName());
+    Assert.assertEquals("NAGIOS_SERVER", ear.getComponentName());
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));  
   }
@@ -151,11 +147,9 @@ public class MaintenanceStateHelperTest {
     rpCapture.getValue();
     
     Assert.assertEquals("nagios_update_ignore", ear.getActionName());
-    Assert.assertEquals(null, ear.getCommandName());
-    Assert.assertEquals(1, ear.getResourceFilters().size());
-    RequestResourceFilter resourceFilter = ear.getResourceFilters().get(0);
-    Assert.assertEquals("NAGIOS", resourceFilter.getServiceName());
-    Assert.assertEquals("NAGIOS_SERVER", resourceFilter.getComponentName());
+    Assert.assertEquals("ACTIONEXECUTE", ear.getCommandName());
+    Assert.assertEquals("NAGIOS", ear.getServiceName());
+    Assert.assertEquals("NAGIOS_SERVER", ear.getComponentName());
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));    
   }
@@ -209,11 +203,9 @@ public class MaintenanceStateHelperTest {
     map = rpCapture.getValue();
     
     Assert.assertEquals("nagios_update_ignore", ear.getActionName());
-    Assert.assertEquals(null, ear.getCommandName());
-    Assert.assertEquals(1, ear.getResourceFilters().size());
-    RequestResourceFilter resourceFilter = ear.getResourceFilters().get(0);
-    Assert.assertEquals("NAGIOS", resourceFilter.getServiceName());
-    Assert.assertEquals("NAGIOS_SERVER", resourceFilter.getComponentName());
+    Assert.assertEquals("ACTIONEXECUTE", ear.getCommandName());
+    Assert.assertEquals("NAGIOS", ear.getServiceName());
+    Assert.assertEquals("NAGIOS_SERVER", ear.getComponentName());
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));
   }

@@ -20,8 +20,8 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.actionmanager.TargetHostType;
-import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,46 +31,33 @@ import java.util.Map;
 public class ActionExecutionContext {
   private final String clusterName;
   private final String actionName;
-  private List<RequestResourceFilter> resourceFilters;
-  private Map<String, String> parameters;
-  private TargetHostType targetType;
-  private Short timeout;
-  private String expectedServiceName;
-  private String expectedComponentName;
+  private final String serviceName;
+  private final String componentName;
+  private final String componentCategory;
+  private final List<String> hosts;
+  private final Map<String, String> parameters;
+  private final TargetHostType targetType;
+  private final Short timeout;
 
   /**
    * Create an ActionExecutionContext to execute an action from a request
    */
-  public ActionExecutionContext(String clusterName, String actionName,
-      List<RequestResourceFilter> resourceFilters,
-      Map<String, String> parameters, TargetHostType targetType,
-      Short timeout, String expectedServiceName,
-      String expectedComponentName) {
-
+  public ActionExecutionContext(String clusterName, String actionName, String serviceName,
+                                String componentName, String componentCategory,
+                                List<String> hosts, Map<String, String> parameters,
+                                TargetHostType targetType, Short timeout) {
     this.clusterName = clusterName;
     this.actionName = actionName;
-    this.resourceFilters = resourceFilters;
+    this.serviceName = serviceName;
+    this.componentName = componentName;
+    this.componentCategory = componentCategory;
     this.parameters = parameters;
+    this.hosts = new ArrayList<String>();
+    if (hosts != null) {
+      this.hosts.addAll(hosts);
+    }
     this.targetType = targetType;
     this.timeout = timeout;
-    this.expectedServiceName = expectedServiceName;
-    this.expectedComponentName = expectedComponentName;
-  }
-
-  public ActionExecutionContext(String clusterName, String actionName,
-                                List<RequestResourceFilter> resourceFilters) {
-    this.clusterName = clusterName;
-    this.actionName = actionName;
-    this.resourceFilters = resourceFilters;
-  }
-
-  public ActionExecutionContext(String clusterName, String commandName,
-                                List<RequestResourceFilter> resourceFilters,
-                                Map<String, String> parameters) {
-    this.clusterName = clusterName;
-    this.actionName = commandName;
-    this.resourceFilters = resourceFilters;
-    this.parameters = parameters;
   }
 
   public String getClusterName() {
@@ -81,8 +68,20 @@ public class ActionExecutionContext {
     return actionName;
   }
 
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public String getComponentName() {
+    return componentName;
+  }
+
   public Map<String, String> getParameters() {
     return parameters;
+  }
+
+  public List<String> getHosts() {
+    return hosts;
   }
 
   public TargetHostType getTargetType() {
@@ -93,27 +92,7 @@ public class ActionExecutionContext {
     return timeout;
   }
 
-  public List<RequestResourceFilter> getResourceFilters() {
-    return resourceFilters;
-  }
-
-  public String getExpectedServiceName() {
-    return expectedServiceName;
-  }
-
-  public String getExpectedComponentName() {
-    return expectedComponentName;
-  }
-
-  @Override
-  public String toString() {
-    return "ActionExecutionContext{" +
-      "clusterName='" + clusterName + '\'' +
-      ", actionName='" + actionName + '\'' +
-      ", resourceFilters=" + resourceFilters +
-      ", parameters=" + parameters +
-      ", targetType=" + targetType +
-      ", timeout=" + timeout +
-      '}';
+  public String getComponentCategory() {
+    return componentCategory;
   }
 }

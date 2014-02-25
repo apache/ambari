@@ -17,17 +17,14 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -35,6 +32,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -145,14 +143,11 @@ public class MaintenanceStateHelper {
     
     // return the first one, just like amc.createStages()
     RequestStatusResponse response = null;
-
-    RequestResourceFilter resourceFilter =
-      new RequestResourceFilter(NAGIOS_SERVICE, NAGIOS_COMPONENT, null);
-
+    
     for (String clusterName : clusterNames) {
       ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-        clusterName, null, NAGIOS_ACTION_NAME,
-        Collections.singletonList(resourceFilter), params);
+          clusterName, RoleCommand.ACTIONEXECUTE.name(),
+          NAGIOS_ACTION_NAME, NAGIOS_SERVICE, NAGIOS_COMPONENT, null, params);
       
       if (null == response)
         response = amc.createAction(actionRequest, requestProperties);

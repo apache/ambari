@@ -18,11 +18,22 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -41,11 +52,9 @@ import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
@@ -55,15 +64,14 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -74,15 +82,14 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -94,48 +101,17 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCHEMA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 
 @Singleton
-public class AmbariManagementControllerImpl implements AmbariManagementController {
+public class AmbariManagementControllerImpl implements
+    AmbariManagementController {
 
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariManagementControllerImpl.class);
@@ -209,8 +185,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
-  @Inject
-  private AmbariActionExecutionHelper actionExecutionHelper;
+  final private AmbariActionExecutionHelper actionExecutionHelper;
 
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
@@ -252,6 +227,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       this.mysqljdbcUrl = null;
       this.serverDB = null;
     }
+
+    this.actionExecutionHelper = new AmbariActionExecutionHelper(
+        this.actionMetadata, this.clusters, this);
   }
   
   public String getAmbariServerURI(String path) {
@@ -1122,180 +1100,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return executionScheduleManager;
   }
 
-  /**
-   * Creates and populates an EXECUTION_COMMAND for host
-   */
-  private void createHostAction(Cluster cluster,
-                                Stage stage, ServiceComponentHost scHost,
-                                Map<String, Map<String, String>> configurations,
-                                Map<String, Map<String, String>> configTags,
-                                RoleCommand roleCommand,
-                                Map<String, String> commandParams,
-                                ServiceComponentHostEvent event)
-    throws AmbariException {
-
-    stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
-      .getServiceComponentName()), roleCommand,
-      event, scHost.getClusterName(),
-      scHost.getServiceName());
-    String serviceName = scHost.getServiceName();
-    String componentName = event.getServiceComponentName();
-    String hostname = scHost.getHostName();
-    String osType = clusters.getHost(hostname).getOsType();
-    StackId stackId = cluster.getDesiredStackVersion();
-    ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
-      stackId.getStackVersion(), serviceName);
-    ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-      stackId.getStackName(), stackId.getStackVersion(),
-      serviceName, componentName);
-    StackInfo stackInfo = ambariMetaInfo.getStackInfo(stackId.getStackName(),
-      stackId.getStackVersion());
-
-    ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
-      scHost.getServiceComponentName()).getExecutionCommand();
-
-    Host host = clusters.getHost(scHost.getHostName());
-
-    // Hack - Remove passwords from configs
-    if (event.getServiceComponentName().equals(Role.HIVE_CLIENT.toString())) {
-      configHelper.applyCustomConfig(configurations, Configuration.HIVE_CONFIG_TAG,
-        Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "", true);
-    }
-
-    String jobtrackerHost = getJobTrackerHost(cluster);
-    if (!scHost.getHostName().equals(jobtrackerHost)) {
-      if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
-        configHelper.applyCustomConfig(
-          configurations, Configuration.GLOBAL_CONFIG_TAG,
-          Configuration.RCA_ENABLED_PROPERTY, "false", false);
-      }
-    }
-
-    execCmd.setConfigurations(configurations);
-    execCmd.setConfigurationTags(configTags);
-    if (commandParams == null) { // if not defined
-      commandParams = new TreeMap<String, String>();
-    }
-    commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
-
-
-    // Get command script info for custom command/custom action
-    /*
-     * TODO: Custom actions are not supported yet, that's why we just pass
-     * component main commandScript to agent. This script is only used for
-     * default commads like INSTALL/STOP/START/CONFIGURE
-     */
-    String commandTimeout = configs.getDefaultAgentTaskTimeout();
-    CommandScriptDefinition script = componentInfo.getCommandScript();
-    if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
-      if (script != null) {
-        commandParams.put(SCRIPT, script.getScript());
-        commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        if (script.getTimeout() > 0) {
-          commandTimeout = String.valueOf(script.getTimeout());
-        }
-      } else {
-        String message = String.format("Component %s of service %s has no " +
-          "command script defined", componentName, serviceName);
-        throw new AmbariException(message);
-      }
-    }
-    commandParams.put(COMMAND_TIMEOUT, commandTimeout);
-    commandParams.put(SERVICE_PACKAGE_FOLDER,
-      serviceInfo.getServicePackageFolder());
-    commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
-
-    execCmd.setCommandParams(commandParams);
-
-    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, host);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Sending repo information to agent"
-        + ", hostname=" + scHost.getHostName()
-        + ", clusterName=" + cluster.getClusterName()
-        + ", stackInfo=" + stackId.getStackId()
-        + ", repoInfo=" + repoInfo);
-    }
-
-    Map<String, String> hostParams = new TreeMap<String, String>();
-    hostParams.put(REPO_INFO, repoInfo);
-    hostParams.put(JDK_LOCATION, getJdkResourceUrl());
-    hostParams.put(JAVA_HOME, getJavaHome());
-    hostParams.put(JDK_NAME, getJDKName());
-    hostParams.put(JCE_NAME, getJCEName());
-    hostParams.put(STACK_NAME, stackId.getStackName());
-    hostParams.put(STACK_VERSION, stackId.getStackVersion());
-    hostParams.put(DB_NAME, getServerDB());
-    hostParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
-    hostParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
-    hostParams.putAll(getRcaParameters());
-
-    // Write down os specific info for the service
-    ServiceOsSpecific anyOs = null;
-    if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
-      anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
-    }
-    ServiceOsSpecific hostOs = null;
-    if (serviceInfo.getOsSpecifics().containsKey(osType)) {
-      hostOs = serviceInfo.getOsSpecifics().get(osType);
-      // Choose repo that is relevant for host
-      ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
-      if (serviceRepo != null) {
-        String serviceRepoInfo = gson.toJson(serviceRepo);
-        hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
-      }
-    }
-    // Build package list that is relevant for host
-    List<ServiceOsSpecific.Package> packages =
-      new ArrayList<ServiceOsSpecific.Package>();
-    if (anyOs != null) {
-      packages.addAll(anyOs.getPackages());
-    }
-
-    if (hostOs != null) {
-      packages.addAll(hostOs.getPackages());
-    }
-    String packageList = gson.toJson(packages);
-    hostParams.put(PACKAGE_LIST, packageList);
-
-    if (configs.getServerDBName().equalsIgnoreCase(Configuration
-      .ORACLE_DB_NAME)) {
-      hostParams.put(DB_DRIVER_FILENAME, configs.getOjdbcJarName());
-    } else if (configs.getServerDBName().equalsIgnoreCase(Configuration
-      .MYSQL_DB_NAME)) {
-      hostParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
-    }
-    execCmd.setHostLevelParams(hostParams);
-
-    Map<String, String> roleParams = new TreeMap<String, String>();
-    execCmd.setRoleParams(roleParams);
-
-    execCmd.setPassiveInfo(MaintenanceStateHelper.getMaintenanceHostCompoments(clusters, cluster));
-  }
-
-  private ActionExecutionContext getActionExecutionContext
-      (ExecuteActionRequest actionRequest) throws AmbariException {
-
-    if (actionRequest.isCommand()) {
-      return new ActionExecutionContext(actionRequest.getClusterName(),
-        actionRequest.getCommandName(), actionRequest.getResourceFilters(),
-        actionRequest.getParameters());
-    } else {
-
-    ActionDefinition actionDef = ambariMetaInfo.getActionDefinition(actionRequest.getActionName());
-
-    if (actionDef == null) {
-      throw new AmbariException("Action " + actionRequest.getActionName() + " does not exist");
-    }
-
-    return new ActionExecutionContext(actionRequest.getClusterName(),
-      actionRequest.getActionName(), actionRequest.getResourceFilters(),
-      actionRequest.getParameters(), actionDef.getTargetType(),
-      actionDef.getDefaultTimeout(), actionDef.getTargetService(),
-      actionDef.getTargetComponent());
-
-    }
-  }
-
   private List<Stage> doStageCreation(Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
@@ -1490,8 +1294,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
 
-            createHostAction(cluster, stage, scHost, configurations, configTags,
-              roleCommand, requestParameters, event);
+            customCommandExecutionHelper.createHostAction(cluster, stage, scHost,
+                    configurations, configTags,
+                    roleCommand, requestParameters, event);
           }
         }
       }
@@ -1514,8 +1319,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost,
-          smokeTestRole, nowTimestamp, serviceName,
-          null, null, createDefaultHostParams(cluster));
+            smokeTestRole, nowTimestamp, serviceName,
+            null, null, createDefaultHostParams(cluster));
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -2313,15 +2118,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    LOG.info("Received action execution request"
-      + ", clusterName=" + actionRequest.getClusterName()
-      + ", request=" + actionRequest.toString());
-
-    ActionExecutionContext actionExecContext = getActionExecutionContext(actionRequest);
+    ActionExecutionContext actionExecContext = null;
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.validateAction(actionRequest);
+      customCommandExecutionHelper.validateCustomCommand(actionRequest);
     } else {
-      actionExecutionHelper.validateAction(actionRequest);
+      actionExecContext = actionExecutionHelper.validateCustomAction(actionRequest, cluster);
     }
 
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
@@ -2333,9 +2134,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, String> params = createDefaultHostParams(cluster);
 
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
+      customCommandExecutionHelper.addAction(actionRequest, stage, params);
     } else {
-      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
+      actionExecutionHelper.addAction(actionExecContext, stage, configs, hostsMap, params);
     }
 
     RoleCommandOrder rco = this.getRoleCommandOrder(cluster);
@@ -2512,6 +2313,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
   }
+  
 
   @Override
   public Set<StackVersionResponse> getStackVersions(

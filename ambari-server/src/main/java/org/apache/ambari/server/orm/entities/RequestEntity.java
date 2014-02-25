@@ -29,6 +29,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -62,6 +63,18 @@ public class RequestEntity {
   @Basic
   private String inputs;
 
+  @Column(name = "target_service")
+  @Basic
+  private String targetService;
+
+  @Column(name = "target_component")
+  @Basic
+  private String targetComponent;
+
+  @Column(name = "target_hosts")
+  @Lob
+  private String targetHosts;
+
   @Column(name = "request_type")
   @Enumerated(value = EnumType.STRING)
   private RequestType requestType;
@@ -84,9 +97,6 @@ public class RequestEntity {
 
   @OneToMany(mappedBy = "request")
   private Collection<StageEntity> stages;
-
-  @OneToMany(mappedBy = "requestEntity")
-  private Collection<RequestResourceFilterEntity> resourceFilterEntities;
 
   @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
@@ -160,6 +170,30 @@ public class RequestEntity {
     this.inputs = inputs;
   }
 
+  public String getTargetService() {
+    return targetService;
+  }
+
+  public void setTargetService(String targetService) {
+    this.targetService = targetService;
+  }
+
+  public String getTargetComponent() {
+    return targetComponent;
+  }
+
+  public void setTargetComponent(String targetComponent) {
+    this.targetComponent = targetComponent;
+  }
+
+  public String getTargetHosts() {
+    return targetHosts;
+  }
+
+  public void setTargetHosts(String targetHosts) {
+    this.targetHosts = targetHosts;
+  }
+
   public RequestType getRequestType() {
     return requestType;
   }
@@ -172,17 +206,8 @@ public class RequestEntity {
     return clusterId;
   }
 
-  public Collection<RequestResourceFilterEntity> getResourceFilterEntities() {
-    return resourceFilterEntities;
-  }
-
-  public void setResourceFilterEntities(Collection<RequestResourceFilterEntity> resourceFilterEntities) {
-    this.resourceFilterEntities = resourceFilterEntities;
-  }
-
   public void setClusterId(Long clusterId) {
     this.clusterId = clusterId;
-
   }
 
   public String getCommandName() {
