@@ -439,6 +439,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       filename: '',
       isUserProperty: true,
       isKeyError: false,
+      showFilterLink: false,
       isNotSaved: true,
       errorMessage: "",
       observeAddPropertyValue: function () {
@@ -450,6 +451,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
               this.set("isKeyError", false);
               this.set("errorMessage", "");
             } else {
+              this.set("showFilterLink", true);
               this.set("isKeyError", true);
               this.set("errorMessage", Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey'));
             }
@@ -506,7 +508,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/configs/addPropertyWindow'),
         controllerBinding: 'App.router.mainServiceInfoConfigsController',
-        serviceConfigProperty: serviceConfigObj
+        serviceConfigProperty: serviceConfigObj,
+        filterByKey: function(event) {
+          var controller = (App.router.get('currentState.name') != 'configs')
+            ? App.router.get('wizardStep7Controller')
+            : App.router.get('mainServiceInfoConfigsController');
+          this.get('parentView').onClose();
+          controller.set('filter', event.view.get('serviceConfigProperty.name'));
+        }
       })
     });
 

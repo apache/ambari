@@ -27,6 +27,11 @@
       <div class="controls">
         {{view Ember.TextField valueBinding="view.serviceConfigProperty.name" class="span4"}}
         <span class="help-inline">{{view.serviceConfigProperty.errorMessage}}</span>
+        {{#if view.serviceConfigProperty.showFilterLink}}
+          <a href="#" class="btn-padding" {{action filterByKey target="view" }}>
+            {{t services.service.config.addPropertyWindow.filterKeyLink}}
+          </a>
+        {{/if}}
       </div>
     </div>
     <div class="each-row">

@@ -1180,6 +1180,7 @@ Em.I18n.translations = {
   'services.service.config.failSaveConfigHostOverrides':'Failure in saving service configuration overrides',
   'services.service.config.addPropertyWindow.errorMessage':'This is required',
   'services.service.config.addPropertyWindow.error.derivedKey':'This property is already defined',
+  'services.service.config.addPropertyWindow.filterKeyLink' : 'Find property',
   'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are running',
   'services.service.config.stopService.unknownHostComponents':'{0} components on {1} hosts are in unknown state.  These components might actually be running and need restarting later to make the changes effective.',
   'services.service.config.confirmDirectoryChange':'You are about to make changes to service directories that are core to {0}. Before you proceed, be absolutely certain of the implications and that you have taken necessary manual steps, if any, for the changes. Are you sure you want to proceed?',
