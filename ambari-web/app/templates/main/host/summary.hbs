@@ -47,13 +47,15 @@
         <div class="host-components">
         {{#if view.sortedComponents.length}}
 
-          {{#if view.content.componentsWithStaleConfigsCount}}
+          {{#if App.isAdmin}}
+            {{#if view.content.componentsWithStaleConfigsCount}}
               <div class="alert alert-warning clearfix">
                 <i class="icon-refresh"></i> {{view.needToRestartMessage}}
-                 <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning"}} {{action restartAllStaleConfigComponents target="controller"}}>
-                  {{t hosts.host.details.needToRestart.button}}
-                 </button>
+                  <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning"}} {{action restartAllStaleConfigComponents target="controller"}}>
+                    {{t hosts.host.details.needToRestart.button}}
+                  </button>
               </div>
+            {{/if}}
           {{/if}}
 
           {{#each component in view.sortedComponents}}
