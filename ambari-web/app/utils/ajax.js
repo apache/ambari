@@ -188,7 +188,7 @@ var urls = {
         data: JSON.stringify(
           {
             "HostRoles": {
-              "state": "MAINTENANCE"
+              "state": "DISABLED"
             }
           }
         )
@@ -969,7 +969,7 @@ var urls = {
       return {
         data: JSON.stringify({
           "HostRoles": {
-            "state": "MAINTENANCE"
+            "state": "DISABLED"
           }
         })
       }

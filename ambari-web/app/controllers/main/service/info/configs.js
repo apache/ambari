@@ -1486,7 +1486,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     switch (serviceName) {
       case 'HDFS':
-        if (hostComponents.someProperty('componentName', 'SECONDARY_NAMENODE') && hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'MAINTENANCE') {
+        if (hostComponents.someProperty('componentName', 'SECONDARY_NAMENODE') && hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'DISABLED') {
           var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
           sNameNodeHost.defaultValue = hostComponents.findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
           globalConfigs.push(sNameNodeHost);
