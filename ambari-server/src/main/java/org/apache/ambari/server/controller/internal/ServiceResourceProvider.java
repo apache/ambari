@@ -801,6 +801,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   /**
    * Default calculator of service state.
+   * The following rules should apply :
+   * For services that have all components DISABLED, the service state should be DISABLED.
+   * For services that have any master components, the service state should
+   * be STARTED if all master components are STARTED.
+   * For services that have all client components, the service state should
+   * be INSTALLED if all of the components are INSTALLED.
+   * For all other cases the state of the service should match the highest state of all
+   * of its component states or UNKNOWN if the component states can not be determined.
    */
   protected static class DefaultServiceState implements ServiceState {
 
@@ -821,25 +829,50 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
 
+            State   serviceState = null;
+            boolean hasDisabled  = false;
+            boolean hasMaster    = false;
+            boolean hasOther     = false;
+            boolean hasClient    = false;
+
             for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
               ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
                   stackId.getStackVersion(), hostComponentResponse.getServiceName(),
                   hostComponentResponse.getComponentName());
 
-              if (componentInfo != null) {
-                if (componentInfo.isMaster()) {
-                  State state = getHostComponentState(hostComponentResponse);
-                  switch (state) {
-                    case STARTED:
-                    case DISABLED:
-                      break;
-                    default:
-                      return state;
+            if (componentInfo != null) {
+                State state = getHostComponentState(hostComponentResponse);
+
+                if (state.equals(State.DISABLED)) {
+                  hasDisabled = true;
+                } else {
+                  if (componentInfo.isMaster()) {
+                    hasMaster = true;
+                    if(!state.equals(State.STARTED) &&
+                        ( serviceState == null || state.ordinal() > serviceState.ordinal())) {
+                      serviceState = state;
+                    }
+                  } else if (componentInfo.isClient()) {
+                    hasClient = true;
+                    if (!(hasMaster || hasOther) && !state.equals(State.INSTALLED) &&
+                        (serviceState == null || state.ordinal() > serviceState.ordinal())) {
+                      serviceState = state;
+                    }
+                  } else {
+                    hasOther  = true;
+                    if (!hasMaster &&
+                        (serviceState == null || state.ordinal() > serviceState.ordinal())) {
+                      serviceState = state;
+                    }
                   }
                 }
               }
             }
-            return State.STARTED;
+
+            return hasMaster   ? serviceState == null ? State.STARTED : serviceState :
+                   hasOther    ? serviceState :
+                   hasClient   ? serviceState == null ? State.INSTALLED : serviceState :
+                   hasDisabled ? State.DISABLED : State.UNKNOWN;
           }
         } catch (AmbariException e) {
           LOG.error("Can't determine service state.", e);
