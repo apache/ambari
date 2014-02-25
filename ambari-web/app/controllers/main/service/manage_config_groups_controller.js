@@ -308,7 +308,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
             warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
           }
         } else {
-          if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
+          if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName').trim())) {
             warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
           }
         }

@@ -139,7 +139,7 @@ var urls = {
   },
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
-    'mock': ''
+    'mock': '/data/configurations/config_group.json'
   },
   'reassign.stop_services': {
     'real': '/clusters/{clusterName}/services',

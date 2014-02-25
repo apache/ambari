@@ -1234,7 +1234,7 @@ App.config = Em.Object.create({
         var optionSelect = this.get('optionSelectConfigGroup');
         if (!optionSelect) {
           var nn = this.get('newConfigGroupName');
-          if (nn && configGroups.mapProperty('name').contains(nn)) {
+          if (nn && configGroups.mapProperty('name').contains(nn.trim())) {
             msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
             isWarning = true;
           }
