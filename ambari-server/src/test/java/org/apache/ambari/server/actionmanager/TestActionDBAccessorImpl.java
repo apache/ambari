@@ -30,6 +30,7 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -366,8 +367,11 @@ public class TestActionDBAccessorImpl {
             hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    ExecuteActionRequest executeActionRequest = new ExecuteActionRequest("cluster1", null, actionName, "HBASE",
-        "HBASE_MASTER", null, null);
+    final RequestResourceFilter resourceFilter = new RequestResourceFilter("HBASE", "HBASE_MASTER", null);
+    List<RequestResourceFilter> resourceFilters = new
+      ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
+    ExecuteActionRequest executeActionRequest = new ExecuteActionRequest
+      ("cluster1", null, actionName, resourceFilters, null);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
   }

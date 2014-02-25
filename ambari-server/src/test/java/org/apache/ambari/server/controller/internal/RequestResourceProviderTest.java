@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -38,6 +40,7 @@ import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 import static org.easymock.EasyMock.capture;
@@ -763,10 +766,20 @@ public class RequestResourceProviderTest {
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
+    final RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", null, null);
+    List<RequestResourceFilter> resourceFilters =
+      new ArrayList<RequestResourceFilter>() {{
+        add(resourceFilter);
+      }};
+
+    Type listType = new TypeToken<List<RequestResourceFilter>>(){}.getType();
+    String filterJson = new Gson().toJson(resourceFilters, listType);
+
+    properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterJson);
+
     propertySet.add(properties);
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
-    requestInfoProperties.put(RequestResourceProvider.SERVICE_NAME_ID, "HDFS");
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "HDFS_SERVICE_CHECK");
 
     // create the request
@@ -777,14 +790,19 @@ public class RequestResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
     provider.createResources(request);
+    ExecuteActionRequest capturedRequest = actionRequest.getValue();
+
     Assert.assertTrue(actionRequest.hasCaptured());
-    Assert.assertTrue(actionRequest.getValue().isCommand());
-    Assert.assertEquals(null, actionRequest.getValue().getActionName());
-    Assert.assertEquals("HDFS_SERVICE_CHECK", actionRequest.getValue().getCommandName());
-    Assert.assertEquals("HDFS", actionRequest.getValue().getServiceName());
-    Assert.assertEquals(null, actionRequest.getValue().getComponentName());
-    Assert.assertNotNull(actionRequest.getValue().getHosts());
-    Assert.assertEquals(0, actionRequest.getValue().getHosts().size());
+    Assert.assertTrue(capturedRequest.isCommand());
+    Assert.assertEquals(null, capturedRequest.getActionName());
+    Assert.assertEquals("HDFS_SERVICE_CHECK", capturedRequest.getCommandName());
+    Assert.assertNotNull(capturedRequest.getResourceFilters());
+    Assert.assertEquals(1, capturedRequest.getResourceFilters().size());
+    RequestResourceFilter capturedResourceFilter = capturedRequest.getResourceFilters().get(0);
+    Assert.assertEquals("HDFS", capturedResourceFilter.getServiceName());
+    Assert.assertEquals(null, capturedResourceFilter.getComponentName());
+    Assert.assertNotNull(capturedResourceFilter.getHostNames());
+    Assert.assertEquals(0, capturedResourceFilter.getHostNames().size());
     Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
   }
 
@@ -811,13 +829,26 @@ public class RequestResourceProviderTest {
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
+    final RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", null, null);
+    resourceFilter.getHostNames().add("host1");
+    resourceFilter.getHostNames().add("host2");
+    resourceFilter.getHostNames().add("host3");
+    List<RequestResourceFilter> resourceFilters =
+      new ArrayList<RequestResourceFilter>() {{
+        add(resourceFilter);
+      }};
+
+    Type listType = new TypeToken<List<RequestResourceFilter>>(){}.getType();
+    String filterJson = new Gson().toJson(resourceFilters, listType);
+
+    properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterJson);
+
     propertySet.add(properties);
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
-    requestInfoProperties.put(RequestResourceProvider.SERVICE_NAME_ID, "HDFS");
+
     requestInfoProperties.put("/parameters/param1", "value1");
     requestInfoProperties.put("/parameters/param2", "value2");
-    requestInfoProperties.put(RequestResourceProvider.HOSTS_ID, "host1 ,host2, host3 ");
 
     String[] expectedHosts = new String[]{"host1", "host2", "host3"};
     Map<String, String> expectedParams = new HashMap<String, String>() {{
@@ -852,16 +883,19 @@ public class RequestResourceProviderTest {
 
     provider.createResources(request);
     Assert.assertTrue(actionRequest.hasCaptured());
-    Assert.assertTrue(actionRequest.getValue().isCommand());
-    Assert.assertEquals(null, actionRequest.getValue().getActionName());
-    Assert.assertEquals("HDFS_SERVICE_CHECK", actionRequest.getValue().getCommandName());
-    Assert.assertEquals("HDFS", actionRequest.getValue().getServiceName());
-    Assert.assertEquals(null, actionRequest.getValue().getComponentName());
-    Assert.assertEquals(3, actionRequest.getValue().getHosts().size());
-    Assert.assertArrayEquals(expectedHosts, actionRequest.getValue().getHosts().toArray());
-    Assert.assertEquals(2, actionRequest.getValue().getParameters().size());
+    ExecuteActionRequest capturedRequest = actionRequest.getValue();
+    Assert.assertTrue(capturedRequest.isCommand());
+    Assert.assertEquals(null, capturedRequest.getActionName());
+    Assert.assertEquals("HDFS_SERVICE_CHECK", capturedRequest.getCommandName());
+    Assert.assertEquals(1, capturedRequest.getResourceFilters().size());
+    RequestResourceFilter capturedResourceFilter = capturedRequest.getResourceFilters().get(0);
+    Assert.assertEquals("HDFS", capturedResourceFilter.getServiceName());
+    Assert.assertEquals(null, capturedResourceFilter.getComponentName());
+    Assert.assertEquals(3, capturedResourceFilter.getHostNames().size());
+    Assert.assertArrayEquals(expectedHosts, capturedResourceFilter.getHostNames().toArray());
+    Assert.assertEquals(2, capturedRequest.getParameters().size());
     for(String key : expectedParams.keySet()) {
-      Assert.assertEquals(expectedParams.get(key), actionRequest.getValue().getParameters().get(key));
+      Assert.assertEquals(expectedParams.get(key), capturedRequest.getParameters().get(key));
     }
   }
 }

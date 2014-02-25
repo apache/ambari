@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,38 +28,36 @@ import java.util.Map;
  * Helper class to capture details used to create action or custom commands
  */
 public class ExecuteActionRequest {
-  private String clusterName;
-  private String commandName;
+  private final String clusterName;
+  private final String commandName;
+  private final List<RequestResourceFilter> resourceFilters;
   private String actionName;
-  private String serviceName;
-  private String componentName;
-  private List<String> hosts;
   private Map<String, String> parameters;
 
   public ExecuteActionRequest(String clusterName, String commandName,
-                              String actionName, String serviceName, String componentName,
-                              List<String> hosts, Map<String, String> parameters) {
-    this(clusterName, commandName, serviceName, parameters);
+                              String actionName,
+                              List<RequestResourceFilter> resourceFilters,
+                              Map<String, String> parameters) {
+    this(clusterName, commandName, parameters);
     this.actionName = actionName;
-    this.componentName = componentName;
-    if (hosts != null) {
-      this.hosts.addAll(hosts);
+    if (resourceFilters != null) {
+      this.resourceFilters.addAll(resourceFilters);
     }
   }
 
   /**
-   * Create an ExecuteActionRequest to execute a command
+   * Create an ExecuteActionRequest to execute a command.
+   * No filters.
    */
-  public ExecuteActionRequest(String clusterName, String commandName, String serviceName,
-                              Map<String, String> parameters) {
+  public ExecuteActionRequest(String clusterName, String commandName, Map<String, String> parameters) {
     this.clusterName = clusterName;
     this.commandName = commandName;
-    this.serviceName = serviceName;
+    this.actionName = null;
     this.parameters = new HashMap<String, String>();
     if (parameters != null) {
       this.parameters.putAll(parameters);
     }
-    this.hosts = new ArrayList<String>();
+    this.resourceFilters = new ArrayList<RequestResourceFilter>();
   }
 
   public String getClusterName() {
@@ -74,20 +72,12 @@ public class ExecuteActionRequest {
     return actionName;
   }
 
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  public String getComponentName() {
-    return componentName;
+  public List<RequestResourceFilter> getResourceFilters() {
+    return resourceFilters;
   }
 
   public Map<String, String> getParameters() {
     return parameters;
-  }
-
-  public List<String> getHosts() {
-    return hosts;
   }
 
   public Boolean isCommand() {
@@ -101,9 +91,7 @@ public class ExecuteActionRequest {
         append(", action :" + actionName).
         append(", command :" + commandName).
         append(", inputs :" + parameters.toString()).
-        append(", targetService :" + serviceName).
-        append(", targetComponent :" + componentName).
-        append(", targetHosts :" + hosts.toString()).
+        append(", resourceFilters: " + resourceFilters).
         append(", clusterName :" + clusterName).toString();
   }
 }

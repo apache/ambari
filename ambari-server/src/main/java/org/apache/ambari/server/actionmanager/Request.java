@@ -23,7 +23,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
@@ -47,9 +49,7 @@ public class Request {
   private long endTime;
   private HostRoleStatus status; // not persisted yet
   private String inputs;
-  private String targetService;
-  private String targetComponent;
-  private String targetHosts;
+  private List<RequestResourceFilter> resourceFilters;
   private RequestType requestType;
 
   private Collection<Stage> stages = new ArrayList<Stage>();
@@ -112,9 +112,7 @@ public class Request {
                  Clusters clusters, Gson gson) throws AmbariException {
     this(stages, clusters);
     if (actionRequest != null) {
-      this.targetService = actionRequest.getServiceName();
-      this.targetComponent = actionRequest.getComponentName();
-      this.targetHosts = gson.toJson(actionRequest.getHosts());
+      this.resourceFilters = actionRequest.getResourceFilters();
       this.inputs = gson.toJson(actionRequest.getParameters());
       this.requestType = actionRequest.isCommand() ? RequestType.COMMAND : RequestType.ACTION;
       this.commandName = actionRequest.isCommand() ? actionRequest.getCommandName() : actionRequest.getActionName();
@@ -138,13 +136,11 @@ public class Request {
     this.endTime = entity.getEndTime();
     this.requestContext = entity.getRequestContext();
     this.inputs = entity.getInputs();
-    this.targetService = entity.getTargetService();
-    this.targetComponent = entity.getTargetComponent();
-    this.targetHosts = entity.getTargetHosts();
+
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
     this.status = entity.getStatus();
-    if (entity.getRequestScheduleEntity() !=null) {
+    if (entity.getRequestScheduleEntity() != null) {
       this.requestScheduleId = entity.getRequestScheduleEntity().getScheduleId();
     }
 
@@ -152,6 +148,28 @@ public class Request {
       Stage stage = stageFactory.createExisting(stageEntity);
       stages.add(stage);
     }
+
+    for (RequestResourceFilterEntity resourceFilterEntity : entity.getResourceFilterEntities()) {
+      RequestResourceFilter resourceFilter =
+        new RequestResourceFilter(
+            resourceFilterEntity.getServiceName(),
+            resourceFilterEntity.getComponentName(),
+            getHostsList(resourceFilterEntity.getHosts()));
+      this.resourceFilters.add(resourceFilter);
+    }
+
+  }
+
+  private List<String> getHostsList(String hosts) {
+    List<String> hostList = new ArrayList<String>();
+    if (hosts != null && !hosts.isEmpty()) {
+      for (String host : hosts.split(",")) {
+        if (!host.trim().isEmpty()) {
+          hostList.add(host.trim());
+        }
+      }
+    }
+    return hostList;
   }
 
   public Collection<Stage> getStages() {
@@ -176,12 +194,21 @@ public class Request {
     requestEntity.setEndTime(endTime);
     requestEntity.setRequestContext(requestContext);
     requestEntity.setInputs(inputs);
-    requestEntity.setTargetService(targetService);
-    requestEntity.setTargetComponent(targetComponent);
-    requestEntity.setTargetHosts(targetHosts);
     requestEntity.setRequestType(requestType);
     requestEntity.setRequestScheduleId(requestScheduleId);
     //TODO set all fields
+
+    if (resourceFilters != null) {
+      List<RequestResourceFilterEntity> filterEntities = new ArrayList<RequestResourceFilterEntity>();
+      for (RequestResourceFilter resourceFilter : resourceFilters) {
+        RequestResourceFilterEntity filterEntity = new RequestResourceFilterEntity();
+        filterEntity.setServiceName(resourceFilter.getServiceName());
+        filterEntity.setComponentName(resourceFilter.getComponentName());
+        filterEntity.setRequestEntity(requestEntity);
+        filterEntity.setRequestId(requestId);
+      }
+      requestEntity.setResourceFilterEntities(filterEntities);
+    }
 
     return requestEntity;
   }
@@ -231,28 +258,12 @@ public class Request {
     this.inputs = inputs;
   }
 
-  public String getTargetService() {
-    return targetService;
+  public List<RequestResourceFilter> getResourceFilters() {
+    return resourceFilters;
   }
 
-  public void setTargetService(String targetService) {
-    this.targetService = targetService;
-  }
-
-  public String getTargetComponent() {
-    return targetComponent;
-  }
-
-  public void setTargetComponent(String targetComponent) {
-    this.targetComponent = targetComponent;
-  }
-
-  public String getTargetHosts() {
-    return targetHosts;
-  }
-
-  public void setTargetHosts(String targetHosts) {
-    this.targetHosts = targetHosts;
+  public void setResourceFilters(List<RequestResourceFilter> resourceFilters) {
+    this.resourceFilters = resourceFilters;
   }
 
   public RequestType getRequestType() {
@@ -298,9 +309,7 @@ public class Request {
         ", startTime=" + startTime +
         ", endTime=" + endTime +
         ", inputs='" + inputs + '\'' +
-        ", targetService='" + targetService + '\'' +
-        ", targetComponent='" + targetComponent + '\'' +
-        ", targetHosts='" + targetHosts + '\'' +
+        ", resourceFilters='" + resourceFilters + '\'' +
         ", requestType=" + requestType +
         ", stages=" + stages +
         '}';

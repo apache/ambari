@@ -131,6 +131,7 @@ public class AmbariServer {
     return clusterController;
   }
 
+  @SuppressWarnings("deprecation")
   public void run() throws Exception {
     // Initialize meta info before heartbeat monitor
     ambariMetaInfo.init();
