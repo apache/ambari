@@ -56,7 +56,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       hiveJob.id = json.entity;
       hiveJob.startTime = json.starttime;
       hiveJob.endTime = json.endtime;
-      json.otherinfo.query = $.parseJSON(json.otherinfo.query).query;
+      json.otherinfo.query = $.parseJSON(json.otherinfo.query);
       hiveJob.stages = [];
       var stagePlans = json.otherinfo.query.queryPlan["STAGE PLANS"];
       for ( var stage in stagePlans) {

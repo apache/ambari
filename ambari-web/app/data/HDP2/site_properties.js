@@ -317,7 +317,7 @@ module.exports =
       "name": "yarn.timeline-service.store-class",
       "displayName": "yarn.timeline-service.store-class",
       "value": "",
-      "defaultValue": "org.apache.hadoop.yarn.server.applicationhistoryservice.apptimeline.LeveldbApplicationTimelineStore",
+      "defaultValue": "org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.LeveldbTimelineStore",
       "isVisible": App.supports.appTimelineServer, // @todo remove after Application Timeline Server approving
       "category": "AppTimelineServer",
       "serviceName": "YARN"
