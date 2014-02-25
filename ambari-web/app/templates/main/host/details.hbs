@@ -30,15 +30,15 @@
       {{#if App.supports.deleteHost}}
 				<div class="service-button">
 				    <div class="btn-group display-inline-block">
-				      <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle controller.content.isNotHeartBeating:disabled"}} data-toggle="dropdown">
+				      <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown">
                 {{t hosts.host.details.hostActions}}
 				        <span class="caret"></span>
 				      </a>
 				      <ul class="dropdown-menu pull-right">
 				        <!-- dropdown menu links -->
 				        {{#each option in view.maintenance}}
-				        <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
-				          <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass"}}></i>
+				        <li {{bindAttr class="controller.isStopDisabled:disabled option.liClass"}}>
+				          <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass option.liClass"}}></i>
 {{option.label}}</a>
 				        </li>
 				        {{/each}}

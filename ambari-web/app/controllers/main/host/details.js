@@ -961,13 +961,13 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.validateAndDeleteHost();
         break;
       case "startAllComponents":
-        this.doStartAllComponents();
+        if (!this.get('content.isNotHeartBeating')) this.doStartAllComponents();
         break;
       case "stopAllComponents":
-        this.doStopAllComponents();
+        if (!this.get('content.isNotHeartBeating')) this.doStopAllComponents();
         break;
       case "restartAllComponents":
-        this.doRestartAllComponents();
+        if (!this.get('content.isNotHeartBeating')) this.doRestartAllComponents();
         break;
       case "onOffPassiveModeForHost":
         this.onOffPassiveModeForHost(option.context);

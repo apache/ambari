@@ -33,12 +33,12 @@ App.MainHostDetailsView = Em.View.extend({
   maintenance: function(){
     var onOff = this.get('isActive') ? "On" : "Off";
     return [
-      {action: 'startAllComponents', cssClass: 'icon-play enabled', 'label': this.t('hosts.host.details.startAllComponents')},
-      {action: 'stopAllComponents', cssClass: 'icon-stop enabled', 'label': this.t('hosts.host.details.stopAllComponents')},
-      {action: 'restartAllComponents', cssClass: 'icon-forward enabled', 'label': this.t('hosts.host.details.restartAllComponents')},
-      {action: 'deleteHost', cssClass: 'icon-remove enabled', 'label': this.t('hosts.host.details.deleteHost')},
-      {action: 'onOffPassiveModeForHost', cssClass: 'icon-medkit enabled', active:this.get('isActive'), 'label': this.t('passiveState.turn' + onOff)}];
-  }.property('controller.content','isActive'),
+      {action: 'startAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-play', 'label': this.t('hosts.host.details.startAllComponents')},
+      {action: 'stopAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-stop', 'label': this.t('hosts.host.details.stopAllComponents')},
+      {action: 'restartAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-forward', 'label': this.t('hosts.host.details.restartAllComponents')},
+      {action: 'deleteHost', liClass:'', cssClass: 'icon-remove', 'label': this.t('hosts.host.details.deleteHost')},
+      {action: 'onOffPassiveModeForHost', liClass:'', cssClass: 'icon-medkit', active:this.get('isActive'), 'label': this.t('passiveState.turn' + onOff)}];
+  }.property('controller.content','isActive', 'controller.content.isNotHeartBeating'),
   didInsertElement: function() {
     App.tooltip($("[rel='HealthTooltip']"));
   }
