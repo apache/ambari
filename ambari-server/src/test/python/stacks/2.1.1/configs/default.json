@@ -30,7 +30,46 @@
     "taskId": 152, 
     "public_hostname": "c6401.ambari.apache.org", 
     "configurations": {
-        "mapred-site": {
+      "falcon-startup.properties": {
+            "*.oozie.feed.workflow.builder": "org.apache.falcon.workflow.OozieFeedWorkflowBuilder",
+            "*.falcon.http.authentication.token.validity": "36000",
+            "*.internal.queue.size": "1000",
+            "*.ProcessInstanceManager.impl": "org.apache.falcon.resource.InstanceManager",
+            "*.falcon.http.authentication.simple.anonymous.allowed": "true",
+            "*.broker.url": "tcp://localhost:61616",
+            "*.system.lib.location": "${falcon.home}/server/webapp/falcon/WEB-INF/lib",
+            "*.entity.topic": "FALCON.ENTITY.TOPIC",
+            "*.domain": "${falcon.app.type}",
+            "*.ConfigSyncService.impl": "org.apache.falcon.resource.ConfigSyncService",
+            "*.falcon.http.authentication.signature.secret": "falcon",
+            "*.retry.recorder.path": "${falcon.log.dir}/retry",
+            "*.broker.ttlInMins": "4320",
+            "*.falcon.authentication.type": "simple",
+            "*.catalog.service.impl": "org.apache.falcon.catalog.HiveCatalogService",
+            "prism.system.lib.location": "${falcon.home}/server/webapp/prism/WEB-INF/lib",
+            "*.falcon.http.authentication.kerberos.name.rules": "DEFAULT",
+            "*.application.services": "org.apache.falcon.security.AuthenticationInitializationService,\\\n      org.apache.falcon.service.ProcessSubscriberService,\\\n      org.apache.falcon.entity.store.ConfigurationStore,\\\n      org.apache.falcon.rerun.service.RetryService,\\\n      org.apache.falcon.rerun.service.LateRunService,\\\n      org.apache.falcon.service.SLAMonitoringService,\\\n      org.apache.falcon.service.LogCleanupService",
+            "*.workflow.engine.impl": "org.apache.falcon.workflow.engine.OozieWorkflowEngine",
+            "*.SchedulableEntityManager.impl": "org.apache.falcon.resource.SchedulableEntityManager",
+            "*.max.retry.failure.count": "1",
+            "*.falcon.http.authentication.type": "simple",
+            "*.oozie.process.workflow.builder": "org.apache.falcon.workflow.OozieProcessWorkflowBuilder",
+            "prism.application.services": "org.apache.falcon.entity.store.ConfigurationStore",
+            "*.shared.libs": "activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms",
+            "*.falcon.cleanup.service.frequency": "days(1)",
+            "prism.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph,\\\n      org.apache.falcon.entity.ColoClusterRelation,\\\n      org.apache.falcon.group.FeedGroupMap",
+            "*.config.store.uri": "file://${falcon.home}/store",
+            "*.broker.impl.class": "org.apache.activemq.ActiveMQConnectionFactory",
+            "*.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph,\\\n      org.apache.falcon.entity.ColoClusterRelation,\\\n      org.apache.falcon.group.FeedGroupMap,\\\n      org.apache.falcon.service.SharedLibraryHostingService"
+      },
+      "falcon-runtime.properties": {
+            "*.log.cleanup.frequency.hours.retention": "minutes(1)",
+            "*.log.cleanup.frequency.days.retention": "days(7)",
+            "*.log.cleanup.frequency.months.retention": "months(3)",
+            "*.log.cleanup.frequency.minutes.retention": "hours(6)",
+            "*.domain": "${falcon.app.type}"
+      },
+      "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 
             "mapreduce.cluster.administrators": " hadoop", 
             "mapreduce.reduce.input.buffer.percent": "0.0", 
@@ -213,6 +252,8 @@
             "templeton.pig.archive": "hdfs:///apps/webhcat/pig.tar.gz"
         }, 
         "global": {
+            "falcon_log_dir": "/var/log/falcon",
+            "falcon_pid_dir": "/var/run/falcon",
             "security_enabled": "false", 
             "hbase_pid_dir": "/var/run/hbase", 
             "proxyuser_group": "users", 

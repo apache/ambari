@@ -21,7 +21,12 @@ from resource_management import *
 
 def falcon(type, action = None):
   import params
-
+  Directory(params.falcon_pid_dir,
+            owner=params.falcon_user
+  )
+  Directory(params.falcon_log_dir,
+            owner=params.falcon_user
+  )
   if type == 'client':
     if action == 'config':
       File(params.falcon_conf_dir + '/client.properties',
@@ -43,13 +48,13 @@ def falcon(type, action = None):
                 owner=params.falcon_user,
                 recursive=True
       )
-      File(params.falcon_conf_dir + '/runtime.properties',
-           content=Template('runtime.properties.j2'),
-           mode=0644
+      PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
+                     properties=params.falcon_runtime_properties,
+                     mode=0644
       )
-      File(params.falcon_conf_dir + '/startup.properties',
-           content=Template('startup.properties.j2'),
-           mode=0644
+      PropertiesFile(params.falcon_conf_dir + '/startup.properties',
+                     properties=params.falcon_startup_properties,
+                     mode=0644
       )
     if action == 'start':
       Execute(format('env JAVA_HOME={java_home} FALCON_LOG_DIR=/var/log/falcon '

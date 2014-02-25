@@ -20,33 +20,28 @@
 -->
 <configuration>
   <property>
-    <name>falcon_user</name>
-    <value>falcon</value>
-    <description>Falcon user.</description>
+    <name>*.domain</name>
+    <value>${falcon.app.type}</value>
+    <description></description>
   </property>
   <property>
-    <name>falcon_port</name>
-    <value>15000</value>
-    <description>Falcon server port.</description>
+    <name>*.log.cleanup.frequency.minutes.retention</name>
+    <value>hours(6)</value>
+    <description></description>
   </property>
   <property>
-    <name>falcon_log_dir</name>
-    <value>/var/log/falcon</value>
-    <description>Falcon log directory.</description>
+    <name>*.log.cleanup.frequency.hours.retention</name>
+    <value>minutes(1)</value>
+    <description></description>
   </property>
   <property>
-    <name>falcon_pid_dir</name>
-    <value>/var/run/falcon</value>
-    <description>Falcon pid-file directory.</description>
+    <name>*.log.cleanup.frequency.days.retention</name>
+    <value>days(7)</value>
+    <description></description>
   </property>
   <property>
-    <name>falcon_local_dir</name>
-    <value>/hadoop/falcon</value>
-    <description>Falcon directory to store different data.</description>
-  </property>
-  <property>
-    <name>falcon_store_uri</name>
-    <value>file:///hadoop/falcon/store</value>
-    <description>Falcon store URI.</description>
+    <name>*.log.cleanup.frequency.months.retention</name>
+    <value>months(3)</value>
+    <description></description>
   </property>
 </configuration>

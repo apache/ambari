@@ -39,6 +39,7 @@ gmetad_user = config['configurations']['global']["gmetad_user"]
 gmond_user = config['configurations']['global']["gmond_user"]
 storm_user = config['configurations']['global']['storm_user']
 tez_user = 'tez'
+falcon_user = config['configurations']['global']['falcon_user']
 
 user_group = config['configurations']['global']['user_group']
 proxyuser_group =  config['configurations']['global']['proxyuser_group']
@@ -61,6 +62,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 storm_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
+falcon_host =  default('/clusterHostInfo/falcon_server_hosts', [])
 
 has_resourcemanager = not len(rm_host) == 0
 has_slaves = not len(slave_hosts) == 0
@@ -72,6 +74,7 @@ has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_storm_server = not len(storm_server_hosts) == 0
+has_falcon_server = not len(falcon_host) == 0
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host

@@ -26,7 +26,10 @@ class FalconServiceCheck(Script):
     import params
 
     env.set_params(params)
-
+    if params.security_enabled:
+      principal_replaced = params.http_principal.replace("_HOST", params.hostname)
+      Execute(format("{kinit_path_local} -kt {http_keytab} {principal_replaced}"),
+              user=params.smoke_user)
     Execute(format("env JAVA_HOME={java_home} FALCON_LOG_DIR=/var/log/falcon "
                    "FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR={falcon_data_dir} "
                    "{falcon_home}/bin/falcon admin -version"),

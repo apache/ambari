@@ -64,6 +64,8 @@
       <configuration-dependencies>
         <config-type>oozie-site</config-type>
         <config-type>global</config-type>
+        <config-type>falcon-startup.properties</config-type>
+        <config-type>falcon-runtime.properties</config-type>
       </configuration-dependencies>
 
     </service>

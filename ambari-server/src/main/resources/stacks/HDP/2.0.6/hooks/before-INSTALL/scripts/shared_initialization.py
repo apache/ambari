@@ -101,6 +101,12 @@ def setup_users():
          groups=[params.user_group]
     )
 
+  if params.has_falcon_server:
+    User(params.falcon_user,
+         gid=params.user_group,
+         groups=[params.user_group]
+    )
+
 def set_uid(user, user_dirs):
   """
   user_dirs - comma separated directories

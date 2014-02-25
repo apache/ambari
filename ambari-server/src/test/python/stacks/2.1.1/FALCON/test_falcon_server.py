@@ -29,19 +29,13 @@ class TestFalconServer(RMFTestCase):
                        command="start",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Directory',
-                              '/hadoop/falcon',
-                              owner='falcon',
-                              recursive=True, )
-    self.assertResourceCalled('Directory', '/hadoop/falcon/activemq',
-                              owner='falcon',
-                              recursive=True, )
-    self.assertResourceCalled('File', '/etc/falcon/conf/runtime.properties',
-                              content=Template('runtime.properties.j2'),
-                              mode=0644, )
-    self.assertResourceCalled('File', '/etc/falcon/conf/startup.properties',
-                              content=Template('startup.properties.j2'),
-                              mode=0644, )
+    self.assert_configure_default()
+    self.assertResourceCalled('Directory', '/var/run/falcon',
+                              owner = 'falcon',
+                              )
+    self.assertResourceCalled('Directory', '/var/log/falcon',
+                              owner = 'falcon',
+                              )
     self.assertResourceCalled('Execute',
                               'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-start -port 15000',
                               user='falcon', )
@@ -53,6 +47,12 @@ class TestFalconServer(RMFTestCase):
                        command="stop",
                        config_file="default.json"
     )
+    self.assertResourceCalled('Directory', '/var/run/falcon',
+                              owner = 'falcon',
+                              )
+    self.assertResourceCalled('Directory', '/var/log/falcon',
+                              owner = 'falcon',
+                              )
     self.assertResourceCalled('Execute',
                           'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-stop',
                           user='falcon', )
@@ -67,19 +67,31 @@ class TestFalconServer(RMFTestCase):
                        command="configure",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Directory',
-                              '/hadoop/falcon',
-                              owner='falcon',
-                              recursive=True, )
-    self.assertResourceCalled('Directory', '/hadoop/falcon/activemq',
-                              owner='falcon',
-                              recursive=True, )
-    self.assertResourceCalled('File', '/etc/falcon/conf/runtime.properties',
-                              content=Template('runtime.properties.j2'),
-                              mode=0644, )
-    self.assertResourceCalled('File', '/etc/falcon/conf/startup.properties',
-                              content=Template('startup.properties.j2'),
-                              mode=0644, )
+    self.assert_configure_default()
     self.assertNoMoreResources()
+
+  def assert_configure_default(self):
+    self.assertResourceCalled('Directory', '/var/run/falcon',
+                              owner = 'falcon',
+                              )
+    self.assertResourceCalled('Directory', '/var/log/falcon',
+                              owner = 'falcon',
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/falcon',
+                              owner = 'falcon',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/activemq',
+                              owner = 'falcon',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
+                              mode = 0644,
+                              properties = self.getConfig()['configurations']['falcon-runtime.properties'],
+                              )
+    self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
+                              mode = 0644,
+                              properties = self.getConfig()['configurations']['falcon-startup.properties'],
+                              )
 
 

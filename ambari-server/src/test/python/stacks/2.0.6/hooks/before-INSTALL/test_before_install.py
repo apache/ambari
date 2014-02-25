@@ -84,6 +84,9 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'storm',
                           gid='hadoop',
                           groups=['hadoop'], )
+    self.assertResourceCalled('User', 'falcon',
+                              gid='hadoop',
+                              groups=['hadoop'], )
     self.assertResourceCalled('Package', 'unzip', )
     self.assertResourceCalled('Package', 'net-snmp', )
     self.assertNoMoreResources()

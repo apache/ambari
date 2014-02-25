@@ -19,8 +19,7 @@ limitations under the License.
 
 from resource_management import *
 
-import status_params
-from status_params import server_pid_file
+from status_params import *
 
 config = Script.get_config()
 
@@ -28,15 +27,22 @@ oozie_user = config['configurations']['global']['oozie_user']
 falcon_user = config['configurations']['global']['falcon_user']
 smoke_user =  config['configurations']['global']['smokeuser']
 
+user_group = config['configurations']['global']['user_group']
+proxyuser_group =  config['configurations']['global']['proxyuser_group']
+
 java_home = config['hostLevelParams']['java_home']
 falcon_home = '/usr/lib/falcon'
 falcon_conf_dir = '/etc/falcon/conf'
 falcon_local_dir = config['configurations']['global']['falcon_local_dir']
-falcon_log_dir = '/var/log/falcon'
+falcon_log_dir = config['configurations']['global']['falcon_log_dir']
 falcon_data_dir = format('{falcon_local_dir}/activemq')
 store_uri = config['configurations']['global']['falcon_store_uri']
 falcon_host = config['clusterHostInfo']['falcon_server_hosts'][0]
 falcon_port = config['configurations']['global']['falcon_port']
+falcon_runtime_properties = config['configurations']['falcon-runtime.properties']
+falcon_startup_properties = config['configurations']['falcon-startup.properties']
+http_keytab = falcon_startup_properties['*.falcon.http.authentication.kerberos.keytab']
+http_principal = falcon_startup_properties['*.falcon.http.authentication.kerberos.principal']
 
 #for create_hdfs_directory
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
