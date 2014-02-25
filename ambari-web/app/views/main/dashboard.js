@@ -19,7 +19,7 @@
 var App = require('app');
 var filters = require('views/common/filter_view');
 
-App.MainDashboardView = Em.View.extend({
+App.MainDashboardView = Em.View.extend(App.UserPref, {
   templateName:require('templates/main/dashboard'),
   didInsertElement:function () {
     this.services();
@@ -404,20 +404,7 @@ App.MainDashboardView = Em.View.extend({
     return 'user-pref-' + loginName + '-dashboard';
   }.property(''),
 
-  /**
-   * get persist value from server with persistKey
-   */
-  getUserPref: function(key){
-    App.ajax.send({
-      name: 'dashboard.get.user_pref',
-      sender: this,
-      data: {
-        key: key
-      },
-      success: 'getUserPrefSuccessCallback',
-      error: 'getUserPrefErrorCallback'
-    });
-  },
+  makeRequestAsync: false,
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {
@@ -432,27 +419,6 @@ App.MainDashboardView = Em.View.extend({
       console.log('Persist did NOT find the key');
       return null;
     }
-  },
-
-  /**
-   * post persist key/value to server, value is object
-   */
-  postUserPref: function (key, value) {
-    var keyValuePair = {};
-    keyValuePair[key] = JSON.stringify(value);
-
-    App.ajax.send({
-      'name': 'dashboard.post.user_pref',
-      'sender': this,
-      'beforeSend': 'postUserPrefBeforeSend',
-      'data': {
-        'keyValuePair': keyValuePair
-      }
-    });
-  },
-
-  postUserPrefBeforeSend: function(request, ajaxOptions, data){
-    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
   },
 
   resetAllWidgets: function(){

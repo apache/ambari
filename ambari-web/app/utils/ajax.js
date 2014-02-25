@@ -756,7 +756,12 @@ var urls = {
   },
   'settings.get.user_pref': {
     'real': '/persist/{key}',
-    'mock': '/data/user_settings/{key}.json'
+    'mock': '/data/user_settings/{key}.json',
+    'format': function(data) {
+      return {
+        async: data.async
+      };
+    }
   },
   'settings.post.user_pref': {
     'real': '/persist',
@@ -764,6 +769,7 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
+        async: data.async,
         data: JSON.stringify(data.keyValuePair)
       }
     }
@@ -1333,26 +1339,6 @@ var urls = {
   'ambari.service.load_server_clock': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock',
     'mock': ''
-  },
-  'dashboard.get.user_pref': {
-    'real': '/persist/{key}',
-    'mock': '',
-    'format': function() {
-      return {
-        async: false
-      };
-    }
-  },
-  'dashboard.post.user_pref': {
-    'real': '/persist',
-    'mock': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        async: false,
-        data: JSON.stringify(data.keyValuePair)
-      }
-    }
   },
   'config_groups.create': {
     'real': '/clusters/{clusterName}/config_groups',

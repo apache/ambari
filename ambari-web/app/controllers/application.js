@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.ApplicationController = Em.Controller.extend({
+App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   name: 'applicationController',
 
@@ -64,20 +64,6 @@ App.ApplicationController = Em.Controller.extend({
   },
   currentPrefObject: null,
 
-  /**
-   * get persist value from server with persistKey
-   */
-  getUserPref: function(key){
-    return App.ajax.send({
-      name: 'settings.get.user_pref',
-      sender: this,
-      data: {
-        key: key
-      },
-      success: 'getUserPrefSuccessCallback',
-        error: 'getUserPrefErrorCallback'
-    });
-  },
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response != null) {
       console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
@@ -93,24 +79,6 @@ App.ApplicationController = Em.Controller.extend({
       this.postUserPref(this.persistKey(), true);
       return true;
     }
-  },
-  /**
-   * post persist key/value to server, value is object
-   */
-  postUserPref: function (key, value) {
-    var keyValuePair = {};
-    keyValuePair[key] = JSON.stringify(value);
-    App.ajax.send({
-      'name': 'settings.post.user_pref',
-      'sender': this,
-      'beforeSend': 'postUserPrefBeforeSend',
-      'data': {
-        'keyValuePair': keyValuePair
-      }
-    });
-  },
-  postUserPrefBeforeSend: function(request, ajaxOptions, data){
-    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
   },
 
   showSettingsPopup: function() {

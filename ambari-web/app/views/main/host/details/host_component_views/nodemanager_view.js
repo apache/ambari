@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-require('views/main/host/details/host_component_views/decommissionable');
 
 App.NodeManagerComponentView = App.HostComponentView.extend(App.Decommissionable, {
 

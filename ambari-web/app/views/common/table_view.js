@@ -20,7 +20,7 @@ var App = require('app');
 var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 
-App.TableView = Em.View.extend({
+App.TableView = Em.View.extend(App.UserPref, {
 
   /**
    * Shows if all data is loaded and filtered
@@ -110,28 +110,13 @@ App.TableView = Em.View.extend({
   },
 
   /**
-   * get display length persist value from server with displayLengthKey
-   */
-  getUserPref: function(key){
-    return App.ajax.send({
-      name: 'settings.get.user_pref',
-      sender: this,
-      data: {
-        key: key
-      },
-      success: 'getDisplayLengthSuccessCallback',
-      error: 'getDisplayLengthErrorCallback'
-    });
-  },
-
-  /**
    * Set received from server value to <code>displayLengthOnLoad</code>
    * @param {Number} response
    * @param {Object} request
    * @param {Object} data
    * @returns {*}
    */
-  getDisplayLengthSuccessCallback: function (response, request, data) {
+  getUserPrefSuccessCallback: function (response, request, data) {
     console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
     this.set('displayLengthOnLoad', response);
     return response;
@@ -141,7 +126,7 @@ App.TableView = Em.View.extend({
    * Set default value to <code>displayLengthOnLoad</code> (and send it on server) if value wasn't found on server
    * @returns {Number}
    */
-  getDisplayLengthErrorCallback: function () {
+  getUserPrefErrorCallback: function () {
     // this user is first time login
     console.log('Persist did NOT find the key');
     var displayLengthDefault = "10";
@@ -150,23 +135,6 @@ App.TableView = Em.View.extend({
       this.postUserPref(this.displayLengthKey(), displayLengthDefault);
     }
     return displayLengthDefault;
-  },
-
-  /**
-   * Post display length persist key/value to server
-   * @param {String} key
-   * @param {Object} value
-   */
-  postUserPref: function (key, value) {
-    var keyValuePair = {};
-    keyValuePair[key] = JSON.stringify(value);
-    App.ajax.send({
-      name: 'settings.post.user_pref',
-      sender: this,
-      data: {
-        keyValuePair: keyValuePair
-      }
-    });
   },
 
   /**
