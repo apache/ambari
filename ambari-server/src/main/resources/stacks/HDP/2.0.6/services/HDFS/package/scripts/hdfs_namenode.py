@@ -41,10 +41,8 @@ def namenode(action=None, do_format=True):
 
     service(
       action="start", name="namenode", user=params.hdfs_user,
-      keytab=params.dfs_namenode_keytab_file,
       create_pid_dir=True,
-      create_log_dir=True,
-      principal=params.dfs_namenode_kerberos_principal
+      create_log_dir=True
     )
     if params.dfs_ha_enabled:
       dfs_check_nn_status_cmd = format("su - {hdfs_user} -c 'hdfs haadmin -getServiceState {namenode_id} | grep active > /dev/null'")
@@ -64,9 +62,8 @@ def namenode(action=None, do_format=True):
     create_hdfs_directories(dfs_check_nn_status_cmd)
   if action == "stop":
     service(
-      action="stop", name="namenode", user=params.hdfs_user,
-      keytab=params.dfs_namenode_keytab_file,
-      principal=params.dfs_namenode_kerberos_principal
+      action="stop", name="namenode", 
+      user=params.hdfs_user
     )
 
   if action == "decommission":

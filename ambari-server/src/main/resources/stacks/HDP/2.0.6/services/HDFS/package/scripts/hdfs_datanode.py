@@ -20,7 +20,6 @@ limitations under the License.
 from resource_management import *
 from utils import service
 
-
 def datanode(action=None):
   import params
 
@@ -37,21 +36,10 @@ def datanode(action=None):
                 owner=params.hdfs_user,
                 group=params.user_group)
 
-  if action == "start":
+  elif action == "start" or action == "stop":
     service(
       action=action, name="datanode",
       user=params.hdfs_user,
       create_pid_dir=True,
-      create_log_dir=True,
-      keytab=params.dfs_datanode_keytab_file,
-      principal=params.dfs_datanode_kerberos_principal
-    )
-  if action == "stop":
-    service(
-      action=action, name="datanode",
-      user=params.hdfs_user,
-      create_pid_dir=True,
-      create_log_dir=True,
-      keytab=params.dfs_datanode_keytab_file,
-      principal=params.dfs_datanode_kerberos_principal
+      create_log_dir=True
     )

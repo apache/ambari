@@ -47,8 +47,6 @@ class TestSNamenode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
-    self.assertResourceCalled('Execute', 'true',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               user = 'hdfs',
@@ -68,8 +66,6 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'true',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode',
                               not_if = None,
@@ -105,8 +101,6 @@ class TestSNamenode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start secondarynamenode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid` >/dev/null 2>&1',
                               user = 'hdfs',
@@ -126,8 +120,6 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode',
                               not_if = None,

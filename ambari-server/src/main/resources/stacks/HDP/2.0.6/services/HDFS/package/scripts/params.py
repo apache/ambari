@@ -31,22 +31,9 @@ else:
 #security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-dfs_journalnode_keytab_file = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
-dfs_web_authentication_kerberos_keytab = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
-dfs_secondary_namenode_keytab_file =  config['configurations']['hdfs-site']['dfs.secondary.namenode.keytab.file']
-dfs_datanode_keytab_file =  config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
-dfs_namenode_keytab_file =  config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 falcon_user = config['configurations']['global']['falcon_user']
-
-dfs_datanode_kerberos_principal = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
-dfs_journalnode_kerberos_principal = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.principal']
-dfs_secondary_namenode_kerberos_internal_spnego_principal = config['configurations']['hdfs-site']['dfs.secondary.namenode.kerberos.internal.spnego.principal']
-dfs_namenode_kerberos_principal = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
-dfs_web_authentication_kerberos_principal = config['configurations']['hdfs-site']['dfs.web.authentication.kerberos.principal']
-dfs_secondary_namenode_kerberos_principal = config['configurations']['hdfs-site']['dfs.secondary.namenode.kerberos.principal']
-dfs_journalnode_kerberos_internal_spnego_principal = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.internal.spnego.principal']
 
 #exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])

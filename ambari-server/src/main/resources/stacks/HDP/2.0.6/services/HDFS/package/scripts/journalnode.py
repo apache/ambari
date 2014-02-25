@@ -36,9 +36,7 @@ class JournalNode(Script):
     service(
       action="start", name="journalnode", user=params.hdfs_user,
       create_pid_dir=True,
-      create_log_dir=True,
-      keytab=params.dfs_journalnode_keytab_file,
-      principal=params.dfs_journalnode_kerberos_principal
+      create_log_dir=True
     )
 
   def stop(self, env):
@@ -48,9 +46,7 @@ class JournalNode(Script):
     service(
       action="stop", name="journalnode", user=params.hdfs_user,
       create_pid_dir=True,
-      create_log_dir=True,
-      keytab=params.dfs_journalnode_keytab_file,
-      principal=params.dfs_journalnode_kerberos_principal
+      create_log_dir=True
     )
 
   def configure(self, env):

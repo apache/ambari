@@ -31,23 +31,11 @@ def snamenode(action=None, format=False):
               mode=0755,
               owner=params.hdfs_user,
               group=params.user_group)
-  elif action == "start":
+  elif action == "start" or action == "stop":
     service(
       action=action,
       name="secondarynamenode",
       user=params.hdfs_user,
       create_pid_dir=True,
-      create_log_dir=True,
-      keytab=params.dfs_secondary_namenode_keytab_file,
-      principal=params.dfs_secondary_namenode_kerberos_principal
-    )
-  elif action == "stop":
-    service(
-      action=action,
-      name="secondarynamenode",
-      user=params.hdfs_user,
-      create_pid_dir=True,
-      create_log_dir=True,
-      keytab=params.dfs_secondary_namenode_keytab_file,
-      principal=params.dfs_secondary_namenode_kerberos_principal
+      create_log_dir=True
     )

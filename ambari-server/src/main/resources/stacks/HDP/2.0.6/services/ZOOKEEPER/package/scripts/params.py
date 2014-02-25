@@ -53,7 +53,7 @@ zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)
 
 zk_primary_name = "zookeeper"
 zk_principal_name = "zookeeper/_HOST@EXAMPLE.COM"
-zk_principal = zk_principal_name.replace('_HOST',hostname)
+zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
 java64_home = config['hostLevelParams']['java_home']
 

@@ -33,10 +33,8 @@ def namenode(action=None, do_format=True):
       pass
     service(
       action="start", name="namenode", user=params.hdfs_user,
-      keytab=params.dfs_namenode_keytab_file,
       create_pid_dir=True,
-      create_log_dir=True,
-      principal=params.dfs_namenode_kerberos_principal
+      create_log_dir=True
     )
 
     namenode_safe_mode_off = format("su - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
@@ -51,9 +49,8 @@ def namenode(action=None, do_format=True):
 
   if action == "stop":
     service(
-      action="stop", name="namenode", user=params.hdfs_user,
-      keytab=params.dfs_namenode_keytab_file,
-      principal=params.dfs_namenode_kerberos_principal
+      action="stop", name="namenode", 
+      user=params.hdfs_user,
     )
 
   if action == "decommission":

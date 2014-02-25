@@ -47,8 +47,6 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
-    self.assertResourceCalled('Execute', 'true',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
                               user = 'hdfs',
@@ -68,8 +66,6 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'true',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode',
                               not_if = None,
@@ -105,8 +101,6 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/dn.service.keytab dn/c6402.ambari.apache.org@EXAMPLE.COM',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start datanode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid` >/dev/null 2>&1',
                               user = 'root',
@@ -125,8 +119,6 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/dn.service.keytab dn/c6402.ambari.apache.org@EXAMPLE.COM',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode',
                               not_if = None,

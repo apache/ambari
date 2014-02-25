@@ -62,8 +62,6 @@ class TestNamenode(RMFTestCase):
                               owner = 'hdfs',
                               recursive = True,
                               )
-    self.assertResourceCalled('Execute', 'true',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
                               user = 'hdfs',
@@ -110,8 +108,6 @@ class TestNamenode(RMFTestCase):
                        command = "stop",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'true',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode',
                               not_if = None,
                               user = 'hdfs',
@@ -160,8 +156,6 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
@@ -212,8 +206,6 @@ class TestNamenode(RMFTestCase):
                        command = "stop",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM',
-                              )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode',
                               not_if = None,
                               user = 'hdfs',
@@ -243,8 +235,6 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'true',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
@@ -305,8 +295,6 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
-                              )
-    self.assertResourceCalled('Execute', 'kinit -kt /etc/security/keytabs/nn.service.keytab nn/c6401.ambari.apache.org@EXAMPLE.COM',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode',
                               not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
