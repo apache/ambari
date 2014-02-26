@@ -340,17 +340,23 @@ App.MainHostController = Em.ArrayController.extend({
       else {
         parameters['excluded_hosts'] = hostsWithComponentInProperState.join(',');
       }
-      App.ajax.send({
-        name: 'bulk_request.decommission',
-        sender: this,
-        data: {
-          context: Em.I18n.t(contextString),
-          serviceName: service.get('serviceName'),
-          componentName: operationData.componentName,
-          parameters: parameters
-        },
-        success: 'bulkOperationForHostComponentsSuccessCallback'
-      });
+      // HBASE service, decommission RegionServer in batch requests
+      if (operationData.serviceName == "HBASE") {
+        var hostNames = hostsWithComponentInProperState.join(',');
+        App.router.get('mainHostDetailsController').doDecommissionRegionServer(hostNames, operationData.serviceName, "HBASE_MASTER", operationData.realComponentName);
+      } else {
+        App.ajax.send({
+          name: 'bulk_request.decommission',
+          sender: this,
+          data: {
+            context: Em.I18n.t(contextString),
+            serviceName: service.get('serviceName'),
+            componentName: operationData.componentName,
+            parameters: parameters
+          },
+          success: 'bulkOperationForHostComponentsSuccessCallback'
+        });
+      }
     }
     else {
       App.ModalPopup.show({
