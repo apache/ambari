@@ -20,6 +20,25 @@
 @space-m: 10px;
 @space-l: 20px;
 
+@-webkit-keyframes greenPulse {
+  from { background-color: #118fff; }
+  50% { background-color: #006DCC; }
+  to { background-color: #118fff; }
+}
+
+@-moz-keyframes greenPulse {
+  from { background-color: #118fff; }
+  50% { background-color: #006DCC; }
+  to { background-color: #118fff; }
+}
+
+@keyframes greenPulse
+{
+  0% { background-color: #118fff; }
+  50% { background-color: #006DCC; }
+  100% { background-color: #118fff; }
+}
+
 .gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
@@ -92,6 +111,15 @@ footer {
 
       .operations-count {
         background-color: #006DCC;
+        -webkit-animation-name: greenPulse;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        -moz-animation-name: greenPulse;
+        -moz-animation-duration: 1s;
+        -moz-animation-iteration-count: infinite;
+        animation-name: greenPulse;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
         margin: 2px;
       }
     }

@@ -30,9 +30,9 @@
 
               {{#with App.router.backgroundOperationsController}}
                 {{#if allOperationsCount}}
-                  <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
+                  <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}} {{t ops}}</span>
                 {{else}}
-                  <span class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
+                  <span class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}} {{t ops}}</span>
                 {{/if}}
               {{/with}}
             </a>

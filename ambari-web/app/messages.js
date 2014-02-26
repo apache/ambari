@@ -49,6 +49,7 @@ Em.I18n.translations = {
   'yes':'Yes',
   'no':'No',
   'add': 'Add',
+  'ops': 'ops',
 
 
   'common.access':'Access',

@@ -20,6 +20,7 @@ var App = require('app');
 require('utils/db');
 require('views/common/filter_view');
 require('views/common/sort_view');
+require('mixins');
 require('mixins/common/userPref');
 require('views/common/table_view');
 
