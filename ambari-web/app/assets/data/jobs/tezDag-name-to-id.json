@@ -1,85 +1,470 @@
 {
   "entities": [
     {
-      "starttime": 1390516133120,
-      "entitytype": "TEZ_DAG_ID",
-      "primaryfilters": {
-        "dagName": "HIVE-Q2:1"
-      },
-      "otherinfo": {
-        "dagPlan": {
-          "dagName": "HIVE-Q2:1",
-          "edges": [
-            {
-              "edgeId": "1167505869",
-              "inputVertexName": "Map 3",
-              "outputVertexName": "Map 2",
-              "dataMovementType": "BROADCAST",
-              "dataSourceType": "PERSISTED",
-              "schedulingType": "SEQUENTIAL",
-              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
-              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
-            },
-            {
-              "edgeId": "360567249",
-              "inputVertexName": "Map 1",
-              "outputVertexName": "Map 2",
-              "dataMovementType": "BROADCAST",
-              "dataSourceType": "PERSISTED",
-              "schedulingType": "SEQUENTIAL",
-              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
-              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
-            }
-          ],
-          "vertices": [
-            {
-              "vertexName": "Map 1",
-              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
-              "outEdgeIds": "360567249",
-              "additionalInputs": {
-                "name": "z",
-                "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
-                "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
-              }
-            },
-            {
-              "vertexName": "Map 2",
-              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
-              "inEdgeIds": [
-                "1167505869",
-                "360567249"
-              ],
-              "additionalInputs": {
-                "name": "y",
-                "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
-                "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
-              },
-              "additionalOutputs": {
-                "name": "out_Map 2",
-                "class": "org.apache.tez.mapreduce.output.MROutput"
-              }
-            },
-            {
-              "vertexName": "Map 3",
-              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
-              "outEdgeIds": "1167505869",
-              "additionalInputs": {
-                "name": "x",
-                "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
-                "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
-              }
-            }
-          ]
-        }
-      },
+      "starttime": 1392936257904,
       "events": [
         {
-          "timestamp": 1390516133120,
+          "timestamp": 1392936280537,
+          "eventtype": "DAG_FINISHED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1392936258013,
+          "eventtype": "DAG_STARTED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1392936257968,
+          "eventtype": "DAG_INITIALIZED",
+          "eventinfo": {}
+        },
+        {
+          "timestamp": 1392936257904,
           "eventtype": "DAG_SUBMITTED",
           "eventinfo": {}
         }
       ],
-      "entity": "dag_1390516007863_0001_1-0",
+      "otherinfo": {
+        "startTime": 1392936258013,
+        "status": "SUCCEEDED",
+        "initTime": 1392936257968,
+        "timeTaken": 22524,
+        "dagPlan": {
+          "dagName": "hive_20140220172727_9cb1b1a3-25bd-457b-81dc-60544c941cfa:11",
+          "edges": [
+            {
+              "edgeId": "167296427",
+              "inputVertexName": "Reducer 3",
+              "outputVertexName": "Reducer 4",
+              "dataMovementType": "SCATTER_GATHER",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileSortedOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy"
+            },
+            {
+              "edgeId": "473758957",
+              "inputVertexName": "Map 1",
+              "outputVertexName": "Map 6",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "2076565304",
+              "inputVertexName": "Reducer 4",
+              "outputVertexName": "Reducer 5",
+              "dataMovementType": "SCATTER_GATHER",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileSortedOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy"
+            },
+            {
+              "edgeId": "974132657",
+              "inputVertexName": "Reducer 5",
+              "outputVertexName": "Map 1",
+              "dataMovementType": "BROADCAST",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileUnorderedKVOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledUnorderedKVInput"
+            },
+            {
+              "edgeId": "1784432228",
+              "inputVertexName": "Map 2",
+              "outputVertexName": "Reducer 3",
+              "dataMovementType": "SCATTER_GATHER",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileSortedOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy"
+            },
+            {
+              "edgeId": "54634294",
+              "inputVertexName": "Map 6",
+              "outputVertexName": "Reducer 7",
+              "dataMovementType": "SCATTER_GATHER",
+              "dataSourceType": "PERSISTED",
+              "schedulingType": "SEQUENTIAL",
+              "edgeSourceClass": "org.apache.tez.runtime.library.output.OnFileSortedOutput",
+              "edgeDestinationClass": "org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy"
+            }
+          ],
+          "vertices": [
+            {
+              "vertexName": "Reducer 7",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
+              "inEdgeIds": [
+                "54634294"
+              ],
+              "additionalOutputs": [
+                {
+                  "name": "out_Reducer 7",
+                  "class": "org.apache.tez.mapreduce.output.MROutput"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 6",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "inEdgeIds": [
+                "473758957"
+              ],
+              "outEdgeIds": [
+                "54634294"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "players",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Map 1",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "inEdgeIds": [
+                "974132657"
+              ],
+              "outEdgeIds": [
+                "473758957"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "school",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            },
+            {
+              "vertexName": "Reducer 5",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
+              "inEdgeIds": [
+                "2076565304"
+              ],
+              "outEdgeIds": [
+                "974132657"
+              ]
+            },
+            {
+              "vertexName": "Reducer 4",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
+              "inEdgeIds": [
+                "167296427"
+              ],
+              "outEdgeIds": [
+                "2076565304"
+              ]
+            },
+            {
+              "vertexName": "Reducer 3",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
+              "inEdgeIds": [
+                "1784432228"
+              ],
+              "outEdgeIds": [
+                "167296427"
+              ]
+            },
+            {
+              "vertexName": "Map 2",
+              "processorClass": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+              "outEdgeIds": [
+                "1784432228"
+              ],
+              "additionalInputs": [
+                {
+                  "name": "school",
+                  "class": "org.apache.tez.mapreduce.input.MRInputLegacy",
+                  "initializer": "org.apache.tez.mapreduce.common.MRInputAMSplitGenerator"
+                }
+              ]
+            }
+          ],
+          "version": 1
+        },
+        "endTime": 1392936280537,
+        "diagnostics": "",
+        "counters": {
+          "counterGroups": [
+            {
+              "counterGroupName": "org.apache.tez.common.counters.DAGCounter",
+              "counterGroupDisplayName": "org.apache.tez.common.counters.DAGCounter",
+              "counters": [
+                {
+                  "counterName": "TOTAL_LAUNCHED_TASKS",
+                  "counterDisplayName": "TOTAL_LAUNCHED_TASKS",
+                  "counterValue": 7
+                },
+                {
+                  "counterName": "DATA_LOCAL_TASKS",
+                  "counterDisplayName": "DATA_LOCAL_TASKS",
+                  "counterValue": 2
+                },
+                {
+                  "counterName": "RACK_LOCAL_TASKS",
+                  "counterDisplayName": "RACK_LOCAL_TASKS",
+                  "counterValue": 1
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.tez.common.counters.FileSystemCounter",
+              "counterGroupDisplayName": "File System Counters",
+              "counters": [
+                {
+                  "counterName": "FILE_BYTES_READ",
+                  "counterDisplayName": "FILE: BYTES_READ",
+                  "counterValue": 4839
+                },
+                {
+                  "counterName": "FILE_BYTES_WRITTEN",
+                  "counterDisplayName": "FILE: BYTES_WRITTEN",
+                  "counterValue": 11213
+                },
+                {
+                  "counterName": "FILE_READ_OPS",
+                  "counterDisplayName": "FILE: READ_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "FILE_LARGE_READ_OPS",
+                  "counterDisplayName": "FILE: LARGE_READ_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "FILE_WRITE_OPS",
+                  "counterDisplayName": "FILE: WRITE_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "HDFS_BYTES_READ",
+                  "counterDisplayName": "HDFS: BYTES_READ",
+                  "counterValue": 306084
+                },
+                {
+                  "counterName": "HDFS_BYTES_WRITTEN",
+                  "counterDisplayName": "HDFS: BYTES_WRITTEN",
+                  "counterValue": 622
+                },
+                {
+                  "counterName": "HDFS_READ_OPS",
+                  "counterDisplayName": "HDFS: READ_OPS",
+                  "counterValue": 5
+                },
+                {
+                  "counterName": "HDFS_LARGE_READ_OPS",
+                  "counterDisplayName": "HDFS: LARGE_READ_OPS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "HDFS_WRITE_OPS",
+                  "counterDisplayName": "HDFS: WRITE_OPS",
+                  "counterValue": 2
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.tez.common.counters.TaskCounter",
+              "counterGroupDisplayName": "org.apache.tez.common.counters.TaskCounter",
+              "counters": [
+                {
+                  "counterName": "MAP_INPUT_RECORDS",
+                  "counterDisplayName": "MAP_INPUT_RECORDS",
+                  "counterValue": 7648
+                },
+                {
+                  "counterName": "MAP_OUTPUT_RECORDS",
+                  "counterDisplayName": "MAP_OUTPUT_RECORDS",
+                  "counterValue": 170
+                },
+                {
+                  "counterName": "MAP_OUTPUT_BYTES",
+                  "counterDisplayName": "MAP_OUTPUT_BYTES",
+                  "counterValue": 4475
+                },
+                {
+                  "counterName": "MAP_OUTPUT_MATERIALIZED_BYTES",
+                  "counterDisplayName": "MAP_OUTPUT_MATERIALIZED_BYTES",
+                  "counterValue": 4839
+                },
+                {
+                  "counterName": "COMBINE_INPUT_RECORDS",
+                  "counterDisplayName": "COMBINE_INPUT_RECORDS",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "REDUCE_INPUT_GROUPS",
+                  "counterDisplayName": "REDUCE_INPUT_GROUPS",
+                  "counterValue": 90
+                },
+                {
+                  "counterName": "REDUCE_SHUFFLE_BYTES",
+                  "counterDisplayName": "REDUCE_SHUFFLE_BYTES",
+                  "counterValue": 4839
+                },
+                {
+                  "counterName": "REDUCE_INPUT_RECORDS",
+                  "counterDisplayName": "REDUCE_INPUT_RECORDS",
+                  "counterValue": 98
+                },
+                {
+                  "counterName": "SPILLED_RECORDS",
+                  "counterDisplayName": "SPILLED_RECORDS",
+                  "counterValue": 269
+                },
+                {
+                  "counterName": "SHUFFLED_MAPS",
+                  "counterDisplayName": "SHUFFLED_MAPS",
+                  "counterValue": 4
+                },
+                {
+                  "counterName": "FAILED_SHUFFLE",
+                  "counterDisplayName": "FAILED_SHUFFLE",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "MERGED_MAP_OUTPUTS",
+                  "counterDisplayName": "MERGED_MAP_OUTPUTS",
+                  "counterValue": 4
+                },
+                {
+                  "counterName": "GC_TIME_MILLIS",
+                  "counterDisplayName": "GC_TIME_MILLIS",
+                  "counterValue": 706
+                },
+                {
+                  "counterName": "CPU_MILLISECONDS",
+                  "counterDisplayName": "CPU_MILLISECONDS",
+                  "counterValue": -15530
+                },
+                {
+                  "counterName": "PHYSICAL_MEMORY_BYTES",
+                  "counterDisplayName": "PHYSICAL_MEMORY_BYTES",
+                  "counterValue": 1493426176
+                },
+                {
+                  "counterName": "VIRTUAL_MEMORY_BYTES",
+                  "counterDisplayName": "VIRTUAL_MEMORY_BYTES",
+                  "counterValue": 7776043008
+                },
+                {
+                  "counterName": "COMMITTED_HEAP_BYTES",
+                  "counterDisplayName": "COMMITTED_HEAP_BYTES",
+                  "counterValue": 1281880064
+                }
+              ]
+            },
+            {
+              "counterGroupName": "HIVE",
+              "counterGroupDisplayName": "HIVE",
+              "counters": [
+                {
+                  "counterName": "CREATED_FILES",
+                  "counterDisplayName": "CREATED_FILES",
+                  "counterValue": 1
+                }
+              ]
+            },
+            {
+              "counterGroupName": "Shuffle Errors",
+              "counterGroupDisplayName": "Shuffle Errors",
+              "counters": [
+                {
+                  "counterName": "BAD_ID",
+                  "counterDisplayName": "BAD_ID",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "CONNECTION",
+                  "counterDisplayName": "CONNECTION",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "IO_ERROR",
+                  "counterDisplayName": "IO_ERROR",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "WRONG_LENGTH",
+                  "counterDisplayName": "WRONG_LENGTH",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "WRONG_MAP",
+                  "counterDisplayName": "WRONG_MAP",
+                  "counterValue": 0
+                },
+                {
+                  "counterName": "WRONG_REDUCE",
+                  "counterDisplayName": "WRONG_REDUCE",
+                  "counterValue": 0
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.hadoop.hive.ql.exec.FilterOperator$Counter",
+              "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.FilterOperator$Counter",
+              "counters": [
+                {
+                  "counterName": "FILTERED",
+                  "counterDisplayName": "FILTERED",
+                  "counterValue": 4921
+                },
+                {
+                  "counterName": "PASSED",
+                  "counterDisplayName": "PASSED",
+                  "counterValue": 1227
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+              "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+              "counters": [
+                {
+                  "counterName": "DESERIALIZE_ERRORS",
+                  "counterDisplayName": "DESERIALIZE_ERRORS",
+                  "counterValue": 0
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.hadoop.mapreduce.lib.input.FileInputFormatCounter",
+              "counterGroupDisplayName": "File Input Format Counters ",
+              "counters": [
+                {
+                  "counterName": "BYTES_READ",
+                  "counterDisplayName": "Bytes Read",
+                  "counterValue": 0
+                }
+              ]
+            },
+            {
+              "counterGroupName": "org.apache.hadoop.mapreduce.lib.output.FileOutputFormatCounter",
+              "counterGroupDisplayName": "File Output Format Counters ",
+              "counters": [
+                {
+                  "counterName": "BYTES_WRITTEN",
+                  "counterDisplayName": "Bytes Written",
+                  "counterValue": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "primaryfilters": {
+        "dagName": "hive_20140220172727_9cb1b1a3-25bd-457b-81dc-60544c941cfa:11",
+        "user": "hive"
+      },
+      "entity": "dag_1392926503112_0003_1",
+      "entitytype": "TEZ_DAG_ID",
       "relatedentities": {}
     }
   ]
