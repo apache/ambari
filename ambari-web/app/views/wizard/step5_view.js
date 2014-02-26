@@ -43,6 +43,7 @@ App.SelectHostView = Em.Select.extend({
 
   change: function () {
     this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
+    this.set('selectedHost', this.get('value'));
     this.get('controller').set('componentToRebalance', this.get("componentName"));
     this.get('controller').incrementProperty('rebalanceComponentHostsCounter');
   },
@@ -60,17 +61,18 @@ App.SelectHostView = Em.Select.extend({
 
   /**
    * get available hosts
-   * Since ZOOKEEPER_SERVER or HBASE_MASTER component can be assigned to multiple hosts,
+   * @multipleComponents component can be assigned to multiple hosts,
    * shared hosts among the same component should be filtered out
    * @return {*}
    */
   getAvailableHosts: function () {
     var hosts = this.get('controller.hosts').slice();
     var componentName = this.get('componentName');
+    var multipleComponents = this.get('controller.multipleComponents');
     var occupiedHosts = this.get('controller.selectedServicesMasters')
       .filterProperty('component_name', componentName)
       .mapProperty('selectedHost').without(this.get('selectedHost'));
-    if (componentName == 'ZOOKEEPER_SERVER' || componentName == 'HBASE_MASTER') {
+    if (multipleComponents.contains(componentName)) {
       return hosts.filter(function (host) {
         return !occupiedHosts.contains(host.get('host_name'));
       }, this);

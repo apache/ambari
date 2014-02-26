@@ -28,16 +28,15 @@
       <div class="control-group">
         <label class="control-label">
           {{#if isCurNameNode}}
-          Current
+            {{t common.current}}
           {{/if}}
           {{#if isAddNameNode}}
-          Additional
+            {{t common.additional}}
           {{/if}}
           {{display_name}}:
         </label>
         <div class="controls">
           {{view App.SelectHostView
-            contentBinding="availableHosts"
             optionValuePath="content.host_name"
             optionLabelPath="content.host_info"
             selectedHostBinding="selectedHost"

@@ -40,7 +40,10 @@ App.WizardStep5Controller = Em.Controller.extend({
   isReassignHive: function () {
     return this.get('servicesMasters').objectAt(0) && this.get('servicesMasters').objectAt(0).component_name == 'HIVE_SERVER' && this.get('isReassignWizard');
   }.property('isReassignWizard', 'servicesMasters'),
-
+  /**
+   * master components which could be assigned to multiple hosts
+   */
+  multipleComponents: ['ZOOKEEPER_SERVER', 'HBASE_MASTER'],
   /**
    * Define state for submit button. Return true only for Reassign Master Wizard and if more than one master component was reassigned.
    */
@@ -169,7 +172,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       var componentInfo = masterComponents.filterProperty('service_name', services[index]);
 
       componentInfo.forEach(function (_componentInfo) {
-        if (_componentInfo.component_name == 'ZOOKEEPER_SERVER' || _componentInfo.component_name == 'HBASE_MASTER') {
+        if (this.get('multipleComponents').contains(_componentInfo.component_name)) {
           var savedComponents = masterHosts.filterProperty('component', _componentInfo.component_name);
           if (savedComponents.length) {
 

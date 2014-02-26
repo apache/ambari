@@ -25,6 +25,11 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
   name:"highAvailabilityWizardStep2Controller",
 
   /**
+   * master components which could be assigned to multiple hosts
+   */
+  multipleComponents: ['NAMENODE', 'JOURNALNODE'],
+
+  /**
    * Load services info to appropriate variable and return masterComponentHosts
    * @return Array
    */
@@ -42,12 +47,12 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
 
       var masterServices = self.get("selectedServicesMasters").filterProperty("selectedHost", item);
       masterServices.forEach(function(item){
-        if(item.component_name == "NAMENODE" || item.component_name == "JOURNALNODE"){
+        if(this.get('multipleComponents').contains(item.component_name)){
           item.set('color','green');
         }else{
           item.set('color','grey');
         }
-      });
+      }, this);
 
       mappingObject = Ember.Object.create({
         host_name:item,
@@ -108,7 +113,6 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
 
     masterComponents.forEach(function (item) {
       var componentObj = Ember.Object.create(item);
-      componentObj.set("availableHosts", this.get("hosts"));
       result.push(componentObj);
     }, this);
 

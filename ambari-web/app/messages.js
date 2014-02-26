@@ -185,6 +185,8 @@ Em.I18n.translations = {
   'common.url': 'URL',
   'common.advanced': 'Advanced',
   'common.download': 'Download',
+  'common.current': 'Current',
+  'common.additional': 'Additional',
   'common.time.start': 'Start Time',
   'common.time.end': 'End Time',
   'common.hostLog.popup.logDir.path':'/var/lib/ambari-agent/data/',
