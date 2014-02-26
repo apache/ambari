@@ -546,6 +546,11 @@ module.exports = Em.Route.extend({
       }
     }),
     adminAccess: Em.Route.extend({
+      enter: function(router) {
+        Em.run.next(function() {
+          if (!router.get('mainAdminController.isAccessAvailable')) router.transitionTo('adminUser.allUsers');
+        });
+      },
       route: '/access',
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "access");

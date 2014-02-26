@@ -51,11 +51,13 @@ App.MainAdminView = Em.View.extend({
       url: 'adminMisc',
       label: Em.I18n.t('common.misc')
     });
-    items.push({
-      name: 'access',
-      url: 'adminAccess',
-      label: Em.I18n.t('common.access')
-    });
+    if (this.get('controller.isAccessAvailable')) {
+      items.push({
+        name: 'access',
+        url: 'adminAccess',
+        label: Em.I18n.t('common.access')
+      });
+    }
     return items;
   }.property(''),
 

@@ -20,5 +20,26 @@ var App = require('app');
 
 App.MainAdminController = Em.Controller.extend({
   name: 'mainAdminController',
-  category: 'user'
+  category: 'user',
+  /**
+   * Check if access page available.
+   * Turn on if YARN service is installed with Application Timeline Server component and TEZ installed too.
+   *
+   * @type {Boolean}
+   */
+  isAccessAvailable: function() {
+    var dependencies = {
+      services: ['YARN', 'TEZ'],
+      components: ['APP_TIMELINE_SERVER']
+    };
+    var serviceNames = App.Service.find().mapProperty('serviceName')
+      .filter(function(serviceName) {
+        return dependencies.services.contains(serviceName);
+      });
+    var componentNames = App.get('stackDependedComponents').mapProperty('componentName')
+      .filter(function(componentName) {
+        return dependencies.components.contains(componentName);
+      });
+    return (dependencies.services.length == serviceNames.length && componentNames.length == 0);
+  }.property()
 });
