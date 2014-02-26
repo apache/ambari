@@ -24,3 +24,24 @@ http:
 
   # The port on which the HTTP server listens for administrative requests.
   adminPort: {{rest_api_admin_port}}
+
+{% if ganglia_installed %}
+enableGanglia: {{ganglia_installed}}
+
+# ganglia configuration (necessary if ganglia reporting is enabled)
+ganglia:
+
+  # how often to report to ganglia metrics (in seconds)
+  reportInterval: {{ganglia_report_interval}}
+
+  # the hostname of the gmond server where storm cluster metrics will be sent
+  host: "{{ganglia_server}}"
+
+  # address mode
+  # default is MULTICAST
+  addressMode: "UNICAST"
+
+  # an <IP>:<HOSTNAME> pair to spoof
+  # this allows us to simulate storm cluster metrics coming from a specific host
+  #spoof: "192.168.1.1:storm"
+{% endif %}

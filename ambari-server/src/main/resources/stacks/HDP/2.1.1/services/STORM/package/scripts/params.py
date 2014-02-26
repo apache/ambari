@@ -38,3 +38,13 @@ rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")
 rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
+
+if 'ganglia_server_host' in config['clusterHostInfo'] and \
+    len(config['clusterHostInfo']['ganglia_server_host'])>0:
+  ganglia_installed = True
+  ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
+  ganglia_report_interval = 60
+else:
+  ganglia_installed = False
+
+

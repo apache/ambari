@@ -69,6 +69,8 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", Arrays.asList("HDPHBaseRegionServer", "HDPSlaves"));
     GANGLIA_CLUSTER_NAME_MAP.put("FLUME_SERVER",       Arrays.asList("HDPFlumeServer", "HDPSlaves"));
     GANGLIA_CLUSTER_NAME_MAP.put("JOURNALNODE",        Arrays.asList("HDPJournalNode", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("NIMBUS",             Arrays.asList("HDPNimbus"));
+    GANGLIA_CLUSTER_NAME_MAP.put("SUPERVISOR",         Arrays.asList("HDPSupervisor"));
   }
 
   protected final static Logger LOG =
