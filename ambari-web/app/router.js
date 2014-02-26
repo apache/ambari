@@ -291,7 +291,7 @@ App.Router = Em.Router.extend({
       return 'main.stackUpgrade';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
       // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
-      return 'main.services.reassign';
+      return 'main.reassign';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('highAvailabilityWizardController.name')) {
       // if wizardControllerName == "highAvailabilityWizardController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability wizard
       return 'main.admin.enableHighAvailability';
