@@ -126,7 +126,7 @@ module.exports = {
    * @return {Boolean}
    */
   isValidConfigKey: function(value) {
-    var configKeyRegex = /^[0-9a-z_\-\.]+$/i;
+    var configKeyRegex = /^[0-9a-z_\-\.\*]+$/i;
     return configKeyRegex.test(value);
   },
 

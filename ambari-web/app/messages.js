@@ -694,7 +694,7 @@ Em.I18n.translations = {
   'form.item.placeholders.typePassword':'Type password',
 
   'form.validator.invalidIp':'Please enter valid ip address',
-  'form.validator.configKey':'Invalid Key. Only alphanumerics, hyphens, underscores, and periods are allowed.',
+  'form.validator.configKey':'Invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
   'admin.advanced.caution':'This section is for advanced user only.<br/>Proceed with caution.',
   'admin.advanced.button.uninstallIncludingData':'Uninstall cluster including all data.',
