@@ -45,8 +45,8 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
         if (entity.otherinfo && entity.otherinfo.query) {
           hiveJob.has_tez_dag = entity.otherinfo.query.match("\"Tez\".*\"DagName:\"");
           var queryJson = $.parseJSON(entity.otherinfo.query);
-          if (queryJson && queryJson.query) {
-            hiveJob.query_text = queryJson.query.queryText;
+          if (queryJson && queryJson.queryText) {
+            hiveJob.query_text = queryJson.queryText;
           }
         }
         if (entity.events != null) {

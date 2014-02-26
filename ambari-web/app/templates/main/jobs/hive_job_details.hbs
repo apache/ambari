@@ -41,7 +41,7 @@
     <div class="row-fluid">
       <div class="span12 sections">
         <!-- Section LHS -->
-        <div id="tez-dag-lhs" class="span6 sections-lhs">
+        <div id="tez-dag-lhs" {{bindAttr class="view.isGraphMaximized:span12:span6 :sections-lhs"}}>
           <div id="tez-dag-section" class="box">
             <div id="tez-dag-section-top-bar"> &nbsp;
               {{t jobs.hive.tez.dag.summary.metric}}
@@ -60,16 +60,35 @@
                 </ul>
               </div>
             <div id="tez-dag-section-top-bar-actions" class="pull-right">
+              <div class="btn-group">
+                <a id="tez-dag-zoom-in-button" {{bindAttr class="view.canGraphZoomIn::disabled :btn"}} {{action "doGraphZoomIn" target="view"}}>
+                  <i class="icon-zoom-in"></i>
+                </a>
+                <a id="tez-dag-zoom-out-button" {{bindAttr class="view.canGraphZoomOut::disabled :btn"}} {{action "doGraphZoomOut" target="view"}}>
+                  <i class="icon-zoom-out"></i>
+                </a>
+                {{#if view.isGraphMaximized}}
+                  <a id="tez-dag-resize-small-button" class="btn" {{action "doGraphMinimize" target="view"}}>
+                    <i class="icon-resize-small"></i>
+                  </a>
+                {{else}}
+                  <a id="tez-dag-resize-full-button" class="btn" {{action "doGraphMaximize" target="view"}}>
+                    <i class="icon-resize-full"></i>
+                  </a>
+                {{/if}}
+              </div>
             </div>
             </div>
             <div id="tez-dag-section-body">
-              {{view App.MainHiveJobDetailsTezDagView controllerBinding="controller" selectedVertexBinding="view.selectedVertex" summaryMetricTypeBinding="view.summaryMetricType"}}
+              {{view App.MainHiveJobDetailsTezDagView controllerBinding="controller" selectedVertexBinding="view.selectedVertex" 
+                summaryMetricTypeBinding="view.summaryMetricType" zoomScaleBinding="view.zoomScale" 
+                zoomScaleFromBinding="view.zoomScaleFrom" zoomScaleToBinding="view.zoomScaleTo"}}
             </div>
           </div>
         </div>
 
         <!-- Section RHS -->
-        <div id="tez-vertices-rhs" class="span6 sections-rhs">
+        <div id="tez-vertices-rhs" {{bindAttr class="view.isGraphMaximized:hidden:span6 :sections-rhs"}}>
 
           <!-- Section RHS Vertices -->
           <div id="tez-vertices-table-section">

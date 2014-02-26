@@ -23,12 +23,15 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   templateName : require('templates/main/jobs/hive_job_details_tez_dag'),
   selectedVertex : null,
   summaryMetricType: null,
-  /**
-   * The contents of the <svg> element.
-   */
-  svgVerticesLayer : null,
+  svgVerticesLayer : null, // The contents of the <svg> element.
+  svgTezRoot: null,
   svgWidth : -1,
   svgHeight : -1,
+
+  // zoomScaleFom: -1, // Bound from parent view
+  // zoomScaleTo: -1, // Bound from parent view
+  // zoomScale: -1, // Bound from parent view
+  zoomTranslate: [0, 0],
 
   content : null,
 
@@ -86,6 +89,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   },
 
   createSvg : function() {
+    var self = this;
     var dagVisualModel = this.get('dagVisualModel');
     dagVisualModel.nodes.clear();
     dagVisualModel.links.clear();
@@ -95,10 +99,38 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     this.set('content', this.get('controller.content'));
     var svg = d3.select("#tez-dag-svg");
     d3.selectAll(".tez-dag-canvas").remove();
-    this.set('svgVerticesLayer', svg.append("svg:g").attr("class", "tez-dag-canvas"));
+    var tezRoot = svg.append("svg:g").attr("class", "tez-root");
+    this.set('svgTezRoot', tezRoot);
+    var tezRootRect = tezRoot.append("rect").attr("class", "tez-root-rect");
+    this.set('svgVerticesLayer', tezRoot.append("svg:g").attr("class", "tez-dag-canvas"));
     this.adjustGraphHeight();
-    this.drawTezDag();
+    var canvasSize = this.drawTezDag();
+    var minScale = Math.min(this.get('svgHeight') / canvasSize.height, this.get('svgWidth') / canvasSize.width);
+    if (minScale > 1) {
+      minScale = 1;
+    }
+    tezRootRect.attr("width", canvasSize.width).attr("height", canvasSize.height);
+    var zoom = d3.behavior.zoom().scaleExtent([ minScale, 2 ]).on("zoom", function() {
+      tezRoot.attr("transform", "translate(" + (d3.event.translate) + ")scale(" + d3.event.scale + ")");
+      self.set('zoomScale', d3.event.scale);
+      self.set('zoomTranslate', d3.event.translate);
+    });
+    svg.call(zoom);
+    this.set('zoomTranslate', [0, 0]);
+    this.set('zoomScaleFrom', minScale);
+    this.set('zoomScaleTo', 2);
+    this.set('zoomScale', minScale);
   },
+
+  zoomScaleObserver : function() {
+    var tezRoot = this.get("svgTezRoot");
+    var newScale = this.get('zoomScale');
+    var newScaleFrom = this.get('zoomScaleFrom');
+    var newScaleTo = this.get('zoomScaleTo');
+    var zoomTranslate = this.get('zoomTranslate');
+    console.debug("zoomScaleObserver(): New scale = " + newScale + ", Range = [" + newScaleFrom + ", " + newScaleTo + "]. Translate = ", zoomTranslate.join(','));
+    tezRoot.attr("transform", "translate("+zoomTranslate+")scale(" + newScale + ")");
+  }.observes('zoomScale', 'zoomScaleFrom', 'zoomScaleTo', 'zoomTranslate'),
 
   /**
    * We have to make the height of the DAG section match the height of the
@@ -113,12 +145,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var currentHeight = lhsDiv.clientHeight;
       $(lhsDiv).attr('style', "height:" + rhsHeight + "px;");
       var svgHeight = rhsHeight - 20;
-      d3.select("#tez-dag-svg").attr('height', svgHeight).attr('width', currentWidth);
+      d3.select("#tez-dag-svg").attr('height', svgHeight).attr('width', '100%');
       this.set('svgWidth', currentWidth);
       this.set('svgHeight', svgHeight);
-      console.log("SWT SVG Width=", currentWidth, ", Height=", svgHeight);
-      // this.get('svgVerticesLayer').attr('transform', 'translate(' +
-      // (currentWidth / 2) + ',' + (currentHeight / 2) + ')');
+      console.log("SVG Width=", currentWidth, ", Height=", svgHeight);
     }
   },
 
@@ -213,7 +243,6 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    */
   drawTezDag : function() {
     var width = this.get('svgWidth');
-    var height = this.get('svgHeight');
     var svgLayer = this.get('svgVerticesLayer');
     var vertices = this.get('content.tezDag.vertices');
     var edges = this.get('content.tezDag.edges');
@@ -226,20 +255,25 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     //
     // CALCULATE DEPTH - BFS to get correct graph depth
     //
-    var visitVertices = [];
+    var visitEdges = [];
+    var maxRowLength = 0;
+    var maxRowDepth = 0;
     vertices.forEach(function(v) {
       if (v.get('incomingEdges.length') < 1) {
-        visitVertices.push({
+        visitEdges.push({
           depth : 0,
           parent : null,
-          vertex : v
+          toVertex : v
         });
       }
     });
-    function getNodeFromVertex(vertexObj) {
-      var vertex = vertexObj.vertex;
+    function getNodeFromEdge(edgeObj) {
+      var vertex = edgeObj.toVertex;
+      var pName = edgeObj.parent ? edgeObj.parent.name : null;
+      var cName = edgeObj.toVertex ? edgeObj.toVertex.get('name') : null;
+      console.debug("Processing vertex ", edgeObj, " (",pName, " > ", cName,")");
       var node = vertexIdToNode[vertex.get('id')];
-      for ( var k = depthToNodes.length; k <= vertexObj.depth; k++) {
+      for ( var k = depthToNodes.length; k <= edgeObj.depth; k++) {
         depthToNodes.push([]);
       }
       if (!node) {
@@ -247,10 +281,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         node = {
           id : vertex.get('id'),
           name : vertex.get('name'),
-          state: vertex.get('state'),
+          state : vertex.get('state'),
           isMap : vertex.get('isMap'),
           operations : vertex.get('operations'),
-          depth : vertexObj.depth,
+          depth : edgeObj.depth,
           parents : [],
           children : [],
           x : 0,
@@ -261,42 +295,50 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           selected : selectedVertex != null ? selectedVertex.get('id') == vertex.get('id') : false,
           fixed : true,
           metrics : {
-            input: -1,
-            output: -1,
-            recordsRead: -1,
-            recordsWrite: -1,
-            tezTasks: -1
+            input : -1,
+            output : -1,
+            recordsRead : -1,
+            recordsWrite : -1,
+            tezTasks : -1
           }
         }
         vertexIdToNode[vertex.get('id')] = node;
         depthToNodes[node.depth].push(node);
       } else {
         // Existing node
-        if (vertexObj.depth > node.depth) {
+        if (edgeObj.depth > node.depth) {
           var oldIndex = depthToNodes[node.depth].indexOf(node);
-          depthToNodes[node.depth] = depthToNodes[node.depth].splice(oldIndex, 1);
-          node.depth = vertex.depth;
+          depthToNodes[node.depth].splice(oldIndex, 1);
+          node.depth = edgeObj.depth;
           depthToNodes[node.depth].push(node);
         }
       }
-      if (vertexObj.parent != null) {
-        node.parents.push(vertexObj.parent);
-        vertexObj.parent.children.push(node);
+      if (depthToNodes[node.depth].length > maxRowLength) {
+        maxRowLength = depthToNodes[node.depth].length;
+        maxRowDepth = node.depth;
+      }
+      if (edgeObj.parent != null) {
+        node.parents.push(edgeObj.parent);
+        edgeObj.parent.children.push(node);
       }
       return node;
     }
-    var vertexObj;
-    while (vertexObj = visitVertices.shift()) {
-      var node = getNodeFromVertex(vertexObj);
-      var outEdges = vertexObj.vertex.get('outgoingEdges');
-      outEdges.forEach(function(oe) {
-        var childVertex = oe.get('toVertex');
-        visitVertices.push({
-          depth : node.depth + 1,
-          parent : node,
-          vertex : childVertex
+    var edgeObj;
+    var visitedVertexMap = {};
+    while (edgeObj = visitEdges.shift()) {
+      var node = getNodeFromEdge(edgeObj);
+      if (!visitedVertexMap[edgeObj.toVertex.get('id')]) {
+        visitedVertexMap[edgeObj.toVertex.get('id')] = true;
+        var outEdges = edgeObj.toVertex.get('outgoingEdges');
+        outEdges.forEach(function(oe) {
+          var childVertex = oe.get('toVertex');
+          visitEdges.push({
+            depth : node.depth + 1,
+            parent : node,
+            toVertex : childVertex
+          });
         });
-      })
+      }
     }
     edges.forEach(function(e) {
       dagVisualModel.links.push({
@@ -309,39 +351,99 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     //
     // LAYOUT - Now with correct depth, we calculate layouts
     //
-    var deltaY = 150;
-    var currentY = 80;
+    // When a node's effective width changes, all its parent nodes are updated.
+    var updateNodeEffectiveWidth = function(node, newEffectiveWidth) {
+      console.debug("Updating effective width of (" + node.id + ") to " + newEffectiveWidth);
+      if (numberUtils.validateInteger(node.effectiveWidth) != null) {
+        node.effectiveWidth = newEffectiveWidth;
+      }
+      var diff = newEffectiveWidth - node.effectiveWidth;
+      if (diff > 0) {
+        var oldEffectiveWidth = node.effectiveWidth;
+        node.effectiveWidth = newEffectiveWidth;
+        if (node.parents != null) {
+          node.parents.forEach(function(parent) {
+            updateNodeEffectiveWidth(parent, parent.effectiveWidth + diff);
+          })
+        }
+      }
+    }
+    var xGap = 20;
+    var yGap = 70;
+    var currentY = 40;
+    // First pass - calculate layout widths, and Y coordinates
     for ( var depth = 0; depth < depthToNodes.length; depth++) {
       var nodes = depthToNodes[depth];
-      var deltaX = 1 / (nodes.length + 1);
-      var startX = deltaX;
+      var maxNodeHeight = 0;
       for ( var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
         var node = nodes[nodeIndex];
-        if (depth == 0) {
-          // Top nodes - position uniformly
-          node.x = startX;
-          startX += deltaX;
-        } else {
-          node.x = (node.x / node.parents.length); // Average across parents
-        }
-        // Layout children
-        node.children.forEach(function(child) {
-          child.x += node.x;
-        });
         var nodeDim = this.getNodeCalculatedDimensions(node);
         node.width = nodeDim.width;
         node.height = nodeDim.height;
+        if (maxNodeHeight < node.height) {
+          maxNodeHeight = node.height;
+        }
+        if (depth == 0) {
+          // Top nodes - position uniformly
+          updateNodeEffectiveWidth(node, xGap + node.width);
+        }
+        if (node.children && node.children.length > 0) {
+          updateNodeEffectiveWidth(node, node.children.length * (xGap + node.width));
+        } else {
+          updateNodeEffectiveWidth(node, xGap + node.width);
+        }
         node.y = currentY;
-        node.x = (node.x * width) - Math.round(nodeDim.width / 2);
-        node.incomingX = node.x + Math.round(nodeDim.width / 2);
         node.incomingY = node.y;
-        node.outgoingX = node.incomingX;
         node.outgoingY = node.incomingY + node.height;
+      }
+      currentY += maxNodeHeight;
+      currentY += yGap;
+    }
+    // Second pass - determine actual X coordinates
+    var maxX = 0;
+    for ( var depth = 0; depth < depthToNodes.length; depth++) {
+      var nodes = depthToNodes[depth];
+      var currentX = -1;
+      var parentCurrentXMap = {};
+      for ( var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+        var node = nodes[nodeIndex];
+        var parentsKey = null;
+        if (node.parents != null && node.parents.length > 0) {
+          var parentStart = 0;
+          var parentsKey = '';
+          node.parents.forEach(function(parent) {
+            parentStart += (parent.x - ((parent.effectiveWidth - parent.width) / 2));
+            parentsKey += (parent.id + '//');
+          });
+          parentStart = parentStart / node.parents.length;
+          var parentCurrentX = parentCurrentXMap[parentsKey];
+          if (parentCurrentX == null || parentCurrentX == undefined) {
+            parentCurrentX = parentStart - ((node.effectiveWidth - node.width) / 2) + (xGap / 2);
+            parentCurrentXMap[parentsKey] = parentCurrentX;
+          }
+          currentX = parentCurrentX;
+        } else {
+          if (currentX < 0) {
+            currentX = 0;
+          }
+        }
+        node.x = (currentX + (node.effectiveWidth - node.width) / 2);
+        node.outgoingX = (node.x + node.width / 2);
+        node.incomingX = node.outgoingX;
         console.log("drawTezDag(). Layout Node: ", node);
         dagVisualModel.nodes.push(node);
+        if (parentsKey != null) {
+          parentCurrentXMap[parentsKey] = currentX + node.effectiveWidth;
+        } else {
+          currentX += node.effectiveWidth;
+        }
+        if ((node.x + node.width) > maxX) {
+          maxX = node.x + node.width;
+        }
       }
-      currentY += deltaY;
     }
+    var canvasHeight = currentY;
+    var canvasWidth = maxX + (xGap << 1);
 
     //
     // Draw SVG
@@ -376,7 +478,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       return classes;
     }).attr("d", diagonal).attr("title", function(l) {
       var lower = l.edgeType ? l.edgeType.toLowerCase() : '';
-      return Em.I18n.t("jobs.hive.tez.edge."+lower);
+      return Em.I18n.t("jobs.hive.tez.edge." + lower);
     });
     // Create Nodes
     var node = svgLayer.selectAll(".node").data(dagVisualModel.nodes).enter().append("g").attr("class", "node");
@@ -420,6 +522,16 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     $('.svg-tooltip').tooltip({
       placement : 'left'
     });
+
+    // Position in center
+    var translateX = Math.round((width - canvasWidth) / 2);
+    if (translateX > 0) {
+      svgLayer.attr("transform", "translate("+translateX+",0)");
+    }
+    return {
+      width : canvasWidth,
+      height : canvasHeight
+    }
   },
 
   /**
@@ -517,14 +629,13 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    * Determines the node width and height in pixels.
    *
    * Takes into account the various contents of the a node. { width: 200,
-   * height: 60, margin: 15 }
+   * height: 60 }
    */
   getNodeCalculatedDimensions : function(node) {
     var size = {
-      width : 160,
-      height : 40,
-      margin : 15
-    };
+      width : 180,
+      height : 40
+    }
     if (node.operations.length > 0) {
       var opsHeight = Math.ceil(node.operations.length / 3);
       size.height += (opsHeight * 20);

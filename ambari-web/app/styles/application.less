@@ -5653,13 +5653,16 @@ i.icon-asterisks {
 #tez-dag-section {
   padding-left: 7px;
   padding-top: 5px;
+  overflow: hidden;
+  #tez-dag-section-top-bar-actions {
+    margin-right: 7px;
+  }
 }
 #tez-dag-section-body {
   display: block;
 }
 #tez-dag-section-body-dag {
-  max-height: 800px;
-  overflow-y: auto;
+  overflow-y: hidden;
 
   .heat-0-20 {
     fill: #ffffff;
@@ -5689,6 +5692,12 @@ i.icon-asterisks {
     }
     text {
       font-weight: lighter;
+    }
+    .tez-root-rect {
+      fill: white;
+      stroke: white;
+      opacity: 0;
+      stroke-opacity: 0;
     }
     .node {
       .background.map {

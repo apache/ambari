@@ -1,17 +1,33 @@
 {
-  "starttime": 1392936258722,
+  "starttime": 1393031617901,
   "otherinfo": {
-    "startTime": 1392936259476,
+    "startTime": 1393031617902,
     "status": "SUCCEEDED",
-    "numTasks": 1,
-    "initTime": 1392936258722,
-    "vertexName": "Reducer 7",
-    "timeTaken": 21058,
-    "processorClassName": "org.apache.hadoop.hive.ql.exec.tez.ReduceTezProcessor",
-    "endTime": 1392936280534,
-    "initRequestedTime": 1392936258658,
+    "numTasks": 170,
+    "initTime": 1393031617901,
+    "vertexName": "Map 2",
+    "timeTaken": 6352,
+    "processorClassName": "org.apache.hadoop.hive.ql.exec.tez.MapTezProcessor",
+    "endTime": 1393031624254,
+    "initRequestedTime": 1393031617436,
     "counters": {
       "counterGroups": [
+        {
+          "counterGroupName": "org.apache.tez.common.counters.DAGCounter",
+          "counterGroupDisplayName": "org.apache.tez.common.counters.DAGCounter",
+          "counters": [
+            {
+              "counterName": "DATA_LOCAL_TASKS",
+              "counterDisplayName": "DATA_LOCAL_TASKS",
+              "counterValue": 155
+            },
+            {
+              "counterName": "RACK_LOCAL_TASKS",
+              "counterDisplayName": "RACK_LOCAL_TASKS",
+              "counterValue": 15
+            }
+          ]
+        },
         {
           "counterGroupName": "org.apache.tez.common.counters.FileSystemCounter",
           "counterGroupDisplayName": "File System Counters",
@@ -19,12 +35,12 @@
             {
               "counterName": "FILE_BYTES_READ",
               "counterDisplayName": "FILE: BYTES_READ",
-              "counterValue": 1008
+              "counterValue": 0
             },
             {
               "counterName": "FILE_BYTES_WRITTEN",
               "counterDisplayName": "FILE: BYTES_WRITTEN",
-              "counterValue": 1008
+              "counterValue": 6141674
             },
             {
               "counterName": "FILE_READ_OPS",
@@ -44,17 +60,17 @@
             {
               "counterName": "HDFS_BYTES_READ",
               "counterDisplayName": "HDFS: BYTES_READ",
-              "counterValue": 0
+              "counterValue": 1291299199
             },
             {
               "counterName": "HDFS_BYTES_WRITTEN",
               "counterDisplayName": "HDFS: BYTES_WRITTEN",
-              "counterValue": 622
+              "counterValue": 0
             },
             {
               "counterName": "HDFS_READ_OPS",
               "counterDisplayName": "HDFS: READ_OPS",
-              "counterValue": 2
+              "counterValue": 14094
             },
             {
               "counterName": "HDFS_LARGE_READ_OPS",
@@ -64,7 +80,7 @@
             {
               "counterName": "HDFS_WRITE_OPS",
               "counterDisplayName": "HDFS: WRITE_OPS",
-              "counterValue": 2
+              "counterValue": 0
             }
           ]
         },
@@ -73,139 +89,83 @@
           "counterGroupDisplayName": "org.apache.tez.common.counters.TaskCounter",
           "counters": [
             {
+              "counterName": "MAP_INPUT_RECORDS",
+              "counterDisplayName": "MAP_INPUT_RECORDS",
+              "counterValue": 108378
+            },
+            {
               "counterName": "MAP_OUTPUT_RECORDS",
               "counterDisplayName": "MAP_OUTPUT_RECORDS",
-              "counterValue": 0
+              "counterValue": 394097
             },
             {
-              "counterName": "COMBINE_INPUT_RECORDS",
-              "counterDisplayName": "COMBINE_INPUT_RECORDS",
-              "counterValue": 0
+              "counterName": "MAP_OUTPUT_BYTES",
+              "counterDisplayName": "MAP_OUTPUT_BYTES",
+              "counterValue": 34555222
             },
             {
-              "counterName": "REDUCE_INPUT_GROUPS",
-              "counterDisplayName": "REDUCE_INPUT_GROUPS",
-              "counterValue": 13
-            },
-            {
-              "counterName": "REDUCE_SHUFFLE_BYTES",
-              "counterDisplayName": "REDUCE_SHUFFLE_BYTES",
-              "counterValue": 1008
-            },
-            {
-              "counterName": "REDUCE_INPUT_RECORDS",
-              "counterDisplayName": "REDUCE_INPUT_RECORDS",
-              "counterValue": 19
+              "counterName": "MAP_OUTPUT_MATERIALIZED_BYTES",
+              "counterDisplayName": "MAP_OUTPUT_MATERIALIZED_BYTES",
+              "counterValue": 6136234
             },
             {
               "counterName": "SPILLED_RECORDS",
               "counterDisplayName": "SPILLED_RECORDS",
-              "counterValue": 19
-            },
-            {
-              "counterName": "SHUFFLED_MAPS",
-              "counterDisplayName": "SHUFFLED_MAPS",
-              "counterValue": 1
-            },
-            {
-              "counterName": "FAILED_SHUFFLE",
-              "counterDisplayName": "FAILED_SHUFFLE",
-              "counterValue": 0
-            },
-            {
-              "counterName": "MERGED_MAP_OUTPUTS",
-              "counterDisplayName": "MERGED_MAP_OUTPUTS",
-              "counterValue": 1
+              "counterValue": 394097
             },
             {
               "counterName": "GC_TIME_MILLIS",
               "counterDisplayName": "GC_TIME_MILLIS",
-              "counterValue": 7
+              "counterValue": 9246
             },
             {
               "counterName": "CPU_MILLISECONDS",
               "counterDisplayName": "CPU_MILLISECONDS",
-              "counterValue": -4530
+              "counterValue": -2742060
             },
             {
               "counterName": "PHYSICAL_MEMORY_BYTES",
               "counterDisplayName": "PHYSICAL_MEMORY_BYTES",
-              "counterValue": 245919744
+              "counterValue": 232119492608
             },
             {
               "counterName": "VIRTUAL_MEMORY_BYTES",
               "counterDisplayName": "VIRTUAL_MEMORY_BYTES",
-              "counterValue": 1249353728
+              "counterValue": 793722957824
             },
             {
               "counterName": "COMMITTED_HEAP_BYTES",
               "counterDisplayName": "COMMITTED_HEAP_BYTES",
-              "counterValue": 210309120
+              "counterValue": 262738477056
             }
           ]
         },
         {
-          "counterGroupName": "HIVE",
-          "counterGroupDisplayName": "HIVE",
+          "counterGroupName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
+          "counterGroupDisplayName": "org.apache.hadoop.hive.ql.exec.MapOperator$Counter",
           "counters": [
             {
-              "counterName": "CREATED_FILES",
-              "counterDisplayName": "CREATED_FILES",
-              "counterValue": 1
-            }
-          ]
-        },
-        {
-          "counterGroupName": "Shuffle Errors",
-          "counterGroupDisplayName": "Shuffle Errors",
-          "counters": [
-            {
-              "counterName": "BAD_ID",
-              "counterDisplayName": "BAD_ID",
-              "counterValue": 0
-            },
-            {
-              "counterName": "CONNECTION",
-              "counterDisplayName": "CONNECTION",
-              "counterValue": 0
-            },
-            {
-              "counterName": "IO_ERROR",
-              "counterDisplayName": "IO_ERROR",
-              "counterValue": 0
-            },
-            {
-              "counterName": "WRONG_LENGTH",
-              "counterDisplayName": "WRONG_LENGTH",
-              "counterValue": 0
-            },
-            {
-              "counterName": "WRONG_MAP",
-              "counterDisplayName": "WRONG_MAP",
-              "counterValue": 0
-            },
-            {
-              "counterName": "WRONG_REDUCE",
-              "counterDisplayName": "WRONG_REDUCE",
+              "counterName": "DESERIALIZE_ERRORS",
+              "counterDisplayName": "DESERIALIZE_ERRORS",
               "counterValue": 0
             }
           ]
         },
         {
-          "counterGroupName": "org.apache.hadoop.mapreduce.lib.output.FileOutputFormatCounter",
-          "counterGroupDisplayName": "File Output Format Counters ",
+          "counterGroupName": "org.apache.hadoop.mapreduce.lib.input.FileInputFormatCounter",
+          "counterGroupDisplayName": "File Input Format Counters ",
           "counters": [
             {
-              "counterName": "BYTES_WRITTEN",
-              "counterDisplayName": "Bytes Written",
+              "counterName": "BYTES_READ",
+              "counterDisplayName": "Bytes Read",
               "counterValue": 0
             }
           ]
         }
       ]
     },
-    "startRequestedTime": 1392936259476
+    "startRequestedTime": 1393031617487
   },
-  "entity": "vertex_1392926503112_0003_1_00",
+  "entity": "vertex_1393012407618_0059_3_01",
   "entitytype": "TEZ_VERTEX_ID"
 }

@@ -26,6 +26,19 @@ App.MainHiveJobDetailsView = Em.View.extend({
 
   selectedVertex : null,
   content : null,
+  zoomScaleFrom : 1,
+  zoomScaleTo: 2,
+  zoomScale : 1,
+  zoomStep : function() {
+    var zoomStep = 0.01;
+    var zoomFrom = this.get('zoomScaleFrom');
+    var zoomTo = this.get('zoomScaleTo');
+    if (zoomFrom < zoomTo) {
+      zoomStep = (zoomTo - zoomFrom) / 5;
+    }
+    return zoomStep;
+  }.property('zoomScaleFrom', 'zoomScaleTo'),
+  isGraphMaximized: false,
 
   showQuery : false,
   toggleShowQuery : function () {
@@ -178,5 +191,51 @@ App.MainHiveJobDetailsView = Em.View.extend({
     };
   }.property('selectedVertex.fileReadOps', 'selectedVertex.fileWriteOps', 'selectedVertex.hdfsReadOps', 'selectedVertex.hdfdWriteOps',
       'selectedVertex.fileReadBytes', 'selectedVertex.fileWriteBytes', 'selectedVertex.hdfsReadBytes', 'selectedVertex.hdfdWriteBytes',
-      'selectedVertex.recordReadCount', 'selectedVertex.recordWriteCount', 'selectedVertex.status')
+      'selectedVertex.recordReadCount', 'selectedVertex.recordWriteCount', 'selectedVertex.status'),
+
+  canGraphZoomIn : function() {
+    var zoomTo = this.get('zoomScaleTo');
+    var zoomScale = this.get('zoomScale');
+    console.debug("canGraphZoomIn? : ", (zoomScale < zoomTo), " (scaleTo=", zoomTo,", scale=",zoomScale,")");
+    return zoomScale < zoomTo;
+  }.property('zoomScale', 'zoomScaleTo'),
+
+  canGraphZoomOut : function() {
+    var zoomFrom = this.get('zoomScaleFrom');
+    var zoomScale = this.get('zoomScale');
+    console.debug("canGraphZoomOut? : ", (zoomScale > zoomFrom), " (scaleFrom=", zoomFrom,", scale=",zoomScale,")");
+    return zoomScale > zoomFrom;
+  }.property('zoomScale', 'zoomScaleFrom'),
+
+  doGraphZoomIn: function() {
+    var zoomTo = this.get('zoomScaleTo');
+    var zoomScale = this.get('zoomScale');
+    var zoomStep = this.get('zoomStep');
+    if (zoomScale < zoomTo) {
+      var step = Math.min(zoomStep, (zoomTo - zoomScale));
+      zoomScale += step;
+      console.debug("doGraphZoomIn(): New scale = ", zoomScale);
+      this.set('zoomScale', zoomScale);
+    }
+  },
+
+  doGraphZoomOut: function() {
+    var zoomFrom = this.get('zoomScaleFrom');
+    var zoomScale = this.get('zoomScale');
+    var zoomStep = this.get('zoomStep');
+    if (zoomScale > zoomFrom) {
+      var step = Math.min(zoomStep, (zoomScale - zoomFrom));
+      zoomScale -= step;
+      console.debug("doGraphZoomOut(): New scale = ", zoomScale);
+      this.set('zoomScale', zoomScale);
+    }
+   },
+
+   doGraphMaximize: function() {
+     this.set('isGraphMaximized', true);
+   },
+
+   doGraphMinimize: function() {
+     this.set('isGraphMaximized', false);
+   }
 });
