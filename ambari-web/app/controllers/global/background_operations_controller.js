@@ -164,6 +164,15 @@ App.BackgroundOperationsController = Em.Controller.extend({
         (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
          + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
       var requestParams = this.parseRequestContext(request.Requests.request_context);
+      var inputs = JSON.parse(request.Requests.inputs);
+      var oneHost = false;
+      if (inputs && inputs.included_hosts) {
+        var hosts = inputs.included_hosts.split(',');
+        oneHost = hosts.length < 2 ? true : false;
+      };
+      if(request.Requests.request_schedule && oneHost && /Recommission/.test(requestParams.requestContext)){
+        request.Requests.request_schedule.schedule_id = null;
+      }
       currentRequestIds.push(request.Requests.id);
       if (rq) {
         rq.set('progress', Math.ceil(request.Requests.progress_percent));
