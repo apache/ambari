@@ -658,7 +658,7 @@ define service {
 {% if hostgroup_defs['falcon-server'] %}
 define service {
         hostgroup_name          falcon-server
-        service_description     FALCON::Falcon Server status
+        service_description     FALCON::Falcon Server process
         servicegroups           FALCON
         check_command           check_tcp_wrapper!{{ falcon_port }}!-w 1 -c 1
         normal_check_interval   1
@@ -667,7 +667,7 @@ define service {
 }
 define service {
         hostgroup_name          falcon-server
-        service_description     FALCON::Falcon Web UI status
+        service_description     FALCON::Falcon Server Web UI
         servicegroups           FALCON
         check_command           check_webui!falconserver!{{ falcon_port }}
         normal_check_interval   1

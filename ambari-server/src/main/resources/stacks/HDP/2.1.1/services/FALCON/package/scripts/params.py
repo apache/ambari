@@ -43,7 +43,8 @@ falcon_runtime_properties = config['configurations']['falcon-runtime.properties'
 falcon_startup_properties = config['configurations']['falcon-startup.properties']
 http_keytab = falcon_startup_properties['*.falcon.http.authentication.kerberos.keytab']
 http_principal = falcon_startup_properties['*.falcon.http.authentication.kerberos.principal']
-
+falcon_webapp_dir = '/var/lib/falcon/webapp'
+flacon_apps_dir = '/apps/falcon'
 #for create_hdfs_directory
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')

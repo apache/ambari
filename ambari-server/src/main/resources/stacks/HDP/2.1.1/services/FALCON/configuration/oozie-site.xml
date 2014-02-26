@@ -19,18 +19,6 @@
 
 <configuration>
   <property>
-    <name>oozie.service.ProxyUserService.proxyuser.falcon.hosts</name>
-    <value>*</value>
-    <description>Falcon proxyuser hosts</description>
-  </property>
-
-  <property>
-    <name>oozie.service.ProxyUserService.proxyuser.falcon.groups</name>
-    <value>*</value>
-    <description>Falcon proxyuser groups</description>
-  </property>
-
-  <property>
     <name>oozie.service.ELService.ext.functions.coord-job-submit-instances</name>
     <value>
       now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,
@@ -44,7 +32,11 @@
       latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
       future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo
     </value>
-    <description>Falcon</description>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
   </property>
 
   <property>
@@ -62,7 +54,11 @@
       formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,
       user=org.apache.oozie.coord.CoordELFunctions#coord_user
     </value>
-    <description>Falcon</description>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
   </property>
 
   <property>
@@ -80,7 +76,11 @@
       formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,
       user=org.apache.oozie.coord.CoordELFunctions#coord_user
     </value>
-    <description>Falcon</description>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
   </property>
 
   <property>
@@ -99,7 +99,11 @@
       dateOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dateOffset_echo,
       user=org.apache.oozie.coord.CoordELFunctions#coord_user
     </value>
-    <description>Falcon</description>
+    <description>
+      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
   </property>
 
   <property>
@@ -120,7 +124,11 @@
       formatTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_formatTime,
       user=org.apache.oozie.coord.CoordELFunctions#coord_user
     </value>
-    <description>Falcon</description>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
   </property>
 
   <property>
@@ -129,7 +137,9 @@
       instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_fixed,
       user=org.apache.oozie.coord.CoordELFunctions#coord_user
     </value>
-    <description>Falcon</description>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+    </description>
   </property>
 
   <property>
@@ -138,8 +148,20 @@
       instanceTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_nominalTime,
       user=org.apache.oozie.coord.CoordELFunctions#coord_user
     </value>
-    <description>Falcon</description>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+    </description>
   </property>
+  <!--web ui should add following properties to oozie site accordingly to FALCON_USER-->
+  <!--<property>-->
+    <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.hosts</name>-->
+    <!--<value>*</value>-->
+    <!--<description>Falcon proxyuser hosts</description>-->
+  <!--</property>-->
 
-
+  <!--<property>-->
+    <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.groups</name>-->
+    <!--<value>*</value>-->
+    <!--<description>Falcon proxyuser groups</description>-->
+  <!--</property>-->
 </configuration>
