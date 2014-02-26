@@ -382,5 +382,38 @@
       Should the job outputs be compressed?
     </description>
   </property>
+  
+  <property>
+    <name>mapreduce.job.counters.max</name>
+    <value>20000</value>
+    <description>
+      Limit on the number of counters allowed per job.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.job.counters.groups.max</name>
+    <value>10000</value>
+    <description>
+     Limit on the number of counter groups allowed per job.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.job.counters.group.name.max</name>
+    <value>1000</value>
+    <description>
+     Limit on the length of counter group names in jobs. 
+     Names exceeding this limit will be truncated.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.job.counters.counter.name.max</name>
+    <value>1000</value>
+    <description>
+      Limit on the length of counter names in jobs. Names exceeding this limit will be truncated.
+    </description>
+  </property>
 
 </configuration>
