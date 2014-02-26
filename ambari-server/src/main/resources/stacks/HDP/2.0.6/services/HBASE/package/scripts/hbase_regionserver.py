@@ -61,14 +61,6 @@ class HbaseRegionServer(Script):
   def decommission(self, env):
     print "Decommission not yet implemented!"
     
-def main():
-  command_type = sys.argv[1] if len(sys.argv)>1 else "stop"
-  print "Running "+command_type
-  command_data_file = '/root/workspace/HBase/input.json'
-  basedir = '/root/workspace/HBase/main'
-  sys.argv = ["", command_type, command_data_file, basedir]
-  
-  HbaseRegionServer().execute()
-  
+
 if __name__ == "__main__":
   HbaseRegionServer().execute()

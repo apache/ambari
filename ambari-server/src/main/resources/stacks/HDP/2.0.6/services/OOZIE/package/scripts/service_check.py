@@ -52,16 +52,6 @@ def oozie_smoke_shell_file(
     logoutput = True
   )
     
-def main():
-  import sys
-  command_type = 'service_check'
-  command_data_file = '/root/workspace/Oozie/input.json'
-  basedir = '/root/workspace/Oozie/main'
-  sys.argv = ["", command_type, command_data_file, basedir]
-  
-  OozieServiceCheck().execute()
-  
 if __name__ == "__main__":
   OozieServiceCheck().execute()
-  #main()
   

@@ -73,16 +73,8 @@ class HbaseServiceCheck(Script):
       user = params.smoke_test_user,
       logoutput = True
     )
-    
-def main():
-  import sys
-  command_type = 'perform'
-  command_data_file = '/root/workspace/HBase/input.json'
-  basedir = '/root/workspace/HBase/main'
-  sys.argv = ["", command_type, command_data_file, basedir]
-  
-  HbaseServiceCheck().execute()
-  
+
+
 if __name__ == "__main__":
   HbaseServiceCheck().execute()
   

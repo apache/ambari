@@ -64,18 +64,6 @@ class PigServiceCheck(Script):
       conf_dir = params.hadoop_conf_dir
     )
     
-def main():
-  command_type = "service_check"
-  print "Running "+command_type
-  command_data_file = '/var/lib/ambari-agent/data/command-2.json'
-  basedir = '/root/ambari/ambari-server/src/main/resources/stacks/HDP/2.0.6/services/PIG/package'
-  stroutfile = '/1.txt'
-  import sys
-  sys.argv = ["", command_type, command_data_file, basedir, stroutfile]
-  
-  PigServiceCheck().execute()
-  
 if __name__ == "__main__":
-  #main()
   PigServiceCheck().execute()
   

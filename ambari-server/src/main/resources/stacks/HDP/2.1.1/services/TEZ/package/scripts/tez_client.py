@@ -37,15 +37,6 @@ class TezClient(Script):
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
-#for tests
-def main():
-  command_type = 'install'
-  command_data_file = '/root/workspace/Pig/input.json'
-  basedir = '/root/workspace/Pig/main'
-  sys.argv = ["", command_type, command_data_file, basedir]
-
-  TezClient().execute()
 
 if __name__ == "__main__":
-  #main()
   TezClient().execute()

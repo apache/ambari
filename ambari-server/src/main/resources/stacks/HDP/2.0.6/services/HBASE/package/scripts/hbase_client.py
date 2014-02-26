@@ -38,15 +38,6 @@ class HbaseClient(Script):
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
-#for tests
-def main():
-  command_type = 'install'
-  command_data_file = '/root/workspace/HBase/input.json'
-  basedir = '/root/workspace/HBase/'
-  stdoutfile = '/1.txt'
-  sys.argv = ["", command_type, command_data_file, basedir, stdoutfile]
-  
-  HbaseClient().execute()
-  
+
 if __name__ == "__main__":
   HbaseClient().execute()
