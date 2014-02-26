@@ -232,6 +232,100 @@ define service {
 }
 {% endif %}
 
+{% if hostgroup_defs['storm_ui'] %}
+# STORM UI Checks
+define service {
+        hostgroup_name          storm_ui
+        use                     hadoop-service
+        service_description     STORM_UI_SERVER::Storm Web UI on {{ hostgroup_defs['storm_ui'][0] }}
+        servicegroups           STORM
+        check_command           check_webui!storm_ui!{{ storm_ui_port }}
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['storm_ui'] %}
+# STORM UI Checks
+define service {
+        hostgroup_name          storm_ui
+        use                     hadoop-service
+        service_description     STORM_UI_SERVER::Storm Web UI process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ storm_ui_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['nimbus'] %}
+# Nimbus Checks
+define service {
+        hostgroup_name          nimbus
+        use                     hadoop-service
+        service_description     NIMBUS::Nimbus process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ nimbus_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['drpc-server'] %}
+# drpc Checks
+define service {
+        hostgroup_name          drpc-server
+        use                     hadoop-service
+        service_description     DRPC_SERVER::DRPC server process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ drpc_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['logviewer-server'] %}
+# logviewer Checks
+define service {
+        hostgroup_name          logviewer-server
+        use                     hadoop-service
+        service_description     LOGVIEWER_SERVER::Logviewer server process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ logviewer_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+# NAGIOS SERVER Supervisor Checks
+{% if hostgroup_defs['supervisors'] %}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     SUPERVISOR::Percent Supervisors live
+        servicegroups           STORM
+        check_command           check_aggregate!"SUPERVISOR::Supervisors process"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          supervisors
+        use                     hadoop-service
+        service_description     SUPERVISOR::Supervisors process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ supervisor_port }}!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+{%  endif %}
 
 {% if hostgroup_defs['namenode'] %}
 # HDFS Checks

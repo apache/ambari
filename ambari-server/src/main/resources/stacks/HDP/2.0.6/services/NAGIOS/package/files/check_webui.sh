@@ -78,6 +78,13 @@ historyserver2)
       exit 1;
     fi
     ;;
+storm_ui)
+    rmweburl="http://$host:$port"
+    if [[ `checkurl "$rmweburl"` -ne 0 ]]; then
+      echo "WARNING: Storm Web UI not accessible : $rmweburl";
+      exit 1;
+    fi
+    ;;
 falconserver)
     hsweburl="http://$host:$port/"
     if [[ `checkurl "$hsweburl"` -ne 0 ]]; then
@@ -85,7 +92,7 @@ falconserver)
       exit 1;
     fi
     ;;
-*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode|resourcemanager|historyserver2|falconserver]"
+*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode|resourcemanager|historyserver2|falconserver|storm_ui]"
    exit 3
    ;;
 esac

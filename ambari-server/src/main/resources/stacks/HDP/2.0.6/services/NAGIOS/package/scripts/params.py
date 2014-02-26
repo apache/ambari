@@ -65,6 +65,11 @@ flume_port = "4159"
 hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
 hbase_rs_port = "60030"
+storm_ui_port = config['configurations']['storm-site']['ui.port']
+drpc_port = config['configurations']['storm-site']['drpc.port']
+nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
+logviewer_port = config['configurations']['storm-site']['logviewer.port']
+supervisor_port = "56431"
 falcon_port = config['configurations']['global']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
 
@@ -129,7 +134,11 @@ _flume_hosts = default("/clusterHostInfo/flume_hosts", None)
 _nagios_server_host = default("/clusterHostInfo/nagios_server_host",None)
 _ganglia_server_host = default("/clusterHostInfo/ganglia_server_host",None)
 _app_timeline_server_hosts = default("/clusterHostInfo/app_timeline_server_hosts",None)
-
+_nimbus_host = default("/clusterHostInfo/nimbus_hosts",None)
+_drpc_host = default("/clusterHostInfo/drpc_server_hosts",None)
+_logwier_host = default("/clusterHostInfo/logviewer_server_hosts",None)
+_supervisor_hosts = default("/clusterHostInfo/supervisor_hosts",None)
+_storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts",None)
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
 _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
 _oozie_server = default("/clusterHostInfo/oozie_server",None)
@@ -165,6 +174,11 @@ hostgroup_defs = {
     'nodemanagers' : _nm_hosts,
     'historyserver2' : _hs_host,
     'journalnodes' : _journalnode_hosts,
+    'nimbus' : _nimbus_host,
+    'drpc-server' : _drpc_host,
+    'logviewer-server' : _logwier_host,
+    'storm_ui' : _storm_ui_host,
+    'supervisors' : _supervisor_hosts,
     'falcon-server' : _falcon_host,
     'ats-servers' : _app_timeline_server_hosts
 }

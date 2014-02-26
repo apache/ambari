@@ -67,7 +67,7 @@ App.Alert = Em.Object.extend({
    * Used to show only required alerts at the service level
    */
   ignoredForServices: function() {
-    return ['NodeManager health', 'NodeManager process', 'TaskTracker process', 'RegionServer process', 'DataNode process', 'DataNode space', 'ZooKeeper Server process'].contains(this.get('title'));
+    return ['NodeManager health', 'NodeManager process', 'TaskTracker process', 'RegionServer process', 'DataNode process', 'DataNode space', 'ZooKeeper Server process', 'Supervisors process'].contains(this.get('title'));
   }.property('title'),
 
   /**

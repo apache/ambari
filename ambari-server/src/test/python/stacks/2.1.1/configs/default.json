@@ -208,7 +208,7 @@
             "topology.executor.receive.buffer.size": "1024",
             "topology.stats.sample.rate": "0.05",
             "topology.fall.back.on.java.serialization": "true",
-            "supervisor.childopts": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=c6402.ambari.apache.org,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM -Xmx256m",
+            "supervisor.childopts": "-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=56431 -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=c6402.ambari.apache.org,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM",
             "topology.enable.message.timeouts": "true",
             "storm.messaging.netty.max_wait_ms": "1000",
             "nimbus.topology.validator": "backtype.storm.nimbus.DefaultTopologyValidator",

@@ -127,6 +127,7 @@ define("PASSIVE_MODE_STR", "AMBARIPASSIVE=");
       case "HDFS":
       case "MAPREDUCE":
       case "HBASE":
+      case "STORM":
         break;
       default:
         $pieces[0] = "UNKNOWN";

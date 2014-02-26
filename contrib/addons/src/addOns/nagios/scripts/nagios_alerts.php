@@ -399,6 +399,13 @@ function hdp_mon_generate_response( $response_data )
       case "NODEMANAGER":
         $pieces[0] = "YARN";
         break;
+      case "STORM_UI_SERVER":
+      case "NIMBUS":
+      case "DRPC_SERVER":
+      case "LOGVIEWER_SERVER":
+      case "SUPERVISOR":
+        $pieces[0] = "STORM";
+        break;
       case "NAGIOS":
       case "HDFS":
       case "MAPREDUCE":
@@ -407,6 +414,7 @@ function hdp_mon_generate_response( $response_data )
       case "OOZIE":
       case "WEBHCAT":
       case "GANGLIA":
+      case "STORM":
       case "FALCON":
       case "PUPPET":
         break;

@@ -78,6 +78,16 @@ define servicegroup {
   alias  HUE Checks
 }
 {% endif %}
+{% if hostgroup_defs['nimbus'] or
+  hostgroup_defs['drpc-server'] or
+  hostgroup_defs['logviewer-server'] or
+  hostgroup_defs['storm_ui'] or
+  hostgroup_defs['supervisors']%}
+define servicegroup {
+  servicegroup_name  STORM
+  alias  STORM Checks
+}
+{% endif %}
 {% if hostgroup_defs['falcon-server'] %}
 define servicegroup {
   servicegroup_name  FALCON

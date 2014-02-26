@@ -77,7 +77,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private static final List<String> IGNORABLE_FOR_SERVICES = new ArrayList<String>(
       Arrays.asList("NodeManager health", "NodeManager process", "TaskTracker process",
       "RegionServer process", "DataNode process", "DataNode space",
-      "ZooKeeper Server process"));
+      "ZooKeeper Server process", "Supervisors process"));
   
   private static final List<String> IGNORABLE_FOR_HOSTS = new ArrayList<String>(
       Arrays.asList("percent"));
