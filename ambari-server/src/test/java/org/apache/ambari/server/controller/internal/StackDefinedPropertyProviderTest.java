@@ -656,7 +656,54 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "lastWriterEpoch")));
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "currentLagTxns")));
     Assert.assertEquals(8444, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "lastWrittenTxId")));
-  }  
+  }
+
+
+
+  @Test
+  public void testPopulateResources_jmx_Storm() throws Exception {
+    // Adjust stack version for cluster
+    Cluster cluster = clusters.getCluster("c1");
+    cluster.setDesiredStackVersion(new StackId("HDP-2.1.1"));
+
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    TestGangliaHostProvider gangliaHostProvider = new TestGangliaHostProvider();
+
+    StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
+            Resource.Type.HostComponent,
+            hostProvider,
+            gangliaHostProvider,
+            streamProvider,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"),
+            PropertyHelper.getPropertyId("HostRoles", "state"),
+            new EmptyPropertyProvider(),
+            new EmptyPropertyProvider());
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "STORM_REST_API");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    // see test/resources/storm_rest_api_jmx.json for values
+    Assert.assertEquals(28, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/tasks.total", "tasks.total")));
+    Assert.assertEquals(8, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/slots.total", "slots.total")));
+    Assert.assertEquals(5, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/slots.free", "slots.free")));
+    Assert.assertEquals(2, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/supervisors", "supervisors")));
+    Assert.assertEquals(28, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/executors.total", "executors.total")));
+    Assert.assertEquals(3, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/slots.used", "slots.used")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/topologies", "topologies")));
+    Assert.assertEquals(4637, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary/nimbus.uptime", "nimbus.uptime")));
+  }
 
   @Test
   public void testPopulateResources_NoRegionServer() throws Exception {
