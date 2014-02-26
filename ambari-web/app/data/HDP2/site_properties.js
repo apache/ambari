@@ -228,6 +228,15 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "yarn.nodemanager.linux-container-executor.group",
+      "displayName": "yarn.nodemanager.linux-container-executor.group",
+      "value": "hadoop",
+      "defaultValue": "hadoop",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
       "name": "yarn.nodemanager.log-dirs",
       "displayName": "yarn.nodemanager.log-dirs",
       "defaultValue": "",
