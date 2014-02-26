@@ -313,7 +313,7 @@ App.MainHostController = Em.ArrayController.extend({
   },
 
   /**
-   * Bulk decommission for selected hostComponents
+   * Bulk decommission/recommission for selected hostComponents
    * @param {Object} operationData
    * @param {Array} hosts
    */
@@ -329,33 +329,47 @@ App.MainHostController = Em.ArrayController.extend({
     if (components.length) {
       var hostsWithComponentInProperState = components.mapProperty('host.hostName');
       var turn_off = operationData.action.indexOf('OFF') !== -1;
-      var parameters = {
-        "slave_type": operationData.realComponentName
-      };
-      var contextString = turn_off? 'hosts.host.' + operationData.realComponentName.toLowerCase() + '.recommission':
-        'hosts.host.' + operationData.realComponentName.toLowerCase() + '.decommission';
+      var svcName = operationData.serviceName;
+      var masterName = operationData.componentName;
+      var slaveName = operationData.realComponentName;
+      var hostNames = hostsWithComponentInProperState.join(',');
       if (turn_off) {
-        parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
-      }
-      else {
-        parameters['excluded_hosts'] = hostsWithComponentInProperState.join(',');
-      }
-      // HBASE service, decommission RegionServer in batch requests
-      if (operationData.serviceName == "HBASE") {
-        var hostNames = hostsWithComponentInProperState.join(',');
-        App.router.get('mainHostDetailsController').doDecommissionRegionServer(hostNames, operationData.serviceName, "HBASE_MASTER", operationData.realComponentName);
+        // For recommession
+        if (svcName === "YARN" || svcName === "HBASE" || svcName === "HDFS") {
+          App.router.get('mainHostDetailsController').doRecommissionAndStart(hostNames, svcName, masterName, slaveName);
+        }
+        else if (svcName === "MAPREDUCE") {
+          App.router.get('mainHostDetailsController').doRecommissionAndRestart(hostNames, svcName, masterName, slaveName);
+        }
       } else {
-        App.ajax.send({
-          name: 'bulk_request.decommission',
-          sender: this,
-          data: {
-            context: Em.I18n.t(contextString),
-            serviceName: service.get('serviceName'),
-            componentName: operationData.componentName,
-            parameters: parameters
-          },
-          success: 'bulkOperationForHostComponentsSuccessCallback'
-        });
+        //For decommession
+        if (svcName == "HBASE") {
+          // HBASE service, decommission RegionServer in batch requests
+          App.router.get('mainHostDetailsController').doDecommissionRegionServer(hostNames, svcName, masterName, slaveName);
+        } else {
+          var parameters = {
+            "slave_type": slaveName
+          };
+          var contextString = turn_off? 'hosts.host.' + slaveName.toLowerCase() + '.recommission':
+            'hosts.host.' + slaveName.toLowerCase() + '.decommission';
+          if (turn_off) {
+            parameters['included_hosts'] = hostsWithComponentInProperState.join(',')
+          }
+          else {
+            parameters['excluded_hosts'] = hostsWithComponentInProperState.join(',');
+          }
+          App.ajax.send({
+            name: 'bulk_request.decommission',
+            sender: this,
+            data: {
+              context: Em.I18n.t(contextString),
+              serviceName: service.get('serviceName'),
+              componentName: operationData.componentName,
+              parameters: parameters
+            },
+            success: 'bulkOperationForHostComponentsSuccessCallback'
+          });
+        }
       }
     }
     else {
