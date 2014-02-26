@@ -172,20 +172,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    */
   vertexMetricsUpdated : function() {
     var dagVisualModel = this.get('dagVisualModel');
-    dagVisualModel.minMetrics = {
-      input : 0,
-      output : 0,
-      recordsRead : 0,
-      recordsWrite : 0,
-      tezTasks : 0
-    };
-    dagVisualModel.maxMetrics = {
-      input : 0,
-      output : 0,
-      recordsRead : 0,
-      recordsWrite : 0,
-      tezTasks : 0
-    };
+
     if (dagVisualModel.nodes) {
       dagVisualModel.nodes.forEach(function(node) {
         var vertex = App.TezDagVertex.find(node.id);
