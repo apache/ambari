@@ -18,7 +18,13 @@
 
 package org.apache.hadoop.metrics2.sink;
 
-import java.lang.Exception;
+import org.apache.commons.configuration.SubsetConfiguration;
+import org.apache.hadoop.metrics2.MetricsException;
+import org.apache.hadoop.metrics2.MetricsRecord;
+import org.apache.hadoop.metrics2.MetricsSink;
+import org.apache.hadoop.metrics2.MetricsTag;
+import org.apache.log4j.Logger;
+
 import java.net.InetAddress;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -27,18 +33,10 @@ import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.hadoop.metrics2.Metric;
-import org.apache.hadoop.metrics2.MetricsException;
-import org.apache.hadoop.metrics2.MetricsRecord;
-import org.apache.hadoop.metrics2.MetricsSink;
-import org.apache.hadoop.metrics2.MetricsTag;
-import org.apache.log4j.Logger;
-
 /**
  * This class stores published metrics to the SQL Server database.
  */
-public class SqlServerSink implements MetricsSink {
+public abstract class SqlServerSink implements MetricsSink {
   private static final String DATABASE_URL_KEY = "databaseUrl";
   private static final boolean DEBUG = true;
   private static final String NAME_URL_KEY = "fs.default.name";
@@ -109,22 +107,7 @@ public class SqlServerSink implements MetricsSink {
   }
 
   @Override
-  public void putMetrics(MetricsRecord record) {
-    long metricRecordID = getMetricRecordID(record.context(), record.name(),
-        getLocalNodeName(), getLocalNodeIPAddress(), getClusterNodeName(), currentServiceName,
-        getTagString(record.tags()), record.timestamp());
-    if (metricRecordID < 0)
-      return;
-
-    for (Metric metric : record.metrics()) {
-      insertMetricValue(metricRecordID, metric.name(), String.valueOf(metric
-          .value()));
-      if (metric.name().equals("BlockCapacity")) {
-        insertMetricValue(metricRecordID, "BlockSize", Integer
-            .toString(blockSize));
-      }
-    }
-  }
+  public abstract void putMetrics(MetricsRecord record);
 
   @Override
   public void flush() {
@@ -310,5 +293,13 @@ public class SqlServerSink implements MetricsSink {
          */
       }
     }
+  }
+
+  public String getCurrentServiceName() {
+    return currentServiceName;
+  }
+
+  public int getBlockSize() {
+    return blockSize;
   }
 }
