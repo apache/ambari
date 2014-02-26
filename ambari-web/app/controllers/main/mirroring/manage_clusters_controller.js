@@ -26,8 +26,9 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
 
   clusters: [],
 
-  // array of original clusters to compare with changed ones
-  originalClusters: [],
+  clustersToDelete: [],
+
+  clustersToCreate: [],
 
   queriesCount: 0,
 
@@ -41,7 +42,6 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
   onLoad: function () {
     if (this.get('isLoaded')) {
       var clusters = [];
-      var originalClusters = [];
       App.TargetCluster.find().forEach(function (cluster) {
         var newCluster = {
           name: cluster.get('name'),
@@ -52,21 +52,31 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
           working: cluster.get('working'),
           temp: cluster.get('temp')
         };
-        clusters.push(Ember.Object.create(newCluster));
-        originalClusters.push(Ember.Object.create(newCluster));
+        // Source cluster should be shown on top
+        if (cluster.get('name') === App.get('clusterName')) {
+          clusters.unshift(Ember.Object.create(newCluster));
+        } else {
+          clusters.push(Ember.Object.create(newCluster));
+        }
       }, this);
       this.set('clusters', clusters);
-      this.set('originalClusters', originalClusters);
+      this.get('clustersToDelete').clear();
+      this.get('clustersToCreate').clear();
     }
   }.observes('isLoaded'),
 
   selectedCluster: null,
 
+  // Disable input fields for already created clusters
+  isEditDisabled: function () {
+    return !this.get('clustersToCreate').mapProperty('name').contains(this.get('selectedCluster.name'));
+  }.property('selectedCluster.name', 'clustersToCreate.@each.name'),
+
   addCluster: function () {
     var self = this;
     App.showPromptPopup(Em.I18n.t('mirroring.manageClusters.specifyName'),
         function (clusterName) {
-          self.get('clusters').pushObject(Ember.Object.create({
+          var newCluster = Ember.Object.create({
             name: clusterName,
             execute: '',
             workflow: '',
@@ -74,7 +84,9 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
             staging: '',
             working: '',
             temp: ''
-          }));
+          });
+          self.get('clusters').pushObject(newCluster);
+          self.get('clustersToCreate').pushObject(newCluster);
         }
     );
   },
@@ -82,6 +94,11 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
   removeCluster: function () {
     var self = this;
     App.showConfirmationPopup(function () {
+      if (self.get('clustersToCreate').mapProperty('name').contains(self.get('selectedCluster.name'))) {
+        self.set('clustersToCreate', self.get('clustersToCreate').without(self.get('selectedCluster')));
+      } else {
+        self.get('clustersToDelete').push(self.get('selectedCluster'));
+      }
       self.set('clusters', self.get('clusters').without(self.get('selectedCluster')));
     });
   },
@@ -89,23 +106,9 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
   save: function () {
     // define clusters need to be deleted, modified or created
     var clusters = this.get('clusters');
-    var originalClusters = this.get('originalClusters');
-    var originalClustersNames = originalClusters.mapProperty('name');
-    var clustersToModify = [];
-    var clustersToCreate = [];
-    clusters.forEach(function (cluster) {
-      var clusterName = cluster.get('name');
-      if (originalClustersNames.contains(clusterName)) {
-        if (JSON.stringify(cluster) !== JSON.stringify(originalClusters.findProperty('name', clusterName))) {
-          clustersToModify.push(clusterName);
-        }
-        originalClustersNames = originalClustersNames.without(clusterName);
-      } else {
-        clustersToCreate.push(clusterName);
-      }
-    }, this);
-    var clustersToDelete = originalClustersNames;
-    var queriesCount = clustersToCreate.length + clustersToDelete.length + clustersToModify.length;
+    var clustersToCreate = this.get('clustersToCreate');
+    var clustersToDelete = this.get('clustersToDelete');
+    var queriesCount = clustersToCreate.length + clustersToDelete.length;
     this.set('queriesCount', queriesCount);
 
     // send request to delete, modify or create cluster
@@ -116,7 +119,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
           name: 'mirroring.delete_entity',
           sender: this,
           data: {
-            name: cluster,
+            name: cluster.get('name'),
             type: 'cluster',
             falconServer: App.get('falconServerURL')
           },
@@ -130,21 +133,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
           sender: this,
           data: {
             type: 'cluster',
-            entity: this.formatClusterXML(clusters.findProperty('name', cluster)),
-            falconServer: App.get('falconServerURL')
-          },
-          success: 'onQueryResponse',
-          error: 'onQueryResponse'
-        });
-      }, this);
-      clustersToModify.forEach(function (cluster) {
-        App.ajax.send({
-          name: 'mirroring.update_entity',
-          sender: this,
-          data: {
-            name: cluster,
-            type: 'cluster',
-            entity: this.formatClusterXML(clusters.findProperty('name', cluster)),
+            entity: this.formatClusterXML(cluster),
             falconServer: App.get('falconServerURL')
           },
           success: 'onQueryResponse',

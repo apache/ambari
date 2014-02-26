@@ -1426,50 +1426,37 @@ var urls = {
   },
 
   'mirroring.get_all_entities': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/list/{type}?fields=status',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/list/{type}?fields=status&user.name=ambari-qa',
     'mock': '/data/mirroring/{type}s.xml',
     'apiPrefix': '',
     'format': function () {
       return {
-        dataType: 'xml',
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
+        dataType: 'xml'
       }
     }
   },
 
   'mirroring.get_definition': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/definition/{type}/{name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/definition/{type}/{name}?user.name=ambari-qa',
     'mock': '/data/mirroring/{name}_definition.xml',
     'apiPrefix': '',
     'format': function () {
       return {
         cache: true,
-        dataType: 'xml',
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
+        dataType: 'xml'
       }
     }
   },
 
   'mirroring.dataset.get_all_instances': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/instance/status/feed/{dataset}?start={start}&end={end}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/status/feed/{dataset}?start={start}&end={end}&user.name=ambari-qa',
     'mock': '/data/mirroring/{dataset}_instances.json',
-    'apiPrefix': '',
-    'format': function (data) {
-      return {
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
-      }
-    }
+    'apiPrefix': ''
   },
 
 
   'mirroring.create_new_dataset': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/submitAndSchedule/feed',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/submitAndSchedule/feed?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
@@ -1479,7 +1466,6 @@ var urls = {
         dataType: 'xml',
         data: data.dataset,
         headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa',
           'AmbariProxy-Content-Type': 'text/xml'
         }
       }
@@ -1487,7 +1473,7 @@ var urls = {
   },
 
   'mirroring.submit_entity': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/submit/{type}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/submit/{type}?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
@@ -1497,7 +1483,6 @@ var urls = {
         dataType: 'xml',
         data: data.entity,
         headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa',
           'AmbariProxy-Content-Type': 'text/xml'
         }
       }
@@ -1505,7 +1490,7 @@ var urls = {
   },
 
   'mirroring.update_entity': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/update/{type}/{name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/update/{type}/{name}?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
@@ -1514,100 +1499,69 @@ var urls = {
         contentType: 'text/xml',
         dataType: 'xml',
         data: data.entity,
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa',
-          'AmbariProxy-Content-Type': 'text/xml'
-        }
+          headers: {
+        'AmbariProxy-Content-Type': 'text/xml'
+      }
       }
     }
   },
 
   'mirroring.delete_entity': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/delete/{type}/{name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/delete/{type}/{name}?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'DELETE',
     'format': function (data) {
       return {
-        dataType: 'xml',
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
+        dataType: 'xml'
       }
     }
   },
 
   'mirroring.suspend_entity': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/suspend/{type}/{name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/suspend/{type}/{name}?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
     'format': function (data) {
       return {
         dataType: 'xml',
-        data: data.entity,
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
+        data: data.entity
       }
     }
   },
 
   'mirroring.schedule_entity': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/entities/resume/{type}/{name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/resume/{type}/{name}?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
     'format': function (data) {
       return {
-        dataType: 'xml',
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
+        dataType: 'xml'
       }
     }
   },
 
   'mirroring.suspend_instance': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/instance/suspend/feed/{feed}?start={name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/suspend/feed/{feed}?start={name}&user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
-      }
-    }
+    'type': 'POST'
   },
 
   'mirroring.resume_instance': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/instance/resume/feed/{feed}?start={name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/resume/feed/{feed}?start={name}&user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
-      }
-    }
+    'type': 'POST'
   },
 
   'mirroring.kill_instance': {
-    'real': '/proxy?url=http://{falconServer}:15000/api/instance/kill/feed/{feed}?start={name}',
+    'real': '/proxy?url=http://{falconServer}:15000/api/instance/kill/feed/{feed}?start={name}&user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        headers: {
-          'AmbariProxy-Remote-user': 'ambari-qa'
-        }
-      }
-    }
+    'type': 'POST'
   },
 
   'bulk_request.host_components': {
