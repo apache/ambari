@@ -234,6 +234,19 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       }
     }
 
+    //Move tables from ambarirca db to ambari db; drop ambarirca; Mysql
+    if (getDbType().equals(Configuration.MYSQL_DB_NAME)) {
+      String dbName = configuration.getServerJDBCSchemaName();
+      moveRCATableInMySQL("workflow", dbName);
+      moveRCATableInMySQL("job", dbName);
+      moveRCATableInMySQL("task", dbName);
+      moveRCATableInMySQL("taskAttempt", dbName);
+      moveRCATableInMySQL("hdfsEvent", dbName);
+      moveRCATableInMySQL("mapreduceEvent", dbName);
+      moveRCATableInMySQL("clusterEvent", dbName);
+      dbAccessor.executeQuery("DROP DATABASE IF EXISTS ambarirca;");
+    }
+
     // ========================================================================
     // Add constraints
 
@@ -253,6 +266,12 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     // ========================================================================
     // Finally update schema version
     updateMetaInfoVersion(getTargetVersion());
+  }
+
+  private void moveRCATableInMySQL(String tableName, String dbName) throws SQLException {
+    if (!dbAccessor.tableExists(tableName)) {
+      dbAccessor.executeQuery(String.format("RENAME TABLE ambarirca.%s TO %s.%s;", tableName, dbName, tableName), true);
+    }
   }
 
   @Override

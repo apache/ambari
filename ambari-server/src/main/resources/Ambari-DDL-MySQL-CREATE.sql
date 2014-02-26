@@ -286,9 +286,6 @@ create index idx_qrtz_ft_tg on QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
 
 commit;
 
-CREATE DATABASE ambarirca;
-USE ambarirca;
-
 CREATE TABLE workflow (
   workflowId VARCHAR(255), workflowName TEXT,
   parentWorkflowId VARCHAR(255),

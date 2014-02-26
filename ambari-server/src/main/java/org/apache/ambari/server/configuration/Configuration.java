@@ -94,6 +94,7 @@ public class Configuration {
   public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database";
   public static final String SERVER_DB_NAME_DEFAULT = "ambari";
+  public static final String SERVER_JDBC_SCHEMA_NAME = "server.jdbc.schema";
   public static final String POSTGRES_DB_NAME = "postgres";
   public static final String ORACLE_DB_NAME = "oracle";
   public static final String MYSQL_DB_NAME = "mysql";
@@ -940,5 +941,9 @@ public class Configuration {
 
   public String getResourceDirPath() {
     return properties.getProperty(RESOURCES_DIR_KEY, RESOURCES_DIR_DEFAULT);
+  }
+
+  public String getServerJDBCSchemaName() {
+    return properties.getProperty(SERVER_JDBC_SCHEMA_NAME, SERVER_DB_NAME_DEFAULT);
   }
 }
