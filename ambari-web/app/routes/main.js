@@ -151,6 +151,9 @@ module.exports = Em.Route.extend({
           router.get('mainHiveJobDetailsController').loadJobDetails();
           router.get('mainJobsController').updateJobs('mainHiveJobDetailsController', 'loadJobDetails');
         }
+      },
+      exit: function(router) {
+        router.get('mainHiveJobDetailsController').set('loaded', false);
       }
     }),
     showJobDetails : function(router, event) {
