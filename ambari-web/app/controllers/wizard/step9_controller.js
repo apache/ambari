@@ -1130,7 +1130,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       if (!App.testMode) {
         App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
       }
-    } else {
+    } else if (this.get('content.cluster.status') === 'PENDING') {
       this.launchStartServices();
     }
 

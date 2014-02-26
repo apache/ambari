@@ -19,7 +19,7 @@
 var App = require('app');
 require('models/host_component');
 require('views/main/host/details/host_component_view');
-require('views/main/host/details/host_component_views/decommissionable');
+require('mixins/main/host/details/host_components/decommissionable');
 
 var hostComponentView;
 

@@ -20,6 +20,7 @@ var App = require('app');
 require('utils/db');
 require('views/common/filter_view');
 require('views/common/sort_view');
+require('mixins/common/userPref');
 require('views/common/table_view');
 
 describe('App.TableView', function () {
@@ -37,7 +38,7 @@ describe('App.TableView', function () {
   describe('#updatePaging', function() {
 
     beforeEach(function() {
-      view = App.TableView.create({
+      view = App.TableView.create(App.UserPref, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -65,7 +66,7 @@ describe('App.TableView', function () {
   describe('#endIndex', function() {
 
     beforeEach(function() {
-      view = App.TableView.create({
+      view = App.TableView.create(App.UserPref, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -107,7 +108,7 @@ describe('App.TableView', function () {
   describe('#pageContent', function() {
 
     beforeEach(function() {
-      view = App.TableView.create({
+      view = App.TableView.create(App.UserPref, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -152,7 +153,7 @@ describe('App.TableView', function () {
   describe('#filtersUsedCalc', function() {
 
     beforeEach(function() {
-      view = App.TableView.create({
+      view = App.TableView.create(App.UserPref, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -186,7 +187,7 @@ describe('App.TableView', function () {
   describe('#nextPage', function() {
 
     beforeEach(function() {
-      view = App.TableView.create({
+      view = App.TableView.create(App.UserPref, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -226,7 +227,7 @@ describe('App.TableView', function () {
   describe('#previousPage', function() {
 
     beforeEach(function() {
-      view = App.TableView.create({
+      view = App.TableView.create(App.UserPref, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 50,
