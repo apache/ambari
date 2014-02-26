@@ -1326,14 +1326,13 @@ module.exports =
   /**********************************************FALCON***************************************/
     {
       "id": "puppet var",
-      "name": "falcon_user",
-      "displayName": "Falcon user",
-      "description": "",
+      "name": "falconserver_host",
+      "displayName": "Falcon Server",
+      "description": "The host that has been assigned to run Falcon Server",
       "defaultValue": "falcon",
-      "isReconfigurable": true,
-      "displayType": "user",
+      "displayType": "masterHost",
       "isVisible": true,
-      "isRequiredByAgent": true,
+      "isRequiredByAgent": false,
       "serviceName": "FALCON",
       "category": "Falcon"
     },
@@ -1519,7 +1518,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "proxyuser_group",
-      "displayName": "Proxy group for Hive, WebHCat, and Oozie",
+      "displayName": "Proxy group for Hive, WebHCat, Oozie and Falcon",
       "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
@@ -1529,7 +1528,7 @@ module.exports =
       "filename": "core-site.xml",
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HIVE","WEBHCAT","OOZIE"]
+      "belongsToService":["HIVE","WEBHCAT","OOZIE","FALCON"]
     },
     {
       "id": "puppet var",
@@ -1658,6 +1657,34 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "falcon_user",
+      "displayName": "Falcon User",
+      "description": "User to run Falcon as",
+      "defaultValue": "falcon",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName":"MISC",
+      "category": "Users and Groups",
+      "belongsToService":["FALCON"]
+    },
+    {
+      "id": "puppet var",
+      "name": "storm_user",
+      "displayName": "Storm User",
+      "description": "User to run Storm as",
+      "defaultValue": "storm",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName":"MISC",
+      "category": "Users and Groups",
+      "belongsToService":["STORM"]
+    },
+    {
+      "id": "puppet var",
       "name": "zk_user",
       "displayName": "ZooKeeper User",
       "description": "User to run ZooKeeper as",
@@ -1753,34 +1780,6 @@ module.exports =
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HDFS"]
-    },
-    {
-      "id": "puppet var",
-      "name": "storm_user",
-      "displayName": "Storm User",
-      "description": "User to run Storm as",
-      "defaultValue": "storm",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName":"MISC",
-      "category": "Users and Groups",
-      "belongsToService":["STORM"]
-    },
-    {
-      "id": "puppet var",
-      "name": "falcon_user",
-      "displayName": "Falcon User",
-      "description": "User to run Falcon as",
-      "defaultValue": "falcon",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName":"MISC",
-      "category": "Users and Groups",
-      "belongsToService":["FALCON"]
     },
     {
       "id": "puppet var",

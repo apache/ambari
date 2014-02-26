@@ -67,6 +67,22 @@ var configs = [
     "filename": "core-site.xml",
     "isOverridable": true
   },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["falcon_user"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "isOverridable": true
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["falconserver_host"],
+    "foreignKey": ["falcon_user"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "isOverridable": true
+  },
   /********************GLUSTERFS*************************************/
   {
     "name": "fs.glusterfs.impl",
