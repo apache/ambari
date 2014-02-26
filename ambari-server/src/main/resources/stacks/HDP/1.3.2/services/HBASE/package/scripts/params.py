@@ -71,15 +71,15 @@ if security_enabled:
   
   _use_hostname_in_principal = default('instance_name', True)
   _master_primary_name = config['configurations']['global']['hbase_master_primary_name']
-  _hostname = config['hostname']
+  _hostname_lowercase = config['hostname'].lower()
   _kerberos_domain = config['configurations']['global']['kerberos_domain']
   _master_principal_name = config['configurations']['global']['hbase_master_principal_name']
   _regionserver_primary_name = config['configurations']['global']['hbase_regionserver_primary_name']
 
 
   if _use_hostname_in_principal:
-    master_jaas_princ = format("{_master_primary_name}/{_hostname}@{_kerberos_domain}")
-    regionserver_jaas_princ = format("{_regionserver_primary_name}/{_hostname}@{_kerberos_domain}")
+    master_jaas_princ = format("{_master_primary_name}/{_hostname_lowercase}@{_kerberos_domain}")
+    regionserver_jaas_princ = format("{_regionserver_primary_name}/{_hostname_lowercase}@{_kerberos_domain}")
   else:
     master_jaas_princ = format("{_master_principal_name}@{_kerberos_domain}")
     regionserver_jaas_princ = format("{_regionserver_primary_name}@{_kerberos_domain}")
