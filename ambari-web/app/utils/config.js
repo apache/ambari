@@ -205,7 +205,6 @@ App.config = Em.Object.create({
     } else {
       config.category = config.category ? config.category : 'Advanced';
       config.description = isAdvanced && advancedConfigs.findProperty('name', config.name).description;
-      config.filename = isAdvanced && advancedConfigs.findProperty('name', config.name).filename;
       config.isRequired = true;
     }
   },
@@ -244,6 +243,7 @@ App.config = Em.Object.create({
     var selectedServiceNames = App.Service.find().mapProperty('serviceName');
     tags.forEach(function (_tag) {
       var isAdvanced = null;
+      var filename = (filenameExceptions.contains(_tag.siteName)) ? _tag.siteName : _tag.siteName + ".xml";
       var properties = configGroups.filter(function (serviceConfigProperties) {
         return _tag.tagName === serviceConfigProperties.tag && _tag.siteName === serviceConfigProperties.type;
       });
@@ -251,24 +251,29 @@ App.config = Em.Object.create({
       properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
         var configsPropertyDef =  null;
-        var preDefinedConfig;
+        var preDefinedConfig = [];
         if (_tag.siteName === 'global') {
         // Unlike other site where one site maps to ones service, global site contains configurations for multiple services
         // So Global Configuration should not be filtered out with serviceName.
           preDefinedConfig = preDefinedConfigs.filterProperty('name', index);
+          preDefinedConfig.forEach(function(_preDefinedConfig){
+            var isServiceInstalled = selectedServiceNames.contains(_preDefinedConfig.serviceName);
+              if ( isServiceInstalled || _preDefinedConfig.serviceName === 'MISC') {
+                configsPropertyDef = _preDefinedConfig;
+              }
+          },this);
         } else {
-          preDefinedConfig = preDefinedConfigs.filterProperty('serviceName',serviceName).filterProperty('name', index);
-        }
-        preDefinedConfig.forEach(function(_preDefinedConfig){
-          if (selectedServiceNames.contains(_preDefinedConfig.serviceName) || _preDefinedConfig.serviceName === 'MISC') {
-            configsPropertyDef = _preDefinedConfig;
+          configsPropertyDef = preDefinedConfigs.filterProperty('name',index).findProperty('filename',filename);
+          if (!configsPropertyDef) {
+            configsPropertyDef = preDefinedConfigs.filterProperty('name',index).findProperty('serviceName', serviceName);
           }
-        },this);
+        }
+
         var serviceConfigObj = App.ServiceConfig.create({
           name: index,
           value: properties[index],
           defaultValue: properties[index],
-          filename: (filenameExceptions.contains(_tag.siteName)) ? _tag.siteName : _tag.siteName + ".xml",
+          filename: filename,
           isUserProperty: false,
           isOverridable: true,
           serviceName: serviceName,
@@ -423,10 +428,10 @@ App.config = Em.Object.create({
       }, this);
 
       var configData = {};
+      var isAdvanced = advancedConfigs.someProperty('name', name);
       if (storedCfgs.length <= 1 && preDefinedCfgs.length <= 1) {
         var stored = storedCfgs[0];
         var preDefined = preDefinedCfgs[0];
-        var isAdvanced = advancedConfigs.someProperty('name', name);
         if (preDefined && stored) {
           configData = preDefined;
           configData.value = stored.value;
@@ -458,13 +463,7 @@ App.config = Em.Object.create({
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           if (isAdvanced) {
             var advanced = advancedConfigs.findProperty('name', configData.name);
-            // Password fields should be made blank by default in installer wizard
-            // irrespective of whatever value is sent from stack definition.
-            // This forces the user to fill the password field.
-            configData.value = configData.displayType == "password" ? '' : advanced.value;
-            configData.defaultValue = configData.value;
-            configData.filename = advanced.filename;
-            configData.description = advanced.description;
+            this.setPropertyFromStack(configData,advanced);
           }
         }
         if (configData.displayType === 'checkbox') {
@@ -475,6 +474,7 @@ App.config = Em.Object.create({
       } else {
         preDefinedCfgs.forEach(function (cfg) {
           configData = cfg;
+          configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           var storedCfg = storedCfgs.findProperty('filename', cfg.filename);
           if (storedCfg) {
             configData.value = storedCfg.value;
@@ -482,7 +482,9 @@ App.config = Em.Object.create({
             configData.overrides = storedCfg.overrides;
             configData.filename = storedCfg.filename;
             configData.description = storedCfg.description;
-            configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
+          } else if (isAdvanced){
+              advanced = advancedConfigs.filterProperty('filename', configData.filename).findProperty('name', configData.name);
+              this.setPropertyFromStack(configData,advanced);
           }
           mergedConfigs.push(configData);
         }, this);
@@ -490,6 +492,24 @@ App.config = Em.Object.create({
     }, this);
     return mergedConfigs;
   },
+
+  /**
+   *
+   * @param configData {Object} Configs that will be binded to the view on step-7 of installer wizard
+   * @param advanced {Object} Config property loaded from Server side stack definition
+   */
+  setPropertyFromStack: function(configData,advanced) {
+
+    // Password fields should be made blank by default in installer wizard
+    // irrespective of whatever value is sent from stack definition.
+    // This forces the user to fill the password field.
+    configData.value = configData.displayType == "password" ? '' : advanced.value;
+    configData.defaultValue = configData.value;
+    configData.filename = advanced.filename;
+    configData.description = advanced.description;
+  },
+
+
   /**
    * look over advanced configs and add missing configs to serviceConfigs
    * filter fetched configs by service if passed
@@ -995,7 +1015,7 @@ App.config = Em.Object.create({
   addLog4jConfig: function (configs, serviceName) {
     var fileName = serviceName.toLowerCase() + '-log4j.xml';
     var content = configs.filterProperty('serviceName', serviceName).findProperty('name', 'content');
-    if (!content || !content.value.length) {
+    if (!content || (!content.value.length)) {
       var category = categotyConfigs.findProperty('serviceName', serviceName) && categotyConfigs.findProperty('serviceName', serviceName).configCategories.findProperty('siteFileName', fileName);
       if (category) {
         if (serviceName == 'HIVE') {

@@ -100,9 +100,7 @@
   </property>
   <property>
     <name>*.shared.libs</name>
-    <value>
-      activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms
-    </value>
+    <value>activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms</value>
     <description></description>
   </property>
   <property>
