@@ -164,6 +164,10 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
+                              action=["delete"],
+                              not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
+                              )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               recursive = True,
@@ -263,6 +267,11 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
+                              action=["delete"],
+                              not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
+    )
+
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               recursive = True,
