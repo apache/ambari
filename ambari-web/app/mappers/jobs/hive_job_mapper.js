@@ -50,13 +50,17 @@ App.hiveJobMapper = App.QuickDataMapper.create({
     if (!model) {
       return;
     }
-    var hiveJob = {}
+    var hiveJob = {};
     if (json && json.entity) {
       var hiveJob = {};
       hiveJob.id = json.entity;
+      hiveJob.name = hiveJob.id;
       hiveJob.startTime = json.starttime;
       hiveJob.endTime = json.endtime;
       json.otherinfo.query = $.parseJSON(json.otherinfo.query);
+      if (json.otherinfo.query && json.otherinfo.query.queryText) {
+        hiveJob.query_text = json.otherinfo.query.queryText;
+      }
       hiveJob.stages = [];
       var stagePlans = json.otherinfo.query.queryPlan["STAGE PLANS"];
       for ( var stage in stagePlans) {

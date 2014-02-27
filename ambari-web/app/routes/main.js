@@ -147,6 +147,7 @@ module.exports = Em.Route.extend({
       route : '/:job_id',
       connectOutlets : function(router, job) {
         if (job) {
+          router.get('mainHiveJobDetailsController').set('loaded', false);
           router.get('mainController').connectOutlet('mainHiveJobDetails', job);
           router.get('mainHiveJobDetailsController').loadJobDetails();
           router.get('mainJobsController').updateJobs('mainHiveJobDetailsController', 'loadJobDetails');
