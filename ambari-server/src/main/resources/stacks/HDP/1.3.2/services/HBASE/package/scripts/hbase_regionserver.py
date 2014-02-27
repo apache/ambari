@@ -55,7 +55,7 @@ class HbaseRegionServer(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    pid_file = format("{pid_dir}/hbase-hbase-regionserver.pid")
+    pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
     check_process_status(pid_file)
     
   def decommission(self, env):

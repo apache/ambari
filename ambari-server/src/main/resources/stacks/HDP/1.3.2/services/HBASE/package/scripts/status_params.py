@@ -23,3 +23,4 @@ from resource_management import *
 config = Script.get_config()
 
 pid_dir = config['configurations']['global']['hbase_pid_dir']
+hbase_user = config['configurations']['global']['hbase_user']

@@ -33,7 +33,7 @@ hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
 
-hbase_user = config['configurations']['global']['hbase_user']
+hbase_user = status_params.hbase_user
 smokeuser = config['configurations']['global']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')

@@ -56,7 +56,7 @@ class HbaseMaster(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    pid_file = format("{pid_dir}/hbase-hbase-master.pid")
+    pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
     check_process_status(pid_file)
 
   def decommission(self, env):
