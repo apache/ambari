@@ -155,9 +155,30 @@ App.hiveJobMapper = App.QuickDataMapper.create({
             vertices : vertexIds,
             edges : edgeIds
           }
-          App.store.loadMany(App.TezDagVertex, vertices);
-          App.store.loadMany(App.TezDagEdge, edges);
-          App.store.load(App.TezDag, tezDag);
+          // Once the DAG is loaded, we do not need to
+          // reload as the structure does not change. Reloading
+          // here causes missing data (got from other calls)
+          // to propagate into UI - causing flashing.
+          var newVertices = [];
+          var newEdges = [];
+          vertices.forEach(function(v) {
+            var vertexRecord = App.TezDagVertex.find(v.id);
+            if (!vertexRecord.get('isLoaded')) {
+              newVertices.push(v);
+            }
+          });
+          edges.forEach(function(e) {
+            var edgeRecord = App.TezDagEdge.find(e.id);
+            if (!edgeRecord.get('isLoaded')) {
+              newEdges.push(e);
+            }
+          });
+          App.store.loadMany(App.TezDagVertex, newVertices);
+          App.store.loadMany(App.TezDagEdge, newEdges);
+          var dagRecord = App.TezDag.find(tezDag.id);
+          if (!dagRecord.get('isLoaded')) {
+            App.store.load(App.TezDag, tezDag);
+          }
           hiveJob.tezDag = tezDag.id;
         }
       }
