@@ -407,10 +407,9 @@ App.QuickLinks.FIXTURES = [
     url:'%@://%@:%@/',
     service_id: 'FALCON',
     template:'%@://%@:%@/',
-    http_config: 'falconserver.host',
-    https_config: 'falconserver.host',
-    site: 'oozie-site',
-    regex: portRegex,
+    http_config: 'falcon_port',
+    site: 'global',
+    regex: '^(\\d+)$',
     default_http_port: 15000
   }
 ];
