@@ -111,11 +111,11 @@ describe('App.config', function () {
         filename: 'core-site.xml'
       };
       isAdvanced = true;
-      advancedConfigs = [{name:'test', filename: 'test.xml'}];
+      advancedConfigs = [{name:'test', filename: 'core-site.xml'}];
       App.config.calculateConfigProperties(config, isAdvanced, advancedConfigs);
       expect(config.category).to.equal('Advanced');
       expect(config.isRequired).to.equal(true);
-      expect(config.filename).to.equal('test.xml');
+      expect(config.filename).to.equal('core-site.xml');
     });
   });
 

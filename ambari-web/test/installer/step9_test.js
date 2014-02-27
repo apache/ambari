@@ -26,7 +26,7 @@ require('utils/helper');
 describe('App.InstallerStep9Controller', function () {
 
   describe('#isSubmitDisabled', function () {
-    var tests = [
+    var tests = Em.A([
       {controllerName: 'addHostController', state: 'STARTED', e: false},
       {controllerName: 'addHostController', state: 'START FAILED', e: false},
       {controllerName: 'addHostController', state: 'INSTALL FAILED', e: false},
@@ -42,7 +42,7 @@ describe('App.InstallerStep9Controller', function () {
       {controllerName: 'installerController', state: 'INSTALL FAILED', e: true},
       {controllerName: 'installerController', state: 'INSTALLED', e: true},
       {controllerName: 'installerController', state: 'PENDING', e: true}
-    ];
+    ]);
     tests.forEach(function (test) {
       var controller = App.WizardStep9Controller.create({
         content: {
@@ -60,7 +60,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#status', function () {
-    var tests = [
+    var tests = Em.A([
       {
         hosts: [
           {status: 'failed'},
@@ -111,7 +111,7 @@ describe('App.InstallerStep9Controller', function () {
         progress: '50',
         e: 'info'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       var controller = App.WizardStep9Controller.create({hosts: test.hosts, isStepFailed: function () {
         return test.isStepFailed
@@ -133,18 +133,19 @@ describe('App.InstallerStep9Controller', function () {
       Em.Object.create({status: 'info'}),
       Em.Object.create({status: 'info'})
     ];
-    var tests = [
+    var tests = Em.A([
       {category: {hostStatus: 'all'}, e: hosts.length},
       {category: {hostStatus: 'inProgress'}, e: 2},
       {category: {hostStatus: 'warning'}, e: 1},
       {category: {hostStatus: 'failed'}, e: 2},
       {category: {hostStatus: 'success'}, e: 2}
-    ];
-    var controller = App.WizardStep9Controller.create({
-      hosts: hosts
-    });
+    ]);
+
     tests.forEach(function (test) {
       it('selected category with hostStatus "' + test.category.hostStatus + '"', function () {
+        var controller = App.WizardStep9Controller.create({
+          hosts: hosts
+        });
         controller.selectCategory({context: test.category});
         expect(controller.get('visibleHosts.length')).to.equal(test.e);
       });
@@ -237,7 +238,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#hostHasClientsOnly', function () {
-    var tests = [
+    var tests = Em.A([
       {
         hosts: [
           Em.Object.create({
@@ -286,7 +287,7 @@ describe('App.InstallerStep9Controller', function () {
         ],
         jsonError: true
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it('', function () {
         var controller = App.WizardStep9Controller.create({hosts: test.hosts});
@@ -300,7 +301,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#onSuccessPerHost', function () {
-    var tests = [
+    var tests = Em.A([
       {
         cluster: {status: 'INSTALLED'},
         host: Em.Object.create({status: 'pending'}),
@@ -348,7 +349,7 @@ describe('App.InstallerStep9Controller', function () {
         e: {status: 'info'},
         m: 'Not all Tasks COMPLETED and cluster status FAILED'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       var controller = App.WizardStep9Controller.create({content: {cluster: {status: test.cluster.status}}});
       controller.onSuccessPerHost(test.actions, test.host);
@@ -359,7 +360,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#onErrorPerHost', function () {
-    var tests = [
+    var tests = Em.A([
       {
         cluster: {status: 'INSTALLED'},
         host: Em.Object.create({status: 'pending'}),
@@ -423,7 +424,7 @@ describe('App.InstallerStep9Controller', function () {
         isMasterFailed: false,
         m: 'One Task FAILED and cluster status PENDING isMasterFailed false'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       var controller = App.WizardStep9Controller.create({content: {cluster: {status: test.cluster.status}}, isMasterFailed: function () {
         return test.isMasterFailed;
@@ -436,7 +437,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#isMasterFailed', function () {
-    var tests = [
+    var tests = Em.A([
       {
         actions: [
           {Tasks: {command: 'INSTALL', status: 'FAILED', role: 'DATANODE'}},
@@ -470,7 +471,7 @@ describe('App.InstallerStep9Controller', function () {
         e: false,
         m: 'one Master is failed but command is not install'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it(test.m, function () {
         var controller = App.WizardStep9Controller.create();
@@ -480,7 +481,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#onInProgressPerHost', function () {
-    var tests = [
+    var tests = Em.A([
       {
         host: Em.Object.create({message: 'default_message'}),
         actions: [
@@ -517,7 +518,7 @@ describe('App.InstallerStep9Controller', function () {
         e: {message: 'default_message', b: false},
         m: 'One Task PENDING'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it(test.m, function () {
         var controller = App.WizardStep9Controller.create();
@@ -528,7 +529,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#progressPerHost', function () {
-    var tests = [
+    var tests = Em.A([
       {
         cluster: {status: 'PENDING'},
         host: Em.Object.create({progress: 0}),
@@ -576,7 +577,7 @@ describe('App.InstallerStep9Controller', function () {
         e: {ret: 100, host: '100'},
         m: 'Cluster status is not PENDING or INSTALLED'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it(test.m, function () {
         var controller = App.WizardStep9Controller.create({content: {cluster: {status: test.cluster.status}}});
@@ -618,7 +619,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#isSuccess', function () {
-    var tests = [
+    var tests = Em.A([
       {
         polledData: [
           {Tasks: {status: 'COMPLETED'}},
@@ -635,7 +636,7 @@ describe('App.InstallerStep9Controller', function () {
         e: false,
         m: 'Not all tasks are COMPLETED'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it(test.m, function () {
         var controller = App.WizardStep9Controller.create();
@@ -645,7 +646,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#isStepFailed', function () {
-    var tests = [
+    var tests = Em.A([
       {
         polledData: [
           {Tasks: {command: 'INSTALL', role: 'GANGLIA_MONITOR', status: 'TIMEDOUT'}},
@@ -736,7 +737,7 @@ describe('App.InstallerStep9Controller', function () {
         e: false,
         m: 'Nothing failed failed'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       var controller = App.WizardStep9Controller.create({polledData: test.polledData});
       it(test.m, function () {
@@ -758,7 +759,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#finishState', function () {
-    var statuses = ['INSTALL FAILED', 'START FAILED', 'STARTED'];
+    var statuses = Em.A(['INSTALL FAILED', 'START FAILED', 'STARTED']);
     it('Installer is finished', function () {
       statuses.forEach(function (status) {
         var controller = App.WizardStep9Controller.create({content: {cluster: {status: status}}});
@@ -774,7 +775,7 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#setLogTasksStatePerHost', function () {
-    var tests = [
+    var tests = Em.A([
       {
         tasksPerHost: [
           {Tasks: {id: 1, status: 'COMPLETED'}},
@@ -818,7 +819,7 @@ describe('App.InstallerStep9Controller', function () {
         e: {m: 'COMPLETED', l: 3},
         m: 'host had 2 tasks and got both updated and 1 new'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it(test.m, function () {
         var controller = App.WizardStep9Controller.create({hosts: [Em.Object.create({logTasks: test.tasks})]});
@@ -831,7 +832,7 @@ describe('App.InstallerStep9Controller', function () {
 
   describe('#parseHostInfo', function () {
 
-    var tests = [
+    var tests = Em.A([
       {
         cluster: {status: 'PENDING'},
         hosts: Em.A([
@@ -952,7 +953,7 @@ describe('App.InstallerStep9Controller', function () {
         },
         m: 'Two hosts. Each host has one task QUEUED. Cluster status is INSTALLED'
       }
-    ];
+    ]);
     tests.forEach(function (test) {
       it(test.m, function () {
         var controller = App.WizardStep9Controller.create({hosts: test.hosts, content: {cluster: {status: test.cluster.status}}, finishState: function () {
@@ -973,153 +974,154 @@ describe('App.InstallerStep9Controller', function () {
 
   describe('#isAllComponentsInstalledSuccessCallback', function () {
 
-    var hosts = [
-      Em.Object.create({name: 'host1', status: 'failed', expectedStatus: 'heartbeat_lost'}),
-      Em.Object.create({name: 'host2', status: 'info', expectedStatus: 'heartbeat_lost'}),
-      Em.Object.create({name: 'host3', status: 'warning', expectedStatus: 'warning'}),
-      Em.Object.create({name: 'host4', status: 'info', expectedStatus: 'info'})
-    ];
-    var heartbeatLostData = {
-      "items": [
-        {
-          "Hosts": {
-            "cluster_name": "c1",
-            "host_name": "host1",
-            "host_state": "HEARTBEAT_LOST"
-          },
-          "host_components": [
-            {
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "NAMENODE",
-                "host_name": "host1",
-                "state": "INSTALL_FAILED"
-              }
-            }
-          ]
-        },
-        {
-          "Hosts": {
-            "cluster_name": "c1",
-            "host_name": "host2",
-            "host_state": "HEARTBEAT_LOST"
-          },
-          "host_components": [
-
-            {
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "ZOOKEEPER_SERVER",
-                "host_name": "host2",
-                "state": "UNKNOWN"
-              }
-            }
-          ]
-        },
-        {
-          "Hosts": {
-            "cluster_name": "c1",
-            "host_name": "host3",
-            "host_state": "HEALTHY"
-          },
-          "host_components": [
-            {
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "DATANODE",
-                "host_name": "host3",
-                "state": "INSTALL_FAILED"
-              }
-            }
-          ]
-        },
-        {
-          "Hosts": {
-            "cluster_name": "c1",
-            "host_name": "host4",
-            "host_state": "HEALTHY"
-          },
-          "host_components": [
-            {
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "PIG",
-                "host_name": "host4",
-                "state": "INSTALLED"
-              }
+    describe('', function() {
+      var hosts = Em.A([
+        Em.Object.create({name: 'host1', status: 'failed', expectedStatus: 'heartbeat_lost'}),
+        Em.Object.create({name: 'host2', status: 'info', expectedStatus: 'heartbeat_lost'}),
+        Em.Object.create({name: 'host3', status: 'warning', expectedStatus: 'warning'}),
+        Em.Object.create({name: 'host4', status: 'info', expectedStatus: 'info'})
+      ]);
+      var heartbeatLostData = {
+        "items": [
+          {
+            "Hosts": {
+              "cluster_name": "c1",
+              "host_name": "host1",
+              "host_state": "HEARTBEAT_LOST"
             },
-            {
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "DATANODE",
-                "host_name": "host3",
-                "state": "INSTALLED"
+            "host_components": [
+              {
+                "HostRoles": {
+                  "cluster_name": "c1",
+                  "component_name": "NAMENODE",
+                  "host_name": "host1",
+                  "state": "INSTALL_FAILED"
+                }
               }
-            }
-          ]
-        }
-      ]
-    };
-
-    var noHeartbeatLostData = {
-      "items": [
-        {
-          "Hosts": {
-            "cluster_name": "c1",
-            "host_name": "host1",
-            "host_state": "HEALTHY"
+            ]
           },
-          "host_components": [
-            {
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "NAMENODE",
-                "host_name": "host1",
-                "state": "INSTALL_FAILED"
+          {
+            "Hosts": {
+              "cluster_name": "c1",
+              "host_name": "host2",
+              "host_state": "HEARTBEAT_LOST"
+            },
+            "host_components": [
+              {
+                "HostRoles": {
+                  "cluster_name": "c1",
+                  "component_name": "ZOOKEEPER_SERVER",
+                  "host_name": "host2",
+                  "state": "UNKNOWN"
+                }
               }
-            }
-          ]
-        }
-      ]
-    };
+            ]
+          },
+          {
+            "Hosts": {
+              "cluster_name": "c1",
+              "host_name": "host3",
+              "host_state": "HEALTHY"
+            },
+            "host_components": [
+              {
+                "HostRoles": {
+                  "cluster_name": "c1",
+                  "component_name": "DATANODE",
+                  "host_name": "host3",
+                  "state": "INSTALL_FAILED"
+                }
+              }
+            ]
+          },
+          {
+            "Hosts": {
+              "cluster_name": "c1",
+              "host_name": "host4",
+              "host_state": "HEALTHY"
+            },
+            "host_components": [
+              {
+                "HostRoles": {
+                  "cluster_name": "c1",
+                  "component_name": "PIG",
+                  "host_name": "host4",
+                  "state": "INSTALLED"
+                }
+              },
+              {
+                "HostRoles": {
+                  "cluster_name": "c1",
+                  "component_name": "DATANODE",
+                  "host_name": "host3",
+                  "state": "INSTALLED"
+                }
+              }
+            ]
+          }
+        ]
+      };
 
+      var controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController'}});
 
-    var controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController'}});
-
-    App.testMode = true;
-    // Action
-    controller.isAllComponentsInstalledSuccessCallback(heartbeatLostData);
-
-
-    // Validation  for the status of all hosts.
-    controller.get('hosts').forEach(function (test) {
-      var status = heartbeatLostData.items.findProperty('Hosts.host_name', test.get('name')).Hosts.host_state;
-      it('Host "' + test.get('name') + '"' + ' with status "' + status + '" ', function () {
-        expect(test.get('status')).to.equal(test.get('expectedStatus'));
-      });
-    });
-
-
-    var hosts = [Em.Object.create({name: 'host1', status: 'failed'})];
-    // When there is no heartbeat lost for any host and cluster failed install task, Refreshing the page should not launch start all services request.
-    // Below transitions are possibilities in this function
-    // PENDING -> INSTALL or PENDING. This transition happens when install all services request is completed successfully.
-    // INSTALL FAILED -> INSTALL FAILED. No transition should happen when install all services request fails and then user hits refresh
-    // Cluster is not expected to enter this function in other states: INSTALLED, START FAILED, STARTED
-
-    var statuses = ['INSTALL FAILED', 'INSTALLED','START FAILED', 'STARTED'];  // Cluster in any of this states should have no effect on the state from this function
-    statuses.forEach(function (priorStatus) {
-      controller.destroy();
-      controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: priorStatus}},togglePreviousSteps: function(){}});
-      //controller.set('content.cluster.status',status);
+      App.testMode = true;
       // Action
-      controller.isAllComponentsInstalledSuccessCallback(noHeartbeatLostData);
-      // Validation for the cluster state.
-      var actualStatus = controller.get('content.cluster.status');
-      it('Cluster state before entering the function "' + priorStatus + '"', function () {
-        expect(actualStatus).to.equal(priorStatus);
+      controller.isAllComponentsInstalledSuccessCallback(heartbeatLostData);
+
+
+      // Validation  for the status of all hosts.
+      controller.get('hosts').forEach(function (test) {
+        var status = heartbeatLostData.items.findProperty('Hosts.host_name', test.get('name')).Hosts.host_state;
+        it('Host "' + test.get('name') + '"' + ' with status "' + status + '" ', function () {
+          expect(test.get('status')).to.equal(test.get('expectedStatus'));
+        });
+      });
+
+    });
+
+    describe('', function() {
+      var noHeartbeatLostData = {
+        "items": [
+          {
+            "Hosts": {
+              "cluster_name": "c1",
+              "host_name": "host1",
+              "host_state": "HEALTHY"
+            },
+            "host_components": [
+              {
+                "HostRoles": {
+                  "cluster_name": "c1",
+                  "component_name": "NAMENODE",
+                  "host_name": "host1",
+                  "state": "INSTALL_FAILED"
+                }
+              }
+            ]
+          }
+        ]
+      };
+
+      var hosts = Em.A([Em.Object.create({name: 'host1', status: 'failed'})]);
+      // When there is no heartbeat lost for any host and cluster failed install task, Refreshing the page should not launch start all services request.
+      // Below transitions are possibilities in this function
+      // PENDING -> INSTALL or PENDING. This transition happens when install all services request is completed successfully.
+      // INSTALL FAILED -> INSTALL FAILED. No transition should happen when install all services request fails and then user hits refresh
+      // Cluster is not expected to enter this function in other states: INSTALLED, START FAILED, STARTED
+
+      var statuses = Em.A(['INSTALL FAILED', 'INSTALLED','START FAILED', 'STARTED']);  // Cluster in any of this states should have no effect on the state from this function
+      statuses.forEach(function (priorStatus) {
+        var controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: priorStatus}},togglePreviousSteps: function(){}});
+        // Action
+        controller.isAllComponentsInstalledSuccessCallback(noHeartbeatLostData);
+        // Validation for the cluster state.
+        var actualStatus = controller.get('content.cluster.status');
+        it('Cluster state before entering the function "' + priorStatus + '"', function () {
+          expect(actualStatus).to.equal(priorStatus);
+        });
       });
     });
+
   })
 
 });

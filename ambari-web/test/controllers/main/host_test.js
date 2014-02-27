@@ -231,7 +231,7 @@ describe('MainHostController', function () {
       $.ajax.restore();
     });
 
-    var tests = [
+    var tests = Em.A([
       {
         hosts: Em.A([]),
         m: 'No hosts',
@@ -246,7 +246,7 @@ describe('MainHostController', function () {
         m: 'One host',
         e: true
       }
-    ];
+    ]);
 
     tests.forEach(function(test) {
       it(test.m, function() {

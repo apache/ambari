@@ -29,6 +29,8 @@ require('controllers/global/background_operations_controller');
 require('views/common/modal_popup');
 require('utils/host_progress_popup');
 
+var controller;
+
 describe('App.BackgroundOperationsController', function () {
 
   /**
@@ -38,51 +40,7 @@ describe('App.BackgroundOperationsController', function () {
   App.set('clusterName', 'testName');
   App.bgOperationsUpdateInterval = 100;
 
-  /**
-   * Test object
-   */
-  var controller = App.BackgroundOperationsController.create();
-
-  describe('when set isWorking to true  ', function () {
-
-    it('startPolling executes App.updater.run  ', function(done){
-      sinon.stub(App.updater, 'run', function(){
-        controller.set('isWorking', false);
-        App.updater.run.restore();
-        done();
-      });
-
-      controller.set('isWorking', true);
-    });
-
-    it('requestMostRecent should be called  ', function(done){
-      this.timeout(App.bgOperationsUpdateInterval + 500);
-
-      sinon.stub(controller, 'requestMostRecent', function(){
-        App.set('testMode', true);
-        controller.set('isWorking', false);
-        controller.requestMostRecent.restore();
-        done();
-      });
-
-      controller.set('isWorking', true);
-    });
-
-    it('callBackForMostRecent should be called  ', function(done){
-      this.timeout(App.bgOperationsUpdateInterval + 1500);
-
-      sinon.stub(controller, 'callBackForMostRecent', function(){
-        controller.set('isWorking', false);
-        controller.callBackForMostRecent.restore();
-        done();
-      });
-
-      controller.set('isWorking', true);
-    });
-
-  });
-
-  var tests = [
+  var tests = Em.A([
     {
       levelInfo: Em.Object.create({
         name: 'REQUESTS_LIST',
@@ -153,15 +111,15 @@ describe('App.BackgroundOperationsController', function () {
       response: {items:{Requests:{id:0}}},
       m: '"Filtered By Request (HOSTS_LIST)"'
     }
-  ];
+  ]);
 
   describe('#getQueryParams', function() {
-    before(function() {
+    beforeEach(function() {
+      controller = App.BackgroundOperationsController.create();
       App.testMode = false;
     });
-    after(function() {
+    afterEach(function() {
       App.testMode = true;
-      controller.set('levelInfo', null);
     });
 
     tests.forEach(function(test) {
