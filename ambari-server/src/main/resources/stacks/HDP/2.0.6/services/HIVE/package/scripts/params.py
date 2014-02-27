@@ -155,8 +155,10 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
-tez_stub_path = '/tmp/tez_jars_copied'
 tez_user = 'tez'
+
+hive_exec_jar_path = '/usr/lib/hive/lib/hive-exec.jar'
+hive_exec_hdfs_path = default('/configurations/hive-site/hive.jar.directory', '/apps/hive/install')
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call

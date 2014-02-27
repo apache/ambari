@@ -27,11 +27,12 @@ class CopyFromLocal(Resource):
   action = ForcedListArgument(default="run")
 
   path = ResourceArgument(default=lambda obj: obj.name)
-  dest_dir = ResourceArgument()
-  owner = ResourceArgument()
+  dest_dir = ResourceArgument(required=True)
+  owner = ResourceArgument(required=True)
   group = ResourceArgument()
   mode = ResourceArgument()
   kinnit_if_needed = ResourceArgument(default='')
   hadoop_conf_dir = ResourceArgument(default='/etc/hadoop/conf')
+  hdfs_user = ResourceArgument(default='hdfs')
 
   actions = Resource.actions + ["run"]

@@ -27,10 +27,10 @@ class CopyFromLocalProvider(Provider):
     path = self.resource.path
     dest_dir = self.resource.dest_dir
     kinnit_if_needed = self.resource.kinnit_if_needed
-    stub_path = self.resource.stub_path
     owner = self.resource.owner
     group = self.resource.group
     mode = self.resource.mode
+    hdfs_usr=self.resource.hdfs_user
     hadoop_conf_path = self.resource.hadoop_conf_dir
 
     copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
@@ -39,7 +39,7 @@ class CopyFromLocalProvider(Provider):
     ExecuteHadoop(copy_cmd,
                   not_if=unless_cmd,
                   user=owner,
-                  conf_dir=hadoop_conf_path,
+                  conf_dir=hadoop_conf_path
                   )
 
     if not owner:
@@ -54,14 +54,15 @@ class CopyFromLocalProvider(Provider):
       chown_cmd = format("fs -chown {chown} {dest_dir}")
 
       ExecuteHadoop(chown_cmd,
-                    user=owner,
+                    user=hdfs_usr,
                     conf_dir=hadoop_conf_path)
     pass
 
     if mode:
-      chmod_cmd = format('fs -chmod {mode} {dest_dir}')
+      dir_mode = oct(mode)
+      chmod_cmd = format('fs -chmod {dir_mode} {dest_dir}')
 
       ExecuteHadoop(chmod_cmd,
-                    user=owner,
+                    user=hdfs_usr,
                     conf_dir=hadoop_conf_path)
     pass

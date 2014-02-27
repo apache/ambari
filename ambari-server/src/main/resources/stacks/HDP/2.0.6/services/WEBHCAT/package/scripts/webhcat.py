@@ -88,19 +88,22 @@ def webhcat():
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=format("{webhcat_apps_dir}/hadoop-streaming.jar"),
-                kinnit_if_needed=kinit_if_needed
+                kinnit_if_needed=kinit_if_needed,
+                hdfs_user=params.hdfs_user
   )
 
   CopyFromLocal('/usr/share/HDP-webhcat/pig.tar.gz',
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=format("{webhcat_apps_dir}/pig.tar.gz"),
-                kinnit_if_needed=kinit_if_needed
+                kinnit_if_needed=kinit_if_needed,
+                hdfs_user=params.hdfs_user
   )
 
   CopyFromLocal('/usr/share/HDP-webhcat/hive.tar.gz',
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=format("{webhcat_apps_dir}/hive.tar.gz"),
-                kinnit_if_needed=kinit_if_needed
+                kinnit_if_needed=kinit_if_needed,
+                hdfs_user=params.hdfs_user
   )

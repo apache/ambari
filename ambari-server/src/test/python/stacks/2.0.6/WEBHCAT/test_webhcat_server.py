@@ -158,19 +158,22 @@ class TestWebHCatServer(RMFTestCase):
                               owner='hcat',
                               mode=0755,
                               dest_dir=format('/apps/webhcat/hadoop-streaming.jar'),
-                              kinnit_if_needed=''
+                              kinnit_if_needed='',
+                              hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir=format('/apps/webhcat/pig.tar.gz'),
-                              kinnit_if_needed=''
+                              kinnit_if_needed='',
+                              hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir=format('/apps/webhcat/hive.tar.gz'),
-                              kinnit_if_needed=''
+                              kinnit_if_needed='',
+                              hdfs_user='hdfs'
     )
 
   def assert_configure_secured(self):
@@ -237,17 +240,20 @@ class TestWebHCatServer(RMFTestCase):
                               owner='hcat',
                               mode=0755,
                               dest_dir=format('/apps/webhcat/hadoop-streaming.jar'),
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;'
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+                              hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir=format('/apps/webhcat/pig.tar.gz'),
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;'
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+                              hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
                               owner='hcat',
                               mode=0755,
                               dest_dir=format('/apps/webhcat/hive.tar.gz'),
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;'
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+                              hdfs_user='hdfs'
     )

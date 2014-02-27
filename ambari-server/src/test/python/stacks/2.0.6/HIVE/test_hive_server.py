@@ -102,15 +102,37 @@ class TestHiveServer(RMFTestCase):
                               mode=0655,
                               owner='tez',
                               dest_dir='/apps/tez/',
-                              kinnit_if_needed=''
+                              kinnit_if_needed='',
+                              hdfs_user='hdfs'
     )
 
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
                               mode=0655,
                               owner='tez',
                               dest_dir='/apps/tez/lib/',
-                              kinnit_if_needed=''
+                              kinnit_if_needed='',
+                              hdfs_user='hdfs'
     )
+
+    self.assertResourceCalled('HdfsDirectory', '/apps/hive/install',
+                              security_enabled = False,
+                              mode = 0755,
+                              owner = 'hive',
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              action = ['create']
+    )
+
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/hive/lib/hive-exec.jar',
+                              mode=0655,
+                              owner='hive',
+                              dest_dir='/apps/hive/install',
+                              kinnit_if_needed='',
+                              hdfs_user='hdfs'
+    )
+
 
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',

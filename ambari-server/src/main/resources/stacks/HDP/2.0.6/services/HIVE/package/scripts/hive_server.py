@@ -40,6 +40,7 @@ class HiveServer(Script):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     self.install_tez_jars(params) # Put tez jars in hdfs
+    self.install_hive_exec_jar(params) # Put hive exec jar in hdfs
     hive_service( 'hiveserver2',
                   action = 'start'
     )
@@ -58,6 +59,41 @@ class HiveServer(Script):
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
+
+  def install_hive_exec_jar(self, params):
+    hdfs_path_prefix = 'hdfs://'
+    if params.tez_lib_uris:
+      hdfs_path = params.hive_exec_hdfs_path
+
+      if hdfs_path.strip().find(hdfs_path_prefix, 0) != -1:
+        hdfs_path = hdfs_path.replace(hdfs_path_prefix, '')
+      pass
+
+      params.HdfsDirectory(hdfs_path,
+                           action="create",
+                           owner=params.hive_user,
+                           mode=0755
+      )
+
+      if params.security_enabled:
+        kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user};")
+      else:
+        kinit_if_needed = ""
+
+      if kinit_if_needed:
+        Execute(kinit_if_needed,
+                user=params.tez_user,
+                path='/bin'
+        )
+
+      CopyFromLocal(params.hive_exec_jar_path,
+                    mode=0655,
+                    owner=params.hive_user,
+                    dest_dir=hdfs_path,
+                    kinnit_if_needed=kinit_if_needed,
+                    hdfs_user=params.hdfs_user
+      )
+    pass
 
   def install_tez_jars(self, params):
     destination_hdfs_dirs = get_tez_hdfs_dir_paths(params.tez_lib_uris)
@@ -83,6 +119,7 @@ class HiveServer(Script):
                 user=params.tez_user,
                 path='/bin'
         )
+      pass
 
       app_dir_path = None
       lib_dir_path = None
@@ -102,7 +139,8 @@ class HiveServer(Script):
                       mode=0655,
                       owner=params.tez_user,
                       dest_dir=app_dir_path,
-                      kinnit_if_needed=kinit_if_needed
+                      kinnit_if_needed=kinit_if_needed,
+                      hdfs_user=params.hdfs_user
         )
       pass
 
@@ -112,6 +150,7 @@ class HiveServer(Script):
                       owner=params.tez_user,
                       dest_dir=lib_dir_path,
                       kinnit_if_needed=kinit_if_needed,
+                      hdfs_user=params.hdfs_user
         )
       pass
 
