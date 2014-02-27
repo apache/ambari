@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -405,14 +406,22 @@ public class ServiceResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    
+    String serviceName = "Service100";
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-    cluster.deleteService("Service100");
+    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
+    expect(service.getName()).andReturn(serviceName).anyTimes();
+    expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+    expect(service.getCluster()).andReturn(cluster);
+    cluster.deleteService(serviceName);
 
     // replay
-    replay(managementController, clusters, cluster);
+    replay(managementController, clusters, cluster, service);
 
     ResourceProvider provider = getServiceProvider(managementController);
 
@@ -422,7 +431,7 @@ public class ServiceResourceProviderTest {
 
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-        .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("Service100").toPredicate();
+        .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
     provider.deleteResources(predicate);
 
 
@@ -434,9 +443,90 @@ public class ServiceResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, clusters, cluster);
+    verify(managementController, clusters, cluster, service);
   }
 
+  @Test
+  public void testDeleteResourcesBadServiceState() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    
+    String serviceName = "Service100";
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();
+    expect(service.getName()).andReturn(serviceName).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, service);
+
+    ResourceProvider provider = getServiceProvider(managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    // delete the service named Service100
+    Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
+    
+    try {
+      provider.deleteResources(predicate);
+      Assert.fail("Expected exception deleting a service in a non-removable state.");
+    } catch (SystemException e) {
+      // expected
+    }
+  }  
+
+  @Test
+  public void testDeleteResourcesBadComponentState() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    ServiceComponent sc = createNiceMock(ServiceComponent.class);
+    Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
+    scMap.put("Component100", sc);
+    
+    
+    String serviceName = "Service100";
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
+    expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
+    expect(service.getName()).andReturn(serviceName).anyTimes();
+    expect(service.getServiceComponents()).andReturn(scMap);
+    expect(sc.getDesiredState()).andReturn(State.STARTED);
+
+    // replay
+    replay(managementController, clusters, cluster, service, sc);
+
+    ResourceProvider provider = getServiceProvider(managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    // delete the service named Service100
+    Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
+    
+    try {
+      provider.deleteResources(predicate);
+      Assert.fail("Expected exception deleting a service in a non-removable state.");
+    } catch (SystemException e) {
+      // expected
+    }
+  }  
+  
+  
   @Test
   public void testCheckPropertyIds() throws Exception {
     Set<String> propertyIds = new HashSet<String>();

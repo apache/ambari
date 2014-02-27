@@ -310,7 +310,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         nagiosHost = hosts.keySet().iterator().next();
       
     } catch (AmbariException e) {
-      LOG.error("Cannot find a nagios service.  Skipping alerts.");
+      LOG.debug("Cannot find a nagios service.  Skipping alerts.");
     }
     
     if (null != nagiosHost) {
