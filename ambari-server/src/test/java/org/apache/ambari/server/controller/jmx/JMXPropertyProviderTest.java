@@ -450,6 +450,8 @@ public class JMXPropertyProviderTest {
         return null == clusterName ? "60010" : "60011";
       else  if (componentName.equals("JOURNALNODE"))
         return "8480";
+      else  if (componentName.equals("STORM_REST_API"))
+        return "8745";
       else
         return null;
     }
