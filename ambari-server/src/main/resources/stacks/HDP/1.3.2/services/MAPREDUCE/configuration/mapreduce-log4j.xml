@@ -23,51 +23,29 @@
 <configuration>
 
   <property>
-    <name>hadoop.mapreduce.jobsummary.logger</name>
-    <value>${hadoop.root.logger}</value>
-  </property>
+    <name>content</name>
+    <value>
+#
+# Job Summary Appender
+#
+# Use following logger to send summary to separate file defined by
+# hadoop.mapreduce.jobsummary.log.file rolled daily:
+# hadoop.mapreduce.jobsummary.logger=INFO,JSA
+#
+hadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}
+hadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log
+log4j.appender.JSA=org.apache.log4j.DailyRollingFileAppender
 
-  <property>
-    <name>hadoop.mapreduce.jobsummary.log.file</name>
-    <value>hadoop-mapreduce.jobsummary.log</value>
-  </property>
+log4j.appender.JSA.File={{hdfs_log_dir_prefix}}/{{mapred_user}}/${hadoop.mapreduce.jobsummary.log.file}
 
-  <property>
-    <name>log4j.appender.JSA</name>
-    <value>org.apache.log4j.DailyRollingFileAppender</value>
-  </property>
+log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+log4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
+log4j.appender.JSA.DatePattern=.yyyy-MM-dd
+log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+log4j.logger.org.apache.hadoop.mapred.JobInProgress$JobSummary=${hadoop.mapreduce.jobsummary.logger}
+log4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary=false
 
-  <property>
-    <name>log4j.appender.JSA.layout.ConversionPattern</name>
-    <value>%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n</value>
+    </value>
   </property>
-
-  <property>
-    <name>log4j.appender.JSA.DatePattern</name>
-    <value>.yyyy-MM-dd</value>
-  </property>
-
-  <property>
-    <name>log4j.appender.JSA.layout</name>
-    <value>org.apache.log4j.PatternLayout</value>
-  </property>
-
-  <!--Only for HDP1.0 below-->
-  <property>
-    <name>log4j.appender.JSA.File</name>
-    <value>/var/log/hadoop/mapred/${hadoop.mapreduce.jobsummary.log.file}</value>
-  </property>
-
-  <property>
-    <name>log4j.logger.org.apache.hadoop.mapred.JobInProgress$JobSummary</name>
-    <value>${hadoop.mapreduce.jobsummary.logger}</value>
-  </property>
-
-  <property>
-    <name>log4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary</name>
-    <value>false</value>
-  </property>
-
-  <!--Only for HDP1.0 above-->
 
 </configuration>

@@ -23,75 +23,46 @@
 <configuration>
 
   <property>
-    <name>hadoop.mapreduce.jobsummary.logger</name>
-    <value>${hadoop.root.logger}</value>
-  </property>
-  <property>
-    <name>hadoop.mapreduce.jobsummary.log.file</name>
-    <value>hadoop-mapreduce.jobsummary.log</value>
-  </property>
-  <property>
-    <name>log4j.appender.JSA</name>
-    <value>org.apache.log4j.DailyRollingFileAppender</value>
-  </property>
-  <property>
-    <name>log4j.appender.JSA.layout</name>
-    <value>org.apache.log4j.PatternLayout</value>
-  </property>
-  <property>
-    <name>log4j.appender.JSA.layout.ConversionPattern</name>
-    <value>%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n</value>
-  </property>
-  <property>
-    <name>log4j.appender.JSA.DatePattern</name>
-    <value>.yyyy-MM-dd</value>
-  </property>
-  <property>
-    <name>log4j.appender.JSA.layout</name>
-    <value>org.apache.log4j.PatternLayout</value>
-  </property>
+    <name>content</name>
+    <value>
+#
+# Job Summary Appender
+#
+# Use following logger to send summary to separate file defined by
+# hadoop.mapreduce.jobsummary.log.file rolled daily:
+# hadoop.mapreduce.jobsummary.logger=INFO,JSA
+#
+hadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}
+hadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log
+log4j.appender.JSA=org.apache.log4j.DailyRollingFileAppender
+# Set the ResourceManager summary log filename
+yarn.server.resourcemanager.appsummary.log.file=hadoop-mapreduce.jobsummary.log
+# Set the ResourceManager summary log level and appender
+yarn.server.resourcemanager.appsummary.logger=${hadoop.root.logger}
+#yarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY
 
-  <!--Only for HDP2.0 below-->
-  <property>
-    <name>yarn.server.resourcemanager.appsummary.log.file</name>
-    <value>hadoop-mapreduce.jobsummary.log</value>
+# To enable AppSummaryLogging for the RM,
+# set yarn.server.resourcemanager.appsummary.logger to
+# LEVEL,RMSUMMARY in hadoop-env.sh
+
+# Appender for ResourceManager Application Summary Log
+# Requires the following properties to be set
+#    - hadoop.log.dir (Hadoop Log directory)
+#    - yarn.server.resourcemanager.appsummary.log.file (resource manager app summary log filename)
+#    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)
+log4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
+log4j.appender.RMSUMMARY.File={{yarn_log_dir_prefix}}/{{yarn_user}}/${yarn.server.resourcemanager.appsummary.log.file}
+log4j.appender.RMSUMMARY.MaxFileSize=256MB
+log4j.appender.RMSUMMARY.MaxBackupIndex=20
+log4j.appender.RMSUMMARY.layout=org.apache.log4j.PatternLayout
+log4j.appender.RMSUMMARY.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
+log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+log4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
+log4j.appender.JSA.DatePattern=.yyyy-MM-dd
+log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=${yarn.server.resourcemanager.appsummary.logger}
+log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false
+    </value>
   </property>
-  <property>
-    <name>yarn.server.resourcemanager.appsummary.logger</name>
-    <value>${hadoop.root.logger}</value>
-  </property>
-  <property>
-    <name>log4j.appender.RMSUMMARY</name>
-    <value>org.apache.log4j.RollingFileAppender</value>
-  </property>
-  <property>
-    <name>log4j.appender.RMSUMMARY.File</name>
-    <value>/var/log/hadoop-yarn/yarn/${yarn.server.resourcemanager.appsummary.log.file}</value>
-  </property>
-  <property>
-    <name>log4j.appender.RMSUMMARY.MaxFileSize</name>
-    <value>256MB</value>
-  </property>
-  <property>
-    <name>log4j.appender.RMSUMMARY.MaxBackupIndex</name>
-    <value>20</value>
-  </property>
-  <property>
-    <name>log4j.appender.RMSUMMARY.layout</name>
-    <value>org.apache.log4j.PatternLayout</value>
-  </property>
-  <property>
-    <name>log4j.appender.RMSUMMARY.layout.ConversionPattern</name>
-    <value>%d{ISO8601} %p %c{2}: %m%n</value>
-  </property>
-  <property>
-    <name>log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary</name>
-    <value>${yarn.server.resourcemanager.appsummary.logger}</value>
-  </property>
-  <property>
-    <name>log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary</name>
-    <value>false</value>
-  </property>
-  <!--Only for HDP2.0 above-->
 
 </configuration>
