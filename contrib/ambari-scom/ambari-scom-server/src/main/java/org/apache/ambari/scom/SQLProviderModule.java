@@ -21,6 +21,7 @@ package org.apache.ambari.scom;
 import org.apache.ambari.msi.AbstractResourceProvider;
 import org.apache.ambari.msi.ClusterDefinition;
 import org.apache.ambari.msi.StateProvider;
+import org.apache.ambari.scom.utilities.SCOMMetricHelper;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.DefaultProviderModule;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -52,7 +53,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
   private final ConnectionFactory connectionFactory = SinkConnectionFactory.instance();
   private final ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
   private final URLStreamProvider urlStreamProvider = new URLStreamProvider(5000, 10000,
-      sslConfiguration.getTruststorePath(), sslConfiguration.getTruststorePassword(), sslConfiguration.getTruststoreType());
+          sslConfiguration.getTruststorePath(), sslConfiguration.getTruststorePassword(), sslConfiguration.getTruststoreType());
 
 
   // ----- Constants ---------------------------------------------------------
@@ -60,25 +61,25 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
   private static Map<String, String> serviceNames = new HashMap<String, String>();
 
   static {
-    serviceNames.put("NAMENODE",           "namenode");
+    serviceNames.put("NAMENODE", "namenode");
     serviceNames.put("SECONDARY_NAMENODE", "secondarynamenode");
-    serviceNames.put("JOBTRACKER",         "jobtracker");
-    serviceNames.put("HISTORY_SERVER",     "historyserver");
-    serviceNames.put("HIVE_SERVER",        "hiveserver");
-    serviceNames.put("HIVE_SERVER2",       "hiveserver2");
-    serviceNames.put("HIVE_METASTORE",     "metastore");
-    serviceNames.put("HIVE_CLIENT",        "hwi");
-    serviceNames.put("OOZIE_SERVER",       "oozieservice");
-    serviceNames.put("FLUME_SERVER",       "flumagent");
-    serviceNames.put("HBASE_MASTER",       "master");
+    serviceNames.put("JOBTRACKER", "jobtracker");
+    serviceNames.put("HISTORYSERVER", "historyserver");
+    serviceNames.put("HIVE_SERVER", "hiveserver");
+    serviceNames.put("HIVE_SERVER2", "hiveserver2");
+    serviceNames.put("HIVE_METASTORE", "metastore");
+    serviceNames.put("HIVE_CLIENT", "hwi");
+    serviceNames.put("OOZIE_SERVER", "oozieservice");
+    serviceNames.put("FLUME_SERVER", "flumagent");
+    serviceNames.put("HBASE_MASTER", "master");
     serviceNames.put("HBASE_REGIONSERVER", "regionserver");
-    serviceNames.put("ZOOKEEPER_SERVER",   "zkServer");
-    serviceNames.put("DATANODE",           "datanode");
-    serviceNames.put("TASKTRACKER",        "tasktracker");
-    serviceNames.put("WEBHCAT_SERVER",     "templeton");
-    serviceNames.put("NODEMANAGER",        "nodemanager");
-    serviceNames.put("RESOURCEMANAGER",    "resourcemanager");
-    serviceNames.put("JOURNALNODE",        "journalnode");
+    serviceNames.put("ZOOKEEPER_SERVER", "zkServer");
+    serviceNames.put("DATANODE", "datanode");
+    serviceNames.put("TASKTRACKER", "tasktracker");
+    serviceNames.put("WEBHCAT_SERVER", "templeton");
+    serviceNames.put("NODEMANAGER", "nodemanager");
+    serviceNames.put("RESOURCEMANAGER", "resourcemanager");
+    serviceNames.put("JOURNALNODE", "journalnode");
   }
 
   private static final String STATE_PREFIX = "STATE              : ";
@@ -105,40 +106,40 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
     if (type.equals(Resource.Type.Component)) {
       providers.add(new JMXPropertyProvider(
-          PropertyHelper.getJMXPropertyIds(type),
-          urlStreamProvider,
-          this,
-          PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-          null,
-          PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-          PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
-          Collections.singleton("STARTED")));
+              SCOMMetricHelper.getJMXPropertyIds(type),
+              urlStreamProvider,
+              this,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+              null,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+              Collections.singleton("STARTED")));
 
       providers.add(new SQLPropertyProvider(
-          PropertyHelper.getGangliaPropertyIds(type),
-          this,
-          PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-          null,
-          PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-          connectionFactory));
+              SCOMMetricHelper.getSqlServerPropertyIds(type),
+              this,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+              null,
+              PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+              connectionFactory));
     } else if (type.equals(Resource.Type.HostComponent)) {
       providers.add(new JMXPropertyProvider(
-          PropertyHelper.getJMXPropertyIds(type),
-          urlStreamProvider,
-          this,
-          PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-          PropertyHelper.getPropertyId("HostRoles", "host_name"),
-          PropertyHelper.getPropertyId("HostRoles", "component_name"),
-          PropertyHelper.getPropertyId("HostRoles", "state"),
-          Collections.singleton("STARTED")));
+              SCOMMetricHelper.getJMXPropertyIds(type),
+              urlStreamProvider,
+              this,
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"),
+              PropertyHelper.getPropertyId("HostRoles", "state"),
+              Collections.singleton("STARTED")));
 
       providers.add(new SQLPropertyProvider(
-          PropertyHelper.getGangliaPropertyIds(type),
-          this,
-          PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-          PropertyHelper.getPropertyId("HostRoles", "host_name"),
-          PropertyHelper.getPropertyId("HostRoles", "component_name"),
-          connectionFactory));
+              SCOMMetricHelper.getSqlServerPropertyIds(type),
+              this,
+              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+              PropertyHelper.getPropertyId("HostRoles", "host_name"),
+              PropertyHelper.getPropertyId("HostRoles", "component_name"),
+              connectionFactory));
     }
     putPropertyProviders(type, providers);
   }
@@ -251,7 +252,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
   // get the response text from a completed process stream
   private static String getProcessResponse(InputStream stream) {
 
-    StringBuilder  sb       = new StringBuilder();
+    StringBuilder sb = new StringBuilder();
     BufferedReader stdInput = new BufferedReader(new InputStreamReader(stream));
 
     try {
@@ -303,7 +304,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
       String processResponse = getProcessResponse(process.getInputStream());
 
-      if (!isRunning()){
+      if (!isRunning()) {
         output = processResponse;
       }
 
@@ -318,7 +319,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
       String processResponse = getProcessResponse(process.getErrorStream());
 
-      if (!isRunning()){
+      if (!isRunning()) {
         error = processResponse;
       }
 

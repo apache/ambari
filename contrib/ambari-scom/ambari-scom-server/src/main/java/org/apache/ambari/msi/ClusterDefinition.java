@@ -93,7 +93,7 @@ public class ClusterDefinition {
       if(majorStackVersion == 1) {
         Set<String> mapReduceComponents = new HashSet<String>();
         mapReduceComponents.add("JOBTRACKER");
-        mapReduceComponents.add("HISTORY_SERVER");
+        mapReduceComponents.add("HISTORYSERVER");
         componentNameMap.put("JOBTRACKER_HOST", mapReduceComponents);
 
         slaveComponents.add("TASKTRACKER");
@@ -102,7 +102,7 @@ public class ClusterDefinition {
         componentNameMap.put("JOURNALNODE_HOST", Collections.singleton("JOURNALNODE"));
 
         Set<String> mapReduce2Components = new HashSet<String>();
-        mapReduce2Components.add("HISTORY_SERVER");
+        mapReduce2Components.add("HISTORYSERVER");
         mapReduce2Components.add("RESOURCEMANAGER");
         componentNameMap.put("RESOURCEMANAGER_HOST", mapReduce2Components);
 
@@ -139,11 +139,11 @@ public class ClusterDefinition {
     if(majorStackVersion != null) {
       if(majorStackVersion == 1) {
         componentServiceMap.put("JOBTRACKER",         "MAPREDUCE");
-        componentServiceMap.put("HISTORY_SERVER",     "MAPREDUCE");
+        componentServiceMap.put("HISTORYSERVER",     "MAPREDUCE");
         componentServiceMap.put("TASKTRACKER",        "MAPREDUCE");
       }
       if(majorStackVersion == 2) {
-        componentServiceMap.put("HISTORY_SERVER",     "MAPREDUCE2");
+        componentServiceMap.put("HISTORYSERVER",      "MAPREDUCE2");
         componentServiceMap.put("JOURNALNODE",        "HDFS");
         componentServiceMap.put("NODEMANAGER",        "YARN");
         componentServiceMap.put("RESOURCEMANAGER",    "YARN");

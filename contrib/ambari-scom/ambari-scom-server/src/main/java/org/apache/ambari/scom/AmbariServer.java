@@ -121,7 +121,9 @@ public class AmbariServer {
       SinkConnectionFactory.instance().init(ambariServer.configuration);
       ClusterDefinitionProvider.instance().init(ambariServer.configuration);
 
-      ambariServer.run();
+      if (ambariServer != null) {
+        ambariServer.run();
+      }
     } catch (Throwable t) {
       LOG.error("Failed to run the Ambari Server", t);
       if (ambariServer != null) {
