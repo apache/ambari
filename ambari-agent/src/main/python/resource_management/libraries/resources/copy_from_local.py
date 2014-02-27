@@ -20,11 +20,18 @@ Ambari Agent
 
 """
 
-from resource_management.libraries.resources.execute_hadoop import *
-from resource_management.libraries.resources.template_config import *
-from resource_management.libraries.resources.xml_config import *
-from resource_management.libraries.resources.properties_file import *
-from resource_management.libraries.resources.repository import *
-from resource_management.libraries.resources.monitor_webserver import *
-from resource_management.libraries.resources.hdfs_directory import *
-from resource_management.libraries.resources.copy_from_local import *
+_all__ = ["CopyFromLocal"]
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+
+class CopyFromLocal(Resource):
+  action = ForcedListArgument(default="run")
+
+  path = ResourceArgument(default=lambda obj: obj.name)
+  dest_dir = ResourceArgument()
+  owner = ResourceArgument()
+  group = ResourceArgument()
+  mode = ResourceArgument()
+  kinnit_if_needed = ResourceArgument(default='')
+  hadoop_conf_dir = ResourceArgument(default='/etc/hadoop/conf')
+
+  actions = Resource.actions + ["run"]

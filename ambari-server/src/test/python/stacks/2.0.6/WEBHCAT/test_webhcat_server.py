@@ -154,20 +154,23 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar /apps/webhcat/hadoop-streaming.jar',
-      not_if = ' hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
-      user = 'hcat',
-      conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir=format('/apps/webhcat/hadoop-streaming.jar'),
+                              kinnit_if_needed=''
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/share/HDP-webhcat/pig.tar.gz /apps/webhcat/pig.tar.gz',
-      not_if = ' hadoop fs -ls /apps/webhcat/pig.tar.gz >/dev/null 2>&1',
-      user = 'hcat',
-      conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir=format('/apps/webhcat/pig.tar.gz'),
+                              kinnit_if_needed=''
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/share/HDP-webhcat/hive.tar.gz /apps/webhcat/hive.tar.gz',
-      not_if = ' hadoop fs -ls /apps/webhcat/hive.tar.gz >/dev/null 2>&1',
-      user = 'hcat',
-      conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir=format('/apps/webhcat/hive.tar.gz'),
+                              kinnit_if_needed=''
     )
 
   def assert_configure_secured(self):
@@ -230,18 +233,21 @@ class TestWebHCatServer(RMFTestCase):
       path = ['/bin'],
       user = 'hcat',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar /apps/webhcat/hadoop-streaming.jar',
-      not_if = '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hadoop fs -ls /apps/webhcat/hadoop-streaming.jar >/dev/null 2>&1',
-      user = 'hcat',
-      conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir=format('/apps/webhcat/hadoop-streaming.jar'),
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;'
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/share/HDP-webhcat/pig.tar.gz /apps/webhcat/pig.tar.gz',
-      not_if = ' hadoop fs -ls /apps/webhcat/pig.tar.gz >/dev/null 2>&1',
-      user = 'hcat',
-      conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir=format('/apps/webhcat/pig.tar.gz'),
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;'
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/share/HDP-webhcat/hive.tar.gz /apps/webhcat/hive.tar.gz',
-      not_if = ' hadoop fs -ls /apps/webhcat/hive.tar.gz >/dev/null 2>&1',
-      user = 'hcat',
-      conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
+                              owner='hcat',
+                              mode=0755,
+                              dest_dir=format('/apps/webhcat/hive.tar.gz'),
+                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;'
     )

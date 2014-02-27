@@ -98,23 +98,18 @@ class TestHiveServer(RMFTestCase):
                               action = ['create']
                               )
 
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/tez/tez*.jar /apps/tez/',
-                              not_if = ' hadoop fs -ls /tmp/tez_jars_copied >/dev/null 2>&1',
-                              user = 'tez',
-                              conf_dir = '/etc/hadoop/conf',
-                              ignore_failures=True
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/tez*.jar',
+                              mode=0655,
+                              owner='tez',
+                              dest_dir='/apps/tez/',
+                              kinnit_if_needed=''
     )
 
-    self.assertResourceCalled('ExecuteHadoop', 'fs -copyFromLocal /usr/lib/tez/lib/*.jar /apps/tez/lib/',
-                              not_if = ' hadoop fs -ls /tmp/tez_jars_copied >/dev/null 2>&1',
-                              user = 'tez',
-                              conf_dir = '/etc/hadoop/conf',
-                              ignore_failures=True
-    )
-
-    self.assertResourceCalled('ExecuteHadoop', 'dfs -touchz /tmp/tez_jars_copied',
-                              user = 'tez',
-                              conf_dir = '/etc/hadoop/conf'
+    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
+                              mode=0655,
+                              owner='tez',
+                              dest_dir='/apps/tez/lib/',
+                              kinnit_if_needed=''
     )
 
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server',

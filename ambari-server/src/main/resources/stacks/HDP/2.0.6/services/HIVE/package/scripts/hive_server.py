@@ -98,29 +98,22 @@ class HiveServer(Script):
       pass
 
       if app_dir_path:
-        copyFromLocal(path=params.tez_local_api_jars,
+        CopyFromLocal(params.tez_local_api_jars,
                       mode=0655,
                       owner=params.tez_user,
                       dest_dir=app_dir_path,
-                      kinnit_if_needed=kinit_if_needed,
-                      stub_path=params.tez_stub_path
+                      kinnit_if_needed=kinit_if_needed
         )
       pass
 
       if lib_dir_path:
-        copyFromLocal(path=params.tez_local_lib_jars,
+        CopyFromLocal(params.tez_local_lib_jars,
                       mode=0655,
                       owner=params.tez_user,
                       dest_dir=lib_dir_path,
                       kinnit_if_needed=kinit_if_needed,
-                      stub_path=params.tez_stub_path
         )
       pass
-
-      ExecuteHadoop(format('dfs -touchz {tez_stub_path}'),
-                    user = params.tez_user,
-                    conf_dir=params.hadoop_conf_dir
-      )
 
 
 def get_tez_hdfs_dir_paths(tez_lib_uris = None):
@@ -136,48 +129,6 @@ def get_tez_hdfs_dir_paths(tez_lib_uris = None):
   pass
 
   return lib_dir_paths
-
-
-def copyFromLocal(path=None, owner=None, group=None, mode=None,
-                  dest_dir=None, kinnit_if_needed="", stub_path=None):
-  import params
-
-  if not stub_path:
-    stub_path = params.tez_stub_path
-  pass
-
-  copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
-  unless_cmd = format("{kinnit_if_needed} hadoop fs -ls {stub_path} >/dev/null 2>&1")
-
-  ExecuteHadoop(copy_cmd,
-                not_if=unless_cmd,
-                user=owner,
-                conf_dir=params.hadoop_conf_dir,
-                ignore_failures = True)
-
-  if not owner:
-    chown = None
-  else:
-    if not group:
-      chown = owner
-    else:
-      chown = format('{owner}:{group}')
-
-  if not chown:
-    chown_cmd = format("fs -chown {chown} {dest_dir}")
-
-    ExecuteHadoop(copy_cmd,
-                  user=owner,
-                  conf_dir=params.hadoop_conf_dir)
-  pass
-
-  if not mode:
-    chmod_cmd = format('fs -chmod {mode} {dest_dir}')
-
-    ExecuteHadoop(chmod_cmd,
-                  user=owner,
-                  conf_dir=params.hadoop_conf_dir)
-  pass
 
 
 if __name__ == "__main__":

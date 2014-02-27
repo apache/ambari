@@ -84,55 +84,23 @@ def webhcat():
             path='/bin'
     )
 
-  copyFromLocal(path='/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
+  CopyFromLocal('/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=format("{webhcat_apps_dir}/hadoop-streaming.jar"),
                 kinnit_if_needed=kinit_if_needed
   )
 
-  copyFromLocal(path='/usr/share/HDP-webhcat/pig.tar.gz',
+  CopyFromLocal('/usr/share/HDP-webhcat/pig.tar.gz',
                 owner=params.webhcat_user,
                 mode=0755,
                 dest_dir=format("{webhcat_apps_dir}/pig.tar.gz"),
+                kinnit_if_needed=kinit_if_needed
   )
 
-  copyFromLocal(path='/usr/share/HDP-webhcat/hive.tar.gz',
+  CopyFromLocal('/usr/share/HDP-webhcat/hive.tar.gz',
                 owner=params.webhcat_user,
                 mode=0755,
-                dest_dir=format("{webhcat_apps_dir}/hive.tar.gz")
+                dest_dir=format("{webhcat_apps_dir}/hive.tar.gz"),
+                kinnit_if_needed=kinit_if_needed
   )
-
-
-def copyFromLocal(path=None, owner=None, group=None, mode=None, dest_dir=None, kinnit_if_needed=""):
-  import params
-
-  copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
-  unless_cmd = format("{kinnit_if_needed} hadoop fs -ls {dest_dir} >/dev/null 2>&1")
-
-  ExecuteHadoop(copy_cmd,
-                not_if=unless_cmd,
-                user=owner,
-                conf_dir=params.hadoop_conf_dir)
-
-  if not owner:
-    chown = None
-  else:
-    if not group:
-      chown = owner
-    else:
-      chown = format('{owner}:{group}')
-
-  if not chown:
-    chown_cmd = format("fs -chown {chown} {dest_dir}")
-
-    ExecuteHadoop(copy_cmd,
-                  user=owner,
-                  conf_dir=params.hadoop_conf_dir)
-
-  if not mode:
-    chmod_cmd = format('fs -chmod {mode} {dest_dir}')
-
-    ExecuteHadoop(chmod_cmd,
-                  user=owner,
-                  conf_dir=params.hadoop_conf_dir)
