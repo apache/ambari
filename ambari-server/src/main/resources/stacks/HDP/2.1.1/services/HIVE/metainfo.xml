@@ -75,6 +75,7 @@
         <config-type>hive-log4j</config-type>
         <config-type>hive-exec-log4j</config-type>
         <config-type>global</config-type>
+        <config-type>mapred-site</config-type>
       </configuration-dependencies>
     </service>
 
