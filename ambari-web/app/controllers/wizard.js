@@ -38,6 +38,13 @@ App.WizardController = Em.Controller.extend({
     }
   },
 
+  slaveComponents: function () {
+    return require('data/service_components').filter(function (component) {
+      return !(component.isClient || component.isMaster ||
+        ["GANGLIA_MONITOR", "DASHBOARD", "MYSQL_SERVER"].contains(component.component_name));
+    });
+  }.property(),
+
   dbNamespace: function(){
     return this.get('name').capitalize().replace('Controller', "");
   }.property('name'),
@@ -785,5 +792,63 @@ App.WizardController = Em.Controller.extend({
     }, this);
     this.setDBProperty('serviceConfigGroups', serviceConfigGroups);
     this.set('content.configGroups', serviceConfigGroups);
+  },
+  /**
+   * return slaveComponents bound to hosts
+   * @return {Array}
+   */
+  getSlaveComponentHosts: function () {
+    var components = this.get('slaveComponents');
+    var result = [];
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+    var installedComponentsMap = {};
+    var uninstalledComponents = [];
+
+    components.forEach(function (component) {
+      if (installedServices.contains(component.service_name)) {
+        installedComponentsMap[component.component_name] = [];
+      } else if (selectedServices.contains(component.service_name)) {
+        uninstalledComponents.push(component);
+      }
+    }, this);
+    installedComponentsMap['HDFS_CLIENT'] = [];
+
+    App.HostComponent.find().forEach(function (hostComponent) {
+      if (installedComponentsMap[hostComponent.get('componentName')]) {
+        installedComponentsMap[hostComponent.get('componentName')].push(hostComponent.get('host.id'));
+      }
+    }, this);
+
+    for (var componentName in installedComponentsMap) {
+      var name = (componentName === 'HDFS_CLIENT') ? 'CLIENT' : componentName;
+      var component = {
+        componentName: name,
+        displayName: App.format.role(name),
+        hosts: [],
+        isInstalled: true
+      };
+      installedComponentsMap[componentName].forEach(function (hostName) {
+        component.hosts.push({
+          group: "Default",
+          hostName: hostName,
+          isInstalled: true
+        });
+      }, this);
+      result.push(component);
+    }
+
+    uninstalledComponents.forEach(function (component) {
+      var hosts = jQuery.extend(true, [], result.findProperty('componentName', 'DATANODE').hosts);
+      hosts.setEach('isInstalled', false);
+      result.push({
+        componentName: component.component_name,
+        displayName: App.format.role(component.component_name),
+        hosts: hosts,
+        isInstalled: false
+      })
+    });
+
+    return result;
   }
 });

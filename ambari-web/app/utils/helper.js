@@ -220,7 +220,8 @@ App.format = {
     'ZOOKEEPER_CLIENT': 'ZooKeeper Client',
     'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check',
     'ZOOKEEPER_SERVER': 'ZooKeeper Server',
-    'ZOOKEEPER_SERVICE_CHECK': 'ZooKeeper Service Check'
+    'ZOOKEEPER_SERVICE_CHECK': 'ZooKeeper Service Check',
+    'CLIENT': 'client'
   },
 
   /**

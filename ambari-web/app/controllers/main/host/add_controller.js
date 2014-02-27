@@ -199,69 +199,9 @@ App.AddHostController = App.WizardController.extend({
    * @return {Array}
    */
   getSlaveComponentHosts: function () {
-    var components = [
-      {
-        name: 'DATANODE',
-        service: 'HDFS'
-      },
-      {
-        name: 'TASKTRACKER',
-        service: 'MAPREDUCE'
-      },
-      {
-        name: 'HBASE_REGIONSERVER',
-        service: 'HBASE'
-      }
-    ];
-
-    var result = [];
-    var services = App.Service.find();
-    var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
-    for (var index = 0; index < components.length; index++) {
-      var comp = components[index];
-      if (!selectedServices.contains(comp.service)) {
-        continue;
-      }
-
-
-      var service = services.findProperty('id', comp.service);
-      var hosts = [];
-
-      service.get('hostComponents').filterProperty('componentName', comp.name).forEach(function (host_component) {
-        hosts.push({
-          group: "Default",
-          hostName: host_component.get('host.id'),
-          isInstalled: true
-        });
-      }, this);
-
-      result.push({
-        componentName: comp.name,
-        displayName: App.format.role(comp.name),
-        hosts: hosts,
-        isInstalled: true
-      })
-    }
-
-    var clientsHosts = App.HostComponent.find().filterProperty('componentName', 'HDFS_CLIENT');
-    var hosts = [];
-
-    clientsHosts.forEach(function (host_component) {
-      hosts.push({
-        group: "Default",
-        hostName: host_component.get('host.id'),
-        isInstalled: true
-      });
-    }, this);
-
-    result.push({
-      componentName: 'CLIENT',
-      displayName: 'client',
-      hosts: hosts,
-      isInstalled: true
+    return this._super().filter(function(component){
+      return component.isInstalled;
     });
-
-    return result;
   },
 
   /**
