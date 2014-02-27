@@ -32,7 +32,7 @@ def datanode(action=None):
     for data_dir in params.dfs_data_dir.split(","):
       Directory(data_dir,
                 recursive=True,
-                mode=0750,
+                mode=0755,
                 owner=params.hdfs_user,
                 group=params.user_group)
 
