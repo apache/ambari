@@ -96,22 +96,24 @@
 
                   {{#each view.filteredCategoryConfigs}}
                       <div {{bindAttr class=":entry-row isOverridden:overridden-property"}}>
-                          <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
-                            <label class="control-label">
-                              {{displayName}}
-                              {{#if App.supports.secureCluster}}
-                                {{#if isSecureConfig}}
-                                  <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
+                          {{#if showLabel}}
+                            <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+                              <label class="control-label">
+                                {{displayName}}
+                                {{#if App.supports.secureCluster}}
+                                  {{#if isSecureConfig}}
+                                    <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
+                                  {{/if}}
                                 {{/if}}
-                              {{/if}}
-                              {{#if view.supportsHostOverrides}}
-                                {{#if isRestartRequired}}
-                                  <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                                {{#if view.supportsHostOverrides}}
+                                  {{#if isRestartRequired}}
+                                    <i class="icon-refresh restart-required-property" rel="tooltip" {{bindAttr title="restartRequiredMessage"}}></i>
+                                  {{/if}}
                                 {{/if}}
-                              {{/if}}
-                            </label>
-                          </span>
-                          <div class="controls">
+                              </label>
+                            </span>
+                          {{/if}}
+                          <div {{bindAttr class="showLabel:controls"}}>
                             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
                               <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
                                 {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}

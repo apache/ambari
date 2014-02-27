@@ -74,7 +74,9 @@ App.ServiceConfigView = Em.View.extend({
      canAddProperty = false;
     }
     this.get('controller.selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
-      config.set('canAddProperty', canAddProperty);
+      if (config.get('canAddProperty') !== false) {
+        config.set('canAddProperty', canAddProperty);
+      }
     });
   }.observes(
     'App.router.mainServiceInfoConfigsController.selectedConfigGroup.name',

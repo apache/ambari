@@ -50,11 +50,6 @@ App.config = Em.Object.create({
    */
   filenameExceptions: ['zoo.cfg'],
 
-  log4jNotDefaultFilenames: [
-    {serviceName: 'HIVE', tagName: 'hive-exec-log4j.xml', configCroupName: 'AdvancedHiveExecLog4j', fileName:  'hive-exec-log4j.properties'},
-    {serviceName: 'HIVE', tagName: 'hive-log4j.xml', configCroupName: 'AdvancedHiveLog4j', fileName:  'hive-log4j.properties'}
-  ],
-
   /**
    * Since values end up in XML files (core-sit.xml, etc.), certain
    * XML sensitive characters should be escaped. If not we will have
@@ -276,6 +271,7 @@ App.config = Em.Object.create({
           filename: filename,
           isUserProperty: false,
           isOverridable: true,
+          showLabel: true,
           serviceName: serviceName,
           belongsToService: []
         });
@@ -354,6 +350,7 @@ App.config = Em.Object.create({
     serviceConfigObj.isSecureConfig = configsPropertyDef.isSecureConfig === undefined ? false : configsPropertyDef.isSecureConfig;
     serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
     serviceConfigObj.category = configsPropertyDef.category;
+    serviceConfigObj.showLabel = configsPropertyDef.showLabel !== false;
   },
 
   /**
@@ -440,6 +437,7 @@ App.config = Em.Object.create({
           configData.filename = stored.filename;
           configData.description = stored.description;
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
+          configData.showLabel = stored.showLabel !== false;
         } else if (!preDefined && stored) {
 
           configData = {
@@ -455,7 +453,8 @@ App.config = Em.Object.create({
             isUserProperty: stored.isUserProperty === true,
             isOverridable: true,
             overrides: stored.overrides,
-            isRequired: true
+            isRequired: true,
+            showLabel: stored.showLabel !== false
           };
           this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);
         } else if (preDefined && !stored) {
@@ -482,6 +481,7 @@ App.config = Em.Object.create({
             configData.overrides = storedCfg.overrides;
             configData.filename = storedCfg.filename;
             configData.description = storedCfg.description;
+            configData.description = storedCfg.showLabel !== false;
           } else if (isAdvanced){
               advanced = advancedConfigs.filterProperty('filename', configData.filename).findProperty('name', configData.name);
               this.setPropertyFromStack(configData,advanced);
@@ -503,10 +503,10 @@ App.config = Em.Object.create({
     // Password fields should be made blank by default in installer wizard
     // irrespective of whatever value is sent from stack definition.
     // This forces the user to fill the password field.
-    configData.value = configData.displayType == "password" ? '' : advanced.value;
+    configData.value = configData.displayType == "password" ? '' : advanced ? advanced.value : configData.value;
     configData.defaultValue = configData.value;
-    configData.filename = advanced.filename;
-    configData.description = advanced.description;
+    configData.filename = advanced ? advanced.filename : configData.filename;
+    configData.description = advanced ? advanced.description : configData.description;
   },
 
 
@@ -1009,65 +1009,6 @@ App.config = Em.Object.create({
     }
     console.log('ERROR: textarea config - ' + complexConfigName + ' is missing');
     return configs;
-  },
-
-
-  addLog4jConfig: function (configs, serviceName) {
-    var fileName = serviceName.toLowerCase() + '-log4j.xml';
-    var content = configs.filterProperty('serviceName', serviceName).findProperty('name', 'content');
-    if (!content || (!content.value.length)) {
-      var category = categotyConfigs.findProperty('serviceName', serviceName) && categotyConfigs.findProperty('serviceName', serviceName).configCategories.findProperty('siteFileName', fileName);
-      if (category) {
-        if (serviceName == 'HIVE') {
-          this.get('log4jNotDefaultFilenames').forEach(function (info) {
-            this.loadLog4jDefaultProperties(configs, 'HIVE', info.tagName, info.configCroupName, info.fileName);
-          }, this);
-        } else {
-          this.loadLog4jDefaultProperties(configs, serviceName, category.siteFileName, category.name);
-        }
-      }
-    }
-    /**
-     * Filtering properties to exclude {serviceName}-log4j.xml file. We don't use properties from this file,
-     * instead we load log4j.properties file as one property named "content".
-     * Filter can be deleted after {serviceName}-log4j.xml will be deleted from server
-     */
-    return configs.filter(function (_config) {
-      return (_config.filename !== fileName || _config.name == "content");
-    });
-  },
-
-  loadLog4jDefaultProperties: function(configs, serviceName, fileName, categoryName, log4jFile) {
-    var url = "/resources//stacks/HDP/" + App.get('currentStackVersionNumber') + "/services/" + serviceName + "/configuration/" + (log4jFile || "log4j.properties");
-    $.ajax({
-      type: "GET",
-      url: url,
-      async: false,
-      success: function(data) {
-        var log4jObj = new Object({
-          "id": "puppet var",
-          "name": "content",
-          "displayName": "content",
-          "value": data,
-          "defaultValue": data,
-          "description": "log4j properties",
-          "displayType": "custom",
-          "isOverridable": true,
-          "isRequired": true,
-          "isVisible": true,
-          "serviceName": serviceName,
-          "filename": fileName,
-          "category": categoryName
-        });
-        var cfg = configs.findProperty('filename',fileName);
-        if (!cfg) {
-          configs.push(log4jObj);
-        } else {
-          cfg.value = data;
-          cfg.defaultValue = data;
-        }
-      }
-    });
   },
 
   /**

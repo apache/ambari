@@ -157,6 +157,18 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 });
 
 /**
+ * Textarea control for content type
+ * @type {*}
+ */
+App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
+
+  valueBinding: 'serviceConfig.value',
+  rows: 20,
+  classNames: ['span10'],
+  placeholderBinding: 'serviceConfig.defaultValue'
+});
+
+/**
  * Textarea control with bigger height
  * @type {*}
  */

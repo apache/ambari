@@ -37,7 +37,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedCoreSite', displayName : 'Custom core-site.xml', siteFileName: 'core-site.xml', canAddProperty: true}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hdfs-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hdfs-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'core-site', 'hdfs-site', 'hdfs-log4j'],
     configs: []
@@ -64,7 +64,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedMapredLog4j', displayName : 'Custom log4j.properties', siteFileName: 'mapreduce-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredLog4j', displayName : 'Custom log4j.properties', siteFileName: 'mapreduce-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'mapred-site', 'mapred-queue-acls', 'mapreduce-log4j'],
     configs: []
@@ -84,7 +84,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: App.supports.capacitySchedulerUi}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedYARNLog4j', displayName : 'Custom log4j.properties', siteFileName: 'yarn-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedYARNLog4j', displayName : 'Custom log4j.properties', siteFileName: 'yarn-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'yarn-site', 'capacity-scheduler', 'yarn-log4j'],
     configs: []
@@ -101,7 +101,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedMapredLog4j', displayName : 'Custom log4j.properties', siteFileName: 'mapreduce2-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredLog4j', displayName : 'Custom log4j.properties', siteFileName: 'mapreduce2-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'mapred-site', 'mapred-queue-acls', 'mapreduce2-log4j'],
     configs: []
@@ -115,8 +115,8 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHiveLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hive-log4j.xml'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHiveExecLog4j', displayName : 'Custom hive-exec-log4j', siteFileName: 'hive-exec-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hive-log4j.xml', canAddProperty: false}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveExecLog4j', displayName : 'Custom hive-exec-log4j', siteFileName: 'hive-exec-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'hive-site', 'hive-log4j', 'hive-exec-log4j'],
     configs: []
@@ -145,7 +145,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedHbaseSite', displayName : 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHbaseLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hbase-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHbaseLog4j', displayName : 'Custom log4j.properties', siteFileName: 'hbase-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'hbase-site', 'hbase-log4j'],
     configs: []
@@ -157,7 +157,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName : 'ZooKeeper Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedZooLog4j', displayName : 'Custom log4j.properties', siteFileName: 'zookeeper-log4j.xml'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedZooLog4j', displayName : 'Custom log4j.properties', siteFileName: 'zookeeper-log4j.xml', canAddProperty: false}),
       App.ServiceConfigCategory.create({ name: 'AdvancedZooCfg', displayName : 'Custom zoo.cfg', siteFileName: 'zoo.cfg', canAddProperty: true})
     ],
     sites: ['global', 'zookeeper-log4j', 'zoo.cfg'],
@@ -172,7 +172,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName : 'Oozie Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedOozieSite', displayName : 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedOozieLog4j', displayName : 'Custom log4j.properties', siteFileName: 'oozie-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedOozieLog4j', displayName : 'Custom log4j.properties', siteFileName: 'oozie-log4j.xml', canAddProperty: false})
     ],
     sites: ['global', 'oozie-site', 'oozie-log4j'],
     configs: []
@@ -215,7 +215,7 @@ module.exports = [
     displayName: 'Pig',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedPigLog4j', displayName : 'Custom log4j.properties', siteFileName: 'pig-log4j.xml'})
+      App.ServiceConfigCategory.create({ name: 'AdvancedPigLog4j', displayName : 'Custom log4j.properties', siteFileName: 'pig-log4j.xml', canAddProperty: false})
     ],
     sites: ['pig-log4j'],
     configs: []
