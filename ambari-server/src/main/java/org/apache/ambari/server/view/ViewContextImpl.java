@@ -29,6 +29,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,7 +59,7 @@ public class ViewContextImpl implements ViewContext {
    */
   public ViewContextImpl(ViewInstanceDefinition viewInstanceDefinition) {
     this.viewInstanceDefinition = viewInstanceDefinition;
-    this.streamProvider         = new ViewURLStreamProvider();
+    this.streamProvider         = ViewURLStreamProvider.getProvider();
   }
 
 
@@ -113,7 +116,7 @@ public class ViewContextImpl implements ViewContext {
   /**
    * Wrapper around internal URL stream provider.
    */
-  private static class ViewURLStreamProvider implements URLStreamProvider {
+  protected static class ViewURLStreamProvider implements URLStreamProvider {
     private static final int DEFAULT_REQUEST_CONNECT_TIMEOUT = 5000;
     private static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
 
@@ -125,22 +128,41 @@ public class ViewContextImpl implements ViewContext {
 
     // ----- Constructor -----------------------------------------------------
 
-    private ViewURLStreamProvider() {
-      ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
-      streamProvider =
-          new org.apache.ambari.server.controller.internal.URLStreamProvider(
-              DEFAULT_REQUEST_CONNECT_TIMEOUT, DEFAULT_REQUEST_READ_TIMEOUT,
-              configuration.getTruststorePath(),
-              configuration.getTruststorePassword(),
-              configuration.getTruststoreType());
+    protected ViewURLStreamProvider(org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider) {
+      this.streamProvider = streamProvider;
     }
 
 
     // ----- URLStreamProvider -----------------------------------------------
 
     @Override
-    public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
-      return streamProvider.readFrom(spec, requestMethod, params);
+    public InputStream readFrom(String spec, String requestMethod, String params, Map<String, String> headers)
+        throws IOException {
+      // adapt to org.apache.ambari.server.controller.internal.URLStreamProvider processURL signature
+      Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+      for (Map.Entry<String, String> entry : headers.entrySet()) {
+        headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
+      }
+      return streamProvider.processURL(spec, requestMethod, params, headerMap).getInputStream();
+    }
+
+
+    // ----- helper methods --------------------------------------------------
+
+    /**
+     * Factory method.
+     *
+     * @return a new URL stream provider.
+     */
+    protected static ViewURLStreamProvider getProvider() {
+      ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+      org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
+          new org.apache.ambari.server.controller.internal.URLStreamProvider(
+              DEFAULT_REQUEST_CONNECT_TIMEOUT, DEFAULT_REQUEST_READ_TIMEOUT,
+              configuration.getTruststorePath(),
+              configuration.getTruststorePassword(),
+              configuration.getTruststoreType());
+      return new ViewURLStreamProvider(streamProvider);
     }
   }
 }

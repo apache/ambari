@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
@@ -25,9 +26,17 @@ import org.apache.ambari.view.ResourceProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * ViewContextImpl tests.
@@ -88,5 +97,47 @@ public class ViewContextImplTest {
     ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
 
     Assert.assertEquals(provider, viewContext.getResourceProvider("myType"));
+  }
+
+  @Test
+  public void testGetURLStreamProvider() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
+    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
+    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+
+    ResourceProvider provider = createNiceMock(ResourceProvider.class);
+    Resource.Type type = new Resource.Type("MY_VIEW/myType");
+
+    viewInstanceDefinition.addResourceProvider(type, provider);
+
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
+
+    Assert.assertNotNull(viewContext.getURLStreamProvider());
+  }
+
+  @Test
+  public void testViewURLStreamProvider() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+
+    expect(streamProvider.processURL("spec", "requestMethod", "params", headerMap)).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, urlConnection, inputStream);
+
+    ViewContextImpl.ViewURLStreamProvider viewURLStreamProvider =
+        new ViewContextImpl.ViewURLStreamProvider(streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readFrom("spec", "requestMethod", "params", headers));
+
+    verify(streamProvider, urlConnection, inputStream);
   }
 }

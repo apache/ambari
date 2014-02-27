@@ -20,6 +20,7 @@ package org.apache.ambari.view;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Provider of a URL stream.
@@ -31,10 +32,12 @@ public interface URLStreamProvider {
    * @param spec           the String to parse as a URL
    * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
    * @param params         the body of the request; may be null
+   * @param headers        the headers of the request; may be null
    *
    * @return the input stream
    *
    * @throws IOException if an error occurred connecting to the server
    */
-  public InputStream readFrom(String spec, String requestMethod, String params) throws IOException;
+  public InputStream readFrom(String spec, String requestMethod, String params, Map<String, String> headers)
+      throws IOException;
 }
