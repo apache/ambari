@@ -27,8 +27,10 @@ App.MainJobsController = Em.ArrayController.extend({
   loaded : false,
   loading : false,
   loadJobsTimeout: null,
+  loadTimeout: null,
   jobsUpdateInterval: 6000,
   jobsUpdate: null,
+  sortingColumn: null,
 
   updateJobs: function (controllerName, funcName) {
     clearInterval(this.get('jobsUpdate'));
@@ -248,6 +250,7 @@ App.MainJobsController = Em.ArrayController.extend({
 
   loadJobs : function() {
     var self = this;
+    var timeout = this.get('loadTimeout');
     var yarnService = App.YARNService.find().objectAt(0);
     if (yarnService != null) {
       this.set('loading', true);
@@ -259,14 +262,25 @@ App.MainJobsController = Em.ArrayController.extend({
         complete : function(jqXHR, textStatus) {
           self.set('loading', false);
           self.set('loaded', true);
+          var sortColumn = self.get('sortingColumn');
+          if(sortColumn && sortColumn.get('status')){
+            var sortColumnStatus = sortColumn.get('status');
+            sortColumn.set('content', self.get('content'));
+            sortColumn.get('parentView').sort(sortColumn, sortColumnStatus === "sorting_desc" ? true : false);
+            sortColumn.set('status', sortColumnStatus);
+            self.set('content',sortColumn.get('parentView').get('content'));
+          }
         }
       }, function (jqXHR, textStatus) {
         App.hiveJobsMapper.map({entities : []});
       });
+    }else{
+      clearTimeout(timeout);
+      timeout = setTimeout(function(){
+        self.loadJobs();
+      }, 300);
     }
   },
-
-
 
   refreshLoadedJobs : function() {
     var timeout = this.get('loadJobsTimeout');

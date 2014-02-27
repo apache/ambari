@@ -16,76 +16,75 @@
 * limitations under the License.
 }}
 
-<div id="jobs">
-
-    <div class="jobs_head">
-      <div>{{t menu.item.jobs}}</div>
-      <div class="jobs-type">
-       {{t jobs.type}} :
-       <button class="btn single-btn-group">
-        {{t jobs.type.hive}}
-       </button>
+{{#if controller.loaded}}
+  <div id="jobs">
+      <div class="jobs_head">
+        <div>{{t menu.item.jobs}}</div>
+        <div class="jobs-type">
+         {{t jobs.type}} :
+         <button class="btn single-btn-group">
+          {{t jobs.type.hive}}
+         </button>
+        </div>
       </div>
-    </div>
+      <table id="jobs-table" class="table table-bordered table-striped">
+          <thead>
+          {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+              {{view view.parentView.idSort}}
+              {{view view.parentView.userSort}}
+              {{view view.parentView.startTimeSort}}
+              {{view view.parentView.endTimeSort}}
+              {{view view.parentView.durationSort}}
+          {{/view}}
 
-    <table id="jobs-table" class="table table-bordered table-striped">
-        <thead>
+          <tr id="filter-row" class="first">
+              <th>{{view view.jobsIdFilterView}}</th>
+              <th>{{view view.userFilterView}}</th>
+              <th class="start-time">{{view view.startTimeFilterView}}</th>
+              <th></th>
+              <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          {{#if  view.noDataToShow}}
+              <tr>
+                  <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t jobs.nothingToShow}}</td>
+              </tr>
+          {{else}}
+            {{#each job in view.pageContent}}
+              <tr>
+                <td class="id">
+                  {{#if job.hasTezDag}}
+                    <a rel="tooltip" class="job-link" title="{{unbound job.queryText}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
+                  {{else}}
+                    <span rel="tooltip" class="job-link" title="{{unbound job.queryText}}">{{unbound job.name}}</a>
+                  {{/if}}
+                </td>
+                <td>
+                  {{job.user}}
+                </td>
+                <td>
+                  {{job.startTimeDisplay}}
+                </td>
+                <td>
+                  {{job.endTimeDisplay}}
+                </td>
+                <td>
+                  {{job.durationDisplay}}
+                </td>
+              </tr>
+            {{/each}}
+          {{/if}}
+          </tbody>
+      </table>
 
-        {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-            {{view view.parentView.idSort}}
-            {{view view.parentView.userSort}}
-            {{view view.parentView.startTimeSort}}
-            {{view view.parentView.endTimeSort}}
-            {{view view.parentView.durationSort}}
-        {{/view}}
-
-        <tr id="filter-row" class="first">
-            <th>{{view view.jobsIdFilterView}}</th>
-            <th>{{view view.userFilterView}}</th>
-            <th class="start-time">{{view view.startTimeFilterView}}</th>
-            <th></th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#if  view.noDataToShow}}
-            <tr>
-                <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t jobs.nothingToShow}}</td>
-            </tr>
-        {{else}}
-          {{#each job in view.pageContent}}
-            <tr>
-              <td class="id">
-                {{#if job.hasTezDag}}
-                  <a rel="tooltip" class="job-link" title="{{unbound job.queryText}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
-                {{else}}
-                  <span rel="tooltip" class="job-link" title="{{unbound job.queryText}}">{{unbound job.name}}</a>
-                {{/if}}
-              </td>
-              <td>
-                {{job.user}}
-              </td>
-              <td>
-                {{job.startTimeDisplay}}
-              </td>
-              <td>
-                {{job.endTimeDisplay}}
-              </td>
-              <td>
-                {{job.durationDisplay}}
-              </td>
-            </tr>
-          {{/each}}
-        {{/if}}
-        </tbody>
-    </table>
-
-    <div class="page-bar">
-        <div id="filtered-jobs">
-          {{view.filteredJobs}} - <a href="javascript:void(null);" {{action clearFilters target="view"}}>{{t jobs.filtered.clear}}</a>
-        </div>
-        <div class="items-on-page">
-            <label>{{t jobs.show.up.to}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-        </div>
-    </div>
-</div>
+      <div class="page-bar">
+          <div id="filtered-jobs">
+            {{view.filteredJobs}} - <a href="javascript:void(null);" {{action clearFilters target="view"}}>{{t jobs.filtered.clear}}</a>
+          </div>
+          <div class="items-on-page">
+              <label>{{t jobs.show.up.to}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+          </div>
+      </div>
+  </div>
+{{/if}}

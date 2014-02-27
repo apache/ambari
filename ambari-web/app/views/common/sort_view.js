@@ -176,6 +176,7 @@ var fieldView = Em.View.extend({
       this.get('parentView').sort(this, true);
       this.set('status', 'sorting_desc');
     }
+    this.get('controller').set('sortingColumn', this);
   }
 });
 

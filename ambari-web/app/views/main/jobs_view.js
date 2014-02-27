@@ -27,9 +27,6 @@ App.MainJobsView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content.length'),
 
-  didInsertElement: function () {
-    this.set('filteredContent', this.get('controller.content'));
-  },
 
   /**
    * If no jobs table rows to show.
@@ -39,7 +36,7 @@ App.MainJobsView = App.TableView.extend({
   /*
    If no jobs to display set noDataToShow to true, else set emptyData to false.
    */
-  noDataToShowObserver:function(){
+  noDataToShowObserver: function () {
     if(this.get("controller.content.length") > 0){
       this.set("noDataToShow",false);
     }else{
