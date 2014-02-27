@@ -164,7 +164,10 @@ App.BackgroundOperationsController = Em.Controller.extend({
         (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
          + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
       var requestParams = this.parseRequestContext(request.Requests.request_context);
-      var inputs = JSON.parse(request.Requests.inputs);
+      var inputs = null;
+      if (request.Requests.inputs) {
+        inputs = JSON.parse(request.Requests.inputs);
+      };
       var oneHost = false;
       if (inputs && inputs.included_hosts) {
         var hosts = inputs.included_hosts.split(',');
