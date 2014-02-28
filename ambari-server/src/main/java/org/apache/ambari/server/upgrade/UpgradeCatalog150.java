@@ -1,38 +1,30 @@
 package org.apache.ambari.server.upgrade;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.state.State;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog150.class);
@@ -341,56 +333,58 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       }
     }
 
+    //add new sequence for config groups
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+      "VALUES('configgroup_id_seq', 1)", true);
+
     //clear cache due to direct table manipulation
     ((JpaEntityManager)em.getDelegate()).getServerSession().getIdentityMapAccessor().invalidateAll();
 
     // Updates
 
-    // HostComponentState
-    CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<HostComponentStateEntity> c1 = cb.createQuery(HostComponentStateEntity.class);
-    Root<HostComponentStateEntity> hsc = c1.from(HostComponentStateEntity.class);
-    Expression<String> exp = hsc.get("current_state");
-    List<String> statuses = new ArrayList<String>() {{
-       add("STOP_FAILED");
-       add("START_FAILED");
-    }};
-    Predicate predicate = exp.in(statuses);
-    c1.select(hsc).where(predicate);
-
-    TypedQuery<HostComponentStateEntity> q1 = em.createQuery(c1);
-    List<HostComponentStateEntity> r1 = q1.getResultList();
-
-    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-    if (r1 != null && !r1.isEmpty()) {
-      for (HostComponentStateEntity entity : r1) {
-        entity.setCurrentState(State.INSTALLED);
-        hostComponentStateDAO.merge(entity);
+    // HostComponentState - reverted to native query due to incorrect criteria api usage
+    // (it forces us to use enums not strings, which were deleted)
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        EntityManager em = getEntityManagerProvider().get();
+        Query nativeQuery = em.createNativeQuery("UPDATE hostcomponentstate SET current_state=?1 WHERE current_state in (?2, ?3)");
+        nativeQuery.setParameter(1, "INSTALLED");
+        nativeQuery.setParameter(2, "STOP_FAILED");
+        nativeQuery.setParameter(3, "START_FAILED");
+        nativeQuery.executeUpdate();
       }
-    }
+    });
 
     // HostRoleCommand
-    CriteriaQuery<HostRoleCommandEntity> c2 = cb.createQuery(HostRoleCommandEntity.class);
-    Root<HostRoleCommandEntity> hrc = c2.from(HostRoleCommandEntity.class);
-    statuses = new ArrayList<String>() {{
-      add("PENDING");
-      add("QUEUED");
-      add("IN_PROGRESS");
-    }};
-    exp = hrc.get("status");
-    predicate = exp.in(statuses);
-    c2.select(hrc).where(predicate);
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        EntityManager em = getEntityManagerProvider().get();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<HostRoleCommandEntity> c2 = cb.createQuery(HostRoleCommandEntity.class);
+        Root<HostRoleCommandEntity> hrc = c2.from(HostRoleCommandEntity.class);
+        List<HostRoleStatus> statuses = new ArrayList<HostRoleStatus>() {{
+          add(HostRoleStatus.PENDING);
+          add(HostRoleStatus.QUEUED);
+          add(HostRoleStatus.IN_PROGRESS);
+        }};
+        Expression<String> exp = hrc.get("status");
+        Predicate predicate = exp.in(statuses);
+        c2.select(hrc).where(predicate);
 
-    TypedQuery<HostRoleCommandEntity> q2 = em.createQuery(c2);
-    List<HostRoleCommandEntity> r2 = q2.getResultList();
+        TypedQuery<HostRoleCommandEntity> q2 = em.createQuery(c2);
+        List<HostRoleCommandEntity> r2 = q2.getResultList();
 
-    HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    if (r2 != null && !r2.isEmpty()) {
-      for (HostRoleCommandEntity entity : r2) {
-        entity.setStatus(HostRoleStatus.ABORTED);
-        hostRoleCommandDAO.merge(entity);
+        HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+        if (r2 != null && !r2.isEmpty()) {
+          for (HostRoleCommandEntity entity : r2) {
+            entity.setStatus(HostRoleStatus.ABORTED);
+            hostRoleCommandDAO.merge(entity);
+          }
+        }
       }
-    }
+    });
 
     // Stack version changes from HDPLocal to HDP
     stackUpgradeUtil.updateStackDetails("HDP", null);
@@ -438,10 +432,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       "UNION ALL " +
       "SELECT 'user_id_seq', nextval('users_user_id_seq') " +
       "UNION ALL " +
-      "SELECT 'host_role_command_id_seq', COALESCE((SELECT max(task_id) FROM host_role_command), 1) + 50 " +
-      "UNION ALL " +
-      "SELECT 'configgroup_id_seq', 1";
-    //TODO verify issue with configgroup_id_seq which was added later, possibly need to be added for mysql and oracle and separated for postgres
+      "SELECT 'host_role_command_id_seq', COALESCE((SELECT max(task_id) FROM host_role_command), 1) + 50 ";
   }
 
   private String getPostgresRequestUpgradeQuery() {

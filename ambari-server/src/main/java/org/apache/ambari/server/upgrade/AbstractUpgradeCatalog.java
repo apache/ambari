@@ -150,7 +150,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         func.run();
         entityManager.getTransaction().commit();
       } catch (Exception e) {
-        entityManager.getTransaction().rollback();
+        LOG.error("Error in transaction ", e);
+        if (entityManager.getTransaction().isActive()) {
+          entityManager.getTransaction().rollback();
+        }
         throw new RuntimeException(e);
       }
 

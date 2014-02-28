@@ -154,7 +154,10 @@ public class SchemaUpgradeHelper {
           throw e;
         } catch (SQLException e) {
           LOG.error("Upgrade failed. ", e);
-          throw new AmbariException(e.getMessage());
+          throw new AmbariException(e.getMessage(), e);
+        } catch (Exception e) {
+          LOG.error("Upgrade failed. ", e);
+          throw new AmbariException(e.getMessage(), e);
         }
       }
     }
@@ -173,6 +176,9 @@ public class SchemaUpgradeHelper {
         } catch (SQLException e) {
           LOG.error("Upgrade failed. ", e);
           throw new AmbariException(e.getMessage());
+        } catch (Exception e) {
+          LOG.error("Upgrade failed. ", e);
+          throw new AmbariException(e.getMessage(), e);
         }
       }
     }
