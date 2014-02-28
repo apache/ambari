@@ -33,3 +33,9 @@
     </div>
   </div>
 </div>
+{{#if hostNamesSkipped}}
+  <div class="alert alert-warning">
+    {{view.warningInfo}}<br />
+      <strong>{{hostNamesSkipped}}</strong>
+  </div>
+{{/if}}

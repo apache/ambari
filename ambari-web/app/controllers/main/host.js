@@ -342,6 +342,7 @@ App.MainHostController = Em.ArrayController.extend({
           App.router.get('mainHostDetailsController').doRecommissionAndRestart(hostNames, svcName, masterName, slaveName);
         }
       } else {
+        hostsWithComponentInProperState = components.filterProperty('workStatus','STARTED').mapProperty('host.hostName');
         //For decommession
         if (svcName == "HBASE") {
           // HBASE service, decommission RegionServer in batch requests

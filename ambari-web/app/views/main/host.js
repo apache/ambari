@@ -131,6 +131,16 @@ App.MainHostView = App.TableView.extend({
       return;
     }
     var hostNames = hosts.mapProperty('hostName');
+    var hostsToSkip = [];
+    if (operationData.action == "DECOMMISSION") {
+      hostsToSkip = hosts.filter(function(host) {
+        var invalidStateComponents = host.get('hostComponents').filter(function(component) {
+          return component.get('componentName') == operationData.realComponentName && component.get('workStatus') == 'INSTALLED';
+        });
+        return invalidStateComponents.length > 0;
+      });
+    }
+    var hostNamesSkipped = hostsToSkip.mapProperty('hostName');
     var message;
     if (operationData.componentNameFormatted) {
       message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
@@ -141,6 +151,12 @@ App.MainHostView = App.TableView.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
       hostNames: hostNames.join("\n"),
+      hostNamesSkipped: function() {
+        if (hostNamesSkipped.length) {
+          return hostNamesSkipped.join("<br/>");
+        }
+        return false;
+      }.property(),
       onPrimary: function() {
         self.get('controller').bulkOperation(operationData, hosts);
         this._super();
@@ -148,6 +164,7 @@ App.MainHostView = App.TableView.extend({
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/bulk_operation_confirm_popup'),
         message: message,
+        warningInfo: Em.I18n.t('hosts.bulkOperation.warningInfo.body'),
         textareaVisible: false,
         textTrigger: function() {
           this.set('textareaVisible', !this.get('textareaVisible'));
