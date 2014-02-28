@@ -31,7 +31,7 @@ def service(
   import status_params
 
   pid_file = status_params.pid_files[name]
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && test ! -z \"`cat {pid_file}`\" && ps `cat {pid_file}` >/dev/null 2>&1")
+  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
   if name == 'ui':
     process_cmd = "^java.+backtype.storm.ui.core$"
@@ -40,7 +40,7 @@ def service(
   else:
     process_cmd = format("^java.+backtype.storm.daemon.{name}$")
 
-  crt_pid_cmd = format("pgrep -f \"{process_cmd}\" > {pid_file}")
+  crt_pid_cmd = format("pgrep -f \"{process_cmd}\" && pgrep -f \"{process_cmd}\" > {pid_file}")
 
   if action == "start":
     if name == "rest_api":
