@@ -149,6 +149,21 @@ public class ActionManager {
     db.updateHostRoleStates(reportsToProcess);
   }
 
+  /**
+   * Find if the command report is for an in progress command
+   * @param report
+   * @return
+   */
+  public boolean isInProgressCommand(CommandReport report) {
+    HostRoleCommand command = db.getTask(report.getTaskId());
+    if (command == null) {
+      LOG.warn("The task " + report.getTaskId() + " is invalid");
+      return false;
+    }
+    return command.getStatus().equals(HostRoleStatus.IN_PROGRESS)
+      || command.getStatus().equals(HostRoleStatus.QUEUED);
+  }
+
   public void handleLostHost(String host) {
     //Do nothing, the task will timeout anyway.
     //The actions can be failed faster as an optimization

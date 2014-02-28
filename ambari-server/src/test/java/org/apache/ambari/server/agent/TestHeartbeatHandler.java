@@ -77,7 +77,9 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.junit.After;
@@ -761,7 +763,6 @@ public class TestHeartbeatHandler {
             getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
     serviceComponentHost1.setState(State.INSTALLING);
 
-
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
     hb.setResponseId(0);
@@ -786,6 +787,71 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb);
     State componentState1 = serviceComponentHost1.getState();
     assertEquals("Host state should still be installing", State.INSTALLING, componentState1);
+  }
+
+  @Test
+  public void testOPFailedEventForAbortedTask() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = getMockActionManager();
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+      getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.INSTALLING);
+
+    Stage s = new Stage(1, "/a/b", "cluster1", "action manager test",
+      "clusterHostInfo");
+    s.setStageId(1);
+    s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
+      new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
+        DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
+          DummyCluster, "HDFS");
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    Request request = new Request(stages, clusters);
+    actionDBAccessor.persistActions(request);
+    actionDBAccessor.abortHostRole(DummyHostname1, 1, 1, Role.DATANODE.name());
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(1, 1));
+    cr.setTaskId(1);
+    cr.setClusterName(DummyCluster);
+    cr.setServiceName(HDFS);
+    cr.setRole(DATANODE);
+    cr.setStatus("FAILED");
+    cr.setStdErr("none");
+    cr.setStdOut("dummy output");
+    cr.setExitCode(777);
+    reports.add(cr);
+    hb.setReports(reports);
+    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+    handler.handleHeartBeat(hb);
+    State componentState1 = serviceComponentHost1.getState();
+    assertEquals("Host state should still be installing", State.INSTALLING,
+      componentState1);
   }
 
   /**
@@ -1265,6 +1331,37 @@ public class TestHeartbeatHandler {
     serviceComponentHost1.setDesiredStackVersion(stack130);
     serviceComponentHost2.setStackVersion(stack122);
 
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test",
+      "clusterHostInfo");
+    s.setStageId(stageId);
+    s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
+      new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),
+        DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
+      DummyCluster, "HDFS");
+    s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL,
+      new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
+        DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
+          DummyCluster, "HDFS");
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    Request request = new Request(stages, clusters);
+    actionDBAccessor.persistActions(request);
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setTaskId(1);
+    cr.setClusterName(DummyCluster);
+    cr.setServiceName(HDFS);
+    cr.setRole(DATANODE);
+    cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    cr.setStdErr("none");
+    cr.setStdOut("dummy output");
+    actionDBAccessor.updateHostRoleState(DummyHostname1, requestId, stageId,
+      Role.DATANODE.name(), cr);
+    cr.setRole(NAMENODE);
+    cr.setTaskId(2);
+    actionDBAccessor.updateHostRoleState(DummyHostname1, requestId, stageId,
+      Role.NAMENODE.name(), cr);
+
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
     hb.setResponseId(0);
@@ -1281,6 +1378,9 @@ public class TestHeartbeatHandler {
     cr1.setStdOut("dummy output");
     cr1.setExitCode(0);
 
+//    actionDBAccessor.updateHostRoleState(DummyHostname1, requestId, stageId,
+//      Role.DATANODE.name(), cr1);
+
     CommandReport cr2 = new CommandReport();
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setTaskId(2);
@@ -1295,6 +1395,9 @@ public class TestHeartbeatHandler {
     reports.add(cr1);
     reports.add(cr2);
     hb.setReports(reports);
+
+//    actionDBAccessor.updateHostRoleState(DummyHostname1, requestId, stageId,
+//      Role.NAMENODE.name(), cr2);
 
     ActionQueue aq = new ActionQueue();
     HeartBeatHandler handler = getHeartBeatHandler(am, aq);

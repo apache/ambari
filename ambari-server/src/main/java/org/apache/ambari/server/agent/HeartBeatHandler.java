@@ -345,8 +345,13 @@ public class HeartBeatHandler {
           } else if (report.getStatus().equals("FAILED")) {
             LOG.warn("Operation failed - may be retried. Service component host: "
                 + schName + ", host: " + hostname + " Action id" + report.getActionId());
-            scHost.handleEvent(new ServiceComponentHostOpFailedEvent(schName,
-                hostname, now));
+            if (actionManager.isInProgressCommand(report)) {
+              scHost.handleEvent(new ServiceComponentHostOpFailedEvent
+                (schName, hostname, now));
+            } else {
+              LOG.info("Report arrived after command is no longer running. " +
+                "Ignoring report. " + report);
+            }
           } else if (report.getStatus().equals("IN_PROGRESS")) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
                 hostname, now));
