@@ -349,8 +349,7 @@ public class HeartBeatHandler {
               scHost.handleEvent(new ServiceComponentHostOpFailedEvent
                 (schName, hostname, now));
             } else {
-              LOG.info("Report arrived after command is no longer running. " +
-                "Ignoring report. " + report);
+              LOG.info("Received report for a command that is no longer active. " + report);
             }
           } else if (report.getStatus().equals("IN_PROGRESS")) {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
