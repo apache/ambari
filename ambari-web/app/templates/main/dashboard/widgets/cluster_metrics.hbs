@@ -17,14 +17,16 @@
 }}
 
 <div class="cluster-metrics">
-  <li class="thumbnail row">
-    <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
-        <i class="icon-remove-sign icon-large"></i>
-    </a>
-    <div class="caption span10">{{view.title}}</div>
+  <ul>
+    <li class="thumbnail row">
+      <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
+          <i class="icon-remove-sign icon-large"></i>
+      </a>
+      <div class="caption span10">{{view.title}}</div>
 
-    <div class="widget-content" >
-      {{view view.content}}
-    </div>
-  </li>
+      <div class="widget-content" >
+        {{view view.content}}
+      </div>
+    </li>
+  </ul>
 </div>

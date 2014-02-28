@@ -22,7 +22,7 @@
       <div class="navbar-inner">
         <div class="container main-container">
           <a {{translateAttr href="topnav.logo.href"}} class="logo" target="_blank"><img src="/img/logo.png" alt="Apache Ambari" title="Apache Ambari"></a>
-          <a class="brand" {{translateAttr href="topnav.logo.href"}} target="_blank" alt="Apache Ambari" title="Apache Ambari">{{t app.name}}</a>
+          <a class="brand" {{translateAttr href="topnav.logo.href"}} target="_blank" title="Apache Ambari">{{t app.name}}</a>
 
           {{#if isClusterDataLoaded}}
             <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>

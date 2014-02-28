@@ -41,27 +41,32 @@
 
     <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
     <div>
-      {{#each item in controller.clusterInfo.repoInfo}}
-        <ul><span class="text text-info">{{item.os_type}}
-          : </span>{{item.base_url}}</ul>
-      {{/each}}
+      <ul>
+        {{#each item in controller.clusterInfo.repoInfo}}
+          <li>
+            <p><span class="text text-info">{{item.os_type}} : </span>{{item.base_url}}</p>
+          </li>
+        {{/each}}
+      </ul>
     </div>
 
     <div>
       {{#if controller.services.length}}
         <p><b>{{t menu.item.services}}</b></p>
-        {{#each controller.services}}
-          <div>
-            <ul><em><b>{{display_name}}</b></em>
-              <div>
-                {{#each component in this.service_components}}
-                  <ul><span class="text text-info">{{component.display_name }}
-                      : </span>{{component.component_value}}</ul>
-                {{/each}}
-              </div>
-            </ul>
-          </div>
-        {{/each}}
+        <ul>
+          {{#each controller.services}}
+            <li>
+              <em><b>{{display_name}}</b></em>
+              <ul>
+              {{#each component in this.service_components}}
+                <li>
+                  <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
+                </li>
+              {{/each}}
+              </ul>
+            </li>
+          {{/each}}
+        </ul>
       {{/if}}
     </div>
   </div>

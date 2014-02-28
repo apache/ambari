@@ -17,23 +17,25 @@
 }}
 
 <div class="has-hidden-info">
-  <li class="thumbnail row" >
-    <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
-      <i class="icon-remove-sign icon-large"></i>
-    </a>
-    <div class="caption span10"> {{view.title}}</div>
-    <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
-      <i class="icon-edit"></i>
-    </a>
+  <ul>
+    <li class="thumbnail row" >
+      <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
+        <i class="icon-remove-sign icon-large"></i>
+      </a>
+      <div class="caption span10"> {{view.title}}</div>
+      <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
+        <i class="icon-edit"></i>
+      </a>
 
-    <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
-      <table align="center">
-        {{#each line in view.hiddenInfo}}
-          <tr><td>{{line}}</td></tr>
-        {{/each}}
-      </table>
-    </div>
+      <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
+        <table align="center">
+          {{#each line in view.hiddenInfo}}
+            <tr><td>{{line}}</td></tr>
+          {{/each}}
+        </table>
+      </div>
 
-    <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>{{view.content}}</div>
-  </li>
+      <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>{{view.content}}</div>
+    </li>
+  </ul>
 </div>

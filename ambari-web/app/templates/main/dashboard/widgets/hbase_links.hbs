@@ -17,56 +17,58 @@
 }}
 
 <div class="links">
-  <li class="thumbnail row">
-    <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}><i class="icon-remove-sign icon-large"></i></a>
-    <div class="caption span10"> {{view.title}}</div>
+  <ul>
+    <li class="thumbnail row">
+      <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}><i class="icon-remove-sign icon-large"></i></a>
+      <div class="caption span10"> {{view.title}}</div>
 
-    <div class="widget-content" >
-      <table>
-        <!--hbase master server-->
-        <tr>
-          <td>
-            {{#if view.activeMaster}}
-              <a href="#" {{action showDetails view.activeMaster.host}}>{{t dashboard.services.hbase.masterServer}}</a>
-            {{else}}
-              {{t dashboard.services.hbase.noMasterServer}}
-            {{/if}}
-          </td>
-        </tr>
-        <!--region servers-->
-        <tr>
-            <td><a href="#" {{action filterHosts view.component}}>{{view.model.regionServers.length}} {{t dashboard.services.hbase.regionServers}}</a></td>
-        </tr>
-        <!--hbase master Web UI-->
-        <tr>
-          <td>
-            {{#if view.activeMaster}}
-              <a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{t dashboard.services.hbase.masterWebUI}}</a>
-            {{else}}
-              {{t services.service.summary.notAvailable}}
-            {{/if}}
-          </td>
-        </tr>
-      </table>
-    </div>
+      <div class="widget-content" >
+        <table>
+          <!--hbase master server-->
+          <tr>
+            <td>
+              {{#if view.activeMaster}}
+                <a href="#" {{action showDetails view.activeMaster.host}}>{{t dashboard.services.hbase.masterServer}}</a>
+              {{else}}
+                {{t dashboard.services.hbase.noMasterServer}}
+              {{/if}}
+            </td>
+          </tr>
+          <!--region servers-->
+          <tr>
+              <td><a href="#" {{action filterHosts view.component}}>{{view.model.regionServers.length}} {{t dashboard.services.hbase.regionServers}}</a></td>
+          </tr>
+          <!--hbase master Web UI-->
+          <tr>
+            <td>
+              {{#if view.activeMaster}}
+                <a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{t dashboard.services.hbase.masterWebUI}}</a>
+              {{else}}
+                {{t services.service.summary.notAvailable}}
+              {{/if}}
+            </td>
+          </tr>
+        </table>
+      </div>
 
-    <div class="link-button">
-      {{#if view.model.quickLinks.length}}
-        {{#view App.QuickViewLinks contentBinding="view.model"}}
-          <div class="btn-group">
-            <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
-              {{t common.more}}
-              <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-              {{#each view.quickLinks}}
-                <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
-              {{/each}}
-            </ul>
-          </div>
-        {{/view}}
-      {{/if}}
-    </div>
+      <div class="link-button">
+        {{#if view.model.quickLinks.length}}
+          {{#view App.QuickViewLinks contentBinding="view.model"}}
+            <div class="btn-group">
+              <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
+                {{t common.more}}
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                {{#each view.quickLinks}}
+                  <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/view}}
+        {{/if}}
+      </div>
 
-  </li>
+    </li>
+  </ul>
 </div>

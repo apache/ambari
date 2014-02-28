@@ -17,29 +17,31 @@
 }}
 
 <div class="has-hidden-info">
-  <li class="thumbnail row" >
-    <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
-      <i class="icon-remove-sign icon-large"></i>
-    </a>
-    <div class="caption span11"> {{view.title}} </div>
-    <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass"}}>
-      <table align="center">
-        {{#each line in view.hiddenInfo}}
-          <tr>
-            <td>
-              {{line}}
-            </td>
-          </tr>
-        {{/each}}
-      </table>
-    </div>
-
-    {{#if view.isNA}}
-      <div class="widget-content-isNA uptime-content-isNA" >{{t services.service.summary.notAvailable}}</div>
-    {{else}}
-      <div class="widget-content uptime-content" >
-        {{view.content}}
+  <ul>
+    <li class="thumbnail row" >
+      <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}>
+        <i class="icon-remove-sign icon-large"></i>
+      </a>
+      <div class="caption span11"> {{view.title}} </div>
+      <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass"}}>
+        <table align="center">
+          {{#each line in view.hiddenInfo}}
+            <tr>
+              <td>
+                {{line}}
+              </td>
+            </tr>
+          {{/each}}
+        </table>
       </div>
-    {{/if}}
-  </li>
+
+      {{#if view.isNA}}
+        <div class="widget-content-isNA uptime-content-isNA" >{{t services.service.summary.notAvailable}}</div>
+      {{else}}
+        <div class="widget-content uptime-content" >
+          {{view.content}}
+        </div>
+      {{/if}}
+    </li>
+  </ul>
 </div>
