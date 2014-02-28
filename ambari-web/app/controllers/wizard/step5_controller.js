@@ -172,7 +172,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       var componentInfo = masterComponents.filterProperty('service_name', services[index]);
 
       componentInfo.forEach(function (_componentInfo) {
-        if (this.get('multipleComponents').contains(_componentInfo.component_name)) {
+        if (_componentInfo.component_name == 'ZOOKEEPER_SERVER' || _componentInfo.component_name == 'HBASE_MASTER') {
           var savedComponents = masterHosts.filterProperty('component', _componentInfo.component_name);
           if (savedComponents.length) {
 
