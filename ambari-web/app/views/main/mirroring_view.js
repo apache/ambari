@@ -24,6 +24,19 @@ App.MainMirroringView = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
-    controller.loadData();
+    controller.set('isDatasetsLoaded', false);
+    controller.set('isTargetClustersLoaded', false);
+    this.loadDataPeriodically();
+  },
+
+  // updata datasets data, when Mirroring page is opened
+  loadDataPeriodically: function () {
+    if (this.get('isVisible')) {
+      var self = this;
+      this.get('controller').loadData();
+      setTimeout(function () {
+        self.loadDataPeriodically();
+      }, App.contentUpdateInterval);
+    }
   }
 });

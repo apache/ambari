@@ -27,9 +27,8 @@ App.MainDatasetJobsController = Em.Controller.extend({
 
   jobs: function () {
     var datasetName = this.get('content.name');
-    var mainMirroringController = App.router.get('mainMirroringController');
     return (this.get('isLoaded') && datasetName) ?
-        mainMirroringController.get('datasets').findProperty('name', datasetName).get('datasetJobs') : [];
+        App.Dataset.find().findProperty('name', datasetName).get('datasetJobs') : [];
   }.property('content', 'isLoaded'),
 
   actionDesc: function () {

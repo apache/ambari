@@ -33,8 +33,6 @@ App.MainMirroringController = Em.ArrayController.extend({
   // counter for target cluster load queries
   clusterCount: 0,
 
-  datasets: [],
-
   selectedDataset: null,
 
   isDatasetsLoaded: false,
@@ -45,14 +43,13 @@ App.MainMirroringController = Em.ArrayController.extend({
     return this.get('isDatasetsLoaded') && this.get('isTargetClustersLoaded');
   }.property('isDatasetsLoaded', 'isTargetClustersLoaded'),
 
+  datasets: App.Dataset.find(),
+
   loadData: function () {
-    this.set('isDatasetsLoaded', false);
-    this.set('isTargetClustersLoaded', false);
     this.get('datasetsData').clear();
     this.set('clustersData', {});
     this.set('datasetCount', 0);
     this.set('clusterCount', 0);
-    this.set('datasets', []);
     this.loadDatasets();
     this.loadClusters();
   },
@@ -169,7 +166,6 @@ App.MainMirroringController = Em.ArrayController.extend({
         if (a.get('name') > b.get('name'))  return 1;
         return 0;
       });
-      this.set('datasets', sortedDatasets);
       this.set('isDatasetsLoaded', true);
       var selectedDataset = this.get('selectedDataset');
       if (!selectedDataset) {
