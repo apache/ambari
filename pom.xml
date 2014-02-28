@@ -47,14 +47,6 @@
       <url>http://download.java.net/maven/glassfish/</url>
     </pluginRepository>
   </pluginRepositories>
-  <modules>
-    <module>ambari-web</module>
-    <module>ambari-project</module>
-    <module>ambari-views</module>
-    <module>ambari-server</module>
-    <module>ambari-agent</module>
-    <module>ambari-client</module>
-  </modules>
   <build>
     <pluginManagement>
       <plugins>
@@ -165,6 +157,30 @@
     </plugins>
   </build>
   <profiles>
+    <profile>
+      <id>default</id>
+      <activation>
+         <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>ambari-web</module>
+        <module>ambari-project</module>
+        <module>ambari-views</module>
+        <module>ambari-server</module>
+        <module>ambari-agent</module>
+        <module>ambari-client</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>static-web</id>
+      <modules>
+        <module>ambari-project</module>
+        <module>ambari-views</module>
+        <module>ambari-server</module>
+        <module>ambari-agent</module>
+        <module>ambari-client</module>
+      </modules>
+    </profile>
     <profile>
       <id>clover</id>
       <activation>
