@@ -83,7 +83,7 @@ CREATE TABLE ambari.request (request_id BIGINT NOT NULL, cluster_id BIGINT, comm
 GRANT ALL PRIVILEGES ON TABLE ambari.request TO :username;
 
 CREATE TABLE ambari.requestresourcefilter (filter_id BIGINT NOT NULL, request_id BIGINT NOT NULL, service_name VARCHAR(255), component_name VARCHAR(255), hosts TEXT, PRIMARY KEY (filter_id));
-GRANT ALL PRIVILEGES ON TABLE ambari.request TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.requestresourcefilter TO :username;
 
 CREATE TABLE ambari.ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.ClusterHostMapping TO :username;
