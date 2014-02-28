@@ -79,6 +79,10 @@
               <type>rpm</type>
               <name>php5-json</name>
             </package>
+            <package>
+              <type>rpm</type>
+              <name>apache2-mod_php5</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -87,6 +91,10 @@
             <package>
               <type>rpm</type>
               <name>php5-json</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>apache2-mod_php5</name>
             </package>
           </packages>
         </osSpecific>
