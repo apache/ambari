@@ -34,6 +34,7 @@ App.ServiceConfigView = Em.View.extend({
   isRestartMessageCollapsed: false,
   filter: '', //from template
   columns: [], //from template
+  propertyFilterPopover: [Em.I18n.t('services.service.config.propertyFilterPopover.title'), Em.I18n.t('services.service.config.propertyFilterPopover.content')],
   canEdit: true, // View is editable or read-only?
   supportsHostOverrides: function () {
     switch (this.get('controller.name')) {

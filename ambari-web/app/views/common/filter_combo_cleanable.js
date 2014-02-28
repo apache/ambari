@@ -28,6 +28,15 @@ App.FilterComboCleanableView = Ember.View.extend({
 
   classNames: ['filter-combobox', 'input-append'],
 
+  didInsertElement: function() {
+    App.popover(this.$("input[type=text]"), {
+      title: this.get('popoverDescription')[0],
+      content: this.get('popoverDescription')[1],
+      placement: 'bottom',
+      trigger: 'hover'
+    });
+  },
+
   placeHolder: function(){
     return this.t('common.combobox.placeholder');
   }.property(),
