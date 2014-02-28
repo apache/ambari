@@ -83,7 +83,31 @@ var configs = [
     "filename": "core-site.xml",
     "isOverridable": true
   },
-  /********************GLUSTERFS*************************************/
+
+/**********************************Oozie******************************/
+
+  {
+    "name": "oozie.service.ProxyUserService.proxyuser.<foreignKey[0]>.groups",
+    "templateName": [],
+    "foreignKey": ["falcon_user"],
+    "value": "*",
+    "filename": "oozie-site.xml",
+    "isOverridable": true,
+    "serviceName": "OOZIE"
+  },
+  {
+    "name": "oozie.service.ProxyUserService.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": [],
+    "foreignKey": ["falcon_user"],
+    "value": "*",
+    "filename": "oozie-site.xml",
+    "isOverridable": true,
+    "serviceName": "OOZIE"
+  },
+
+
+
+/********************GLUSTERFS*************************************/
   {
     "name": "fs.glusterfs.impl",
     "templateName": ["fs_glusterfs_impl"],
