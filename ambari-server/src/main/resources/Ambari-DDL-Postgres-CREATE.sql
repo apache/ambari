@@ -79,7 +79,10 @@ GRANT ALL PRIVILEGES ON TABLE ambari.role_success_criteria TO :username;
 CREATE TABLE ambari.stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, log_info VARCHAR(255) NOT NULL, request_context VARCHAR(255), cluster_host_info BYTEA NOT NULL, PRIMARY KEY (stage_id, request_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.stage TO :username;
 
-CREATE TABLE ambari.request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, inputs VARCHAR(32000), request_context VARCHAR(255), request_type VARCHAR(255), request_schedule_id BIGINT, start_time BIGINT NOT NULL, status VARCHAR(255), target_component VARCHAR(255), target_hosts TEXT, target_service VARCHAR(255), PRIMARY KEY (request_id));
+CREATE TABLE ambari.request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, inputs VARCHAR(32000), request_context VARCHAR(255), request_type VARCHAR(255), request_schedule_id BIGINT, start_time BIGINT NOT NULL, status VARCHAR(255), PRIMARY KEY (request_id));
+GRANT ALL PRIVILEGES ON TABLE ambari.request TO :username;
+
+CREATE TABLE ambari.requestresourcefilter (filter_id BIGINT NOT NULL, request_id BIGINT NOT NULL, service_name VARCHAR(255), component_name VARCHAR(255), hosts TEXT, PRIMARY KEY (filter_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.request TO :username;
 
 CREATE TABLE ambari.ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
@@ -98,7 +101,6 @@ CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARC
 GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 CREATE TABLE ambari.ambari_sequences (sequence_name VARCHAR(255) PRIMARY KEY, "value" BIGINT NOT NULL);
-
 GRANT ALL PRIVILEGES ON TABLE ambari.ambari_sequences TO :username;
 
 CREATE TABLE ambari.configgroup (group_id BIGINT, cluster_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, description VARCHAR(1024), create_timestamp BIGINT NOT NULL, PRIMARY KEY(group_id));
@@ -157,6 +159,7 @@ ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmappi
 ALTER TABLE ambari.requestschedulebatchrequest ADD CONSTRAINT FK_requestschedulebatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES ambari.requestschedule (schedule_id);
 ALTER TABLE ambari.hostgroup ADD FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name);
 ALTER TABLE ambari.hostgroup_component ADD FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES ambari.hostgroup(blueprint_name, name);
+ALTER TABLE ambari.requestresourcefilter ADD CONSTRAINT FK_requestresourcefilter_req_id FOREIGN KEY (request_id) REFERENCES ambari.request (request_id);
 
 
 ---------inserting some data-----------
@@ -170,7 +173,9 @@ BEGIN;
   union all
   select 'configgroup_id_seq', 1
   union all
-  select 'requestschedule_id_seq', 1;
+  select 'requestschedule_id_seq', 1
+  union all
+  select 'resourcefilter_id_seq', 1;
 
   INSERT INTO ambari.Roles (role_name)
   SELECT 'admin'

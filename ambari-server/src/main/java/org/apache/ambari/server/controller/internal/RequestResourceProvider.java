@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -33,9 +34,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Clusters;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,9 +61,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/request_schedule/href";
   protected static final String REQUEST_TYPE_ID = "Requests/type";
   protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
-  protected static final String REQUEST_TARGET_SERVICE_ID = "Requests/target_service";
-  protected static final String REQUEST_TARGET_COMPONENT_ID = "Requests/target_component";
-  protected static final String REQUEST_TARGET_HOSTS_ID = "Requests/target_hosts";
+  protected static final String REQUEST_RESOURCE_FILTER_ID = "Requests/resource_filters";
   protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
   protected static final String REQUEST_START_TIME_ID = "Requests/start_time";
   protected static final String REQUEST_END_TIME_ID = "Requests/end_time";
@@ -76,10 +73,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String REQUEST_QUEUED_TASK_CNT_ID = "Requests/queued_task_count";
   protected static final String REQUEST_PROGRESS_PERCENT_ID = "Requests/progress_percent";
   protected static final String COMMAND_ID = "command";
-  protected static final String ACTION_ID = "action";
+  protected static final String SERVICE_ID = "service_name";
+  protected static final String COMPONENT_ID = "component_name";
   protected static final String HOSTS_ID = "hosts";
-  protected static final String SERVICE_NAME_ID = "service_name";
-  protected static final String COMPONENT_NAME_ID = "component_name";
+  protected static final String ACTION_ID = "action";
   protected static final String INPUTS_ID = "parameters";
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -165,6 +162,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   // ----- utility methods --------------------------------------------------
 
   // Get request to execute an action/command
+  @SuppressWarnings("unchecked")
   private ExecuteActionRequest getActionRequest(Request request) {
     Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
     Map<String, Object> propertyMap = request.getProperties().iterator().next();
@@ -184,19 +182,32 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       actionName = requestInfoProperties.get(ACTION_ID);
     }
 
-    String hostList = requestInfoProperties.get(HOSTS_ID);
-    List<String> hosts = new ArrayList<String>();
-    if (hostList != null && !hostList.isEmpty()) {
-      for (String hostname : hostList.split(",")) {
-        String trimmedName = hostname.trim();
-        if (!trimmedName.isEmpty()) {
-          hosts.add(hostname.trim());
+    List<RequestResourceFilter> resourceFilterList = null;
+    Set<Map<String, Object>> resourceFilters = null;
+    Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
+    if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
+      resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;
+      resourceFilterList = new ArrayList<RequestResourceFilter>();
+
+      for (Map<String, Object> resourceMap : resourceFilters) {
+        Object serviceName = resourceMap.get(SERVICE_ID);
+        Object componentName = resourceMap.get(COMPONENT_ID);
+        Object hosts = resourceMap.get(HOSTS_ID);
+        List<String> hostList = null;
+        if (hosts != null) {
+          hostList = new ArrayList<String>();
+          for (String hostName : ((String) hosts).split(",")) {
+            hostList.add(hostName.trim());
+          }
         }
+
+        resourceFilterList.add(new RequestResourceFilter(
+          serviceName != null ? (String) serviceName : null,
+          componentName != null ? (String) componentName : null,
+          hostList
+        ));
       }
     }
-
-    String serviceName = requestInfoProperties.get(SERVICE_NAME_ID);
-    String componentName = requestInfoProperties.get(COMPONENT_NAME_ID);
 
     Map<String, String> params = new HashMap<String, String>();
     String keyPrefix = "/" + INPUTS_ID + "/";
@@ -207,13 +218,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     return new ExecuteActionRequest(
-        (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID),
-        commandName,
-        actionName,
-        serviceName,
-        componentName,
-        hosts,
-        params);
+      (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID),
+      commandName,
+      actionName,
+      resourceFilterList,
+      params);
   }
 
   // Get all of the request resources for the given properties
@@ -286,9 +295,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_CONTEXT_ID, request.getRequestContext(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, request.getRequestType(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_INPUTS_ID, request.getInputs(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_TARGET_SERVICE_ID, request.getTargetService(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_TARGET_COMPONENT_ID, request.getTargetComponent(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_TARGET_HOSTS_ID, request.getTargetHosts(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID, request.getResourceFilters(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
@@ -421,4 +428,5 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
     return resource;
   }
+
 }

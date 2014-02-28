@@ -200,6 +200,15 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("hostgroup_component", columns, "blueprint_name", "hostgroup_name", "name");
 
+    // RequestResourceFilter
+    columns.clear();
+    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("service_name", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("component_name", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("hosts", byte[].class, null, null, true));
+
+    dbAccessor.createTable("requestresourcefilter", columns, "request_id");
+
     createQuartzTables();
 
     // ========================================================================
@@ -257,6 +266,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_configgroup_id", "config_group_id", "configgroup", "group_id", true);
     dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
+    dbAccessor.addFKConstraint("requestresourcefilter", "FK_requestresourcefilter_req_id", "request_id", "request", "request_id", true);
 
     // ========================================================================
     // Finally update schema version

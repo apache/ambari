@@ -38,12 +38,12 @@
     <class>org.apache.ambari.server.orm.entities.ConfigGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity</class>
     <class>org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity</class>
-    <class>org.apache.ambari.server.orm.entities.ActionEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestScheduleEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity</class>
     <class>org.apache.ambari.server.orm.entities.BlueprintEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostGroupComponentEntity</class>
+    <class>org.apache.ambari.server.orm.entities.RequestResourceFilterEntity</class>
 
     <properties>
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->
