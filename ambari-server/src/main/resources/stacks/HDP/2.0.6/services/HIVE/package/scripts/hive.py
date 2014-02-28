@@ -53,13 +53,19 @@ def hive(name=None):
             recursive=True
   )
 
+  XmlConfig("mapred-site.xml",
+            conf_dir=hive_config_dir,
+            configurations=params.config['configurations']['mapred-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=config_file_mode)
+
   XmlConfig("hive-site.xml",
             conf_dir=hive_config_dir,
             configurations=params.config['configurations']['hive-site'],
             owner=params.hive_user,
             group=params.user_group,
-            mode=config_file_mode
-  )
+            mode=config_file_mode)
 
   cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 "
                "{jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
