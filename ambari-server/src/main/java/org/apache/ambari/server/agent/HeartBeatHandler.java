@@ -358,7 +358,11 @@ public class HeartBeatHandler {
         } catch (ServiceComponentNotFoundException scnex) {
           LOG.warn("Service component not found ", scnex);
         } catch (InvalidStateTransitionException ex) {
-          LOG.warn("State machine exception", ex);
+          if (LOG.isDebugEnabled()) {
+            LOG.warn("State machine exception.", ex);
+          } else {
+            LOG.warn("State machine exception. " + ex.getMessage());
+          }
         }
       }
     }
