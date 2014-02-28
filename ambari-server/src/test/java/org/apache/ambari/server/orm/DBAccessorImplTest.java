@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
+import org.eclipse.persistence.sessions.DatabaseSession;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -34,6 +35,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -270,4 +273,38 @@ public class DBAccessorImplTest {
 
   }
 
+  @Test
+  public void testExecuteSelect() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+    dbAccessor.executeQuery("insert into " + tableName + "(id, name, time) values(1, 'Bob', 1234567)");
+
+    ResultSet resultSet = dbAccessor.executeSelect("select name from " + tableName + " where id=1");
+    int count = 0;
+    while (resultSet.next()) {
+      assertEquals("Bob", resultSet.getString(1));
+      count++;
+    }
+
+    assertEquals(count, 1);
+  }
+
+  @Test
+  public void testDBSession() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+    dbAccessor.executeQuery("insert into " + tableName + "(id, name, time) values(1, 'Bob', 1234567)");
+
+    DatabaseSession databaseSession = dbAccessor.getNewDatabaseSession();
+    databaseSession.login();
+    Vector vector = databaseSession.executeSQL("select * from " + tableName + " where id=1");
+    assertEquals(vector.size(), 1);
+    Map map = (Map) vector.get(0);
+    //all names seem to be converted to upper case
+    assertEquals("Bob", map.get("name".toUpperCase()));
+
+    databaseSession.logout();
+  }
 }

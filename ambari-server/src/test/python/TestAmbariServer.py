@@ -212,7 +212,7 @@ class TestAmbariServer(TestCase):
     options = MagicMock()
     args = ["setup-security"]
     opm.parse_args.return_value = (options, args)
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sid"
     setup_security_method.return_value = None
 
@@ -306,7 +306,7 @@ class TestAmbariServer(TestCase):
     args = ["setup"]
     opm.parse_args.return_value = (options, args)
 
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sid"
     ambari_server.main()
 
@@ -331,7 +331,7 @@ class TestAmbariServer(TestCase):
     args = ["setup"]
     opm.parse_args.return_value = (options, args)
 
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sname"
     ambari_server.main()
 
@@ -356,7 +356,7 @@ class TestAmbariServer(TestCase):
     args = ["start", "-g"]
     opm.parse_args.return_value = (options, args)
 
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sid"
 
     ambari_server.main()
@@ -380,7 +380,7 @@ class TestAmbariServer(TestCase):
     options = MagicMock()
     args = ["start", "--debug"]
     opm.parse_args.return_value = (options, args)
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sid"
 
     ambari_server.main()
@@ -405,7 +405,7 @@ class TestAmbariServer(TestCase):
     args = ["stop"]
     opm.parse_args.return_value = (options, args)
 
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sid"
 
     ambari_server.main()
@@ -431,7 +431,7 @@ class TestAmbariServer(TestCase):
     options = MagicMock()
     args = ["reset"]
     opm.parse_args.return_value = (options, args)
-    options.database = None
+    options.dbms = None
     options.sid_or_sname = "sid"
 
     ambari_server.main()
@@ -2082,7 +2082,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     ambari_server.load_default_db_properties(args)
     ambari_server.prompt_db_properties(args)
-    self.assertEqual(args.database, "postgres")
+    self.assertEqual(args.dbms, "postgres")
     self.assertEqual(args.database_host, "localhost")
     self.assertEqual(args.database_name, "ambari")
     self.assertEqual(args.database_port, "5432")
@@ -2106,7 +2106,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     ambari_server.load_default_db_properties(args)
     ambari_server.prompt_db_properties(args)
-    self.assertEqual(args.database, "oracle")
+    self.assertEqual(args.dbms, "oracle")
     self.assertEqual(args.database_port, "1521")
     self.assertEqual(args.database_host, "localhost")
     self.assertEqual(args.database_name, "ambari")
@@ -2132,7 +2132,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     ambari_server.load_default_db_properties(args)
     ambari_server.prompt_db_properties(args)
-    self.assertEqual(args.database, "oracle")
+    self.assertEqual(args.dbms, "oracle")
     self.assertEqual(args.database_port, "1521")
     self.assertEqual(args.database_host, "localhost")
     self.assertEqual(args.database_name, "ambari")
@@ -2158,7 +2158,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     ambari_server.load_default_db_properties(args)
     ambari_server.prompt_db_properties(args)
-    self.assertEqual(args.database, "postgres")
+    self.assertEqual(args.dbms, "postgres")
     self.assertEqual(args.database_port, "5432")
     self.assertEqual(args.database_host, "localhost")
     self.assertEqual(args.database_name, "ambari")
@@ -2542,7 +2542,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Remote DB
     args.persistence_type = "remote"
-    args.database = "oracle"
+    args.dbms = "oracle"
 
     # Case when jdbc driver is not used
     find_jdbc_driver_mock.return_value = -1
@@ -2760,9 +2760,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_ambari_classpath_mock.called)
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp '
-        'test:path12:/etc/conf org.apache.ambari.server.upgrade.StackUpgradeHelper '
-        'updateStackId ' + json.dumps(stackIdMap))
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
+                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
+        'updateStackId ' + json.dumps(stackIdMap) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
 
   @patch.object(ambari_server, 'get_conf_dir')
@@ -2782,9 +2782,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_ambari_classpath_mock.called)
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp '
-        'test:path12:/etc/conf org.apache.ambari.server.upgrade.SchemaUpgradeHelper '
-        '1.4.9.40')
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
+                                           'org.apache.ambari.server.upgrade.SchemaUpgradeHelper 1.4.9.40 '
+                                           '> /var/log/ambari-server/ambari-server.out 2>&1')
 
 
   @patch.object(ambari_server, 'get_conf_dir')
@@ -2805,9 +2805,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_ambari_classpath_mock.called)
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp '
-        'test:path12:/etc/conf org.apache.ambari.server.upgrade.StackUpgradeHelper '
-        'updateMetaInfo ' + json.dumps(json_map))
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
+                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper updateMetaInfo ' +
+                                           json.dumps(json_map) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
 
   @patch("__builtin__.open")
@@ -2923,7 +2923,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     ambari_server.load_default_db_properties(args)
 
-    self.assertEquals(args.database, "postgres")
+    self.assertEquals(args.dbms, "postgres")
     self.assertEquals(args.database_host, "localhost")
     self.assertEquals(args.database_port, "5432")
     self.assertEquals(args.database_name, "ambari")
@@ -2933,7 +2933,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     ambari_server.DATABASE_INDEX = 1
     ambari_server.load_default_db_properties(args)
-    self.assertEquals(args.database, "oracle")
+    self.assertEquals(args.dbms, "oracle")
     self.assertEquals(args.database_port, "1521")
 
     failed = False
@@ -3082,7 +3082,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertTrue(load_default_db_properties_mock.called)
 
-    self.assertEquals(args.database, "postgres")
+    self.assertEquals(args.dbms, "postgres")
 
     load_default_db_properties_mock.reset_mock()
     get_validated_string_input_mock.reset_mock()
@@ -3101,7 +3101,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     #success
     run_in_shell_mock.return_value = (0, None, None)
     get_db_cli_tool_mock.return_value = "tool"
-    args.database = "postgres"
+    args.dbms = "postgres"
     args.database_password = "some_password"
 
     retcode, out, err = ambari_server.execute_remote_script(args, script)
@@ -3136,7 +3136,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_in_shell_mock.return_value = (0, None, None)
     get_db_cli_tool_mock.called = False
     run_in_shell_mock.called = False
-    args.database = "unknown"
+    args.dbms = "unknown"
 
     retcode, out, err = ambari_server.execute_remote_script(args, script)
     self.assertEquals(retcode, -2)
@@ -3341,7 +3341,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     import optparse
 
     args = optparse.Values()
-    args.database = "oracle"
+    args.dbms = "oracle"
     args.database_host = "localhost"
     args.database_port = "1234"
     args.database_name = "ambari"
@@ -3446,7 +3446,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_PROPERTY: resources_dir}
     find_jdbc_driver_mock.return_value = drivers_list
 
-    args.database = "oracle"
+    args.dbms = "oracle"
 
     rcode = ambari_server.check_jdbc_drivers(args)
 
@@ -3582,7 +3582,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     find_jdbc_driver_mock.return_value = drivers_list
     copy_files_mock.return_value = 0
 
-    args.database = "oracle"
+    args.dbms = "oracle"
 
     rcode = ambari_server.check_jdbc_drivers(args)
 

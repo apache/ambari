@@ -64,6 +64,7 @@ import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewInstanceDefinition;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Connector;
@@ -464,7 +465,7 @@ public class AmbariServer {
       serverVersion = ambariMetaInfo.getServerVersion();
     }
 
-    if (schemaVersionEntity==null || !schemaVersion.equals(serverVersion)) {
+    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 3) != 0) {
       String error = "Current database store version is not compatible with " +
           "current server version"
           + ", serverVersion=" + serverVersion

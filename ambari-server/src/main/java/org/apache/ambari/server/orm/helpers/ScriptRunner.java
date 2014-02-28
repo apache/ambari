@@ -216,7 +216,9 @@ public class ScriptRunner {
       printlnError(e);
       throw e;
     } finally {
-      conn.rollback();
+      if (!autoCommit) {
+        conn.rollback();
+      }
       flush();
     }
   }

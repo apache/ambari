@@ -223,15 +223,10 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     // Alter columns
 
     if (getDbType().equals(Configuration.POSTGRES_DB_NAME)) {
-      try {
-        dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;");
-        dbAccessor.executeQuery("ALTER TABLE users ALTER column user_id DROP DEFAULT;");
-        dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END;");
-        dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info;");
-      } catch (SQLException e) {
-        LOG.warn("Error encountered while altering schema. ", e);
-        // continue updates
-      }
+      dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;", true);
+      dbAccessor.executeQuery("ALTER TABLE users ALTER column user_id DROP DEFAULT;", true);
+      dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END;", true);
+      dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info;", true);
     }
 
     //Move tables from ambarirca db to ambari db; drop ambarirca; Mysql
@@ -259,8 +254,8 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("configgroup", "FK_configgroup_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cg_cluster_cm_config_tag", new String[] {"version_tag", "config_type", "cluster_id"}, "clusterconfig", new String[] {"version_tag", "type_name", "cluster_id"}, true);
     dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cg_cluster_cm_group_id", "config_group_id", "configgroup", "group_id", true);
-    dbAccessor.addFKConstraint("confgrouphostmapping", "FK_cghostm_configgroup_id", "config_group_id", "configgroup", "group_id", true);
-    dbAccessor.addFKConstraint("confgrouphostmapping", "FK_cghostm_host_name", "host_name", "hosts", "host_name", true);
+    dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_configgroup_id", "config_group_id", "configgroup", "group_id", true);
+    dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
 
     // ========================================================================
@@ -436,18 +431,18 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       "SELECT 'host_role_command_id_seq', COALESCE((SELECT max(task_id) FROM host_role_command), 1) + 50 " +
       "UNION ALL " +
       "SELECT 'configgroup_id_seq', 1";
+    //TODO verify issue with configgroup_id_seq which was added later, possibly need to be added for mysql and oracle and separated for postgres
   }
 
   private String getPostgresRequestUpgradeQuery() {
-    return "insert into request" +
-      "(request_id, cluster_id, request_context, start_time, end_time, create_time) " +
-      "(select distinct s.request_id, s.cluster_id, s.request_context, " +
-      "coalesce (cmd.start_time, -1), coalesce (cmd.end_time, -1), -1 " +
-      "from " +
-      "(select distinct request_id, cluster_id, request_context from stage ) s " +
-      "left join " +
-      "(select request_id, min(start_time) as start_time, max(end_time) " +
-      "as end_time from host_role_command group by request_id) cmd";
+    return "insert into ambari.request(request_id, cluster_id, request_context, start_time, end_time, create_time) (\n" +
+      "  select distinct s.request_id, s.cluster_id, s.request_context, coalesce (cmd.start_time, -1), coalesce (cmd.end_time, -1), -1\n" +
+      "  from\n" +
+      "    (select distinct request_id, cluster_id, request_context from ambari.stage ) s\n" +
+      "    left join\n" +
+      "    (select request_id, min(start_time) as start_time, max(end_time) as end_time from ambari.host_role_command group by request_id) cmd\n" +
+      "    on s.request_id=cmd.request_id\n" +
+      ")";
   }
 
   private String getOracleRequestUpgradeQuery() {
@@ -490,10 +485,6 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       LOG.error("Error reading file.", e);
     }
 
-    // TODO: Verify if this is necessary and possible
-    if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
-      grantAllPostgresPrivileges();
-    }
   }
 
   @Override

@@ -99,17 +99,18 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   /**
    * Update metainfo to new version.
    */
-  protected int updateMetaInfoVersion(String version) {
+  public int updateMetaInfoVersion(String version) {
+    //TODO verify version/server version usage
     String ambariServerVersion = getAmbariServerVersion();
     int rows = 0;
 
     if (ambariServerVersion != null) {
       try {
-        dbAccessor.executeQuery("INSERT INTO metainfo ('metainfo_key', " +
-          "'metainfo_value') VALUES ('version', '${ambariVersion}')");
+        dbAccessor.executeQuery(String.format("INSERT INTO metainfo (metainfo_key, " +
+          "metainfo_value) VALUES ('version', '%s')", version), true);
 
         rows = dbAccessor.updateTable("metainfo", "metainfo_value",
-          ambariServerVersion, String.format("WHERE metainfo_key = '%s'", version));
+          version, "WHERE metainfo_key = 'version'");
       } catch (SQLException e) {
         LOG.error("Failed updating metainfo table.", e);
       }
@@ -160,16 +161,14 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     String dbUser = configuration.getDatabaseUser();
     String dbName = configuration.getServerDBName();
 
+    //wrap username with double quotes to accept old username "ambari-server"
+    if (!dbUser.contains("\"")) {
+      dbUser = String.format("\"%s\"", dbUser);
+    }
+
     dbAccessor.executeQuery(String.format("ALTER SCHEMA %s OWNER TO %s;", dbName, dbUser));
 
     dbAccessor.executeQuery(String.format("ALTER ROLE %s SET search_path to '%s';", dbUser, dbName));
-  }
-
-  protected void grantAllPostgresPrivileges() throws SQLException {
-    String query = "GRANT ALL PRIVILEGES ON DATABASE ambari TO " +
-      configuration.getDatabaseUser();
-
-    dbAccessor.executeQuery(query);
   }
 
   @Override

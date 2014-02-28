@@ -178,12 +178,12 @@ SECURITY_PROVIDER_KEY_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
 SCHEMA_UPGRADE_HELPER_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" +\
-                          " {3}"
+                          " {3} > " + SERVER_OUT_FILE + " 2>&1"
 
 STACK_UPGRADE_HELPER_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.upgrade.StackUpgradeHelper" +\
-                          " {3} {4}"
+                          " {3} {4} > " + SERVER_OUT_FILE + " 2>&1"
 
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
@@ -239,6 +239,8 @@ SETUP_DB_CMD = ['su', '-', 'postgres',
 UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 
+CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
+                        '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
 
 PG_ERROR_BLOCKED = "is being accessed by other users"
 PG_STATUS_RUNNING = "running"
@@ -263,6 +265,8 @@ POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
 
 SERVER_VERSION_FILE_PATH = "server.version.file"
 
+#TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
+# has workaround for now, as we don't need dbms name if persistence_type=local
 JDBC_DATABASE_PROPERTY = "server.jdbc.database"
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
@@ -1127,7 +1131,7 @@ def get_pass_file_path(conf_file):
 
 # Set database properties to default values
 def load_default_db_properties(args):
-  args.database=DATABASE_NAMES[DATABASE_INDEX]
+  args.dbms=DATABASE_NAMES[DATABASE_INDEX]
   args.database_host = "localhost"
   args.database_port = DATABASE_PORTS[DATABASE_INDEX]
   args.database_name = DEFAULT_DB_NAME
@@ -1159,9 +1163,9 @@ def prompt_db_properties(args):
       )
 
       DATABASE_INDEX = int(database_num) - 1
-      args.database = DATABASE_NAMES[DATABASE_INDEX]
+      args.dbms = DATABASE_NAMES[DATABASE_INDEX]
       
-      if args.database != "postgres" :
+      if args.dbms != "postgres" :
         args.database_host = get_validated_string_input(
           "Hostname (" + args.database_host + "): ",
           args.database_host,
@@ -1179,7 +1183,7 @@ def prompt_db_properties(args):
           False
         )
 
-        if args.database == "oracle":
+        if args.dbms == "oracle":
           # Oracle uses service name or service id
           idType = "1"
           idType = get_validated_string_input(
@@ -1197,7 +1201,7 @@ def prompt_db_properties(args):
           IDTYPE_INDEX = int(idType) - 1
           args.database_name = get_validated_service_name(args.database_name, 
                                                           IDTYPE_INDEX)
-        elif args.database == "mysql":
+        elif args.dbms == "mysql":
           args.database_name = get_validated_db_name(args.database_name)
 
         else:
@@ -1223,7 +1227,7 @@ def prompt_db_properties(args):
       args.database_password =  configure_database_password(True)
 
   print_info_msg('Using database options: {database},{host},{port},{schema},{user},{password}'.format(
-    database=args.database,
+    database=args.dbms,
     host=args.database_host,
     port=args.database_port,
     schema=args.database_name,
@@ -1243,7 +1247,7 @@ def store_remote_properties(args):
 
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
 
-  properties.process_pair(JDBC_DATABASE_PROPERTY, args.database)
+  properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
   properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
   properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
   properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
@@ -1339,7 +1343,7 @@ def execute_remote_script(args, scriptPath):
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return -1, "Client wasn't found", "Client wasn't found"
 
-  if args.database == "postgres":
+  if args.dbms == "postgres":
 
     os.environ["PGPASSWORD"] = args.database_password
     retcode, out, err = run_in_shell('{0} {1}'.format(tool,  POSTGRES_EXEC_ARGS.format(
@@ -1350,7 +1354,7 @@ def execute_remote_script(args, scriptPath):
       scriptPath
     )))
     return retcode, out, err
-  elif args.database == "oracle":
+  elif args.dbms == "oracle":
     sid_or_sname = "sid"
     if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
         (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
@@ -1367,7 +1371,7 @@ def execute_remote_script(args, scriptPath):
       sid_or_sname
     )))
     return retcode, out, err
-  elif args.database == "mysql":
+  elif args.dbms == "mysql":
     MYSQL_EXEC_ARGS = MYSQL_EXEC_ARGS_WO_USER_VARS if MYSQL_INIT_SCRIPT == scriptPath else MYSQL_EXEC_ARGS_WITH_USER_VARS
     retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
       args.database_host,
@@ -1380,6 +1384,7 @@ def execute_remote_script(args, scriptPath):
     return retcode, out, err
 
   return -2, "Wrong database", "Wrong database"
+
 
 def configure_database_password(showDefault=True):
   passwordDefault = PG_DEFAULT_PASSWORD
@@ -1396,10 +1401,11 @@ def configure_database_password(showDefault=True):
 
   return password
 
+
 def check_database_name_property():
   properties = get_ambari_properties()
   if properties == -1:
-    print_error_msg ("Error getting ambari properties")
+    print_error_msg("Error getting ambari properties")
     return -1
 
   dbname = properties[JDBC_DATABASE_PROPERTY]
@@ -1432,6 +1438,7 @@ def configure_database_username_password(args):
   else:
     print_error_msg("Connection properties not set in config file.")
 
+
 # Check if jdbc user is changed
 def is_jdbc_user_changed(args):
   properties = get_ambari_properties()
@@ -1449,6 +1456,7 @@ def is_jdbc_user_changed(args):
       return False
 
   return None
+
 
 # Store local database connection properties
 def store_local_properties(args):
@@ -1518,13 +1526,13 @@ def parse_properties_file(args):
     args.persistence_type = "local"
 
   if args.persistence_type == 'remote':
-    args.database = properties[JDBC_DATABASE_PROPERTY]
+    args.dbms = properties[JDBC_DATABASE_PROPERTY]
     args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
     args.database_port = properties[JDBC_PORT_PROPERTY]
     args.database_name = properties[JDBC_SCHEMA_PROPERTY]
     global DATABASE_INDEX
     try:
-      DATABASE_INDEX = DATABASE_NAMES.index(args.database)
+      DATABASE_INDEX = DATABASE_NAMES.index(args.dbms)
     except ValueError:
       pass
   else:
@@ -2010,7 +2018,7 @@ def find_jdk():
 # Checks if options determine local DB configuration
 #
 def is_local_database(options):
-  if options.database == DATABASE_NAMES[0] \
+  if options.dbms == DATABASE_NAMES[0] \
     and options.database_host == "localhost" \
     and options.database_port == DATABASE_PORTS[0]:
     return True
@@ -2018,9 +2026,9 @@ def is_local_database(options):
 
 #Check if required jdbc drivers present
 def find_jdbc_driver(args):
-  if args.database in JDBC_PATTERNS.keys():
+  if args.dbms in JDBC_PATTERNS.keys():
     drivers = []
-    drivers.extend(glob.glob(JAVA_SHARE_PATH + os.sep + JDBC_PATTERNS[args.database]))
+    drivers.extend(glob.glob(JAVA_SHARE_PATH + os.sep + JDBC_PATTERNS[args.dbms]))
     if drivers:
       return drivers
     return -1
@@ -2062,7 +2070,7 @@ def check_jdbc_drivers(args):
   
   msg = 'Before starting Ambari Server, ' \
         'you must copy the {0} JDBC driver JAR file to {1}.'.format(
-        DATABASE_FULL_NAMES[args.database],
+        DATABASE_FULL_NAMES[args.dbms],
         JAVA_SHARE_PATH)
 
   
@@ -2352,7 +2360,7 @@ def start(args):
     result = find_jdbc_driver(args)
     msg = 'Before starting Ambari Server, ' \
           'you must copy the {0} JDBC driver JAR file to {1}.'.format(
-          DATABASE_FULL_NAMES[args.database],
+          DATABASE_FULL_NAMES[args.dbms],
           JAVA_SHARE_PATH)
     if result == -1:
       raise FatalException(-1, msg)
@@ -2563,6 +2571,27 @@ def upgrade_local_repo(args):
     run_metainfo_upgrade(metainfo_update_items)
 
 
+def change_objects_owner(args):
+  print 'Fixing database objects owner'
+  database_name = args.database_name
+  new_owner = args.database_username
+  if '"' not in new_owner:
+    #wrap to allow old username "ambari-server", postgres only
+    new_owner = '\'"{0}"\''.format(new_owner)
+    pass
+
+  command = CHANGE_OWNER_COMMAND[:]
+  command[-1] = command[-1].format(database_name, 'ambari', new_owner)
+  return run_os_command(command)
+
+
+def compare_versions(version1, version2):
+  def normalize(v):
+    return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
+  return cmp(normalize(version1), normalize(version2))
+  pass
+
+
 def run_schema_upgrade(version):
   jdk_path = find_jdk()
   if jdk_path is None:
@@ -2570,8 +2599,7 @@ def run_schema_upgrade(version):
                     "command to install a JDK automatically or install any "
                     "JDK manually to " + JDK_INSTALL_DIR)
     return 1
-  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_ambari_classpath(),
-                                             get_conf_dir(), version)
+  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(), version)
   (retcode, stdout, stderr) = run_os_command(command)
   print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
   if retcode > 0:
@@ -2588,8 +2616,8 @@ def run_stack_upgrade(stackName, stackVersion):
   stackId = {}
   stackId[stackName] = stackVersion
 
-  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_ambari_classpath(),
-                                            get_conf_dir(), "updateStackId",
+  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
+                                             "updateStackId",
                                             json.dumps(stackId))
   (retcode, stdout, stderr) = run_os_command(command)
   print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
@@ -2606,8 +2634,8 @@ def run_metainfo_upgrade(keyValueMap = None):
 
   retcode = 1
   if keyValueMap:
-    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_ambari_classpath(),
-                                              get_conf_dir(), 'updateMetaInfo',
+    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
+                                              'updateMetaInfo',
                                               json.dumps(keyValueMap))
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
@@ -2657,12 +2685,19 @@ def upgrade(args):
       server_version = f.read()
 
   if not server_version:
-    raise FatalException('Cannot determine server version from version file '
+    raise FatalException(10, 'Cannot determine server version from version file '
                          '%s' % args.server_version_file_path)
+
+  #fix local database objects owner in pre 1.5.0
+  #TODO check database version
+  if args.persistence_type == 'local':
+    retcode, stdout, stderr = change_objects_owner(args)
+    if not retcode == 0:
+      raise FatalException(20, 'Unable to change owner of database objects')
 
   retcode = run_schema_upgrade(server_version.strip())
   if not retcode == 0:
-    raise FatalException('Scehma upgrade failed.')
+    raise FatalException(11, 'Schema upgrade failed.')
 
   user = read_ambari_user()
   if user is None:
@@ -3923,7 +3958,7 @@ def main():
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
 
-  parser.add_option('--database', default=None, help ="Database to use postgres|oracle", dest="database")
+  parser.add_option('--database', default=None, help ="Database to use postgres|oracle", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
   parser.add_option('--databasename', default=None, help="Database/Schema/Service name or ServiceID",
@@ -3952,7 +3987,7 @@ def main():
 
   options.warnings = []
 
-  if options.database is None \
+  if options.dbms is None \
     and options.database_host is None \
     and options.database_port is None \
     and options.database_name is None \
@@ -3961,7 +3996,7 @@ def main():
 
     PROMPT_DATABASE_OPTIONS = True
 
-  elif not (options.database is not None
+  elif not (options.dbms is not None
     and options.database_host is not None
     and options.database_port is not None
     and options.database_name is not None
@@ -3970,12 +4005,12 @@ def main():
     parser.error('All database options should be set. Please see help for the options.')
 
   #correct database
-  if options.database is not None and options.database not in DATABASE_NAMES:
+  if options.dbms is not None and options.dbms not in DATABASE_NAMES:
     parser.print_help()
-    parser.error("Unsupported Database " + options.database)
-  elif options.database is not None:
-    options.database = options.database.lower()
-    DATABASE_INDEX = DATABASE_NAMES.index(options.database)
+    parser.error("Unsupported Database " + options.dbms)
+  elif options.dbms is not None:
+    options.dbms = options.dbms.lower()
+    DATABASE_INDEX = DATABASE_NAMES.index(options.dbms)
 
   #correct port
   if options.database_port is not None:
@@ -3990,7 +4025,7 @@ def main():
       parser.print_help()
       parser.error("Incorrect database port " + options.database_port)
 
-  if options.database is not None and options.database == "postgres":
+  if options.dbms is not None and options.dbms == "postgres":
     print "WARNING: HostName for postgres server " + options.database_host + \
      " will be ignored: using localhost."
     options.database_host = "localhost"

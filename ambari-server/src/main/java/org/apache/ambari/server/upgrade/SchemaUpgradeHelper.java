@@ -25,11 +25,14 @@ import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,15 +45,19 @@ public class SchemaUpgradeHelper {
     (SchemaUpgradeHelper.class);
 
   private Set<UpgradeCatalog> allUpgradeCatalogs;
-  private MetainfoDAO metainfoDAO;
   private PersistService persistService;
+  private DBAccessor dbAccessor;
+  private Configuration configuration;
 
   @Inject
-  public SchemaUpgradeHelper(Set<UpgradeCatalog> allUpgradeCatalogs, MetainfoDAO metainfoDAO,
-                             PersistService persistService) {
+  public SchemaUpgradeHelper(Set<UpgradeCatalog> allUpgradeCatalogs,
+                             PersistService persistService,
+                             DBAccessor dbAccessor,
+                             Configuration configuration) {
     this.allUpgradeCatalogs = allUpgradeCatalogs;
-    this.metainfoDAO = metainfoDAO;
     this.persistService = persistService;
+    this.dbAccessor = dbAccessor;
+    this.configuration = configuration;
   }
 
   private void startPersistenceService() {
@@ -68,17 +75,19 @@ public class SchemaUpgradeHelper {
   private String readSourceVersion() {
     String sourceVersion = null;
 
-    MetainfoEntity metainfoEntity = metainfoDAO.findByKey
-      (Configuration.SERVER_VERSION_KEY);
-
-    if (metainfoEntity != null) {
-      String version = metainfoEntity.getMetainfoValue();
-      if (version != null) {
-        sourceVersion = VersionUtils.getVersionSubstring(version);
+    try {
+      ResultSet resultSet = dbAccessor.executeSelect("SELECT metainfo_value from metainfo WHERE metainfo_key='version'");
+      if (resultSet.next()) {
+        return resultSet.getString(1);
+      } else {
+        //not found, assume oldest version
+        //doesn't matter as there single upgrade catalog for 1.2.0 - 1.5.0 and 1.4.4 - 1.5.0 upgrades
+        return "1.2.0";
       }
+    } catch (SQLException e) {
+      throw new RuntimeException("Unable to read database version", e);
     }
 
-    return sourceVersion;
   }
 
   /**

@@ -21,6 +21,7 @@ import org.eclipse.persistence.sessions.DatabaseSession;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -152,6 +153,14 @@ public interface DBAccessor {
    * @throws SQLException
    */
   public void executeQuery(String query) throws SQLException;
+
+  /**
+   * Execute select query
+   * @param query
+   * @return
+   * @throws SQLException
+   */
+  ResultSet executeSelect(String query) throws SQLException;
 
   /**
    * Execute query on DB

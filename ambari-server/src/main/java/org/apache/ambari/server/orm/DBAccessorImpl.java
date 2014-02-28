@@ -110,12 +110,23 @@ public class DBAccessorImpl implements DBAccessor {
     }
   }
 
-  private DatabaseMetaData getDatabaseMetaData() throws SQLException {
+  protected DatabaseMetaData getDatabaseMetaData() throws SQLException {
     if (databaseMetaData == null) {
       databaseMetaData = connection.getMetaData();
     }
 
     return databaseMetaData;
+  }
+
+  private String convertObjectName(String objectName) throws SQLException {
+    DatabaseMetaData metaData = getDatabaseMetaData();
+    if (metaData.storesLowerCaseIdentifiers()) {
+      return objectName.toLowerCase();
+    }else if (metaData.storesUpperCaseIdentifiers()) {
+      return objectName.toUpperCase();
+    }
+
+    return objectName;
   }
 
   @Override
@@ -129,7 +140,7 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     ResultSet res = metaData.getTables(null, schemaFilter,
-      tableName.toUpperCase(), new String[] { "TABLE" });
+      convertObjectName(tableName), new String[] { "TABLE" });
 
     if (res != null) {
       try {
@@ -172,7 +183,7 @@ public class DBAccessorImpl implements DBAccessor {
     boolean retVal = false;
     if (rs != null) {
       if (rs.next()) {
-        return rs.getInt(0) > 0;
+        return rs.getInt(1) > 0;
       }
     }
     return retVal;
@@ -189,7 +200,7 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     ResultSet rs = metaData.getColumns(null, schemaFilter,
-        tableName.toUpperCase(), columnName.toUpperCase());
+        convertObjectName(tableName), convertObjectName(columnName));
 
     if (rs != null) {
       try {
@@ -216,14 +227,16 @@ public class DBAccessorImpl implements DBAccessor {
       schemaFilter = configuration.getDatabaseUser();
     }
 
-    ResultSet rs = metaData.getCrossReference(null, schemaFilter, tableName,
-      null, schemaFilter, refTableName);
+    ResultSet rs = metaData.getCrossReference(null, schemaFilter, convertObjectName(tableName),
+      null, schemaFilter, convertObjectName(refTableName));
 
     if (rs != null) {
       try {
-        if (rs.next()) {
+        while (rs.next()) {
           String refColumn = rs.getString("FKCOLUMN_NAME");
-          result = refColumn != null && refColumn.equalsIgnoreCase(refColumnName);
+          if (refColumn != null && refColumn.equalsIgnoreCase(refColumnName)) {
+            result = true;
+          }
         }
       } finally {
         rs.close();
@@ -394,7 +407,14 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public ResultSet executeSelect(String query) throws SQLException {
+    Statement statement = getConnection().createStatement();
+    return statement.executeQuery(query);
+  }
+
+  @Override
   public void executeQuery(String query, boolean ignoreFailure) throws SQLException {
+    LOG.info("Executing query: {}", query);
     Statement statement = getConnection().createStatement();
     try {
       statement.execute(query);
@@ -441,15 +461,20 @@ public class DBAccessorImpl implements DBAccessor {
    */
   public void executeScript(String filePath) throws SQLException, IOException {
     BufferedReader br = new BufferedReader(new FileReader(filePath));
-    ScriptRunner scriptRunner = new ScriptRunner(getConnection(), true, false);
+    ScriptRunner scriptRunner = new ScriptRunner(getConnection(), false, false);
     scriptRunner.runScript(br);
   }
 
   @Override
   public DatabaseSession getNewDatabaseSession() {
-    Login login = new DatabaseLogin();
+    DatabaseLogin login = new DatabaseLogin();
     login.setUserName(configuration.getDatabaseUser());
     login.setPassword(configuration.getDatabasePassword());
+    login.setDatasourcePlatform(databasePlatform);
+    login.setDatabaseURL(configuration.getDatabaseUrl());
+    login.setDriverClassName(configuration.getDatabaseDriver());
+
+
     return new DatabaseSessionImpl(login);
   }
 }
