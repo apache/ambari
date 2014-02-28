@@ -261,6 +261,13 @@ class TestHiveServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+      owner = 'hive',
+      group = 'hadoop',
+      mode = 0600,
+      conf_dir = '/etc/hive/conf.server',
+      configurations = self.getConfig()['configurations']['mapred-site'],
+    )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
@@ -346,6 +353,13 @@ class TestHiveServer(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
       recursive = True,
+    )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+      owner = 'hive',
+      group = 'hadoop',
+      mode = 0600,
+      conf_dir = '/etc/hive/conf.server',
+      configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
