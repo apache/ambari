@@ -1446,6 +1446,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       case 'storm.zookeeper.servers':
         return JSON.stringify(value).replace(/"/g, "'");
         break;
+      case 'content':
+        return value;
+        break;
       default:
         return App.config.escapeXMLCharacters(value);
     }

@@ -60,7 +60,7 @@ App.config = Em.Object.create({
    */
   escapeXMLCharacters: function(value) {
     var self = this;
-    // To prevent double/triple replacing '&gt;' to '&gt;gt;' to '&gt;gt;gt', we need
+    // To prevent double/triple replacing '&gt;' to '&amp;gt;' to '&amp;amp;gt;', we need
     // to first unescape all XML chars, and then escape them again.
     var newValue = String(value).replace(/(&amp;|&lt;|&gt;|&quot;|&apos;)/g, function (s) {
       return self.xmlUnEscapeMap[s];
