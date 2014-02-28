@@ -127,7 +127,8 @@
 
           <td>{{host.loadAvg}}</td>
           <td>
-            <a href="#" class="host-components-expander" {{action toggleComponents target="view"}}> <span class="caret right"></span>{{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}</a>
+            <a href="#" class="host-components-expander" {{action toggleComponents target="view"}}> <span {{bindAttr class="view.isComponentsCollapsed:icon-caret-right:icon-caret-down"}}></span>
+              {{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}</a>
             <div id="host-{{unbound host.hostName}}" class="host-components">
               {{{view.labels}}}
             </div>

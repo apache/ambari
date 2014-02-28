@@ -206,10 +206,11 @@ App.MainHostView = App.TableView.extend({
     tagName: 'tr',
     didInsertElement: function(){
       App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']"));
+      this.set('isComponentsCollapsed', true);
     },
 
     toggleComponents: function(event) {
-      this.$(event.target).find('.caret').toggleClass('right');
+      this.set('isComponentsCollapsed', !this.get('isComponentsCollapsed'));
       this.$('.host-components').toggle();
     },
 
