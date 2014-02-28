@@ -18,6 +18,7 @@
 package org.apache.ambari.server.upgrade;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.persist.PersistService;
@@ -40,6 +41,8 @@ public class UpgradeCatalogTest {
   private AmbariMetaInfo metaInfo;
 
   private static class UpgradeCatalog149 extends AbstractUpgradeCatalog {
+
+    @Inject
     public UpgradeCatalog149(Injector injector) {
       super(injector);
     }
@@ -85,7 +88,7 @@ public class UpgradeCatalogTest {
     injector.getInstance(PersistService.class).stop();
   }
 
-  @Ignore
+
   @Test
   public void testUpgradePath() throws Exception {
     SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance

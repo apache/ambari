@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -44,6 +45,7 @@ import static org.junit.matchers.JUnitMatchers.containsString;
 
 public class DBAccessorImplTest {
   private Injector injector;
+  private static final AtomicInteger counter = new AtomicInteger(1);
 
   @Rule
   public ExpectedException exception = ExpectedException.none();
@@ -56,6 +58,10 @@ public class DBAccessorImplTest {
   @After
   public void tearDown() throws Exception {
 
+  }
+
+  private static String getFreeTableName() {
+    return "test_table_" + counter.getAndIncrement();
   }
 
   private void createMyTable(String tableName) throws Exception {
@@ -71,13 +77,14 @@ public class DBAccessorImplTest {
 
   @Test
   public void testCreateTable() throws Exception {
-    createMyTable("mytable1");
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    statement.execute("insert into mytable1(id, name) values(1,'hello')");
+    statement.execute(String.format("insert into %s(id, name) values(1,'hello')", tableName));
 
-    ResultSet resultSet = statement.executeQuery("select * from mytable1");
+    ResultSet resultSet = statement.executeQuery(String.format("select * from %s", tableName));
 
     int count = 0;
     while (resultSet.next()) {
@@ -90,23 +97,25 @@ public class DBAccessorImplTest {
 
   @Test
   public void testAddFKConstraint() throws Exception {
-    createMyTable("mytable2");
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
     List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
     columns.add(new DBColumnInfo("fname", String.class, null, null, false));
 
-    dbAccessor.createTable("foreigntable", columns, "fid");
+    String foreignTableName = getFreeTableName();
+    dbAccessor.createTable(foreignTableName, columns, "fid");
 
-    dbAccessor.addFKConstraint("foreigntable", "MYFKCONSTRAINT", "fid",
-      "mytable2", "id", false);
+    dbAccessor.addFKConstraint(foreignTableName, "MYFKCONSTRAINT", "fid",
+      tableName, "id", false);
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    statement.execute("insert into mytable2(id, name) values(1,'hello')");
-    statement.execute("insert into foreigntable(fid, fname) values(1,'howdy')");
+    statement.execute("insert into " + tableName + "(id, name) values(1,'hello')");
+    statement.execute("insert into " + foreignTableName + "(fid, fname) values(1,'howdy')");
 
-    ResultSet resultSet = statement.executeQuery("select * from foreigntable");
+    ResultSet resultSet = statement.executeQuery("select * from " + foreignTableName);
 
     int count = 0;
     while (resultSet.next()) {
@@ -118,23 +127,24 @@ public class DBAccessorImplTest {
 
     exception.expect(SQLException.class);
     exception.expectMessage(containsString("MYFKCONSTRAINT"));
-    dbAccessor.dropTable("mytable2");
+    dbAccessor.dropTable(tableName);
   }
 
   @Test
   public void testAddColumn() throws Exception {
-    createMyTable("mytable3");
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
     DBColumnInfo dbColumnInfo = new DBColumnInfo("description", String.class,
       null, null, true);
 
-    dbAccessor.addColumn("mytable3", dbColumnInfo);
+    dbAccessor.addColumn(tableName, dbColumnInfo);
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    statement.execute("update mytable3 set description = 'blah' where id = 1");
+    statement.execute("update " + tableName + " set description = 'blah' where id = 1");
 
-    ResultSet resultSet = statement.executeQuery("select description from mytable3");
+    ResultSet resultSet = statement.executeQuery("select description from " + tableName);
 
     while (resultSet.next()) {
       assertEquals(resultSet.getString("description"), "blah");
@@ -144,13 +154,14 @@ public class DBAccessorImplTest {
 
   @Test
   public void testUpdateTable() throws Exception {
-    createMyTable("mytable4");
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    dbAccessor.updateTable("mytable4", "name", "blah", "where id = 1");
+    dbAccessor.updateTable(tableName, "name", "blah", "where id = 1");
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery("select name from mytable4");
+    ResultSet resultSet = statement.executeQuery("select name from " + tableName);
 
     while (resultSet.next()) {
       assertEquals(resultSet.getString("name"), "blah");
@@ -158,17 +169,63 @@ public class DBAccessorImplTest {
     resultSet.close();
   }
 
+
+  @Ignore // Not working with derby db driver
   @Test
-  public void testRenameColumn() throws Exception {
-    createMyTable("mytable6");
+  public void testTableHasFKConstraint() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    dbAccessor.executeQuery("insert into mytable6(id, name, time) values(1, 'Bob', 1234567)");
+    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("fname", String.class, null, null, false));
 
-    dbAccessor.renameColumn("mytable6", "time", new DBColumnInfo("new_time", Long.class, 0, null, true));
+    String foreignTableName = getFreeTableName();
+    dbAccessor.createTable(foreignTableName, columns, "fid");
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery("select new_time from mytable6 where id=1");
+    statement.execute("ALTER TABLE " + foreignTableName + " ADD CONSTRAINT FK_test FOREIGN KEY (fid) REFERENCES " +
+      tableName + " (id)");
+
+    Assert.assertTrue(dbAccessor.tableHasForeignKey(foreignTableName,
+      tableName, "fid", "id"));
+  }
+
+  @Test
+  public void testTableExists() throws Exception {
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    Statement statement = dbAccessor.getConnection().createStatement();
+    String tableName = getFreeTableName();
+    statement.execute("Create table " + tableName + " (id VARCHAR(255))");
+
+    Assert.assertTrue(dbAccessor.tableExists(tableName));
+  }
+
+  @Test
+  public void testColumnExists() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    Assert.assertTrue(dbAccessor.tableHasColumn(tableName, "time"));
+  }
+
+  @Test
+  public void testRenameColumn() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    dbAccessor.executeQuery("insert into " + tableName + "(id, name, time) values(1, 'Bob', 1234567)");
+
+    dbAccessor.renameColumn(tableName, "time", new DBColumnInfo("new_time", Long.class, 0, null, true));
+
+    Statement statement = dbAccessor.getConnection().createStatement();
+    ResultSet resultSet = statement.executeQuery("select new_time from " + tableName + " where id=1");
     int count = 0;
     while (resultSet.next()) {
       count++;
@@ -181,26 +238,28 @@ public class DBAccessorImplTest {
 
   @Test
   public void testModifyColumn() throws Exception {
-    createMyTable("mytable7");
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    dbAccessor.executeQuery("insert into mytable7(id, name, time) values(1, 'Bob', 1234567)");
+    dbAccessor.executeQuery("insert into " + tableName + "(id, name, time) values(1, 'Bob', 1234567)");
 
-    dbAccessor.alterColumn("mytable7", new DBColumnInfo("name", String.class, 25000));
+    dbAccessor.alterColumn(tableName, new DBColumnInfo("name", String.class, 25000));
 
   }
 
   @Test
   public void testAddColumnWithDefault() throws Exception {
-    createMyTable("mytable8");
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    dbAccessor.executeQuery("insert into mytable8(id, name, time) values(1, 'Bob', 1234567)");
+    dbAccessor.executeQuery("insert into " + tableName + "(id, name, time) values(1, 'Bob', 1234567)");
 
-    dbAccessor.addColumn("mytable8", new DBColumnInfo("test", String.class, 1000, "test", false));
+    dbAccessor.addColumn(tableName, new DBColumnInfo("test", String.class, 1000, "test", false));
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery("select * from mytable8");
+    ResultSet resultSet = statement.executeQuery("select * from " + tableName);
     int count = 0;
     while (resultSet.next()) {
       assertEquals(resultSet.getString("test"), "test");
@@ -209,46 +268,6 @@ public class DBAccessorImplTest {
 
     assertEquals(count, 1);
 
-  }
-
-  @Ignore // Not working with derby db driver
-  @Test
-  public void testTableHasFKConstraint() throws Exception {
-    createMyTable("mytable5");
-
-    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
-
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("fname", String.class, null, null, false));
-
-    dbAccessor.createTable("foreigntable5", columns, "fid");
-
-    Statement statement = dbAccessor.getConnection().createStatement();
-    statement.execute("ALTER TABLE foreigntable5 ADD CONSTRAINT FK_test FOREIGN KEY (fid) REFERENCES mytable5 (id)");
-
-    Assert.assertTrue(dbAccessor.tableHasForeignKey("foreigntable5",
-      "mytable5", "fid", "id"));
-  }
-
-  @Test
-  public void testTableExists() throws Exception {
-    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
-
-    Statement statement = dbAccessor.getConnection().createStatement();
-    statement.execute("Create table testTable (id VARCHAR(255))");
-
-    Assert.assertTrue(dbAccessor.tableExists("testTable"));
-  }
-  
-  @Ignore
-  @Test
-  public void testColumnExists() throws Exception {
-    createMyTable("mytable6");
-
-    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
-
-    Assert.assertTrue(dbAccessor.tableHasColumn("mytable6", "time"));
   }
 
 }
