@@ -73,32 +73,49 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse</osType>
-          <package>
-            <type>rpm</type>
-            <name>php5-json</name>
-          </package>
+          <osType>suse11</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php5-json</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>sles11</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php5-json</name>
+            </package>
+          </packages>
         </osSpecific>
         <osSpecific>
           <osType>centos5</osType>
-          <package>
-            <type>rpm</type>
-            <name>php-pecl-json.x86_64</name>
-          </package>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php-pecl-json.x86_64</name>
+            </package>
+          </packages>
         </osSpecific>
         <osSpecific>
           <osType>redhat5</osType>
-          <package>
-            <type>rpm</type>
-            <name>php-pecl-json.x86_64</name>
-          </package>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php-pecl-json.x86_64</name>
+            </package>
+          </packages>
         </osSpecific>
         <osSpecific>
           <osType>oraclelinux5</osType>
-          <package>
-            <type>rpm</type>
-            <name>php-pecl-json.x86_64</name>
-          </package>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php-pecl-json.x86_64</name>
+            </package>
+          </packages>
         </osSpecific>
       </osSpecifics>
     </service>
