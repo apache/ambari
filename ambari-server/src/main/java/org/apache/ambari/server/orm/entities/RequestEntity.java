@@ -85,7 +85,7 @@ public class RequestEntity {
   @OneToMany(mappedBy = "request")
   private Collection<StageEntity> stages;
 
-  @OneToMany(mappedBy = "requestEntity")
+  @OneToMany(mappedBy = "requestEntity", cascade = CascadeType.ALL)
   private Collection<RequestResourceFilterEntity> resourceFilterEntities;
 
   @ManyToOne(cascade = {CascadeType.MERGE})
