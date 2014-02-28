@@ -118,4 +118,82 @@ describe('batch_scheduled_requests', function() {
 
   });
 
+  describe('#restartHostComponents', function() {
+
+    beforeEach(function() {
+      sinon.spy($, 'ajax');
+      App.testMode = true;
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+      App.testMode = false;
+    });
+
+    var tests = Em.A([
+      {
+        hostComponentList: Em.A([
+          Em.Object.create({
+            componentName: 'n1',
+            host: Em.Object.create({
+              hostName: 'h1'
+            })
+          }),
+          Em.Object.create({
+            componentName: 'n1',
+            host: Em.Object.create({
+              hostName: 'h2'
+            })
+          })
+        ]),
+        e: {
+          ajaxCalledOnce: true,
+          resource_filters: [{"component_name":"n1","hosts":"h1,h2"}]
+        },
+        m: '1 component on 2 hosts'
+      },
+      {
+        hostComponentList: Em.A([
+          Em.Object.create({
+            componentName: 'n1',
+            host: Em.Object.create({
+              hostName: 'h1'
+            })
+          }),
+          Em.Object.create({
+            componentName: 'n1',
+            host: Em.Object.create({
+              hostName: 'h2'
+            })
+          }),
+          Em.Object.create({
+            componentName: 'n2',
+            host: Em.Object.create({
+              hostName: 'h2'
+            })
+          })
+        ]),
+        e: {
+          ajaxCalledOnce: true,
+          resource_filters: [{"component_name":"n1","hosts":"h1,h2"},{"component_name":"n2","hosts":"h2"}]
+        },
+        m: '1 component on 2 hosts, 1 on 1 host'
+      }
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        batchUtils.restartHostComponents(test.hostComponentList);
+        expect($.ajax.calledOnce).to.equal(test.e.ajaxCalledOnce);
+        expect( JSON.parse($.ajax.args[0][0].data)['Requests/resource_filters']).to.eql(test.e.resource_filters);
+      });
+    });
+
+    it('Empty data', function() {
+      batchUtils.restartHostComponents([]);
+      expect($.ajax.called).to.equal(false);
+    });
+
+  });
+
 });

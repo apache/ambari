@@ -80,7 +80,7 @@ module.exports = {
 
   /**
    * Restart list of host components
-   * @param {Array} hostComponentsList list of host components should be restarted
+   * @param {*} hostComponentsList list of host components should be restarted
    */
   restartHostComponents: function(hostComponentsList) {
     /**
@@ -100,22 +100,32 @@ module.exports = {
       }
       componentToHostsMap[componentName].push(hc.get('host.hostName'));
     });
+    var resource_filters = [];
     for (var componentName in componentToHostsMap) {
-      App.ajax.send({
-        name: 'restart.service.hostComponents',
-        sender: {
-          successCallback: defaultSuccessCallback,
-          errorCallback: defaultErrorCallback
-        },
-        data: {
-          serviceName:  componentServiceMap[componentName],
-          componentName: componentName,
+      if (componentToHostsMap.hasOwnProperty(componentName)) {
+        resource_filters.push({
+          service_name:  componentServiceMap[componentName],
+          component_name: componentName,
           hosts: componentToHostsMap[componentName].join(",")
-        },
-        success: 'successCallback',
-        error: 'errorCallback'
-      });
+        });
+      }
     }
+    if (!resource_filters.length) {
+      return;
+    }
+    App.ajax.send({
+      name: 'restart.hostComponents',
+      sender: {
+        successCallback: defaultSuccessCallback,
+        errorCallback: defaultErrorCallback
+      },
+      data: {
+        context: 'RESTART ' + Em.keys(componentToHostsMap).map(function(componentName) {return App.format.components[componentName];}).join(', '),
+        resource_filters: resource_filters
+      },
+      success: 'successCallback',
+      error: 'errorCallback'
+    });
   },
 
   /**

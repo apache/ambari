@@ -1186,7 +1186,7 @@ var urls = {
   'wizard.step9.installer.get_host_status': {
     'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
     'mock': '/data/wizard/deploy/5_hosts/get_host_status.json',
-    'format': function (data, opt) {
+    'format': function () {
       return {
         async: false
       };
@@ -1404,22 +1404,18 @@ var urls = {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'mock': ''
   },
-  'restart.service.hostComponents' : {
-    'real' : '/clusters/{clusterName}/requests',
-    'mock' : '',
-    'format' : function(data) {
-      var componentDisplayName = App.format.role(data.componentName);
-      var serviceDisplayName = App.Service.DisplayNames[data.serviceName];
+  'restart.hostComponents': {
+    'real':'/clusters/{clusterName}/requests',
+    'mock':'',
+    'format': function(data) {
       return {
         type : 'POST',
         data : JSON.stringify({
-          "RequestInfo" : {
-            "context" : Em.I18n.t('restart.service.rest.context').format(componentDisplayName),
-            "command" : "RESTART",
-            "service_name" : data.serviceName,
-            "component_name" : data.componentName,
-            "hosts" : data.hosts
-          }
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": data.context
+          },
+          "Requests/resource_filters": data.resource_filters
         })
       }
     }
@@ -1511,7 +1507,7 @@ var urls = {
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'DELETE',
-    'format': function (data) {
+    'format': function () {
       return {
         dataType: 'xml'
       }
@@ -1536,7 +1532,7 @@ var urls = {
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
-    'format': function (data) {
+    'format': function () {
       return {
         dataType: 'xml'
       }
