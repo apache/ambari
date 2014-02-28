@@ -1476,7 +1476,7 @@ module.exports =
       "displayName": "Supervisor hosts",
       "description": "The host that has been assigned to run Supervisor",
       "defaultValue": "",
-      "displayType": "masterHosts",
+      "displayType": "slaveHosts",
       "isReconfigurable": false,
       "isVisible": true,
       "isRequiredByAgent": false,

@@ -118,8 +118,8 @@
   </property>
   <property>
     <name>nimbus.childopts</name>
-    <value>-Xmx1024m</value>
-    <description></description>
+    <value>-Xmx1024m -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM</value>
+    <description>This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.</description>
   </property>
   <property>
     <name>nimbus.task.timeout.secs</name>
@@ -264,8 +264,8 @@
   </property>
   <property>
     <name>supervisor.childopts</name>
-    <value>-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=56431</value>
-    <description></description>
+    <value>-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=56431 -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM</value>
+    <description>This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.</description>
   </property>
   <property>
     <name>supervisor.worker.start.timeout.secs</name>
@@ -299,8 +299,8 @@
   </property>
   <property>
     <name>worker.childopts</name>
-    <value>-Xmx768m</value>
-    <description></description>
+    <value>-Xmx768m -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM</value>
+    <description>The jvm opts provided to workers launched by this supervisor. All \"%ID%\" substrings are replaced with an identifier for this worker.</description>
   </property>
   <property>
     <name>worker.heartbeat.frequency.secs</name>

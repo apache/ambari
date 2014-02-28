@@ -333,10 +333,11 @@ App.WizardStep7Controller = Em.Controller.extend({
       dependentConfigs.forEach(function(configName) {
         var config = configs.findProperty('name', configName);
         var predefinedConfig = App.config.get('preDefinedSiteProperties').findProperty('name', configName);
-        config.value = config.value + " " + predefinedConfig.defaultValue.format(gangliaServerHost);
+        config.value = config.defaultValue = config.value.format(gangliaServerHost);
       }, this);
     }
   },
+
   /**
    * On load function
    */

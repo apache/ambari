@@ -39,7 +39,6 @@ module.exports =
       "displayName": "HDFS Maximum Checkpoint Delay",
       "displayType": "int",
       "unit": "seconds",
-      "isVisible": true,
       "category": "General",
       "serviceName": "HDFS",
       "index": 3
@@ -70,7 +69,6 @@ module.exports =
       "name": "dfs.datanode.failed.volumes.tolerated",
       "displayName": "DataNode volumes failure toleration",
       "displayType": "int",
-      "isVisible": true,
       "category": "DataNode",
       "serviceName": "HDFS",
       "index": 3
@@ -370,9 +368,8 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "oozie.service.JPAService.jdbc.driver",
+      "name": "oozie.service.JPAService.jdbc.driver", // the default value of this property is overriden in code
       "displayName": "JDBC Driver Class",
-      "value": "",     // the value is overwritten in code
       "isOverridable": false,
       "category": "Oozie Server",
       "serviceName": "OOZIE",
@@ -392,9 +389,8 @@ module.exports =
   /**********************************************hive-site***************************************/
     {
       "id": "site property",
-      "name": "javax.jdo.option.ConnectionDriverName",
+      "name": "javax.jdo.option.ConnectionDriverName",  // the default value is overwritten in code
       "displayName": "JDBC Driver Class",
-      "value": "",     // the value is overwritten in code
       "isOverridable": false,
       "category": "Hive Metastore",
       "serviceName": "HIVE",
@@ -749,6 +745,7 @@ module.exports =
     {
       "id": "site property",
       "name": "nimbus.host",
+      "displayName": "nimbus.host",
       "displayType": "masterHost",
       "isOverridable": false,
       "serviceName": "STORM",
@@ -759,8 +756,6 @@ module.exports =
       "name": "nimbus.thrift.port",
       "displayName": "nimbus.thrift.port",
       "displayType": "int",
-      "isVisible": true,
-      "isRequiredByAgent": true,
       "serviceName": "STORM",
       "category": "Nimbus"
     },
@@ -777,12 +772,8 @@ module.exports =
       "id": "site property",
       "name": "nimbus.childopts",
       "displayName": "nimbus.childopts",
-      "description": "This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.",
-      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM",
-      "isReconfigurable": true,
+      "displayType": "multiLine",
       "isOverridable": false,
-      "isVisible": false,
-      "isRequiredByAgent": true,
       "serviceName": "STORM",
       "category": "Nimbus",
       "filename": "storm-site.xml"
@@ -876,15 +867,12 @@ module.exports =
     },
     {
       "id": "site property",
-      "description": "This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.",
-      "isVisible": false,
       "isOverrideable": false,
       "serviceName": "STORM",
       "category": "Supervisor",
       "displayName": "supervisor.childopts",
       "name": "supervisor.childopts",
-      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM",
-      "displayType": "string",
+      "displayType": "multiLine",
       "filename": "storm-site.xml"
     },
     {
@@ -1022,16 +1010,11 @@ module.exports =
     },
     {
       "id": "site property",
-      "description": "The jvm opts provided to workers launched by this supervisor. All \"%ID%\" substrings are replaced with an identifier for this worker.",
-      "isReconfigurable": true,
-      "isVisible": false,
-      "isOverridable": false,
       "serviceName": "STORM",
       "category": "Advanced",
       "displayName": "worker.childopts",
       "name": "worker.childopts",
-      "defaultValue": "-javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host={0},port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM",
-      "displayType": "string",
+      "displayType": "multiLine",
       "filename": "storm-site.xml"
     },
   /*********************************************oozie-site for Falcon*****************************/
