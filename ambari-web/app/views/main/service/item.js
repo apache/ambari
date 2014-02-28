@@ -37,7 +37,7 @@ App.MainServiceItemView = Em.View.extend({
       options.push({action: 'refreshConfigs', cssClass: 'icon-refresh', 'label': Em.I18n.t('hosts.host.details.refreshConfigs'), disabled: disableRefreshConfgis});
     } else {
       // Restart All action
-      options.push({action:'restartAllHostComponents', cssClass: 'icon-forward', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
+      options.push({action:'restartAllHostComponents', cssClass: 'icon-repeat', context: serviceName, 'label': Em.I18n.t('restart.service.all'), disabled: false});
       // Rolling Restart action
       var rrComponentName = batchUtils.getRollingRestartComponentName(serviceName);
       if (rrComponentName) {

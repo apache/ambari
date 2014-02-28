@@ -258,7 +258,7 @@ module.exports = [
   },
   {
     serviceName: 'TEZ',
-    displayName: 'TEZ',
+    displayName: 'Tez',
     filename: 'tez-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
