@@ -17,25 +17,28 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.controller.ControllerModule;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
 
 public class StackUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -88,14 +91,18 @@ public class StackUpgradeHelper {
 
   /**
    * Change the stack id in the Ambari DB.
-   * @param stackId
+   * @param stackInfo
    * @throws SQLException
    */
-  private void updateStackVersion(Map<String, String> stackId) throws SQLException {
-    if (stackId == null || stackId.isEmpty()) {
-      throw new IllegalArgumentException("Empty stack id. " + stackId);
+  public void updateStackVersion(Map<String, String> stackInfo) throws Exception {
+    if (stackInfo == null || stackInfo.isEmpty()) {
+      throw new IllegalArgumentException("Empty stack id. " + stackInfo);
     }
-    Iterator<Map.Entry<String, String>> stackIdEntry = stackId.entrySet().iterator();
+    
+    String repoUrl = stackInfo.remove("repo_url");
+    String repoUrlOs = stackInfo.remove("repo_url_os");
+    
+    Iterator<Map.Entry<String, String>> stackIdEntry = stackInfo.entrySet().iterator();
     Map.Entry<String, String> stackEntry = stackIdEntry.next();
 
     String stackName = stackEntry.getKey();
@@ -105,6 +112,10 @@ public class StackUpgradeHelper {
       "stackVersion = "+ stackVersion);
 
     stackUpgradeUtil.updateStackDetails(stackName, stackVersion);
+    
+    if (null != repoUrl) {
+      stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, repoUrl, repoUrlOs);  
+    }
 
     dbAccessor.updateTable("hostcomponentstate", "current_state", "INSTALLED", "where current_state = 'UPGRADING'");
   }
@@ -139,11 +150,13 @@ public class StackUpgradeHelper {
           "actions: " + stackUpgradeHelper.getValidActions());
       }
 
+      
       stackUpgradeHelper.startPersistenceService();
       Map values = gson.fromJson(valueMap, Map.class);
 
       if (action.equals(STACK_ID_UPDATE_ACTION)) {
         stackUpgradeHelper.updateStackVersion(values);
+        
       } else if (action.equals(METAINFO_UPDATE_ACTION)) {
 
         stackUpgradeHelper.updateMetaInfo(values);

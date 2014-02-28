@@ -2487,7 +2487,7 @@ def stop(args):
 ### Stack upgrade ###
 
 
-def upgrade_stack(args, stack_id):
+def upgrade_stack(args, stack_id, repo_url = None, repo_url_os = None):
   if not is_root():
     err = 'Ambari-server upgradestack should be run with ' \
           'root-level privileges'
@@ -2495,7 +2495,7 @@ def upgrade_stack(args, stack_id):
   check_database_name_property()
 
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  retcode = run_stack_upgrade(stack_name, stack_version)
+  retcode = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)
 
   if not retcode == 0:
     raise FatalException(retcode, 'Stack upgrade failed.')
@@ -2606,7 +2606,7 @@ def run_schema_upgrade(version):
     print_error_msg("Error executing schema upgrade, please check the server logs.")
   return retcode
 
-def run_stack_upgrade(stackName, stackVersion):
+def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   jdk_path = find_jdk()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -2615,6 +2615,10 @@ def run_stack_upgrade(stackName, stackVersion):
     return 1
   stackId = {}
   stackId[stackName] = stackVersion
+  if repo_url is not None:
+    stackId['repo_url'] = repo_url
+  if repo_url_os is not None:
+    stackId['repo_url_os'] = repo_url_os
 
   command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
                                              "updateStackId",
@@ -4070,7 +4074,15 @@ def main():
       upgrade(options)
     elif action == UPGRADE_STACK_ACTION:
       stack_id = args[1]
-      upgrade_stack(options, stack_id)
+      repo_url = None
+      repo_url_os = None
+
+      if len(args) > 2:
+        repo_url = args[2]
+      if len(args) > 3:
+        repo_url_os = args[3]
+
+      upgrade_stack(options, stack_id, repo_url, repo_url_os)
     elif action == LDAP_SETUP_ACTION:
       setup_ldap()
     elif action == SETUP_SECURITY_ACTION:

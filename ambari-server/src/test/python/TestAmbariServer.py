@@ -2740,7 +2740,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_server.upgrade_stack(args, 'HDP-2.0')
 
     self.assertTrue(run_stack_upgrade_mock.called)
-    run_stack_upgrade_mock.assert_called_with("HDP", "2.0")
+    run_stack_upgrade_mock.assert_called_with("HDP", "2.0", None, None)
 
   @patch.object(ambari_server, 'get_conf_dir')
   @patch.object(ambari_server, 'get_ambari_classpath')
@@ -2754,7 +2754,51 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_conf_dir_mock.return_value = '/etc/conf'
     stackIdMap = {'HDP' : '2.0'}
 
-    ambari_server.run_stack_upgrade('HDP', '2.0')
+    ambari_server.run_stack_upgrade('HDP', '2.0', None, None)
+
+    self.assertTrue(jdk_path_mock.called)
+    self.assertTrue(get_ambari_classpath_mock.called)
+    self.assertTrue(get_conf_dir_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
+                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
+        'updateStackId ' + json.dumps(stackIdMap) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
+
+  @patch.object(ambari_server, 'get_conf_dir')
+  @patch.object(ambari_server, 'get_ambari_classpath')
+  @patch.object(ambari_server, 'run_os_command')
+  @patch.object(ambari_server, 'find_jdk')
+  def test_run_stack_upgrade_with_url(self, jdk_path_mock, run_os_command_mock,
+                             get_ambari_classpath_mock, get_conf_dir_mock):
+    jdk_path_mock.return_value = "/usr/lib/java"
+    run_os_command_mock.return_value = (0, None, None)
+    get_ambari_classpath_mock.return_value = 'test:path12'
+    get_conf_dir_mock.return_value = '/etc/conf'
+    stackIdMap = {'HDP' : '2.0', 'repo_url' : 'http://test.com'}
+
+    ambari_server.run_stack_upgrade('HDP', '2.0', 'http://test.com', None)
+
+    self.assertTrue(jdk_path_mock.called)
+    self.assertTrue(get_ambari_classpath_mock.called)
+    self.assertTrue(get_conf_dir_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
+                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
+        'updateStackId ' + json.dumps(stackIdMap) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
+
+  @patch.object(ambari_server, 'get_conf_dir')
+  @patch.object(ambari_server, 'get_ambari_classpath')
+  @patch.object(ambari_server, 'run_os_command')
+  @patch.object(ambari_server, 'find_jdk')
+  def test_run_stack_upgrade_with_url_os(self, jdk_path_mock, run_os_command_mock,
+                             get_ambari_classpath_mock, get_conf_dir_mock):
+    jdk_path_mock.return_value = "/usr/lib/java"
+    run_os_command_mock.return_value = (0, None, None)
+    get_ambari_classpath_mock.return_value = 'test:path12'
+    get_conf_dir_mock.return_value = '/etc/conf'
+    stackIdMap = {'HDP' : '2.0', 'repo_url': 'http://test.com', 'repo_url_os': 'centos5,centos6'}
+
+    ambari_server.run_stack_upgrade('HDP', '2.0', 'http://test.com', 'centos5,centos6')
 
     self.assertTrue(jdk_path_mock.called)
     self.assertTrue(get_ambari_classpath_mock.called)

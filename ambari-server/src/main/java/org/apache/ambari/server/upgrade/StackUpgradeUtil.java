@@ -17,10 +17,14 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
+
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
@@ -33,9 +37,13 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.StackId;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 public class StackUpgradeUtil {
   @Inject
@@ -139,4 +147,43 @@ public class StackUpgradeUtil {
 
 
   }
+
+  /**
+   * @param stackName
+   * @param stackVersion
+   * @param localRepo
+   */
+  public void updateLocalRepo(String stackName, String stackVersion,
+      String repoUrl, String repoUrlOs) throws Exception {
+
+    if (null == repoUrl ||
+        repoUrl.isEmpty() ||
+        !repoUrl.startsWith("http"))
+      return;
+    
+    String server = repoUrl;
+    
+    String[] oses = new String[0]; 
+    
+    if (null != repoUrlOs) {
+      oses = repoUrlOs.split(",");
+    }
+    
+    AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
+    
+    if (0 == oses.length) {
+      // do them all
+      for (OperatingSystemInfo osi : ami.getOperatingSystems(stackName, stackVersion)) {
+        ami.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
+            stackName + "-" + stackVersion, server);
+      }
+      
+    } else {
+      for (String os : oses) {
+        ami.updateRepoBaseURL(stackName, stackVersion, os,
+            stackName + "-" + stackVersion, server);
+      }
+    }
+  }
+
 }
