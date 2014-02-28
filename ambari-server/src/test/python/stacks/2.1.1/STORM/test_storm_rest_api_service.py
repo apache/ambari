@@ -31,6 +31,7 @@ class TestStormRestApi(RMFTestCase):
                        command = "configure",
                        config_file="default.json"
     )
+    self.printResources()
     self.assert_configure_default()
     self.assertNoMoreResources()
 
@@ -43,7 +44,7 @@ class TestStormRestApi(RMFTestCase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', 'env PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
       user = 'storm',
@@ -93,7 +94,7 @@ class TestStormRestApi(RMFTestCase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', 'env PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
       user = 'storm',
