@@ -49,7 +49,7 @@ class TestStormNimbus(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.nimbus$" > /var/run/storm/nimbus.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.nimbus$" && pgrep -f "^java.+backtype.storm.daemon.nimbus$" > /var/run/storm/nimbus.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',
@@ -98,7 +98,7 @@ class TestStormNimbus(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.nimbus$" > /var/run/storm/nimbus.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.nimbus$" && pgrep -f "^java.+backtype.storm.daemon.nimbus$" > /var/run/storm/nimbus.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',

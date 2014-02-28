@@ -49,7 +49,7 @@ class TestStormDrpcServer(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.drpc$" > /var/run/storm/drpc.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.drpc$" && pgrep -f "^java.+backtype.storm.daemon.drpc$" > /var/run/storm/drpc.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',
@@ -98,7 +98,7 @@ class TestStormDrpcServer(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.drpc$" > /var/run/storm/drpc.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.drpc$" && pgrep -f "^java.+backtype.storm.daemon.drpc$" > /var/run/storm/drpc.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',

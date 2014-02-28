@@ -49,7 +49,7 @@ class TestStormUiServer(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.ui.core$" > /var/run/storm/ui.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.ui.core$" && pgrep -f "^java.+backtype.storm.ui.core$" > /var/run/storm/ui.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',
@@ -99,7 +99,7 @@ class TestStormUiServer(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.ui.core$" > /var/run/storm/ui.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.ui.core$" && pgrep -f "^java.+backtype.storm.ui.core$" > /var/run/storm/ui.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',

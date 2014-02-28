@@ -49,7 +49,7 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.supervisor$" > /var/run/storm/supervisor.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.supervisor$" && pgrep -f "^java.+backtype.storm.daemon.supervisor$" > /var/run/storm/supervisor.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',
@@ -99,7 +99,7 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
     )
 
-    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.supervisor$" > /var/run/storm/supervisor.pid',
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.supervisor$" && pgrep -f "^java.+backtype.storm.daemon.supervisor$" > /var/run/storm/supervisor.pid',
       logoutput = True,
       tries = 6,
       user = 'storm',
