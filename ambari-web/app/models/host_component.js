@@ -187,6 +187,7 @@ App.HostComponentStatus = {
   installing: "INSTALLING",
   upgrade_failed: "UPGRADE_FAILED",
   unknown: "UNKNOWN",
+  disabled: "DISABLED",
 
   /**
    * Get host component status in "machine" format
@@ -209,6 +210,7 @@ App.HostComponentStatus = {
         return 'installing';
       case this.upgrade_failed:
         return 'upgrade_failed';
+      case this.disabled:
       case this.unknown:
         return 'unknown';
     }
@@ -238,6 +240,8 @@ App.HostComponentStatus = {
         return 'Heartbeat lost...';
       case this.upgrade_failed:
         return 'Upgrade Failed';
+      case this.disabled:
+        return 'Disabled';
     }
     return 'Unknown';
   }

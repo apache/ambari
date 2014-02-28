@@ -211,6 +211,7 @@ describe('App.HostComponentView', function() {
       {workStatus: 'STARTING', e: 'hidden'},
       {workStatus: 'STOPPING', e: 'hidden'},
       {workStatus: 'UNKNOWN', e: 'hidden'},
+      {workStatus: 'DISABLED', e: 'hidden'},
       {workStatus: 'OTHER_STATUS', e: ''}
     ]);
 

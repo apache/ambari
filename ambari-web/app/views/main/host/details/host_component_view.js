@@ -172,7 +172,7 @@ App.HostComponentView = Em.View.extend({
    */
   noActionAvailable: function () {
     var workStatus = this.get('workStatus');
-    if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus)) {
+    if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown, App.HostComponentStatus.disabled].contains(workStatus)) {
       return "hidden";
     }else{
       return "";

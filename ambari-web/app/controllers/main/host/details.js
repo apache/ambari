@@ -1229,7 +1229,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       reassignMasterController.saveComponentToReassign(component);
       reassignMasterController.getSecurityStatus();
       reassignMasterController.setCurrentStep('1');
-      App.router.transitionTo('services.reassign');
+      App.router.transitionTo('reassign');
     });
   },
 
