@@ -86,10 +86,18 @@
           {{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}
         </td>
       </tr>
-      <!-- HDFS Capacity -->
+      <!-- HDFS Capacity (Disk Usage)-->
       <tr>
-        <td>{{t dashboard.services.hdfs.capacity}}</td>
-        <td>{{view.capacity}}</td>
+        <td>{{t dashboard.services.hdfs.capacity.dfsUsed}}</td>
+        <td>{{view.dfsUsedDisk}}</td>
+      </tr>
+      <tr>
+        <td>{{t dashboard.services.hdfs.capacity.nonDfsUsed}}</td>
+        <td>{{view.nonDfsUsedDisk}}</td>
+      </tr>
+      <tr>
+        <td>{{t dashboard.services.hdfs.capacity.remaining}}</td>
+        <td>{{view.remainingDisk}}</td>
       </tr>
       <!-- Blocks Total -->
       <tr>

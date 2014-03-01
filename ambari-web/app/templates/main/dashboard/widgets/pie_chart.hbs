@@ -27,21 +27,21 @@
         <i class="icon-edit"></i>
       </a>
 
-      <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
-        <table align="center">
-          {{#each line in view.hiddenInfo}}
-              <tr><td>{{line}}</td></tr>
-          {{/each}}
-        </table>
-      </div>
+    <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
+      <table align="center">
+        {{#each line in view.hiddenInfo}}
+            <tr><td>{{line}}</td></tr>
+        {{/each}}
+      </table>
+    </div>
 
-      {{#if view.isPieExist}}
-        <div class="widget-content" >
-          {{view view.content modelBinding="view.model" thresh1Binding="view.thresh1" thresh2Binding="view.thresh2"}}
-        </div>
-      {{else}}
-        <div class="widget-content-isNA" >{{t services.service.summary.notAvailable}}</div>
-      {{/if}}
+    {{#if view.isPieExist}}
+      <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>
+        {{view view.content modelBinding="view.model" thresh1Binding="view.thresh1" thresh2Binding="view.thresh2"}}
+      </div>
+    {{else}}
+      <div class="widget-content-isNA" >{{t services.service.summary.notAvailable}}</div>
+    {{/if}}
     </li>
   </ul>
 </div>

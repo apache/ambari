@@ -21,7 +21,7 @@ var numberUtils = require('utils/number_utils');
 
 App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.NameNodeCapacity'),
+  title: Em.I18n.t('dashboard.widgets.HDFSDiskUsage'),
   id: '2',
 
   model_type: 'hdfs',
@@ -31,6 +31,7 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
    */
   modelFieldUsed: 'capacityRemaining',
   widgetHtmlId: 'widget-nn-capacity',
+  hiddenInfoClass: "hidden-info-six-line",
 
   didInsertElement: function() {
     this._super();
@@ -39,16 +40,28 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
 
   calcHiddenInfo: function () {
     var total = this.get('model').get(this.get('modelFieldMax')) + 0;
-    var used = total - this.get('model').get(this.get('modelFieldUsed')) + 0;
     var remaining = this.get('model.capacityRemaining');
-    var used = total !== null && remaining !== null ? total - remaining : null;
-    var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
-    if (percent == "NaN" || percent < 0) {
-      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
+    var dfsUsed = this.get('model.capacityUsed');
+    var nonDfsUsed = total !== null && remaining !== null && dfsUsed !== null ? total - remaining - dfsUsed : null;
+    var dfsPercent = total > 0 ? ((dfsUsed * 100) / total).toFixed(2) : 0;
+    var nonDfsPercent = total > 0 ? ((nonDfsUsed * 100) / total).toFixed(2) : 0;
+    var remainingPercent = total > 0 ? ((remaining * 100) / total).toFixed(2) : 0;
+    if (dfsPercent == "NaN" || dfsPercent < 0) {
+      dfsPercent = Em.I18n.t('services.service.summary.notAvailable') + " ";
+    }
+    if (nonDfsPercent == "NaN" || nonDfsPercent < 0) {
+      nonDfsPercent = Em.I18n.t('services.service.summary.notAvailable') + " ";
+    }
+    if (remainingPercent == "NaN" || remainingPercent < 0) {
+      remainingPercent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
     var result = [];
-    result.pushObject(percent + '% used');
-    result.pushObject(numberUtils.bytesToSize(used, 1, 'parseFloat') + ' of ' + numberUtils.bytesToSize(total, 1, 'parseFloat'));
+    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.DFSused'));
+    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(dfsUsed, 1, 'parseFloat'), dfsPercent));
+    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.nonDFSused'));
+    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(nonDfsUsed, 1, 'parseFloat'), nonDfsPercent));
+    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.remaining'));
+    result.pushObject(Em.I18n.t('dashboard.widgets.HDFSDiskUsage.info').format(numberUtils.bytesToSize(remaining, 1, 'parseFloat'), remainingPercent));
     return result;
   },
 

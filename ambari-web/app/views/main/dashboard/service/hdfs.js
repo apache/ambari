@@ -140,17 +140,38 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return text.format(liveCount, totalCount, percent);
   }.property('service.dataNodes.@each.workStatus', 'service.capacityUsed', 'service.capacityTotal'),
 
-  capacity: function () {
+  dfsUsedDisk: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
     var total = this.get('service.capacityTotal');
-    var remaining = this.get('service.capacityRemaining');
-    var used = total !== null && remaining !== null ? total - remaining : null;
-    var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
+    var dfsUsed = this.get('service.capacityUsed');
+    var percent = total > 0 ? ((dfsUsed * 100) / total).toFixed(2) : 0;
     if (percent == "NaN" || percent < 0) {
       percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    return text.format(numberUtils.bytesToSize(used, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
+    return text.format(numberUtils.bytesToSize(dfsUsed, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
   }.property('service.capacityUsed', 'service.capacityTotal'),
+  nonDfsUsedDisk: function () {
+    var text = this.t("dashboard.services.hdfs.capacityUsed");
+    var total = this.get('service.capacityTotal');
+    var remaining = this.get('service.capacityRemaining');
+    var dfsUsed = this.get('service.capacityUsed');
+    var nonDfsUsed = total !== null && remaining !== null && dfsUsed !== null ? total - remaining - dfsUsed : null;
+    var percent = total > 0 ? ((nonDfsUsed * 100) / total).toFixed(2) : 0;
+    if (percent == "NaN" || percent < 0) {
+      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
+    }
+    return text.format(numberUtils.bytesToSize(nonDfsUsed, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
+  }.property('service.capacityUsed', 'service.capacityRemaining', 'service.capacityTotal'),
+  remainingDisk: function () {
+    var text = this.t("dashboard.services.hdfs.capacityUsed");
+    var total = this.get('service.capacityTotal');
+    var remaining = this.get('service.capacityRemaining');
+    var percent = total > 0 ? ((remaining * 100) / total).toFixed(2) : 0;
+    if (percent == "NaN" || percent < 0) {
+      percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
+    }
+    return text.format(numberUtils.bytesToSize(remaining, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
+  }.property('service.capacityRemaining', 'service.capacityTotal'),
 
   dataNodeComponent: function () {
     return this.get('service.dataNodes').objectAt(0);

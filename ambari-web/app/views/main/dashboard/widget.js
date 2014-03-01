@@ -233,20 +233,22 @@ App.DashboardWidgetView = Em.View.extend({
   },
 
   /**
-   * for simple-text template,
+   * for widgets has hidden info(hover info),
    * calculate the hover content top number
    * based on how long the hiddenInfo is
    */
   hoverContentTopClass: function () {
     var lineNum = this.get('hiddenInfo.length');
     if (lineNum == 2) {
-      return "simple-text-hidden-two-line";
+      return "content-hidden-two-line";
     } else if (lineNum == 3) {
-      return "simple-text-hidden-three-line";
+      return "content-hidden-three-line";
     } else if (lineNum == 4) {
-      return "simple-text-hidden-four-line";
+      return "content-hidden-four-line";
     } else if (lineNum == 5) {
-      return "simple-text-hidden-five-line";
+      return "content-hidden-five-line";
+    } else if (lineNum == 6) {
+      return "content-hidden-six-line";
     }
     return '';
   }.property('hiddenInfo.length')
