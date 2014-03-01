@@ -128,7 +128,7 @@
                   <h4>{{view.selectedVertex.name}}</h4>
                 </div>
                 <div id="tez-vertex-details-section-body">
-                  <table class="table">
+                  <table class="table no-borders table-condensed">
                     <tr>
                       <td>{{t common.status}}</td>
                       <td>{{view.selectedVertexIODisplay.status}}</td>
@@ -172,7 +172,7 @@
                       <td></td>
                     </tr>
                   </table>
-                  {{view Ember.TextArea valueBinding="view.selectedVertex.operationPlan" rows="15"}}
+                  {{view Ember.TextArea valueBinding="view.selectedVertex.operationPlan" rows="15" id="tez-vertex-operator-plan-textarea"}}
                 </div>
               </div>
             </div>

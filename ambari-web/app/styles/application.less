@@ -5640,8 +5640,15 @@ i.icon-asterisks {
     display: block;
   }
   #tez-vertices-table-container {
-    max-height: 400px;
+    max-height: 300px;
     overflow-y: auto;
+    margin-bottom: 7px;
+    border-bottom: 1px solid #dddddd;
+    border-top: 1px solid #dddddd;
+    border-radius: 4px;
+    table {
+      margin-bottom: 0px;
+    }
   }
   #tez-vertex-details-section-body {
     table {
@@ -5753,6 +5760,7 @@ i.icon-asterisks {
       .operation {
         fill: #3F66E8;
         opacity: 0.5;
+        cursor: pointer;
         text {
           font-size: 80%;
         }

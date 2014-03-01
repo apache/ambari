@@ -183,8 +183,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         value = '';
       }
       switch (summaryMetricType) {
-      case "Input":
-      case "Output":
+      case "input":
+      case "output":
         value = numberUtils.bytesToSize(value);
         break;
       default:
@@ -509,19 +509,79 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     });
     node.each(function(n, nodeIndex) {
       var ops = n.operations;
+      var opCount = {};
       var opGroups = d3.select(this).selectAll(".operation").data(ops).enter().append("g").attr("class", "operation").attr("transform", function(op, opIndex) {
         var row = Math.floor(opIndex / 3);
         var column = opIndex % 3;
-        return "translate(" + (10 + column * 50) + "," + (37 + row * 20) + ")";
-      }).attr("clip-path", "url(#operatorClipPath)");
-      opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "44").attr("height", "16").attr("title", function(op) {
+        return "translate(" + (10 + column * 55) + "," + (37 + row * 20) + ")";
+      }).attr("clip-path", "url(#operatorClipPath)").attr("opIndex", function(op){
+        if(!opCount[op]) {
+          opCount[op] = 1;
+        } else {
+          opCount[op] = opCount[op]+1;
+        }
+        return opCount[op];
+      }).on('mousedown', function(op) {
+        var opIndex = this.getAttribute ? this.getAttribute("opIndex") : null;
+        if (numberUtils.validateInteger(opIndex) == null) {
+          console.log("Clicked on operator: ", op, " [", opIndex, "]");
+          var textArea = document.getElementById('tez-vertex-operator-plan-textarea');
+          if (textArea && textArea.value) {
+            var text = textArea.value;
+            var opText = "\"" + op + "\"";
+            var count = 1;
+            var index = text.indexOf(opText);
+            while (index > -1 && count < opIndex) {
+              index = text.indexOf(opText, index + 1);
+              count++;
+            }
+            if (index > -1) {
+              var start = index;
+              var end = index;
+              var matchCount = 0;
+              var splits = text.substring(start).split(/({|})/);
+              splits.every(function(s) {
+                if (s == '{') {
+                  matchCount++;
+                } else if (s == '}') {
+                  matchCount--;
+                  if (matchCount == 0) {
+                    end += s.length;
+                    return false;
+                  }
+                }
+                end += s.length;
+                return true;
+              });
+              textArea.setSelectionRange(start, end);
+              // Now scroll to the selection
+              var lines = 0;
+              var totalLines = 0;
+              var index = text.indexOf("\n");
+              while (index > 0) {
+                index = text.indexOf("\n", index + 1);
+                if (index < start) {
+                  lines++;
+                }
+                totalLines++;
+              }
+              console.log("Selection is from row ", lines, " out of ", totalLines);
+              lines -= 5;
+              var lineHeight = Math.floor(textArea.scrollHeight / totalLines);
+              var scrollHeight = Math.round(lines * lineHeight);
+              textArea.scrollTop = scrollHeight;
+            }
+          }
+        }
+      });
+      opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "50").attr("height", "16").attr("title", function(op) {
         return op;
       });
       opGroups.append("text").attr("x", "2").attr("dy", "1em").text(function(op) {
         return op != null ? op.split(' ')[0] : '';
-      })
-    })
-    var metricNodes = node.append("g").attr("class", "metric").attr("transform", "translate(92,7)");
+      });
+    });
+    var metricNodes = node.append("g").attr("class", "metric").attr("transform", "translate(112,7)");
     metricNodes.append("rect").attr("width", 60).attr("height", 18).attr("rx", "3").attr("class", "metric-title svg-tooltip");
     metricNodes.append("text").attr("class", "metric-text").attr("x", "2").attr("dy", "1em");
     node.append("text").attr("x", "1.9em").attr("dy", "1.5em").text(function(d) {
