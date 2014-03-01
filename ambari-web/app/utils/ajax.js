@@ -364,13 +364,12 @@ var urls = {
           RequestInfo: {
             'context': data.context,
             'command': data.command,
-            'service_name': data.serviceName,
-            'component_name': data.componentName,
             'parameters': {
               'slave_type': data.slaveType,
               'excluded_hosts': data.hostName
             }
-          }
+          },
+          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
         })
       }
     }
@@ -406,13 +405,12 @@ var urls = {
           RequestInfo: {
             context: data.context,
             command: data.command,
-            service_name: data.serviceName,
-            component_name: data.componentName,
             parameters: {
               slave_type: data.slaveType,
               included_hosts: data.hostName
             }
-          }
+          },
+          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
         })
       }
     }
@@ -1612,10 +1610,9 @@ var urls = {
           'RequestInfo': {
             'context': data.context,
             'command': 'DECOMMISSION',
-            'service_name': data.serviceName,
-            'component_name': data.componentName,
             'parameters': data.parameters
-          }
+          },
+          "Requests/resource_filters": [{"service_name" : data.serviceName, "component_name" : data.componentName}]
         })
       }
     }

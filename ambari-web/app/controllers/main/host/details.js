@@ -782,13 +782,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo" : {
                 "context" : Em.I18n.t('hosts.host.regionserver.decommission.batch1'),
                 "command" : "DECOMMISSION",
-                "service_name" : serviceName,
-                "component_name" : componentName,
                 "parameters" : {
                   "slave_type": slaveType,
                   "excluded_hosts": hostNames
                 }
-              }
+              },
+              "Requests/resource_filters": [{"service_name" : serviceName, "component_name" : componentName}]
             }
           },
           {
@@ -877,13 +876,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo" : {
                 "context" : context_1,
                 "command" : "DECOMMISSION",
-                "service_name" : serviceName,
-                "component_name" : componentName,
                 "parameters" : {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
                 }
-              }
+              },
+              "Requests/resource_filters": [{"service_name" : serviceName, "component_name" : componentName}]
             }
           },
           {
@@ -928,13 +926,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               "RequestInfo" : {
                 "context" : context_1,
                 "command" : "DECOMMISSION",
-                "service_name" : serviceName,
-                "component_name" : componentName,
                 "parameters" : {
                   "slave_type": slaveType,
                   "included_hosts": hostNames
                 }
-              }
+              },
+              "Requests/resource_filters": [{"service_name" : serviceName, "component_name" : componentName}]
             }
           },
           {
