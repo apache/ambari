@@ -89,11 +89,11 @@ var urls = {
       return {
         'type': 'POST',
         data: JSON.stringify({
-          RequestInfo: {
+          "RequestInfo": {
             "context": data.displayName + " Service Check",
-            "command" : data.actionName,
-            "service_name" : data.serviceName
-          }
+            "command" : data.actionName
+          },
+          "Requests/resource_filters": [{"service_name" : data.serviceName}]
         })
       };
     }
