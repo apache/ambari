@@ -73,6 +73,10 @@ class TestLiveStatus(TestCase):
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.DEAD_STATUS)
 
+    livestatus = LiveStatus('c1', 'TEZ', 'TEZ_CLIENT', { }, config)
+    result = livestatus.build(forsed_component_status = LiveStatus.LIVE_STATUS)
+    self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
+    self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
 
   @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
   @patch.object(StatusCheck.StatusCheck, "getStatus")

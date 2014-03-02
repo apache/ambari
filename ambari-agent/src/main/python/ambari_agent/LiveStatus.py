@@ -33,7 +33,8 @@ class LiveStatus:
     "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
     "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
     "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT",
-    "YARN", "MAPREDUCE2", "FLUME"
+    "YARN", "MAPREDUCE2", "FLUME", "TEZ",
+    "FALCON", "STORM"
   ]
 
   CLIENT_COMPONENTS = [
@@ -58,7 +59,11 @@ class LiveStatus:
     {"serviceName" : "PIG",
      "componentName" : "PIG"},
     {"serviceName" : "SQOOP",
-     "componentName" : "SQOOP"}
+     "componentName" : "SQOOP"},
+    {"serviceName" : "TEZ",
+     "componentName" : "TEZ_CLIENT"},
+    {"serviceName" : "FALCON",
+     "componentName" : "FALCON_CLIENT"}
   ]
 
   COMPONENTS = [
@@ -120,9 +125,27 @@ class LiveStatus:
        "componentName" : "RESOURCEMANAGER"},
       {"serviceName" : "YARN",
        "componentName" : "NODEMANAGER"},
+      {"serviceName" : "YARN",
+       "componentName" : "APP_TIMELINE_SERVER"},
 
       {"serviceName" : "MAPREDUCE2",
        "componentName" : "HISTORYSERVER"},
+
+      {"serviceName" : "FALCON",
+       "componentName" : "FALCON_SERVER"},
+
+      {"serviceName" : "STORM",
+       "componentName" : "NIMBUS"},
+      {"serviceName" : "STORM",
+       "componentName" : "STORM_REST_API"},
+      {"serviceName" : "STORM",
+       "componentName" : "SUPERVISOR"},
+      {"serviceName" : "STORM",
+       "componentName" : "STORM_UI_SERVER"},
+      {"serviceName" : "STORM",
+       "componentName" : "DRPC_SERVER"},
+      {"serviceName" : "STORM",
+       "componentName" : "LOGVIEWER_SERVER"}
   ]
 
   LIVE_STATUS = "STARTED"
