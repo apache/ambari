@@ -189,3 +189,6 @@ class TestStormLogviewerServer(RMFTestCase):
       group = 'hadoop',
       mode = None,
     )
+    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
+      owner = 'storm',
+    )
