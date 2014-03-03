@@ -1674,15 +1674,6 @@ def download_jdk(args):
       err = "Path to java home " + args.java_home + " does not exists"
       raise FatalException(1, err)
 
-    jce_policy_paths = []
-    for jce_file in JCE_POLICY_FILENAMES:
-      jce_policy_path = os.path.join(properties[RESOURCES_DIR_PROPERTY], jce_file)
-      if os.path.exists(jce_policy_path):
-        jce_policy_paths.append(jce_policy_path)
-    if len(jce_policy_paths) > 0:
-      err = "Command failed to execute. Please remove or move " + str(jce_policy_paths).strip('[]') + " and retry again"
-      raise FatalException(1, err)
-
     print_warning_msg("JAVA_HOME " + args.java_home + " must be valid on ALL hosts")
     print_warning_msg(jcePolicyWarn)
     write_property(JAVA_HOME_PROPERTY, args.java_home)

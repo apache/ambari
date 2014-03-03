@@ -1943,22 +1943,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Test case: Negative test case JAVA_HOME location should not be updated if -j option is supplied and
     # jce_policy file already exists in resources dir.
-    write_property_mock.reset_mock()
-    args.java_home = "somewhere"
-    path_existsMock.side_effect = None
-    path_existsMock.return_value = True
-    get_JAVA_HOME_mock.return_value = True
-    try:
-      ambari_server.download_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
+    #write_property_mock.reset_mock()
+    #args.java_home = "somewhere"
+    #path_existsMock.side_effect = None
+    #path_existsMock.return_value = True
+    #get_JAVA_HOME_mock.return_value = True
+    #try:
+    #  ambari_server.download_jdk(args)
+    #  self.fail("Should throw exception")
+    #except FatalException as fe:
       # Expected
-      self.assertFalse(write_property_mock.called)
+    #  self.assertFalse(write_property_mock.called)
     # Test case: Setup ambari-server first time, Custom JDK selected, JDK exists
     args.java_home = None
     args.jdk_location = None
     write_property_mock.reset_mock()
     remove_property_mock.reset_mock()
+    path_existsMock.side_effect = None
     path_existsMock.return_value = True
     get_validated_string_input_mock.return_value = "3"
     get_JAVA_HOME_mock.return_value = False
