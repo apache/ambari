@@ -203,11 +203,11 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   vertexMetricsUpdated : function() {
     var dagVisualModel = this.get('dagVisualModel');
     dagVisualModel.minMetrics = {
-      input : 0,
-      output : 0,
-      recordsRead : 0,
-      recordsWrite : 0,
-      tezTasks : 0
+      input : Number.MAX_VALUE,
+      output : Number.MAX_VALUE,
+      recordsRead : Number.MAX_VALUE,
+      recordsWrite : Number.MAX_VALUE,
+      tezTasks : Number.MAX_VALUE
     };
     dagVisualModel.maxMetrics = {
       input : 0,
