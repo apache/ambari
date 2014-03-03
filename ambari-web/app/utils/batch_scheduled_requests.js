@@ -136,12 +136,12 @@ module.exports = {
    * @param {Number} batchSize size of each batch
    * @param {Number} intervalTimeSeconds delay between two batches
    * @param {Number} tolerateSize task failure tolerance
-   * @param {Function} successCallback
-   * @param {Function} errorCallback
+   * @param {callback} successCallback
+   * @param {callback} errorCallback
    */
   _doPostBatchRollingRestartRequest: function(restartHostComponents, batchSize, intervalTimeSeconds, tolerateSize, successCallback, errorCallback) {
-    successCallback = successCallback ? successCallback : defaultSuccessCallback;
-    errorCallback = errorCallback ? errorCallback : defaultErrorCallback;
+    successCallback = successCallback || defaultSuccessCallback;
+    errorCallback = errorCallback || defaultErrorCallback;
     if (!restartHostComponents.length) {
       console.log('No batch rolling restart if no restartHostComponents provided!');
       return;
@@ -189,11 +189,13 @@ module.exports = {
           "RequestBodyInfo" : {
             "RequestInfo" : {
               "context" : "_PARSE_.ROLLING-RESTART." + componentName + "." + (count + 1) + "." + batchCount,
-              "command" : "RESTART",
+              "command" : "RESTART"
+            },
+            "Requests/resource_filters": [{
               "service_name" : serviceName,
               "component_name" : componentName,
               "hosts" : hostNames.join(",")
-            }
+            }]
           }
         });
       }
@@ -344,7 +346,7 @@ module.exports = {
    */
   doAbortRequestSchedule: function(requestScheduleId, successCallback, errorCallback) {
     if (requestScheduleId != null && !isNaN(requestScheduleId) && requestScheduleId > -1) {
-      errorCallback = errorCallback ? errorCallback : defaultErrorCallback;
+      errorCallback = errorCallback || defaultErrorCallback;
       App.ajax.send({
         name : 'request_schedule.delete',
         sender : {
