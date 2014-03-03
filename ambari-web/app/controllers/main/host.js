@@ -224,14 +224,14 @@ App.MainHostController = Em.ArrayController.extend({
   /**
    * Bulk restart for selected hosts
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
-   * @param {Array} hosts - list of affected hosts
+   * @param {Ember.Enumerable} hosts - list of affected hosts
    */
   bulkOperationForHostsRestart: function(operationData, hosts) {
     var hostComponents = [];
     hosts.forEach(function(host) {
       hostComponents.pushObjects(host.get('hostComponents').filterProperty('passiveState','OFF').toArray());
     });
-    batchUtils.restartHostComponents(hostComponents);
+    batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'));
   },
 
   /**

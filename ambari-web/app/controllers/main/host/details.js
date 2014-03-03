@@ -373,9 +373,10 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   restartComponent: function(event) {
+    var self = this;
     var component = event.context;
     App.showConfirmationPopup(function(){
-      batchUtils.restartHostComponents([component]);
+      batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('componentName'), self.get('content.hostName')));
     });
   },
   /**
@@ -1031,11 +1032,12 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   doRestartAllComponents: function() {
+    var self = this;
     var components = this.get('content.hostComponents').filterProperty('passiveState','OFF');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {
-        batchUtils.restartHostComponents(components);
+        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')));
       });
     }
   },
@@ -1212,7 +1214,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   restartAllStaleConfigComponents: function() {
     var staleComponents = this.get('content.componentsWithStaleConfigs');
-    batchUtils.restartHostComponents(staleComponents);
+    batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(this.get('content.hostName')));
   },
 
   /**
@@ -1274,12 +1276,13 @@ App.MainHostDetailsController = Em.Controller.extend({
    * Restart clients host components to apply config changes
    */
   refreshConfigs: function(event) {
+    var self = this;
     var components = event.context.filter(function(component) {
       return component.get('staleConfigs');
     });
     if (components.get('length') > 0) {
       App.showConfirmationPopup(function() {
-        batchUtils.restartHostComponents(components);
+        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')));
       });
     }
   }

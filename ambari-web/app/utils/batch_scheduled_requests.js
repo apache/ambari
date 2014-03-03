@@ -69,27 +69,29 @@ module.exports = {
    */
   restartAllServiceHostComponents: function(serviceName, staleConfigsOnly) {
     var service = App.Service.find(serviceName);
+    var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
     if (service) {
       var hostComponents = service.get('hostComponents');
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
-      this.restartHostComponents(hostComponents);
+      this.restartHostComponents(hostComponents, context);
     }
   },
 
   /**
    * Restart list of host components
-   * @param {*} hostComponentsList list of host components should be restarted
+   * @param {Ember.Enumerable} hostComponentsList list of host components should be restarted
+   * @param {String} context message to show in BG popup
    */
-  restartHostComponents: function(hostComponentsList) {
+  restartHostComponents: function(hostComponentsList, context) {
+    context = context || Em.I18n.t('rollingrestart.context.default');
     /**
      * Format: {
      *  'DATANODE': ['host1', 'host2'],
      *  'NAMENODE': ['host1', 'host3']
      *  ...
      * }
-     * @type {Object}
      */
     var componentToHostsMap = {};
     var componentServiceMap = App.QuickDataMapper.componentServiceMap();
@@ -110,22 +112,21 @@ module.exports = {
         });
       }
     }
-    if (!resource_filters.length) {
-      return;
+    if (resource_filters.length) {
+      App.ajax.send({
+        name: 'restart.hostComponents',
+        sender: {
+          successCallback: defaultSuccessCallback,
+          errorCallback: defaultErrorCallback
+        },
+        data: {
+          context: context,
+          resource_filters: resource_filters
+        },
+        success: 'successCallback',
+        error: 'errorCallback'
+      });
     }
-    App.ajax.send({
-      name: 'restart.hostComponents',
-      sender: {
-        successCallback: defaultSuccessCallback,
-        errorCallback: defaultErrorCallback
-      },
-      data: {
-        context: 'RESTART ' + Em.keys(componentToHostsMap).map(function(componentName) {return App.format.components[componentName];}).join(', '),
-        resource_filters: resource_filters
-      },
-      success: 'successCallback',
-      error: 'errorCallback'
-    });
   },
 
   /**

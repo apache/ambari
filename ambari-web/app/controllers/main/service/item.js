@@ -292,7 +292,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     if (this.get('content.isClientsOnly')) {
       App.showConfirmationPopup(function() {
-        batchUtils.restartHostComponents(self.get('content.hostComponents'));
+        batchUtils.restartHostComponents(self.get('content.hostComponents'), Em.I18n.t('rollingrestart.context.allForSelectedService').format(self.get('content.serviceName')));
       });
     }
   },
