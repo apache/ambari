@@ -48,6 +48,13 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
              recursive = True
   )
 
+  Directory (os.path.join(params.local_dir, "jars"),
+             owner = params.hbase_user,
+             group = params.user_group,
+             mode=0775,
+             recursive = True
+  )
+
   XmlConfig( "hbase-site.xml",
             conf_dir = params.conf_dir,
             configurations = params.config['configurations']['hbase-site'],

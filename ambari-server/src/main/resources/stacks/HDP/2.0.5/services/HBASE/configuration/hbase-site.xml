@@ -52,6 +52,12 @@
     </description>
   </property>
   <property>
+    <name>hbase.local.dir</name>
+    <value>${hbase.tmp.dir}/local</value>
+    <description>Directory on the local filesystem to be used as a local storage
+    </description>
+  </property>
+  <property>
     <name>hbase.master.info.bindAddress</name>
     <value></value>
     <description>The bind address for the HBase Master web UI

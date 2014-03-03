@@ -133,6 +133,12 @@ class TestHbaseRegionServer(RMFTestCase):
       owner = 'hbase',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
+      recursive = True,
+    )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -212,6 +218,12 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
       owner = 'hbase',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
+      owner = 'hbase',
+      group = 'hadoop',
+      mode=0775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',

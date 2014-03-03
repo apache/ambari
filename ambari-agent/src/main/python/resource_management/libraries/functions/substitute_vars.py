@@ -19,11 +19,35 @@ limitations under the License.
 Ambari Agent
 
 """
+import re
 
-from resource_management.libraries.functions.default import *
-from resource_management.libraries.functions.format import *
-from resource_management.libraries.functions.get_kinit_path import *
-from resource_management.libraries.functions.get_unique_id_and_date import *
-from resource_management.libraries.functions.check_process_status import *
-from resource_management.libraries.functions.is_empty import *
-from resource_management.libraries.functions.substitute_vars import *
+_MAX_SUBST = 20
+
+def substitute_vars(raw, config):
+  """
+  @param raw: str (e.g '${hbase.tmp.dir}/local')
+  @param config: dict (e.g {'hbase.tmp.dir': '/hadoop/hbase'})
+  """
+  result = raw
+
+  pattern = re.compile("\$\{[^\}\$\x0020]+\}")
+
+  for depth in range(0, _MAX_SUBST - 1):
+    match = pattern.search(result)
+
+    if match:
+      start = match.start()
+      end = match.end()
+
+      name = result[start + 2 : end - 1]
+
+      try:
+        value = config[name]
+      except KeyError:
+        return result
+
+      result = result[:start] + value + result[end:]
+    else:
+      break
+
+  return result
