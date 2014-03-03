@@ -31,3 +31,45 @@
     </span> {{t services.service.summary.SupervisorsLIVE}}
   </td>
 </tr>
+<tr>
+  <td>
+    {{t services.service.summary.storm.freeslots}}
+  </td>
+  <td>
+    {{view.service.freeSlots}} / {{view.service.totalSlots}} ({{view.freeSlotsPercentage}}% free)
+  </td>
+</tr>
+<tr>
+  <td>
+    {{t services.service.summary.storm.tasks}}
+  </td>
+  <td>
+    {{view.service.totalTasks}}
+  </td>
+</tr>
+<tr>
+  <td>
+    {{t services.service.summary.storm.executors}}
+  </td>
+  <td>
+    {{view.service.totalExecutors}}
+  </td>
+</tr>
+<tr>
+  <td>
+    {{t services.service.summary.storm.topologies}}
+  </td>
+  <td>
+    {{view.service.topologies}}
+  </td>
+</tr>
+<tr>
+  <td>
+    {{t services.service.summary.storm.nimbus.uptime}}
+  </td>
+  <td>
+    {{view.nimbusUptimeFormatted}}
+  </td>
+</tr>
+
+

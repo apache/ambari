@@ -1054,6 +1054,11 @@ Em.I18n.translations = {
   'services.service.summary.notRunning':'Not Running',
   'services.service.summary.notAvailable':'n/a',
   'services.service.summary.diskInfoBar.used':'used',
+  'services.service.summary.storm.freeslots': 'Free slots',
+  'services.service.summary.storm.executors': 'Executors',
+  'services.service.summary.storm.tasks': 'Tasks',
+  'services.service.summary.storm.nimbus.uptime': 'Nimbus uptime',
+  'services.service.summary.storm.topologies': 'Topologies',
 
   'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
   'services.service.info.metrics.flume.channelSize':'Channel Size',

@@ -280,6 +280,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         case 'flume':
           svc = App.FlumeService.find().objectAt(0);
           break;
+        case 'storm':
+          svc = App.StormService.find().objectAt(0);
+          break;
         default:
           break;
       }

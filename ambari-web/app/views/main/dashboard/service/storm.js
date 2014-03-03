@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var date = require('utils/date');
 
 App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/storm'),
@@ -33,5 +34,16 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
     totalComponents: function() {
       return this.get('parentView.superVisorComponents').length;
     }.property('parentView.superVisorComponents.length')
-  })
+  }),
+
+  freeSlotsPercentage: function() {
+    return Math.round(this.get('service.freeSlots')/this.get('service.totalSlots')*100);
+  }.property('service.freeSlots', 'service.totalSlots'),
+
+  nimbusUptimeFormatted: function() {
+    if (this.get('service.nimbusUptime') > 0) {
+      return date.timingFormat(this.get('service.nimbusUptime')*1000);
+    }
+    return Em.I18n.t('services.service.summary.notRunning');
+  }.property('service.nimbusUptime')
 });
