@@ -75,21 +75,15 @@ App.MainServiceController = Em.ArrayController.extend({
     if(this.get('isStartStopAllClicked') == true) {
       return true;
     }
-    var stoppedServiceLength = this.get('content').filterProperty('healthStatus','red').length;
+    var stoppedServiceLength = this.get('content').filterProperty('healthStatus','red').filterProperty('isClientsOnly', false).length;
     return (stoppedServiceLength === 0); // all green status
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
   isStopAllDisabled: function(){
     if(this.get('isStartStopAllClicked') == true) {
       return true;
     }
-    var startedService = this.get('content').filterProperty('healthStatus','green');
-    var flag = true;
-    startedService.forEach(function(item){
-      if(!['HCATALOG', 'PIG', 'SQOOP'].contains(item.get('serviceName'))){
-        flag = false;
-      }
-    });
-    return flag;
+    var startedServiceLength = this.get('content').filterProperty('healthStatus','green').length;
+    return (startedServiceLength === 0);
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
   isStartStopAllClicked: function(){
     return (App.router.get('backgroundOperationsController').get('allOperationsCount') !== 0);
