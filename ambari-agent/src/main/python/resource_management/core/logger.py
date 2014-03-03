@@ -58,11 +58,15 @@ class Logger:
     
   @staticmethod  
   def _get_resource_repr(resource):
+    MESSAGE_MAX_LEN = 256
     arguments_str = ""
     for x,y in resource.arguments.iteritems():
       
       # strip unicode 'u' sign
       if isinstance(y, unicode):
+        # don't show long messages
+        if len(y) > MESSAGE_MAX_LEN:
+          y = '...'
         val = repr(y).lstrip('u')
       # don't show dicts of configurations
       # usually too long  
