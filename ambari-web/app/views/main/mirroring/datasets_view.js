@@ -25,19 +25,11 @@ App.MainDatasetsView = App.TableView.extend({
   templateName: require('templates/main/mirroring/datasets'),
   content: function () {
     return this.get('controller.datasets');
-  }.property('controller.datasets'),
+  }.property('controller.datasets.length'),
 
   didInsertElement: function () {
-    this.set('filteredContent', this.get('controller.datasets'));
+    this.filter();
   },
-
-  jobs: function () {
-    return App.DataSetJob.find().slice(0, 2);
-  }.property(),
-
-  targetClusters: function () {
-    return this.get('controller.targetClusters');
-  }.property('controller.targetClusters'),
 
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
