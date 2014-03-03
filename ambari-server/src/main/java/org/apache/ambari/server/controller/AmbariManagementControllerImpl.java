@@ -1537,7 +1537,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
     hostLevelParams.put(DB_NAME, getServerDB());
+    hostLevelParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
+    hostLevelParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
+    hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     hostLevelParams.putAll(getRcaParameters());
+    
     return hostLevelParams;
   }
 

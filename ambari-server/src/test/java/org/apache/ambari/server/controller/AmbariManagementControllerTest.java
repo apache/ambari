@@ -4000,8 +4000,13 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("RESTART HDFS/HDFS_CLIENT", hrc.getCommandDetail());
     Map<String, String> roleParams = hrc.getExecutionCommandWrapper()
       .getExecutionCommand().getRoleParams();
-
+    Map<String, String> hostParams = hrc.getExecutionCommandWrapper()
+        .getExecutionCommand().getHostLevelParams();
+        
     Assert.assertNotNull(roleParams);
+    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.DB_DRIVER_FILENAME));
+    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
+    Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
   }
 
