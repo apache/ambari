@@ -34,6 +34,7 @@ require('models/service/mapreduce');
 require('models/service/mapreduce2');
 require('models/service/hbase');
 require('models/service/flume');
+require('models/service/storm');
 require('models/alert');
 require('models/user');
 require('models/host');

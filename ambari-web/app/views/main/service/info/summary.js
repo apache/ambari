@@ -366,6 +366,16 @@ App.MainServiceInfoSummaryView = Em.View.extend({
               //App.ChartServiceMetricsFlume_JVMThreadsRunnable.extend(),
               App.ChartServiceMetricsFlume_CPUUser.extend()]];
           break;
+        case 'storm':
+          graphs = [
+            [
+              App.ChartServiceMetricsSTORM_SlotsNumber.extend(),
+              App.ChartServiceMetricsSTORM_Executors.extend(),
+              App.ChartServiceMetricsSTORM_Topologies.extend(),
+              App.ChartServiceMetricsSTORM_Tasks.extend()
+            ]
+          ];
+          break;
         default:
           break;
       }

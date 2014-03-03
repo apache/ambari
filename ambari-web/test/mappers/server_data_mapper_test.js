@@ -41,7 +41,10 @@ describe('App.QuickDataMapper', function () {
         }
       ]
     },
-    a2: 'val3'
+    a2: 'val3',
+    item: {
+      'key.dotted': 'val6'
+    }
   };
 
   describe('#getJsonProperty', function() {
@@ -70,7 +73,8 @@ describe('App.QuickDataMapper', function () {
       f4_type: 'array',
       f4: {
         item: 'c2'
-      }
+      },
+      f5: 'item.["key.dotted"]'
     };
     var mapper = App.QuickDataMapper.create();
     var result = mapper.parseIt(test_json, config);
@@ -88,6 +92,9 @@ describe('App.QuickDataMapper', function () {
     });
     it('Generate array of json fields', function() {
       expect(result.f4).to.eql(['val1','val4','val5']);
+    });
+    it('Check value with dotted key', function() {
+      expect(result.f5).to.eql('val6');
     });
   });
 

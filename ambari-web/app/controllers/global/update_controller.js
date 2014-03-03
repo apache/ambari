@@ -134,7 +134,8 @@ App.UpdateController = Em.Controller.extend({
       'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
                    "ServiceComponentInfo/GrayListedNodes," +
                    "ServiceComponentInfo/BlackListedNodes," +
-                   "ServiceComponentInfo/jobtracker/*,"
+                   "ServiceComponentInfo/jobtracker/*,",
+      'STORM': "metrics/api/cluster/summary,"
     };
     var services = App.cache['services'];
     services.forEach(function (service) {

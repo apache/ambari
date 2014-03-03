@@ -279,6 +279,17 @@ Em.I18n.translations = {
   'services.tez.description':'Tez is the next generation Hadoop Query Processing framework written on top of YARN',
   'services.falcon.description': 'Falcon mirroring engine',
   'services.storm.description': 'Apache Hadoop Stream processing framework',
+  'services.storm.slots.metrics.title': 'Number of slots',
+  'services.storm.slots.metrics.free': 'Free slots',
+  'services.storm.slots.metrics.total': 'Total slots',
+  'services.storm.slots.metrics.used': 'Used slots',
+  'services.storm.executors.metrics.title': 'Number of executors',
+  'services.storm.executors.metrics.total': 'Total executors',
+  'services.storm.topology.metrics.title': 'Number of topologies',
+  'services.storm.topology.metrics.total': 'Total topologies',
+  'services.storm.tasks.metrics.title': 'Number of tasks',
+  'services.storm.tasks.metrics.total': 'Total tasks',
+
 
   'services.alerts.head':'You have {0} critical alert notification(s).',
   'services.alerts.OK.timePrefix': 'OK for ',

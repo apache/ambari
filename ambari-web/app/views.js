@@ -203,6 +203,11 @@ require('views/main/service/info/metrics/flume/gc');
 require('views/main/service/info/metrics/flume/jvm_heap');
 require('views/main/service/info/metrics/flume/jvm_threads_runnable');
 require('views/main/service/info/metrics/flume/cpu_user');
+require('views/main/service/info/metrics/storm/slots_number_metric');
+require('views/main/service/info/metrics/storm/executors_metric');
+require('views/main/service/info/metrics/storm/tasks_metric');
+require('views/main/service/info/metrics/storm/topologies_metric');
+
 require('views/main/service/add_view');
 require('views/main/service/reassign_view');
 require('views/main/service/reassign/step1_view');

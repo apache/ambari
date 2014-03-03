@@ -126,6 +126,15 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     heap_memory_used: 'masterComponent.ServiceComponentInfo.HeapMemoryUsed',
     heap_memory_max: 'masterComponent.ServiceComponentInfo.HeapMemoryMax'
   },
+  stormConfig: {
+    total_tasks: 'restApiComponent.metrics.api.cluster.summary.["tasks.total"]',
+    total_slots: 'restApiComponent.metrics.api.cluster.summary.["slots.total"]',
+    free_slots: 'restApiComponent.metrics.api.cluster.summary.["slots.free"]',
+    used_slots: 'restApiComponent.metrics.api.cluster.summary.["tasks.total"]',
+    topologies: 'restApiComponent.metrics.api.cluster.summary.topologies',
+    total_executors: 'restApiComponent.metrics.api.cluster.summary.["executors.total"]',
+    nimbus_uptime: 'restApiComponent.metrics.api.cluster.summary.["nimbus.uptime"]'
+  },
 
   model3: App.HostComponent,
   config3: {
@@ -224,6 +233,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.MapReduce2Service, finalJson);
+        } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "STORM") {
+          finalJson = this.stormMapper(item);
+          finalJson.rand = Math.random();
+          this.mapQuickLinks(finalJson, item);
+          result.push(finalJson);
+          App.store.load(App.StormService, finalJson);
         } else {
           finalJson = this.parseIt(item, this.config);
           finalJson.rand = Math.random();
@@ -600,5 +615,20 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }
     });
     return finalJson;
+  },
+
+  /**
+   * Storm mapper
+   */
+  stormMapper: function(item) {
+    var finalConfig = jQuery.extend({}, this.config);
+    var stormConfig = this.stormConfig;
+    item.components.forEach(function(component) {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "STORM_REST_API") {
+        item.restApiComponent = component;
+        finalConfig = jQuery.extend({}, finalConfig, stormConfig);
+      }
+    });
+    return this.parseIt(item, finalConfig);
   }
 });

@@ -111,6 +111,7 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
   getJsonProperty: function (json, path) {
     var pathArr = path.split('.');
     var current = json;
+    pathArr = this.filterDotted(pathArr);
     while (pathArr.length && current) {
       if (pathArr[0].substr(-1) == ']') {
         var index = parseInt(pathArr[0].substr(-2, 1));
@@ -124,6 +125,29 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
       pathArr.splice(0, 1);
     }
     return current;
+  },
+
+  filterDotted: function(arr) {
+    var buffer = [];
+    var dottedBuffer = [];
+    var dotted = false;
+    arr.forEach(function(item) {
+      if(/\['|\["/.test(item)) {
+        dottedBuffer.push(item.substr(2, item.length));
+        dotted = true;
+      } else if (dotted && !/\]'|"\]/.test(item)) {
+        dottedBuffer.push(item);
+      } else if (/']|"]/.test(item)) {
+        dottedBuffer.push(item.substr(0, item.length - 2));
+        buffer.push(dottedBuffer.join('.'));
+        dotted = false;
+        dottedBuffer = [];
+      } else {
+        buffer.push(item);
+      }
+    });
+
+    return buffer;
   },
 
   /**
