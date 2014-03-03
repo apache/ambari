@@ -27,7 +27,7 @@
   <property>
     <name>falcon_port</name>
     <value>15000</value>
-    <description>Falcon server port.</description>
+    <description>Port the Falcon Server listens on.</description>
   </property>
   <property>
     <name>falcon_log_dir</name>
@@ -42,11 +42,11 @@
   <property>
     <name>falcon_local_dir</name>
     <value>/hadoop/falcon</value>
-    <description>Falcon directory to store different data.</description>
+    <description>Directory where Falcon data, such as activemq data, is stored.</description>
   </property>
   <property>
     <name>falcon_store_uri</name>
     <value>file:///hadoop/falcon/store</value>
-    <description>Falcon store URI.</description>
+    <description>Directory where entity definitions are stored.</description>
   </property>
 </configuration>
