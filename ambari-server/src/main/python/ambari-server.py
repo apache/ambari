@@ -1670,8 +1670,8 @@ def download_jdk(args):
   jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
          "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
   if args.java_home:
-    if not os.path.exists(args.java_home):
-      err = "Path to java home " + args.java_home + " does not exists"
+    if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home,"bin","java")):
+      err = "Path to java home " + args.java_home + " or java binary file does not exists"
       raise FatalException(1, err)
 
     print_warning_msg("JAVA_HOME " + args.java_home + " must be valid on ALL hosts")

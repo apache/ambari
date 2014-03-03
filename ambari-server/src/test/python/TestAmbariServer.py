@@ -1937,6 +1937,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.java_home = "somewhere"
     path_existsMock.side_effect = [True,False,False]
     get_JAVA_HOME_mock.return_value = True
+    path_isfileMock.return_value = True
     ambari_server.download_jdk(args)
     self.assertTrue(write_property_mock.call_count == 1)
     self.assertTrue(remove_property_mock.call_count == 2)
@@ -1986,7 +1987,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       ambari_server.download_jdk(args)
       self.fail("Should throw exception")
     except FatalException as fe:
-      self.assertTrue("Path to java home somewhere does not exists" in fe.reason)
+      self.assertTrue("Path to java home somewhere or java binary file does not exists" in fe.reason)
     #Test case: Setup ambari-server with jdk location passed. Path to JDK doesn't not exists
     args.java_home = None
     args.jdk_location = "/existing/jdk/file"
