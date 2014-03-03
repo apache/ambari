@@ -46,5 +46,15 @@ if 'ganglia_server_host' in config['clusterHostInfo'] and \
   ganglia_report_interval = 60
 else:
   ganglia_installed = False
+  
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
+if security_enabled:
+  _hostname_lowercase = config['hostname'].lower()
+  _kerberos_domain = config['configurations']['global']['kerberos_domain']
+  _storm_principal_name = "storm" # config['configurations']['global']['hbase_master_principal_name']
+  
+  storm_jaas_principal = format("{_storm_principal_name}/{_hostname_lowercase}@{_kerberos_domain}")
+  storm_keytab_path = "/etc/security/keytabs/storm.service.keytab" # config['configurations']['global']['storm_keytab']
 
