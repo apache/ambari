@@ -1512,6 +1512,8 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.runningList.body.end':'To delete this host, you must first stop all the running components listed above. ' +
     'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
+  'hosts.add.exit.header':'Exit',
+  'hosts.add.exit.body':'Do you really want to exit Add Host Wizard?',
   'hosts.assignRack':'Assign Rack',
   'hosts.passiveMode.popup':'Are you sure you want to <b>Turn {0} Maintenance Mode</b> for {1}?',
 

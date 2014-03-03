@@ -21,8 +21,21 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/host/add',
 
+  clearData: function (router) {
+    App.router.get('updateController').set('isWorking', true);
+    App.clusterStatus.setClusterStatus({
+      clusterName: App.router.get('content.cluster.name'),
+      clusterState: 'DEFAULT',
+      wizardControllerName: App.router.get('addHostController.name'),
+      localdb: App.db.data
+    });
+    router.transitionTo('hosts.index');
+  },
+
   enter: function (router) {
     console.log('in /host/add:enter');
+
+    var self = this;
 
     Ember.run.next(function () {
       var addHostController = router.get('addHostController');
@@ -43,15 +56,22 @@ module.exports = App.WizardRoute.extend({
           router.transitionTo('hosts.index');
         },
         onClose: function() {
-          this.hide();
-          App.router.get('updateController').set('isWorking', true);
-          App.clusterStatus.setClusterStatus({
-            clusterName: App.router.get('content.cluster.name'),
-            clusterState: 'DEFAULT',
-            wizardControllerName: App.router.get('addHostController.name'),
-            localdb: App.db.data
-          });
-          router.transitionTo('hosts.index');
+          if (addHostController.get('currentStep') == '6') {
+            App.ModalPopup.show({
+              header: Em.I18n.t('hosts.add.exit.header'),
+              body: Em.I18n.t('hosts.add.exit.body'),
+              onPrimary: function () {
+                this.hide();
+                addHostController.finish();
+                App.router.get('updateController').set('isWorking', true);
+                self.clearData(router);
+                location.reload();
+              }
+            });
+          } else {
+            this.hide();
+            self.clearData(router);
+          }
         },
         didInsertElement: function(){
           this.fitHeight();
