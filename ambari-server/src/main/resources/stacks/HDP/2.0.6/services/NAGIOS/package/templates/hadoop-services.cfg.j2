@@ -421,7 +421,7 @@ define service {
         service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
         check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!{{ namenode_port }}!80%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
-        normal_check_interval   10
+        normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
 }
@@ -611,7 +611,7 @@ define service {
         service_description     DATANODE::DataNode space
         servicegroups           HDFS
         check_command           check_datanode_storage!{{ datanode_port }}!90%!90%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
-        normal_check_interval   5
+        normal_check_interval   2 
         retry_check_interval    1
         max_check_attempts      2
 }
