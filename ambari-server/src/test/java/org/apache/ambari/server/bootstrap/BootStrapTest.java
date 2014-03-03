@@ -103,6 +103,58 @@ public class BootStrapTest extends TestCase {
     Assert.assertFalse(new File(bootdir + File.separator + "1" + File.separator + "host_pass").exists());
   }
 
+    @Test
+    public void testHostFailure() throws Exception {
+        Properties properties = new Properties();
+        String bootdir =  temp.newFolder("bootdir").toString();
+        String metadetadir =  temp.newFolder("metadetadir").toString();
+        String serverVersionFilePath =  temp.newFolder("serverVersionFilePath").toString();
+        LOG.info("Bootdir is " + bootdir);
+        LOG.info("Metadetadir is " + metadetadir);
+        LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
+        properties.setProperty(Configuration.BOOTSTRAP_DIR,
+                bootdir);
+        properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, "echo");
+        properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
+        properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
+        properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
+        Configuration conf = new Configuration(properties);
+        AmbariMetaInfo ambariMetaInfo = new AmbariMetaInfo(conf);
+        BootStrapImpl impl = new BootStrapImpl(conf, ambariMetaInfo);
+        impl.init();
+        SshHostInfo info = new SshHostInfo();
+        info.setSshKey("xyz");
+        ArrayList<String> hosts = new ArrayList<String>();
+        hosts.add("host1");
+        hosts.add("host2");
+        info.setHosts(hosts);
+        info.setUser("user");
+        info.setPassword("passwd");
+        BSResponse response = impl.runBootStrap(info);
+        long requestId = response.getRequestId();
+        LOG.info("Response id from bootstrap " + requestId);
+    /* create failed done file for host1 */
+        File requestDir = new File(bootdir, Long.toString(requestId));
+        FileUtils.writeStringToFile(new File(requestDir, "host1.done"), "0");
+        FileUtils.writeStringToFile(new File(requestDir, "host2.done"), "1");
+    /* do a query */
+        BootStrapStatus status = impl.getStatus(response.getRequestId());
+        LOG.info("Status " + status.getStatus());
+        int num = 0;
+        while ((status.getStatus() != BSStat.ERROR) && (num < 10000)) {
+            status = impl.getStatus(response.getRequestId());
+            Thread.sleep(100);
+            num++;
+        }
+        LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus()
+        );
+    /* Note its an echo command so it should echo host1,host2 */
+        Assert.assertTrue(status.getLog().contains("host1,host2"));
+        Assert.assertEquals(BSStat.ERROR, status.getStatus());
+        Assert.assertEquals("DONE", status.getHostsStatus().get(0).getStatus());
+        Assert.assertEquals("FAILED", status.getHostsStatus().get(1).getStatus());
+    }
+
 
   @Test
   public void testPolling() throws Exception {
