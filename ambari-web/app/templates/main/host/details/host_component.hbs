@@ -68,7 +68,7 @@
           </li>
         {{/if}}
         {{#if view.isRestartableComponent}}
-          <li {{bindAttr class="view.isRestartComponentDisabled:disabled"}}>
+          <li {{bindAttr class="view.isRestartComponentDisabled:hidden"}}>
             <a href="javascript:void(null)" data-toggle="modal" {{action "restartComponent" view.content target="controller"}}>
               {{t common.restart}}
             </a>

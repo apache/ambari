@@ -215,7 +215,7 @@ module.exports = Em.Application.create({
   components: Ember.Object.create({
     reassignable: ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'],
     restartable: function() {
-      return this.get('masters');
+      return this.get('masters').concat(this.get('slaves'));
     }.property('masters'),
     deletable: ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER'],
     rollinRestartAllowed: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "SUPERVISOR"],
