@@ -18,7 +18,7 @@
 var App = require('app');
 require('utils/configs/defaults_providers/defaultsProvider');
 
-App.YARNDefaultsProvider = App.DefaultsProvider.create({
+App.YARNDefaultsProvider = App.DefaultsProvider.extend({
 
   /**
    * List of the configs that should be calculated

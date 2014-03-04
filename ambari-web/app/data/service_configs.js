@@ -19,8 +19,10 @@
 var App = require('app');
 require('models/service_config');
 require('utils/configs/defaults_providers/yarn_defaults_provider');
+require('utils/configs/defaults_providers/tez_defaults_provider');
 require('utils/configs/defaults_providers/storm_defaults_provider');
 require('utils/configs/validators/yarn_configs_validator');
+require('utils/configs/validators/tez_configs_validator');
 require('utils/configs/validators/mapreduce2_configs_validator');
 require('utils/configs/validators/storm_configs_validator');
 
@@ -74,7 +76,7 @@ module.exports = [
     serviceName: 'YARN',
     displayName: 'YARN',
     configsValidator: App.YARNConfigsValidator,
-    defaultsProviders: [App.YARNDefaultsProvider],
+    defaultsProviders: [App.YARNDefaultsProvider.create()],
     filename: 'yarn-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager', hostComponentNames : ['RESOURCEMANAGER']}),
@@ -95,7 +97,7 @@ module.exports = [
     displayName: 'MapReduce 2',
     filename: 'mapred-site',
     configsValidator: App.MapReduce2ConfigsValidator,
-    defaultsProviders: [App.YARNDefaultsProvider],
+    defaultsProviders: [App.YARNDefaultsProvider.create()],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
@@ -240,7 +242,7 @@ module.exports = [
     serviceName: 'STORM',
     displayName: 'Storm',
     configsValidator: App.STORMConfigsValidator,
-    defaultsProviders: [App.STORMDefaultsProvider],
+    defaultsProviders: [App.STORMDefaultsProvider.create()],
     filename: 'storm-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Nimbus', displayName : 'Nimbus'}),
@@ -260,6 +262,8 @@ module.exports = [
     serviceName: 'TEZ',
     displayName: 'Tez',
     filename: 'tez-site',
+    configsValidator: App.TezConfigsValidator,
+    defaultsProviders: [App.TezDefaultsProvider.create()],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),

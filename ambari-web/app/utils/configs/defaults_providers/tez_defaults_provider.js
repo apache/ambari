@@ -16,40 +16,25 @@
  */
 
 var App = require('app');
-require('utils/configs/defaults_providers/defaultsProvider');
+require('utils/configs/defaults_providers/yarn_defaults_provider');
 
-App.STORMDefaultsProvider = App.DefaultsProvider.extend({
+App.TezDefaultsProvider = App.YARNDefaultsProvider.extend({
 
-  clusterData: null,
-
-  /**
-   * List of the configs that should be calculated
-   */
   configsTemplate: {
-    'drpc.childopts': null,
-    'ui.childopts': null,
-    'logviewer.childopts': null
+    'tez.am.resource.memory.mb': null,
+    'tez.am.java.opts': null
   },
 
-  // @todo fill with correct values
-  getDefaults: function (localDB) {
-    this._super();
-    this.getClusterData(localDB);
-    var configs = {};
-    jQuery.extend(configs, this.get('configsTemplate'));
-    if (!this.clusterDataIsValid()) {
-      return configs;
+  getDefaults : function(localDB) {
+    var configs = this._super(localDB);
+    if (configs['yarn.app.mapreduce.am.resource.mb'] != null) {
+      configs['tez.am.resource.memory.mb'] = configs['yarn.app.mapreduce.am.resource.mb'];
+      configs['tez.am.java.opts'] = '-server -Xmx' + Math.round(0.8 * configs['tez.am.resource.memory.mb'])
+          + 'm -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC';
+    } else {
+      jQuery.extend(configs, this.get('configsTemplate'));
     }
-    configs['drpc.childopts'] = '-Xmx768m';
-    configs['ui.childopts'] = '-Xmx768m';
-    configs['logviewer.childopts'] = '-Xmx128m';
     return configs;
-  },
-
-  /**
-   * Verify <code>clusterData</code> - check if all properties are defined
-   */
-  clusterDataIsValid: function () {
-    return true;
   }
+
 });

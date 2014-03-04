@@ -47,7 +47,7 @@
   <property>
     <name>tez.am.java.opts</name>
     <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC</value>
-    <description>Java options for the Tez AppMaster process</description>
+    <description>Java options for the Tez AppMaster process. The -Xmx parameter value is generally 0.8 times tez.am.resource.memory.mb config.</description>
   </property>
 
   <property>
