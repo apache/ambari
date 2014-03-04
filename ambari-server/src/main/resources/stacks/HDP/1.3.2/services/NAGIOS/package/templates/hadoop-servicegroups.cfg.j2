@@ -76,8 +76,8 @@ define servicegroup {
 {% endif %}
 {% if hostgroup_defs['hiveserver'] %}
 define servicegroup {
-  servicegroup_name  HIVE-METASTORE
-  alias  HIVE-METASTORE Checks
+  servicegroup_name  HIVE
+  alias  HIVE Checks
 }
 {% endif %}
 {% if hostgroup_defs['zookeeper-servers'] %}

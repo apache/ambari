@@ -95,7 +95,7 @@ function hdp_mon_generate_response( $response_data )
   define ("MAPREDUCE_SERVICE_CHECK", "JOBTRACKER::JobTracker process down");
   define ("HBASE_SERVICE_CHECK", "HBASEMASTER::HBaseMaster process down");
   define ("ZOOKEEPER_SERVICE_CHECK", "ZOOKEEPER::Percent ZooKeeper Servers down");
-  define ("HIVE_METASTORE_SERVICE_CHECK", "HIVE-METASTORE::Hive Metastore status check");
+  define ("HIVE_SERVICE_CHECK", "HIVE-METASTORE::Hive Metastore status check");
   define ("OOZIE_SERVICE_CHECK", "OOZIE::Oozie Server status check");
   define ("WEBHCAT_SERVICE_CHECK", "WEBHCAT::WebHCat Server status check");
   define ("PUPPET_SERVICE_CHECK", "PUPPET::Puppet agent down");
@@ -182,10 +182,10 @@ function hdp_mon_generate_response( $response_data )
         }
         continue;
       }
-      if (getParameter($object, "service_description") == HIVE_METASTORE_SERVICE_CHECK) {
-        $services_object["HIVE-METASTORE"] = getParameter($object, "last_hard_state");
-        if ($services_object["HIVE-METASTORE"] >= 1) {
-          $services_object["HIVE-METASTORE"] = 1;
+      if (getParameter($object, "service_description") == HIVE_SERVICE_CHECK) {
+        $services_object["HIVE"] = getParameter($object, "last_hard_state");
+        if ($services_object["HIVE"] >= 1) {
+          $services_object["HIVE"] = 1;
         }
         continue;
       }

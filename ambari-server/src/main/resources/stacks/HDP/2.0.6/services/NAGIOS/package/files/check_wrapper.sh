@@ -2,14 +2,6 @@
 
 function real_service() {
   desc=$NAGIOS_SERVICEGROUPNAME
-  case "$desc" in
-    HIVE-METASTORE)
-      desc="HIVE"
-    ;;
-    *)
-    ;;
-  esac
-
   eval "$1='$desc'"
 }
 
