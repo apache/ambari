@@ -529,7 +529,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (null == request.getClusterName() || request.getClusterName().isEmpty()
         || null == request.getType() || request.getType().isEmpty()
         || null == request.getVersionTag() || request.getVersionTag().isEmpty()
-        || null == request.getProperties() || request.getProperties().isEmpty()) {
+        || null == request.getProperties()) {
       throw new IllegalArgumentException("Invalid Arguments,"
           + " clustername, config type, config version and configs should not"
           + " be null or empty");
@@ -895,7 +895,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (null != request.getDesiredConfig()) {
       ConfigurationRequest cr = request.getDesiredConfig();
 
-      if (null != cr.getProperties() && cr.getProperties().size() > 0) {
+      Config oldConfig = cluster.getDesiredConfigByType(cr.getType());
+      
+      if (null != cr.getProperties()) { 
         LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''",
             cr.getVersionTag(),
             request.getClusterName()));
@@ -906,8 +908,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
       if (null != baseConfig) {
-        Config oldConfig = cluster.getDesiredConfigByType(cr.getType());
         String authName = getAuthName();
+        
         if (cluster.addDesiredConfig(authName, baseConfig)) {
           Logger logger = LoggerFactory.getLogger("configchange");
           logger.info("cluster '" + request.getClusterName() + "' "

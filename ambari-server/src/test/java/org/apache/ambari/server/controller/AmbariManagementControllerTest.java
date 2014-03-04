@@ -9799,7 +9799,50 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue("Service is started, command should create tasks",
         rsr.getTasks().size() > 0);
     
-  }  
+  }
+  
+  @Test
+  public void testEmptyConfigs() throws Exception {
+    String clusterName = "c1";
+    createCluster(clusterName);
+    Cluster cluster =  clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+
+    ClusterRequest cr = new ClusterRequest(null, cluster.getClusterName(), null, null);
+
+    // test null map with no prior
+    cr.setDesiredConfig(
+        new ConfigurationRequest(clusterName, "typeA", "v1", null));
+    controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    Config config = cluster.getDesiredConfigByType("typeA");
+    Assert.assertNull(config);
+    
+    // test empty map with no prior
+    cr.setDesiredConfig(
+        new ConfigurationRequest(clusterName, "typeA", "v1", new HashMap<String, String>()));
+    controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    config = cluster.getDesiredConfigByType("typeA");
+    Assert.assertNotNull(config);
+    
+    // test empty properties on a new version
+    cr.setDesiredConfig(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>()));
+    controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    config = cluster.getDesiredConfigByType("typeA");
+    Assert.assertNotNull(config);
+    Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(config.getProperties().size()));
+    
+    // test new version
+    Map<String, String> map = new HashMap<String, String>();
+    map.clear();
+    map.put("c", "d");
+    cr.setDesiredConfig(
+        new ConfigurationRequest(clusterName, "typeA", "v3", map));
+    controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    config = cluster.getDesiredConfigByType("typeA");
+    Assert.assertNotNull(config);
+    Assert.assertTrue(config.getProperties().containsKey("c"));
+  }
 }
 
   
