@@ -413,6 +413,18 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     serviceName = serviceName.toLowerCase();
   }.observes('serviceName'),
 
+  /*
+   * Alerts panel not display for PIG, SQOOP and TEZ Service
+   */
+  isNoAlertsService: function () {
+    var serviceName = this.get('service.serviceName');
+    if (!serviceName) {
+      return false;
+    }
+    var noAlertsServices = ['PIG', 'SQOOP', 'TEZ'];
+    return noAlertsServices.indexOf(serviceName) > -1;
+  }.property(''),
+
   gangliaUrl:function () {
     var gangliaUrl = App.router.get('clusterController.gangliaUrl');
     if (!gangliaUrl) return null;

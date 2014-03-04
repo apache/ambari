@@ -83,37 +83,39 @@
     </div>
   </div>
   <div class="span6">
-    <div class="box">
-      <div class="box-header">
-        <h4>{{t services.alerts.headingOfList}}</h4>
-        {{#if controller.isNagiosInstalled}}
-          <div class="btn-group">
-            <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
-          </div>
-        {{/if}}
-      </div>
-      <ul id='summary-alerts-list' class="alerts">
-        {{#if view.alertsController.isLoaded}}
-          {{#if view.alerts.length}}
-            {{#each view.alerts}}
-              {{view App.AlertItemView contentBinding="this"}}
-            {{/each}}
-          {{else}}
-            {{#if controller.isNagiosInstalled}}
+    {{#unless view.isNoAlertsService}}
+      <div class="box">
+        <div class="box-header">
+          <h4>{{t services.alerts.headingOfList}}</h4>
+          {{#if controller.isNagiosInstalled}}
+            <div class="btn-group">
+              <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
+            </div>
+          {{/if}}
+        </div>
+        <ul id='summary-alerts-list' class="alerts">
+          {{#if view.alertsController.isLoaded}}
+            {{#if view.alerts.length}}
+              {{#each view.alerts}}
+                {{view App.AlertItemView contentBinding="this"}}
+              {{/each}}
+            {{else}}
+              {{#if controller.isNagiosInstalled}}
                 <div class="alert alert-info">
                   {{t services.service.info.summary.nagios.noAlerts}}
                 </div>
-            {{else}}
+              {{else}}
                 <div class="alert">
                   {{t services.service.info.summary.nagios.alerts}}
                 </div>
+              {{/if}}
             {{/if}}
+          {{else}}
+            <div class="spinner"></div>
           {{/if}}
-        {{else}}
-          <div class="spinner"></div>
-        {{/if}}
-      </ul>
-    </div>
+        </ul>
+      </div>
+    {{/unless}}
   </div>
 </div>
 {{#if view.serviceMetricGraphs.length}}
