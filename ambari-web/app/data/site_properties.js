@@ -834,6 +834,46 @@ module.exports =
       "serviceName": "PIG",
       "filename": "pig-log4j.xml",
       "category": "AdvancedPigLog4j"
+    },
+
+
+    //***************************************** GLUSTERFS stack********************************************
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.impl",
+      "displayName": "GlusterFS fs impl",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.volname",
+      "displayName": "GlusterFS volume name",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.mount",
+      "displayName": "GlusterFS mount point",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name": "fs.glusterfs.getfattrcmd",
+      "displayName": "GlusterFS getfattr command",
+      "displayType": "string",
+      "filename": "core-site.xml",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
     }
+
   ]
 };

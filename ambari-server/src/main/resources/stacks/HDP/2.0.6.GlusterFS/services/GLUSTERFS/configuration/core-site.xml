@@ -78,21 +78,37 @@
 <property>
 <name>gluster.daemon.user</name>
 <value>yarn</value>
+<description>GlusterFS Daemon user</description>
 </property>
 
 <property>
 <name>fs.AbstractFileSystem.glusterfs.impl</name>
 <value>org.apache.hadoop.fs.local.GlusterFs</value>
+<description>GlusterFS Abstract Filesystem declaration</description>
 </property>
 
 <property>
 <name>fs.glusterfs.impl</name>
 <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
+  <description>GlusterFS fs impl</description>
+</property>
+
+<property>
+<name>fs.glusterfs.volname</name>
+<value>HadoopVol</value>
+<description>GlusterFS volume name</description>
 </property>
 
 <property>
 <name>fs.glusterfs.mount</name>
 <value>/mnt/glusterfs</value>
+<description>GlusterFS mount point</description>
+</property>
+
+<property>
+<name>fs.glusterfs.getfattrcmd</name>
+<value>sudo getfattr -m . -n trusted.glusterfs.pathinfo</value>
+<description>GlusterFS getfattr command</description>
 </property>
 
 
