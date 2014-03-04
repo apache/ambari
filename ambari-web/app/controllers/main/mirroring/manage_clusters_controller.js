@@ -173,7 +173,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
         '" version="2.2.0" /><interface type="execute" endpoint="' + cluster.get('execute') +
         '" version="2.2.0" /><interface type="workflow" endpoint="' + cluster.get('workflow') +
         '" version="4.0.0" />' + '<interface type="messaging" endpoint="tcp://' + App.get('falconServerURL') +':61616?daemon=true" version="5.1.6" />' +
-        '<interface type="write" endpoint="hdfs://c6401.ambari.apache.org:8020" version="2.2.0" />' +
+        '<interface type="write" endpoint="hdfs://'+ App.get('falconServerURL') +':8020" version="2.2.0" />' +
         '</interfaces><locations><location name="staging" path="' + cluster.get('staging') +
         '" /><location name="temp" path="' + cluster.get('temp') +
         '" /><location name="working" path="' + cluster.get('working') +

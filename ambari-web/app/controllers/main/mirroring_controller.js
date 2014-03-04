@@ -116,7 +116,7 @@ App.MainMirroringController = Em.ArrayController.extend({
           targetClusterName: targetCluster['@attributes'].name,
           sourceDir: parsedData.feed.locations.location['@attributes'].path,
           targetDir: targetCluster.locations.location['@attributes'].path,
-          frequency: parsedData.feed.frequency['#text'].match(/\d/)[0],
+          frequency: parsedData.feed.frequency['#text'].match(/\d+/)[0],
           frequencyUnit: parsedData.feed.frequency['#text'].match(/\w+(?=\()/)[0],
           scheduleEndDate: sourceCluster.validity['@attributes'].end,
           scheduleStartDate: sourceCluster.validity['@attributes'].start,

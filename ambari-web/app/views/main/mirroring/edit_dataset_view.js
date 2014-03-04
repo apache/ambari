@@ -78,10 +78,14 @@ App.MainMirroringEditDataSetView = Em.View.extend({
       formFields.set('hoursForEnd', this.get('controller').toAMPMHours(endHours));
       formFields.set('minutesForStart', scheduleStartDate.slice(14, 16));
       formFields.set('minutesForEnd', scheduleEndDate.slice(14, 16));
-      formFields.set('middayPeriodForStart', startHours > 12 || startHours === '00' ? 'PM' : 'AM');
-      formFields.set('middayPeriodForEnd', endHours > 12 || endHours === '00' ? 'PM' : 'AM');
+      formFields.set('middayPeriodForStart', startHours > 11 ? 'PM' : 'AM');
+      formFields.set('middayPeriodForEnd', endHours > 11 ? 'PM' : 'AM');
     }
   }.observes('isLoaded', 'App.router.mainMirroringController.selectedDataset', 'controller.isEdit'),
+
+  select: Em.Select.extend({
+    attributeBindings: ['disabled']
+  }),
 
   didInsertElement: function () {
     $('.datepicker').datepicker({

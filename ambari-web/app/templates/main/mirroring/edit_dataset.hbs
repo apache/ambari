@@ -24,7 +24,7 @@
             {{t mirroring.dataset.name}}
           </td>
           <td colspan="2" style="text-align: left">
-            {{view Ember.TextField valueBinding="formFields.datasetName" class="span4"}}
+            {{view Ember.TextField valueBinding="formFields.datasetName" class="span4" disabledBinding="controller.isEdit"}}
             <span class="help-inline">{{errorMessages.name}}</span>
           </td>
         </tr>
@@ -97,10 +97,10 @@
           <td colspan="1"> {{t mirroring.dataset.schedule}} </td>
           <td colspan="2" style="text-align: left">
             <div {{bindAttr class="errors.isStartDateError:error"}}>
-              {{view Ember.TextField valueBinding="formFields.datasetStartDate" class="input-small datepicker"}}
-              {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="formFields.hoursForStart" class="input-mini"}}
-              {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="formFields.minutesForStart" class="input-mini"}}
-              {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="formFields.middayPeriodForStart" class="input-mini"}}
+              {{view Ember.TextField valueBinding="formFields.datasetStartDate" class="input-small datepicker" disabledBinding="controller.isEdit"}}
+              {{view view.select contentBinding="view.hourOptions" selectionBinding="formFields.hoursForStart" class="input-mini" disabledBinding="controller.isEdit"}}
+              {{view view.select contentBinding="view.minuteOptions" selectionBinding="formFields.minutesForStart" class="input-mini" disabledBinding="controller.isEdit"}}
+              {{view view.select contentBinding="view.middayPeriodOptions" selectionBinding="formFields.middayPeriodForStart" class="input-mini" disabledBinding="controller.isEdit"}}
               <span class="help-inline">{{errorMessages.startDate}}</span>
             </div>
             <div>

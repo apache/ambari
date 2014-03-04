@@ -24,7 +24,7 @@ App.MainDatasetJobsView = App.TableView.extend({
   templateName: require('templates/main/mirroring/jobs'),
   content: function () {
     return this.get('controller.jobs');
-  }.property('controller.jobs'),
+  }.property('controller.jobs', 'controller.jobs.length'),
 
   dataset: function () {
     return this.get('controller.content');

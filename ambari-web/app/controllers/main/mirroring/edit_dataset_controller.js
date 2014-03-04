@@ -222,7 +222,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     // Compose XML data, that will be sended to server
     var dataToSend = '<?xml version="1.0"?><feed description="" name="' + datasetName + '" xmlns="uri:falcon:feed:0.1"><frequency>' + repeatOptionSelected + '(' + datasetFrequency + ')' +
         '</frequency><clusters><cluster name="' + sourceCluster + '" type="source"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
-        '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="' + targetCluster + '" type="target"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleStartDateFormatted +
+        '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="' + targetCluster + '" type="target"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
         '"/><retention limit="months(1)" action="delete"/><locations><location type="data" path="' + targetDir + '" /></locations></cluster></clusters><locations><location type="data" path="' +
         sourceDir + '" /></locations><ACL owner="hue" group="users" permission="0755" /><schema location="/none" provider="none"/></feed>';
     if (this.get('isEdit')) {
