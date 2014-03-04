@@ -128,7 +128,7 @@ namenode_opt_maxnewsize =  config['configurations']['global']['namenode_opt_maxn
 jtnode_opt_newsize = default("jtnode_opt_newsize","200m")
 jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize","200m")
 jtnode_heapsize =  default("jtnode_heapsize","1024m")
-ttnode_heapsize = "1024m"
+ttnode_heapsize = default("ttnode_heapsize","1024m")
 
 dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
 mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")

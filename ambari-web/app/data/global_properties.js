@@ -435,6 +435,18 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "ttnode_heapsize",
+      "displayName": "TaskTracker maximum Java heap size",
+      "description": "Maximum Java heap size for TaskTracker in MB (Java option -Xmx)",
+      "defaultValue": "1024",
+      "displayType": "int",
+      "unit": "MB",
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
       "name": "lzo_enabled",
       "displayName": "LZO compression",
       "description": "LZO compression enabled",
