@@ -548,7 +548,7 @@ module.exports = Em.Route.extend({
     }),
     adminAccess: Em.Route.extend({
       enter: function(router) {
-        Em.run.next(function() {
+        router.get('mainController').dataLoading().done(function() {
           if (!router.get('mainAdminController.isAccessAvailable')) router.transitionTo('adminUser.allUsers');
         });
       },
