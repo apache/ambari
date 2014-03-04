@@ -70,6 +70,7 @@ drpc_port = config['configurations']['storm-site']['drpc.port']
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 logviewer_port = config['configurations']['storm-site']['logviewer.port']
 supervisor_port = "56431"
+storm_rest_api_port = "8745"
 falcon_port = config['configurations']['global']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
 
@@ -139,6 +140,7 @@ _drpc_host = default("/clusterHostInfo/drpc_server_hosts",None)
 _logwier_host = default("/clusterHostInfo/logviewer_server_hosts",None)
 _supervisor_hosts = default("/clusterHostInfo/supervisor_hosts",None)
 _storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts",None)
+_storm_rest_api_hosts = default("/clusterHostInfo/storm_rest_api_hosts",None)
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
 _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
 _oozie_server = default("/clusterHostInfo/oozie_server",None)
@@ -179,6 +181,7 @@ hostgroup_defs = {
     'logviewer-server' : _logwier_host,
     'storm_ui' : _storm_ui_host,
     'supervisors' : _supervisor_hosts,
+    'storm_rest_api' : _storm_rest_api_hosts,
     'falcon-server' : _falcon_host,
     'ats-servers' : _app_timeline_server_hosts
 }

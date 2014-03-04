@@ -404,6 +404,7 @@ function hdp_mon_generate_response( $response_data )
       case "DRPC_SERVER":
       case "LOGVIEWER_SERVER":
       case "SUPERVISOR":
+      case "STORM_REST_API":
         $pieces[0] = "STORM";
         break;
       case "NAGIOS":

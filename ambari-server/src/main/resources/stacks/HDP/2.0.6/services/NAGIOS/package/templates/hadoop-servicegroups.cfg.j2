@@ -82,7 +82,8 @@ define servicegroup {
   hostgroup_defs['drpc-server'] or
   hostgroup_defs['logviewer-server'] or
   hostgroup_defs['storm_ui'] or
-  hostgroup_defs['supervisors']%}
+  hostgroup_defs['supervisors'] or
+  hostgroup_defs['storm_rest_api']%}
 define servicegroup {
   servicegroup_name  STORM
   alias  STORM Checks

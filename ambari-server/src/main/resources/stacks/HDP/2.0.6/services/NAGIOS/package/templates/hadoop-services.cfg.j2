@@ -237,7 +237,7 @@ define service {
 define service {
         hostgroup_name          storm_ui
         use                     hadoop-service
-        service_description     STORM_UI_SERVER::Storm Web UI on {{ hostgroup_defs['storm_ui'][0] }}
+        service_description     STORM_UI_SERVER::Storm UI on {{ hostgroup_defs['storm_ui'][0] }}
         servicegroups           STORM
         check_command           check_webui!storm_ui!{{ storm_ui_port }}
         normal_check_interval   1
@@ -251,7 +251,7 @@ define service {
 define service {
         hostgroup_name          storm_ui
         use                     hadoop-service
-        service_description     STORM_UI_SERVER::Storm Web UI process
+        service_description     STORM_UI_SERVER::Storm UI Server process
         servicegroups           STORM
         check_command           check_tcp_wrapper!{{ storm_ui_port }}!-w 1 -c 1
         normal_check_interval   0.5
@@ -279,7 +279,7 @@ define service {
 define service {
         hostgroup_name          drpc-server
         use                     hadoop-service
-        service_description     DRPC_SERVER::DRPC server process
+        service_description     DRPC_SERVER::DRPC Server process
         servicegroups           STORM
         check_command           check_tcp_wrapper!{{ drpc_port }}!-w 1 -c 1
         normal_check_interval   0.5
@@ -293,9 +293,23 @@ define service {
 define service {
         hostgroup_name          logviewer-server
         use                     hadoop-service
-        service_description     LOGVIEWER_SERVER::Logviewer server process
+        service_description     LOGVIEWER_SERVER::Logviewer Server process
         servicegroups           STORM
         check_command           check_tcp_wrapper!{{ logviewer_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+{% endif %}
+
+{% if hostgroup_defs['storm_rest_api'] %}
+# logviewer Checks
+define service {
+        hostgroup_name          storm_rest_api
+        use                     hadoop-service
+        service_description     STORM_REST_API::Storm REST API Server process
+        servicegroups           STORM
+        check_command           check_tcp_wrapper!{{ storm_rest_api_port }}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
