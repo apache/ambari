@@ -99,7 +99,7 @@ class TestHiveServer(RMFTestCase):
                               )
 
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/tez*.jar',
-                              mode=0655,
+                              mode=0755,
                               owner='tez',
                               dest_dir='/apps/tez/',
                               kinnit_if_needed='',
@@ -107,7 +107,7 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
-                              mode=0655,
+                              mode=0755,
                               owner='tez',
                               dest_dir='/apps/tez/lib/',
                               kinnit_if_needed='',
@@ -126,7 +126,7 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/hive/lib/hive-exec.jar',
-                              mode=0655,
+                              mode=0755,
                               owner='hive',
                               dest_dir='/apps/hive/install',
                               kinnit_if_needed='',

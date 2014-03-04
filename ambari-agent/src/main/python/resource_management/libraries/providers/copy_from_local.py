@@ -20,6 +20,7 @@ Ambari Agent
 
 """
 
+import os
 from resource_management import *
 
 class CopyFromLocalProvider(Provider):
@@ -34,7 +35,10 @@ class CopyFromLocalProvider(Provider):
     hadoop_conf_path = self.resource.hadoop_conf_dir
 
     copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
-    unless_cmd = format("{kinnit_if_needed} hadoop fs -ls {dest_dir} >/dev/null 2>&1")
+    dest_file_name = os.path.split(path)[1]
+    dest_path = dest_dir + dest_file_name if dest_dir.endswith(os.sep) else dest_dir + os.sep + dest_file_name
+
+    unless_cmd = format("{kinnit_if_needed} hadoop fs -ls {dest_path} >/dev/null 2>&1")
 
     ExecuteHadoop(copy_cmd,
                   not_if=unless_cmd,
@@ -51,7 +55,7 @@ class CopyFromLocalProvider(Provider):
         chown = format('{owner}:{group}')
 
     if chown:
-      chown_cmd = format("fs -chown {chown} {dest_dir}")
+      chown_cmd = format("fs -chown {chown} {dest_path}")
 
       ExecuteHadoop(chown_cmd,
                     user=hdfs_usr,
@@ -60,7 +64,7 @@ class CopyFromLocalProvider(Provider):
 
     if mode:
       dir_mode = oct(mode)
-      chmod_cmd = format('fs -chmod {dir_mode} {dest_dir}')
+      chmod_cmd = format('fs -chmod {dir_mode} {dest_path}')
 
       ExecuteHadoop(chmod_cmd,
                     user=hdfs_usr,

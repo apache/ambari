@@ -87,7 +87,7 @@ class HiveServer(Script):
         )
 
       CopyFromLocal(params.hive_exec_jar_path,
-                    mode=0655,
+                    mode=0755,
                     owner=params.hive_user,
                     dest_dir=hdfs_path,
                     kinnit_if_needed=kinit_if_needed,
@@ -136,7 +136,7 @@ class HiveServer(Script):
 
       if app_dir_path:
         CopyFromLocal(params.tez_local_api_jars,
-                      mode=0655,
+                      mode=0755,
                       owner=params.tez_user,
                       dest_dir=app_dir_path,
                       kinnit_if_needed=kinit_if_needed,
@@ -146,7 +146,7 @@ class HiveServer(Script):
 
       if lib_dir_path:
         CopyFromLocal(params.tez_local_lib_jars,
-                      mode=0655,
+                      mode=0755,
                       owner=params.tez_user,
                       dest_dir=lib_dir_path,
                       kinnit_if_needed=kinit_if_needed,
