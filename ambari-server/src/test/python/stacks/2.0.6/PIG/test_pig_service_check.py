@@ -44,7 +44,6 @@ class TestPigServiceCheck(RMFTestCase):
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',
-      logoutput = True,
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       user = 'ambari-qa',
@@ -80,7 +79,6 @@ class TestPigServiceCheck(RMFTestCase):
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',
-      logoutput = True,
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       user = 'ambari-qa',

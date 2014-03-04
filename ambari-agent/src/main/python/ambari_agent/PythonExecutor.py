@@ -122,13 +122,16 @@ class PythonExecutor:
     return python_command
 
   def condenseOutput(self, stdout, stderr, retcode, structured_out):
+    log_lines_count = self.config.get('heartbeat', 'log_lines_count')
+    
     grep = self.grep
     result = {
       "exitcode": retcode,
-      "stdout"  : grep.tail(stdout, grep.OUTPUT_LAST_LINES),
-      "stderr"  : grep.tail(stderr, grep.OUTPUT_LAST_LINES),
+      "stdout": grep.tail(stdout, log_lines_count) if log_lines_count else stdout,
+      "stderr": grep.tail(stderr, log_lines_count) if log_lines_count else stderr,
       "structuredOut" : structured_out
     }
+    
     return result
 
   def python_watchdog_func(self, python, timeout):

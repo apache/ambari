@@ -60,6 +60,8 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 state_interval = 6
 dirs=/etc/hadoop,/etc/hadoop/conf,/var/run/hadoop,/var/log/hadoop
 rpms=glusterfs,openssl,wget,net-snmp,ntpd,ruby,ganglia,nagios,glusterfs
+log_lines_count=300
+
 """
 s = StringIO.StringIO(content)
 config.readfp(s)

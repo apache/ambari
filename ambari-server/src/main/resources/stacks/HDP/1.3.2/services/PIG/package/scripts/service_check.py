@@ -55,8 +55,7 @@ class PigServiceCheck(Script):
       tries     = 3,
       try_sleep = 5,
       path      = '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-      user      = params.smokeuser,
-      logoutput = True
+      user      = params.smokeuser
     )
   
     ExecuteHadoop( test_cmd,
