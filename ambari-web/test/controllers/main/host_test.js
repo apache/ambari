@@ -21,6 +21,7 @@ var validator = require('utils/validator');
 require('utils/component');
 require('utils/batch_scheduled_requests');
 require('controllers/main/host');
+require('mappers/server_data_mapper');
 
 describe('MainHostController', function () {
 

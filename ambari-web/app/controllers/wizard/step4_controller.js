@@ -46,23 +46,18 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Update hidden services. Make them to have the same status as master ones.
    */
   checkDependencies: function () {
-    var hbase = this.findProperty('serviceName', 'HBASE');
-    var zookeeper = this.findProperty('serviceName', 'ZOOKEEPER');
-    var hive = this.findProperty('serviceName', 'HIVE');
-    var hcatalog = this.findProperty('serviceName', 'HCATALOG');
-    var webhcat = this.findProperty('serviceName', 'WEBHCAT');
-    var yarn = this.findProperty('serviceName', 'YARN');
-    var mapreduce2 = this.findProperty('serviceName', 'MAPREDUCE2');
-    var oozie = this.findProperty('serviceName', 'OOZIE');
-    var falcon = this.findProperty('serviceName', 'FALCON');
+    var services = {};
+    this.forEach(function (service) {
+      services[service.get('serviceName')] = service;
+    });
 
     // prevent against getting error when not all elements have been loaded yet
-    if (hbase && zookeeper && hive && hcatalog && webhcat) {
-      if (yarn && mapreduce2) {
-        mapreduce2.set('isSelected', yarn.get('isSelected'));
+    if (services['HBASE'] && services['ZOOKEEPER'] && services['HIVE'] && services['HCATALOG'] && services['WEBHCAT']) {
+      if (services['YARN'] && services['MAPREDUCE2']) {
+        services['MAPREDUCE2'].set('isSelected', services['YARN'].get('isSelected'));
       }
-      hcatalog.set('isSelected', hive.get('isSelected'));
-      webhcat.set('isSelected', hive.get('isSelected'));
+      services['HCATALOG'].set('isSelected', services['HIVE'].get('isSelected'));
+      services['WEBHCAT'].set('isSelected', services['HIVE'].get('isSelected'));
     }
   }.observes('@each.isSelected'),
 
@@ -132,15 +127,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Check whether we should turn on <code>ZooKeeper</code> service
    * @return {Boolean}
    */
-  needToAddZooKeeper: function() {
-    return this.needAddService('ZOOKEEPER', ['HBASE','HIVE','WEBHCAT','STORM']);
-  },
-  /**
-   * Check whether we should turn on <code>ZooKeeper</code> service (on 2.x stack)
-   * @returns {Boolean}
-   */
-  needToAddZooKeeperOnStack2x: function() {
-    return this.findProperty('serviceName', 'ZOOKEEPER') && this.findProperty('serviceName', 'ZOOKEEPER').get('isSelected') === false;
+  needToAddZooKeeper: function () {
+    if (App.get('isHadoop2Stack')) {
+      return this.findProperty('serviceName', 'ZOOKEEPER') && this.findProperty('serviceName', 'ZOOKEEPER').get('isSelected') === false;
+    } else {
+      return this.needAddService('ZOOKEEPER', ['HBASE', 'HIVE', 'WEBHCAT', 'STORM']);
+    }
   },
   /** 
    * Check whether we should turn on <code>HDFS or GLUSTERFS</code> service
@@ -180,43 +172,60 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
+   * submit checks describe dependency rules between services
+   * @checkCallback - callback, which check for dependency
+   * @popupParams - parameters for popup
+   */
+  submitChecks: [
+    {
+      checkCallback: 'needToAddMapReduce',
+      popupParams: [{serviceName: 'MAPREDUCE', selected: true}, 'mapreduceCheck']
+    },
+    {
+      checkCallback: 'noDFSs',
+      popupParams: [{serviceName:'HDFS', selected: true}, 'hdfsCheck']
+    },
+    {
+      checkCallback: 'needToAddYarnMapReduce2',
+      popupParams: [{serviceName:'YARN', selected:true}, 'yarnCheck']
+    },
+    {
+      checkCallback: 'needToAddZooKeeper',
+      popupParams: [{serviceName:'ZOOKEEPER', selected: true}, 'zooKeeperCheck']
+    },
+    {
+      checkCallback: 'multipleDFSs',
+      popupParams: [[
+        {serviceName: 'HDFS', selected: true},
+        {serviceName: 'GLUSTERFS', selected: false}
+      ], 'multipleDFS']
+    },
+    {
+      checkCallback: 'needToAddOozie',
+      popupParams: [{serviceName:'OOZIE', selected: true}, 'oozieCheck']
+    },
+    {
+      checkCallback: 'needToAddTez',
+      popupParams: [{serviceName:'TEZ', selected: true}, 'tezCheck']
+    }
+  ],
+
+  /**
    * Onclick handler for <code>Next</code> button
    */
   submit: function () {
-    if(!this.get("isSubmitDisabled")) {
-      if (this.needToAddMapReduce()) {
-        this.mapReduceCheckPopup();
+    var submitChecks = this.get('submitChecks');
+    var doValidateMonitoring = true;
+    if (!this.get("isSubmitDisabled")) {
+      for (var i = 0; i < submitChecks.length; i++) {
+        if (this[submitChecks[i].checkCallback].call(this)) {
+          doValidateMonitoring = false;
+          this.needToAddServicePopup.apply(this, submitChecks[i].popupParams);
+          break;
+        }
       }
-      else {
-        if (this.noDFSs()) {
-          this.needToAddHDFSPopup();
-        }
-        else {
-          if (this.needToAddYarnMapReduce2()) {
-            this.mapReduce2CheckPopup();
-          }
-          else {
-            if ((!App.get('isHadoop2Stack') && this.needToAddZooKeeper()) || (App.get('isHadoop2Stack') && this.needToAddZooKeeperOnStack2x())) {
-              this.zooKeeperCheckPopup();
-            }
-            else {
-              if (this.multipleDFSs()) {
-                this.multipleDFSPopup();
-              }
-              else {
-                if(this.needToAddOozie()) {
-                  this.oozieCheckPopup();
-                }
-                else if (this.needToAddTez()) {
-                  this.tezCheckPopup();
-                }
-                else {
-                  this.validateMonitoring();
-                }
-              }
-            }
-          }
-        }
+      if (doValidateMonitoring) {
+        this.validateMonitoring();
       }
     }
   },
@@ -251,37 +260,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         self.submit();
       }
     });
-  },
-
-  multipleDFSPopup: function() {
-    var services = [
-      {serviceName: 'HDFS', selected: true},
-      {serviceName: 'GLUSTERFS', selected: false}
-    ];
-    this.needToAddServicePopup(services, 'multipleDFS');
-  },
-  needToAddHDFSPopup: function() {
-    this.needToAddServicePopup({serviceName:'HDFS', selected: true}, 'hdfsCheck');
-  },
-
-  mapReduceCheckPopup: function () {
-    this.needToAddServicePopup({serviceName:'MAPREDUCE', selected: true}, 'mapreduceCheck');
-  },
-
-  mapReduce2CheckPopup: function () {
-    this.needToAddServicePopup({serviceName:'YARN', selected:true}, 'yarnCheck');
-  },
-
-  tezCheckPopup: function() {
-    this.needToAddServicePopup({serviceName:'TEZ', selected: true}, 'tezCheck');
-  },
-
-  zooKeeperCheckPopup: function () {
-    this.needToAddServicePopup({serviceName:'ZOOKEEPER', selected: true}, 'zooKeeperCheck');
-  },
-
-  oozieCheckPopup: function () {
-    this.needToAddServicePopup({serviceName:'OOZIE', selected: true}, 'oozieCheck');
   },
 
   monitoringCheckPopup: function () {
