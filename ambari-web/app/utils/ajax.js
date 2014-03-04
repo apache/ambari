@@ -354,6 +354,10 @@ var urls = {
     'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}/?fields=ServiceComponentInfo',
     'mock': ''
   },
+  'host.host_component.decommission_status_datanode': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields=metrics/dfs/namenode',
+    'mock': ''
+  },
   'host.host_component.decommission_slave': {
     'real' : '/clusters/{clusterName}/requests',
     'mock' : '',

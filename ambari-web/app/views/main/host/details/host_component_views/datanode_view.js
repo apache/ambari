@@ -23,13 +23,56 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
   componentForCheckDecommission: 'NAMENODE',
 
   /**
+   * Get component decommission status from server
+   * @returns {$.ajax}
+   */
+  getDNDecommissionStatus: function() {
+    // always get datanode decommission statue from active namenode (if NN HA enabled)
+    var hdfs = App.HDFSService.find().objectAt(0);
+    var activeNNHostName = (!hdfs.get('snameNode') && hdfs.get('activeNameNode')) ? hdfs.get('activeNameNode.hostName'): hdfs.get('nameNode.hostName');
+    return App.ajax.send({
+      name: 'host.host_component.decommission_status_datanode',
+      sender: this,
+      data: {
+        hostName: activeNNHostName,
+        componentName: this.get('componentForCheckDecommission')
+      },
+      success: 'getDNDecommissionStatusSuccessCallback',
+      error: 'getDNDecommissionStatusErrorCallback'
+    });
+  },
+
+  /**
+   * Set received value or null to <code>decommissionedStatusObject</code>
+   * @param {Object} response
+   * @returns {Object|null}
+   */
+  getDNDecommissionStatusSuccessCallback: function (response) {
+    var statusObject = response.metrics.dfs.namenode;
+    if ( statusObject != null) {
+      this.set('decommissionedStatusObject', statusObject);
+      return statusObject;
+    }
+    return null;
+  },
+
+  /**
+   * Set null to <code>decommissionedStatusObject</code> if server returns error
+   * @returns {null}
+   */
+  getDNDecommissionStatusErrorCallback: function () {
+    this.set('decommissionedStatusObject', null);
+    return null;
+  },
+
+  /**
    * load Recommission/Decommission status from adminState of each live node
    */
   loadComponentDecommissionStatus: function () {
     var hostName = this.get('content.host.hostName');
     var dfd = $.Deferred();
     var self = this;
-    this.getDecommissionStatus().done(function () {
+    this.getDNDecommissionStatus().done(function () {
       var curObj = self.get('decommissionedStatusObject');
       self.set('decommissionedStatusObject', null);
       // HDP-2 stack
