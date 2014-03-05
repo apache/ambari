@@ -20,8 +20,8 @@ var App = require('app');
 
 App.WizardRoute = Em.Route.extend({
   isRoutable: function() {
-    return (typeof this.get('route') === 'string' && App.router.getAuthenticated());
-  }.property().volatile()
+    return (typeof this.get('route') === 'string' && App.router.get('loggedIn'));
+  }.property('App.router.loggedIn')
 });
 
 App.Router = Em.Router.extend({
