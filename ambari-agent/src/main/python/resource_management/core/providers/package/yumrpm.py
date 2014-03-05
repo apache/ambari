@@ -26,17 +26,28 @@ from resource_management.core.logger import Logger
 
 INSTALL_CMD = "/usr/bin/yum -d 0 -e 0 -y install %s"
 REMOVE_CMD = "/usr/bin/yum -d 0 -e 0 -y erase %s"
+CHECK_CMD = "rpm -q --quiet %s"
 
 class YumProvider(PackageProvider):
   def install_package(self, name):
-    cmd = INSTALL_CMD % (name)
-    Logger.info("Installing package %s ('%s')" % (name, cmd))
-    shell.checked_call(cmd)
+    if not self._check_existence(name):
+      cmd = INSTALL_CMD % (name)
+      Logger.info("Installing package %s ('%s')" % (name, cmd))
+      shell.checked_call(cmd)
+    else:
+      Logger.info("Skipping installing existent package %s" % (name))
 
   def upgrade_package(self, name):
     return self.install_package(name)
-  
+
   def remove_package(self, name):
-    cmd = REMOVE_CMD % (name)
-    Logger.info("Removing package %s ('%s')" % (name, cmd))
-    shell.checked_call(cmd)    
+    if self._check_existence(name):
+      cmd = REMOVE_CMD % (name)
+      Logger.info("Removing package %s ('%s')" % (name, cmd))
+      shell.checked_call(cmd)
+    else:
+      Logger.info("Skipping removing non-existent package %s" % (name))
+
+  def _check_existence(self, name):
+    code, out = shell.call(CHECK_CMD % name)
+    return not bool(code)

@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-__all__ = ["checked_call"]
+__all__ = ["checked_call", "call"]
 
 import subprocess
 import pipes
