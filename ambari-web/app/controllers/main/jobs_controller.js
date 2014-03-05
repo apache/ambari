@@ -224,20 +224,6 @@ App.MainJobsController = Em.ArrayController.extend({
     }
   }),
 
-  /**
-   * List of users.
-   * Will be used for filtering in user column.
-   * Go to App.MainJobsView.userFilterView for more information
-   */
-  users: function () {
-    return this.get('content').mapProperty("user").uniq().map(function(userName){
-      return {
-        name: userName,
-        checked: false
-      };
-    });
-  }.property('content.length'),
-
   columnsName: Ember.ArrayController.create({
     content: [
       { name: Em.I18n.t('jobs.column.id'), index: 0 },

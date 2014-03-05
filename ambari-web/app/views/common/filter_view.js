@@ -31,7 +31,11 @@ var App = require('app');
 var wrapperView = Ember.View.extend({
   classNames: ['view-wrapper'],
   layout: Ember.Handlebars.compile('<a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close"></a> {{yield}}'),
-  template: Ember.Handlebars.compile('{{#if view.fieldId}}<input type="hidden" id="{{unbound view.fieldId}}" value="" />{{/if}} {{view view.filterView}}'),
+  template: Ember.Handlebars.compile(
+    '{{#if view.fieldId}}<input type="hidden" id="{{unbound view.fieldId}}" value="" />{{/if}}' +
+    '{{view view.filterView}}' +
+    '{{#if view.showApply}}<button {{action "setValueOnApply" target="view"}} class="apply-btn btn"><span>Apply</span></button>{{/if}} '
+  ),
 
   value: null,
 
@@ -48,6 +52,14 @@ var wrapperView = Ember.View.extend({
 
   clearFilter: function(){
     this.set('value', this.get('emptyValue'));
+    if(this.get('setPropertyOnApply')){
+      this.setValueOnApply();
+    }
+    return false;
+  },
+
+  setValueOnApply: function() {
+    this.set(this.get('setPropertyOnApply'), this.get('value'));
     return false;
   },
 

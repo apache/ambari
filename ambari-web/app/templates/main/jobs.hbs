@@ -43,19 +43,21 @@
           </tr>
           </thead>
           <tbody>
-          {{#if  view.noDataToShow}}
+          {{#if view.noDataToShow}}
               <tr>
-                  <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t jobs.nothingToShow}}</td>
+                <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t jobs.nothingToShow}}</td>
               </tr>
           {{else}}
             {{#each job in view.pageContent}}
               <tr>
-                <td class="id">
-                  {{#if job.hasTezDag}}
-                    <a rel="tooltip" class="job-link" title="{{unbound job.queryText}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
-                  {{else}}
-                    <span rel="tooltip" class="job-link" title="{{unbound job.queryText}}">{{unbound job.name}}</span>
-                  {{/if}}
+                <td>
+                  <div class="id">
+                    {{#if job.hasTezDag}}
+                        <a rel="tooltip" class="job-link" title="{{unbound job.queryText}}" href="#" {{action "showJobDetails" job}}>{{unbound job.name}}</a>
+                    {{else}}
+                        <span rel="tooltip" class="job-link" title="{{unbound job.queryText}}">{{unbound job.name}}</span>
+                    {{/if}}
+                  </div>
                 </td>
                 <td>
                   {{job.user}}

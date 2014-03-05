@@ -328,6 +328,19 @@
   }
 
   #jobs-table {
+
+    .apply-btn {
+      font-size: 12px;
+      padding: 0px 8px;
+      margin-left: 6px;
+      margin-top: -8px;
+      line-height: 22px;
+    }
+
+    .input-120{
+      width: 120px;
+    }
+
     .label-row {
       font-size: 0.9em;
       th {
@@ -390,15 +403,19 @@
     .no-data{
       text-align: center;
     }
+    .id {
+      width: 100%;
+      overflow: auto;
+    }
     td:first-child,
     th:first-child {
       border-left-width: 1px;
-      width: 96%;
-      overflow: auto;
-      display: inline-block;
+      width: 36%;
     }
     td:first-child + td,
-    th:first-child + th,
+    th:first-child + th{
+      width: 20%;
+    }
     td:first-child + td + td,
     th:first-child + th + th,
     td:first-child + td + td + td,
@@ -407,16 +424,13 @@
     }
     td:first-child + td + td + td + td,
     th:first-child + th + th + th + th{
-      width: 17%;
+      width: 12%;
     }
   }
   .table {
     table-layout: fixed;
     th {
       border-top: none;
-    }
-    td.id {
-      overflow: inherit;
     }
     ul.filter-components {
       padding: 5px 0;

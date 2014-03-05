@@ -112,57 +112,19 @@ App.MainJobsView = App.TableView.extend({
    */
   jobsIdFilterView: filters.createTextView({
     column: 0,
-    valueBinding: "controller.filterObject.id"
+    showApply: true,
+    setPropertyOnApply: 'controller.filterObject.id'
   }),
 
   /**
    * Filter-list for User.
    * Based on <code>filters</code> library
    */
-  userFilterView: filters.createComponentView({
-
+  userFilterView: filters.createTextView({
     column: 1,
-
-    /**
-     * Inner FilterView. Used just to render component. Value bind to <code>mainview.value</code> property
-     * Base methods was implemented in <code>filters.componentFieldView</code>
-     */
-    filterView: filters.componentFieldView.extend({
-      templateName:require('templates/main/jobs/user_filter'),
-
-      usersBinding: 'controller.users',
-
-      clearFilter:function() {
-        this.get('users').setEach('checked', false);
-        this._super();
-      },
-
-      applyFilter:function() {
-        this._super();
-        var chosenUsers = this.get('users').filterProperty('checked', true).mapProperty('name');
-        this.set('value', chosenUsers.toString());
-      },
-
-      /**
-       * Verify that checked checkboxes are equal to value
-       */
-      checkUsers: function() {
-        var users = this.get('value').split(',');
-        var self = this;
-        if (users) {
-          users.forEach(function(userName) {
-            var u = self.get("users").findProperty('name', userName);
-            if (u) {
-              if (!u.checked) {
-                u.checked = true;
-              }
-            }
-          });
-        }
-      }.observes('users.length')
-    }),
-
-    valueBinding: 'controller.filterObject.user'
+    fieldType: 'input-small',
+    showApply: true,
+    setPropertyOnApply: 'controller.filterObject.user'
   }),
 
   /**
@@ -170,7 +132,7 @@ App.MainJobsView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   startTimeFilterView: filters.createSelectView({
-    fieldType: 'input-medium',
+    fieldType: 'input-120',
     column: 2,
     content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
     valueBinding: "controller.filterObject.startTime"
@@ -184,8 +146,14 @@ App.MainJobsView = App.TableView.extend({
     associations[0] = 'id';
     associations[1] = 'user';
     associations[2] = 'startTime';
-    associations[3] = 'endTime';
     return associations;
-  }.property()
+  }.property(),
 
+  clearFilters: function() {
+    this.get('childViews').forEach(function(childView) {
+      if (childView['clearFilter']) {
+        childView.clearFilter();
+      }
+    });
+  }
 })
