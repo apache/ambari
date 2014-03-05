@@ -19,22 +19,28 @@ var App = require('app');
 require('utils/configs/defaults_providers/defaultsProvider');
 require('utils/configs/defaults_providers/yarn_defaults_provider');
 
+var yarnDefaultProvider;
+
 describe('YARNDefaultsProvider', function() {
 
+  beforeEach(function() {
+    yarnDefaultProvider = App.YARNDefaultsProvider.create();
+  });
+
   afterEach(function() {
-    App.YARNDefaultsProvider.set('clusterData', null);
-    App.YARNDefaultsProvider.set('reservedRam', null);
-    App.YARNDefaultsProvider.set('hBaseRam', null);
-    App.YARNDefaultsProvider.set('containers', null);
-    App.YARNDefaultsProvider.set('recommendedMinimumContainerSize', null);
-    App.YARNDefaultsProvider.set('ramPerContainer', null);
-    App.YARNDefaultsProvider.set('mapMemory', null);
-    App.YARNDefaultsProvider.set('reduceMemory', null);
-    App.YARNDefaultsProvider.set('amMemory', null);
+    yarnDefaultProvider.set('clusterData', null);
+    yarnDefaultProvider.set('reservedRam', null);
+    yarnDefaultProvider.set('hBaseRam', null);
+    yarnDefaultProvider.set('containers', null);
+    yarnDefaultProvider.set('recommendedMinimumContainerSize', null);
+    yarnDefaultProvider.set('ramPerContainer', null);
+    yarnDefaultProvider.set('mapMemory', null);
+    yarnDefaultProvider.set('reduceMemory', null);
+    yarnDefaultProvider.set('amMemory', null);
   });
 
   describe('#clusterDataIsValid', function() {
-    var tests = [
+    var tests = Em.A([
       {clusterData: {disk: 12,ram: 48,cpu: 12,hBaseInstalled: false},e: true},
       {clusterData: {disk: null,ram: 48,cpu: 12,hBaseInstalled: false},e: false},
       {clusterData: {disk: 12,ram: null,cpu: 12,hBaseInstalled: false},e: false},
@@ -44,17 +50,17 @@ describe('YARNDefaultsProvider', function() {
       {clusterData: {disk: 12,ram: 48,hBaseInstalled: true},e: false},
       {clusterData: {disk: 12,cpu: 12,hBaseInstalled: true},e: false},
       {clusterData: {ram: 48,cpu: 12,hBaseInstalled: false},e: false}
-    ];
+    ]);
     tests.forEach(function(test) {
       it((test.e?'valid':'invalid') + ' clusterData', function() {
-        App.YARNDefaultsProvider.set('clusterData', test.clusterData);
-        expect(App.YARNDefaultsProvider.clusterDataIsValid()).to.equal(test.e);
+        yarnDefaultProvider.set('clusterData', test.clusterData);
+        expect(yarnDefaultProvider.clusterDataIsValid()).to.equal(test.e);
       });
     });
   });
 
   describe('#reservedMemoryRecommendations', function() {
-    var tests = [
+    var tests = Em.A([
       {ram: null, e: {os: 1, hbase: 1}},
       {ram: 2, e: {os: 1, hbase: 1}},
       {ram: 4, e: {os: 1, hbase: 1}},
@@ -79,53 +85,52 @@ describe('YARNDefaultsProvider', function() {
       {ram: 384, e: {os: 64, hbase: 64}},
       {ram: 512, e: {os: 64, hbase: 64}},
       {ram: 756, e: {os: 64, hbase: 64}}
-    ];
-    App.YARNDefaultsProvider.set('clusterData');
+    ]);
     tests.forEach(function(test) {
       it('ram: ' + test.ram + ' GB', function() {
-        sinon.spy(App.YARNDefaultsProvider, 'reservedMemoryRecommendations');
-        App.YARNDefaultsProvider.set('clusterData', {
+        sinon.spy(yarnDefaultProvider, 'reservedMemoryRecommendations');
+        yarnDefaultProvider.set('clusterData', {
           disk: 12,
           ram: test.ram,
           cpu: 12,
           hBaseInstalled: false
         });
-        expect(App.YARNDefaultsProvider.get('reservedRam')).to.equal(test.e.os);
-        expect(App.YARNDefaultsProvider.get('hBaseRam')).to.equal(test.e.hbase);
-        expect(App.YARNDefaultsProvider.reservedMemoryRecommendations.calledOnce).to.be.true;
-        App.YARNDefaultsProvider.reservedMemoryRecommendations.restore();
+        expect(yarnDefaultProvider.get('reservedRam')).to.equal(test.e.os);
+        expect(yarnDefaultProvider.get('hBaseRam')).to.equal(test.e.hbase);
+        expect(yarnDefaultProvider.reservedMemoryRecommendations.calledOnce).to.equal(true);
+        yarnDefaultProvider.reservedMemoryRecommendations.restore();
       });
     });
   });
 
   describe('#recommendedMinimumContainerSize', function() {
     it('No clusterData', function() {
-      App.YARNDefaultsProvider.set('clusterData', null);
-      expect(App.YARNDefaultsProvider.get('recommendedMinimumContainerSize')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', null);
+      expect(yarnDefaultProvider.get('recommendedMinimumContainerSize')).to.equal(null);
     });
     it('No clusterData.ram', function() {
-      App.YARNDefaultsProvider.set('clusterData', {});
-      expect(App.YARNDefaultsProvider.get('recommendedMinimumContainerSize')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', {});
+      expect(yarnDefaultProvider.get('recommendedMinimumContainerSize')).to.equal(null);
     });
 
-    var tests = [
+    var tests = Em.A([
       {ram: 3, e: 256},
       {ram: 4, e: 256},
       {ram: 6, e: 512},
       {ram: 8, e: 512},
       {ram: 12, e: 1024},
       {ram: 24, e: 1024}
-    ];
+    ]);
 
     tests.forEach(function(test) {
       it('ram: ' + test.ram + ' GB', function() {
-        App.YARNDefaultsProvider.set('clusterData', {
+       yarnDefaultProvider.set('clusterData', {
           disk: 12,
           ram: test.ram,
           cpu: 12,
           hBaseInstalled: false
         });
-        expect(App.YARNDefaultsProvider.get('recommendedMinimumContainerSize')).to.equal(test.e);
+        expect(yarnDefaultProvider.get('recommendedMinimumContainerSize')).to.equal(test.e);
       });
     });
 
@@ -133,19 +138,19 @@ describe('YARNDefaultsProvider', function() {
 
   describe('#containers', function() {
     it('No clusterData', function() {
-      App.YARNDefaultsProvider.set('clusterData', null);
-      expect(App.YARNDefaultsProvider.get('containers')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', null);
+      expect(yarnDefaultProvider.get('containers')).to.equal(null);
     });
     it('Some clusterData metric is null', function() {
-      App.YARNDefaultsProvider.set('clusterData', {disk: null, cpu: 1, ram: 1});
-      expect(App.YARNDefaultsProvider.get('containers')).to.equal(null);
-      App.YARNDefaultsProvider.set('clusterData', {disk: 1, cpu: null, ram: 1});
-      expect(App.YARNDefaultsProvider.get('containers')).to.equal(null);
-      App.YARNDefaultsProvider.set('clusterData', {disk:1, cpu: 1, ram: null});
-      expect(App.YARNDefaultsProvider.get('containers')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', {disk: null, cpu: 1, ram: 1});
+      expect(yarnDefaultProvider.get('containers')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', {disk: 1, cpu: null, ram: 1});
+      expect(yarnDefaultProvider.get('containers')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', {disk:1, cpu: 1, ram: null});
+      expect(yarnDefaultProvider.get('containers')).to.equal(null);
     });
 
-    var tests = [
+    var tests = Em.A([
       {
         clusterData: {
           disk: 12,
@@ -164,12 +169,12 @@ describe('YARNDefaultsProvider', function() {
         },
         e: 11
       }
-    ];
+    ]);
 
     tests.forEach(function(test) {
       it((test.hBaseInstalled?'With':'Without') + ' hBase', function() {
-        App.YARNDefaultsProvider.set('clusterData', test.clusterData);
-        expect(App.YARNDefaultsProvider.get('containers')).to.equal(test.e);
+        yarnDefaultProvider.set('clusterData', test.clusterData);
+        expect(yarnDefaultProvider.get('containers')).to.equal(test.e);
       });
     });
 
@@ -177,10 +182,10 @@ describe('YARNDefaultsProvider', function() {
 
   describe('#ramPerContainer', function() {
     it('No clusterData', function() {
-      App.YARNDefaultsProvider.set('clusterData', null);
-      expect(App.YARNDefaultsProvider.get('ramPerContainer')).to.equal(null);
+      yarnDefaultProvider.set('clusterData', null);
+      expect(yarnDefaultProvider.get('ramPerContainer')).to.equal(null);
     });
-    var tests = [
+    var tests = Em.A([
       {
         clusterData: {
           disk: 12,
@@ -199,18 +204,18 @@ describe('YARNDefaultsProvider', function() {
         },
         e: 1024
       }
-    ];
+    ]);
 
     tests.forEach(function(test) {
       it((test.hBaseInstalled?'With':'Without') + ' hBase', function() {
-        App.YARNDefaultsProvider.set('clusterData', test.clusterData);
-        expect(App.YARNDefaultsProvider.get('ramPerContainer')).to.equal(test.e);
+        yarnDefaultProvider.set('clusterData', test.clusterData);
+        expect(yarnDefaultProvider.get('ramPerContainer')).to.equal(test.e);
       });
     });
   });
 
   describe('#getDefaults', function() {
-    var tests = [
+    var tests = Em.A([
       {
         localDB: {},
         m: 'Empty localDB',
@@ -288,18 +293,20 @@ describe('YARNDefaultsProvider', function() {
           'mapreduce.task.io.sort.mb': 205
         }
       }
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.m, function() {
-        App.YARNDefaultsProvider.set('clusterData', null);
-        var configs = App.YARNDefaultsProvider.getDefaults(test.localDB);
+        yarnDefaultProvider.set('clusterData', null);
+        var configs = yarnDefaultProvider.getDefaults(test.localDB);
 
         for(var config in configs) {
-          if (test.e) {
-            expect(configs[config]).to.equal(test.e[config]);
-          }
-          else {
-            expect(configs[config] == 0 || configs[config] == null).to.equal(true);
+          if (configs.hasOwnProperty(config)) {
+            if (test.e) {
+              expect(configs[config]).to.equal(test.e[config]);
+            }
+            else {
+              expect(configs[config] == 0 || configs[config] == null).to.equal(true);
+            }
           }
         }
       });

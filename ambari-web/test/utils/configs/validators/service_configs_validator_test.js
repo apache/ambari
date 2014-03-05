@@ -28,7 +28,7 @@ describe('App.ServiceConfigsValidator', function() {
   });
 
   describe('#validatorLessThenDefaultValue', function() {
-    var tests = [
+    var tests = Em.A([
       {
         recommendedDefaults: {
           'property1': 100500
@@ -62,7 +62,7 @@ describe('App.ServiceConfigsValidator', function() {
         m: 'No default value for property',
         e: null
       }
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.m, function() {
         var v = App.ServiceConfigsValidator.create({});
@@ -79,7 +79,7 @@ describe('App.ServiceConfigsValidator', function() {
   });
 
   describe('#_checkXmxValueFormat', function() {
-    var tests = [
+    var tests = Em.A([
       {value: '',e: false},
       {value: '-',e: false},
       {value: '100',e: false},
@@ -126,8 +126,20 @@ describe('App.ServiceConfigsValidator', function() {
       {value: '-Xmx100Psome',e: false},
       {value: '-Xmx100P-Xmx',e: false},
       {value: '-Xmx100P -Xmx',e: false},
-      {value: '-Xmx100P -XMX',e: false}
-    ];
+      {value: '-Xmx100P -XMX',e: false},
+      {value: '-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: true},
+      {value: '-server -Xmx1024 -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: true},
+      {value: '-server -Xmx1024', e: true},
+      {value: '-Xmx1024 -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: true},
+      {value: '-server -Xmx1024m-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-server -Xmx1024-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-server-Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-server-Xmx1024 -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-server-Xmx1024m-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-server-Xmx1024-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-Xmx1024-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
+      {value: '-server-Xmx1024', e: false}
+    ]);
     tests.forEach(function(test) {
       it(test.value, function() {
         var v = App.ServiceConfigsValidator.create({});
@@ -137,7 +149,7 @@ describe('App.ServiceConfigsValidator', function() {
   });
 
   describe('#_getXmxSize', function() {
-    var tests = [
+    var tests = Em.A([
       {value: '-Xmx1', e: '1'},
       {value: '-Xmx1b', e: '1b'},
       {value: '-Xmx1k', e: '1k'},
@@ -163,7 +175,7 @@ describe('App.ServiceConfigsValidator', function() {
       {value: '-Xmx100G', e: '100g'},
       {value: '-Xmx100T', e: '100t'},
       {value: '-Xmx100P', e: '100p'}
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.value, function() {
         var v = App.ServiceConfigsValidator.create({});
@@ -173,7 +185,7 @@ describe('App.ServiceConfigsValidator', function() {
   });
 
   describe('#_formatXmxSizeToBytes', function() {
-    var tests = [
+    var tests = Em.A([
       {value: '1', e: 1},
       {value: '1 ', e: 1},
       {value: '100', e: 100},
@@ -190,7 +202,7 @@ describe('App.ServiceConfigsValidator', function() {
       {value: '100T', e: 100 * 1024 * 1024 * 1024 * 1024},
       {value: '100p', e: 100 * 1024 * 1024 * 1024 * 1024 * 1024},
       {value: '100P', e: 100 * 1024 * 1024 * 1024 * 1024 * 1024}
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.value, function() {
         var v = App.ServiceConfigsValidator.create({});
@@ -200,7 +212,7 @@ describe('App.ServiceConfigsValidator', function() {
   });
 
   describe('#validateXmxValue', function() {
-    var tests = [
+    var tests = Em.A([
       {
         recommendedDefaults: {
           'property1': '-Xmx1024m'
@@ -241,7 +253,7 @@ describe('App.ServiceConfigsValidator', function() {
         }),
         e: 'string'
       }
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.config.get('value'), function() {
         var v = App.ServiceConfigsValidator.create({});

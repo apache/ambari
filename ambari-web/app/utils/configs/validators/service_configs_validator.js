@@ -89,11 +89,11 @@ App.ServiceConfigsValidator = Em.Object.extend({
   /**
    * Verify if provided value has proper format (should be like "-Xmx***(b|k|m|g|p|t|B|K|M|G|P|T)")
    * @param  {string} value
-   * @returns {boolean}
+   * @returns {bool}
    * @private
    */
   _checkXmxValueFormat: function(value) {
-    var regex = /(^|\s)\-Xmx(\d+)(b|k|m|g|p|t|B|K|M|G|P|T)(\s|$)/;
+    var regex = /(^|\s)\-Xmx(\d+)(b|k|m|g|p|t|B|K|M|G|P|T)?(\s|$)/;
     if (!regex.test(value)) {
       return false;
     }
