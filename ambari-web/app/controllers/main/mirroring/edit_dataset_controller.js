@@ -267,6 +267,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
   },
 
   onSaveSuccess: function () {
+    App.router.send('gotoShowJobs');
     App.router.get('mainMirroringController').loadData();
   },
 
