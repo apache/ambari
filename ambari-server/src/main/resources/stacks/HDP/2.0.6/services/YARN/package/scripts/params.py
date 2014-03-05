@@ -90,6 +90,15 @@ yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
 
+hostname = config['hostname']
+
+if security_enabled:
+  nm_principal_name = config['configurations']['global']['nodemanager_principal_name']
+  nodemanager_keytab = config['configurations']['global']['nodemanager_keytab']
+  nodemanager_principal_name = nm_principal_name.replace('_HOST',hostname.lower())
+  nm_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
+else:
+  nm_kinit_cmd = ""
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']

@@ -89,12 +89,12 @@ class Resourcemanager(Script):
     import params
 
     env.set_params(params)
-
+    nm_kinit_cmd = params.nm_kinit_cmd
     yarn_user = params.yarn_user
     conf_dir = params.config_dir
     user_group = params.user_group
 
-    yarn_refresh_cmd = format("/usr/bin/yarn --config {conf_dir} rmadmin -refreshNodes")
+    yarn_refresh_cmd = format("{nm_kinit_cmd} /usr/bin/yarn --config {conf_dir} rmadmin -refreshNodes")
 
     File(params.exclude_file_path,
          content=Template("exclude_hosts_list.j2"),
