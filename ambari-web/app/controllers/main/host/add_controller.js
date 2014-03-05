@@ -351,6 +351,14 @@ App.AddHostController = App.WizardController.extend({
     this.set('content.serviceConfigGroups', selectedServices);
   },
 
+  loadServiceConfigProperties: function () {
+    var serviceConfigProperties = App.db.get('AddService', 'serviceConfigProperties');
+    if (!serviceConfigProperties || !serviceConfigProperties.length) {
+      serviceConfigProperties = App.db.get('Installer', 'serviceConfigProperties');
+    }
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+    console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
+  },
   /**
    * Load data for all steps until <code>current step</code>
    */

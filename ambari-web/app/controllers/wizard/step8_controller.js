@@ -1051,7 +1051,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HDFS'));
     }
     var globalSiteObj = this.createGlobalSiteObj();
-    if (this.get('content.controllerName') == 'addServiceController') {
+    if (['addHostController','addServiceController'].contains(this.get('content.controllerName'))) {
       globalSiteObj.tag = 'version' + (new Date).getTime();
       coreSiteObject.tag = 'version' + (new Date).getTime();
       this.get('serviceConfigTags').pushObject(coreSiteObject);
@@ -1079,26 +1079,26 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HBASE'));
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
-      this.get('serviceConfigTags').pushObject(this.createOozieSiteObj('OOZIE'));
+      this.get('serviceConfigTags').pushObject(this.createOozieSiteObj());
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('OOZIE'));
     }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
-      this.get('serviceConfigTags').pushObject(this.createHiveSiteObj('HIVE'));
+      this.get('serviceConfigTags').pushObject(this.createHiveSiteObj());
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE'));
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE-EXEC'));
     }
     if (selectedServices.someProperty('serviceName', 'WEBHCAT')) {
-      this.get('serviceConfigTags').pushObject(this.createWebHCatSiteObj('WEBHCAT'));
+      this.get('serviceConfigTags').pushObject(this.createWebHCatSiteObj());
     }
     if (selectedServices.someProperty('serviceName', 'HUE')) {
-      this.get('serviceConfigTags').pushObject(this.createHueSiteObj('HUE'));
+      this.get('serviceConfigTags').pushObject(this.createHueSiteObj());
     }
     if (selectedServices.someProperty('serviceName', 'PIG')) {
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
     }
     if (selectedServices.someProperty('serviceName', 'FALCON')) {
-      this.get('serviceConfigTags').pushObject(this.createFalconStartupSiteObj('FALCON'));
-      this.get('serviceConfigTags').pushObject(this.createFalconRuntimeSiteObj('FALCON'));
+      this.get('serviceConfigTags').pushObject(this.createFalconStartupSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createFalconRuntimeSiteObj());
     }
     if (selectedServices.someProperty('serviceName', 'STORM')) {
       this.get('serviceConfigTags').pushObject(this.createStormSiteObj());
@@ -1370,7 +1370,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'hbase-site', tag: 'version1', properties: hbaseProperties};
   },
 
-  createOozieSiteObj: function (serviceName) {
+  createOozieSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
     var oozieProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1379,7 +1379,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },
 
-  createHiveSiteObj: function (serviceName) {
+  createHiveSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'hive-site.xml');
     var hiveProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1388,7 +1388,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'hive-site', tag: 'version1', properties: hiveProperties};
   },
 
-  createWebHCatSiteObj: function (serviceName) {
+  createWebHCatSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'webhcat-site.xml');
     var webHCatProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1434,7 +1434,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
 
-  createFalconStartupSiteObj: function (s) {
+  createFalconStartupSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'falcon-startup.properties.xml');
     var falconStartupProperties = {};
     configs.forEach(function (_configProperty) {
@@ -1443,7 +1443,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'falcon-startup.properties', tag: 'version1', properties: falconStartupProperties};
   },
 
-  createFalconRuntimeSiteObj: function (s) {
+  createFalconRuntimeSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'falcon-runtime.properties.xml');
     var falconRuntimeProperties = {};
     configs.forEach(function (_configProperty) {
