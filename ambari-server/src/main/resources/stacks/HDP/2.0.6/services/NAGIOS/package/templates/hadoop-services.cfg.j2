@@ -385,7 +385,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode process on {{ namenode_hostname }}
         servicegroups           HDFS
-        check_command           check_tcp_wrapper!{{ namenode_metadata_port }}!-w 1 -c 1
+        check_command           check_tcp_wrapper!{{nn_ha_host_port_map[namenode_hostname]}}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3

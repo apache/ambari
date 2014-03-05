@@ -89,11 +89,20 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
-dfs_ha_namenode_ids = default(format("hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
 if dfs_ha_namenode_ids:
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namenode_ids.split(","))
+  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
   if dfs_ha_namenode_ids_array_len > 1:
     dfs_ha_enabled = True
+
+nn_ha_host_port_map = {}
+if dfs_ha_enabled:
+  for nn_id in dfs_ha_namemodes_ids_list:
+    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
+    nn_ha_host_port_map[nn_host.split(":")[0]] = nn_host.split(":")[1]
+else:
+  nn_ha_host_port_map[config['clusterHostInfo']['namenode_host'][0]] = namenode_metadata_port
 
 ganglia_port = "8651"
 ganglia_collector_slaves_port = "8660"
