@@ -178,6 +178,8 @@ module.exports = Em.Route.extend({
       var dataset = (event && event.context) || router.get('mainMirroringController.selectedDataset');
       if (dataset) {
         router.transitionTo('showDatasetJobs', dataset);
+      } else {
+        router.transitionTo('index');
       }
     },
 
