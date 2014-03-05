@@ -702,13 +702,21 @@ define service {
 define service {
         hostgroup_name          hiveserver
         use                     hadoop-service
-        service_description     HIVE-METASTORE::Hive Metastore status
+        service_description     HIVE-METASTORE::Hive Metastore process
         servicegroups           HIVE
-        {% if security_enabled %}
-        check_command           check_hive_metastore_status!{{ hive_metastore_port }}!{{ java64_home }}!true!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
-        {% else %}
-        check_command           check_hive_metastore_status!{{ hive_metastore_port }}!{{ java64_home }}!false
-        {% endif %}
+        check_command           check_tcp_wrapper!{{ hive_metastore_port }}!-w 1 -c 1
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+# HIVE Server check
+define service {
+        hostgroup_name          hiveserver
+        use                     hadoop-service
+        service_description     HIVE-SERVER::HiveServer2 process
+        servicegroups           HIVE
+        check_command           check_tcp_wrapper!{{ hive_server_port }}!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3

@@ -380,6 +380,7 @@ function hdp_mon_generate_response( $response_data )
         $pieces[0] = "HBASE";
         break;
       case "HIVE-METASTORE":
+      case "HIVE-SERVER":
         $pieces[0] = "HIVE";
         break;
       case "ZKSERVERS":

@@ -63,6 +63,7 @@ journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.
 datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
 flume_port = "4159"
 hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
+hive_server_port = "10000"
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
 hbase_rs_port = "60030"
 

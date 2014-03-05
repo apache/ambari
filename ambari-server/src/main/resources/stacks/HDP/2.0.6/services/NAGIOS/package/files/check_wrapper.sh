@@ -23,6 +23,9 @@ function real_component() {
     HIVE-METASTORE)
       realCompName="HIVE_METASTORE"
     ;;
+    HIVE-SERVER)
+      realCompName="HIVE_SERVER"
+    ;;
     FLUME)
       realCompName="FLUME_SERVER"
     ;;
