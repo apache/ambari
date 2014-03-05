@@ -68,6 +68,8 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -153,8 +155,8 @@ public class ComponentResourceProviderTest {
     ServiceComponent serviceComponent2 = createNiceMock(ServiceComponent.class);
     ServiceComponent serviceComponent3 = createNiceMock(ServiceComponent.class);
     StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
+    final ComponentInfo componentInfo1 = createNiceMock(ComponentInfo.class);
+    final ComponentInfo componentInfo2 = createNiceMock(ComponentInfo.class);
 
     Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
     serviceComponentMap.put("Component101", serviceComponent1);
@@ -175,15 +177,17 @@ public class ComponentResourceProviderTest {
     expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, ""));
     expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, ""));
 
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(),
+      (String) anyObject(), (String) anyObject(), (String) anyObject()))
+        .andReturn(componentInfo1).times(2).andReturn(componentInfo2);
 
-    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
+    expect(componentInfo1.getCategory()).andReturn("MASTER").anyTimes();
+    expect(componentInfo2.getCategory()).andReturn("SLAVE").anyTimes();
 
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, service,
-        serviceComponent1, serviceComponent2, serviceComponent3, stackId, componentInfo);
+      serviceComponent1, serviceComponent2, serviceComponent3, stackId,
+      componentInfo1, componentInfo2);
 
     ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
@@ -196,12 +200,17 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID);
 
-    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
-        equals("Cluster100").toPredicate();
+    Predicate predicate = new PredicateBuilder()
+      .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
+      .equals("Cluster100")
+      .and()
+      .property(ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID)
+      .equals("MASTER").toPredicate();
+
     Request request = PropertyHelper.getReadRequest(propertyIds);
     Set<Resource> resources = provider.getResources(request, predicate);
 
-    Assert.assertEquals(3, resources.size());
+    Assert.assertEquals(2, resources.size());
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
           ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
@@ -212,7 +221,8 @@ public class ComponentResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, service,
-        serviceComponent1, serviceComponent2, serviceComponent3, stackId, componentInfo);
+      serviceComponent1, serviceComponent2, serviceComponent3, stackId,
+      componentInfo1, componentInfo2);
   }
 
   @Test

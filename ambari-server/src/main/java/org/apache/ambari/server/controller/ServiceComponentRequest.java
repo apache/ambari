@@ -29,14 +29,25 @@ public class ServiceComponentRequest {
 
   private String desiredState; // CREATE/UPDATE
 
+  private String componentCategory;
+
+  public ServiceComponentRequest(String clusterName, String serviceName,
+                                 String componentName, String desiredState) {
+    this.clusterName = clusterName;
+    this.serviceName = serviceName;
+    this.componentName = componentName;
+    this.desiredState = desiredState;
+  }
+
   public ServiceComponentRequest(String clusterName,
                                  String serviceName, String componentName,
-                                 String desiredState) {
+                                 String desiredState, String componentCategory) {
     super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.desiredState = desiredState;
+    this.componentCategory = componentCategory;
   }
 
   /**
@@ -93,5 +104,13 @@ public class ServiceComponentRequest {
    */
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  public String getComponentCategory() {
+    return componentCategory;
+  }
+
+  public void setComponentCategory(String componentCategory) {
+    this.componentCategory = componentCategory;
   }
 }

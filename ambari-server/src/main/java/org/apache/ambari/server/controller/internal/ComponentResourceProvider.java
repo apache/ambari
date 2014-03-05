@@ -230,7 +230,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         (String) properties.get(COMPONENT_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_STATE_PROPERTY_ID));
+        (String) properties.get(COMPONENT_STATE_PROPERTY_ID),
+        (String) properties.get(COMPONENT_CATEGORY_PROPERTY_ID));
   }
 
   // Create the components for the given requests.
@@ -453,7 +454,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     Set<ServiceComponentResponse> response =
         new HashSet<ServiceComponentResponse>();
-    String category;
+    String category = null;
 
     StackId stackId = cluster.getDesiredStackVersion();
 
@@ -536,12 +537,19 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
             stackId.getStackVersion(), s.getName(), sc.getName());
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
+
+        String requestedCategory = request.getComponentCategory();
         if (componentInfo != null) {
           category = componentInfo.getCategory();
           if (category != null) {
             serviceComponentResponse.setCategory(category);
           }
         }
+        if (requestedCategory != null && !requestedCategory.isEmpty() &&
+            category != null && !requestedCategory.equalsIgnoreCase(category)) {
+          continue;
+        }
+
         response.add(serviceComponentResponse);
       }
     }

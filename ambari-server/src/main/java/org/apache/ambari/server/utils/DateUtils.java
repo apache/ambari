@@ -94,17 +94,4 @@ public class DateUtils {
     Date now = new Date();
     return time.after(now);
   }
-
-  public static void main(String[] args) {
-    String s = "INSERT INTO ambari_sequences(sequence_name, \"value\") " +
-      "SELECT 'cluster_id_seq', nextval('clusters_cluster_id_seq') " +
-      "UNION ALL " +
-      "SELECT 'user_id_seq', nextval('users_user_id_seq') " +
-      "UNION ALL " +
-      "SELECT 'host_role_command_id_seq', COALESCE((SELECT max(task_id) FROM host_role_command), 1) + 50 " +
-      "UNION ALL " +
-      "SELECT 'configgroup_id_seq', 1";
-
-    System.out.println(s);
-  }
 }
