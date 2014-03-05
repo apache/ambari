@@ -28,7 +28,6 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
    * Config object. It will instance of App.ServiceConfigProperty
    */
   serviceConfig: null,
-  placeholderBinding: 'serviceConfig.defaultValue',
   attributeBindings:['readOnly'],
   isPopoverEnabled: true,
 
@@ -152,8 +151,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span9', 'directories'],
-  placeholderBinding: 'serviceConfig.defaultValue'
+  classNames: ['span9', 'directories']
 });
 
 /**
@@ -164,8 +162,7 @@ App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopove
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
-  classNames: ['span10'],
-  placeholderBinding: 'serviceConfig.defaultValue'
+  classNames: ['span10']
 });
 
 /**
@@ -379,6 +376,7 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
 App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
+  placeholderBinding: 'serviceConfig.defaultValue',
   classNames: [ 'span3' ]
 });
 
