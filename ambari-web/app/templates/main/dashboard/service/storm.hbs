@@ -36,7 +36,7 @@
     {{t services.service.summary.storm.freeslots}}
   </td>
   <td>
-    {{view.service.freeSlots}} / {{view.service.totalSlots}} ({{view.freeSlotsPercentage}}% free)
+    {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}} ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
   </td>
 </tr>
 <tr>
@@ -44,7 +44,7 @@
     {{t services.service.summary.storm.tasks}}
   </td>
   <td>
-    {{view.service.totalTasks}}
+    {{formatNull view.service.totalTasks}}
   </td>
 </tr>
 <tr>
@@ -52,7 +52,7 @@
     {{t services.service.summary.storm.executors}}
   </td>
   <td>
-    {{view.service.totalExecutors}}
+    {{formatNull view.service.totalExecutors}}
   </td>
 </tr>
 <tr>
@@ -60,7 +60,7 @@
     {{t services.service.summary.storm.topologies}}
   </td>
   <td>
-    {{view.service.topologies}}
+    {{formatNull view.service.topologies}}
   </td>
 </tr>
 <tr>

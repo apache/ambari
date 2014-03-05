@@ -44,8 +44,9 @@ App.StormLinearTimeChartMixin = Em.Mixin.create({
   getMappedStormData: function() {
     var seriesData = [];
     this.get('stormChartDefinition').forEach(function(item) {
-      seriesData.push(this.transformData(this.get('chartStormModel.' + item.value), item.name));
+      if (this.get('chartStormModel.' + item.value) || this.get('chartStormModel.' + item.value) == 0)
+        seriesData.push(this.transformData(this.get('chartStormModel.' + item.value), item.name));
     }, this);
-    return seriesData
+    return seriesData;
   }
 });

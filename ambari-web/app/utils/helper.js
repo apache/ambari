@@ -370,7 +370,6 @@ App.registerBoundHelper('pluralize', Em.View.extend({
     }
     return '';
   },
-
   /*
    * Detect for Em.I18n.t reference call
    * @params word {String}
@@ -386,7 +385,34 @@ App.registerBoundHelper('pluralize', Em.View.extend({
   }
   })
 );
+/**
+ * Return defined string instead of empty if value is null/undefined
+ * by default is `n/a`.
+ *
+ * @param empty {String} - value instead of empty string (not required)
+ *  can be used with Em.I18n pass value started with't:'
+ *
+ * Examples:
+ *
+ * default value will be returned
+ * {{formatNull service.someValue}}
+ *
+ * <code>empty<code> will be returned
+ * {{formatNull service.someValue empty="I'm empty"}}
+ *
+ * Em.I18n translation will be returned
+ * {{formatNull service.someValue empty="t:my.key.to.translate"
+ */
+App.registerBoundHelper('formatNull', Em.View.extend({
+  tagName: 'span',
+  template: Em.Handlebars.compile('{{view.result}}'),
 
+  result: function() {
+    var emptyValue = this.get('empty') ? this.get('empty') : Em.I18n.t('services.service.summary.notAvailable');
+    emptyValue = emptyValue.startsWith('t:') ? Em.I18n.t(emptyValue.substr(2, emptyValue.length)) : emptyValue;
+    return (this.get('content') || this.get('content') == 0) ? this.get('content') : emptyValue;
+  }.property('content')
+}));
 
 /**
  * Ambari overrides the default date transformer.

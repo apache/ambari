@@ -193,6 +193,8 @@ Em.I18n.translations = {
   'common.hostLog.popup.outputLog.value': 'output-{0}.txt',
   'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
   'common.maintenance.task': ' Toggle Maintenance Mode',
+  'common.used': 'used',
+  'common.free': 'free',
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
   'passiveState.turnOnFor':'Turn On Maintenance Mode for {0}',
