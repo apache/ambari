@@ -47,7 +47,8 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     targetDir: '',
     startDate: '',
     endDate: '',
-    frequency: ''
+    frequency: '',
+    targetClusterName: ''
   }),
 
   errors: Ember.Object.create({
@@ -56,7 +57,8 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     isTargetDirError: false,
     isStartDateError: false,
     isEndDateError: false,
-    isFrequencyError: false
+    isFrequencyError: false,
+    isTargetClusterNameError: false
   }),
 
   clearStep: function () {
@@ -97,20 +99,20 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
       secondary: Em.I18n.t('common.cancel'),
       showCloseButton: false,
       saveDisabled: function () {
-        return !self.get('saveDisabled');
+        return self.get('saveDisabled');
       }.property('App.router.' + self.get('name') + '.saveDisabled'),
       enablePrimary: function () {
-        return this.get('saveDisabled');
+        return !this.get('saveDisabled');
       }.property('saveDisabled'),
       onPrimary: function () {
-        if (!this.get('saveDisabled')) {
+        if (this.get('saveDisabled')) {
           return false;
         }
         // Apply form validation for first click
         if (!this.get('primaryWasClicked')) {
           this.toggleProperty('primaryWasClicked');
           self.applyValidation();
-          if (!this.get('saveDisabled')) {
+          if (this.get('saveDisabled')) {
             return false;
           }
         }
@@ -274,6 +276,6 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
   saveDisabled: function () {
     var errors = this.get('errors');
-    return errors.get('isNameError') || errors.get('isSourceDirError') || errors.get('isTargetDirError') || errors.get('isStartDateError') || errors.get('isEndDateError') || errors.get('isFrequencyError');
-  }.property('errors.isNameError', 'errors.isSourceDirError', 'errors.isTargetDirError', 'errors.isStartDateError', 'errors.isEndDateError', 'errors.isFrequencyError')
+    return errors.get('isNameError') || errors.get('isSourceDirError') || errors.get('isTargetDirError') || errors.get('isStartDateError') || errors.get('isEndDateError') || errors.get('isFrequencyError') || errors.get('isTargetClusterNameError');
+  }.property('errors.isNameError', 'errors.isSourceDirError', 'errors.isTargetDirError', 'errors.isStartDateError', 'errors.isEndDateError', 'errors.isFrequencyError', 'errors.isTargetClusterNameError')
 });

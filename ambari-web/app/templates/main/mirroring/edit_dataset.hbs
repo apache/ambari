@@ -69,13 +69,17 @@
         <tr>
           <td class="spacer" colspan="3"></td>
         </tr>
-        <tr {{bindAttr class="errors.isTargetClusterError:error"}}>
+        <tr {{bindAttr class="errors.isTargetClusterNameError:error"}}>
           <td colspan="1">
             {{t mirroring.dataset.targetCluster}}
           </td>
           <td colspan="2" style="text-align: left">
-            {{view view.targetClusterSelect selectionBinding="formFields.datasetTargetClusterName"}}
-            <span class="help-inline">{{errorMessages.targetCluster}}</span>
+            {{#if view.hasTargetClusters}}
+              {{view view.targetClusterSelect selectionBinding="formFields.datasetTargetClusterName"}}
+            {{else}}
+              <button class="btn" {{action manageClusters target="view"}}>{{t mirroring.dataset.addTargetCluster}}</button>
+            {{/if}}
+            <span class="help-inline">{{errorMessages.targetClusterName}}</span>
           </td>
         </tr>
         <tr>

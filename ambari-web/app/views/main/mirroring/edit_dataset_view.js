@@ -25,24 +25,37 @@ App.MainMirroringEditDataSetView = Em.View.extend({
   name: 'mainMirroringEditDataSetView',
   templateName: require('templates/main/mirroring/edit_dataset'),
 
+  hasTargetClusters: false,
+
   datasetTypeOptions: [Em.I18n.t('mirroring.dataset.type.HDFS'), Em.I18n.t('mirroring.dataset.type.Hive')],
+
+  targetClusters: App.TargetCluster.find(),
 
   targetClusterSelect: Em.Select.extend({
     classNames: ['target-cluster-select'],
 
     content: function () {
       if (!this.get('parentView.isLoaded')) return [];
-      return App.TargetCluster.find().mapProperty('name').without(App.get('clusterName')).concat(Em.I18n.t('mirroring.dataset.addTargetCluster'));
-    }.property('parentView.isLoaded'),
+      return this.get('parentView.targetClusters').mapProperty('name').without(App.get('clusterName')).concat(Em.I18n.t('mirroring.dataset.addTargetCluster'));
+    }.property('parentView.isLoaded', 'parentView.targetClusters.length'),
 
     change: function () {
       if (this.get('selection') === Em.I18n.t('mirroring.dataset.addTargetCluster')) {
         this.set('selection', this.get('content')[0]);
-        App.router.get('mainMirroringController').manageClusters();
+        this.get('parentView').manageClusters();
       }
       this.set('parentView.controller.formFields.datasetTargetClusterName', this.get('selection'))
     }
   }),
+
+  onTargetClustersChange: function () {
+    if (this.get('isLoaded') && this.get('targetClusters.length') > 1) {
+      this.set('hasTargetClusters', true);
+    } else {
+      this.set('hasTargetClusters', false);
+      this.set('controller.formFields.datasetTargetClusterName', null);
+    }
+  }.observes('isLoaded', 'targetClusters.length'),
 
   repeatOptions: [Em.I18n.t('mirroring.dataset.repeat.minutes'), Em.I18n.t('mirroring.dataset.repeat.hours'), Em.I18n.t('mirroring.dataset.repeat.days'), Em.I18n.t('mirroring.dataset.repeat.months')],
 
@@ -55,6 +68,10 @@ App.MainMirroringEditDataSetView = Em.View.extend({
   isLoaded: function () {
     return App.router.get('mainMirroringController.isLoaded');
   }.property('App.router.mainMirroringController.isLoaded'),
+
+  manageClusters: function () {
+    App.router.get('mainMirroringController').manageClusters();
+  },
 
   fillForm: function () {
     var isEdit = this.get('controller.isEdit');
@@ -92,6 +109,7 @@ App.MainMirroringEditDataSetView = Em.View.extend({
       format: 'mm/dd/yyyy'
     });
     this.fillForm();
+    this.onTargetClustersChange();
   },
 
   willDestroyElement: function () {
