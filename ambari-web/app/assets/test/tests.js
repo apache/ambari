@@ -64,6 +64,8 @@ require('test/mappers/service_mapper_test');
 require('test/mappers/status_mapper_test');
 require('test/mappers/users_mapper_test');
 require('test/utils/configs/defaults_providers/yarn_defaults_provider_test');
+require('test/utils/configs/defaults_providers/tez_defaults_provider_test');
+require('test/utils/configs/defaults_providers/hive_defaults_provider_test');
 require('test/utils/configs/validators/service_configs_validator_test');
 require('test/utils/ajax_test');
 require('test/utils/batch_scheduled_requests_test');

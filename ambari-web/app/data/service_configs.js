@@ -20,8 +20,10 @@ var App = require('app');
 require('models/service_config');
 require('utils/configs/defaults_providers/yarn_defaults_provider');
 require('utils/configs/defaults_providers/tez_defaults_provider');
+require('utils/configs/defaults_providers/hive_defaults_provider');
 require('utils/configs/defaults_providers/storm_defaults_provider');
 require('utils/configs/validators/yarn_configs_validator');
+require('utils/configs/validators/hive_configs_validator');
 require('utils/configs/validators/tez_configs_validator');
 require('utils/configs/validators/mapreduce2_configs_validator');
 require('utils/configs/validators/storm_configs_validator');
@@ -113,6 +115,8 @@ module.exports = [
     serviceName: 'HIVE',
     displayName: 'Hive',
     filename: 'hive-site',
+    configsValidator: App.HiveConfigsValidator,
+    defaultsProviders: [App.HiveDefaultsProvider.create()],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),

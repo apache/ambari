@@ -138,7 +138,17 @@ describe('App.ServiceConfigsValidator', function() {
       {value: '-server-Xmx1024m-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
       {value: '-server-Xmx1024-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
       {value: '-Xmx1024-Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC', e: false},
-      {value: '-server-Xmx1024', e: false}
+      {value: '-server-Xmx1024', e: false},
+      {value: '-server    -Xmx1024m   -Da=b',e: true},
+      {value: '-server -Xmx1024m -Da=b',e: true},
+      {value: '-server -XMx1024m -Da=b',e: false},
+      {value: '-server -Xmx1024M -Da=b',e: true},
+      {value: '-server -Xmx1 -Da=b',e: true},
+      {value: '-server -Xmx1100MBPS -Da=b',e: false},
+      {value: '-server -Xmx1100M -Xmx200 -Da=b',e: false},
+      {value: '-server --Xmx1100M -Da=b',e: false},
+      {value: '-Xmx1024m -server -Da=b',e: true},
+      {value: ' -server -Da=b -Xmx1024m',e: true}
     ]);
     tests.forEach(function(test) {
       it(test.value, function() {
