@@ -293,6 +293,9 @@ public class AmbariActionExecutionHelper {
       }
     }
 
+    Set<Map<String, String>> maintenanceSCHs =
+      MaintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster);
+
     //create tasks for each host
     for (String hostName : targetHosts) {
       stage.addHostRoleExecutionCommand(hostName,
@@ -344,7 +347,7 @@ public class AmbariActionExecutionHelper {
         StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
 
       // cluster passive map
-      execCmd.setPassiveInfo(MaintenanceStateHelper.getMaintenanceHostCompoments(clusters, cluster));
+      execCmd.setPassiveInfo(maintenanceSCHs);
     }
   }
 }

@@ -1133,8 +1133,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 Map<String, Map<String, String>> configTags,
                                 RoleCommand roleCommand,
                                 Map<String, String> commandParams,
-                                ServiceComponentHostEvent event)
-    throws AmbariException {
+                                ServiceComponentHostEvent event
+                                )
+                                throws AmbariException {
 
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
       .getServiceComponentName()), roleCommand,
@@ -1271,7 +1272,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, String> roleParams = new TreeMap<String, String>();
     execCmd.setRoleParams(roleParams);
 
-    execCmd.setPassiveInfo(MaintenanceStateHelper.getMaintenanceHostCompoments(clusters, cluster));
+    // Send passive host info to the Nagios host role
+    if (execCmd.getRole().equals(Role.NAGIOS_SERVER.name())) {
+      execCmd.setPassiveInfo(
+        MaintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
+    }
   }
 
   private ActionExecutionContext getActionExecutionContext
@@ -1342,7 +1347,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusters.getHostsForCluster(cluster.getClusterName()), cluster);
 
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-      
+
       Stage stage = createNewStage(cluster, requestId, requestContext, clusterHostInfoJson);
 
       //HACK

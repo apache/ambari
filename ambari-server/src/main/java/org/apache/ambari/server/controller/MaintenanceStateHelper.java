@@ -101,8 +101,7 @@ public class MaintenanceStateHelper {
    * maintenance state (either {@link MaintenanceState#ON} or
    * {@link MaintenanceState#IMPLIED})
    */
-  public static Set<Map<String, String>> getMaintenanceHostCompoments(Clusters clusters,
-      Cluster cluster) throws AmbariException {
+  public static Set<Map<String, String>> getMaintenanceHostComponents(Clusters clusters, Cluster cluster) throws AmbariException {
     
     Set<Map<String, String>> set = new HashSet<Map<String, String>>();
     

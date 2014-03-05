@@ -9468,17 +9468,23 @@ public class AmbariManagementControllerTest {
     String clusterName = "c1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
-        .setDesiredStackVersion(new StackId("HDP-0.1"));
+        .setDesiredStackVersion(new StackId("HDP-1.2.0"));
     String serviceName = "HDFS";
+    String nagiosService = "NAGIOS";
     createService(clusterName, serviceName, null);
+    createService(clusterName, nagiosService, null);
+
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
+    String componentName4 = "NAGIOS_SERVER";
     createServiceComponent(clusterName, serviceName, componentName1,
         State.INIT);
     createServiceComponent(clusterName, serviceName, componentName2,
         State.INIT);
     createServiceComponent(clusterName, serviceName, componentName3,
+        State.INIT);
+    createServiceComponent(clusterName, nagiosService, componentName4,
         State.INIT);
 
     String host1 = "h1";
@@ -9498,6 +9504,7 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host2, null);
+    createServiceComponentHost(clusterName, nagiosService, componentName4, host1, null);
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put("context", "Called from a test");
@@ -9642,27 +9649,39 @@ public class AmbariManagementControllerTest {
         Assert.assertEquals(State.INIT, sch.getState());
       }
     }    
-    
-    // attempt install on DATANODE only
-    ServiceComponentRequest scr = new ServiceComponentRequest(clusterName,
-        serviceName, componentName2, State.INSTALLED.name());
-    RequestStatusResponse rsr = ComponentResourceProviderTest.updateComponents(
-        controller, Collections.singleton(scr), requestProperties, false);
-    
-    if (rsr != null) {
-      // manually change live state to stopped as no running action manager
-      List<HostRoleCommand> commands = actionDB.getRequestTasks(rsr.getRequestId());
-      for (HostRoleCommand cmd : commands) {
-        Assert.assertNotNull(cmd.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo());
-        Assert.assertEquals(Integer.valueOf(1),
-            Integer.valueOf(
-                cmd.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo().size()));
-        
-        clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(cmd.getRole().name())
-            .getServiceComponentHost(cmd.getHostName()).setState(State.INSTALLED);
+
+    long id1 = installService(clusterName, serviceName, false, false);
+    long id2 = installService(clusterName, nagiosService, false, false);
+
+    List<HostRoleCommand> hdfsCmds = actionDB.getRequestTasks(id1);
+    List<HostRoleCommand> nagiosCmds = actionDB.getRequestTasks(id2);
+
+    Assert.assertNotNull(hdfsCmds);
+    Assert.assertNotNull(nagiosCmds);
+
+    HostRoleCommand datanodeCmd = null;
+    HostRoleCommand nagiosCmd = null;
+
+    for (HostRoleCommand cmd : hdfsCmds) {
+      if (cmd.getRole().equals(Role.DATANODE)) {
+        datanodeCmd = cmd;
       }
     }
-    
+
+    for (HostRoleCommand cmd : nagiosCmds) {
+      if (cmd.getRole().equals(Role.NAGIOS_SERVER)) {
+        nagiosCmd = cmd;
+      }
+    }
+
+    Assert.assertNotNull(datanodeCmd);
+    Assert.assertNotNull(nagiosCmd);
+    Assert.assertNotNull(nagiosCmd.getExecutionCommandWrapper()
+      .getExecutionCommand().getPassiveInfo());
+    Assert.assertEquals(Integer.valueOf(1),
+      Integer.valueOf(nagiosCmd.getExecutionCommandWrapper()
+        .getExecutionCommand().getPassiveInfo().size()));
+
     // verify passive sch was skipped
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       if (!sc.getName().equals(componentName2))
