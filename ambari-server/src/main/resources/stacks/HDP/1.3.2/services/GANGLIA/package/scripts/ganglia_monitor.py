@@ -34,6 +34,9 @@ class GangliaMonitor(Script):
     self.configure(env)
 
   def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env)   
     ganglia_monitor_service.monitor("start")
 
   def stop(self, env):
