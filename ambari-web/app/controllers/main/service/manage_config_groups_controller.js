@@ -46,10 +46,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     }
     var defaultConfigGroup = configGroups.findProperty('isDefault');
     configGroups.removeObject(defaultConfigGroup);
-    var sorted = configGroups.sort(function(configGroupA, configGroupB){
-      return String(configGroupA.get('name')) >= String(configGroupB.get('name'));
-    });
-    sorted = [defaultConfigGroup].concat(sorted);
+    var sorted = [defaultConfigGroup].concat(configGroups.sortProperty('name'));
 
     this.removeObserver('configGroups.@each.name', this, 'resortConfigGroup');
     this.set('configGroups', sorted);

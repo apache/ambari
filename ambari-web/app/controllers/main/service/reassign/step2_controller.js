@@ -77,8 +77,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       if (item.get('selectedHost') == this.get('currentHostId') && item.get('component_name') == this.get('content.reassign.component_name')) {
         item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
       }
-      preparedAvailableHosts.sortBy('host_name');
-      item.set("availableHosts", preparedAvailableHosts);
+      item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
     }, this);
   }
 });

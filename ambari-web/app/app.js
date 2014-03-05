@@ -17,7 +17,7 @@
  */
 
 // Application bootstrapper
-
+require('utils/ember_reopen');
 var stringUtils = require('utils/string_utils');
 
 module.exports = Em.Application.create({
@@ -235,18 +235,4 @@ module.exports = Em.Application.create({
       return require('data/service_components').filterProperty('isClient', true).mapProperty('component_name').uniq();
     }.property().cacheable()
   })
-});
-
-/**
- * overwritten set method of Ember.View to avoid uncaught errors
- * when trying to set property of destroyed view
- */
-Em.View.reopen({
-  set: function(attr, value){
-    if(!this.get('isDestroyed') && !this.get('isDestroying')){
-      this._super(attr, value);
-    } else {
-      console.debug('Calling set on destroyed view');
-    }
-  }
 });

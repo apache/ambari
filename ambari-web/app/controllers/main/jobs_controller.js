@@ -266,7 +266,7 @@ App.MainJobsController = Em.ArrayController.extend({
           if(sortColumn && sortColumn.get('status')){
             var sortColumnStatus = sortColumn.get('status');
             sortColumn.set('content', self.get('content'));
-            sortColumn.get('parentView').sort(sortColumn, sortColumnStatus === "sorting_desc" ? true : false);
+            sortColumn.get('parentView').sort(sortColumn, sortColumnStatus === "sorting_desc");
             sortColumn.set('status', sortColumnStatus);
             self.set('content',sortColumn.get('parentView').get('content'));
           }

@@ -130,32 +130,8 @@ App.MainAlertsController = Em.Controller.extend({
         }));
       }, this);
     }
-    this.set('alerts', this.sortAlerts(alerts));
+    this.set('alerts', alerts.sortProperty('status','date').reverse());
     this.set('isLoaded', true);
-  },
-  /**
-   * alerts sorting
-   * firstly by status
-   * 1. UNKNOWN
-   * 2. CRITICAL
-   * 3. WARNING
-   * 4. OK
-   * secondly by date
-   * @param array
-   * @return {*}
-   */
-  sortAlerts: function (array) {
-    return array.sort(function (left, right) {
-      var statusDiff = right.get('status') - left.get('status');
-      if (statusDiff == 0) { // same error severity - sort by time
-        var rightTime = right.get('date');
-        var leftTime = left.get('date');
-        rightTime = rightTime ? rightTime.getTime() : 0;
-        leftTime = leftTime ? leftTime.getTime() : 0;
-        statusDiff = rightTime - leftTime;
-      }
-      return statusDiff;
-    });
   },
 
   getAlertsErrorCallback: function(){

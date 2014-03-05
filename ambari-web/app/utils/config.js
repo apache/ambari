@@ -385,16 +385,9 @@ App.config = Em.Object.create({
       }
     }, this);
 
-    var alphabeticalSort = function (a, b) {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
-    };
-
-
     return {
-      globalConfigs: globalStart.concat(globalConfigs.sort(alphabeticalSort)),
-      configs: siteStart.concat(siteConfigs.sort(alphabeticalSort)),
+      globalConfigs: globalStart.concat(globalConfigs.sortProperty('name')),
+      configs: siteStart.concat(siteConfigs.sortProperty('name')),
       mappingConfigs: configSet.mappingConfigs
     }
   },

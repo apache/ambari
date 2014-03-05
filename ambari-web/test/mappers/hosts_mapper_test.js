@@ -26,44 +26,6 @@ require('mappers/hosts_mapper');
 
 describe('App.hostsMapper', function () {
 
-  describe('#sortByPublicHostName()', function () {
-    var tests = [
-      {
-        i: [
-          {public_host_name: 'host0'},
-          {public_host_name: 'host1'},
-          {public_host_name: 'host2'},
-          {public_host_name: 'host3'}
-        ],
-        m: 'Sorted array',
-        e: ['host0','host1','host2','host3']
-      },
-      {
-        i: [
-          {public_host_name: 'host3'},
-          {public_host_name: 'host2'},
-          {public_host_name: 'host1'},
-          {public_host_name: 'host0'}
-        ],
-        m: 'Reverse sorted array',
-        e: ['host0','host1','host2','host3']
-      },
-      {
-        i: [
-          {public_host_name: 'host2'},
-          {public_host_name: 'host3'},
-          {public_host_name: 'host0'},
-          {public_host_name: 'host1'}
-        ],
-        m: 'Shuffled array',
-        e: ['host0','host1','host2','host3']
-      }
-    ];
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        expect(App.hostsMapper.sortByPublicHostName(test.i).mapProperty('public_host_name')).to.eql(test.e);
-      });
-    });
-  });
+
 
 });

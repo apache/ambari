@@ -79,23 +79,6 @@ Number.prototype.toDaysHoursMinutes = function () {
   return formatted;
 };
 
-/**
- * sort array of objects by property;
- * by default sorting has ascending order
- * if @desc - true, then descending order
- * @param property
- * @param desc
- */
-Array.prototype.sortBy = function(property, desc) {
-  this.sort(function (a, b) {
-    if (a[property] > b[property])
-      return (desc) ? -1 : 1;
-    else
-      return (desc) ? 1 : -1;
-  });
-  return this;
-};
-
 Em.CoreObject.reopen({
   t:function (key, attrs) {
     return Em.I18n.t(key, attrs)

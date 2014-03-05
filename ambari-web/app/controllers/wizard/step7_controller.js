@@ -179,9 +179,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (!selectedConfigGroup) {
       selectedConfigGroup = defaultConfigGroup;
     }
-    configGroups.sort(function(configGroupA, configGroupB){
-      return (configGroupA.name > configGroupB.name);
-    });
+    configGroups = configGroups.sortProperty('name');
     configGroups.unshift(defaultConfigGroup);
     if (App.supports.hostOverrides) {
       service.set('configGroups', configGroups);

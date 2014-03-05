@@ -468,9 +468,7 @@ App.WizardStep5Controller = Em.Controller.extend({
       mapping.pushObject(mappingObject);
     }, this);
 
-    mapping.sortBy('host_name');
-
-    return mapping;
+    return mapping.sortProperty('host_name');
   }.property("selectedServicesMasters.@each.selectedHost"),
 
   remainingHosts:function () {

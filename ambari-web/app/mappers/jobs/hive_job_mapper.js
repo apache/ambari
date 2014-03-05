@@ -38,15 +38,6 @@ App.hiveJobMapper = App.QuickDataMapper.create({
   model : App.HiveJob,
   map : function(json) {
     var model = this.get('model');
-    var sortById = function (a, b) {
-      if (a.id > b.id) {
-        return 1;
-      } else if (a.id < b.id) {
-        return -1;
-      } else {
-        return 0;
-      };
-    };
     if (!model) {
       return;
     }
@@ -187,7 +178,7 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       }
       var hiveJobRecord = App.HiveJob.find(hiveJob.id);
       if (hiveJobRecord != null) {
-        hiveJobRecord.set('stages', hiveJob.stages.sort(sortById));
+        hiveJobRecord.set('stages', hiveJob.stages.sortProperty('id'));
         hiveJobRecord.set('startTime', hiveJob.startTime);
         hiveJobRecord.set('endTime', hiveJob.endTime);
         if (hiveJob.tezDag != null) {

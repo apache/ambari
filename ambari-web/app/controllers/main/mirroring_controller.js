@@ -161,11 +161,7 @@ App.MainMirroringController = Em.ArrayController.extend({
     if (this.get('datasetCount') < 1) {
       var sortedDatasets = [];
       App.dataSetMapper.map(datasetsData);
-      sortedDatasets = App.Dataset.find().toArray().sort(function (a, b) {
-        if (a.get('name') < b.get('name'))  return -1;
-        if (a.get('name') > b.get('name'))  return 1;
-        return 0;
-      });
+      sortedDatasets = App.Dataset.find().toArray().sortProperty('name');
       this.set('isDatasetsLoaded', true);
       var selectedDataset = this.get('selectedDataset');
       if (!selectedDataset) {

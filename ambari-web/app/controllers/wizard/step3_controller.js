@@ -821,16 +821,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     var warnings = [];
     var warning;
     var hosts = [];
-    data.items.sort(function (a, b) {
-      if (a.Hosts.host_name > b.Hosts.host_name) {
-        return 1;
-      }
-      if (a.Hosts.host_name < b.Hosts.host_name) {
-        return -1;
-      }
-      return 0;
-    });
-    data.items.forEach(function (_host) {
+    data.items.sortProperty('Hosts.host_name').forEach(function (_host) {
       var host = {
         name: _host.Hosts.host_name,
         warnings: []

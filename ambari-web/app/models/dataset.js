@@ -65,9 +65,7 @@ App.Dataset = DS.Model.extend({
   healthClass: function () {
     var jobs = this.get('datasetJobs').toArray();
     jobs = jobs.filterProperty('status', 'FAILED').concat(jobs.filterProperty('status', 'SUCCESSFUL'));
-    jobs.sort(function (a, b) {
-      return a.get('endDate') - b.get('endDate');
-    });
+    jobs = jobs.sortProperty('endDate');
     return jobs.length && jobs[0].get('status') === 'FAILED' ? 'health-status-DEAD-RED' : 'health-status-LIVE';
   }.property('datasetJobs', 'datasetJobs.@each.status')
 });

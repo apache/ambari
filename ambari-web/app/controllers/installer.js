@@ -180,16 +180,7 @@ App.InstallerController = App.WizardController.extend({
   loadStacksVersionsSuccessCallback: function (data) {
     var result = [];
     var stackVersions = data.items.filterProperty('Versions.active');
-    stackVersions.sort(function (a, b) {
-      if (a.Versions.stack_version > b.Versions.stack_version) {
-        return -1;
-      }
-      if (a.Versions.stack_version < b.Versions.stack_version) {
-        return 1;
-      }
-      return 0;
-    });
-    stackVersions.forEach(function (version) {
+    stackVersions.sortProperty('Versions.stack_version').reverse().forEach(function (version) {
       /*
        * operatingSystems:[
        *  {

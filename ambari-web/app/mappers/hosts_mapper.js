@@ -98,7 +98,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       }, this);
 
       App.cache['previousHostStatuses'] = currentHostStatuses;
-      hostsWithFullInfo = this.sortByPublicHostName(hostsWithFullInfo);
+      hostsWithFullInfo = hostsWithFullInfo.sortProperty('public_host_name');
 
       var clientHosts = App.Host.find();
 
@@ -173,7 +173,7 @@ App.hostsMapper = App.QuickDataMapper.create({
    */
   getDiscrepancies: function (current, previous) {
     var result = {};
-    var fields = ['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free', 'critical_alerts_count', 'passive_state'];
+    var fields = Em.A(['disk_total', 'disk_free', 'health_status', 'load_one', 'cpu_system', 'cpu_user', 'mem_total', 'mem_free', 'critical_alerts_count', 'passive_state']);
     if (previous) {
       fields.forEach(function (field) {
         if (current[field] != previous[field]) result[field] = current[field];
@@ -188,22 +188,6 @@ App.hostsMapper = App.QuickDataMapper.create({
       return result;
     }
     return current;
-  },
-
-  /**
-   * Default data sorting by public_host_name field
-   * @param data
-   * @return {Array}
-   */
-  sortByPublicHostName: function(data) {
-    data.sort(function(a, b) {
-      var ap = a.public_host_name;
-      var bp = b.public_host_name;
-      if (ap > bp) return 1;
-      if (ap < bp) return -1;
-      return 0;
-    });
-    return data;
   }
 
 });

@@ -6564,7 +6564,98 @@ Ember.Enumerable = Ember.Mixin.create(
     Ember.propertyDidChange(this, '[]');
 
     return this ;
-  }
+  },
+
+    /**
+     Converts the enumerable into an array and sorts by the keys
+     specified in the argument.
+
+     You may provide multiple arguments to sort by multiple properties.
+
+     @method sortProperty
+     @param {String} property name(s) to sort on
+     @return {Array} The sorted array.
+     */
+    sortProperty: function() {
+      var sortKeys = arguments;
+      return this.toArray().sort(function(a, b){
+        for(var i = 0; i < sortKeys.length; i++) {
+          var key = sortKeys[i],
+            propA = Ember.get(a, key),
+            propB = Ember.get(b, key);
+          // return 1 or -1 else continue to the next sortKey
+          var compareValue = Ember.compare(propA, propB);
+          if (compareValue) { return compareValue; }
+        }
+        return 0;
+      });
+    },
+
+    /**
+     Returns an array with all of the items in the enumeration where the passed
+     function returns false for. This method is the inverse of filter().
+
+     The callback method you provide should have the following signature (all
+     parameters are optional):
+
+     ```javascript
+     function(item, index, enumerable);
+     ```
+
+     - *item* is the current item in the iteration.
+     - *index* is the current index in the iteration
+     - *enumerable* is the enumerable object itself.
+
+     It should return the a falsey value to include the item in the results.
+
+     Note that in addition to a callback, you can also pass an optional target
+     object that will be set as "this" on the context. This is a good way
+     to give your iterator function access to the current object.
+
+     @method reject
+     @param {Function} callback The callback to execute
+     @param {Object} [target] The target object to use
+     @return {Array} A rejected array.
+     */
+    reject: function(callback, target) {
+      return this.filter(function() {
+        return !(callback.apply(target, arguments));
+      });
+    },
+
+    /**
+     Returns an array with the items that do not have truthy values for
+     key.  You can pass an optional second argument with the target value.  Otherwise
+     this will match any property that evaluates to false.
+
+     @method rejectProperty
+     @param {String} key the property to test
+     @param {String} [value] optional value to test against.
+     @return {Array} rejected array
+     */
+    rejectProperty: function(key, value) {
+      var exactValue = function(item) { return Ember.get(item, key) === value; },
+        hasValue = function(item) { return !!Ember.get(item, key); },
+        use = (arguments.length === 2 ? exactValue : hasValue);
+
+      return this.reject(use);
+    },
+
+    /**
+     Returns a copy of the array without elements with `key` equal to `null` and `undefined`.
+
+     ```javascript
+     var arr = [Ember.Object.create({a: null}), {a: 1}, {a: false}, {a: ''}, {a: undefined}, {a: 0}, {a: null}];
+     arr.compactProperty("a");  // [{a: 1}, {a: false}, {a: ''}, {a: 0}]
+     ```
+
+     @method compactProperty
+     @param {String} key name of the property
+     @return {Array} the array without elements with `key` equal to `null` and `undefined`.
+     */
+    compactProperty: function(key) {
+      return this.filter(function(item) { return !Ember.isNone(Ember.get(item, key)); });
+    }
 
 }) ;
 

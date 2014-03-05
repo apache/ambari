@@ -59,9 +59,7 @@ App.MainHiveJobDetailsView = Em.View.extend({
     var vertices = this.get('content.tezDag.vertices');
     if (vertices != null) {
       vertices = vertices.toArray();
-      return vertices.sort(function(v1, v2) {
-        return Ember.compare(v1.get('name'), v2.get('name'));
-      });
+      return vertices.sortProperty('name');
     }
     return vertices;
   }.property('content.tezDag.vertices'),

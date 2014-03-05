@@ -376,7 +376,7 @@ App.HostPopup = Em.Object.create({
           });
 
           if (tasks.length) {
-            tasks = self.sortTasksById(tasks);
+            tasks = tasks.sortProperty('Tasks.id');
             var hostStatus = self.getStatus(tasks);
             var hostProgress = self.getProgress(tasks);
             hostInfo.set('status', App.format.taskStatus(hostStatus[0]));
@@ -389,24 +389,13 @@ App.HostPopup = Em.Object.create({
           hostInfo.set('logTasks', tasks);
           hostsArr.push(hostInfo);
         }
-        //sort hosts by name
-        this.sortArray(hostsArr, "name");
+
+        hostsArr = hostsArr.sortProperty('name');
         hostsArr.setEach("serviceName", this.get("serviceName"));
         self.set("hosts", hostsArr);
         self.set('previousServiceId', this.get('currentServiceId'));
       }
     }
-  },
-
-  /**
-   * Sort tasks by it`s id
-   * @param tasks
-   * @return {Array}
-   */
-  sortTasksById: function (tasks) {
-    return tasks.sort(function (a, b) {
-      return (a.Tasks.id > b.Tasks.id) ? 1 : (a.Tasks.id < b.Tasks.id) ? -1 : 0;
-    });
   },
 
   /**
