@@ -80,6 +80,9 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   hostsWithHeartbeatLost: [],
 
+   // Flag is set in the start all services error callback function
+  startCallFailed: false,
+
   /*
    * Status of the page. Possible values: <info, warning, failed and success>.
    * This property is used in the step-9 view for displaying the appropriate color of the overall progress bar and
@@ -253,7 +256,9 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   updateStatus: function () {
     var status = 'info';
-    if (this.get('hosts').someProperty('status', 'failed') || this.get('hosts').someProperty('status', 'heartbeat_lost')) {
+    if (this.get('hosts').someProperty('status', 'failed')
+      || this.get('hosts').someProperty('status', 'heartbeat_lost')
+      || this.get('startCallFailed')) {
       status = 'failed';
     } else if (this.get('hosts').someProperty('status', 'warning')) {
       if (this.isStepFailed()) {
@@ -326,6 +331,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   clearStep: function () {
     this.get('hosts').clear();
     this.set('hostsWithHeartbeatLost', []);
+    this.set('startCallFailed',false);
     this.set('status', 'info');
     this.set('progress', '0');
     this.set('numPolls', 1);
@@ -589,14 +595,36 @@ App.WizardStep9Controller = Em.Controller.extend({
   /**
    * Error callback function for start services task.
    */
-  launchStartServicesErrorCallback: function () {
+  launchStartServicesErrorCallback: function (jqXHR) {
     console.log("ERROR");
+    this.set('startCallFailed',true);
     var clusterStatus = {
-      status: 'START FAILED',
-      isStartError: true,
+      status: 'INSTALL FAILED',
+      isStartError: false,
       isCompleted: false
     };
-    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+    if (App.testMode) {
+      this.set('content.cluster', clusterStatus);
+    } else {
+      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+    }
+    this.get('hosts').forEach(function (host) {
+      host.set('progress', '100');
+    });
+    this.set('progress','100');
+
+    var params = {
+      cluster: this.get('content.cluster.name')
+    };
+
+    if (this.get('content.controllerName') === 'addHostController') {
+      params.name = 'wizard.step9.add_host.launch_start_services';
+    } else {
+      params.name = 'wizard.step9.installer.launch_start_services';
+    }
+
+    var opt = App.formatRequest.call(App.urls[params.name], params);
+    App.ajax.defaultErrorHandler(jqXHR,opt.url,opt.type);
   },
 
   /**

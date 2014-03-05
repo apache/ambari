@@ -1825,17 +1825,13 @@ var ajax = Em.Object.extend({
     method = method || 'GET';
     var self = this;
     var api = " received on " + method + " method for API: " + url;
-    var showMessage = true;
     try {
       var json = $.parseJSON(jqXHR.responseText);
       var message = json.message;
     } catch (err) {
     }
-    if (showStatus === null) {
+    if (!showStatus) {
       showStatus = 500;
-    }
-    if (message === undefined) {
-      showMessage = false;
     }
     var statusCode = jqXHR.status + " status code";
     if (jqXHR.status === showStatus && !this.modalPopup) {
@@ -1852,7 +1848,7 @@ var ajax = Em.Object.extend({
           api: api,
           statusCode: statusCode,
           message: message,
-          showMessage: showMessage
+          showMessage: !!message
         })
       });
     }
@@ -1905,3 +1901,5 @@ if ($.mocho) {
 }
 
 App.ajax = ajax.create({});
+App.formatRequest = formatRequest;
+App.urls = urls;

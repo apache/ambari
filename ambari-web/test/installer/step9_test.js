@@ -1121,7 +1121,50 @@ describe('App.InstallerStep9Controller', function () {
         });
       });
     });
-
   })
+
+  // On completion of Start all services error callback function,
+  // Cluster Status should be INSTALL FAILED
+  // All progress bar on the screen should be finished (100%) with blue color.
+  // Retry button should be enabled, next button should be disabled
+
+  describe('#launchStartServicesErrorCallback', function () {
+    App.testMode = true;
+    // override the actual function
+    App.popup = {
+      setErrorPopup: function() {
+        return true;
+      }
+    };
+    var hosts = Em.A([Em.Object.create({name: 'host1', progress: '33', status: 'info'}),Em.Object.create({name: 'host2', progress: '33', status: 'info'})]);
+    var controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: 'PENDING',name: 'c1'}},togglePreviousSteps: function(){}});
+
+    //Action
+    controller.launchStartServicesErrorCallback({status:500, statusTesxt: 'Server Error'});
+    it('Cluster Status should be INSTALL FAILED', function () {
+      expect(controller.get('content.cluster.status')).to.equal('INSTALL FAILED');
+    });
+
+    it('Main progress bar on the screen should be finished (100%) with red color', function () {
+      expect(controller.get('progress')).to.equal('100');
+      expect(controller.get('status')).to.equal('failed');
+    });
+
+    it('All Host progress bars on the screen should be finished (100%) with blue color', function () {
+      controller.get('hosts').forEach(function(host){
+        expect(host.get('progress')).to.equal('100');
+        expect(host.get('status')).to.equal('info');
+      });
+    });
+
+    it('Next button should be disabled', function () {
+      expect(controller.get('isSubmitDisabled')).to.equal(true);
+    });
+
+    it('Retry button should be visible', function () {
+      expect(controller.get('showRetry')).to.equal(true);
+    })
+
+  });
 
 });

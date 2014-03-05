@@ -65,6 +65,8 @@ App.WizardStep9View = Em.View.extend({
         // When present requests succeeds but some host components are in UNKNOWN or INSTALL_FAILED state and
         // hosts are in HEARTBEAT_LOST state
         this.set('resultMsg', Em.I18n.t('installer.step9.status.hosts.heartbeat_lost').format(this.get('controller.hostsWithHeartbeatLost').length));
+      } else if (this.get('controller.startCallFailed')) {
+        this.set('resultMsg', Em.I18n.t('installer.step9.status.start.services.failed'));
       } else {
         this.set('resultMsg', Em.I18n.t('installer.step9.status.failed'));
       }
@@ -74,7 +76,7 @@ App.WizardStep9View = Em.View.extend({
       this.set('resultMsg', Em.I18n.t('installer.step9.status.success'));
       this.set('resultMsgColor', 'alert-success');
     }
-  }.observes('controller.status', 'isHostHeartbeatLost'),
+  }.observes('controller.status', 'controller.startCallFailed','isHostHeartbeatLost'),
 
 
   hostWithInstallFailed: function (event, context) {
