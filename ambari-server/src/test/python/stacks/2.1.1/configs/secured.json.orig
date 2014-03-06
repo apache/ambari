@@ -405,6 +405,7 @@
             "jobhistory_principal_name": "jhs/_HOST", 
             "hive_ambari_database": "MySQL", 
             "rca_enabled": "false", 
+            "hive_jdbc_driver": "com.mysql.jdbc.Driver", 
             "hcat_conf_dir": "", 
             "resourcemanager_primary_name": "rm", 
             "hadoop_http_primary_name": "HTTP", 

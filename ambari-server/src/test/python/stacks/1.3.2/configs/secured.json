@@ -221,7 +221,6 @@
             "ganglia_runtime_dir": "/var/run/ganglia/hdp", 
             "lzo_enabled": "true", 
             "oozie_principal_name": "oozie/c6402.ambari.apache.org", 
-            "hive_jdbc_driver": "com.mysql.jdbc.Driver", 
             "dfs_datanode_address": "1019", 
             "namenode_opt_newsize": "200m", 
             "initLimit": "10", 

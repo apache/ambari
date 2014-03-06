@@ -34,7 +34,7 @@ hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.op
 hive_user = config['configurations']['global']['hive_user']
 hive_lib = '/usr/lib/hive/lib/'
 #JDBC driver jar name
-hive_jdbc_driver = default('hive_jdbc_driver', 'com.mysql.jdbc.Driver')
+hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 if hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = "mysql-connector-java.jar"
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":

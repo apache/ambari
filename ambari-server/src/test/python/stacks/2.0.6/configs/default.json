@@ -236,7 +236,6 @@
             "hive_ambari_database": "MySQL", 
             "falcon_user": "falcon", 
             "oozie_log_dir": "/var/log/oozie", 
-            "hive_jdbc_driver": "com.mysql.jdbc.Driver", 
             "oozie_user": "oozie", 
             "hcat_conf_dir": "", 
             "oozie_data_dir": "/hadoop/oozie/data", 

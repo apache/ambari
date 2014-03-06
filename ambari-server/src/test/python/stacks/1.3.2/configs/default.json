@@ -172,7 +172,6 @@
             "rca_enabled": "true", 
             "namenode_heapsize": "1024m", 
             "oozie_log_dir": "/var/log/oozie", 
-            "hive_jdbc_driver": "com.mysql.jdbc.Driver", 
             "oozie_user": "oozie", 
             "oozie_data_dir": "/hadoop/oozie/data", 
             "ganglia_runtime_dir": "/var/run/ganglia/hdp", 
