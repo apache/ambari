@@ -22,6 +22,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   name: 'mainAdminSecurityAddStep4Controller',
 
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
+  totalSteps: 4,
 
   secureServices: function() {
     return  this.get('content.services');
@@ -61,6 +62,15 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     this.set('isSubmitDisabled', true);
     this.set('isBackBtnDisabled', true);
     this.get('serviceConfigTags').clear();
+  },
+
+  loadStages: function () {
+    this.get('stages').pushObjects([
+      App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true, name: 'STOP_SERVICES', isVisible: true}),
+      App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false, name: 'APPLY_CONFIGURATIONS', isVisible: true}),
+      App.Poll.create({stage: 'stage5', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false, name: 'DELETE_ATS', isVisible: false}),
+      App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true, name: 'START_SERVICES', isVisible: true})
+    ]);
   },
 
   loadStep: function () {
@@ -370,6 +380,31 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     }
     return true;
   },
+
+  deleteComponents: function(componentName, hostName) {
+    App.ajax.send({
+      name: 'admin.delete_component',
+      sender: this,
+      data: {
+        componentName: componentName,
+        hostName: hostName
+      },
+      success: 'onDeleteComplete',
+      error: 'onDeleteError'
+    });
+  },
+
+  onDeleteComplete: function () {
+    var deleteAtsStage = this.get('stages').findProperty('name', 'DELETE_ATS');
+    console.warn('APP_TIMELINE_SERVER doesn\'t support security mode. It has been removed from YARN service ');
+    deleteAtsStage.set('isError', false);
+    deleteAtsStage.set('isSuccess', true);
+  },
+
+  onDeleteError: function () {
+    console.warn('Error: Can\'t delete APP_TIMELINE_SERVER');
+  },
+
 
   onJsError: function () {
     App.ModalPopup.show({

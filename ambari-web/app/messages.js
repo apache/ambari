@@ -937,6 +937,7 @@ Em.I18n.translations = {
   'admin.addSecurity.apply.stage3': '2. Save Configurations',
   'admin.addSecurity.apply.stage4': '3. Start Services',
   'admin.addSecurity.apply.stage5': '5. Smoke Test',
+  'admin.addSecurity.apply.delete.ats': 'Delete ATS',
   'admin.addSecurity.user.smokeUser': 'Ambari Smoke Test User',
   'admin.addSecurity.user.hdfsUser': 'HDFS User',
   'admin.addSecurity.user.hbaseUser': 'HBase User',

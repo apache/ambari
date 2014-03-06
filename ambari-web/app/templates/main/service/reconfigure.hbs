@@ -18,14 +18,15 @@
 
 <table id="security-stages" class="table no-borders">
   <tbody>
-    {{#each stage in controller.stages}}
-    <tr>
-      <td>
-      {{#view App.StageLabelView stageBinding="stage"}}
-          <p {{bindAttr class="view.isStarted::faintText"}}>{{stage.label}}</p>
-      {{/view}}
-      </td>
-      <td>
+  {{#each stage in controller.stages}}
+    {{#if stage.isVisible}}
+      <tr>
+        <td>
+          {{#view App.StageLabelView stageBinding="stage"}}
+            <p {{bindAttr class="view.isStarted::faintText"}}>{{stage.label}}</p>
+          {{/view}}
+        </td>
+        <td>
           {{#if stage.isCompleted}}
             {{#if stage.isSuccess}}
               {{view App.StageSuccessView}}
@@ -44,16 +45,18 @@
               {{/if}}
             {{/if}}
           {{/if}}
-      </td>
-      <td>
-        {{#if stage.isError}}
-          <a class="btn btn-primary"
-             href="javascript:void(null)" {{action retry target = "controller"}}><i class="icon-repeat icon-white"></i>
-            {{t common.retry}}
-          </a>
-        {{/if}}
-      </td>
-    </tr>
-    {{/each}}
+        </td>
+        <td>
+          {{#if stage.isError}}
+            <a class="btn btn-primary"
+               href="javascript:void(null)" {{action retry target = "controller"}}><i
+                    class="icon-repeat icon-white"></i>
+              {{t common.retry}}
+            </a>
+          {{/if}}
+        </td>
+      </tr>
+    {{/if}}
+  {{/each}}
   </tbody>
 </table>

@@ -39,7 +39,6 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   serviceConfigTags: [],
   globalProperties: [],
   totalSteps: 3,
-
   isSubmitDisabled: true,
 
 
@@ -95,15 +94,9 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         currentStage = startedStages.findProperty('isCompleted', false);
       }
       if (currentStage && currentStage.get('isPolling') === true) {
-        if (currentStage.get('name') === 'START_SERVICES' && !App.router.get('addSecurityController.securityEnabled')) {
-          var timeLineServer = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
-          if (timeLineServer) {
-            this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('host.hostName'));
-          }
-        }
         currentStage.set('isStarted', true);
         currentStage.start();
-      } else if (currentStage && currentStage.get('stage') === 'stage3') {
+      } else if (currentStage && currentStage.get('name') === 'APPLY_CONFIGURATIONS') {
         currentStage.set('isStarted', true);
         if (App.testMode) {
           currentStage.set('isError', false);
@@ -111,9 +104,21 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         } else {
           this.loadClusterConfigs();
         }
+      } else if (currentStage && currentStage.get('name') === 'DELETE_ATS') {
+        currentStage.set('isStarted', true);
+        if (App.testMode) {
+          currentStage.set('isError', false);
+          currentStage.set('isSuccess', true);
+        } else {
+          var timeLineServer = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
+          if (timeLineServer && !App.router.get('mainAdminSecurityController.securityEnabled')) {
+            this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('host.hostName'));
+          }
+        }
       }
     }
   },
+
 
   onCompleteStage: function () {
     if (this.get('stages').length === this.totalSteps) {
@@ -166,27 +171,6 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
       success: 'loadClusterConfigsSuccessCallback',
       error: 'loadClusterConfigsErrorCallback'
     });
-  },
-
-  deleteComponents: function(componentName, hostName) {
-    App.ajax.send({
-      name: 'admin.delete_component',
-      sender: this,
-      data: {
-        componentName: componentName,
-        hostName: hostName
-      },
-      success: 'onDeleteComplete',
-      error: 'onDeleteError'
-    });
-  },
-
-  onDeleteComplete: function () {
-    console.warn('APP_TIMELINE_SERVER doesn\'t support security mode. It has been removed from YARN service ');
-  },
-
-  onDeleteError: function () {
-    console.warn('Error: Can\'t delete APP_TIMELINE_SERVER');
   },
 
   loadClusterConfigsSuccessCallback: function (data) {
@@ -347,6 +331,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
           stage: _stage.get('stage'),
           label: _stage.get('label'),
           isPolling: _stage.get('isPolling'),
+          isVisible:  _stage.get('isVisible'),
           isStarted: _stage.get('isStarted'),
           requestId: _stage.get('requestId'),
           isSuccess: _stage.get('isSuccess'),

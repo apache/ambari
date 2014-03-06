@@ -21,6 +21,7 @@ App.Poll = Em.Object.extend({
   name: '',
   stage: '',
   label: '',
+  isVisible: true,
   isStarted: false,
   isPolling: true,
   clusterName: null,
