@@ -23,53 +23,6 @@
       <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
       <version>0.12.0.2.1.1</version>
 
-      <osSpecifics>
-        <osSpecific>
-          <osType>any</osType>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>hive</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>mysql-connector-java</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>mysql</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osType>centos6</osType>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osType>centos5</osType>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osType>suse</osType>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-client</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
       <configuration-dependencies>
         <config-type>hive-site</config-type>
         <config-type>hive-log4j</config-type>
