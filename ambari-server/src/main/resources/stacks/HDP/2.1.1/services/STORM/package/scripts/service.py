@@ -20,8 +20,7 @@ limitations under the License.
 
 
 from resource_management import *
-from resource_management.core.shell import call
-import subprocess
+import time
 
 
 def service(
@@ -62,13 +61,12 @@ def service(
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
-    cmd = format("kill `cat {pid_file}` >/dev/null 2>&1")
-    Execute(cmd,
+    pid = format("`cat {pid_file}` >/dev/null 2>&1")
+    Execute(format("kill {pid}"),
             not_if=process_dont_exist
     )
-
-    Execute(process_dont_exist,
-            tries=5,
-            try_sleep=3
+    Execute(format("kill -9 {pid}"),
+            not_if=format("sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
+            ignore_failures=True
     )
     Execute(format("rm -f {pid_file}"))

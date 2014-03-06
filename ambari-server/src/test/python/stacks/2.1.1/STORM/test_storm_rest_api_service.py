@@ -65,13 +65,12 @@ class TestStormRestApi(RMFTestCase):
                        command = "stop",
                        config_file="default.json"
     )
-
     self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
-      not_if = '! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)',
+                              not_if = '! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)'
     )
-    self.assertResourceCalled('Execute', '! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)',
-      tries = 5,
-      try_sleep = 3,
+    self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)',
+                              ignore_failures=True
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/restapi.pid')
     self.assertNoMoreResources()
@@ -116,11 +115,11 @@ class TestStormRestApi(RMFTestCase):
                        config_file="secured.json"
     )
     self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
-      not_if = '! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)',
+                              not_if = '! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)'
     )
-    self.assertResourceCalled('Execute', '! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)',
-      tries = 5,
-      try_sleep = 3,
+    self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps `cat /var/run/storm/restapi.pid` >/dev/null 2>&1)',
+                              ignore_failures=True
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/restapi.pid')
     self.assertNoMoreResources()
