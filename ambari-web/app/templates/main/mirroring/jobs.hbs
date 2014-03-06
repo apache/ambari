@@ -48,7 +48,8 @@
                 {{t mirroring.dataset.schedule}}
               </a>
             </li>
-          {{else}}
+          {{/if}}
+          {{#if view.dataset.isRunning}}
             <li>
               <a href="javascript:void(null);" {{action suspend target="controller"}}>
                 {{t mirroring.dataset.suspend}}
@@ -67,7 +68,7 @@
           </li>
         </ul>
       </div>
-      <span {{bindAttr class=":label view.dataset.isRunning:label-info  view.dataset.isSuspended:label-warning  view.dataset.isScheduled:label-success :pull-right :dataset-status"}}>
+      <span {{bindAttr class=":label view.dataset.isRunning:label-info  view.dataset.isSuspended:label-warning  view.dataset.isSubmitted:label-success :pull-right :dataset-status"}}>
         {{view.dataset.statusFormatted}}</span>
     </div>
   {{/if}}
@@ -107,9 +108,7 @@
           <td>{{unbound job.startFormatted}}</td>
           <td>{{unbound job.endFormatted}}</td>
           <td>
-            {{#if job.isCompleted}}
-              {{job.statusFormatted}}
-            {{else}}
+            {{#if view.showActions}}
               <div class="btn-group display-inline-block">
                 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
                   {{job.statusFormatted}}
@@ -130,6 +129,8 @@
                   </li>
                 </ul>
               </div>
+            {{else}}
+              {{job.statusFormatted}}
             {{/if}}
           </td>
           {{/view}}

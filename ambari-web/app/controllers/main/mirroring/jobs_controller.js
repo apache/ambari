@@ -31,20 +31,6 @@ App.MainDatasetJobsController = Em.Controller.extend({
         App.Dataset.find().findProperty('name', datasetName).get('datasetJobs') : [];
   }.property('content', 'isLoaded'),
 
-  actionDesc: function () {
-    var dataset_status = this.get('content.status');
-    if (dataset_status === "SCHEDULED") {
-      return "Suspend";
-    } else {
-      return "Schedule";
-    }
-  }.property('content.status'),
-
-  isScheduled: function () {
-    var dataset_status = this.get('content.status');
-    return dataset_status === "SCHEDULED";
-  }.property('content.status'),
-
   suspend: function () {
     App.ajax.send({
       name: 'mirroring.suspend_entity',

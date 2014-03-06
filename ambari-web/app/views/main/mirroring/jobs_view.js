@@ -64,7 +64,7 @@ App.MainDatasetJobsView = App.TableView.extend({
     fieldType: 'input-small',
     column: 1,
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'number');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
@@ -107,78 +107,10 @@ App.MainDatasetJobsView = App.TableView.extend({
   JobView: Em.View.extend({
     content: null,
     tagName: 'tr',
-    canActionBeTaken: function () {
-      var job_status = this.get('content.status');
 
-      return job_status == "RUNNING" || job_status == "SUSPENDED";
-    }.property('content.status'),
-
-    isKilled: function () {
-      var job_status = this.get('content.status');
-      return job_status == 'KILLED';
-    }.property(),
-
-    statusClass: function () {
-      var job_status = this.get('content.status');
-      switch (job_status) {
-        case 'RUNNING' :
-          return "btn btn-success dropdown-toggle";
-          break;
-        case 'SUSPENDED' :
-          return "btn btn-warning dropdown-toggle";
-          break;
-        case 'SUCCEEDED' :
-          return "label label-success";
-          break;
-        case 'KILLED' :
-          return "label label-important";
-          break;
-        case 'WAITING' :
-          return "label";
-          break;
-        case 'FAILED' :
-        case 'ERROR' :
-          return "label label-important";
-          break;
-        default :
-          return "label";
-          break;
-      }
-    }.property('content.status'),
-
-    listOfOptions: function () {
-      var listOfActions = [];
-      var status = this.get('content.status');
-      switch (status) {
-        case 'RUNNING' :
-          listOfActions.push({title: 'Suspend', value: 'Suspend'});
-          listOfActions.push({title: 'Abort', value: 'Abort'});
-          break;
-        case 'SUSPENDED' :
-          listOfActions.push({title: 'Resume', value: 'Resume'});
-          listOfActions.push({title: 'Abort', value: 'Abort'});
-          break;
-      }
-      return listOfActions;
-    }.property('content.status'),
-
-    changeStatus: function (event) {
-      var selected = event.context;
-      var self = this;
-      App.showConfirmationPopup(function () {
-        switch (selected.title) {
-          case 'Suspend' :
-            self.set('content.status', 'SUSPENDED');
-            break;
-          case 'Resume' :
-            self.set('content.status', 'RUNNING');
-            break;
-          case 'Abort' :
-            self.set('content.status', 'KILLED');
-            break;
-        }
-      });
-    }
+    showActions: function () {
+      return ['RUNNING', 'SUSPENDED'].contains(this.get('content.status')) && App.get('isAdmin');
+    }.property('content.status')
   }),
 
   /**
@@ -192,7 +124,4 @@ App.MainDatasetJobsView = App.TableView.extend({
     associations[4] = 'statusFormatted';
     return associations;
   }.property()
-
-
-
 });

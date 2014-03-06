@@ -47,7 +47,7 @@ App.Dataset = DS.Model.extend({
     return this.get('status') === 'SUSPENDED';
   }.property('status'),
 
-  isScheduled: function () {
+  isSubmitted: function () {
     return this.get('status') === 'SUBMITTED';
   }.property('status'),
 
