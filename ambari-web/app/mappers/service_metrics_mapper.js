@@ -280,6 +280,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   computeAdditionalRelations: function (hostComponents, services) {
     var isSecondaryNamenode = hostComponents.findProperty('component_name', 'SECONDARY_NAMENODE');
     services.setEach('tool_tip_content', '');
+    // set tooltip for client-only services
+    var clientOnlyServiceNames = ['TEZ', 'SQOOP', 'PIG'];
+    var clientOnlyServiceTooltip = Em.I18n.t('services.service.summary.clientOnlyService.ToolTip');
+    clientOnlyServiceNames.forEach( function(serviceName) {
+      var service = services.findProperty('ServiceInfo.service_name', serviceName);
+      service.tool_tip_content = clientOnlyServiceTooltip;
+    });
     hostComponents.forEach(function (hostComponent) {
       var service = services.findProperty('ServiceInfo.service_name', hostComponent.service_id);
       if (hostComponent) {
