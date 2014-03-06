@@ -62,7 +62,7 @@ module.exports = {
                 App.TezDag.find(tezDagName).set('instanceId', dagId);
                 self.refreshTezDagDetails(tezDagName, successCallback);
               }else{
-                App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagId.message').format(hiveJobId));
+                App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagId.message').format(hiveJobId), App.router.transitionTo('main.jobs.index'));
               }
             },
             dagNameToIdError : function(jqXHR, url, method, showStatus) {
@@ -81,7 +81,7 @@ module.exports = {
             error : 'dagNameToIdError'
           });
         } else {
-          App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDag.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDag.message').format(hiveJobId));
+          App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDag.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDag.message').format(hiveJobId), App.router.transitionTo('main.jobs.index'));
         }
       }
     });
@@ -134,7 +134,7 @@ module.exports = {
         error : 'loadTezDagError'
       });
     }else{
-      App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.message').format(tezDagId));
+      App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.message').format(tezDagId), App.router.transitionTo('main.jobs.index'));
     }
   },
 
