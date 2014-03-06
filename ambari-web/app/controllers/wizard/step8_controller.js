@@ -608,7 +608,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.setLocalRepositories();
     this.createCluster();
     this.createSelectedServices();
-    this.createConfigurations();
+    if (this.get('content.controllerName') !== 'addHostController') {
+      this.createConfigurations();
+    }
     this.createComponents();
     this.registerHostsToCluster();
     if (App.supports.hostOverridesInstaller) {
@@ -1051,7 +1053,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('HDFS'));
     }
     var globalSiteObj = this.createGlobalSiteObj();
-    if (['addHostController','addServiceController'].contains(this.get('content.controllerName'))) {
+    if (this.get('content.controllerName') == 'addServiceController') {
       globalSiteObj.tag = 'version' + (new Date).getTime();
       coreSiteObject.tag = 'version' + (new Date).getTime();
       this.get('serviceConfigTags').pushObject(coreSiteObject);
