@@ -642,7 +642,13 @@ module.exports = Em.Route.extend({
         route: '/configs',
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
-          router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+          if (item.get('isConfigurable')) {
+            router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+          }
+          else {
+            // if service doesn't have configs redirect to summary
+            router.transitionTo('summary');
+          }
         },
         unroutePath: function (router, context) {
           var controller = router.get('mainServiceInfoConfigsController');
