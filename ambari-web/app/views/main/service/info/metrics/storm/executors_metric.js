@@ -27,7 +27,7 @@ App.ChartServiceMetricsSTORM_Executors = App.ChartLinearTimeView.extend(App.Stor
   stormChartDefinition: [
     {
       name: Em.I18n.t('services.storm.executors.metrics.total'),
-      value: 'totalExecutors'
+      field: 'totalexecutors'
     }
   ]
 

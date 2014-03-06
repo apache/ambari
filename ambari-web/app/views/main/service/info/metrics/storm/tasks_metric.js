@@ -27,7 +27,7 @@ App.ChartServiceMetricsSTORM_Tasks = App.ChartLinearTimeView.extend(App.StormLin
   stormChartDefinition: [
     {
       name: Em.I18n.t('services.storm.tasks.metrics.total'),
-      value: 'totalTasks'
+      field: 'totaltasks'
     }
   ]
 

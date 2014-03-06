@@ -27,7 +27,7 @@ App.ChartServiceMetricsSTORM_Topologies = App.ChartLinearTimeView.extend(App.Sto
   stormChartDefinition: [
     {
       name: Em.I18n.t('services.storm.topology.metrics.total'),
-      value: 'topologies'
+      field: 'topologies'
     }
   ]
 

@@ -687,6 +687,10 @@ var urls = {
     'mock': '',
     'testInProduction': true
   },
+  'service.metrics.storm.nimbus': {
+    'real': '/clusters/{clusterName}/services/STORM/components/NIMBUS?fields={metricsTemplate}',
+    'mock': ''
+  },
   'dashboard.cluster_metrics.cpu': {
     'real': '/clusters/{clusterName}/?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/cpu_1hr.json',

@@ -20,33 +20,39 @@
 var App = require('app');
 
 App.StormLinearTimeChartMixin = Em.Mixin.create({
-  chartStormModel: function() {
-    return App.StormService.find().objectAt(0);
-  }.property(''),
+  ajaxIndex: 'service.metrics.storm.nimbus',
+  metricsTemplate: 'metrics/storm/nimbus/{0}[{1},{2},{3}]',
 
-  loadData: function() {
-    this._refreshGraph();
-  },
-
-  showGraphInPopup: function() {
-    this._super();
-    var self = this;
-    // show data in popup
-    Em.run.next(function() {
-      self.set('isPopupReady', true);
-    });
-  },
-
-  transformToSeries: function () {
-    return this.getMappedStormData();
-  },
-
-  getMappedStormData: function() {
-    var seriesData = [];
-    this.get('stormChartDefinition').forEach(function(item) {
-      if (this.get('chartStormModel.' + item.value) || this.get('chartStormModel.' + item.value) == 0)
-        seriesData.push(this.transformData(this.get('chartStormModel.' + item.value), item.name));
+  getDataForAjaxRequest: function() {
+    var currentTime = Math.round(App.dateTime() / 1000);
+    var metricTemplate = [];
+    this.get('stormChartDefinition').forEach(function(chartInfo) {
+      metricTemplate.push(
+        this.get('metricsTemplate').format(chartInfo.field, currentTime - this.get('timeUnitSeconds'), currentTime, 15)
+      );
     }, this);
-    return seriesData;
+    return {
+      metricsTemplate: metricTemplate.join(',')
+    };
+  },
+
+  transformToSeries: function (jsonData) {
+    var seriesArray = [];
+    var pathKeys = ['metrics','storm','nimbus'];
+    var validPath = true;
+    pathKeys.forEach(function(key) {
+      if (!jsonData[key]) {
+        validPath = false;
+      } else {
+        jsonData = jsonData[key];
+      }
+    });
+    if (!validPath) {
+      return seriesArray;
+    }
+    this.get('stormChartDefinition').forEach(function(chart){
+      seriesArray.push(this.transformData(jsonData[chart.field], chart.name));
+    }, this);
+    return seriesArray;
   }
 });

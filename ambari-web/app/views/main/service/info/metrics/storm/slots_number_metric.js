@@ -27,15 +27,15 @@ App.ChartServiceMetricsSTORM_SlotsNumber = App.ChartLinearTimeView.extend(App.St
   stormChartDefinition: [
     {
       name: Em.I18n.t('services.storm.slots.metrics.total'),
-      value: 'totalSlots'
+      field: 'totalslots'
     },
     {
       name: Em.I18n.t('services.storm.slots.metrics.free'),
-      value: 'freeSlots'
+      field: 'freeslots'
     },
     {
       name: Em.I18n.t('services.storm.slots.metrics.used'),
-      value: 'usedSlots'
+      field: 'usedslots'
     }
   ]
 
