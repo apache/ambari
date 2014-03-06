@@ -91,8 +91,8 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
       addSubResources(queryTree, resultTree);
       addKeysToEmptyResource = false;
     }
-    ensureRequiredProperties(resultTree, addKeysToEmptyResource);
     processRequestedProperties(queryTree);
+    ensureRequiredProperties(resultTree, addKeysToEmptyResource);
 
     return resultTree;
   }
@@ -107,14 +107,6 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
   @Override
   public ResultPostProcessor getResultPostProcessor(Request request) {
     return new MinimalPostProcessor(request);
-  }
-
-  // ----- BaseRenderer ------------------------------------------------------
-
-  @Override
-  protected void addKeys(Resource.Type resourceType, Set<String> properties) {
-    // override to only add pk instead of pk and all fk's
-    addPrimaryKey(resourceType, properties);
   }
 
   // ----- private instance methods ------------------------------------------
@@ -167,7 +159,7 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
           String absPropertyName = PropertyHelper.getPropertyId(categoryName, propName);
           if ((requestedProperties == null ||
               (! requestedProperties.contains(absPropertyName) &&
-                  ! requestedProperties.contains(categoryName))) &&
+              ! isSubCategory(requestedProperties, categoryName))) &&
               ! getPrimaryKeys(type).contains(absPropertyName)) {
             valueIter.remove();
           }
@@ -180,6 +172,23 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
     for (TreeNode<Resource> child : node.getChildren()) {
       processResultNode(child);
     }
+  }
+
+  /**
+   * Checks if properties contains a category for the subCategoryName
+   * Example: metrics/yarn/Queue/root/ActiveApplications and metrics/yarn/Queue
+   *
+   * @param properties categories
+   * @param subCategoryName subcategory
+   * @return
+   */
+  private boolean isSubCategory(Set<String> properties, String subCategoryName) {
+    for (String property : properties) {
+      if (subCategoryName.startsWith(property)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
