@@ -22,7 +22,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   name: 'mainAdminSecurityAddStep4Controller',
 
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
-  totalSteps: 4,
+  totalSteps: 3,
 
   secureServices: function() {
     return  this.get('content.services');
@@ -65,12 +65,17 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   loadStages: function () {
-    this.get('stages').pushObjects([
+    var stages = [
       App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true, name: 'STOP_SERVICES', isVisible: true}),
       App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false, name: 'APPLY_CONFIGURATIONS', isVisible: true}),
-      App.Poll.create({stage: 'stage5', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false, name: 'DELETE_ATS', isVisible: false}),
       App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true, name: 'START_SERVICES', isVisible: true})
-    ]);
+    ];
+    // no need to remove ATS component if YARN and ATS are not installed
+    if (this.get('secureServices').findProperty('serviceName', 'YARN') && !App.get('stackDependedComponents').findProperty('componentName', 'APP_TIMELINE_SERVER')) {
+      stages.splice(2, 0, App.Poll.create({stage: 'stage5', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false, name: 'DELETE_ATS', isVisible: false}));
+      this.set('totalSteps', 4);
+    }
+    this.get('stages').pushObjects(stages);
   },
 
   loadStep: function () {

@@ -170,14 +170,36 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   },
 
   addSlaveHostToGlobals: function (serviceConfigs) {
-    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
-    var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
-    var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
-    var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
-    this.setHostsToConfig(hdfsService, 'datanode_hosts', 'DATANODE');
-    this.setHostsToConfig(mapReduceService, 'tasktracker_hosts', 'TASKTRACKER');
-    this.setHostsToConfig(yarnService, 'nodemanager_host', 'NODEMANAGER');
-    this.setHostsToConfig(hbaseService, 'regionserver_hosts', 'HBASE_REGIONSERVER');
+    var serviceComponentMap = [
+      {
+        serviceName: 'HDFS',
+        configName: 'datanode_hosts',
+        component: 'DATANODE'
+      },
+      {
+        serviceName: 'MAPREDUCE',
+        configName: 'tasktracker_hosts',
+        component: 'TASKTRACKER'
+      },
+      {
+        serviceName: 'YARN',
+        configName: 'nodemanager_host',
+        component: 'NODEMANAGER'
+      },
+      {
+        serviceName: 'HBASE',
+        configName: 'regionserver_hosts',
+        component: 'HBASE_REGIONSERVER'
+      },
+      {
+        serviceName: 'STORM',
+        configName: 'supervisor_hosts',
+        component: 'SUPERVISOR'
+      }
+    ];
+    serviceComponentMap.forEach(function(service) {
+      this.setHostsToConfig(serviceConfigs.findProperty('serviceName', service.serviceName), service.configName, service.component);
+    }, this);
   },
 
   addMasterHostToGlobals: function (serviceConfigs) {
@@ -191,6 +213,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
     var mapReduce2Service = serviceConfigs.findProperty('serviceName', 'MAPREDUCE2');
     var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
+    var stormService = serviceConfigs.findProperty('serviceName', 'STORM');
+
     if (oozieService) {
       var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
       var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
@@ -261,6 +285,22 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       if (resourceManagerHost) {
         resourceManagerHost.defaultValue = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
       }
+    }
+
+    if (stormService) {
+      var stormMasterComponents = [
+        {
+          configName: 'storm_ui_server_host',
+          componentName: 'STORM_UI_SERVER'
+        },
+        {
+          configName: 'nimbus_host',
+          componentName: 'NIMBUS'
+        }
+      ];
+      stormMasterComponents.forEach(function(masterComponent) {
+        this.setHostsToConfig(stormService, masterComponent.configName, masterComponent.componentName);
+      }, this);
     }
     this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');
     this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');

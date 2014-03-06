@@ -309,9 +309,18 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     serviceConfigTags.forEach(function (_serviceConfigTags) {
       var configs = _serviceConfigTags.configs;
       for (var key in configs) {
-        configs[key] = App.config.escapeXMLCharacters(configs[key]);
+        configs[key] = this.setServerConfigValue(key, configs[key]);
       }
     }, this);
+  },
+
+  setServerConfigValue: function(configName, value) {
+    switch (configName) {
+      case 'storm.zookeeper.servers':
+        return value;
+      default:
+        return App.config.escapeXMLCharacters(value);
+    }
   },
 
   saveStagesOnRequestId: function () {

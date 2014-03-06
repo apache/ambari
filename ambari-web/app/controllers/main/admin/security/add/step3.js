@@ -45,12 +45,14 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var hosts = App.Host.find();
     var result = [];
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
-      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER','JOURNALNODE'];
+      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER','JOURNALNODE',
+      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER'];
     var securityUsers = [];
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
       securityUsers = this.getSecurityUsers();
     }
     var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
+    var isStormInstalled = App.Service.find().findProperty('serviceName', 'STORM');
     var generalConfigs = configs.filterProperty('serviceName', 'GENERAL');
     var hdfsConfigs = configs.filterProperty('serviceName', 'HDFS');
     var realm = generalConfigs.findProperty('name', 'kerberos_domain').value;
@@ -64,13 +66,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var oozieUserId = securityUsers.findProperty('name', 'oozie_user').value;
     var nagiosUserId = securityUsers.findProperty('name', 'nagios_user').value;
     var hadoopGroupId = securityUsers.findProperty('name', 'user_group').value;
+    var stormUserId = securityUsers.findProperty('name', 'storm_user').value;
 
     var smokeUser = smokeUserId + '@' + realm;
     var hdfsUser = hdfsUserId + '@' + realm;
     var hbaseUser = hbaseUserId + '@' + realm;
+    var stormUser = stormUserId + '@' + realm;
+
     var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').value;
     var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'hdfs_user_keytab').value;
     var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'hbase_user_keytab').value;
+    var stormUserKeytabPath = generalConfigs.findProperty('name', 'storm_keytab').value;
+
     var hadoopHttpPrincipal = hdfsConfigs.findProperty('name', 'hadoop_http_principal_name');
     var hadoopHttpKeytabPath = hdfsConfigs.findProperty('name', 'hadoop_http_keytab').value;
     var componentToOwnerMap = {
@@ -88,7 +95,10 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'OOZIE_SERVER': oozieUserId,
       'NAGIOS_SERVER': nagiosUserId,
       'HBASE_MASTER': hbaseUserId,
-      'HBASE_REGIONSERVER': hbaseUserId
+      'HBASE_REGIONSERVER': hbaseUserId,
+      'SUPERVISOR': stormUserId,
+      'NIMBUS': stormUserId,
+      'STORM_UI_SERVER': stormUserId
     };
 
     var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
@@ -122,6 +132,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           keytabFile: stringUtils.getFileFromPath(hbaseUserKeytabPath),
           keytab: stringUtils.getPath(hbaseUserKeytabPath),
           owner: hbaseUserId,
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+      if (isStormInstalled) {
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.user.stormUser'),
+          principal: stormUser,
+          keytabFile: stringUtils.getFileFromPath(stormUserKeytabPath),
+          keytab: stringUtils.getPath(stormUserKeytabPath),
+          owner: stormUserId,
           group: hadoopGroupId,
           acl: '440'
         });

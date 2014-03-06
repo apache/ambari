@@ -941,6 +941,7 @@ Em.I18n.translations = {
   'admin.addSecurity.user.smokeUser': 'Ambari Smoke Test User',
   'admin.addSecurity.user.hdfsUser': 'HDFS User',
   'admin.addSecurity.user.hbaseUser': 'HBase User',
+  'admin.addSecurity.user.stormUser': 'Storm User',
   'admin.addSecurity.hdfs.user.httpUser': 'HDFS SPNEGO User',
   'admin.addSecurity.rm.user.httpUser': 'ResourceManager SPNEGO User',
   'admin.addSecurity.nm.user.httpUser': 'NodeManager SPNEGO User',

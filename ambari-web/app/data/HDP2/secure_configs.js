@@ -126,6 +126,19 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Nagios Server', displayName:  'Nagios Server'})
     ],
     configs: configProperties.filterProperty('serviceName', 'NAGIOS')
+  },
+  {
+    serviceName: 'STORM',
+    displayName: 'Storm',
+    filename: 'storm-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'NIMBUS', displayName:  'Nimbus'}),
+      App.ServiceConfigCategory.create({ name: 'STORM_UI_SERVER', displayName:  'Storm UI Server'}),
+      App.ServiceConfigCategory.create({ name: 'SUPERVISOR', displayName:  'Supervisor'})
+    ],
+    sites: ['storm-site'],
+    configs: configProperties.filterProperty('serviceName', 'STORM')
   }
+
 
 ];

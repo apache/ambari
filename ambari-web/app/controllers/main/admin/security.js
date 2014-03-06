@@ -367,6 +367,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
       name: 'user_group',
       value: configs['user_group'] ? configs['user_group'] : 'hadoop'
     });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'storm_user',
+      value: configs['storm_user'] ? configs['storm_user'] : 'storm'
+    });
     App.db.setSecureUserInfo(serviceUsers);
   },
 
