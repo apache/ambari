@@ -403,11 +403,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   }.property('category.canAddProperty', 'filteredCategoryConfigs.length'),
 
   didInsertElement: function () {
-    var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1);
+    var isCollapsed = this.get('category.isCollapsed') == undefined ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1) : this.get('category.isCollapsed');
     var self = this;
     this.set('category.isCollapsed', isCollapsed);
     if (isCollapsed) {
       this.$('.accordion-body').hide();
+    } else {
+      this.$('.accordion-body').show();
     }
     this.updateReadOnlyFlags();
     Em.run.next(function() {
@@ -416,7 +418,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   },
 
   /**
-   * Should we show current category accordion-body, based on category.isCollapsed property.
    * If added/removed a serverConfigObject, this property got updated.
    * Without this property, all serviceConfigs Objects will show up even if some was collapsed before.
    */
