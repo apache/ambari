@@ -18,6 +18,7 @@
 var App = require('app');
 var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
+var stringUtils = require('utils/string_utils');
 
 App.MainHiveJobDetailsTezDagView = Em.View.extend({
   templateName : require('templates/main/jobs/hive_job_details_tez_dag'),
@@ -587,7 +588,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     node.append("text").attr("x", "1.9em").attr("dy", "1.5em").text(function(d) {
       return d.name;
     });
-    node.append('text').attr("x", "0.8em").attr("dy", "1.5em").attr("font-family", "FontAwesome").attr('class', 'vertex-icon-text');
+    var iconContainer = node.append('g').attr('class', 'vertex-icon-container').attr('transform', 'translate(10,10)');
+    iconContainer.append('rect').attr('width', '1em').attr('height', '1em').attr('class', 'vertex-icon-rect  svg-tooltip ');
+    iconContainer.append('text').attr('dy', '10px').attr("font-family", "FontAwesome").attr('class', 'vertex-icon-text');
     node.attr("transform", function(d) {
       return "translate(" + d.x + "," + d.y + ")";
     });
@@ -619,6 +622,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var metricNodeTitles = svgLayer.selectAll(".metric-title");
       var nodeBackgrounds =svgLayer.selectAll(".background");
       var vertexIconTexts = svgLayer.selectAll(".vertex-icon-text");
+      var vertexIconRects = svgLayer.selectAll(".vertex-icon-rect");
       metricNodes.attr("class", function(node) {
         var classes = "metric ";
         var percent = node.metricPercent;
@@ -660,6 +664,11 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           classes += "selected ";
         }
         return classes;
+      });
+      vertexIconRects.attr('title', function(node) {
+        return stringUtils.getCamelCase(node.state);
+      }).attr('data-original-title', function(node) {
+        return stringUtils.getCamelCase(node.state);
       });
       vertexIconTexts.text(function(n) {
         return self.getVertexIcon(n)
