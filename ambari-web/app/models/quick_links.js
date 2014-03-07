@@ -391,7 +391,7 @@ App.QuickLinks.FIXTURES = [
   },
   {
     id:31,
-    label:'Nimbus UI',
+    label:'Storm UI',
     url:'%@://%@:%@/',
     service_id: 'STORM',
     template:'%@://%@:%@/',
