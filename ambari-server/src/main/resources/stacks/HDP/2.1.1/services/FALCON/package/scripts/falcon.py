@@ -30,6 +30,9 @@ def falcon(type, action = None):
   Directory(params.falcon_webapp_dir,
             owner=params.falcon_user
   )
+  File(params.falcon_conf_dir + '/falcon-env.sh',
+       content=Template('falcon-env.sh.j2')
+  )
   if type == 'client':
     if action == 'config':
       File(params.falcon_conf_dir + '/client.properties',

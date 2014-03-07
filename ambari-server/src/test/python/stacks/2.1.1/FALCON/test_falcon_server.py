@@ -39,6 +39,9 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
                               )
+    self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
+                              content=Template('falcon-env.sh.j2'),
+                              )
     self.assertResourceCalled('Execute',
                               'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-start -port 15000',
                               user='falcon', )
@@ -58,6 +61,9 @@ class TestFalconServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
+                              )
+    self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
+                              content=Template('falcon-env.sh.j2'),
                               )
     self.assertResourceCalled('Execute',
                           'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-stop',
@@ -85,6 +91,9 @@ class TestFalconServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
+                              )
+    self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
+                              content=Template('falcon-env.sh.j2'),
                               )
     self.assertResourceCalled('HdfsDirectory', '/apps/falcon',
                               action=['create_delayed'],

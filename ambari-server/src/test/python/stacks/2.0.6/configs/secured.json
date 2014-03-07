@@ -388,7 +388,6 @@
             "falcon_user": "falcon",
             "falcon_port": "15000",
             "falcon_local_dir": "/hadoop/falcon",
-            "falcon_store_uri": "file:///hadoop/falcon/store",
             "rca_enabled": "false"
         }, 
         "capacity-scheduler": {

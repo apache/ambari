@@ -37,6 +37,9 @@ class TestFalconClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
                               )
+    self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
+                              content=Template('falcon-env.sh.j2'),
+                              )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
                               content=Template('client.properties.j2'),
                               mode=0644, )
