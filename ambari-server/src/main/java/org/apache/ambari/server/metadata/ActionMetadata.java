@@ -59,6 +59,7 @@ public class ActionMetadata {
     serviceClients.put("oozie"      , Role.OOZIE_CLIENT.toString());
     serviceClients.put("pig"        , Role.PIG.toString());
     serviceClients.put("sqoop"      , Role.SQOOP.toString());
+    serviceClients.put("yarn"       , Role.YARN_CLIENT.toString());
   }
 
   private void fillServiceActions() {

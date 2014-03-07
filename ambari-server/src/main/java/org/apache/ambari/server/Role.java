@@ -102,7 +102,7 @@ public class Role {
   public static final Role ZOOKEEPER_SERVER = valueOf("ZOOKEEPER_SERVER");
   public static final Role FALCON_SERVICE_CHECK = valueOf("FALCON_SERVICE_CHECK");
   public static final Role STORM_SERVICE_CHECK = valueOf("STORM_SERVICE_CHECK");
-  
+  public static final Role YARN_CLIENT = valueOf("YARN_CLIENT");
 
   private String name = null;
   
