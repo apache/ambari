@@ -735,7 +735,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/TotalLoad": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.TotalLoad",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.TotalLoad",
             "pointInTime": true,
             "temporal": false
           },
@@ -745,7 +745,7 @@
             "temporal" : false
           },
           "metrics/dfs/FSNamesystem/BlockCapacity": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.BlockCapacity",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.BlockCapacity",
             "pointInTime": true,
             "temporal": false
           },
@@ -810,7 +810,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityRemaining": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityRemaining",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityRemaining",
             "pointInTime": true,
             "temporal": false
           },
@@ -830,7 +830,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityTotalGB": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityTotalGB",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityTotalGB",
             "pointInTime": true,
             "temporal": false
           },
@@ -845,7 +845,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityUsedGB": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityUsedGB",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityUsedGB",
             "pointInTime": true,
             "temporal": false
           },
@@ -930,7 +930,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityUsed": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityUsed",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityUsed",
             "pointInTime": true,
             "temporal": false
           },
@@ -990,7 +990,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/PendingReplicationBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.PendingReplicationBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.PendingReplicationBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1035,7 +1035,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/PendingDeletionBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.PendingDeletionBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.PendingDeletionBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1070,7 +1070,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityTotal": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityTotal",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityTotal",
             "pointInTime": true,
             "temporal": false
           },
@@ -1140,7 +1140,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/FilesTotal": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.FilesTotal",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.FilesTotal",
             "pointInTime": true,
             "temporal": false
           },
@@ -1155,7 +1155,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/ExcessBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.ExcessBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.ExcessBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1205,7 +1205,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.ScheduledReplicationBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.ScheduledReplicationBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1215,7 +1215,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/BlocksTotal": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.BlocksTotal",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.BlocksTotal",
             "pointInTime": true,
             "temporal": false
           },
@@ -1250,7 +1250,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityRemainingGB": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityRemainingGB",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityRemainingGB",
             "pointInTime": true,
             "temporal": false
           },
@@ -1260,7 +1260,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/MissingBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.MissingBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.MissingBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1275,7 +1275,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CorruptBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CorruptBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1325,7 +1325,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/UnderReplicatedBlocks": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.UnderReplicatedBlocks",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
             "pointInTime": true,
             "temporal": false
           },
@@ -1390,7 +1390,7 @@
             "temporal": false
           },
           "metrics/dfs/FSNamesystem/CapacityNonDFSUsed": {
-            "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.CapacityNonDFSUsed",
+            "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityNonDFSUsed",
             "pointInTime": true,
             "temporal": false
           }
