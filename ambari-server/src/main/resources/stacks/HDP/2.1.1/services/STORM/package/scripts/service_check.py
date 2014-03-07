@@ -32,7 +32,7 @@ class ServiceCheck(Script):
          content=StaticFile("wordCount.jar")
     )
 
-    cmd = format("env PATH=$PATH:{java64_home}/bin storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
+    cmd = format("env JAVA_HOME={java64_home} storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
 
     Execute(cmd,
             logoutput=True
