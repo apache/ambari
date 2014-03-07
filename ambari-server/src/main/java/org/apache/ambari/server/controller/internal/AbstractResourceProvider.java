@@ -52,16 +52,17 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    */
   private final Set<ResourceProviderObserver> observers = new HashSet<ResourceProviderObserver>();
 
-
   protected final static Logger LOG =
       LoggerFactory.getLogger(AbstractResourceProvider.class);
 
-    // ----- Constructors ------------------------------------------------------
+
+  // ----- Constructors ------------------------------------------------------
+
   /**
-   * Create a  new resource provider for the given management controller.
+   * Create a  new resource provider.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
+   * @param propertyIds     the property ids
+   * @param keyPropertyIds  the key property ids
    */
   protected AbstractResourceProvider(Set<String> propertyIds,
                                      Map<Resource.Type, String> keyPropertyIds) {
@@ -161,11 +162,11 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
   /**
    * Get a set of properties from the given property map and predicate.  The
-   * returned set of property/value mappings is required to generate update or create
-   * requests to the back end which does not deal with predicates.  Note that
+   * returned set of property/value mappings is required to generate update
+   * requests to the back end which does not deal with Predicates.  Note that
    * the single property map & predicate can result in multiple backend requests.
    *
-   * @param requestPropertyMap  the request properties (for update)
+   * @param requestPropertyMap  the request update properties; may not be null
    * @param givenPredicate      the predicate
    *
    * @return the set of properties used to build request objects
@@ -175,21 +176,20 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
     Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
 
-    Set<String> pkPropertyIds = getPKPropertyIds();
-    if (requestPropertyMap != null && !pkPropertyIds.equals(PredicateHelper.getPropertyIds(givenPredicate))) {
-
-      for (Resource resource : getResources(PropertyHelper.getReadRequest(pkPropertyIds), givenPredicate)) {
+    // If the predicate specifies a unique resource then we can simply return a single
+    // property map for the update.  Otherwise we need to do a get with the given predicate
+    // to get the set of property maps for the resources that need to be updated.
+    if (specifiesUniqueResource(givenPredicate)) {
+      Map<String, Object> propertyMap = new HashMap<String, Object>(PredicateHelper.getProperties(givenPredicate));
+      propertyMap.putAll(requestPropertyMap);
+      propertyMaps.add(propertyMap);
+    } else {
+      for (Resource resource : getResources(givenPredicate)) {
         Map<String, Object> propertyMap = new HashMap<String, Object>(PropertyHelper.getProperties(resource));
         propertyMap.putAll(requestPropertyMap);
         propertyMaps.add(propertyMap);
       }
     }
-    else {
-      Map<String, Object> propertyMap = new HashMap<String, Object>(PredicateHelper.getProperties(givenPredicate));
-      propertyMap.putAll(requestPropertyMap);
-      propertyMaps.add(propertyMap);
-    }
-
     return propertyMaps;
   }
 
@@ -339,6 +339,24 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
     return config;
   }
+
+  // get the resources (id fields only) for the given predicate.
+  private Set<Resource> getResources(Predicate givenPredicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    // TODO : Check for case where we should pass the request out to the cluster controller.
+    return getResources(PropertyHelper.getReadRequest(getPKPropertyIds()), givenPredicate);
+  }
+
+  // determine whether or not the given predicate specifies a unique resource for this provider.
+  private boolean specifiesUniqueResource(Predicate predicate) {
+    SimplifyingPredicateVisitor visitor = new SimplifyingPredicateVisitor(this);
+    PredicateHelper.visit(predicate, visitor);
+    List<Predicate> predicates = visitor.getSimplifiedPredicates();
+
+    return predicates.size() == 1 && PredicateHelper.getPropertyIds(predicate).containsAll(getPKPropertyIds());
+  }
+
 
   // ----- Inner interface ---------------------------------------------------
 

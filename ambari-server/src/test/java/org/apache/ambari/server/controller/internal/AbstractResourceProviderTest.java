@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.createMock;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,8 +36,17 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.TaskStatusRequest;
 import org.apache.ambari.server.controller.UserRequest;
+import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
@@ -149,6 +159,70 @@ public class AbstractResourceProviderTest {
 
     Assert.assertEquals(99L, resource.getPropertyValue("Requests/id"));
     Assert.assertEquals(associatedResources, status.getAssociatedResources());
+  }
+
+  @Test
+  public void testGetPropertyMaps() throws Exception {
+    AbstractResourceProvider provider = new TestResourceProvider();
+
+    Map<String, Object> updatePropertyMap = new HashMap<String, Object>();
+    updatePropertyMap.put("SomeProperty", "SomeUpdateValue");
+    updatePropertyMap.put("SomeOtherProperty", 99);
+
+    // get the property map to update resource
+    // where ClusterName=c1 and ResourceName=r1
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.property("ClusterName").equals("c1").and().property("ResourceName").equals("r1").toPredicate();
+
+    Set<Map<String, Object>> propertyMaps = provider.getPropertyMaps(updatePropertyMap, predicate);
+
+    Assert.assertEquals(1, propertyMaps.size());
+
+    Map<String, Object> map = propertyMaps.iterator().next();
+
+    Assert.assertEquals(4, map.size());
+    Assert.assertEquals("c1", map.get("ClusterName"));
+    Assert.assertEquals("r1", map.get("ResourceName"));
+    Assert.assertEquals("SomeUpdateValue", map.get("SomeProperty"));
+    Assert.assertEquals(99, map.get("SomeOtherProperty"));
+
+    // get the property maps to update resources
+    // where ClusterName=c1 and (ResourceName=r1 or ResourceName=r2)
+    pb = new PredicateBuilder();
+    predicate = pb.property("ClusterName").equals("c1").and().
+        begin().
+          property("ResourceName").equals("r1").or().property("ResourceName").equals("r2").
+        end().toPredicate();
+
+    propertyMaps = provider.getPropertyMaps(updatePropertyMap, predicate);
+
+    Assert.assertEquals(2, propertyMaps.size());
+
+    for (Map<String, Object> map2 : propertyMaps) {
+      Assert.assertEquals(4, map2.size());
+      Assert.assertEquals("c1", map2.get("ClusterName"));
+      Object resourceName = map2.get("ResourceName");
+      Assert.assertTrue(resourceName.equals("r1") || resourceName.equals("r2"));
+      Assert.assertEquals("SomeUpdateValue", map2.get("SomeProperty"));
+      Assert.assertEquals(99, map2.get("SomeOtherProperty"));
+    }
+
+    // get the property maps to update all resources
+    predicate = new AlwaysPredicate();
+
+    propertyMaps = provider.getPropertyMaps(updatePropertyMap, predicate);
+
+    Assert.assertEquals(4, propertyMaps.size());
+
+    for (Map<String, Object> map2 : propertyMaps) {
+      Assert.assertEquals(4, map2.size());
+      Assert.assertEquals("c1", map2.get("ClusterName"));
+      Object resourceName = map2.get("ResourceName");
+      Assert.assertTrue(resourceName.equals("r1") || resourceName.equals("r2")||
+          resourceName.equals("r3") || resourceName.equals("r4"));
+      Assert.assertEquals("SomeUpdateValue", map2.get("SomeProperty"));
+      Assert.assertEquals(99, map2.get("SomeOtherProperty"));
+    }
   }
 
 
@@ -529,6 +603,108 @@ public class AbstractResourceProviderTest {
 
     public ResourceProviderEvent getLastEvent() {
       return lastEvent;
+    }
+  }
+
+
+  // ----- Test resource adapter ---------------------------------------------
+
+  private static Resource.Type testResourceType = new Resource.Type("testResource");
+
+  private static Set<String> pkPropertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
+          "ClusterName",
+          "ResourceName"}));
+
+  private static Set<String> propertyIds =
+      new HashSet<String>(Arrays.asList(new String[]{
+          "ClusterName",
+          "ResourceName",
+          "SomeProperty",
+          "SomeOtherProperty"}));
+
+  private static Map<Resource.Type, String> keyPropertyIds =
+      new HashMap<Resource.Type, String>();
+
+  static {
+    keyPropertyIds.put(Resource.Type.Cluster, "ClusterName");
+    keyPropertyIds.put(testResourceType, "ResourceName" );
+  }
+
+  private static Set<Resource> allResources = new HashSet<Resource>();
+
+  static {
+    Resource resource = new ResourceImpl(testResourceType);
+    resource.setProperty("ClusterName", "c1");
+    resource.setProperty("ResourceName", "r1");
+    resource.setProperty("SomeProperty", "SomeValue1");
+    resource.setProperty("SomeOtherProperty", 10);
+    allResources.add(resource);
+
+    resource = new ResourceImpl(testResourceType);
+    resource.setProperty("ClusterName", "c1");
+    resource.setProperty("ResourceName", "r2");
+    resource.setProperty("SomeProperty", "SomeValue2");
+    resource.setProperty("SomeOtherProperty", 100);
+    allResources.add(resource);
+
+    resource = new ResourceImpl(testResourceType);
+    resource.setProperty("ClusterName", "c1");
+    resource.setProperty("ResourceName", "r3");
+    resource.setProperty("SomeProperty", "SomeValue3");
+    resource.setProperty("SomeOtherProperty", 1000);
+    allResources.add(resource);
+
+    resource = new ResourceImpl(testResourceType);
+    resource.setProperty("ClusterName", "c1");
+    resource.setProperty("ResourceName", "r4");
+    resource.setProperty("SomeProperty", "SomeValue4");
+    resource.setProperty("SomeOtherProperty", 9999);
+    allResources.add(resource);
+  }
+
+  public static class TestResourceProvider extends AbstractResourceProvider {
+
+    protected TestResourceProvider() {
+      super(propertyIds, keyPropertyIds);
+    }
+
+    @Override
+    protected Set<String> getPKPropertyIds() {
+      return pkPropertyIds;
+
+    }
+
+    @Override
+    public RequestStatus createResources(Request request)
+        throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+      return new RequestStatusImpl(null);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+      Set<Resource> resources = new HashSet<Resource>();
+
+      for(Resource resource : allResources) {
+        if (predicate.evaluate(resource)) {
+          resources.add(new ResourceImpl(resource, request.getPropertyIds()));
+        }
+      }
+      return resources;
+    }
+
+    @Override
+    public RequestStatus updateResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return new RequestStatusImpl(null);
+    }
+
+    @Override
+    public RequestStatus deleteResources(Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return new RequestStatusImpl(null);
     }
   }
 }
