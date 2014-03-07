@@ -50,10 +50,19 @@ App.MainJobsController = Em.ArrayController.extend({
 
   filterObject: Ember.Object.create({
     id: "",
+    isIdFilterApplied: false,
     jobsLimit: -1,
     user: "",
     windowStart: "",
     windowEnd: "",
+
+    onApplyIdFilter: function () {
+      if(this.get('id') == ""){
+        this.set('isIdFilterApplied', false);
+      }else{
+        this.set('isIdFilterApplied', true);
+      }
+    }.observes('id'),
 
     /**
      * Direct binding to startTime filter field

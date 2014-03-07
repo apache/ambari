@@ -44,6 +44,19 @@ App.MainJobsView = App.TableView.extend({
     }
   }.observes("controller.content.length"),
 
+  onApplyIdFilter: function() {
+    var isIdFilterApplied = this.get('controller.filterObject.isIdFilterApplied');
+    this.get('childViews').forEach(function(childView) {
+      if (childView['clearFilter'] && childView.get('column') != 0) {
+        childView.clearFilter();
+        var childOfChild = childView.get('childViews')[0];
+        if(childOfChild){
+          childOfChild.set('disabled', isIdFilterApplied);
+        }
+      }
+    });
+  }.observes('controller.filterObject.isIdFilterApplied'),
+
   sortView: sort.wrapperView,
   idSort: sort.fieldView.extend({
     column: 0,

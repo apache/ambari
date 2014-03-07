@@ -59,6 +59,10 @@ var wrapperView = Ember.View.extend({
   },
 
   setValueOnApply: function() {
+    this.set('disabled', true);
+    if(this.get('value') == null){
+      this.set('value', '')
+    }
     this.set(this.get('setPropertyOnApply'), this.get('value'));
     return false;
   },
@@ -265,7 +269,9 @@ module.exports = {
 
     config.fieldType = config.fieldType || 'input-medium';
     config.filterView = selectFieldView.extend({
-      classNames : [ config.fieldType ]
+      classNames : [ config.fieldType ],
+      attributeBindings: ['disabled','multiple'],
+      disabled: false
     });
     config.emptyValue = Em.I18n.t('any');
 
