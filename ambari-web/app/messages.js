@@ -1852,6 +1852,7 @@ Em.I18n.translations = {
   'mirroring.manageClusters.execute':'Execute',
   'mirroring.manageClusters.readonly':'Readonly',
   'mirroring.manageClusters.workflow':'Workflow',
+  'mirroring.manageClusters.write':'Write',
   'mirroring.manageClusters.staging':'Staging',
   'mirroring.manageClusters.working':'Working',
   'mirroring.manageClusters.temp':'Temp',

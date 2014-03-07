@@ -22,9 +22,16 @@ var sort = require('views/common/sort_view');
 
 App.MainDatasetJobsView = App.TableView.extend({
   templateName: require('templates/main/mirroring/jobs'),
+
+  isLoaded: function () {
+    return App.router.get('mainMirroringController.isLoaded');
+  }.property('App.router.mainMirroringController.isLoaded'),
+
   content: function () {
-    return this.get('controller.jobs');
-  }.property('controller.jobs', 'controller.jobs.length'),
+    var datasetName = this.get('controller.content.name');
+    return (this.get('isLoaded') && datasetName) ?
+        App.Dataset.find().findProperty('name', datasetName).get('datasetJobs') : [];
+  }.property('controller.content', 'isLoaded'),
 
   dataset: function () {
     return this.get('controller.content');

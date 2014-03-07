@@ -23,6 +23,7 @@ App.TargetCluster = DS.Model.extend({
   name: DS.attr('string'),
   execute: DS.attr('string'),
   workflow: DS.attr('string'),
+  write: DS.attr('string'),
   readonly: DS.attr('string'),
   staging: DS.attr('string'),
   working: DS.attr('string'),

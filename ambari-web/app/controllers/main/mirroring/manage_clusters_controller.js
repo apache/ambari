@@ -47,6 +47,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
           name: cluster.get('name'),
           execute: cluster.get('execute'),
           workflow: cluster.get('workflow'),
+          write: cluster.get('write'),
           readonly: cluster.get('readonly'),
           staging: cluster.get('staging'),
           working: cluster.get('working'),
@@ -80,6 +81,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
             name: clusterName,
             execute: '',
             workflow: '',
+            write: '',
             readonly: '',
             staging: '',
             working: '',
@@ -172,8 +174,8 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
         '" xmlns="uri:falcon:cluster:0.1"><interfaces><interface type="readonly" endpoint="' + cluster.get('readonly') +
         '" version="2.2.0" /><interface type="execute" endpoint="' + cluster.get('execute') +
         '" version="2.2.0" /><interface type="workflow" endpoint="' + cluster.get('workflow') +
-        '" version="4.0.0" />' + '<interface type="messaging" endpoint="tcp://' + App.get('falconServerURL') +':61616?daemon=true" version="5.1.6" />' +
-        '<interface type="write" endpoint="hdfs://'+ App.get('falconServerURL') +':8020" version="2.2.0" />' +
+        '" version="4.0.0" />' + '<interface type="messaging" endpoint="tcp://' + App.get('falconServerURL') + ':61616?daemon=true" version="5.1.6" />' +
+        '<interface type="write" endpoint="' + cluster.get('write') + '" version="2.2.0" />' +
         '</interfaces><locations><location name="staging" path="' + cluster.get('staging') +
         '" /><location name="temp" path="' + cluster.get('temp') +
         '" /><location name="working" path="' + cluster.get('working') +

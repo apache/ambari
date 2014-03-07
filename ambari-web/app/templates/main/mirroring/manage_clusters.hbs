@@ -40,6 +40,10 @@
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
             {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.workflow" disabledBinding="controller.isEditDisabled"}}
           </div>
+          <div class="control-group">
+            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.write}}</label>
+            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.write" disabledBinding="controller.isEditDisabled"}}
+          </div>
         </div>
         <div class="accordion control-group" id="advanced-fields">
           <div class="accordion-group">

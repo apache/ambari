@@ -24,6 +24,7 @@ App.targetClusterMapper = App.QuickDataMapper.create({
     name: 'name',
     execute: 'execute',
     workflow: 'workflow',
+    write: 'write',
     readonly: 'readonly',
     staging: 'staging',
     working: 'working',

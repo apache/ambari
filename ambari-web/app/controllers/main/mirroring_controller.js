@@ -209,11 +209,13 @@ App.MainMirroringController = Em.ArrayController.extend({
         });
       }, this);
     } else {
+      var defaultFS = this.loadDefaultFS();
       var sourceCluster = Ember.Object.create({
         name: App.get('clusterName'),
         execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName') + ':8050',
         readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('host.hostName') + ':50070',
         workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('host.hostName') + ':11000/oozie',
+        write: defaultFS,
         staging: '/apps/falcon/sandbox/staging',
         working: '/apps/falcon/sandbox/working',
         temp: '/tmp'
@@ -232,6 +234,37 @@ App.MainMirroringController = Em.ArrayController.extend({
       });
       clustersData.items.push(sourceCluster);
     }
+  },
+
+  /**
+   * Return fs.defaultFS config property loaded from server
+   * @return {String}
+   */
+  loadDefaultFS: function () {
+    App.ajax.send({
+      name: 'config.tags.sync',
+      sender: this,
+      success: 'onLoadConfigTagsSuccess',
+      error: 'onLoadConfigTagsError'
+    });
+    var configs = App.router.get('configurationController').getConfigsByTags([
+      {
+        siteName: "core-site",
+        tagName: this.get('tag')
+      }
+    ]);
+    return configs[0].properties['fs.defaultFS'];
+  },
+
+  // Loaded core-site tag version
+  tag: null,
+
+  onLoadConfigTagsSuccess: function (data) {
+    this.set('tag', data.Clusters.desired_configs['core-site'].tag);
+  },
+
+  onLoadConfigTagsError: function () {
+    console.error('Error in loading fs.defaultFS');
   },
 
   onLoadClustersListError: function () {
@@ -261,6 +294,7 @@ App.MainMirroringController = Em.ArrayController.extend({
           execute: interfaces.findProperty('@attributes.type', 'execute')['@attributes'].endpoint,
           readonly: interfaces.findProperty('@attributes.type', 'readonly')['@attributes'].endpoint,
           workflow: interfaces.findProperty('@attributes.type', 'workflow')['@attributes'].endpoint,
+          write: interfaces.findProperty('@attributes.type', 'write')['@attributes'].endpoint,
           staging: staging && staging['@attributes'].path,
           working: working && working['@attributes'].path,
           temp: temp && temp['@attributes'].path
@@ -278,7 +312,8 @@ App.MainMirroringController = Em.ArrayController.extend({
   },
 
   onDataLoad: function () {
-    if (this.get('isLoaded') && App.router.get('currentState.name') === 'index') {
+    // Open default dataset job route if mirroring route is opened
+    if (this.get('isLoaded') && App.router.get('currentState.parentState.name') === 'mirroring') {
       App.router.send('gotoShowJobs');
     }
   }.observes('isLoaded'),

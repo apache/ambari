@@ -96,7 +96,7 @@
     </tr>
     </thead>
     <tbody>
-    {{#if controller.isLoaded}}
+    {{#if view.isLoaded}}
       {{#if view.pageContent}}
         {{#each job in view.pageContent}}
           {{#view view.JobView contentBinding="job"}}
@@ -152,7 +152,7 @@
     {{/if}}
     </tbody>
   </table>
-  {{#if controller.isLoaded}}
+  {{#if view.isLoaded}}
     <div class="page-bar">
       <div class="items-on-page">
         <label>{{t common.show}}

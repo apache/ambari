@@ -21,16 +21,6 @@ var App = require('app');
 App.MainDatasetJobsController = Em.Controller.extend({
   name: 'mainDatasetJobsController',
 
-  isLoaded: function () {
-    return App.router.get('mainMirroringController.isLoaded');
-  }.property('App.router.mainMirroringController.isLoaded'),
-
-  jobs: function () {
-    var datasetName = this.get('content.name');
-    return (this.get('isLoaded') && datasetName) ?
-        App.Dataset.find().findProperty('name', datasetName).get('datasetJobs') : [];
-  }.property('content', 'isLoaded'),
-
   suspend: function () {
     App.ajax.send({
       name: 'mirroring.suspend_entity',
