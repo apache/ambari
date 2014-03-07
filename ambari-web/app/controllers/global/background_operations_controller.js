@@ -129,6 +129,16 @@ App.BackgroundOperationsController = Em.Controller.extend({
       }
       currentTaskStatusMap[task.Tasks.id] = task.Tasks.status;
     }, this);
+    /**
+     * sync up request progress with up to date progress of hosts on Host's list,
+     * to avoid discrepancies while waiting for response with latest progress of request
+     * after switching to operation's list
+     */
+    if (request.get('isRunning')) {
+      request.set('progress', App.HostPopup.getProgress(data.tasks));
+      request.set('status', App.HostPopup.getStatus(data.tasks)[0]);
+      request.set('isRunning', (request.get('progress') !== 100));
+    }
     request.set('previousTaskStatusMap', currentTaskStatusMap);
     request.set('hostsMap', hostsMap);
     this.set('serviceTimestamp', App.dateTime());
@@ -167,12 +177,12 @@ App.BackgroundOperationsController = Em.Controller.extend({
       var inputs = null;
       if (request.Requests.inputs) {
         inputs = JSON.parse(request.Requests.inputs);
-      };
+      }
       var oneHost = false;
       if (inputs && inputs.included_hosts) {
         var hosts = inputs.included_hosts.split(',');
-        oneHost = hosts.length < 2 ? true : false;
-      };
+        oneHost = (hosts.length < 2);
+      }
       if(request.Requests.request_schedule && oneHost && /Recommission/.test(requestParams.requestContext)){
         request.Requests.request_schedule.schedule_id = null;
       }
