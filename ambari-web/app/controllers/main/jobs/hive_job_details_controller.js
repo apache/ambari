@@ -36,11 +36,29 @@ App.MainHiveJobDetailsController = Em.Controller.extend({
         jobsUtils.refreshJobDetails(content, function() {
           self.set('content', self.get('job'));
           self.set('loaded', true);
+        }, function(errorId) {
+          switch (errorId) {
+          case 'job.dag.noId':
+            App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagId.message'));
+            break;
+          case 'job.dag.noname':
+            App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDag.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDag.message'));
+            break;
+          case 'job.dag.id.noDag':
+            App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.message'));
+            break;
+          case 'job.dag.id.loaderror':
+          case 'job.dag.name.loaderror':
+            break;
+          default:
+            break;
+          }
+          self.routeToJobs();
         });
       }
-    }else{
+    } else {
       clearTimeout(timeout);
-      timeout = setTimeout(function(){
+      timeout = setTimeout(function() {
         self.loadJobDetails();
       }, 300);
     }

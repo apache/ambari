@@ -25,9 +25,19 @@ module.exports = {
    *          job
    * @param {Function}
    *          successCallback
+   * @param {Funtion}
+   *          errorCallback(errorId) Called in error cases where there is no
+   *          data from server. 'errorId' can be one of
+   *          <ul>
+   *            <li>job.dag.noId</li>
+   *            <li>job.dag.noname</li>
+   *            <li>job.dag.id.noDag</li>
+   *            <li>job.dag.id.loaderror</li>
+   *            <li>job.dag.name.loaderror</li>
+   *          </ul>
    */
-  refreshJobDetails : function(job, successCallback) {
-    this.refreshHiveJobDetails(job, successCallback);
+  refreshJobDetails : function(job, successCallback, errorCallback) {
+    this.refreshHiveJobDetails(job, successCallback, errorCallback);
   },
 
   /**
@@ -37,8 +47,10 @@ module.exports = {
    *          hiveJob
    * @param {Function}
    *          successCallback
+   * @param {Function}
+   *          errorCallback @see #refreshJobDetails()
    */
-  refreshHiveJobDetails : function(hiveJob, successCallback) {
+  refreshHiveJobDetails : function(hiveJob, successCallback, errorCallback) {
     var self = this;
     // TODO - to be changed to history server when implemented in stack.
     var yarnService = App.YARNService.find().objectAt(0);
@@ -60,13 +72,15 @@ module.exports = {
               if (data && data.entities && data.entities.length > 0) {
                 var dagId = data.entities[0].entity;
                 App.TezDag.find(tezDagName).set('instanceId', dagId);
-                self.refreshTezDagDetails(tezDagName, successCallback);
+                self.refreshTezDagDetails(tezDagName, successCallback, errorCallback);
               }else{
-                App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagId.message').format(hiveJobId), App.router.transitionTo('main.jobs.index'));
+                console.log('No Tez DAG was found for DAG name of ' + tezDagName);
+                errorCallback('job.dag.noId');
               }
             },
             dagNameToIdError : function(jqXHR, url, method, showStatus) {
               App.ajax.defaultErrorHandler(jqXHR, url, method, showStatus);
+              errorCallback('job.dag.name.loaderror');
             }
           }
           App.ajax.send({
@@ -81,7 +95,8 @@ module.exports = {
             error : 'dagNameToIdError'
           });
         } else {
-          App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDag.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDag.message').format(hiveJobId), App.router.transitionTo('main.jobs.index'));
+          console.log('No Tez DAG name to ask ID for. Job ID: ' + hiveJobId);
+          errorCallback('job.dag.noname');
         }
       }
     });
@@ -95,8 +110,10 @@ module.exports = {
    *          tezDagId ID of the Tez DAG. Example: 'HIVE-Q2:1'
    * @param {Function}
    *          successCallback
+   * @param {Function}
+   *          errorCallback @see #refreshJobDetails()
    */
-  refreshTezDagDetails : function(tezDagId, successCallback) {
+  refreshTezDagDetails : function(tezDagId, successCallback, errorCallback) {
     var self = this;
     var yarnService = App.YARNService.find().objectAt(0);
     var ahsWebPort = yarnService.get('ahsWebPort');
@@ -120,6 +137,7 @@ module.exports = {
         },
         loadTezDagError : function(jqXHR, url, method, showStatus) {
           App.ajax.defaultErrorHandler(jqXHR, url, method, showStatus);
+          errorCallback('job.dag.id.loaderror');
         }
       }
       App.ajax.send({
@@ -133,8 +151,9 @@ module.exports = {
         success : 'loadTezDagSuccess',
         error : 'loadTezDagError'
       });
-    }else{
-      App.showAlertPopup(Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.title'), Em.I18n.t('jobs.hive.tez.dag.error.noDagForId.message').format(tezDagId), App.router.transitionTo('main.jobs.index'));
+    } else {
+      console.log('Unable to find DAG for ID: ' + tezDagId);
+      errorCallback('job.dag.id.noDag');
     }
   },
 
