@@ -23,10 +23,7 @@
   </div>
   <div class="row-fluid">
     <div class="span7">
-      {{t common.hosts}}&nbsp;{{view Ember.Select
-              contentBinding="view.categories"
-              selectionBinding="view.category"
-              }}
+      {{t common.hosts}}&nbsp;{{view view.hostSelectView}}
     </div>
     {{#if view.categoryWarnings.length}}
     <div class="span3 offset2">

@@ -800,13 +800,16 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @return {Object}
    */
   filterBootHosts: function (data) {
-    var bootHostNames = this.get('bootHosts').mapProperty('name');
+    var bootHostNames = {};
+    this.get('bootHosts').forEach(function (bootHost) {
+      bootHostNames[bootHost.get('name')] = true;
+    });
     var filteredData = {
       href: data.href,
       items: []
     };
     data.items.forEach(function (host) {
-      if (bootHostNames.contains(host.Hosts.host_name)) {
+      if (bootHostNames[host.Hosts.host_name]) {
         filteredData.items.push(host);
       }
     });
@@ -821,7 +824,15 @@ App.WizardStep3Controller = Em.Controller.extend({
     var warnings = [];
     var warning;
     var hosts = [];
-    data.items.sortProperty('Hosts.host_name').forEach(function (_host) {
+    var warningCategories = {
+      fileFoldersWarnings: {},
+      packagesWarnings: {},
+      processesWarnings: {},
+      servicesWarnings: {},
+      usersWarnings: {}
+    };
+
+    data.items.sortPropertyLight('Hosts.host_name').forEach(function (_host) {
       var host = {
         name: _host.Hosts.host_name,
         warnings: []
@@ -836,41 +847,38 @@ App.WizardStep3Controller = Em.Controller.extend({
       //parse all directories and files warnings for host
 
       //todo: to be removed after check in new API
-      var stackFoldersAndFiles = _host.Hosts.last_agent_env.stackFoldersAndFiles || _host.Hosts.last_agent_env.paths;
-
+      var stackFoldersAndFiles = _host.Hosts.last_agent_env.stackFoldersAndFiles;
       stackFoldersAndFiles.forEach(function (path) {
-        warning = warnings.filterProperty('category', 'fileFolders').findProperty('name', path.name);
+        warning = warningCategories.fileFoldersWarnings[path.name];
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
         } else {
-          warning = {
+          warningCategories.fileFoldersWarnings[path.name] = warning = {
             name: path.name,
             hosts: [_host.Hosts.host_name],
             category: 'fileFolders',
             onSingleHost: true
           };
-          warnings.push(warning);
         }
         host.warnings.push(warning);
       }, this);
 
       //parse all package warnings for host
       _host.Hosts.last_agent_env.installedPackages.forEach(function (_package) {
-          warning = warnings.filterProperty('category', 'packages').findProperty('name', _package.name);
+          warning = warningCategories.packagesWarnings[_package.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
-            warning.version = _package.version,
+            warning.version = _package.version;
             warning.onSingleHost = false;
           } else {
-            warning = {
+            warningCategories.packagesWarnings[_package.name] = warning = {
               name: _package.name,
               version: _package.version,
               hosts: [_host.Hosts.host_name],
               category: 'packages',
               onSingleHost: true
             };
-            warnings.push(warning);
           }
           host.warnings.push(warning);
       }, this);
@@ -879,14 +887,13 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       //todo: to be removed after check in new API
       var javaProcs = _host.Hosts.last_agent_env.hostHealth ? _host.Hosts.last_agent_env.hostHealth.activeJavaProcs : _host.Hosts.last_agent_env.javaProcs;
-
       javaProcs.forEach(function (process) {
-        warning = warnings.filterProperty('category', 'processes').findProperty('pid', process.pid);
+        warning = warningCategories.processesWarnings[process.pid];
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
         } else {
-          warning = {
+          warningCategories.processesWarnings[process.pid] = warning = {
             name: (process.command.substr(0, 35) + '...'),
             hosts: [_host.Hosts.host_name],
             category: 'processes',
@@ -898,7 +905,6 @@ App.WizardStep3Controller = Em.Controller.extend({
                     '...' + process.command.substr(-230)) + '</td></tr></table>',
             onSingleHost: true
           };
-          warnings.push(warning);
         }
         host.warnings.push(warning);
       }, this);
@@ -907,21 +913,19 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       //todo: to be removed after check in new API
       if (_host.Hosts.last_agent_env.hostHealth && _host.Hosts.last_agent_env.hostHealth.liveServices) {
-
         _host.Hosts.last_agent_env.hostHealth.liveServices.forEach(function (service) {
           if (service.status === 'Unhealthy') {
-            warning = warnings.filterProperty('category', 'services').findProperty('name', service.name);
+            warning = warningCategories.servicesWarnings[service.name];
             if (warning) {
               warning.hosts.push(_host.Hosts.host_name);
               warning.onSingleHost = false;
             } else {
-              warning = {
+              warningCategories.servicesWarnings[service.name] = warning = {
                 name: service.name,
                 hosts: [_host.Hosts.host_name],
                 category: 'services',
                 onSingleHost: true
               };
-              warnings.push(warning);
             }
             host.warnings.push(warning);
           }
@@ -931,27 +935,24 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       //todo: to be removed after check in new API
       if (_host.Hosts.last_agent_env.existingUsers) {
-
         _host.Hosts.last_agent_env.existingUsers.forEach(function (user) {
-          warning = warnings.filterProperty('category', 'users').findProperty('name', user.userName);
+          warning = warningCategories.usersWarnings[user.userName];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
           } else {
-            warning = {
+            warningCategories.usersWarnings[user.userName] = warning = {
               name: user.userName,
               hosts: [_host.Hosts.host_name],
               category: 'users',
               onSingleHost: true
             };
-            warnings.push(warning);
           }
           host.warnings.push(warning);
         }, this);
       }
 
       //parse misc warnings for host
-
       var umask = _host.Hosts.last_agent_env.umask;
       if (umask && umask !== 18) {
         warning = warnings.filterProperty('category', 'misc').findProperty('name', umask);
@@ -991,6 +992,14 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       hosts.push(host);
     }, this);
+
+    for (var categoryId in warningCategories) {
+      var category = warningCategories[categoryId]
+      for (var warningId in category) {
+        warnings.push(category[warningId]);
+      }
+    }
+
     warnings.forEach(function (warn) {
       if (warn.hosts.length < 11) {
         warn.hostsList = warn.hosts.join('<br>')
@@ -1036,17 +1045,18 @@ App.WizardStep3Controller = Em.Controller.extend({
       footerClass: Ember.View.extend({
         templateName: require('templates/wizard/step3_host_warning_popup_footer'),
         classNames: ['modal-footer', 'host-checks-update'],
+        footerControllerBinding: 'App.router.wizardStep3Controller',
         progressWidth: function(){
-          return 'width:'+App.router.get('wizardStep3Controller.checksUpdateProgress')+'%';
-        }.property('App.router.wizardStep3Controller.checksUpdateProgress'),
+          return 'width:'+this.get('footerController.checksUpdateProgress')+'%';
+        }.property('footerController.checksUpdateProgress'),
         isUpdateInProgress: function(){
-          if((App.router.get('wizardStep3Controller.checksUpdateProgress') > 0) &&
-             (App.router.get('wizardStep3Controller.checksUpdateProgress') < 100)){
+          if((this.get('footerController.checksUpdateProgress') > 0) &&
+             (this.get('footerController.checksUpdateProgress') < 100)){
             return true;
           }
-        }.property('App.router.wizardStep3Controller.checksUpdateProgress'),
+        }.property('footerController.checksUpdateProgress'),
         updateStatusClass:function(){
-          var status = App.router.get('wizardStep3Controller.checksUpdateStatus');
+          var status = this.get('footerController.checksUpdateStatus');
           if(status === 'SUCCESS'){
             return 'text-success';
           } else if(status === 'FAILED'){
@@ -1054,9 +1064,9 @@ App.WizardStep3Controller = Em.Controller.extend({
           } else {
             return null;
           }
-        }.property('App.router.wizardStep3Controller.checksUpdateStatus'),
+        }.property('footerController.checksUpdateStatus'),
         updateStatus:function(){
-          var status = App.router.get('wizardStep3Controller.checksUpdateStatus');
+          var status = this.get('footerController.checksUpdateStatus');
           if(status === 'SUCCESS'){
             return Em.I18n.t('installer.step3.warnings.updateChecks.success');
           } else if(status === 'FAILED'){
@@ -1064,27 +1074,70 @@ App.WizardStep3Controller = Em.Controller.extend({
           } else {
             return null;
           }
-        }.property('App.router.wizardStep3Controller.checksUpdateStatus')
+        }.property('footerController.checksUpdateStatus')
       }),
 
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step3_host_warnings_popup'),
         classNames: ['host-check'],
+        bodyControllerBinding: 'App.router.wizardStep3Controller',
         didInsertElement: function () {
           Ember.run.next(this, function () {
             App.tooltip(this.$("[rel='HostsListTooltip']"), {html: true, placement: "right"});
             App.tooltip(this.$('#process .warning-name'), {html: true, placement: "top"});
-          })
+          });
         }.observes('content'),
+        hostSelectView: Ember.Select.extend({
+          //content has default value "All Hosts" to bind selection to category
+          content: ['All Hosts'],
+          hosts: function () {
+            return this.get('parentView.warningsByHost').mapProperty('name');
+          }.property('parentView.warningsByHost'),
+          isLoaded: false,
+          selectionBinding: "parentView.category",
+          didInsertElement: function(){
+            this.initContent();
+          },
+          initContent: function () {
+            this.set('isLoaded', false);
+            //The lazy loading for select elements supported only by Firefox and Chrome
+            var isBrowserSupported = $.browser.mozilla || ($.browser.safari && navigator.userAgent.indexOf('Chrome') !== -1);
+            var isLazyLoading = isBrowserSupported && this.get('hosts').length > 100;
+            this.set('isLazyLoading', isLazyLoading);
+            if (isLazyLoading) {
+              //select need at least 30 hosts to have scrollbar
+              this.set('content', this.get('hosts').slice(0, 30));
+            } else {
+              this.set('content', this.get('hosts'));
+              this.set('isLoaded', true);
+            }
+          }.observes('parentView.warningsByHost'),
+          /**
+           * on click start lazy loading
+           */
+          click: function () {
+            if (!this.get('isLoaded') && this.get('isLazyLoading')) {
+              //filter out hosts, which already pushed in select
+              var source = this.get('hosts').filter(function (_host) {
+                return !this.get('content').contains(_host);
+              }, this).slice();
+              lazyloading.run({
+                destination: this.get('content'),
+                source: source,
+                context: this,
+                initSize: 30,
+                chunkSize: 200,
+                delay: 50
+              });
+            }
+          }
+        }),
         warningsByHost: function () {
-          return App.router.get('wizardStep3Controller.warningsByHost');
-        }.property('App.router.wizardStep3Controller.warningsByHost'),
+          return this.get('bodyController.warningsByHost');
+        }.property('bodyController.warningsByHost'),
         warnings: function () {
-          return App.router.get('wizardStep3Controller.warnings');
-        }.property('App.router.wizardStep3Controller.warnings'),
-        categories: function () {
-          return this.get('warningsByHost').mapProperty('name');
-        }.property('warningsByHost'),
+          return this.get('bodyController.warnings');
+        }.property('bodyController.warnings'),
         category: 'All Hosts',
         categoryWarnings: function () {
           return this.get('warningsByHost').findProperty('name', this.get('category')).warnings

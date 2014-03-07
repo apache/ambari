@@ -79,6 +79,33 @@ Number.prototype.toDaysHoursMinutes = function () {
   return formatted;
 };
 
+/**
+ Sort an array by the key specified in the argument.
+ Handle only native js objects as element of array, not the Ember's object.
+
+ Can be used as alternative to sortProperty method of Ember library
+ in order to speed up executing on large data volumes
+
+ @method sortBy
+ @param {String} path name(s) to sort on
+ @return {Array} The sorted array.
+ */
+Array.prototype.sortPropertyLight = function (path) {
+  var realPath = (typeof path === "string") ? path.split('.') : [];
+  this.sort(function (a, b) {
+    var aProperty = a;
+    var bProperty = b;
+    realPath.forEach(function (key) {
+      aProperty = aProperty[key];
+      bProperty = bProperty[key];
+    });
+    if (aProperty > bProperty) return 1;
+    if (aProperty < bProperty) return -1;
+    return 0;
+  });
+  return this;
+};
+
 Em.CoreObject.reopen({
   t:function (key, attrs) {
     return Em.I18n.t(key, attrs)
