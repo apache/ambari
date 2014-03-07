@@ -87,15 +87,15 @@ describe('MainAppsController', function () {
        mainAppsController.set("filterObject.runDate", "Any");
        expect(mainAppsController.get('filterObject.minStartTime')).to.equal("");
        mainAppsController.set("filterObject.runDate", "Past 1 Day");
-       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-86400000)-10,((new Date().getTime())-86400000)+10);
+       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-86400000)-1000,((new Date().getTime())-86400000)+1000);
        mainAppsController.set("filterObject.runDate", "Past 2 Days");
-       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-172800000)-10,((new Date().getTime())-172800000)+10);
+       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-172800000)-1000,((new Date().getTime())-172800000)+1000);
        mainAppsController.set("filterObject.runDate", "Past 7 Days");
-       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-604800000)-10,((new Date().getTime())-604800000)+10);
+       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-604800000)-1000,((new Date().getTime())-604800000)+1000);
        mainAppsController.set("filterObject.runDate", "Past 14 Days");
-       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-1209600000)-10,((new Date().getTime())-1209600000)+10);
+       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-1209600000)-1000,((new Date().getTime())-1209600000)+1000);
        mainAppsController.set("filterObject.runDate", "Past 30 Days");
-       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-2592000000)-10,((new Date().getTime())-2592000000)+10);
+       expect(mainAppsController.get('filterObject.minStartTime')).to.be.within(((new Date().getTime())-2592000000)-1000,((new Date().getTime())-2592000000)+1000);
      })
    });
 

@@ -53,6 +53,7 @@ require('test/installer/step4_test');
 require('test/installer/step5_test');
 require('test/installer/step6_test');
 require('test/installer/step7_test');
+require('test/installer/step8_test');
 require('test/installer/step9_test');
 require('test/installer/step10_test');
 require('test/login_test');
