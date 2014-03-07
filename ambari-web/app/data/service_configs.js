@@ -22,6 +22,7 @@ require('utils/configs/defaults_providers/yarn_defaults_provider');
 require('utils/configs/defaults_providers/tez_defaults_provider');
 require('utils/configs/defaults_providers/hive_defaults_provider');
 require('utils/configs/defaults_providers/storm_defaults_provider');
+require('utils/configs/defaults_providers/oozie_defaults_provider');
 require('utils/configs/validators/yarn_configs_validator');
 require('utils/configs/validators/hive_configs_validator');
 require('utils/configs/validators/tez_configs_validator');
@@ -173,6 +174,7 @@ module.exports = [
   {
     serviceName: 'OOZIE',
     displayName: 'Oozie',
+    defaultsProviders: [App.OOZIEDefaultsProvider.create()],
     filename: 'oozie-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName : 'Oozie Server'}),
