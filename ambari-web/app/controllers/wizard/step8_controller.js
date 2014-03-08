@@ -1120,7 +1120,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var coreSiteObject = this.createCoreSiteObj();
     if (this.get('content.controllerName') == 'installerController') {
       this.get('serviceConfigTags').pushObject(coreSiteObject);
-      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site'));
+      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site',false));
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('hdfs'));
     }
     var globalSiteObj = this.createGlobalSiteObj();
@@ -1132,29 +1132,29 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('serviceConfigTags').pushObject(globalSiteObj);
 
     var objMap = {
-      MAPREDUCE: {site: ['mapred-site'], log4j: ['mapreduce']},
-      MAPREDUCE2: {site: ['mapred-site'], log4j: ['mapreduce2']},
-      YARN: {site: ['yarn-site','capacity-scheduler'], log4j: ['yarn']},
-      HBASE: {site: ['hbase-site'], log4j: ['hbase']},
-      OOZIE: {site: ['oozie-site'], log4j: ['oozie']},
-      HIVE: {site: ['hive-site'], log4j: ['hive','hive-exec']},
-      WEBHCAT: {site: ['webhcat-site'], log4j: []},
-      HUE: {site: ['hue-site'], log4j: []},
+      MAPREDUCE: {site: [{filename: 'mapred-site',isXmlFile: true}], log4j: ['mapreduce']},
+      MAPREDUCE2: {site: [{filename:'mapred-site',isXmlFile: true}], log4j: ['mapreduce2']},
+      YARN: {site: [{filename:'yarn-site',isXmlFile: true},{filename:'capacity-scheduler',isXmlFile: true}], log4j: ['yarn']},
+      HBASE: {site: [{filename:'hbase-site',isXmlFile: true}], log4j: ['hbase']},
+      OOZIE: {site: [{filename:'oozie-site',isXmlFile: true}], log4j: ['oozie']},
+      HIVE: {site: [{filename:'hive-site',isXmlFile: true}], log4j: ['hive','hive-exec']},
+      WEBHCAT: {site: [{filename:'webhcat-site',isXmlFile: true}], log4j: []},
+      HUE: {site: [{filename:'hue-site',isXmlFile: true}], log4j: []},
       PIG: {site: [], log4j: ['pig']},
-      FALCON: {site: ['falcon-startup.properties','falcon-runtime.properties'], log4j: []},
-      TEZ: {site: ['tez-site'], log4j: []},
+      FALCON: {site: [{filename:'falcon-startup.properties',isXmlFile: false},{filename:'falcon-runtime.properties',isXmlFile: false}], log4j: []},
+      TEZ: {site: [{filename:'tez-site',isXmlFile: true}], log4j: []},
       ZOOKEEPER: {site: [], log4j: ['zookeeper']}
     };
 
     if (App.supports.capacitySchedulerUi) {
-      objMap['MAPREDUCE'].site.pushObjects(['capacity-scheduler','mapred-queue-acls']);
+      objMap['MAPREDUCE'].site.pushObjects([{filename:'capacity-scheduler',isXmlFile: true},{filename:'mapred-queue-acls',isXmlFile: true}]);
     }
 
     for(var serviceName in objMap) {
       if (objMap.hasOwnProperty(serviceName)) {
         if (selectedServices.someProperty('serviceName', serviceName)) {
           objMap[serviceName].site.forEach(function(site) {
-            self.get('serviceConfigTags').pushObject(self.createSiteObj(site));
+            self.get('serviceConfigTags').pushObject(self.createSiteObj(site.filename,!site.isXmlFile));
           });
           objMap[serviceName].log4j.forEach(function(log4j) {
             self.get('serviceConfigTags').pushObject(self.createLog4jObj(log4j));
@@ -1358,13 +1358,20 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Create siteObj for custom service with it own configs
    * @param {string} site
+   * @param {Boolean} isNonXmlFile
    * @returns {{type: string, tag: string, properties: {}}}
    */
-  createSiteObj: function(site) {
+  createSiteObj: function(site,isNonXmlFile) {
     var properties = {};
-    this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
-      properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-    }, this);
+    if (!!isNonXmlFile) {
+      this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
+        properties[_configProperty.name] = _configProperty.value;
+      },this);
+    } else {
+      this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
+        properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      },this);
+    }
     return {"type": site, "tag": "version1", "properties": properties };
   },
 
@@ -1374,7 +1381,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @returns {{type: string, tag: string, properties: {}}}
    */
   createLog4jObj: function (site) {
-    return this.createSiteObj(site + '-log4j');
+    return this.createSiteObj(site + '-log4j',true);
   },
 
   /**

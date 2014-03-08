@@ -1425,8 +1425,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createSiteObj: function (siteName, tagName, siteObj) {
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
-      siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, _siteObj.value);
-      //this.recordHostOverride(_siteObj, siteName, tagName, this);
+      switch(siteName) {
+        case 'falcon-startup.properties':
+        case 'falcon-runtime.properties':
+          siteProperties[_siteObj.name] = _siteObj.value;
+          break;
+        default:
+          siteProperties[_siteObj.name] = this.setServerConfigValue(_siteObj.name, _siteObj.value);
+      }
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },

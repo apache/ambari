@@ -125,6 +125,7 @@ describe('App.WizardStep8Controller', function() {
       installerStep8Controller.clearStep();
     });
 
+
     // e - without global and core!
     var tests = Em.A([
       {selectedServices: Em.A(['MAPREDUCE2']),e: 2},
@@ -155,6 +156,32 @@ describe('App.WizardStep8Controller', function() {
         expect(installerStep8Controller.get('serviceConfigTags').length).to.equal(test.e + 2);
         installerStep8Controller.clearStep();
       });
+    });
+
+    // Verify xml character escaping is not done for log4j files and falcon startup-properties and runtime-properties files.
+    it('escape xml character for installer wizard', function() {
+      var services = Em.A([Em.Object.create({isSelected:true,isInstalled:false,serviceName:'OOZIE'}),
+        Em.Object.create({isSelected:true,isInstalled:false,serviceName:'FALCON'})]);
+
+      var nonXmlConfigs = [
+        {filename: 'oozie-log4j.xml', name: 'p1', value: "'.'v1"},
+        {filename: 'falcon-startup.properties.xml', name: 'p1', value: "'.'v1"} ,
+        {filename: 'falcon-startup.properties.xml', name: 'p2', value: 'v2'},
+        {filename: 'falcon-runtime.properties.xml', name: 'p1', value: "'.'v1"},
+        {filename: 'falcon-runtime.properties.xml', name: 'p2', value: 'v2'}
+      ];
+      installerStep8Controller = App.WizardStep8Controller.create({
+        content: {controllerName: 'installerController', services: services},
+        configs: nonXmlConfigs
+      });
+      installerStep8Controller.createConfigurations();
+      var nonXmlConfigTypes = ['oozie-log4j','falcon-startup.properties','falcon-runtime.properties'];
+      nonXmlConfigTypes.forEach(function(_nonXmlConfigType){
+        var nonXmlConfigTypeObj = installerStep8Controller.get('serviceConfigTags').findProperty('type',_nonXmlConfigType);
+        var nonXmlSitePropertyVal = nonXmlConfigTypeObj.properties['p1'];
+        expect(nonXmlSitePropertyVal).to.equal("'.'v1");
+      });
+      installerStep8Controller.clearStep();
     });
 
   });
