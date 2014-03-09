@@ -59,31 +59,31 @@ App.MainJobsView = App.TableView.extend({
 
   sortView: sort.wrapperView,
   idSort: sort.fieldView.extend({
-    column: 0,
+    column: 1,
     name: 'id',
     displayName: Em.I18n.t('jobs.column.id'),
     type: 'string'
   }),
   userSort: sort.fieldView.extend({
-    column: 1,
+    column: 2,
     name: 'user',
     displayName: Em.I18n.t('jobs.column.user'),
     type: 'string'
   }),
   startTimeSort: sort.fieldView.extend({
-    column: 2,
+    column: 3,
     name: 'startTime',
     displayName: Em.I18n.t('jobs.column.start.time'),
     type: 'number'
   }),
   endTimeSort: sort.fieldView.extend({
-    column: 3,
+    column: 4,
     name: 'endTime',
     displayName: Em.I18n.t('jobs.column.end.time'),
     type: 'number'
   }),
   durationSort: sort.fieldView.extend({
-    column: 4,
+    column: 5,
     name: 'duration',
     displayName: Em.I18n.t('jobs.column.duration'),
     type: 'number'
@@ -168,5 +168,9 @@ App.MainJobsView = App.TableView.extend({
         childView.clearFilter();
       }
     });
-  }
+  },
+
+  jobFailMessage: function() {
+    return Em.I18n.t('jobs.table.job.fail');
+  }.property()
 })

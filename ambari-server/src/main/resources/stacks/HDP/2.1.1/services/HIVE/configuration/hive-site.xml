@@ -297,13 +297,19 @@ limitations under the License.
   <property>
     <name>hive.exec.post.hooks</name>
     <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
-    <description>Post Execute Hook for Tests</description>
+    <description>Comma-separated list of post-execution hooks to be invoked for each statement.</description>
   </property>
 
   <property>
     <name>hive.exec.pre.hooks</name>
     <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
-    <description>Pre Execute Hook for Tests</description>
+    <description>Comma-separated list of pre-execution hooks to be invoked for each statement.</description>
+  </property>
+
+  <property>
+    <name>hive.exec.failure.hooks</name>
+    <value>org.apache.hadoop.hive.ql.hooks.ATSHook</value>
+    <description>Comma-separated list of on-failure hooks to be invoked for each statement.</description>
   </property>
 
   <property>

@@ -43,6 +43,8 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
         hiveJob.has_tez_dag = false;
         hiveJob.query_text = '';
         if (entity.otherinfo && entity.otherinfo.query) {
+          // Explicit false match needed for when failure hook not set
+          hiveJob.failed = entity.otherinfo.status===false;
           hiveJob.has_tez_dag = entity.otherinfo.query.match("\"Tez\".*\"DagName:\"");
           var queryJson = $.parseJSON(entity.otherinfo.query);
           if (queryJson && queryJson.queryText) {

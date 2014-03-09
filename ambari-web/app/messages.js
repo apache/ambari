@@ -1915,6 +1915,7 @@ Em.I18n.translations = {
   'jobs.table.custom.date.am':'AM',
   'jobs.table.custom.date.pm':'PM',
   'jobs.table.custom.date.header':'Select Custom Dates',
+  'jobs.table.job.fail':'Job failed to run',
   'jobs.customDateFilter.error.required':'This field is required',
   'jobs.customDateFilter.error.date.order':'End Date must be after Start Date',
   'jobs.customDateFilter.startTime':'Start Time',
