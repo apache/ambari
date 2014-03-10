@@ -32,7 +32,8 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   isPopoverEnabled: true,
 
   didInsertElement: function () {
-    if (this.get('isPopoverEnabled') !== 'false') {
+    // if description for this serviceConfig not exist, then no need to show popover
+    if (this.get('isPopoverEnabled') !== 'false' && this.get('serviceConfig.description')) {
       App.popover(this.$(), {
         title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
           this.get('serviceConfig.displayName'),
