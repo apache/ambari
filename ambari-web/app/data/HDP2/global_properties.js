@@ -1313,6 +1313,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isRequiredByAgent": true,
+      "isReconfigurable": false,
       "serviceName": "FALCON",
       "category": "Advanced"
     },
@@ -1326,6 +1327,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isRequiredByAgent": true,
+      "isReconfigurable": false,
       "serviceName": "FALCON",
       "category": "Advanced"
     },
