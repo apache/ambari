@@ -612,8 +612,13 @@ public class StackExtensionHelper {
    * Get all properties from all "configs/*-site.xml" files
    */
   void setPropertiesFromConfigs(File serviceFolder, ServiceInfo serviceInfo) {
+    
     File serviceConfigFolder = new File(serviceFolder.getAbsolutePath()
-            + File.separator + AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME);
+            + File.separator + serviceInfo.getConfigDir());
+    
+    if (!serviceConfigFolder.exists() || !serviceConfigFolder.isDirectory())
+      return;
+    
     File[] configFiles = serviceConfigFolder.listFiles
             (AmbariMetaInfo.FILENAME_FILTER);
     if (configFiles != null) {

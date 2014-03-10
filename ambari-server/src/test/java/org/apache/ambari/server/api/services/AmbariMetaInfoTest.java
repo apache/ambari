@@ -1258,5 +1258,25 @@ public class AmbariMetaInfoTest {
     }
     return null;
   }
+  
+  @Test
+  public void testCustomConfigDir() throws Exception {
+    
+    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "MAPREDUCE2");
+
+    // assert that the property was found in a differently-named directory
+    // cannot check the dirname itself since extended stacks won't carry over
+    // the name
+    
+    boolean found = false;
+    for (PropertyInfo pi : service.getProperties()) {
+      if (pi.getName().equals("mr2-prop")) {
+        Assert.assertEquals("some-mr2-value", pi.getValue());
+        found = true;
+      }
+    }
+    
+    Assert.assertTrue(found);
+  }
 
 }

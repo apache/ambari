@@ -71,6 +71,10 @@ public class ServiceInfo {
   @XmlElementWrapper(name="osSpecifics")
   @XmlElements(@XmlElement(name="osSpecific"))
   private List<ServiceOsSpecific> serviceOsSpecifics;
+  
+  @JsonIgnore
+  @XmlElement(name="configuration-dir")
+  private String configDir = AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME;
 
 
   /**
@@ -79,7 +83,6 @@ public class ServiceInfo {
    * Added at schema ver 2
    */
   private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
-
 
   /**
    * Added at schema ver 2
@@ -366,6 +369,13 @@ public class ServiceInfo {
    */
   public void setMetrics(Map<String, Map<String, List<MetricDefinition>>> map) {
     metrics = map;
+  }
+  
+  /**
+   * @return the configuration directory name
+   */
+  public String getConfigDir() {
+    return configDir;
   }
 
 }

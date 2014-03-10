@@ -157,6 +157,8 @@
         <timeout>300</timeout>
       </commandScript>
 
+      <configuration-dir>config-mr2</configuration-dir>
+
       <configuration-dependencies>
         <config-type>yarn-site</config-type>
         <config-type>capacity-scheduler</config-type>

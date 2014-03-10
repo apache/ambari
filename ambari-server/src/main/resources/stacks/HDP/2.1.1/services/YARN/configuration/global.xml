@@ -67,27 +67,4 @@
     <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
   </property>
 
-  <!--MAPREDUCE2-->
-
-  <property>
-    <name>hs_host</name>
-    <value></value>
-    <description>History Server.</description>
-  </property>
-  <property>
-    <name>mapred_log_dir_prefix</name>
-    <value>/var/log/hadoop-mapreduce</value>
-    <description>Mapreduce Log Dir Prefix</description>
-  </property>
-  <property>
-    <name>mapred_pid_dir_prefix</name>
-    <value>/var/run/hadoop-mapreduce</value>
-    <description>Mapreduce PID Dir Prefix</description>
-  </property>
-  <property>
-    <name>mapred_user</name>
-    <value>mapred</value>
-    <description>Mapreduce User</description>
-  </property>
-
 </configuration>
