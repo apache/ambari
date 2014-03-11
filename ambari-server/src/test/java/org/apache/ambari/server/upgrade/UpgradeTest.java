@@ -133,7 +133,9 @@ public class UpgradeTest {
     injector.getInstance(HostStateDAO.class).findAll();
     injector.getInstance(KeyValueDAO.class).findAll();
     injector.getInstance(MetainfoDAO.class).findAll();
-    injector.getInstance(RequestDAO.class).findAll();
+    RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
+    requestDAO.findAll();
+    requestDAO.findAllResourceFilters();
     injector.getInstance(RequestScheduleBatchRequestDAO.class).findAll();
     injector.getInstance(RequestScheduleDAO.class).findAll();
     injector.getInstance(RoleDAO.class).findAll();

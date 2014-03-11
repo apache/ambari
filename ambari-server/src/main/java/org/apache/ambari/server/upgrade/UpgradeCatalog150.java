@@ -202,6 +202,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     // RequestResourceFilter
     columns.clear();
+    columns.add(new DBColumnInfo("filter_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("service_name", String.class, 255, null, true));
     columns.add(new DBColumnInfo("component_name", String.class, 255, null, true));

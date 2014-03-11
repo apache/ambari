@@ -477,7 +477,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           return Collections.emptySet();
         }
 
-        while(!dsName.equals("[~EOF]")) {
+        while(!"[~EOF]".equals(dsName)) {
           GangliaMetric metric = new GangliaMetric();
           List<GangliaMetric.TemporalMetric> listTemporalMetrics =
               new ArrayList<GangliaMetric.TemporalMetric>();
@@ -493,18 +493,18 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           String val     = reader.readLine();
           String lastVal = null;
 
-          while(! val.equals("[~EOM]")) {
+          while(val!=null && !"[~EOM]".equals(val)) {
             if (val.startsWith("[~r]")) {
               Integer repeat = Integer.valueOf(val.substring(4)) - 1;
               for (int i = 0; i < repeat; ++i) {
-                if (! lastVal.equals("[~n]")) {
+                if (! "[~n]".equals(lastVal)) {
                   GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(lastVal, time);
                   if (tm.isValid()) listTemporalMetrics.add(tm);
                 }
                 time += step;
               }
             } else {
-              if (! val.equals("[~n]")) {
+              if (! "[~n]".equals(val)) {
                 GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(val, time);
                 if (tm.isValid()) listTemporalMetrics.add(tm);
               }
