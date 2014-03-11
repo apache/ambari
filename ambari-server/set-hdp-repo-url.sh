@@ -26,7 +26,7 @@ then
   #  Modify the VERSION variable in this file to match the new version
   #  Modify the previous version to store concrete public repo url
 
-  VERSION=2.1.1
+  VERSION=2.1
   C6URL="$1"
   C5URL="${C6URL/centos6/centos5}"
   S11URL="${C6URL/centos6/suse11}"
