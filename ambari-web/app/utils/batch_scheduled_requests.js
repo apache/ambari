@@ -215,9 +215,9 @@ module.exports = {
    *           Pre-select host-components which have stale
    *          configurations
    */
-  launchHostComponentRollingRestart: function(hostComponentName, staleConfigsOnly) {
+  launchHostComponentRollingRestart: function(hostComponentName, staleConfigsOnly, skipMaintenance) {
     if (App.get('components.rollinRestartAllowed').contains(hostComponentName)) {
-      this.showRollingRestartPopup(hostComponentName, staleConfigsOnly);
+      this.showRollingRestartPopup(hostComponentName, staleConfigsOnly, null, skipMaintenance);
     }
     else {
       this.showWarningRollingRestartPopup(hostComponentName);
@@ -231,7 +231,7 @@ module.exports = {
    * @param {App.hostComponent[]} hostComponents list of hostComponents that should be restarted (optional).
    * Using this parameter will reset hostComponentName
    */
-  showRollingRestartPopup: function(hostComponentName, staleConfigsOnly, hostComponents) {
+  showRollingRestartPopup: function(hostComponentName, staleConfigsOnly, hostComponents, skipMaintenance) {
     hostComponents = hostComponents || [];
     var componentDisplayName = App.format.role(hostComponentName);
     if (!componentDisplayName) {
@@ -241,6 +241,7 @@ module.exports = {
     var viewExtend = {
       staleConfigsOnly : staleConfigsOnly,
       hostComponentName : hostComponentName,
+      skipMaintenance: skipMaintenance,
       didInsertElement : function() {
         this.set('parentView.innerView', this);
         this.initialize();
@@ -255,6 +256,7 @@ module.exports = {
       header : title,
       hostComponentName : hostComponentName,
       staleConfigsOnly : staleConfigsOnly,
+      skipMaintenance: skipMaintenance,
       innerView : null,
       bodyClass : App.RollingRestartView.extend(viewExtend),
       classNames : [ 'rolling-restart-popup' ],

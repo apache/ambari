@@ -205,7 +205,7 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   rollingRestart: function(hostComponentName) {
-    batchUtils.launchHostComponentRollingRestart(hostComponentName, false);
+    batchUtils.launchHostComponentRollingRestart(hostComponentName, false, this.get('content.passiveState') === "ON");
   },
 
   turnOnOffPassiveRequest: function(state,message) {

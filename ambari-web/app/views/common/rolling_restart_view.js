@@ -39,6 +39,13 @@ App.RollingRestartView = Em.View.extend({
   staleConfigsOnly : false,
 
   /**
+   * We should do rolling restart for components if we run
+   * restart for service and service is in Maintenance mode
+   * @type {bool}
+   */
+  skipMaintenance: false,
+
+  /**
    * Count of host components in one batch
    * @type {Number}
    */
@@ -139,7 +146,7 @@ App.RollingRestartView = Em.View.extend({
    * @type {Array}
    */
   restartHostComponents : function() {
-    var hostComponents = this.get('nonMaintainanceHostComponents');
+    var hostComponents = this.get('skipMaintenance') ? this.get('allHostComponents') : this.get('nonMaintainanceHostComponents');
     if (this.get('staleConfigsOnly')) {
       hostComponents = hostComponents.filterProperty('staleConfigs', true);
     }
