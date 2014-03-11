@@ -94,28 +94,30 @@
           <div id="tez-vertices-table-section">
             <div id="tez-vertices-table-container" class="section">
               <table class="table table-hover table-bordered table-striped">
-                <thead>
-                  <tr>
-                    <th>{{t common.name}}</th>
-                    <th>{{t common.tasks}}</th>
-                    <th>{{t apps.item.dag.input}}</th>
-                    <th>{{t apps.item.dag.output}}</th>
-                    <th>{{t apps.item.dag.duration}}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {{#each vertex in view.sortedVertices}}
-                    <tr {{bindAttr class="vertex.isSelected:info"}}>
-                      <td>
-                        <a title="{{vertex.name}}" href="#" {{action "doSelectVertex" vertex target="view"}}>{{vertex.name}}</a>
-                      </td>
-                      <td>{{vertex.tasksCount}}</td>
-                      <td>{{vertex.totalReadBytesDisplay}}</td>
-                      <td>{{vertex.totalWriteBytesDisplay}}</td>
-                      <td>{{vertex.durationDisplay}}</td>
-                    </tr>
-                  {{/each}}
-                </tbody>
+                {{#view App.MainHiveJobDetailsVerticesTableView contentBinding="view.sortedVertices" doSelectVertexBinding="view.doSelectVertex" selectedVertexBinding="view.selectedVertex"}}
+                  <thead>
+                    {{#view view.sortView contentBinding="view.content"}}
+                      {{view view.parentView.nameSort}}
+                      {{view view.parentView.tasksSort}}
+                      {{view view.parentView.inputSort}}
+                      {{view view.parentView.outputSort}}
+                      {{view view.parentView.durationSort}}
+                    {{/view}}
+                  </thead>
+                  <tbody>
+                    {{#each vertex in view.content}}
+                      <tr {{bindAttr class="vertex.isSelected:info"}}>
+                        <td>
+                          <a title="{{vertex.name}}" href="#" {{action "doSelectVertex" vertex target="view"}}>{{vertex.name}}</a>
+                        </td>
+                        <td>{{vertex.tasksNumber}}</td>
+                        <td>{{vertex.totalReadBytesDisplay}}</td>
+                        <td>{{vertex.totalWriteBytesDisplay}}</td>
+                        <td>{{vertex.durationDisplay}}</td>
+                      </tr>
+                    {{/each}}
+                  </tbody>
+                {{/view}}
               </table>
             </div>
           </div>

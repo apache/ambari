@@ -105,6 +105,10 @@ App.TezDagVertex = DS.Model.extend({
    */
   tasksCount : DS.attr('number'),
 
+  tasksNumber: function () {
+    return this.get('tasksCount') ? this.get('tasksCount') : 0;
+  }.property('tasksCount'),
+
   /**
    * Local filesystem usage metrics for this vertex
    */

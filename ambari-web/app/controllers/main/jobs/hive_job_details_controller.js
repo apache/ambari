@@ -25,6 +25,7 @@ App.MainHiveJobDetailsController = Em.Controller.extend({
   loaded : false,
   loadTimeout: null,
   job: null,
+  sortingColumn: null,
 
   loadJobDetails : function() {
     var self = this;

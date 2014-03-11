@@ -48,8 +48,8 @@ var wrapperView = Em.View.extend({
             sortOrder = true;
           }
           self.sort(childViews.findProperty('name', st.name), sortOrder);
-
           childViews.findProperty('name', st.name).set('status', (sortOrder)?'sorting_desc':'sorting_asc');
+          self.get('controller').set('sortingColumn', childViews.findProperty('name', st.name));
         }
         else {
           childViews.findProperty('name', st.name).set('status', st.status);
@@ -80,12 +80,17 @@ var wrapperView = Em.View.extend({
    * @param property
    * @param order true - DESC, false - ASC
    */
-  sort: function(property, order){
+  sort: function(property, order, returnSorted){
+    returnSorted = returnSorted ? true : false;
     var content = this.get('content').toArray();
     var sortFunc = this.getSortFunc(property, order);
     this.resetSort();
     content.sort(sortFunc);
-    this.set('content', content);
+    if(returnSorted){
+      return content;
+    }else{
+      this.set('content', content);
+    }
   },
   /**
    * reset all sorts fields
