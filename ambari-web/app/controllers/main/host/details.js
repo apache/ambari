@@ -177,6 +177,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var isLastComponent = (App.HostComponent.find().filterProperty('componentName', componentName).get('length') === 1);
     App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
+      primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
@@ -193,8 +194,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       lastComponentError:  Em.View.extend({
         template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
       }),
+      restartNagiosMsg: Em.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.msg2').format(displayName))
+      }),
       deleteComponentMsg: function() {
-        return Em.I18n.t('hosts.host.deleteComponent.popup.msg').format(displayName);
+        return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
       }.property(),
       onPrimary: function () {
         if (!this.get('enablePrimary')) return;
@@ -413,14 +417,16 @@ App.MainHostDetailsController = Em.Controller.extend({
           dn += " ("+dns.join(", ")+")";
         }
         App.ModalPopup.show({
-          primary: Em.I18n.t('yes'),
-          secondary: Em.I18n.t('no'),
+          primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
           header: Em.I18n.t('popup.confirmation.commonHeader'),
           addComponentMsg: function() {
             return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
           }.property(),
           bodyClass: Ember.View.extend({
             templateName: require('templates/main/host/details/addComponentPopup')
+          }),
+          restartNagiosMsg : Em.View.extend({
+            template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(dn))
           }),
           onPrimary: function () {
             this.hide();
@@ -620,12 +626,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     var displayName = component.get('displayName');
 
     App.ModalPopup.show({
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
+      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       installComponentMessage: function(){
         return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
       }.property(),
+      restartNagiosMsg : Em.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(displayName))
+      }),
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
