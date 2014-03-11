@@ -262,7 +262,7 @@ public interface DBAccessor {
     private boolean isNullable;
 
     public DBColumnInfo(String name, Class type, Integer length) {
-      this(name, type, length, null, false);
+      this(name, type, length, null, true);
     }
 
     public DBColumnInfo(String name, Class type, Integer length,
