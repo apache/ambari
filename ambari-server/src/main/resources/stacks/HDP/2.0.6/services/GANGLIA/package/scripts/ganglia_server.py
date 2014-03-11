@@ -32,6 +32,7 @@ class GangliaServer(Script):
     self.install_packages(env)
     env.set_params(params)
     self.configure(env)
+    self.chkconfigOff()
 
   def start(self, env):
     import params
@@ -168,6 +169,11 @@ class GangliaServer(Script):
          owner="root",
          group=params.user_group
     )
+
+
+  def chkconfigOff(self):
+    Execute("chkconfig gmetad off",
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
 
 
 def change_permission():

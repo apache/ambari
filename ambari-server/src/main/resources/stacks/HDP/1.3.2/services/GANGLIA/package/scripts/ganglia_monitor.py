@@ -32,6 +32,7 @@ class GangliaMonitor(Script):
     self.install_packages(env)
     env.set_params(params)
     self.configure(env)
+    self.chkconfigOff()
 
   def start(self, env):
     import params
@@ -153,6 +154,11 @@ class GangliaMonitor(Script):
          owner="root",
          group=params.user_group
     )
+
+
+  def chkconfigOff(self):
+    Execute("chkconfig gmond off",
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
 
 
 if __name__ == "__main__":
