@@ -208,7 +208,7 @@ Em.I18n.translations = {
   'requestInfo.startHostComponent':'Start',
   'requestInfo.startHostComponent.datanode':'Start DataNode',
   'requestInfo.startHostComponent.nodemanager':'Start NodeManager',
-  'requestInfo.startHostComponent.hbaseregionserver':'Start HBase RegionServer',
+  'requestInfo.startHostComponent.hbase_regionserver':'Start HBase RegionServer',
   'requestInfo.startHostComponents':'Start Components',
   'requestInfo.upgradeHostComponent':'Upgrade',
   'requestInfo.stopHostComponent':'Stop',
