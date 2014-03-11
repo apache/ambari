@@ -270,7 +270,9 @@ App.MainHostController = Em.ArrayController.extend({
 
   updateHostPassiveState: function(data, opt, params) {
     params.hosts.setEach('passiveState', params.passive_state);
-    App.router.get('clusterController').loadUpdatedStatus(function(){});
+    App.router.get('clusterController').loadUpdatedStatus(function(){
+      batchUtils.infoPassiveState(params.passive_state);
+    });
   },
   /**
    * Bulk operation for selected hostComponents
@@ -461,8 +463,10 @@ App.MainHostController = Em.ArrayController.extend({
     }
   },
 
-  updateHostComponentsPassiveState: function() {
-    App.router.get('clusterController').loadUpdatedStatus(function(){});
+  updateHostComponentsPassiveState: function(data, opt, params) {
+    App.router.get('clusterController').loadUpdatedStatus(function(){
+      batchUtils.infoPassiveState(params.passive_state);
+    });
   },
   /**
    * Show BO popup after bulk request

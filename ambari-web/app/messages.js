@@ -232,6 +232,7 @@ Em.I18n.translations = {
   'hostPopup.bgop.sourceRequestSchedule.running': 'Future operations of this batch request can be aborted',
   'hostPopup.bgop.sourceRequestSchedule.aborted': 'Future operations of this batch request have been aborted',
   'hostPopup.bgop.abort.rollingRestart': 'Abort Rolling Restart',
+  'hostPopup.warning.alertsTimeOut': 'Maintenance Mode has been turned {0}. It may take a few minutes for the alerts to be {1}.',
 
   'question.sure':'Are you sure?',
 

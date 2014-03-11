@@ -225,6 +225,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.router.get('clusterController').loadUpdatedStatus(function(){
       self.set('content.passiveState', params.passive_state);
+      batchUtils.infoPassiveState(params.passive_state);
     });
   },
 

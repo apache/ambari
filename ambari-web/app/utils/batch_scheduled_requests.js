@@ -305,6 +305,23 @@ module.exports = {
   },
 
   /**
+   * Warn user that alerts will be updated in few minutes
+   * @param {String} hostComponentName
+   */
+  infoPassiveState: function(passiveState) {
+    var enabled = passiveState == 'OFF' ? 'enabled' : 'suppressed';
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.information'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{view.message}}</p>'),
+        message: function() {
+          return Em.I18n.t('hostPopup.warning.alertsTimeOut').format(passiveState.toLowerCase(), enabled);
+        }.property()
+      })
+    });
+  },
+
+  /**
    * Retrieves the latest information about a specific request schedule
    * identified by 'requestScheduleId'
    *
