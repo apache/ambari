@@ -123,7 +123,16 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse</osType>
+          <osType>suse11</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>mysql-client</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>sles11</osType>
           <packages>
             <package>
               <type>rpm</type>

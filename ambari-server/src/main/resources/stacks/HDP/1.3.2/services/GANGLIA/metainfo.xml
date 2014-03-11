@@ -83,29 +83,48 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse</osType>
-          <package>
-            <type>rpm</type>
-            <name>apache2</name>
-          </package>
-          <package>
-            <type>rpm</type>
-            <name>apache2-mod_php5</name>
-          </package>
+          <osType>suse11</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>apache2</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>apache2-mod_php5</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>sles11</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>apache2</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>apache2-mod_php5</name>
+            </package>
+          </packages>
         </osSpecific>
         <osSpecific>
           <osType>centos5</osType>
-          <package>
-            <type>rpm</type>
-            <name>httpd</name>
-          </package>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
         </osSpecific>
         <osSpecific>
           <osType>centos6</osType>
-          <package>
-            <type>rpm</type>
-            <name>httpd</name>
-          </package>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>httpd</name>
+            </package>
+          </packages>
         </osSpecific>
       </osSpecifics>
     </service>
