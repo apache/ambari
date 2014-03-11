@@ -38,7 +38,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('File', '/tmp/hiveserver2.sql',
                         content = StaticFile('hiveserver2.sql'),
     )
-    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hiveserver2Smoke.sh jdbc:hive2://[u'c6402.ambari.apache.org']:10000 /tmp/hiveserver2.sql",
+    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hiveserver2Smoke.sh jdbc:hive2://c6402.ambari.apache.org:10000 /tmp/hiveserver2.sql",
                         logoutput = True,
                         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                         tries = 3,
@@ -87,7 +87,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('File', '/tmp/hiveserver2.sql',
                         content = StaticFile('hiveserver2.sql'),
     )
-    self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hiveserver2Smoke.sh jdbc:hive2://[u'c6402.ambari.apache.org']:10000/\\;principal=/etc/security/keytabs/hive.service.keytab /tmp/hiveserver2.sql",
+    self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hiveserver2Smoke.sh jdbc:hive2://c6402.ambari.apache.org:10000/\\;principal=/etc/security/keytabs/hive.service.keytab /tmp/hiveserver2.sql",
                         logoutput = True,
                         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                         tries = 3,
