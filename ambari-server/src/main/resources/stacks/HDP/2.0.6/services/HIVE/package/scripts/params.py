@@ -107,12 +107,14 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 mysql_adduser_path = "/tmp/addMysqlUser.sh"
 
 ########## HCAT
-if config['hostLevelParams']['stack_version'] == '2.1.1':
-  hcat_conf_dir = '/etc/hive-hcatalog/conf'
-  hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
-else:
+
+if str(config['hostLevelParams']['stack_version']).startswith('2.0'):
   hcat_conf_dir = '/etc/hcatalog/conf'
   hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
+# for newer versions
+else:
+  hcat_conf_dir = '/etc/hive-hcatalog/conf'
+  hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
 
 
 metastore_port = 9933
