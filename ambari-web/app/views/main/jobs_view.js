@@ -124,7 +124,7 @@ App.MainJobsView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   jobsIdFilterView: filters.createTextView({
-    column: 0,
+    column: 1,
     showApply: true,
     setPropertyOnApply: 'controller.filterObject.id'
   }),
@@ -134,7 +134,7 @@ App.MainJobsView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   userFilterView: filters.createTextView({
-    column: 1,
+    column: 2,
     fieldType: 'input-small',
     showApply: true,
     setPropertyOnApply: 'controller.filterObject.user'
@@ -146,7 +146,7 @@ App.MainJobsView = App.TableView.extend({
    */
   startTimeFilterView: filters.createSelectView({
     fieldType: 'input-120',
-    column: 2,
+    column: 3,
     content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
     valueBinding: "controller.filterObject.startTime"
   }),
@@ -156,9 +156,9 @@ App.MainJobsView = App.TableView.extend({
    */
   colPropAssoc: function () {
     var associations = [];
-    associations[0] = 'id';
-    associations[1] = 'user';
-    associations[2] = 'startTime';
+    associations[1] = 'id';
+    associations[2] = 'user';
+    associations[3] = 'startTime';
     return associations;
   }.property(),
 
