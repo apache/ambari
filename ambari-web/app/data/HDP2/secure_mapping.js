@@ -517,6 +517,14 @@ module.exports = [
 
   /***************************************FALCON***********************************************/
   {
+    "name": "*.falcon.authentication.type",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "kerberos",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  {
     "name": "*.falcon.http.authentication.type",
     "templateName": [],
     "foreignKey": null,
