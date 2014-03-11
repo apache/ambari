@@ -63,7 +63,7 @@ describe('#App', function() {
     var reviewConfigs = require('data/review_configs');
     var disableResult;
 
-    App.set('currentStackVersion', 'HDP-2.1.1');
+    App.set('currentStackVersion', 'HDP-2.1');
     App.set('handleStackDependencyTest', true);
 
     describe('#disableComponent()', function() {

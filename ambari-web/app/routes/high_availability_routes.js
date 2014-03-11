@@ -311,7 +311,6 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('highAvailabilityWizardController');
       controller.clearTasksData();
       controller.finish();
-      controller.clearStorageData();
       controller.get('popup').hide();
       App.clusterStatus.setClusterStatus({
         clusterName: controller.get('content.cluster.name'),

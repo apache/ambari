@@ -30,9 +30,9 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
    */
   var controller = App.MainAdminSecurityAddStep4Controller.create();
 
-  describe('#moveToNextStage()', function () {
+  describe('#moveToNextCommand()', function () {
     controller.reopen({
-      saveStages: function(){},
+      saveCommands: function(){},
       enableSubmit: function(){},
       loadClusterConfigs: function(){}
     });
@@ -40,29 +40,29 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
       setClusterStatus: function(){}
     });
 
-    controller.set('stages', [
-      App.Poll.create({stage: 'stage2', isStarted: false, isPolling: true, isCompleted: false, start: function(){}}),
-      App.Poll.create({stage: 'stage3', isStarted: false, isPolling: false, isCompleted: false, name: 'APPLY_CONFIGURATIONS', start: function(){}}),
-      App.Poll.create({stage: 'stage4', isStarted: false, isPolling: true, isCompleted: false, start: function(){}})
+    controller.set('commands', [
+      App.Poll.create({name: 'STOP_SERVICES', isStarted: false, isPolling: true, isCompleted: false, start: function(){}}),
+      App.Poll.create({name: 'APPLY_CONFIGURATIONS', isStarted: false, isPolling: false, isCompleted: false, start: function(){}}),
+      App.Poll.create({name: 'START_SERVICES', isStarted: false, isPolling: true, isCompleted: false, start: function(){}})
     ]);
 
-    it('stage2 is started', function(){
-      controller.moveToNextStage(controller.get('stages').findProperty('stage', 'stage2'));
-      expect(controller.get('stages').findProperty('stage', 'stage2').get('isStarted')).to.equal(true);
+    it('STOP_SERVICES is started', function(){
+      controller.moveToNextCommand(controller.get('commands').findProperty('name', 'STOP_SERVICES'));
+      expect(controller.get('commands').findProperty('name', 'STOP_SERVICES').get('isStarted')).to.equal(true);
     });
 
-    it('stage3 is started', function(){
-      controller.moveToNextStage(controller.get('stages').findProperty('stage', 'stage3'));
-      expect(controller.get('stages').findProperty('stage', 'stage3').get('isStarted')).to.equal(true);
+    it('APPLY_CONFIGURATIONS is started', function(){
+      controller.moveToNextCommand(controller.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS'));
+      expect(controller.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS').get('isStarted')).to.equal(true);
     });
 
-    it('stage4 is started', function(){
-      controller.moveToNextStage(controller.get('stages').findProperty('stage', 'stage4'));
-      expect(controller.get('stages').findProperty('stage', 'stage4').get('isStarted')).to.equal(true);
+    it('START_SERVICES is started', function(){
+      controller.moveToNextCommand(controller.get('commands').findProperty('name', 'START_SERVICES'));
+      expect(controller.get('commands').findProperty('name', 'START_SERVICES').get('isStarted')).to.equal(true);
     });
   });
 
-  describe('#loadStages()', function() {
+  describe('#loadCommands()', function() {
     describe('YARN installed with ATS', function() {
       beforeEach(function(){
         controller.reopen({
@@ -74,18 +74,29 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
             ];
           }.property()
         });
-        App.set('stackDependedComponents', []);
-        controller.set('stages', []);
+        controller.set('commands', []);
         controller.set('totalSteps', 3);
-        controller.loadStages();
+        var service = {
+          id: 'YARN',
+          service_name: 'YARN',
+          host_components: ['APP_TIMLINE_SERVER_c6401.ambari.apache.org']
+        };
+        var hostComponent = {
+          component_name: 'APP_TIMELINE_SERVER',
+          id: 'APP_TIMLINE_SERVER_c6401.ambari.apache.org',
+          service_id: 'YARN'
+        };
+        App.store.load(App.HostComponent, hostComponent);
+        App.store.load(App.Service, service);
+        controller.loadCommands();
       });
 
-      it('delete ATS component stage should be after stage3', function() {
-        expect(controller.get('stages').indexOf(controller.get('stages').findProperty('stage','stage5'))).to.eql(2);
+      it('delete ATS component stage should be after APPLY_CONFIGURATIONS', function() {
+        expect(controller.get('commands').indexOf(controller.get('commands').findProperty('name','DELETE_ATS'))).to.eql(2);
       });
 
-      it('stages length should be equal to 4', function() {
-        expect(controller.get('stages').length).to.eql(4);
+      it('commands length should be equal to 4', function() {
+        expect(controller.get('commands').length).to.eql(4);
       });
 
       it('total steps should be equal to 4', function() {
@@ -104,18 +115,19 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
             ];
           }.property()
         });
-        App.set('stackDependedComponents', [
-          Em.Object.create({
-            componentName: 'APP_TIMELINE_SERVER'
-          })
-        ]);
-        controller.set('stages', []);
+        controller.set('commands', []);
         controller.set('totalSteps', 3);
-        controller.loadStages();
+        var service = {
+          id: 'YARN',
+          service_name: 'YARN',
+          host_components: []
+        };
+        App.store.load(App.Service, service);
+        controller.loadCommands();
       });
 
-      it('stages length should be equal to 3', function() {
-        expect(controller.get('stages').length).to.eql(3);
+      it('commands length should be equal to 3', function() {
+        expect(controller.get('commands').length).to.eql(3);
       });
 
       it('total steps should be equal to 3', function() {

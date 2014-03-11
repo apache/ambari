@@ -313,8 +313,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    this.setCurrentStep('1');
-    this.clearAllSteps();
+    App.db.data.HighAvailabilityWizard = {};
+    App.db.data.Installer = {};
     App.router.get('updateController').updateAll();
   }
 });

@@ -86,7 +86,9 @@ App.clusterStatus = Ember.Object.create({
             }
             if (newValue.localdb) {
               this.set('localdb', newValue.localdb);
-              if (overrideLocaldb) {
+              // restore HAWizard data if process was started
+              var isHAWizardStarted = App.get('isAdmin') && !App.isEmptyObject(newValue.localdb.HighAvailabilityWizard);
+              if (overrideLocaldb || isHAWizardStarted) {
                 App.db.data = newValue.localdb;
                 App.db.setLocalStorage();
                 App.db.setUser(user);

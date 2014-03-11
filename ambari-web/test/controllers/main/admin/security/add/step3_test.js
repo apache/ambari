@@ -31,7 +31,7 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
   describe('#getSecurityUsers', function() {
     it('no hosts, just check users (testMode = true)', function() {
       App.testMode = true;
-      expect(mainAdminSecurityAddStep3Controller.getSecurityUsers().length).to.equal(10);
+      expect(mainAdminSecurityAddStep3Controller.getSecurityUsers().length).to.equal(11);
     });
   });
 
