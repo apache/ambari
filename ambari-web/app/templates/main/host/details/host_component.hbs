@@ -60,13 +60,6 @@
             </a>
           </li>
         {{/if}}
-        {{#if view.isDeletableComponent}}
-          <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
-            <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
-              {{t common.delete}}
-            </a>
-          </li>
-        {{/if}}
         {{#if view.isRestartableComponent}}
           <li {{bindAttr class="view.isRestartComponentDisabled:hidden"}}>
             <a href="javascript:void(null)" data-toggle="modal" {{action "restartComponent" view.content target="controller"}}>
@@ -124,6 +117,13 @@
             </li>
           {{/if}}
         {{/unless}}
+        {{#if view.isDeletableComponent}}
+            <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
+                <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
+                  {{t common.delete}}
+                </a>
+            </li>
+        {{/if}}
       </ul>
     </div>
   {{/if}}
