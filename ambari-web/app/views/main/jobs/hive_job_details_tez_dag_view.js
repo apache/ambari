@@ -361,6 +361,32 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         edgeType : e.get('edgeType')
       });
     });
+    // Sort nodes so that parents stay together
+    for ( var depth = 0; depth < depthToNodes.length; depth++) {
+      var nodes = depthToNodes[depth];
+      nodes.sort(function(n1, n2) {
+        var ck1 = '';
+        var ck2 = '';
+        if (n1.children) {
+          n1.children.forEach(function(c) {
+            ck1 += c.name;
+          });
+        }
+        if (n2.children) {
+          n2.children.forEach(function(c) {
+            ck2 += c.name;
+          });
+        }
+        if (ck1 < ck2) {
+          return -1
+        }
+        if (ck1 > ck2) {
+          return 1
+        }
+        return 0
+      });
+      depthToNodes[depth] = nodes;
+    }
 
     //
     // LAYOUT - Now with correct depth, we calculate layouts
@@ -402,7 +428,16 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           updateNodeEffectiveWidth(node, xGap + node.width);
         }
         if (node.children && node.children.length > 0) {
-          updateNodeEffectiveWidth(node, node.children.length * (xGap + node.width));
+          // There can be dedicated or shared children.
+          // Dedicated children increase effective width of parent by their
+          // width.
+          // Shared children increase effective width of parent only by the
+          // fraction of parentage
+          var childrenWidth = 0;
+          node.children.forEach(function(child) {
+            childrenWidth += ((node.width + xGap) / child.parents.length);
+          });
+          updateNodeEffectiveWidth(node, Math.max(childrenWidth, (node.width+xGap)));
         } else {
           updateNodeEffectiveWidth(node, xGap + node.width);
         }
@@ -423,16 +458,22 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         var node = nodes[nodeIndex];
         var parentsKey = null;
         if (node.parents != null && node.parents.length > 0) {
-          var parentStart = 0;
+          var parentMidX = 0;
           var parentsKey = '';
+          var childrenEffectiveWidth = -1;
           node.parents.forEach(function(parent) {
-            parentStart += (parent.x - ((parent.effectiveWidth - parent.width) / 2));
+            parentMidX += (parent.x + (parent.width / 2));
             parentsKey += (parent.id + '//');
+            if (childrenEffectiveWidth < 0) {
+              parent.children.forEach(function(c){
+                childrenEffectiveWidth += (c.effectiveWidth);
+              });
+            }
           });
-          parentStart = parentStart / node.parents.length;
+          parentMidX = parentMidX / node.parents.length;
           var parentCurrentX = parentCurrentXMap[parentsKey];
           if (parentCurrentX == null || parentCurrentX == undefined) {
-            parentCurrentX = parentStart - ((node.effectiveWidth - node.width) / 2) + (xGap / 2);
+            parentCurrentX = parentMidX - (childrenEffectiveWidth/2);
             parentCurrentXMap[parentsKey] = parentCurrentX;
           }
           currentX = parentCurrentX;
@@ -598,6 +639,19 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     $('.svg-tooltip').tooltip({
       placement : 'left'
     });
+
+    if (App.supports.debugJobsDag) {
+      // Draws node bounding box - for debug purposes
+      node.append("rect").attr("width", function(n) {
+        return n.effectiveWidth;
+      }).attr("height", function(n) {
+        return n.height;
+      }).attr("x", function(n) {
+        return -1 * ((n.effectiveWidth - n.width) / 2);
+      }).attr("y", function(n) {
+        return 0;
+      }).attr("style", "opacity: 0.2;fill:yellow;");
+    }
 
     // Position in center
     var translateX = Math.round((width - canvasWidth) / 2);
