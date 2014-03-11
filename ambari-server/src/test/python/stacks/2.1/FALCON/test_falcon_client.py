@@ -38,9 +38,18 @@ class TestFalconClient(RMFTestCase):
                               owner = 'falcon',
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
-                              content=Template('falcon-env.sh.j2'),
+                              content = Template('falcon-env.sh.j2'),
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
-                              content=Template('client.properties.j2'),
-                              mode=0644, )
+                              content = Template('client.properties.j2'),
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
+                              mode = 0644,
+                              properties = self.getConfig()['configurations']['falcon-runtime.properties'],
+                              )
+    self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
+                              mode = 0644,
+                              properties = self.getConfig()['configurations']['falcon-startup.properties'],
+                              )
     self.assertNoMoreResources()

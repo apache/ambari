@@ -21,24 +21,32 @@ from resource_management import *
 
 def falcon(type, action = None):
   import params
-  Directory(params.falcon_pid_dir,
-            owner=params.falcon_user
-  )
-  Directory(params.falcon_log_dir,
-            owner=params.falcon_user
-  )
-  Directory(params.falcon_webapp_dir,
-            owner=params.falcon_user
-  )
-  File(params.falcon_conf_dir + '/falcon-env.sh',
-       content=Template('falcon-env.sh.j2')
-  )
-  if type == 'client':
-    if action == 'config':
-      File(params.falcon_conf_dir + '/client.properties',
-           content=Template('client.properties.j2'),
-           mode=0644)
-  elif type == 'server':
+  if action == 'config':
+    Directory(params.falcon_pid_dir,
+              owner=params.falcon_user
+    )
+    Directory(params.falcon_log_dir,
+              owner=params.falcon_user
+    )
+    Directory(params.falcon_webapp_dir,
+              owner=params.falcon_user
+    )
+    File(params.falcon_conf_dir + '/falcon-env.sh',
+         content=Template('falcon-env.sh.j2')
+    )
+    File(params.falcon_conf_dir + '/client.properties',
+         content=Template('client.properties.j2'),
+         mode=0644
+    )
+    PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
+                   properties=params.falcon_runtime_properties,
+                   mode=0644
+    )
+    PropertiesFile(params.falcon_conf_dir + '/startup.properties',
+                   properties=params.falcon_startup_properties,
+                   mode=0644
+    )
+  if type == 'server':
     if action == 'config':
       if params.store_uri[0:4] == "hdfs":
         params.HdfsDirectory(params.store_uri,
@@ -59,14 +67,6 @@ def falcon(type, action = None):
       Directory(params.falcon_data_dir,
                 owner=params.falcon_user,
                 recursive=True
-      )
-      PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
-                     properties=params.falcon_runtime_properties,
-                     mode=0644
-      )
-      PropertiesFile(params.falcon_conf_dir + '/startup.properties',
-                     properties=params.falcon_startup_properties,
-                     mode=0644
       )
     if action == 'start':
       Execute(format('env JAVA_HOME={java_home} FALCON_LOG_DIR={falcon_log_dir} '
