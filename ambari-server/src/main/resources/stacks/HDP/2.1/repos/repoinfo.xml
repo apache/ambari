@@ -19,56 +19,56 @@
   <os type="centos6">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="centos5">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="redhat6">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="redhat5">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="oraclelinux6">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="oraclelinux5">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="suse11">
     <repo>
       <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="sles11">
     <repo>
       <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>
-      <repoid>HDP-2.1.1</repoid>
+      <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
