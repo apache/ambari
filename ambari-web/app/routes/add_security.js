@@ -48,10 +48,10 @@ module.exports = App.WizardRoute.extend({
                   self.proceedOnClose();
                   return;
                 }
-                var applyingConfigStage = router.get('mainAdminSecurityAddStep4Controller.stages').findProperty('stage', 'stage3');
-                if (applyingConfigStage) {
-                  if (!applyingConfigStage.get('isCompleted')) {
-                    if (applyingConfigStage.get('isStarted')) {
+                var applyingConfigCommand = router.get('mainAdminSecurityAddStep4Controller.commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+                if (applyingConfigCommand) {
+                  if (!applyingConfigCommand.get('isCompleted')) {
+                    if (applyingConfigCommand.get('isStarted')) {
                       App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
                     } else {
                       App.showConfirmationPopup(function () {
@@ -69,7 +69,7 @@ module.exports = App.WizardRoute.extend({
                 }
               }
               router.get('mainAdminSecurityAddStep4Controller').clearStep();
-              App.db.setSecurityDeployStages(undefined);
+              App.db.setSecurityDeployCommands(undefined);
               self.proceedOnClose();
             },
             proceedOnClose: function () {
@@ -79,7 +79,7 @@ module.exports = App.WizardRoute.extend({
               router.set('addSecurityController.content.serviceConfigProperties', null);
               App.router.get('updateController').set('isWorking', true);
               mainAdminSecurityController.setAddSecurityWizardStatus(null);
-              App.db.setSecurityDeployStages(undefined);
+              App.db.setSecurityDeployCommands(undefined);
               router.get('addSecurityController').setCurrentStep(1);
               App.clusterStatus.setClusterStatus({
                 clusterName: router.get('content.cluster.name'),
@@ -196,7 +196,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
-      App.db.setSecurityDeployStages(undefined);
+      App.db.setSecurityDeployCommands(undefined);
       router.transitionTo('step4');
     }
   }),

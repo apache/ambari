@@ -41,7 +41,7 @@ App.MainAdminSecurityAddStep2View = Em.View.extend({
 
   onRealmNameChange: function () {
     this.get('configProperties').forEach(function (_globalProperty) {
-      if (/principal_name?$/.test(_globalProperty.get('name'))) {
+      if (/principal_name?$/.test(_globalProperty.get('name')) || _globalProperty.get('name') == 'namenode_principal_name_falcon') {
         _globalProperty.set('unit', '@' + this.get('realmName.value'));
       }
     }, this);

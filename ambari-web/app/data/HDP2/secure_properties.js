@@ -1074,6 +1074,88 @@ module.exports =
       "isOverridable": false,
       "serviceName": "GENERAL",
       "category": "AMBARI"
+    },
+
+  /**********************************************Falcon***************************************/
+    {
+      "id": "puppet var",
+      "name": "falcon_server_host",
+      "displayName": "Falcon server host",
+      "value": "",
+      "defaultValue": "",
+      "description": "Falcon Server host",
+      "displayType": "masterHost",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "FALCON",
+      "category": "Falcon Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon_principal_name",
+      "displayName": "Falcon principal name",
+      "value": "",
+      "defaultValue": "falcon/_HOST",
+      "description": "This is the principal name for Falcon Server",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "FALCON",
+      "category": "Falcon Server",
+      "component": "FALCON_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon_keytab",
+      "displayName": "Path to Falcon server keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/falcon.service.keytab",
+      "description": "Path to the Falcon Server keytab file",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "FALCON",
+      "category": "Falcon Server",
+      "component": "FALCON_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon_http_principal_name",
+      "displayName": "Web principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for SPNEGO access to Falcon",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "FALCON",
+      "category": "Falcon Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon_http_keytab",
+      "displayName": "Path to SPNEGO keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to SPNEGO keytab file for Falcon",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "FALCON",
+      "category": "Falcon Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "namenode_principal_name_falcon",
+      "displayName": "NameNode principal name",
+      "value": "",
+      "defaultValue": "nn/_HOST",
+      "description": "NameNode principal to talk to config store",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "FALCON",
+      "category": "Falcon Server"
     }
   ]
 };

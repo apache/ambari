@@ -35,9 +35,9 @@ module.exports = [
   },
   {
     "name": "hadoop.security.auth_to_local",
-    "templateName": ["resourcemanager_primary_name", "kerberos_domain", "yarn_user", "nodemanager_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user","hbase_regionserver_primary_name","oozie_primary_name","oozie_user","jobhistory_primary_name","mapred_user","journalnode_principal_name"],
+    "templateName": ["resourcemanager_primary_name", "kerberos_domain", "yarn_user", "nodemanager_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user","hbase_regionserver_primary_name","oozie_primary_name","oozie_user","jobhistory_primary_name","mapred_user","journalnode_principal_name","falcon_primary_name","falcon_user"],
     "foreignKey": null,
-    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/\nRULE:[2:$1@$0](<templateName[12]>@.*<templateName[1]>)s/.*/<templateName[13]>/\nRULE:[2:$1@$0](<templateName[14]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nDEFAULT",
+    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/\nRULE:[2:$1@$0](<templateName[12]>@.*<templateName[1]>)s/.*/<templateName[13]>/\nRULE:[2:$1@$0](<templateName[14]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[15]>@.*<templateName[1]>)s/.*/<templateName[16]>/\nDEFAULT",
     "filename": "core-site.xml",
     "serviceName": "HDFS",
     "dependedServiceName": [{name: "HBASE", replace: "\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/"},{name: "OOZIE",replace: "\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/"},{name: "MAPREDUCE2",replace: "\nRULE:[2:$1@$0](<templateName[12]>@.*<templateName[1]>)s/.*/<templateName[13]>/"}]
@@ -514,6 +514,57 @@ module.exports = [
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
   },
+
+  /***************************************FALCON***********************************************/
+  {
+    "name": "*.falcon.http.authentication.type",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "kerberos",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  {
+    "name": "*.falcon.service.authentication.kerberos.principal",
+    "templateName": ["falcon_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  {
+    "name": "*.falcon.service.authentication.kerberos.keytab",
+    "templateName": ["falcon_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  {
+    "name": "*.falcon.http.authentication.kerberos.principal",
+    "templateName": ["falcon_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  {
+    "name": "*.falcon.http.authentication.kerberos.keytab",
+    "templateName": ["falcon_http_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  {
+    "name": "*.dfs.namenode.kerberos.principal",
+    "templateName": ["namenode_principal_name_falcon", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "falcon-startup.properties.xml",
+    "serviceName": "FALCON"
+  },
+  /******************************************************************************************/
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],

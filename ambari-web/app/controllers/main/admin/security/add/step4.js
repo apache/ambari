@@ -22,15 +22,14 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   name: 'mainAdminSecurityAddStep4Controller',
 
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
-  totalSteps: 3,
 
   secureServices: function() {
     return  this.get('content.services');
   }.property('content.services'),
 
   isBackBtnDisabled: function () {
-    return !this.get('stages').someProperty('isError', true);
-  }.property('stages.@each.isCompleted'),
+    return !this.get('commands').someProperty('isError', true);
+  }.property('commands.@each.isCompleted'),
 
   isOozieSelected: function () {
     return this.get('secureServices').someProperty('serviceName', 'OOZIE');
@@ -54,76 +53,71 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   isSecurityApplied: function () {
-    return this.get('stages').someProperty('stage', 'stage3') && this.get('stages').findProperty('stage', 'stage3').get('isSuccess');
-  }.property('stages.@each.isCompleted'),
+    return this.get('commands').someProperty('name', 'START_SERVICES') && this.get('commands').findProperty('name', 'START_SERVICES').get('isSuccess');
+  }.property('commands.@each.isCompleted'),
 
   clearStep: function () {
-    this.get('stages').clear();
+    this.set('commands',[]);
     this.set('isSubmitDisabled', true);
     this.set('isBackBtnDisabled', true);
     this.get('serviceConfigTags').clear();
   },
 
-  loadStages: function () {
-    var stages = [
-      App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true, name: 'STOP_SERVICES', isVisible: true}),
-      App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false, name: 'APPLY_CONFIGURATIONS', isVisible: true}),
-      App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true, name: 'START_SERVICES', isVisible: true})
-    ];
+  loadCommands: function () {
+    this._super();
     // no need to remove ATS component if YARN and ATS are not installed
-    if (this.get('secureServices').findProperty('serviceName', 'YARN') && !App.get('stackDependedComponents').findProperty('componentName', 'APP_TIMELINE_SERVER')) {
-      stages.splice(2, 0, App.Poll.create({stage: 'stage5', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false, name: 'DELETE_ATS', isVisible: false}));
+    if (this.get('secureServices').findProperty('serviceName', 'YARN') && App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER')) {
+      this.get('commands').splice(2, 0, App.Poll.create({name: 'DELETE_ATS', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false, isVisible: false}));
       this.set('totalSteps', 4);
     }
-    this.get('stages').pushObjects(stages);
   },
 
   loadStep: function () {
     this.set('secureMapping', require('data/secure_mapping').slice(0));
     this.clearStep();
-    var stages = App.db.getSecurityDeployStages();
+    var commands = App.db.getSecurityDeployCommands();
     this.prepareSecureConfigs();
-    if (stages && stages.length > 0) {
-      stages.forEach(function (_stage, index) {
-        stages[index] = App.Poll.create(_stage);
+    if (commands && commands.length > 0) {
+      commands.forEach(function (_command, index) {
+        commands[index] = App.Poll.create(_command);
       }, this);
-      if (stages.someProperty('isError', true)) {
-        this.get('stages').pushObjects(stages);
-        this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
+      if (commands.someProperty('isError', true)) {
+        this.get('commands').pushObjects(commands);
+        this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
         return;
-      } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
-        var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
-        runningStage.set('isStarted', false);
-        this.get('stages').pushObjects(stages);
+      } else if (commands.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
+        var runningCommand = commands.filterProperty('isStarted', true).findProperty('isCompleted', false);
+        runningCommand.set('isStarted', false);
+        this.get('commands').pushObjects(commands);
       } else {
-        this.get('stages').pushObjects(stages);
+        this.get('commands').pushObjects(commands);
       }
     } else {
-      this.loadStages();
-      this.addInfoToStages();
+      this.loadCommands();
+      this.addInfoToCommands();
       var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
       var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
-      var stopStage = this.get('stages').findProperty('name', 'STOP_SERVICES');
-      if (stopStage.get('name') === 'STOP_SERVICES' && stopAllOperation) {
-        stopStage.set('requestId', stopAllOperation.get('id'));
+      var stopCommand = this.get('commands').findProperty('name', 'STOP_SERVICES');
+      if (stopCommand.get('name') === 'STOP_SERVICES' && stopAllOperation) {
+        stopCommand.set('requestId', stopAllOperation.get('id'));
       }
     }
-    this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
-    this.moveToNextStage();
+    this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
+    this.moveToNextCommand();
   },
 
   enableSubmit: function () {
     var addSecurityController = App.router.get('addSecurityController');
-    if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
+    if (this.get('commands').someProperty('isError', true) || this.get('commands').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
-      if (this.get('stages').someProperty('isError', true)) {
+      if (this.get('commands').someProperty('isError', true)) {
         addSecurityController.setStepsEnable();
       }
     } else {
       this.set('isSubmitDisabled', true);
       addSecurityController.setLowerStepsDisable(4);
     }
-  }.observes('stages.@each.isCompleted'),
+  }.observes('commands.@each.isCompleted'),
 
   loadUiSideConfigs: function () {
     var uiConfig = [];
@@ -372,11 +366,9 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
         }
       }, this);
     } catch (err) {
-      var stage3 = this.get('stages').findProperty('stage', 'stage3');
-      if (stage3) {
-        stage3.set('isSuccess', false);
-        stage3.set('isError', true);
-      }
+      var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+      command.set('isSuccess', false);
+      command.set('isError', true);
       if (err) {
         console.log("Error: Error occurred while applying secure configs to the server. Error message: " + err);
       }
@@ -400,10 +392,10 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   },
 
   onDeleteComplete: function () {
-    var deleteAtsStage = this.get('stages').findProperty('name', 'DELETE_ATS');
+    var deleteAtsCommand = this.get('commands').findProperty('name', 'DELETE_ATS');
     console.warn('APP_TIMELINE_SERVER doesn\'t support security mode. It has been removed from YARN service ');
-    deleteAtsStage.set('isError', false);
-    deleteAtsStage.set('isSuccess', true);
+    deleteAtsCommand.set('isError', false);
+    deleteAtsCommand.set('isSuccess', true);
   },
 
   onDeleteError: function () {

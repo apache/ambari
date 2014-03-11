@@ -130,6 +130,27 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * fill principal _HOST part with actual hostname of component
+   * @param service
+   * @param hostConfigName
+   * @param principalConfigName
+   * @param defaultPrimaryName
+   */
+  setHostToPrincipal: function (service, hostConfigName, principalConfigName, defaultPrimaryName) {
+    if (service) {
+      var host = service.configs.findProperty('name', hostConfigName);
+      var principal = service.configs.findProperty('name', principalConfigName);
+      if (host && principal) {
+        if (host.defaultValue instanceof Array) {
+          host.defaultValue = host.defaultValue[0];
+        }
+        principal.defaultValue = defaultPrimaryName + host.defaultValue.toLowerCase();
+      }
+    }
+  },
+
+
   loadUsers: function () {
     var securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
@@ -214,79 +235,23 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     var mapReduce2Service = serviceConfigs.findProperty('serviceName', 'MAPREDUCE2');
     var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
     var stormService = serviceConfigs.findProperty('serviceName', 'STORM');
+    var falconService = serviceConfigs.findProperty('serviceName', 'FALCON');
 
-    if (oozieService) {
-      var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
-      var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
-      var oozieSpnegoPrincipal = oozieService.configs.findProperty('name', 'oozie_http_principal_name');
-      if (oozieServerHost && oozieServerPrincipal && oozieSpnegoPrincipal) {
-        oozieServerHost.defaultValue = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
-        oozieServerPrincipal.defaultValue = 'oozie/' + oozieServerHost.defaultValue.toLowerCase();
-        oozieSpnegoPrincipal.defaultValue = 'HTTP/' + oozieServerHost.defaultValue.toLowerCase();
-      }
-    }
-    if (hiveService) {
-      var hiveServerHost = hiveService.configs.findProperty('name', 'hive_metastore');
-      if (hiveServerHost) {
-        hiveServerHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
-      }
-    }
-    if (webHcatService) {
-      var webHcatHost = webHcatService.configs.findProperty('name', 'webhcatserver_host');
-      var webHcatSpnegoPrincipal = webHcatService.configs.findProperty('name', 'webHCat_http_principal_name');
-      if (webHcatHost && webHcatSpnegoPrincipal) {
-        webHcatHost.defaultValue = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
-        webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost.defaultValue.toLowerCase();
-      }
-    }
 
-    if (nagiosService) {
-      var nagiosServerHost = nagiosService.configs.findProperty('name', 'nagios_server');
-      var nagiosServerPrincipal = nagiosService.configs.findProperty('name', 'nagios_principal_name');
-      if (nagiosServerHost && nagiosServerPrincipal) {
-        nagiosServerHost.defaultValue = App.Service.find('NAGIOS').get('hostComponents').findProperty('componentName', 'NAGIOS_SERVER').get('host.hostName');
-        nagiosServerPrincipal.defaultValue = 'nagios/' + nagiosServerHost.defaultValue.toLowerCase();
-      }
-    }
-    if (hdfsService) {
-      var namenodeHost = hdfsService.configs.findProperty('name', 'namenode_host');
-      var sNamenodeHost = hdfsService.configs.findProperty('name', 'snamenode_host');
-      var jnHosts = hdfsService.configs.findProperty('name', 'journalnode_hosts');
-      var snComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE');
-      var jnComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'JOURNALNODE');
-      if (namenodeHost) {
-        namenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
-      }
-      if(sNamenodeHost && snComponent) {
-        sNamenodeHost.defaultValue = snComponent.get('host.hostName');
-      }
-      if(jnHosts && jnComponent) {
-        this.setHostsToConfig(hdfsService, 'journalnode_hosts', 'JOURNALNODE');
-      }
-    }
-    if (mapReduceService) {
-      var jobTrackerHost = mapReduceService.configs.findProperty('name', 'jobtracker_host');
-      if (jobTrackerHost) {
-        jobTrackerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
-      }
-      var jobHistoryServerHost = mapReduceService.configs.findProperty('name', 'jobhistoryserver_host');
-      if (jobHistoryServerHost) {
-        jobHistoryServerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
-      }
-    }
-    if (mapReduce2Service) {
-      var jobHistoryServerHost = mapReduce2Service.configs.findProperty('name', 'jobhistoryserver_host');
-      if (jobHistoryServerHost) {
-        jobHistoryServerHost.defaultValue = App.Service.find('MAPREDUCE2').get('hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
-      }
-    }
-    if (yarnService) {
-      var resourceManagerHost = yarnService.configs.findProperty('name', 'resourcemanager_host');
-      if (resourceManagerHost) {
-        resourceManagerHost.defaultValue = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
-      }
-    }
-
+    this.setHostsToConfig(oozieService, 'oozie_servername', 'OOZIE_SERVER');
+    this.setHostsToConfig(hiveService, 'hive_metastore', 'HIVE_SERVER');
+    this.setHostsToConfig(webHcatService, 'webhcatserver_host', 'WEBHCAT_SERVER');
+    this.setHostsToConfig(nagiosService, 'nagios_server', 'NAGIOS_SERVER');
+    this.setHostsToConfig(hdfsService, 'namenode_host', 'NAMENODE');
+    this.setHostsToConfig(hdfsService, 'snamenode_host', 'SECONDARY_NAMENODE');
+    this.setHostsToConfig(hdfsService, 'journalnode_hosts', 'JOURNALNODE');
+    this.setHostsToConfig(mapReduceService, 'jobtracker_host', 'JOBTRACKER');
+    this.setHostsToConfig(mapReduceService, 'jobhistoryserver_host', 'HISTORYSERVER');
+    this.setHostsToConfig(mapReduce2Service, 'jobhistoryserver_host', 'HISTORYSERVER');
+    this.setHostsToConfig(yarnService, 'resourcemanager_host', 'RESOURCEMANAGER');
+    this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');
+    this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
+    this.setHostsToConfig(falconService, 'falcon_server_host', 'FALCON_SERVER');
     if (stormService) {
       var stormMasterComponents = [
         {
@@ -302,8 +267,13 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         this.setHostsToConfig(stormService, masterComponent.configName, masterComponent.componentName);
       }, this);
     }
-    this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');
-    this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
+
+    // Oozie, webhcat and nagios does not support _HOST in the principal name. Actual hostname should be set instead of _HOST
+
+    this.setHostToPrincipal(oozieService, 'oozie_servername','oozie_principal_name','oozie/');
+    this.setHostToPrincipal(oozieService, 'oozie_servername','oozie_http_principal_name','HTTP/');
+    this.setHostToPrincipal(oozieService, 'webhcatserver_host','webHCat_http_principal_name','HTTP/');
+    this.setHostToPrincipal(oozieService, 'nagios_server','nagios_principal_name','nagios/');
   },
 
   changeCategoryOnHa: function (serviceConfigs, stepConfigs) {

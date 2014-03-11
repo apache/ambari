@@ -34,7 +34,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
       return require('data/secure_properties').configProperties;
     }
   }.property(App.isHadoop2Stack),
-  stages: [],
+  commands: [],
   configs: [],
   serviceConfigTags: [],
   globalProperties: [],
@@ -48,120 +48,118 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
 
 
   retry: function () {
-    var failedStage = this.get('stages').findProperty('isError', true);
-    if (failedStage) {
-      failedStage.set('isStarted', false);
-      failedStage.set('isError', false);
-      this.startStage(failedStage);
+    var failedCommand = this.get('commands').findProperty('isError', true);
+    if (failedCommand) {
+      failedCommand.set('isStarted', false);
+      failedCommand.set('isError', false);
+      this.startCommand(failedCommand);
     }
   },
 
   updateServices: function () {
     this.services.clear();
     var services = this.get("services");
-    this.get("stages").forEach(function (stage) {
+    this.get("commands").forEach(function (command) {
       var newService = Ember.Object.create({
-        name: stage.label,
+        name: command.label,
         hosts: []
       });
-      if (stage && stage.get("polledData")) {
-        var hostNames = stage.get("polledData").mapProperty('Tasks.host_name').uniq();
+      if (command && command.get("polledData")) {
+        var hostNames = command.get("polledData").mapProperty('Tasks.host_name').uniq();
         hostNames.forEach(function (name) {
           newService.hosts.push({
             name: name,
             publicName: name,
-            logTasks: stage.polledData.filterProperty("Tasks.host_name", name)
+            logTasks: command.polledData.filterProperty("Tasks.host_name", name)
           });
         });
         services.push(newService);
       }
     });
     this.set('serviceTimestamp', App.dateTime());
-  }.observes('stages.@each.polledData'),
+  }.observes('commands.@each.polledData'),
 
-  loadStages: function () {
-    this.get('stages').pushObjects([
-      App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true, name: 'STOP_SERVICES'}),
-      App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false, name: 'APPLY_CONFIGURATIONS'}),
-      App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true, name: 'START_SERVICES'})
+  loadCommands: function () {
+    this.get('commands').pushObjects([
+      App.Poll.create({name: 'STOP_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true }),
+      App.Poll.create({name: 'APPLY_CONFIGURATIONS', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false }),
+      App.Poll.create({name: 'START_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true })
     ]);
   },
 
-  startStage: function (currentStage) {
-    if (this.get('stages').length === this.totalSteps) {
-      if (!currentStage) {
-        var startedStages = this.get('stages').filterProperty('isStarted', true);
-        currentStage = startedStages.findProperty('isCompleted', false);
+  startCommand: function (commnad) {
+    if (this.get('commands').length === this.totalSteps) {
+      if (!commnad) {
+        var startedCommand = this.get('commands').filterProperty('isStarted', true);
+        commnad = startedCommand.findProperty('isCompleted', false);
       }
-      if (currentStage && currentStage.get('isPolling') === true) {
-        currentStage.set('isStarted', true);
-        currentStage.start();
-      } else if (currentStage && currentStage.get('name') === 'APPLY_CONFIGURATIONS') {
-        currentStage.set('isStarted', true);
+      if (commnad && commnad.get('isPolling') === true) {
+        commnad.set('isStarted', true);
+        commnad.start();
+      } else if (commnad && commnad.get('name') === 'APPLY_CONFIGURATIONS') {
+        commnad.set('isStarted', true);
         if (App.testMode) {
-          currentStage.set('isError', false);
-          currentStage.set('isSuccess', true);
+          commnad.set('isError', false);
+          commnad.set('isSuccess', true);
         } else {
           this.loadClusterConfigs();
         }
-      } else if (currentStage && currentStage.get('name') === 'DELETE_ATS') {
-        currentStage.set('isStarted', true);
+      } else if (commnad && commnad.get('name') === 'DELETE_ATS') {
+        commnad.set('isStarted', true);
         if (App.testMode) {
-          currentStage.set('isError', false);
-          currentStage.set('isSuccess', true);
+          commnad.set('isError', false);
+          commnad.set('isSuccess', true);
         } else {
           var timeLineServer = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
-          if (timeLineServer && !App.router.get('mainAdminSecurityController.securityEnabled')) {
-            this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('host.hostName'));
-          }
+          this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('host.hostName'));
         }
       }
     }
   },
 
 
-  onCompleteStage: function () {
-    if (this.get('stages').length === this.totalSteps) {
-      var index = this.get('stages').filterProperty('isSuccess', true).length;
+  onCompleteCommand: function () {
+    if (this.get('commands').length === this.totalSteps) {
+      var index = this.get('commands').filterProperty('isSuccess', true).length;
       if (index > 0) {
-        var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
-        if (lastCompletedStageResult) {
-          var nextStage = this.get('stages').objectAt(index);
-          this.moveToNextStage(nextStage);
+        var lastCompletedCommandResult = this.get('commands').objectAt(index - 1).get('isSuccess');
+        if (lastCompletedCommandResult) {
+          var nextCommand = this.get('commands').objectAt(index);
+          this.moveToNextCommand(nextCommand);
         }
       }
     }
   },
 
-  moveToNextStage: function (nextStage) {
-    if (!nextStage) {
-      nextStage = this.get('stages').findProperty('isStarted', false);
+  moveToNextCommand: function (nextCommand) {
+    if (!nextCommand) {
+      nextCommand = this.get('commands').findProperty('isStarted', false);
     }
-    if (nextStage) {
-      this.startStage(nextStage);
+    if (nextCommand) {
+      this.startCommand(nextCommand);
     }
   },
 
-  addInfoToStages: function () {
-    this.addInfoToStage2();
-    this.addInfoToStage4();
+  addInfoToCommands: function () {
+    this.addInfoToStopService();
+    this.addInfoToStartServices();
   },
 
 
-  addInfoToStage2: function () {
-    var stage2 = this.get('stages').findProperty('stage', 'stage2');
+  addInfoToStopService: function () {
+    var command = this.get('commands').findProperty('name', 'STOP_SERVICES');
     var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
     var data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.stopAllServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    stage2.set('url', url);
-    stage2.set('data', data);
+    command.set('url', url);
+    command.set('data', data);
   },
 
-  addInfoToStage4: function () {
-    var stage4 = this.get('stages').findProperty('stage', 'stage4');
+  addInfoToStartServices: function () {
+    var command = this.get('commands').findProperty('name', 'START_SERVICES');
     var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services?params/run_smoke_test=true';
     var data = '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
-    stage4.set('url', url);
-    stage4.set('data', data);
+    command.set('url', url);
+    command.set('data', data);
   },
 
   loadClusterConfigs: function () {
@@ -183,11 +181,9 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   },
 
   loadClusterConfigsErrorCallback: function (request, ajaxOptions, error) {
-    var stage3 = this.get('stages').findProperty('stage', 'stage3');
-    if (stage3) {
-      stage3.set('isSuccess', false);
-      stage3.set('isError', true);
-    }
+    var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+    command .set('isSuccess', false);
+    command .set('isError', true);
     console.log("TRACE: error code status is: " + request.status);
   },
 
@@ -239,17 +235,15 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   },
 
   applyConfigurationToClusterSuccessCallback: function (data) {
-    var currentStage = this.get('stages').findProperty('stage', 'stage3');
-    currentStage.set('isSuccess', true);
-    currentStage.set('isError', false);
+    var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+    command.set('isSuccess', true);
+    command.set('isError', false);
   },
 
   applyConfigurationToClusterErrorCallback: function (request, ajaxOptions, error) {
-    var stage3 = this.get('stages').findProperty('stage', 'stage3');
-    if (stage3) {
-      stage3.set('isSuccess', false);
-      stage3.set('isError', true);
-    }
+    var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+    command.set('isSuccess', false);
+    command.set('isError', true);
   },
 
   /**
@@ -275,14 +269,12 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
 
   getAllConfigurationsSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
     this.get('serviceConfigTags').forEach(function (_tag) {
       if (!data.items.someProperty('type', _tag.siteName)) {
         console.log("Error: Metadata for secure services (secure_configs.js) is having config tags that are not being retrieved from server");
-        if (stage3) {
-          stage3.set('isSuccess', false);
-          stage3.set('isError', true);
-        }
+        command.set('isSuccess', false);
+        command.set('isError', true);
       }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
@@ -293,11 +285,9 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   },
 
   getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {
-    var stage3 = this.get('stages').findProperty('stage', 'stage3');
-    if (stage3) {
-      stage3.set('isSuccess', false);
-      stage3.set('isError', true);
-    }
+    var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+    command.set('isSuccess', false);
+    command.set('isError', true);
     console.log("TRACE: In error function for the getServiceConfigsFromServer call");
     console.log("TRACE: error code status is: " + request.status);
   },
@@ -323,35 +313,34 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     }
   },
 
-  saveStagesOnRequestId: function () {
-    this.saveStages();
-  }.observes('stages.@each.requestId'),
+  saveCommandsOnRequestId: function () {
+    this.saveCommands();
+  }.observes('commands.@each.requestId'),
 
-  saveStagesOnCompleted: function () {
-    this.saveStages();
-  }.observes('stages.@each.isCompleted'),
+  saveCommandsOnCompleted: function () {
+    this.saveCommands();
+  }.observes('commands.@each.isCompleted'),
 
-  saveStages: function () {
-    var stages = [];
-    if (this.get('stages').length === this.totalSteps) {
-      this.get('stages').forEach(function (_stage) {
-        var stage = {
-          name: _stage.get('name'),
-          stage: _stage.get('stage'),
-          label: _stage.get('label'),
-          isPolling: _stage.get('isPolling'),
-          isVisible:  _stage.get('isVisible'),
-          isStarted: _stage.get('isStarted'),
-          requestId: _stage.get('requestId'),
-          isSuccess: _stage.get('isSuccess'),
-          isError: _stage.get('isError'),
-          url: _stage.get('url'),
-          polledData: _stage.get('polledData'),
-          data: _stage.get('data')
+  saveCommands: function () {
+    var commands = [];
+    if (this.get('commands').length === this.totalSteps) {
+      this.get('commands').forEach(function (_command) {
+        var command = {
+          name: _command.get('name'),
+          label: _command.get('label'),
+          isPolling: _command.get('isPolling'),
+          isVisible:  _command.get('isVisible'),
+          isStarted: _command.get('isStarted'),
+          requestId: _command.get('requestId'),
+          isSuccess: _command.get('isSuccess'),
+          isError: _command.get('isError'),
+          url: _command.get('url'),
+          polledData: _command.get('polledData'),
+          data: _command.get('data')
         };
-        stages.pushObject(stage);
+        commands.pushObject(command);
       }, this);
-      App.db.setSecurityDeployStages(stages);
+      App.db.setSecurityDeployCommands(commands);
       if (!App.testMode) {
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),

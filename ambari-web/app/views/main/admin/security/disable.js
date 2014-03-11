@@ -28,18 +28,17 @@ App.MainAdminSecurityDisableView = Em.View.extend({
   msgColor: 'alert-info',
   message: Em.I18n.t('admin.security.disable.body.header'),
   onResult: function () {
-    var stage1 = this.get('controller.stages').findProperty('stage', 'stage2');
-    var stage2 = this.get('controller.stages').findProperty('stage', 'stage3');
-    var stage3 = this.get('controller.stages').findProperty('stage', 'stage4');
-    if (stage2 && stage2.get('isSuccess') === true ) {
+    var stopServiceCommand = this.get('controller.commands').findProperty('name', 'STOP_SERVICES');
+    var applyConfigCommand = this.get('controller.commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+    if (applyConfigCommand && applyConfigCommand.get('isSuccess') === true ) {
       this.set('message', Em.I18n.t('admin.security.disable.body.success.header'));
       this.set('msgColor', 'alert-success');
-    } else if ((stage1 && stage1.get('isError') === true) || (stage2 && stage2.get('isError') === true)) {
+    } else if ((stopServiceCommand && stopServiceCommand.get('isError') === true) || (applyConfigCommand && applyConfigCommand.get('isError') === true)) {
       this.set('message', Em.I18n.t('admin.security.disable.body.failure.header'));
       this.set('msgColor', 'alert-error');
     } else {
       this.set('message', Em.I18n.t('admin.security.disable.body.header'));
       this.set('msgColor', 'alert-info');
     }
-  }.observes('controller.stages.@each.isCompleted')
+  }.observes('controller.commands.@each.isCompleted')
 });

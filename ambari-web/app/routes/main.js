@@ -477,9 +477,9 @@ module.exports = Em.Route.extend({
                     self.proceedOnClose();
                     return;
                   }
-                  var applyingConfigStage = controller.get('stages').findProperty('stage', 'stage3');
-                  if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
-                    if (applyingConfigStage.get('isStarted')) {
+                  var applyingConfigCommand = controller.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+                  if (applyingConfigCommand && !applyingConfigCommand.get('isCompleted')) {
+                    if (applyingConfigCommand.get('isStarted')) {
                       App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
                     } else {
                       App.showConfirmationPopup(function () {
@@ -492,7 +492,7 @@ module.exports = Em.Route.extend({
                 },
                 proceedOnClose: function () {
                   router.get('mainAdminSecurityDisableController').clearStep();
-                  App.db.setSecurityDeployStages(undefined);
+                  App.db.setSecurityDeployCommands(undefined);
                   App.router.get('updateController').set('isWorking', true);
                   router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
                   App.clusterStatus.setClusterStatus({

@@ -39,10 +39,10 @@ App.StageLabelView = Em.View.extend({
      this.set('removeLink','remove-link');
    }
   }.observes('showLink'),
-  stage: null,
+  command: null,
   click: function () {
-    if (this.get('stage') && this.get('showLink')) {
-      this.showHostPopup(this.get('stage.label'));
+    if (this.get('command') && this.get('showLink')) {
+      this.showHostPopup(this.get('command.label'));
     }
   },
 
@@ -56,12 +56,12 @@ App.StageLabelView = Em.View.extend({
   },
 
   isStarted: function () {
-    return  (this.get('stage') && this.get('stage.isStarted'));
-  }.property('stage.isStarted'),
+    return  (this.get('command') && this.get('command.isStarted'));
+  }.property('command.isStarted'),
 
   showLink: function () {
-    return (this.get('stage') && this.get('stage.showLink'));
-  }.property('stage.showLink')
+    return (this.get('command') && this.get('command.showLink'));
+  }.property('command.showLink')
 });
 
 App.StageSuccessView = Em.View.extend({
@@ -73,9 +73,9 @@ App.StageFailureView = Em.View.extend({
 });
 
 App.StageInProgressView = Em.View.extend({
-  stage: null,
+  command: null,
   classNames: ['progress-striped', 'active', 'progress'],
-  template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="stage.barWidth"}}></div>'),
+  template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="command.barWidth"}}></div>'),
 
   isStageCompleted: function () {
     return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');

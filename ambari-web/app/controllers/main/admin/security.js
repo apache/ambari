@@ -220,7 +220,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
         header: Em.I18n.t('popup.confirmation.commonHeader'),
         primary: Em.I18n.t('ok'),
         onPrimary: function () {
-          App.db.setSecurityDeployStages(undefined);
+          App.db.setSecurityDeployCommands(undefined);
           self.setDisableSecurityStatus("RUNNING");
           App.router.transitionTo('disableSecurity');
           this.hide();
@@ -311,68 +311,35 @@ App.MainAdminSecurityController = Em.Controller.extend({
   },
 
   loadUsers: function (configs) {
+    this.setUserName('hdfs_user',configs, 'hdfs');
+    this.setUserName('yarn_user',configs, 'yarn');
+    this.setUserName('mapred_user',configs, 'mapred');
+    this.setUserName('hbase_user',configs, 'hbase');
+    this.setUserName('hive_user',configs, 'hive');
+    this.setUserName('proxyuser_group',configs, 'users');
+    this.setUserName('smokeuser',configs, 'ambari-qa');
+    this.setUserName('zk_user',configs, 'zookeeper');
+    this.setUserName('oozie_user',configs, 'oozie');
+    this.setUserName('nagios_user',configs, 'nagios');
+    this.setUserName('user_group',configs, 'hadoop');
+    this.setUserName('storm_user',configs, 'storm');
+    this.setUserName('falcon_user',configs,'falcon');
+    App.db.setSecureUserInfo(this.get('serviceUsers'));
+  },
+
+  /**
+   *
+   * @param name
+   * @param configs
+   * @param defaultValue
+   */
+  setUserName: function(name,configs,defaultValue) {
     var serviceUsers = this.get('serviceUsers');
     serviceUsers.pushObject({
       id: 'puppet var',
-      name: 'hdfs_user',
-      value: configs['hdfs_user'] ? configs['hdfs_user'] : 'hdfs'
+      name: name,
+      value: configs[name] ? configs[name] : defaultValue
     });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'yarn_user',
-      value: configs['yarn_user'] ? configs['yarn_user'] : 'yarn'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'mapred_user',
-      value: configs['mapred_user'] ? configs['mapred_user'] : 'mapred'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'hbase_user',
-      value: configs['hbase_user'] ? configs['hbase_user'] : 'hbase'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'hive_user',
-      value: configs['hive_user'] ? configs['hive_user'] : 'hive'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'proxyuser_group',
-      value: configs['proxyuser_group'] ? configs['proxyuser_group'] : 'users'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'smokeuser',
-      value: configs['smokeuser'] ? configs['smokeuser'] : 'ambari-qa'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'zk_user',
-      value: configs['zk_user'] ? configs['zk_user'] : 'zookeeper'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'oozie_user',
-      value: configs['oozie_user'] ? configs['oozie_user'] : 'oozie'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'nagios_user',
-      value: configs['nagios_user'] ? configs['nagios_user'] : 'nagios'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'user_group',
-      value: configs['user_group'] ? configs['user_group'] : 'hadoop'
-    });
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: 'storm_user',
-      value: configs['storm_user'] ? configs['storm_user'] : 'storm'
-    });
-    App.db.setSecureUserInfo(serviceUsers);
   },
 
   showSecurityErrorPopup: function () {

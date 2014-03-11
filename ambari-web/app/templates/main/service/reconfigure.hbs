@@ -18,36 +18,36 @@
 
 <table id="security-stages" class="table no-borders">
   <tbody>
-  {{#each stage in controller.stages}}
-    {{#if stage.isVisible}}
+  {{#each command in controller.commands}}
+    {{#if command.isVisible}}
       <tr>
         <td>
-          {{#view App.StageLabelView stageBinding="stage"}}
-            <p {{bindAttr class="view.isStarted::faintText"}}>{{stage.label}}</p>
+          {{#view App.StageLabelView commandBinding="command"}}
+            <p {{bindAttr class="view.isStarted::faintText"}}>{{command.label}}</p>
           {{/view}}
         </td>
         <td>
-          {{#if stage.isCompleted}}
-            {{#if stage.isSuccess}}
+          {{#if command.isCompleted}}
+            {{#if command.isSuccess}}
               {{view App.StageSuccessView}}
             {{else}}
-              {{#if stage.isError}}
+              {{#if command.isError}}
                 {{view App.StageFailureView}}
               {{/if}}
             {{/if}}
           {{else}}
-            {{#if stage.isStarted}}
-              {{#if stage.isPolling}}
+            {{#if command.isStarted}}
+              {{#if command.isPolling}}
                 <div class="progress-bar pull-left">
-                  {{view App.StageInProgressView stageBinding=stage}}
+                  {{view App.StageInProgressView commandBinding=command}}
                 </div>
-                <div class="progress-percentage pull-left">{{stage.progress}}%</div>
+                <div class="progress-percentage pull-left">{{command.progress}}%</div>
               {{/if}}
             {{/if}}
           {{/if}}
         </td>
         <td>
-          {{#if stage.isError}}
+          {{#if command.isError}}
             <a class="btn btn-primary"
                href="javascript:void(null)" {{action retry target = "controller"}}><i
                     class="icon-repeat icon-white"></i>

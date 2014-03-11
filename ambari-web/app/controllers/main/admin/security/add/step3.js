@@ -46,7 +46,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var result = [];
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
       'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER','JOURNALNODE',
-      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER'];
+      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER','FALCON_SERVER'];
     var securityUsers = [];
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
       securityUsers = this.getSecurityUsers();
@@ -67,6 +67,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var nagiosUserId = securityUsers.findProperty('name', 'nagios_user').value;
     var hadoopGroupId = securityUsers.findProperty('name', 'user_group').value;
     var stormUserId = securityUsers.findProperty('name', 'storm_user').value;
+    var falconUserId =  securityUsers.findProperty('name', 'falcon_user').value;
 
     var smokeUser = smokeUserId + '@' + realm;
     var hdfsUser = hdfsUserId + '@' + realm;
@@ -98,7 +99,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'HBASE_REGIONSERVER': hbaseUserId,
       'SUPERVISOR': stormUserId,
       'NIMBUS': stormUserId,
-      'STORM_UI_SERVER': stormUserId
+      'STORM_UI_SERVER': stormUserId,
+      'FALCON_SERVER': falconUserId
     };
 
     var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
@@ -154,6 +156,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       this.setComponentConfig(result,host,'JOURNALNODE','HDFS','hadoop_http_principal_name','hadoop_http_keytab',Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),hadoopGroupId);
       this.setComponentConfig(result,host,'WEBHCAT_SERVER','WEBHCAT','webHCat_http_principal_name','webhcat_http_keytab',Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),hadoopGroupId);
       this.setComponentConfig(result,host,'OOZIE_SERVER','OOZIE','oozie_http_principal_name','oozie_http_keytab',Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'FALCON_SERVER','FALCON','falcon_http_principal_name','falcon_http_keytab',Em.I18n.t('admin.addSecurity.falcon.user.httpUser'),hadoopGroupId);
       //Derive Principal name and Keytabs only if its HDP-2 stack
       if (App.get('isHadoop2Stack')) {
         this.setComponentConfig(result,host,'HISTORYSERVER','MAPREDUCE2','jobhistory_http_principal_name','jobhistory_http_keytab',Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),hadoopGroupId);
@@ -213,6 +216,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       securityUsers.pushObject({id: 'puppet var', name: 'yarn_user', value: 'yarn'});
       securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
       securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+      securityUsers.pushObject({id: 'puppet var', name: 'falcon_user', value: 'falcon'});
       securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
       securityUsers.pushObject({id: 'puppet var', name: 'zk_user', value: 'zookeeper'});
       securityUsers.pushObject({id: 'puppet var', name: 'oozie_user', value: 'oozie'});

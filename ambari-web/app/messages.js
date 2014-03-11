@@ -948,6 +948,7 @@ Em.I18n.translations = {
   'admin.addSecurity.historyServer.user.httpUser': 'History server SPNEGO User',
   'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
   'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
+  'admin.addSecurity.falcon.user.httpUser': 'Falcon SPNEGO User',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
     'Are you sure you want to quit? If you quit, ' +
     'you may have to re-run the security wizard from the beginning to enable security.',

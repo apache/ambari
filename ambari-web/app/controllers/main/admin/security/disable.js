@@ -23,53 +23,53 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
   secureServices: [],
 
   clearStep: function () {
-    this.get('stages').clear();
+    this.get('commands').clear();
     this.get('secureServices').clear();
     this.get('serviceConfigTags').clear();
   },
 
   loadStep: function () {
     this.clearStep();
-    var stages = App.db.getSecurityDeployStages();
-    if (stages && stages.length > 0) {
-      stages.forEach(function (_stage, index) {
-        stages[index] = App.Poll.create(_stage);
+    var commands = App.db.getSecurityDeployCommands();
+    if (commands && commands.length > 0) {
+      commands.forEach(function (_command, index) {
+        commands[index] = App.Poll.create(_command);
       }, this);
-      if (stages.someProperty('isError', true)) {
-        this.get('stages').pushObjects(stages);
+      if (commands.someProperty('isError', true)) {
+        this.get('commands').pushObjects(commands);
         this.loadSecureServices();
-        this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
+        this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
         return;
-      } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
-        var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
-        runningStage.set('isStarted', false);
-        this.get('stages').pushObjects(stages);
+      } else if (commands.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
+        var runningCommand = commands.filterProperty('isStarted', true).findProperty('isCompleted', false);
+        runningCommand.set('isStarted', false);
+        this.get('commands').pushObjects(commands);
       } else {
-        this.get('stages').pushObjects(stages);
+        this.get('commands').pushObjects(commands);
       }
     } else {
-      this.loadStages();
-      this.addInfoToStages();
+      this.loadCommands();
+      this.addInfoToCommands();
       var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
       var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
-      var stopStage = this.get('stages').findProperty('name', 'STOP_SERVICES');
-      if (stopStage.get('name') === 'STOP_SERVICES' && stopAllOperation) {
-        stopStage.set('requestId', stopAllOperation.get('id'));
+      var stopCommand = this.get('commands').findProperty('name', 'STOP_SERVICES');
+      if (stopCommand.get('name') === 'STOP_SERVICES' && stopAllOperation) {
+        stopCommand.set('requestId', stopAllOperation.get('id'));
       }
     }
     this.loadSecureServices();
-    this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
-    this.moveToNextStage();
+    this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
+    this.moveToNextCommand();
   },
 
 
   enableSubmit: function () {
-    if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
+    if (this.get('commands').someProperty('isError', true) || this.get('commands').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
     } else {
       this.set('isSubmitDisabled', true);
     }
-  }.observes('stages.@each.isCompleted'),
+  }.observes('commands.@each.isCompleted'),
 
 
   loadSecureServices: function () {
@@ -138,11 +138,9 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
         }
       }, this);
     } catch (err) {
-      var stage3 = this.get('stages').findProperty('stage', 'stage3');
-      if (stage3) {
-        stage3.set('isSuccess', false);
-        stage3.set('isError', true);
-      }
+      var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+      command.set('isSuccess', false);
+      command.set('isError', true);
       if (err) {
         console.log("Error: Error occurred while applying secure configs to the server. Error message: " + err);
       }

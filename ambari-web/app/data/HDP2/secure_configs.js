@@ -138,6 +138,16 @@ module.exports = [
     ],
     sites: ['storm-site'],
     configs: configProperties.filterProperty('serviceName', 'STORM')
+  },
+  {
+    serviceName: 'FALCON',
+    displayName: 'Falcon',
+    filename: 'falcon-startup.properties',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Falcon Server', displayName:  'Falcon Server startup properties'})
+    ],
+    sites: ['falcon-startup.properties'],
+    configs: configProperties.filterProperty('serviceName', 'FALCON')
   }
 
 

@@ -27,20 +27,19 @@ App.MainAdminSecurityAddStep4View = Em.View.extend({
   msgColor: 'alert-info',
   message: Em.I18n.t('admin.security.step4.body.header'),
   onResult: function () {
-    var stage1 = this.get('controller.stages').findProperty('stage', 'stage2');
-    var stage2 = this.get('controller.stages').findProperty('stage', 'stage3');
-    var stage3 = this.get('controller.stages').findProperty('stage', 'stage4');
-      if (stage2 && stage2.get('isSuccess') === true ) {
+    var stopServiceCommand = this.get('controller.commands').findProperty('name', 'STOP_SERVICES');
+    var applyConfigCommand = this.get('controller.commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+      if (applyConfigCommand && applyConfigCommand.get('isSuccess') === true ) {
         this.set('message', Em.I18n.t('admin.security.step4.body.success.header'));
         this.set('msgColor','alert-success');
-      } else if ((stage1 && stage1.get('isError') === true) || (stage2 && stage2.get('isError') === true)) {
+      } else if ((stopServiceCommand && stopServiceCommand.get('isError') === true) || (applyConfigCommand && applyConfigCommand.get('isError') === true)) {
         this.set('message', Em.I18n.t('admin.security.step4.body.failure.header'));
         this.set('msgColor','alert-error');
       } else {
         this.set('message', Em.I18n.t('admin.security.step4.body.header'));
         this.set('msgColor','alert-info');
       }
-  }.observes('controller.stages.@each.isCompleted')
+  }.observes('controller.commands.@each.isCompleted')
 
 });
 
@@ -49,23 +48,3 @@ App.StageStatusView = Em.View.extend({
   hasStarted: null,
   classNameBindings: ['faintText']
 });
-
-App.StageSuccessView = Em.View.extend({
-  template: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> {{t common.done}}')
-});
-
-App.StageFailureView = Em.View.extend({
-  template: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> {{t comomn.failed}}')
-});
-
-App.StageInProgressView = Em.View.extend({
-  stage: null,
-  classNames: ['progress-striped', 'active', 'progress'],
-  template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="stage.barWidth"}}></div>'),
-
-  isStageCompleted: function () {
-    return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
-  }.property('controller.isStepCompleted', 'obj.progress')
-
-});
-
