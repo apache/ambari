@@ -67,7 +67,7 @@
               <span {{bindAttr class="dataset.healthClass"}}></span>
             </td>
             <td class="name">
-              <a title="{{unbound dataset.name}}" href="#" {{action "gotoShowJobs" dataset}}>{{unbound dataset.name}}</a>
+              <a title="{{unbound dataset.name}}" href="javascript:void(null)">{{unbound dataset.name}}</a>
             </td>
             <td><span {{bindAttr class="dataset.isRunning:text-info dataset.isSuspended:text-warning"}}>{{dataset.statusFormatted}}</span></td>
             {{/view}}

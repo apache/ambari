@@ -174,8 +174,8 @@ module.exports = Em.Route.extend({
       router.get('mainController').connectOutlet('mainMirroring');
     },
 
-    gotoShowJobs: function (router, event) {
-      var dataset = (event && event.context) || router.get('mainMirroringController.selectedDataset') || App.Dataset.find().objectAt(0);
+    gotoShowJobs: function (router, context) {
+      var dataset = context || router.get('mainMirroringController.selectedDataset') || App.Dataset.find().objectAt(0);
       if (dataset) {
         router.transitionTo('showDatasetJobs', dataset);
       } else {

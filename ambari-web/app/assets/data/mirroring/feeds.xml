@@ -8,11 +8,11 @@
     <entity>
         <type>feed</type>
         <name>dataset2</name>
-        <status>RUNNING</status>
+        <status>SUSPENDED</status>
     </entity>
     <entity>
         <type>feed</type>
         <name>dataset3</name>
-        <status>RUNNING</status>
+        <status>SUBMITTED</status>
     </entity>
 </entities>

@@ -78,7 +78,11 @@ App.MainDatasetsView = App.TableView.extend({
     content: null,
     tagName: 'tr',
 
-    classNameBindings: ['selectedClass'],
+    click: function () {
+      App.router.send('gotoShowJobs', this.get('content'));
+    },
+
+    classNameBindings: ['selectedClass', ':dataset-item'],
 
     selectedClass: function () {
       return this.get('controller.selectedDataset.id') === this.get('content.id') ? 'dataset-selected' : '';
