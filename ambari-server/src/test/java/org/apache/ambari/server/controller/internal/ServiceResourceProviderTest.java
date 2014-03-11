@@ -950,6 +950,54 @@ public class ServiceResourceProviderTest {
   }
 
   @Test
+  public void testGangliaServiceState_ArbitraryComponentOrder_STARTED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "Host199", "UNKNOWN", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_SERVER", "Host100", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(componentInfo.isMaster()).andReturn(false).once();
+    expect(componentInfo.isMaster()).andReturn(false).once();
+    expect(componentInfo.isMaster()).andReturn(true).once();
+    expect(componentInfo.isClient()).andReturn(false).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "GANGLIA");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
   public void testDefaultServiceState_ClientOnly_INSTALLED() throws Exception{
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);

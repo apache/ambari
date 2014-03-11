@@ -853,7 +853,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
 
-            State   serviceState = null;
+            State   masterState = null;
+            State   clientState = null;
+            State   otherState = null;
+
             boolean hasDisabled  = false;
             boolean hasMaster    = false;
             boolean hasOther     = false;
@@ -864,7 +867,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                   stackId.getStackVersion(), hostComponentResponse.getServiceName(),
                   hostComponentResponse.getComponentName());
 
-            if (componentInfo != null) {
+              if (componentInfo != null) {
                 State state = getHostComponentState(hostComponentResponse);
 
                 if (state.equals(State.DISABLED)) {
@@ -873,29 +876,28 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                   if (componentInfo.isMaster()) {
                     hasMaster = true;
                     if(!state.equals(State.STARTED) &&
-                        ( serviceState == null || state.ordinal() > serviceState.ordinal())) {
-                      serviceState = state;
+                        ( masterState == null || state.ordinal() > masterState.ordinal())) {
+                      masterState = state;
                     }
                   } else if (componentInfo.isClient()) {
                     hasClient = true;
-                    if (!(hasMaster || hasOther) && !state.equals(State.INSTALLED) &&
-                        (serviceState == null || state.ordinal() > serviceState.ordinal())) {
-                      serviceState = state;
+                    if (!state.equals(State.INSTALLED) &&
+                        (clientState == null || state.ordinal() > clientState.ordinal())) {
+                      clientState = state;
                     }
                   } else {
                     hasOther  = true;
-                    if (!hasMaster &&
-                        (serviceState == null || state.ordinal() > serviceState.ordinal())) {
-                      serviceState = state;
+                    if (otherState == null || state.ordinal() > otherState.ordinal()) {
+                      otherState = state;
                     }
                   }
                 }
               }
             }
 
-            return hasMaster   ? serviceState == null ? State.STARTED : serviceState :
-                   hasOther    ? serviceState :
-                   hasClient   ? serviceState == null ? State.INSTALLED : serviceState :
+            return hasMaster   ? masterState == null ? State.STARTED : masterState :
+                   hasOther    ? otherState :
+                   hasClient   ? clientState == null ? State.INSTALLED : clientState :
                    hasDisabled ? State.DISABLED : State.UNKNOWN;
           }
         } catch (AmbariException e) {
