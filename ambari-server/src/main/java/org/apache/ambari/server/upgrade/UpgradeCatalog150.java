@@ -1,5 +1,6 @@
 package org.apache.ambari.server.upgrade;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
@@ -8,10 +9,18 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.KeyValueDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.KeyValueEntity;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +34,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog150.class);
@@ -418,6 +428,75 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     // Finally update schema version
     updateMetaInfoVersion(getTargetVersion());
 
+         // Move decommissioned datanode data to new table
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          processDecommissionedDatanodes();
+        } catch (Exception e) {
+          LOG.warn("Updating decommissioned datanodes to new format threw " +
+            "exception. ", e);
+        }
+      }
+    });
+  }
+
+  protected void processDecommissionedDatanodes() {
+    KeyValueDAO keyValueDAO = injector.getInstance(KeyValueDAO.class);
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    Gson gson = injector.getInstance(Gson.class);
+    HostComponentDesiredStateDAO desiredStateDAO = injector.getInstance
+      (HostComponentDesiredStateDAO.class);
+
+    KeyValueEntity keyValueEntity = keyValueDAO.findByKey("decommissionDataNodesTag");
+    String value = null;
+    if (keyValueEntity != null) {
+      value = keyValueEntity.getValue();
+      if (value != null && !value.isEmpty()) {
+        List<ClusterEntity> clusterEntities = clusterDAO.findAll();
+        for (ClusterEntity clusterEntity : clusterEntities) {
+          Long clusterId = clusterEntity.getClusterId();
+          ClusterConfigEntityPK configEntityPK = new ClusterConfigEntityPK();
+          configEntityPK.setClusterId(clusterId);
+          configEntityPK.setType("hdfs-exclude-file");
+          configEntityPK.setTag(value.trim());
+          ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
+          if (configEntity != null) {
+            String configData = configEntity.getData();
+            if (configData != null) {
+              Map<String, String> properties = gson.<Map<String, String>>fromJson(configData, Map.class);
+              if (properties != null && !properties.isEmpty()) {
+                String decommissionedNodes = properties.get("datanodes");
+                if (decommissionedNodes != null) {
+                  String[] nodes = decommissionedNodes.split(",");
+                  if (nodes.length > 0) {
+                    for (String node : nodes) {
+                      HostComponentDesiredStateEntityPK entityPK =
+                        new HostComponentDesiredStateEntityPK();
+                      entityPK.setClusterId(clusterId);
+                      entityPK.setServiceName("HDFS");
+                      entityPK.setComponentName("DATANODE");
+                      entityPK.setHostName(node.trim());
+                      HostComponentDesiredStateEntity desiredStateEntity =
+                        desiredStateDAO.findByPK(entityPK);
+                      desiredStateEntity.setAdminState(HostComponentAdminState.DECOMMISSIONED);
+                      desiredStateDAO.merge(desiredStateEntity);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // Rename saved key value entity so that the move is finalized
+      KeyValueEntity newEntity = new KeyValueEntity();
+      newEntity.setKey("decommissionDataNodesTag-Moved");
+      newEntity.setValue(value);
+      keyValueDAO.create(newEntity);
+      keyValueDAO.remove(keyValueEntity);
+    }
   }
 
   private String getPostgresServiceConfigMappingQuery() {
