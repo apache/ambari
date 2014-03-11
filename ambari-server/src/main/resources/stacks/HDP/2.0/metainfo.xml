@@ -17,6 +17,7 @@
 -->
 <metainfo>
     <versions>
-	  <active>false</active>
+      <active>true</active>
     </versions>
+    <extends>2.0.6</extends>
 </metainfo>

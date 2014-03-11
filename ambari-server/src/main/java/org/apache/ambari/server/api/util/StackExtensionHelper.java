@@ -61,8 +61,7 @@ import org.xml.sax.SAXException;
  */
 public class StackExtensionHelper {
   private File stackRoot;
-  private final static Logger LOG = LoggerFactory
-    .getLogger(StackExtensionHelper.class);
+  private final static Logger LOG = LoggerFactory.getLogger(StackExtensionHelper.class);
   private final Map<String, StackInfo> stackVersionMap = new HashMap<String,
     StackInfo>();
   private Map<String, List<StackInfo>> stackParentsMap = null;
@@ -127,7 +126,9 @@ public class StackExtensionHelper {
     mergedServiceInfo.setComment(childService.getComment());
     mergedServiceInfo.setUser(childService.getUser());
     mergedServiceInfo.setVersion(childService.getVersion());
-    mergedServiceInfo.setConfigDependencies(childService.getConfigDependencies());
+    mergedServiceInfo.setConfigDependencies(
+      childService.getConfigDependencies() != null ?
+        childService.getConfigDependencies() : new ArrayList<String>());
 
     Map<String, ServiceOsSpecific> osSpecific = childService.getOsSpecifics();
     if (! osSpecific.isEmpty()) {

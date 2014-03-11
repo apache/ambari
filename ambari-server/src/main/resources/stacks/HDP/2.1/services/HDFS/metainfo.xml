@@ -16,7 +16,12 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HDFS</name>
+      <comment>Apache Hadoop Distributed File System</comment>
+      <version>2.1.0.2.1</version>
+    </service>
+  </services>
 </metainfo>

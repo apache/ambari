@@ -15,8 +15,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>YARN</name>
+      <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
+      <version>2.1.0.2.0</version>
+    </service>
+    <service>
+      <name>MAPREDUCE2</name>
+      <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
+      <version>2.1.0.2.0</version>
+    </service>
+  </services>
 </metainfo>

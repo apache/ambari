@@ -16,7 +16,14 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>SQOOP</name>
+      <comment>Tool for transferring bulk data between Apache Hadoop and
+        structured data stores such as relational databases
+      </comment>
+      <version>1.4.4.2.1</version>
+    </service>
+  </services>
 </metainfo>
