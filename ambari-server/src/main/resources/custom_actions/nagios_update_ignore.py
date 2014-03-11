@@ -41,13 +41,16 @@ class NagiosIgnore(Script):
         ignores = config['passiveInfo']
       else:
         structured_output_example['result'] = "Key 'passiveInfo' not found, skipping"
+        Logger.info("Key 'passiveInfo' was not found, skipping")
         self.put_structured_out(structured_output_example)
     except Exception:
       structured_output_example['result'] = "Error accessing passiveInfo"
       self.put_structured_out(structured_output_example)
+      Logger.debug("Error accessing passiveInfo")
       return
 
     if ignores is None:
+      Logger.info("Nothing to do - maintenance info was not provided")
       return
     
     new_file_entries = []
@@ -59,9 +62,13 @@ class NagiosIgnore(Script):
           service = str(define['service'])
           component = str(define['component'])
           key = host + " " + service + " " + component
+          Logger.info("found entry for host=" + host +
+            ", service=" + service +
+            ", component=" + component)
 
           new_file_entries.append(key)
         except KeyError:
+          Logger.debug("Could not load host, service, or component for " + str(define))
           pass
 
     writeFile(new_file_entries)
@@ -77,7 +84,14 @@ def writeFile(entries):
   try:
     f = open('/var/nagios/ignore.dat', 'w')
     f.write(buf)
+    if 0 == len(entries):
+      Logger.info("Cleared all entries from '/var/nagios/ignore.dat'")
+    elif 1 == len(entries):
+      Logger.info("Persisted '/var/nagios/ignore.dat' with 1 entry")
+    else:
+      Logger.info("Persisted '/var/nagios/ignore.dat' with " + str(len(entries)) + " entries")
   except:
+    Logger.info("Could not open '/var/nagios/ignore.dat' to update")
     pass
   finally:
     if f is not None:
