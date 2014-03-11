@@ -50,12 +50,8 @@ module.exports = {
       warningMessage: null,
       onPrimary: function () {
         this.set('warningMessage', null);
-        var arrayOfSelectedHosts = [];
-        var selectedHosts = availableHosts.filterProperty('selected', true);
-        selectedHosts.forEach(function (host) {
-          arrayOfSelectedHosts.push(host.get('host.id'));
-        });
-        if (selectAtleastOneHost && arrayOfSelectedHosts.length<1) {
+        var arrayOfSelectedHosts = availableHosts.filterProperty('selected', true).mapProperty('host.id');
+        if (selectAtleastOneHost && arrayOfSelectedHosts.length < 1) {
           this.set('warningMessage', Em.I18n.t('hosts.selectHostsDialog.message.warning'));
           return;
         }
@@ -99,7 +95,7 @@ module.exports = {
           this.get('availableHosts').forEach(function (host) {
             var skip = showOnlySelectedHosts && !host.get('selected');
             var value = host.get('host').get(filterColumn.id);
-            var hostComponentNames = host.get('host.hostComponents').mapProperty('componentName');
+            var hostComponentNames = host.get('hostComponentNames');
 
             host.set('filterColumnValue', value);
 

@@ -203,12 +203,13 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   addHostsCallback: function (selectedHosts) {
     var group = this.get('selectedConfigGroup');
     if (selectedHosts) {
-      var defaultHosts = group.get('parentConfigGroup.hosts');
+      var defaultHosts = group.get('parentConfigGroup.hosts').slice();
       var configGroupHosts = group.get('hosts');
       selectedHosts.forEach(function (hostName) {
         configGroupHosts.pushObject(hostName);
         defaultHosts.removeObject(hostName);
       });
+      group.set('parentConfigGroup.hosts', defaultHosts);
     }
   },
 
@@ -220,11 +221,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       return;
     }
     var groupHosts = this.get('selectedConfigGroup.hosts');
-    var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts');
+    var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts').slice();
     this.get('selectedHosts').slice().forEach(function (hostName) {
       defaultGroupHosts.pushObject(hostName);
       groupHosts.removeObject(hostName);
     });
+    this.set('selectedConfigGroup.parentConfigGroup.hosts', defaultGroupHosts);
     this.set('selectedHosts', []);
   },
 

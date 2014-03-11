@@ -117,11 +117,12 @@ App.ConfigGroup = Ember.Object.extend({
     this.get('parentConfigGroup.hosts').forEach(function (hostName) {
       unusedHostsMap[hostName] = true;
     });
-    App.Host.find().filter(function (host) {
+    App.Host.find().forEach(function (host) {
       if(unusedHostsMap[host.get('id')]) {
         availableHosts.pushObject(Ember.Object.create({
           selected: false,
-          host: host
+          host: host,
+          hostComponentNames: host.get('hostComponents').mapProperty('componentName')
         }));
       }
     });
