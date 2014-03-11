@@ -258,7 +258,7 @@ public class HeartBeatHandler {
 
           String category = componentInfo.getCategory();
 
-          if (MaintenanceState.OFF == psh.getEffectiveState(scHost)) {
+          if (MaintenanceState.OFF == psh.getEffectiveState(scHost, host)) {
             if (category.equals("MASTER")) {
               ++masterCount;
               if (status.equals("STARTED")) {

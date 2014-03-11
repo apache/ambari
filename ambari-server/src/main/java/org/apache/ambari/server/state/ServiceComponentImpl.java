@@ -204,8 +204,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public Map<String, ServiceComponentHost>
-  getServiceComponentHosts() {
+  public Map<String, ServiceComponentHost> getServiceComponentHosts() {
     clusterGlobalLock.readLock().lock();
     try {
       readWriteLock.readLock().lock();

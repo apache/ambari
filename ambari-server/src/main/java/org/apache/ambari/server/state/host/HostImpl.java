@@ -549,12 +549,8 @@ public class HostImpl implements Host {
 
   @Override
   public String getHostName() {
-    try {
-      readLock.lock();
-      return hostEntity.getHostName();
-    } finally {
-      readLock.unlock();
-    }
+    // Not an updatable attribute - No locking necessary
+    return hostEntity.getHostName();
   }
 
   @Override

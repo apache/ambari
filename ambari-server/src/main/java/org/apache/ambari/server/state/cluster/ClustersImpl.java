@@ -103,7 +103,7 @@ public class ClustersImpl implements Clusters {
     LOG.info("Initializing the ClustersImpl");
   }
 
-  void checkLoaded() {
+  void  checkLoaded() {
     if (!clustersLoaded) {
       w.lock();
       try {

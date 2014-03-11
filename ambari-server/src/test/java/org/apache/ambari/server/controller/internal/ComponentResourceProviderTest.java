@@ -48,6 +48,7 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -491,7 +492,7 @@ public class ComponentResourceProviderTest {
     Injector injector = createStrictMock(Injector.class);
     Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
     Clusters clusters = createNiceMock(Clusters.class);
-
+    MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
 
@@ -506,6 +507,7 @@ public class ComponentResourceProviderTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
 
     // getComponents
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -513,7 +515,7 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponent("component1")).andThrow(
         new ServiceComponentNotFoundException("cluster1", "service1", "component1"));
     // replay mocks
-    replay(injector, clusters, cluster, service);
+    replay(maintHelper, injector, clusters, cluster, service);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);

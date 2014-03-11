@@ -189,6 +189,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private ExecutionScheduleManager executionScheduleManager;
 
+  private MaintenanceStateHelper maintenanceStateHelper;
+
   final private String masterHostname;
   final private Integer masterPort;
   final private String masterProtocol;
@@ -222,6 +224,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     this.gson = injector.getInstance(Gson.class);
     LOG.info("Initializing the AmbariManagementControllerImpl");
     this.masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
+    this.maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
 
     if(configs != null)
     {
@@ -717,7 +720,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
       checkDesiredState = true;
     }
-    
+
+    Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
+
     for (Service s : services) {
       // filter on component name if provided
       Set<ServiceComponent> components = new HashSet<ServiceComponent>();
@@ -736,12 +741,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         // filter on hostname if provided
         // filter on desired state if provided
 
+        Map<String, ServiceComponentHost> serviceComponentHostMap =
+          sc.getServiceComponentHosts();
+
         if (request.getHostname() != null) {
           try {
-            ServiceComponentHost sch = sc.getServiceComponentHost(
-                request.getHostname());
-            if (checkDesiredState
-                && (desiredStateToCheck != sch.getDesiredState())) {
+            if (serviceComponentHostMap == null
+                || !serviceComponentHostMap.containsKey(request.getHostname())) {
+              throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
+                s.getName(), sc.getName(), request.getHostname());
+            }
+
+            ServiceComponentHost sch = serviceComponentHostMap.get(request.getHostname());
+
+            if (checkDesiredState && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
             if (request.getAdminState() != null) {
@@ -756,7 +769,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
             }
-            r.setMaintenanceState(getEffectiveMaintenanceState(sch).name());
+
+            Host host = hosts.get(sch.getHostName());
+            if (host == null) {
+              throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
+            }
+
+            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
@@ -769,10 +788,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
         } else {
-          for (ServiceComponentHost sch :
-              sc.getServiceComponentHosts().values()) {
-            if (checkDesiredState
-                && (desiredStateToCheck != sch.getDesiredState())) {
+          for (ServiceComponentHost sch : serviceComponentHostMap.values()) {
+            if (checkDesiredState && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
 
@@ -788,8 +805,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig) {
               continue;
             }
+
+            Host host = hosts.get(sch.getHostName());
+            if (host == null) {
+              throw new HostNotFoundException(cluster.getClusterName(), sch.getHostName());
+            }
             
-            r.setMaintenanceState(getEffectiveMaintenanceState(sch).name());
+            r.setMaintenanceState(maintenanceStateHelper.getEffectiveState(sch, host).name());
             response.add(r);
           }
         }
@@ -801,9 +823,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public MaintenanceState getEffectiveMaintenanceState(ServiceComponentHost sch)
       throws AmbariException {
-    MaintenanceStateHelper msh = injector.getInstance(MaintenanceStateHelper.class);
     
-    return msh.getEffectiveState(sch);
+    return maintenanceStateHelper.getEffectiveState(sch);
   }
   
 

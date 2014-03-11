@@ -9256,6 +9256,7 @@ public class AmbariManagementControllerTest {
     Injector injector = createStrictMock(Injector.class);
     Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
     Clusters clusters = createNiceMock(Clusters.class);
+    MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
@@ -9271,6 +9272,7 @@ public class AmbariManagementControllerTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -9278,7 +9280,7 @@ public class AmbariManagementControllerTest {
 
     expect(service.convertToResponse()).andReturn(response);
     // replay mocks
-    replay(injector, clusters, cluster, service, response);
+    replay(maintHelper, injector, clusters, cluster, service, response);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -9301,7 +9303,7 @@ public class AmbariManagementControllerTest {
     Injector injector = createStrictMock(Injector.class);
     Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
     Clusters clusters = createNiceMock(Clusters.class);
-
+    MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     Cluster cluster = createNiceMock(Cluster.class);
 
     // requests
@@ -9313,13 +9315,14 @@ public class AmbariManagementControllerTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(cluster.getService("service1")).andThrow(new ServiceNotFoundException("custer1", "service1"));
 
     // replay mocks
-    replay(injector, clusters, cluster);
+    replay(maintHelper, injector, clusters, cluster);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
@@ -9346,6 +9349,7 @@ public class AmbariManagementControllerTest {
     Injector injector = createStrictMock(Injector.class);
     Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
     Clusters clusters = createNiceMock(Clusters.class);
+    MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
     Service service1 = createNiceMock(Service.class);
@@ -9369,6 +9373,7 @@ public class AmbariManagementControllerTest {
     // constructor init
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
@@ -9380,7 +9385,8 @@ public class AmbariManagementControllerTest {
     expect(service1.convertToResponse()).andReturn(response);
     expect(service2.convertToResponse()).andReturn(response2);
     // replay mocks
-    replay(injector, clusters, cluster, service1, service2, response, response2);
+    replay(maintHelper, injector, clusters, cluster, service1, service2,
+      response, response2);
 
     //test
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
