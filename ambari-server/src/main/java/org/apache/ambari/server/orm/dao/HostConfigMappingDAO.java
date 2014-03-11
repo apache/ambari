@@ -282,6 +282,11 @@ public class HostConfigMappingDAO {
     return mappingsByType;
   }
 
+  @Transactional
+  public List<HostConfigMappingEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), HostConfigMappingEntity.class);
+  }
+
   /**
    * @param clusterId
    * @param hostName

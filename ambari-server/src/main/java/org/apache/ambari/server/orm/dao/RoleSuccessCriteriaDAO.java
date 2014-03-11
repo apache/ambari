@@ -26,17 +26,25 @@ import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntityPK;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Singleton
 public class RoleSuccessCriteriaDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public RoleSuccessCriteriaEntity findByPK(RoleSuccessCriteriaEntityPK roleSuccessCriteriaEntityPK) {
     entityManagerProvider.get().clear();
     return entityManagerProvider.get().find(RoleSuccessCriteriaEntity.class, roleSuccessCriteriaEntityPK);
+  }
+
+  @Transactional
+  public List<RoleSuccessCriteriaEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), RoleSuccessCriteriaEntity.class);
   }
 
   @Transactional

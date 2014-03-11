@@ -25,15 +25,23 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Singleton
 public class ClusterStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public ClusterStateEntity findByPK(long clusterId) {
     return entityManagerProvider.get().find(ClusterStateEntity.class, clusterId);
+  }
+
+  @Transactional
+  public List<ClusterStateEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), ClusterStateEntity.class);
   }
 
   @Transactional

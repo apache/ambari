@@ -612,7 +612,12 @@ public class Configuration {
 
   public String getDatabaseUrl() {
     if (getPersistenceType() != PersistenceType.IN_MEMORY) {
-      return properties.getProperty(SERVER_JDBC_URL_KEY, getLocalDatabaseUrl());
+      String URI = properties.getProperty(SERVER_JDBC_URL_KEY);
+      if (URI != null) {
+        return URI;
+      } else {
+        return getLocalDatabaseUrl();
+      }
     } else {
       return JDBC_IN_MEMORY_URL;
     }

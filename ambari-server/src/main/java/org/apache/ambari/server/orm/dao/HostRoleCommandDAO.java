@@ -201,6 +201,11 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  public List<HostRoleCommandEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), HostRoleCommandEntity.class);
+  }
+
+  @Transactional
   public void create(HostRoleCommandEntity stageEntity) {
     entityManagerProvider.get().persist(stageEntity);
   }

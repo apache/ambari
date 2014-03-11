@@ -47,6 +47,11 @@ public class StageDAO {
   }
 
   @Transactional
+  public List<StageEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), StageEntity.class);
+  }
+
+  @Transactional
   public long getLastRequestId() {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT max(stage.requestId) FROM StageEntity stage", Long.class);
     Long result = daoUtils.selectSingle(query);

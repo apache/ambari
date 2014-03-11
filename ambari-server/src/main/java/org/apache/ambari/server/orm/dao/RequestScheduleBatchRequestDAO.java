@@ -58,6 +58,11 @@ public class RequestScheduleBatchRequestDAO {
   }
 
   @Transactional
+  public List<RequestScheduleBatchRequestEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), RequestScheduleBatchRequestEntity.class);
+  }
+
+  @Transactional
   public void create(RequestScheduleBatchRequestEntity batchRequestEntity) {
     entityManagerProvider.get().persist(batchRequestEntity);
   }

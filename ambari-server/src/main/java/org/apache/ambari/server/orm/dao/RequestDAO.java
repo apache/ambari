@@ -48,6 +48,11 @@ public class RequestDAO {
   }
 
   @Transactional
+  public List<RequestEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), RequestEntity.class);
+  }
+
+  @Transactional
   public boolean isAllTasksCompleted(long requestId) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(
         "SELECT task.taskId FROM HostRoleCommandEntity task WHERE task.requestId = ?1 AND " +

@@ -56,6 +56,11 @@ public class ConfigGroupConfigMappingDAO {
   }
 
   @Transactional
+  public List<ConfigGroupConfigMappingEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), ConfigGroupConfigMappingEntity.class);
+  }
+
+  @Transactional
   public void create(ConfigGroupConfigMappingEntity
                          configGroupConfigMappingEntity) {
     entityManagerProvider.get().persist(configGroupConfigMappingEntity);

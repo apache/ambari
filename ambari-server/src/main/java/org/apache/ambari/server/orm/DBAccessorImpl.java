@@ -64,6 +64,8 @@ public class DBAccessorImpl implements DBAccessor {
         configuration.getDatabaseUser(),
         configuration.getDatabasePassword());
 
+      connection.setAutoCommit(true); //enable autocommit
+
       //TODO create own mapping and platform classes for supported databases
       String vendorName = connection.getMetaData().getDatabaseProductName() +
         connection.getMetaData().getDatabaseMajorVersion();

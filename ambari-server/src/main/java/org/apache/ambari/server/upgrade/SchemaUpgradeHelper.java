@@ -29,16 +29,15 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SchemaUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -60,11 +59,11 @@ public class SchemaUpgradeHelper {
     this.configuration = configuration;
   }
 
-  private void startPersistenceService() {
+  public void startPersistenceService() {
     persistService.start();
   }
 
-  private void stopPersistenceService() {
+  public void stopPersistenceService() {
     persistService.stop();
   }
 
@@ -72,11 +71,12 @@ public class SchemaUpgradeHelper {
     return allUpgradeCatalogs;
   }
 
-  private String readSourceVersion() {
+  public String readSourceVersion() {
     String sourceVersion = null;
 
+    ResultSet resultSet = null;
     try {
-      ResultSet resultSet = dbAccessor.executeSelect("SELECT metainfo_value from metainfo WHERE metainfo_key='version'");
+      resultSet = dbAccessor.executeSelect("SELECT \"metainfo_value\" from metainfo WHERE \"metainfo_key\"='version'");
       if (resultSet.next()) {
         return resultSet.getString(1);
       } else {
@@ -86,8 +86,30 @@ public class SchemaUpgradeHelper {
       }
     } catch (SQLException e) {
       throw new RuntimeException("Unable to read database version", e);
+    }finally {
+      if (resultSet != null) {
+        try {
+          resultSet.close();
+        } catch (SQLException e) {
+          throw new RuntimeException("Cannot close result set");
+        }
+      }
     }
 
+  }
+
+  /**
+   * Read server version file
+   * @return
+   */
+  protected String getAmbariServerVersion() {
+    String versionFilePath = configuration.getServerVersionFilePath();
+    try {
+      return FileUtils.readFileToString(new File(versionFilePath));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   /**
@@ -128,8 +150,12 @@ public class SchemaUpgradeHelper {
    * Extension of main controller module
    */
   public static class UpgradeHelperModule extends ControllerModule {
-    public UpgradeHelperModule() throws Exception {
 
+    public UpgradeHelperModule() throws Exception {
+    }
+
+    public UpgradeHelperModule(Properties properties) throws Exception {
+      super(properties);
     }
 
     @Override
@@ -142,7 +168,7 @@ public class SchemaUpgradeHelper {
     }
   }
 
-  private void executeUpgrade(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
+  public void executeUpgrade(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
     LOG.info("Executing DDL upgrade...");
 
     if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
@@ -163,7 +189,7 @@ public class SchemaUpgradeHelper {
     }
   }
 
-  private void executeDMLUpdates(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
+  public void executeDMLUpdates(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
     LOG.info("Execution DML changes.");
 
     if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
@@ -190,21 +216,16 @@ public class SchemaUpgradeHelper {
    * @param args args[0] = target version to upgrade to.
    */
   public static void main(String[] args) throws Exception {
-    if (args.length == 0) {
-      throw new InputMismatchException("Need to provide target version.");
-    }
+    Injector injector = Guice.createInjector(new UpgradeHelperModule());
+    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
-    String targetVersion = args[0];
+    String targetVersion = schemaUpgradeHelper.getAmbariServerVersion();
     LOG.info("Upgrading schema to target version = " + targetVersion);
 
     UpgradeCatalog targetUpgradeCatalog = AbstractUpgradeCatalog
       .getUpgradeCatalog(targetVersion);
 
     LOG.debug("Target upgrade catalog. " + targetUpgradeCatalog);
-
-    Injector injector = Guice.createInjector(new UpgradeHelperModule());
-
-    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
     // Read source version from DB
     String sourceVersion = schemaUpgradeHelper.readSourceVersion();

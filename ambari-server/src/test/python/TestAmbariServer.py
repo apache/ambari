@@ -2822,14 +2822,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_classpath_mock.return_value = 'test:path12'
     get_conf_dir_mock.return_value = '/etc/conf'
 
-    ambari_server.run_schema_upgrade('1.4.9.40')
+    ambari_server.run_schema_upgrade()
 
     self.assertTrue(jdk_path_mock.called)
     self.assertTrue(get_ambari_classpath_mock.called)
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
-                                           'org.apache.ambari.server.upgrade.SchemaUpgradeHelper 1.4.9.40 '
+                                           'org.apache.ambari.server.upgrade.SchemaUpgradeHelper '
                                            '> /var/log/ambari-server/ambari-server.out 2>&1')
 
 

@@ -162,6 +162,11 @@ public class ConfigGroupHostMappingDAO {
   }
 
   @Transactional
+  public List<ConfigGroupHostMappingEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), ConfigGroupHostMappingEntity.class);
+  }
+
+  @Transactional
   public void create(ConfigGroupHostMappingEntity
                          configGroupHostMappingEntity) {
     

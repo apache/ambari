@@ -178,7 +178,7 @@ SECURITY_PROVIDER_KEY_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
 SCHEMA_UPGRADE_HELPER_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" +\
-                          " {3} > " + SERVER_OUT_FILE + " 2>&1"
+                          " > " + SERVER_OUT_FILE + " 2>&1"
 
 STACK_UPGRADE_HELPER_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
@@ -2583,14 +2583,14 @@ def compare_versions(version1, version2):
   pass
 
 
-def run_schema_upgrade(version):
+def run_schema_upgrade():
   jdk_path = find_jdk()
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
                     "command to install a JDK automatically or install any "
                     "JDK manually to " + JDK_INSTALL_DIR)
     return 1
-  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(), version)
+  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath())
   (retcode, stdout, stderr) = run_os_command(command)
   print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
   if retcode > 0:
@@ -2674,23 +2674,13 @@ def upgrade(args):
       return -1
 
   parse_properties_file(args)
-  server_version = None
-  if args.server_version_file_path:
-    with open(args.server_version_file_path, 'r') as f:
-      server_version = f.read()
-
-  if not server_version:
-    raise FatalException(10, 'Cannot determine server version from version file '
-                         '%s' % args.server_version_file_path)
-
-  #fix local database objects owner in pre 1.5.0
   #TODO check database version
   if args.persistence_type == 'local':
     retcode, stdout, stderr = change_objects_owner(args)
     if not retcode == 0:
       raise FatalException(20, 'Unable to change owner of database objects')
 
-  retcode = run_schema_upgrade(server_version.strip())
+  retcode = run_schema_upgrade()
   if not retcode == 0:
     raise FatalException(11, 'Schema upgrade failed.')
 

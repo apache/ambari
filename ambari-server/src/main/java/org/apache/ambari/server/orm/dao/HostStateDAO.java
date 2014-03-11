@@ -25,15 +25,23 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Singleton
 public class HostStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public HostStateEntity findByHostName(String hostName) {
     return entityManagerProvider.get().find(HostStateEntity.class, hostName);
+  }
+
+  @Transactional
+  public List<HostStateEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), HostStateEntity.class);
   }
 
   @Transactional

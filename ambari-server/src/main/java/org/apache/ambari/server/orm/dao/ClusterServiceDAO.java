@@ -28,11 +28,14 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.List;
 
 @Singleton
 public class ClusterServiceDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public ClusterServiceEntity findByPK(ClusterServiceEntityPK clusterServiceEntityPK) {
@@ -51,6 +54,11 @@ public class ClusterServiceDAO {
     } catch (NoResultException ignored) {
       return null;
     }
+  }
+
+  @Transactional
+  public List<ClusterServiceEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), ClusterServiceEntity.class);
   }
 
   @Transactional

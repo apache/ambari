@@ -25,16 +25,24 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Singleton
 public class ExecutionCommandDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public ExecutionCommandEntity findByPK(long taskId) {
     return entityManagerProvider.get().find(ExecutionCommandEntity.class, taskId);
+  }
+
+  @Transactional
+  public List<ExecutionCommandEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), ExecutionCommandEntity.class);
   }
 
   @Transactional

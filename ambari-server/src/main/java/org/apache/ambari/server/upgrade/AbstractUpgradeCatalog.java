@@ -20,9 +20,12 @@ package org.apache.ambari.server.upgrade;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -83,37 +86,26 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   /**
-   * Read server version file
-   * @return
-   */
-  protected String getAmbariServerVersion() {
-    String versionFilePath = configuration.getServerVersionFilePath();
-    try {
-      return FileUtils.readFileToString(new File(versionFilePath));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  /**
    * Update metainfo to new version.
    */
+  @Transactional
   public int updateMetaInfoVersion(String version) {
-    //TODO verify version/server version usage
-    String ambariServerVersion = getAmbariServerVersion();
     int rows = 0;
+    if (version != null) {
+      MetainfoDAO metainfoDAO = injector.getInstance(MetainfoDAO.class);
 
-    if (ambariServerVersion != null) {
-      try {
-        dbAccessor.executeQuery(String.format("INSERT INTO metainfo (metainfo_key, " +
-          "metainfo_value) VALUES ('version', '%s')", version), true);
+      MetainfoEntity versionEntity = metainfoDAO.findByKey("version");
 
-        rows = dbAccessor.updateTable("metainfo", "metainfo_value",
-          version, "WHERE metainfo_key = 'version'");
-      } catch (SQLException e) {
-        LOG.error("Failed updating metainfo table.", e);
+      if (versionEntity != null) {
+        versionEntity.setMetainfoValue(version);
+        metainfoDAO.merge(versionEntity);
+      } else {
+        versionEntity = new MetainfoEntity();
+        versionEntity.setMetainfoName("version");
+        versionEntity.setMetainfoValue(version);
+        metainfoDAO.create(versionEntity);
       }
+
     }
 
     return rows;
@@ -129,6 +121,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       dbType = Configuration.ORACLE_DB_NAME;
     } else if (dbUrl.contains(Configuration.MYSQL_DB_NAME)) {
       dbType = Configuration.MYSQL_DB_NAME;
+    } else if (dbUrl.contains(Configuration.DERBY_DB_NAME)) {
+      dbType = Configuration.DERBY_DB_NAME;
     } else {
       throw new RuntimeException("Unable to determine database type.");
     }

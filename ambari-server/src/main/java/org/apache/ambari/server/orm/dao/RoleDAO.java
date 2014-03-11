@@ -24,16 +24,24 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Singleton
 public class RoleDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @Transactional
   public RoleEntity findByName(String roleName) {
     return entityManagerProvider.get().find(RoleEntity.class, roleName.toLowerCase());
+  }
+
+  @Transactional
+  public List<RoleEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), RoleEntity.class);
   }
 
   @Transactional

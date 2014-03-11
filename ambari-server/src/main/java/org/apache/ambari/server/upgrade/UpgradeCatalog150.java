@@ -68,9 +68,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("request_context", String.class, 255, null, true));
     columns.add(new DBColumnInfo("request_type", String.class, 255, null, true));
     columns.add(new DBColumnInfo("start_time", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("target_component", String.class, 255, null, true));
-    columns.add(new DBColumnInfo("target_hosts", String.class, null, null, false));
-    columns.add(new DBColumnInfo("target_service", String .class, 255, null, true));
+    columns.add(new DBColumnInfo("status", String.class, 255));
 
     dbAccessor.createTable("request", columns, "request_id");
 
@@ -243,6 +241,28 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       dbAccessor.executeQuery("DROP DATABASE IF EXISTS ambarirca;");
     }
 
+    //Newly created tables should be filled before creating FKs
+    // Request Entries
+    String tableName = "request";
+    if (!dbAccessor.tableExists(tableName)) {
+      String msg = String.format("Table \"%s\" was not created during schema upgrade", tableName);
+      LOG.error(msg);
+      throw new AmbariException(msg);
+    }else if (!dbAccessor.tableHasData(tableName)) {
+      String query;
+      if (getDbType().equals(Configuration.POSTGRES_DB_NAME)) {
+        query = getPostgresRequestUpgradeQuery();
+      } else if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
+        query = getOracleRequestUpgradeQuery();
+      } else {
+        query = getMysqlRequestUpgradeQuery();
+      }
+
+      dbAccessor.executeQuery(query);
+    } else {
+      LOG.info("Table {} already filled", tableName);
+    }
+
     // ========================================================================
     // Add constraints
 
@@ -260,9 +280,6 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("requestresourcefilter", "FK_requestresourcefilter_req_id", "request_id", "request", "request_id", true);
 
-    // ========================================================================
-    // Finally update schema version
-    updateMetaInfoVersion(getTargetVersion());
   }
 
   private void moveRCATableInMySQL(String tableName, String dbName) throws SQLException {
@@ -301,22 +318,6 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
 
     // TODO: Convert all possible native queries using Criteria builder
-    // Request Entries
-    tableName = "request";
-    if (dbAccessor.tableExists(tableName) &&
-      !dbAccessor.tableHasData(tableName)) {
-
-      String query;
-      if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
-        query = getPostgresRequestUpgradeQuery();
-      } else if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
-        query = getOracleRequestUpgradeQuery();
-      } else {
-        query = getMysqlRequestUpgradeQuery();
-      }
-
-      dbAccessor.executeQuery(query);
-    }
 
     // Sequences
     if (dbAccessor.tableExists("ambari_sequences")) {
@@ -413,6 +414,9 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     });
 
 
+    // ========================================================================
+    // Finally update schema version
+    updateMetaInfoVersion(getTargetVersion());
 
   }
 

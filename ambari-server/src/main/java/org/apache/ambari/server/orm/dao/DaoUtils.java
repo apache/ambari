@@ -20,14 +20,31 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Singleton;
 
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.Collections;
 import java.util.List;
 
 @Singleton
 class DaoUtils {
+
+  public <T> List<T> selectAll(EntityManager entityManager, Class<T> entityClass) {
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<T> query = criteriaBuilder.createQuery(entityClass);
+    Root<T> root = query.from(entityClass);
+    query.select(root);
+    TypedQuery<T> typedQuery = entityManager.createQuery(query);
+    try {
+      return typedQuery.getResultList();
+    } catch (NoResultException ignored) {
+      return Collections.emptyList();
+    }
+  }
 
   public <T> List<T> selectList(TypedQuery<T> query, Object... parameters) {
     setParameters(query, parameters);
