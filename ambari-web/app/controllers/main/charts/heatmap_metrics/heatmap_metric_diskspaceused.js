@@ -28,6 +28,7 @@ App.MainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapMetric.extend({
   slotDefinitionLabelSuffix: '%',
   metricMapper: function (json) {
     var hostToValueMap = {};
+    var self = this;
     var metricName = this.get('defaultMetric');
     if (json.items) {
       var props = metricName.split('.');
@@ -41,14 +42,24 @@ App.MainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapMetric.extend({
           }
         });
         if (value != null) {
-          var total = value.disk_total;
-          var free = value.disk_free;
-          value = (((total - free) * 100) / total).toFixed(1);
+          value = self.diskUsageFormatted(value.disk_total - value.disk_free, value.disk_total);
           var hostName = item.Hosts.host_name;
           hostToValueMap[hostName] = value;
         }
       });
     }
     return hostToValueMap;
+  },
+
+  /**
+   * Format percent disk usage to float with 2 digits
+   */
+  diskUsageFormatted: function(diskUsed, diskTotal) {
+    var diskUsage = (diskUsed) / diskTotal * 100;
+    if (isNaN(diskUsage) || diskUsage < 0 || diskUsage > 100) {
+      return Em.I18n.t('charts.heatmap.unknown');
+    }
+    var s = Math.round(diskUsage * Math.pow(10, 2)) / Math.pow(10, 2);
+    return isNaN(s) ? 0 : s;
   }
 });

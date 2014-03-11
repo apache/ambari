@@ -147,7 +147,7 @@ App.Host = DS.Model.extend({
    */
   diskUsageFormatted: function() {
     if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
-      return 'Data Unavailable';
+      return Em.I18n.t('hosts.host.metrics.dataUnavailable');
     }
     var s = Math.round(this.get('diskUsage') * Math.pow(10, 2)) / Math.pow(10, 2);
     if (isNaN(s)) {

@@ -1427,6 +1427,7 @@ Em.I18n.translations = {
 
   'hosts.host.serviceNotAvailable': 'Service not available on this host',
 
+  'hosts.host.metrics.dataUnavailable':'Data Unavailable',
   'hosts.host.metrics.cpu':'CPU Usage',
   'hosts.host.metrics.cpu.displayNames.cpu_wio':'CPU I/O Idle',
   'hosts.host.metrics.cpu.displayNames.cpu_idle':'CPU Idle',
