@@ -1838,7 +1838,6 @@ Em.I18n.translations = {
   'mirroring.dataset.schedule.repeatEvery':'Repeat every ',
   'mirroring.dataset.addTargetCluster':'Add Target Cluster',
   'mirroring.dataset.type.HDFS':'HDFS',
-  'mirroring.dataset.type.Hive':'Hive Tables',
   'mirroring.dataset.repeat.minutes':'minutes',
   'mirroring.dataset.repeat.hours':'hours',
   'mirroring.dataset.repeat.days':'days',
@@ -1869,6 +1868,7 @@ Em.I18n.translations = {
 
   'mirroring.required.error': 'This field is required',
   'mirroring.dateOrder.error': 'End Date must be after Start Date',
+  'mirroring.startDate.error': 'Start Date in the past is not allowed',
   'mirroring.required.invalidNumberError' : 'Enter valid number',
 
   'rollingrestart.dialog.title': 'Restart {0}s',

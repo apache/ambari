@@ -32,13 +32,12 @@
           <td class="spacer" colspan="3"></td>
         </tr>
 
-        <tr {{bindAttr class="errors.isTypeError:error"}}>
+        <tr>
           <td class="percent25" colspan="1">
             {{t mirroring.dataset.type}}
           </td>
           <td colspan="2" style="text-align: left">
-            {{view Ember.Select selectionBinding="formFields.datasetType" contentBinding="view.datasetTypeOptions"}}
-            <span class="help-inline">{{errorMessages.type}}</span>
+            {{t mirroring.dataset.type.HDFS}}
           </td>
         </tr>
         <tr>

@@ -24,7 +24,6 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
   // Fields values from Edit DataSet form
   formFields: Ember.Object.create({
     datasetName: null,
-    datasetType: null,
     datasetTargetClusterName: null,
     datasetSourceDir: null,
     datasetTargetDir: null,
@@ -183,6 +182,11 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     if (scheduleStartDate && scheduleEndDate && (scheduleStartDate > scheduleEndDate)) {
       errors.set('isEndDateError', true);
       errorMessages.set('endDate', Em.I18n.t('mirroring.dateOrder.error'));
+    }
+    // Check that startDate is after current date
+    if (!this.get('isEdit') && new Date(App.dateTime()) > scheduleStartDate) {
+      errors.set('isStartDateError', true);
+      errorMessages.set('startDate', Em.I18n.t('mirroring.startDate.error'));
     }
     // Check that repeat field value consists only from digits
     if (isNaN(this.get('formFields.datasetFrequency'))) {

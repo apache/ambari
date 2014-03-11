@@ -27,8 +27,6 @@ App.MainMirroringEditDataSetView = Em.View.extend({
 
   hasTargetClusters: false,
 
-  datasetTypeOptions: [Em.I18n.t('mirroring.dataset.type.HDFS'), Em.I18n.t('mirroring.dataset.type.Hive')],
-
   targetClusters: App.TargetCluster.find(),
 
   targetClusterSelect: Em.Select.extend({
@@ -105,9 +103,16 @@ App.MainMirroringEditDataSetView = Em.View.extend({
   }),
 
   didInsertElement: function () {
+    // Initialize datepicker
     $('.datepicker').datepicker({
       format: 'mm/dd/yyyy'
-    });
+    }).on('changeDate', function (ev) {
+          $(this).datepicker('hide');
+        });
+
+    // Set default value for Repeat every combo box
+    this.set('controller.formFields.repeatOptionSelected', this.get('repeatOptions')[2]);
+
     this.fillForm();
     this.onTargetClustersChange();
   },
