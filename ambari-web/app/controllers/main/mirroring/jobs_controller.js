@@ -37,6 +37,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
 
   onSuspendSuccess: function() {
     this.set('content.status', 'SUSPENDED');
+    this.get('content.datasetJobs').filterProperty('status', 'RUNNING').setEach('status', 'SUSPENDED');
   },
 
   schedule: function () {
@@ -55,6 +56,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
 
   onScheduleSuccess: function() {
     this.set('content.status', 'RUNNING');
+    this.get('content.datasetJobs').filterProperty('status', 'SUSPENDED').setEach('status', 'RUNNING');
   },
 
 
@@ -93,8 +95,13 @@ App.MainDatasetJobsController = Em.Controller.extend({
         job: event.context,
         falconServer: App.get('falconServerURL')
       },
+      success: 'onSuspendInstanceSuccess',
       error: 'onError'
     });
+  },
+
+  onSuspendInstanceSuccess: function () {
+    this.get('content.datasetJobs').filterProperty('name', arguments[2].name).setEach('status', 'SUSPENDED');
   },
 
   resumeInstance: function (event) {
@@ -107,8 +114,13 @@ App.MainDatasetJobsController = Em.Controller.extend({
         job: event.context,
         falconServer: App.get('falconServerURL')
       },
+      success: 'onResumeInstanceSuccess',
       error: 'onError'
     });
+  },
+
+  onResumeInstanceSuccess: function () {
+    this.get('content.datasetJobs').filterProperty('name', arguments[2].name).setEach('status', 'RUNNING');
   },
 
   killInstance: function (event) {
@@ -121,8 +133,13 @@ App.MainDatasetJobsController = Em.Controller.extend({
         job: event.context,
         falconServer: App.get('falconServerURL')
       },
+      success: 'onKillInstanceSuccess',
       error: 'onError'
     });
+  },
+
+  onKillInstanceSuccess: function () {
+    this.get('content.datasetJobs').filterProperty('name', arguments[2].name).setEach('status', 'KILLED');
   },
 
   onError: function () {
