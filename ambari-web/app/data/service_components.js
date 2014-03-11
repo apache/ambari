@@ -416,7 +416,7 @@ if (App.supports.appTimelineServer) {
     display_name: 'App Timeline Server',
     isMaster: true,
     isClient: false,
-    stackVersions: ['2.1.1'],
+    stackVersions: ['2.1'],
     description: ''
   };
   module.exports.push(appTimelineServerObj);
