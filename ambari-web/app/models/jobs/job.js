@@ -55,12 +55,16 @@ App.AbstractJob = DS.Model.extend({
    * @return {Number} Duration in milliseconds.
    */
   duration : function() {
-    return dateUtils.duration(this.get('startTime'), this.get('endTime'))
+    var startTime = this.get('startTime');
+    var endTime = this.get('endTime');
+    if(endTime < startTime) {
+      endTime =  App.get('currentServerTime');
+    }
+    return dateUtils.duration(startTime, endTime);
   }.property('startTime', 'endTime'),
 
   durationDisplay : function() {
-    var duration = this.get('duration');
-    return dateUtils.timingFormat(duration, true);
+    return dateUtils.timingFormat(this.get('duration'), true);
   }.property('duration'),
 
   /**
