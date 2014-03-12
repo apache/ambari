@@ -29,6 +29,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   multiTaskCounter: 0,
 
   hostComponents: [],
+  restartYarnMRComponents: false,
 
   loadStep: function () {
     if (this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
@@ -36,6 +37,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     } else {
       this.set('hostComponents', [this.get('content.reassign.component_name')]);
     }
+    this.set('restartYarnMRComponents', ['RESOURCEMANAGER', 'JOBTRACKER'].contains(this.get('content.reassign.component_name')));
     this.set('serviceName', [this.get('content.reassign.service_id')]);
     this._super();
   },
@@ -95,12 +97,24 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   stopServices: function () {
-    App.ajax.send({
-      name: 'reassign.stop_services',
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+    if(this.get('restartYarnMRComponents')) {
+      var list = App.Service.find().mapProperty("serviceName").without("HDFS").join(',');
+      var conf = {
+        name: 'reassign.stop_YMR2_services',
+        sender: this,
+        data: {servicesList: list},
+        success: 'startPolling',
+        error: 'onTaskError'
+      };
+      App.ajax.send(conf);
+    } else {
+      App.ajax.send({
+        name: 'reassign.stop_services',
+        sender: this,
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }
   },
 
   createHostComponents: function () {
@@ -320,12 +334,24 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   startServices: function () {
-    App.ajax.send({
-      name: 'reassign.start_services',
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+    if(this.get('restartYarnMRComponents')) {
+      var list = App.Service.find().mapProperty("serviceName").without("HDFS").join(',');
+      var conf = {
+        name: 'reassign.start_YMR2_services',
+        sender: this,
+        data: {servicesList: list},
+        success: 'startPolling',
+        error: 'onTaskError'
+      };
+      App.ajax.send(conf);
+    } else {
+      App.ajax.send({
+        name: 'reassign.start_services',
+        sender: this,
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }
   },
 
   deleteHostComponents: function () {

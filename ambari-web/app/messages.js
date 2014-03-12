@@ -1248,7 +1248,7 @@ Em.I18n.translations = {
   'services.reassign.step1.message1': 'This wizard will walk you through moving {0}.<br/>',
   'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
       '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>',
-  'services.reassign.step1.message3': '<br/><b>All services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
+  'services.reassign.step1.message3': '<br/><b>All required services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
     'for cluster downtime when moving {0}.</b>',
 
   'services.reassign.step2.header':'Assign Master',
@@ -1261,7 +1261,7 @@ Em.I18n.translations = {
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
   'services.reassign.step4.header':'Configure Component',
-  'services.reassign.step4.task0.title':'Stop All Services',
+  'services.reassign.step4.task0.title':'Stop Required Services',
   'services.reassign.step4.task1.title':'Create {0}',
   'services.reassign.step4.task2.title':'Disable {0}',
   'services.reassign.step4.task3.title':'Reconfigure {0}',
@@ -1269,7 +1269,7 @@ Em.I18n.translations = {
   'services.reassign.step4.task5.title':'Start ZooKeeper Servers',
   'services.reassign.step4.task6.title':'Start NameNode',
   'services.reassign.step4.task7.title':'Delete disabled {0}',
-  'services.reassign.step4.task8.title':'Start All Services',
+  'services.reassign.step4.task8.title':'Start Required Services',
   'services.reassign.step4.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
   'services.reassign.step4.status.success.withManualSteps': 'Proceed to the next step',
   'services.reassign.step4.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',

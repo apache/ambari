@@ -160,6 +160,25 @@ var urls = {
       }
     }
   },
+  'reassign.stop_YMR2_services': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name.in({servicesList})',
+    'mock': '',
+    'format': function() {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "context": "Stop without HDFS"
+          },
+          "Body": {
+            "ServiceInfo": {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
   'reassign.start_services': {
     'real': '/clusters/{clusterName}/services?params/run_smoke_test=true',
     'mock': '',
@@ -169,6 +188,25 @@ var urls = {
         data: JSON.stringify({
           "RequestInfo": {
             "context": "Start all services"
+          },
+          "Body": {
+            "ServiceInfo": {
+              "state": "STARTED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'reassign.start_YMR2_services': {
+    'real': '/clusters/{clusterName}/services/?ServiceInfo/service_name.in({servicesList})',
+    'mock': '',
+    'format': function() {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "context": "Start without HDFS"
           },
           "Body": {
             "ServiceInfo": {
