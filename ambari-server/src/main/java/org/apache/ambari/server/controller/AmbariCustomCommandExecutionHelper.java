@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -52,6 +53,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
@@ -299,6 +302,13 @@ public class AmbariCustomCommandExecutionHelper {
       }
       roleParams.put(COMPONENT_CATEGORY, componentInfo.getCategory());
       execCmd.setRoleParams(roleParams);
+      
+      // if the target is NAGIOS (for example: restart command), make passive info always available
+      if (execCmd.getRole().equals(Role.NAGIOS_SERVER.name())) {
+        execCmd.setPassiveInfo(
+          MaintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
+      }
+      
     }
   }
 

@@ -4008,8 +4008,107 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
     Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
+    
+    // verify passive info is not passed when not NAGIOS
+    Assert.assertNull(hrc.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo());
   }
 
+  @Test
+  public void testPassiveSentWithNagiosRestart() throws AmbariException {
+    setupClusterWithHosts("c1", "HDP-2.0.7", Arrays.asList("h1"), "centos5");
+
+    Cluster cluster = clusters.getCluster("c1");
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
+    cluster.setCurrentStackVersion(new StackId("HDP-2.0.7"));
+
+    Service hdfs = cluster.addService("HDFS");
+    hdfs.persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost("h1").persist();
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost("h1").persist();
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h1").persist();
+    
+
+    
+    Service nagios = cluster.addService("NAGIOS");
+    nagios.persist();
+    nagios.addServiceComponent(Role.NAGIOS_SERVER.name()).persist();
+    nagios.getServiceComponent(Role.NAGIOS_SERVER.name()).addServiceComponentHost("h1").persist();
+    
+    installService("c1", "HDFS", false, false);
+    installService("c1", "NAGIOS", false, false);
+
+    startService("c1", "HDFS", false, false);
+    startService("c1", "NAGIOS", false, false);
+
+    // set this after starting - setting it before will skip it due to rules
+    // around bulk starts
+    hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(
+        "h1").setMaintenanceState(MaintenanceState.ON);    
+    
+    Cluster c = clusters.getCluster("c1");
+    Service s = c.getService("HDFS");
+
+    Assert.assertEquals(State.STARTED, s.getDesiredState());
+    for (ServiceComponent sc : s.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        if (sc.isClientComponent()) {
+          Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+        } else {
+          Assert.assertEquals(State.STARTED, sch.getDesiredState());
+        }
+      }
+    }
+
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("test", "test");
+    }};
+    RequestResourceFilter resourceFilter = new RequestResourceFilter(
+      "NAGIOS",
+      "NAGIOS_SERVER",
+      new ArrayList<String>() {{ add("h1"); }});
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
+      "RESTART", params);
+    actionRequest.getResourceFilters().add(resourceFilter);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
+
+    List<Stage> stages = actionDB.getAllStages(response.getRequestId());
+    Assert.assertNotNull(stages);
+
+    HostRoleCommand hrc = null;
+    for (Stage stage : stages) {
+      for (HostRoleCommand cmd : stage.getOrderedHostRoleCommands()) {
+        if (cmd.getRole().equals(Role.NAGIOS_SERVER)) {
+          hrc = cmd;
+        }
+      }
+    }
+    Assert.assertNotNull(hrc);
+    Assert.assertEquals("RESTART NAGIOS/NAGIOS_SERVER", hrc.getCommandDetail());
+
+    
+    Set<Map<String, String>> pi =
+        hrc.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo();
+    
+    Assert.assertNotNull(pi);
+    Assert.assertTrue(pi.size() > 0);
+    Map<String, String> map = pi.iterator().next();
+    Assert.assertTrue(map.containsKey("host"));
+    Assert.assertTrue(map.containsKey("service"));
+    Assert.assertTrue(map.containsKey("component"));
+    Assert.assertEquals("h1", map.get("host"));
+    Assert.assertEquals("HDFS", map.get("service"));
+    Assert.assertEquals("DATANODE", map.get("component"));
+  }  
+  
+  
   @SuppressWarnings("serial")
   @Test
   public void testCreateActionsFailures() throws Exception {

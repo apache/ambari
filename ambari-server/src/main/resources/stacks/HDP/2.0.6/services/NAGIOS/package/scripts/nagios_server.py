@@ -79,12 +79,14 @@ def update_ignorable(params):
     return
   else:
     buf = ""
+    count = 0
     for define in params.config['passiveInfo']:
       try:
         host = str(define['host'])
         service = str(define['service'])
         component = str(define['component'])
         buf += host + " " + service + " " + component + "\n"
+        count += 1
       except KeyError:
         pass
 
@@ -92,7 +94,12 @@ def update_ignorable(params):
     try:
       f = open('/var/nagios/ignore.dat', 'w')
       f.write(buf)
+      if 1 == count:
+        Logger.info("Persisted '/var/nagios/ignore.dat' with 1 entry")
+      elif count > 1:
+        Logger.info("Persisted '/var/nagios/ignore.dat' with " + str(count) + " entries")
     except:
+      Logger.info("Could not persist '/var/nagios/ignore.dat'")
       pass
     finally:
       if f is not None:

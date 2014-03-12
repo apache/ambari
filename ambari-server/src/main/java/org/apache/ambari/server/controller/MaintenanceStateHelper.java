@@ -119,6 +119,8 @@ public class MaintenanceStateHelper {
   public static Set<Map<String, String>> getMaintenanceHostComponents(Clusters clusters, Cluster cluster) throws AmbariException {
     
     Set<Map<String, String>> set = new HashSet<Map<String, String>>();
+
+    Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
     
     for (Service service : cluster.getServices().values()) {
       for (ServiceComponent sc : service.getServiceComponents().values()) {
@@ -126,8 +128,7 @@ public class MaintenanceStateHelper {
           continue;
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          Host host = clusters.getHostsForCluster(
-              cluster.getClusterName()).get(sch.getHostName());
+          Host host = hosts.get(sch.getHostName());
           
           if (MaintenanceState.OFF != getEffectiveState(cluster.getClusterId(),
               service, host, sch)) {
