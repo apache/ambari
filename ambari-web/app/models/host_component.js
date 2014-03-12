@@ -188,6 +188,7 @@ App.HostComponentStatus = {
   upgrade_failed: "UPGRADE_FAILED",
   unknown: "UNKNOWN",
   disabled: "DISABLED",
+  init: "INIT",
 
   /**
    * Get host component status in "machine" format
@@ -242,8 +243,24 @@ App.HostComponentStatus = {
         return 'Upgrade Failed';
       case this.disabled:
         return 'Disabled';
+      case this.init:
+        return 'Install Pending...';
     }
     return 'Unknown';
+  },
+
+  /**
+   * Get list of possible <code>App.HostComponent</code> statuses
+   * @returns {String[]}
+   */
+  getStatusesList: function() {
+    var ret = [];
+    for (var st in this) {
+      if (this.hasOwnProperty(st) && Em.typeOf(this[st]) == 'string') {
+        ret.push(this[st]);
+      }
+    }
+    return ret;
   }
 };
 

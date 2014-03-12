@@ -22,7 +22,7 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceused');
 
 describe('App.MainChartHeatmapDiskSpaceUsedMetric', function () {
 
-  var tests = [
+  var tests = Em.A([
     {
       json:{
         "items" : [
@@ -40,7 +40,7 @@ describe('App.MainChartHeatmapDiskSpaceUsedMetric', function () {
         ]
       },
       m: 'One host',
-      e: {'dev01.hortonworks.com': '11.4'}
+      e: {'dev01.hortonworks.com': 11.37}
     },
     {
       json:{
@@ -70,7 +70,7 @@ describe('App.MainChartHeatmapDiskSpaceUsedMetric', function () {
         ]
       },
       m: 'Two hosts',
-      e: {'dev01.hortonworks.com': '11.4', 'dev02.hortonworks.com': '11.4'}
+      e: {'dev01.hortonworks.com': 11.37, 'dev02.hortonworks.com': 11.37}
     },
     {
       json:{
@@ -97,9 +97,9 @@ describe('App.MainChartHeatmapDiskSpaceUsedMetric', function () {
         ]
       },
       m: 'Two hosts, One without metric',
-      e: {'dev01.hortonworks.com': '11.4'}
+      e: {'dev01.hortonworks.com': 11.37}
     }
-  ];
+  ]);
 
   describe('#metricMapper()', function() {
     var mainChartHeatmapDiskSpaceUsedMetric = App.MainChartHeatmapDiskSpaceUsedMetric.create();

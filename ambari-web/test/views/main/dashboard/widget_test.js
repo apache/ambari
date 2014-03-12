@@ -33,12 +33,12 @@ describe('App.DashboardWidgetView', function() {
     var tests = [
       {
         h: ['', ''],
-        e: 'simple-text-hidden-two-line',
+        e: 'content-hidden-two-line',
         m: '2 lines'
       },
       {
         h: ['', '', ''],
-        e: 'simple-text-hidden-three-line',
+        e: 'content-hidden-three-line',
         m: '3 lines'
       },
       {
@@ -53,12 +53,12 @@ describe('App.DashboardWidgetView', function() {
       },
       {
         h: ['', '', '', '', ''],
-        e: 'simple-text-hidden-five-line',
+        e: 'content-hidden-five-line',
         m: '5 lines'
       },
       {
         h: ['', '', '', ''],
-        e: 'simple-text-hidden-four-line',
+        e: 'content-hidden-four-line',
         m: '4 lines'
       }
     ];

@@ -109,4 +109,5 @@ require('test/views/main/host/details/host_component_views/decommissionable_test
 require('test/views/common/configs/services_config_test');
 require('test/views/wizard/step9_view_test');
 require('test/models/host_test');
+require('test/models/host_component_test');
 require('test/models/rack_test');

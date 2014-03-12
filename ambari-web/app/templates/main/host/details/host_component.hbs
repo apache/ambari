@@ -76,11 +76,13 @@
             </li>
           {{/if}}
           {{#unless view.isStart}}
-            <li {{bindAttr class="view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable"}}>
-              <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
-                {{t common.start}}
-              </a>
-            </li>
+            {{#unless view.isInit}}
+              <li {{bindAttr class="view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable"}}>
+                <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
+                  {{t common.start}}
+                </a>
+              </li>
+            {{/unless}}
           {{/unless}}
           {{#if view.isUpgradeFailed}}
             <li {{bindAttr class="view.noActionAvailable"}}>
@@ -104,11 +106,13 @@
             </li>
           {{/if}}
           {{#if view.isActive}}
-            <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                {{t passiveState.turnOn}}
-              </a>
-            </li>
+            {{#unless view.isInit}}
+              <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
+                <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
+                  {{t passiveState.turnOn}}
+                </a>
+              </li>
+            {{/unless}}
           {{else}}
             <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
               <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
@@ -117,6 +121,13 @@
             </li>
           {{/if}}
         {{/unless}}
+        {{#if view.isInit}}
+          <li {{bindAttr class="view."}}>
+            <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
+              {{t common.reinstall}}
+            </a>
+          </li>
+        {{/if}}
         {{#if view.isDeletableComponent}}
             <li {{bindAttr class="view.isDeleteComponentDisabled:disabled"}}>
                 <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>

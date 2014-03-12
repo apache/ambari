@@ -147,7 +147,7 @@ App.HostComponentView = Em.View.extend({
    * @type {bool}
    */
   isStart: function () {
-    return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
+    return [App.HostComponentStatus.started, App.HostComponentStatus.starting].contains(this.get('workStatus'));
   }.property('workStatus'),
 
   /**
@@ -164,6 +164,14 @@ App.HostComponentView = Em.View.extend({
    */
   isInstalling: function () {
     return (this.get('workStatus') == App.HostComponentStatus.installing);
+  }.property('workStatus'),
+
+  /**
+   * For Init state
+   * @type {bool}
+   */
+  isInit: function() {
+    return this.get('workStatus') == App.HostComponentStatus.init;
   }.property('workStatus'),
 
   /**
@@ -217,7 +225,7 @@ App.HostComponentView = Em.View.extend({
    * @type {bool}
    */
   isDeleteComponentDisabled: function () {
-    return ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed].contains(this.get('workStatus'));
+    return ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
   }.property('workStatus'),
 
   /**
