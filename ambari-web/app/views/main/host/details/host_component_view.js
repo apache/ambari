@@ -225,8 +225,8 @@ App.HostComponentView = Em.View.extend({
    * @type {bool}
    */
   isDeleteComponentDisabled: function () {
-    return ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
-  }.property('workStatus'),
+    return !(this.get('isComponentRecommissionAvailable') || [App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus')));
+  }.property('workStatus','isComponentRecommissionAvailable'),
 
   /**
    * Check if component may be reassinged to another host
