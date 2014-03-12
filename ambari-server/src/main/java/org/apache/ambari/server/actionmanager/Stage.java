@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.*;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -51,6 +52,8 @@ public class Stage {
 
   private int stageTimeout = -1;
 
+  private volatile boolean wrappersLoaded = false;
+
   //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
   private Map<Role, Float> successFactors = new HashMap<Role, Float>();
 
@@ -63,6 +66,7 @@ public class Stage {
   @AssistedInject
   public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
                @Assisted("requestContext") @Nullable String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo) {
+    this.wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
@@ -87,12 +91,12 @@ public class Stage {
     for (HostRoleCommand command : commands) {
       String hostname = command.getHostName();
       if (!hostRoleCommands.containsKey(hostname)) {
-        commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
-        hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
+//        commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+        hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
       }
 
       hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
-      commandsToSend.get(hostname).add(command.getExecutionCommandWrapper());
+//      commandsToSend.get(hostname).add(command.getExecutionCommandWrapper());
     }
 
     for (RoleSuccessCriteriaEntity successCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {
@@ -124,16 +128,34 @@ public class Stage {
     return stageEntity;
   }
 
+  void checkWrappersLoaded() {
+    if (!wrappersLoaded) {
+      synchronized (this) { // Stages are not used concurrently now, but it won't be performance loss
+        if (!wrappersLoaded) {
+          loadExecutionCommandWrappers();
+        }
+      }
+    }
+  }
+
+  @Transactional
+  void loadExecutionCommandWrappers() {
+    for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
+      String hostname = hostRoleCommandEntry.getKey();
+      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      Map<String, HostRoleCommand> roleCommandMap = hostRoleCommandEntry.getValue();
+      for (Map.Entry<String, HostRoleCommand> roleCommandEntry : roleCommandMap.entrySet()) {
+        commandsToSend.get(hostname).add(roleCommandEntry.getValue().getExecutionCommandWrapper());
+      }
+    }
+  }
+
   public List<HostRoleCommand> getOrderedHostRoleCommands() {
     List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
-    //TODO trick for proper storing order, check it
-    for (String hostName : hostRoleCommands.keySet()) {
-      for (ExecutionCommandWrapper executionCommandWrapper : commandsToSend.get(hostName)) {
-        for (HostRoleCommand hostRoleCommand : hostRoleCommands.get(hostName).values()) {
-          if (hostRoleCommand.getExecutionCommandWrapper() == executionCommandWrapper) {
-            commands.add(hostRoleCommand);
-          }
-        }
+    //Correct due to ordered maps
+    for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
+      for (Map.Entry<String, HostRoleCommand> roleCommandEntry : hostRoleCommandEntry.getValue().entrySet()) {
+        commands.add(roleCommandEntry.getValue());
       }
     }
     return commands;
@@ -151,6 +173,7 @@ public class Stage {
     if (this.stageId != -1) {
       throw new RuntimeException("Attempt to set stageId again! Not allowed.");
     }
+    //used on stage creation only, no need to check if wrappers loaded
     this.stageId = stageId;
     for (String host: this.commandsToSend.keySet()) {
       for (ExecutionCommandWrapper wrapper : this.commandsToSend.get(host)) {
@@ -176,6 +199,7 @@ public class Stage {
    */
   public synchronized void addHostRoleExecutionCommand(String host, Role role,  RoleCommand command,
       ServiceComponentHostEvent event, String clusterName, String serviceName) {
+    //used on stage creation only, no need to check if wrappers loaded
     HostRoleCommand hrc = new HostRoleCommand(host, role, event, command);
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
@@ -189,7 +213,7 @@ public class Stage {
     
     Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(host);
     if (hrcMap == null) {
-      hrcMap = new TreeMap<String, HostRoleCommand>();
+      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
       this.hostRoleCommands.put(host, hrcMap);
     }
     if (hrcMap.get(role.toString()) != null) {
@@ -221,6 +245,7 @@ public class Stage {
   public synchronized void addServerActionCommand(
       String actionName, Role role,  RoleCommand command, String clusterName,
       ServiceComponentHostUpgradeEvent event, String hostName) {
+    //used on stage creation only, no need to check if wrappers loaded
     HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command);
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
@@ -237,7 +262,7 @@ public class Stage {
     cmd.setRoleParams(roleParams);
     Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(hostName);
     if (hrcMap == null) {
-      hrcMap = new TreeMap<String, HostRoleCommand>();
+      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
       this.hostRoleCommands.put(hostName, hrcMap);
     }
     if (hrcMap.get(role.toString()) != null) {
@@ -334,6 +359,7 @@ public class Stage {
   }
 
   public List<ExecutionCommandWrapper> getExecutionCommands(String hostname) {
+    checkWrappersLoaded();
     return commandsToSend.get(hostname);
   }
 
@@ -410,6 +436,7 @@ public class Stage {
   }
 
   public Map<String, List<ExecutionCommandWrapper>> getExecutionCommands() {
+    checkWrappersLoaded();
     return this.commandsToSend;
   }
 
@@ -429,6 +456,7 @@ public class Stage {
    */
   public synchronized void addExecutionCommandWrapper(Stage origStage,
       String hostname, Role r) {
+    //used on stage creation only, no need to check if wrappers loaded
     String role = r.toString();
     if (commandsToSend.get(hostname) == null) {
       commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
@@ -436,7 +464,7 @@ public class Stage {
     commandsToSend.get(hostname).add(
         origStage.getExecutionCommandWrapper(hostname, role));
     if (hostRoleCommands.get(hostname) == null) {
-      hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
+      hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
     }
     // TODO add reference to ExecutionCommand into HostRoleCommand
     hostRoleCommands.get(hostname).put(role,
@@ -451,6 +479,7 @@ public class Stage {
    * In this method we sum up all timeout values for all commands inside stage
    */
   public synchronized int getStageTimeout() {
+    checkWrappersLoaded();
     if (stageTimeout == -1) {
       for (String host: commandsToSend.keySet()) {
         int summaryTaskTimeoutForHost = 0;

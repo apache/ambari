@@ -877,7 +877,7 @@ public class Configuration {
     long value = SERVER_EC_CACHE_SIZE_DEFAULT;
     if (stringValue != null) {
       try {
-        value = Long.getLong(stringValue);
+        value = Long.valueOf(stringValue);
       } catch (NumberFormatException ignored) {
       }
 
