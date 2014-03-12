@@ -20,8 +20,8 @@
 
 {{view view.sumMasterComponentView}}
 <tr>
-  <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{t services.zookeeper.client}}</a></td>
+    <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{pluralize view.clients.length singular="t:services.zookeeper.client" plural="t:services.zookeeper.clients"}}</a></td>
     <td>
-      <span class="green-live">{{view.clients.length}} </span>{{t services.zookeeper.client}}{{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
+        <span class="green-live">{{view.clients.length}} </span>{{pluralize view.clients.length singular="t:services.zookeeper.client" plural="t:services.zookeeper.clients"}} {{t common.installed}}
     </td>
 </tr>

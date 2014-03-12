@@ -17,3 +17,10 @@
 }}
 {{!<!-- @todo create correct view after api implementing-->}}
 {{view view.sumMasterComponentView}}
+
+<tr>
+    <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{pluralize view.clients.length singular="t:services.falcon.client" plural="t:services.falcon.clients"}}</a></td>
+    <td>
+        <span class="green-live">{{view.clients.length}} </span>{{pluralize view.clients.length singular="t:services.falcon.client" plural="t:services.falcon.clients"}} {{t common.installed}}
+    </td>
+</tr>

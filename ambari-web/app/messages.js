@@ -1332,6 +1332,9 @@ Em.I18n.translations = {
   'services.hive.client': 'Hive Client',
   'services.hive.clients': 'Hive Clients',
 
+  'services.falcon.client': 'Falcon Client',
+  'services.falcon.clients': 'Falcon Clients',
+
   'services.oozie.client': 'Oozie Client',
   'services.oozie.clients': 'Oozie Clients',
   'services.oozie.webUi': 'Oozie Web UI',

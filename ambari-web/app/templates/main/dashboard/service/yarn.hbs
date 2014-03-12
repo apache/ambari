@@ -57,10 +57,10 @@
       </tr>
       <!-- YARN Clients -->
       <tr>
-        <td class="summary-label"><a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">{{t dashboard.services.yarn.clients}}</a></td>
+        <td class="summary-label"><a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">{{pluralize view.service.yarnClientNodes.length singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}}</a></td>
         <td>
           <span class="green-live">{{view.service.yarnClientNodes.length}} </span>
-          {{t dashboard.services.yarn.client}}{{#if view.hasManyYarnClients}}s{{/if}} {{t common.installed}}
+          {{pluralize view.service.yarnClientNodes.length singular="t:dashboard.services.yarn.client" plural="t:dashboard.services.yarn.clients"}} {{t common.installed}}
         </td>
       </tr>
       <!-- ResourceManager Uptime -->

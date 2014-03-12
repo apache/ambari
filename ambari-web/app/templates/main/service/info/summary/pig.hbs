@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 <tr>
-  <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{t services.pig.client}}</a></td>
+  <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{pluralize view.clients.length singular="t:services.pig.client" plural="t:services.pig.clients"}}</a></td>
   <td>
     <span class="green-live">{{view.clients.length}} </span>{{pluralize view.clients.length singular="t:services.pig.client" plural="t:services.pig.clients"}} {{t common.installed}}
   </td>

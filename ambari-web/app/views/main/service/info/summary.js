@@ -54,7 +54,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     sqoop: false
   },
 
-  servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG"],
+  servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON"],
 
   sumMasterComponentView : Em.View.extend({
     didInsertElement: function() {
