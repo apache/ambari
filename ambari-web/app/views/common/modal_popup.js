@@ -30,6 +30,8 @@ App.ModalPopup = Ember.View.extend({
   secondary: Em.I18n.t('common.cancel'),
   autoHeight: true,
   enablePrimary: true,
+  enableSecondary: true,
+  primaryClass: 'btn-success',
   onPrimary: function () {
     this.hide();
   },
@@ -128,6 +130,53 @@ App.showConfirmationPopup = function (primary, body, secondary) {
       this.hide();
       primary();
     },
+    onSecondary: function () {
+      this.hide();
+      if (secondary) {
+        secondary();
+      }
+    }
+  });
+};
+
+/**
+ * Show confirmation popup
+ * After sending command watch status of query,
+ * and in case of failure provide ability to retry to launch an operation.
+ *
+ * @param {Function} primary - "OK" button click handler
+ * @param {Function} secondary - "Cancel" button click handler
+ * @return {*}
+ */
+App.showConfirmationFeedBackPopup = function (primary, secondary) {
+  if (!primary) {
+    return false;
+  }
+  return App.ModalPopup.show({
+    header: Em.I18n.t('popup.confirmation.commonHeader'),
+    bodyClass: Em.View.extend({
+      templateName: require('templates/common/confirmation_feedback')
+    }),
+    query: Em.Object.create({status: "INIT"}),
+    onPrimary: function () {
+      this.set('query.status', "INIT");
+      this.set('enablePrimary', false);
+      this.set('enableSecondary', false);
+      this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.sending'));
+      primary(this.get('query'));
+    },
+    statusMessage: Em.I18n.t('question.sure'),
+    watchStatus: function() {
+      if (this.get('query.status') === "SUCCESS") {
+        this.hide();
+      } else if(this.get('query.status') === "FAIL") {
+        this.set('primaryClass', 'btn-primary');
+        this.set('primary', Em.I18n.t('common.retry'));
+        this.set('enablePrimary', true);
+        this.set('enableSecondary', true);
+        this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.query.fail'));
+      }
+    }.observes('query.status'),
     onSecondary: function () {
       this.hide();
       if (secondary) {

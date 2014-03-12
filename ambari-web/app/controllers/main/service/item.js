@@ -45,44 +45,41 @@ App.MainServiceItemController = Em.Controller.extend({
     }
   },
   /**
-   * Success ajax response processing
+   * Common method for ajax (start/stop service) responses
    * @param data
    * @param ajaxOptions
+   * @param params
    */
-  ajaxSuccess: function(data, ajaxOptions) {
-    if(data && data.Requests) {
-      this.ajaxCallBack(data.Requests.id, (JSON.parse(ajaxOptions.data)).Body.ServiceInfo.state);
-    }
-    else {
+  startStopPopupSuccessCallback: function (data, ajaxOptions, params) {
+    if (data && data.Requests) {
+      params.query.set('status', 'SUCCESS');
+      var config = this.get('callBackConfig')[(JSON.parse(ajaxOptions.data)).Body.ServiceInfo.state];
+      var self = this;
+      console.log('Send request for ' + config.c + ' successfully');
+      if (App.testMode) {
+        self.set('content.workStatus', App.Service.Health[config.f]);
+        self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.f]);
+        setTimeout(function () {
+          self.set('content.workStatus', App.Service.Health[config.c2]);
+          self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.hs]);
+        }, App.testModeDelayForActions);
+      }
+      else {
+        App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
+      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
+    } else {
+      params.query.set('status', 'FAIL');
       console.log('cannot get request id from ', data);
     }
   },
-  /**
-   * Common method for ajax (start/stop service) responses
-   * @param requestId
-   * @param serviceHealth
-   */
-  ajaxCallBack: function(requestId, serviceHealth) {
-    var config = this.get('callBackConfig')[serviceHealth];
-    var self = this;
-    console.log('Send request for ' + config.c + ' successfully');
-    if (App.testMode) {
-      self.set('content.workStatus', App.Service.Health[config.f]);
-      self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.f]);
-      setTimeout(function () {
-        self.set('content.workStatus', App.Service.Health[config.c2]);
-        self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.hs]);
-      }, App.testModeDelayForActions);
-    }
-    else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
-    }
-    // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
-    });
+  startStopPopupErrorCallback: function(request, ajaxOptions, error, opt, params){
+    params.query.set('status', 'FAIL');
   },
   /**
    * Confirmation popup for start/stop services
@@ -94,13 +91,13 @@ App.MainServiceItemController = Em.Controller.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup(function() {
+    App.showConfirmationFeedBackPopup(function(query) {
       self.set('isPending', true);
-      self.startStopPopupPrimary(serviceHealth);
+      self.startStopPopupPrimary(serviceHealth, query);
     });
   },
 
-  startStopPopupPrimary: function (serviceHealth) {
+  startStopPopupPrimary: function (serviceHealth, query) {
     var requestInfo = "";
     if (serviceHealth == "STARTED") {
       requestInfo = App.BackgroundOperationsController.CommandContexts.START_SERVICE.format(this.get('content.serviceName'));
@@ -111,11 +108,13 @@ App.MainServiceItemController = Em.Controller.extend({
     App.ajax.send({
       'name': 'service.item.start_stop',
       'sender': this,
-      'success': 'ajaxSuccess',
+      'success': 'startStopPopupSuccessCallback',
+      'error': 'startStopPopupErrorCallback',
       'data': {
         'requestInfo': requestInfo,
         'serviceName': this.get('content.serviceName').toUpperCase(),
-        'state': serviceHealth
+        'state': serviceHealth,
+        'query': query
       }
     });
     this.set('isStopDisabled', true);
@@ -182,14 +181,14 @@ App.MainServiceItemController = Em.Controller.extend({
       App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('services.mapreduce2.smokeTest.requirement'));
       return;
     }
-    App.showConfirmationPopup(function() {
-      self.runSmokeTestPrimary();
+    App.showConfirmationFeedBackPopup(function(query) {
+      self.runSmokeTestPrimary(query);
     });
   },
 
   restartAllHostComponents : function(serviceName) {
-    App.showConfirmationPopup(function() {
-      batchUtils.restartAllServiceHostComponents(serviceName, false);
+    App.showConfirmationFeedBackPopup(function(query) {
+      batchUtils.restartAllServiceHostComponents(serviceName, false, query);
     });
   },
 
@@ -229,31 +228,38 @@ App.MainServiceItemController = Em.Controller.extend({
     });
   },
 
-  runSmokeTestPrimary: function() {
+  runSmokeTestPrimary: function(query) {
     App.ajax.send({
       'name': 'service.item.smoke',
       'sender': this,
       'success':'runSmokeTestSuccessCallBack',
+      'error':'runSmokeTestErrorCallBack',
       'data': {
         'serviceName': this.get('content.serviceName'),
         'displayName': this.get('content.displayName'),
-        'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK'
+        'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK',
+        'query': query
       }
     });
   },
 
-  runSmokeTestSuccessCallBack: function(data) {
+  runSmokeTestSuccessCallBack: function (data, ajaxOptions, params) {
     if (data.Requests.id) {
       // load data (if we need to show this background operations popup) from persist
       App.router.get('applicationController').dataLoading().done(function (initValue) {
         if (initValue) {
+          params.query.set('status', 'SUCCESS');
           App.router.get('backgroundOperationsController').showPopup();
         }
       });
     }
     else {
+      params.query.set('status', 'FAIL');
       console.warn('error during runSmokeTestSuccessCallBack');
     }
+  },
+  runSmokeTestErrorCallBack: function (request, ajaxOptions, error, opt, params) {
+    params.query.set('status', 'FAIL');
   },
 
   /**
@@ -292,8 +298,8 @@ App.MainServiceItemController = Em.Controller.extend({
   refreshConfigs: function() {
     var self = this;
     if (this.get('content.isClientsOnly')) {
-      App.showConfirmationPopup(function() {
-        batchUtils.restartHostComponents(self.get('content.hostComponents'), Em.I18n.t('rollingrestart.context.allForSelectedService').format(self.get('content.serviceName')));
+      App.showConfirmationFeedBackPopup(function(query) {
+        batchUtils.restartHostComponents(self.get('content.hostComponents'), Em.I18n.t('rollingrestart.context.allForSelectedService').format(self.get('content.serviceName')), query);
       });
     }
   },

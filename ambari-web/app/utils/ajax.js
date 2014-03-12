@@ -1838,7 +1838,7 @@ var ajax = Em.Object.extend({
     };
     opt.error = function (request, ajaxOptions, error) {
       if (config.error) {
-        config.sender[config.error](request, ajaxOptions, error, opt);
+        config.sender[config.error](request, ajaxOptions, error, opt, params);
       } else {
         this.defaultErrorHandler(request, opt.url, opt.type);
       }

@@ -21,9 +21,10 @@ var App = require('app');
  * Default success callback for ajax-requests in this module
  * @type {Function}
  */
-var defaultSuccessCallback = function() {
+var defaultSuccessCallback = function(data, ajaxOptions, params) {
   App.router.get('applicationController').dataLoading().done(function(initValue) {
     if (initValue) {
+      params.query && params.query.set('status', 'SUCCESS');
       App.router.get('backgroundOperationsController').showPopup();
     }
   });
@@ -36,7 +37,8 @@ var defaultSuccessCallback = function() {
  * @param {Object} opt
  * @type {Function}
  */
-var defaultErrorCallback = function(xhr, textStatus, error, opt) {
+var defaultErrorCallback = function(xhr, textStatus, error, opt, params) {
+  params.query && params.query.set('status', 'FAIL');
   App.ajax.defaultErrorHandler(xhr, opt.url, 'POST', xhr.status);
 };
 
@@ -67,7 +69,7 @@ module.exports = {
    * @param {String} serviceName for which service hostComponents should be restarted
    * @param {bool} staleConfigsOnly restart only hostComponents with <code>staleConfig</code> true
    */
-  restartAllServiceHostComponents: function(serviceName, staleConfigsOnly) {
+  restartAllServiceHostComponents: function(serviceName, staleConfigsOnly, query) {
     var service = App.Service.find(serviceName);
     var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
     if (service) {
@@ -75,7 +77,7 @@ module.exports = {
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
-      this.restartHostComponents(hostComponents, context);
+      this.restartHostComponents(hostComponents, context, query);
     }
   },
 
@@ -84,7 +86,7 @@ module.exports = {
    * @param {Ember.Enumerable} hostComponentsList list of host components should be restarted
    * @param {String} context message to show in BG popup
    */
-  restartHostComponents: function(hostComponentsList, context) {
+  restartHostComponents: function(hostComponentsList, context, query) {
     context = context || Em.I18n.t('rollingrestart.context.default');
     /**
      * Format: {
@@ -121,7 +123,8 @@ module.exports = {
         },
         data: {
           context: context,
-          resource_filters: resource_filters
+          resource_filters: resource_filters,
+          query: query
         },
         success: 'successCallback',
         error: 'errorCallback'

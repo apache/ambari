@@ -52,10 +52,10 @@
           {{t app.settings.notShowBgOperations}}</label>
         {{/if}}
         {{#if view.secondary}}
-          <a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>
+          <a {{bindAttr class="view.enableSecondary::disabled :btn"}} {{action onSecondary target="view"}}>{{view.secondary}}</a>
         {{/if}}
         {{#if view.primary}}
-          <a {{bindAttr class="view.enablePrimary::disabled :btn :btn-success"}} {{action onPrimary target="view"}}>{{view.primary}}</a>
+          <a {{bindAttr class="view.enablePrimary::disabled :btn view.primaryClass"}} {{action onPrimary target="view"}}>{{view.primary}}</a>
         {{/if}}
       </div>
     {{/if}}

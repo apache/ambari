@@ -239,6 +239,8 @@ Em.I18n.translations = {
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
   'popup.prompt.commonHeader':'Prompt',
+  'popup.confirmationFeedBack.sending':'Sending...',
+  'popup.confirmationFeedBack.query.fail':'Request failed',
 
   'router.hadoopClusterNotSetUp':'Your administrator has not set up a Hadoop cluster yet.',
 

@@ -97,8 +97,8 @@ App.MainServiceController = Em.ArrayController.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup(function() {
-      self.allServicesCall('startAllService');
+    App.showConfirmationFeedBackPopup(function(query) {
+      self.allServicesCall('startAllService', query);
     });
   },
 
@@ -110,12 +110,12 @@ App.MainServiceController = Em.ArrayController.extend({
       return;
     }
     var self = this;
-    App.showConfirmationPopup(function() {
-      self.allServicesCall('stopAllService');
+    App.showConfirmationFeedBackPopup(function(query) {
+      self.allServicesCall('stopAllService', query);
     });
   },
 
-  allServicesCall: function(state) {
+  allServicesCall: function(state, query) {
     var data;
     if (state == 'stopAllService') {
       data = '{"RequestInfo": {"context" :"' +
@@ -131,17 +131,19 @@ App.MainServiceController = Em.ArrayController.extend({
       name: 'service.start_stop',
       sender: this,
       data: {
-        data: data
+        data: data,
+        query: query
       },
       success: 'allServicesCallSuccessCallback',
       error: 'allServicesCallErrorCallback'
     });
   },
 
-  allServicesCallSuccessCallback: function(data) {
+  allServicesCallSuccessCallback: function(data, xhr, params) {
     console.log("TRACE: Start/Stop all service -> In success function for the start/stop all Service call");
     console.log("TRACE: Start/Stop all service -> value of the received data is: " + data);
     var requestId = data.Requests.id;
+    params.query.set('status', 'SUCCESS');
     console.log('requestId is: ' + requestId);
 
     // load data (if we need to show this background operations popup) from persist
@@ -151,8 +153,9 @@ App.MainServiceController = Em.ArrayController.extend({
       }
     });
   },
-  allServicesCallErrorCallback: function(xhr, textStatus, errorThrown, opt) {
-    App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
+  allServicesCallErrorCallback: function(request, ajaxOptions, error, opt, params) {
+    console.log("ERROR");
+    params.query.set('status', 'FAIL');
   },
 
   gotoAddService: function() {
