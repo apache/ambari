@@ -290,6 +290,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var pName = edgeObj.parent ? edgeObj.parent.name : null;
       var cName = edgeObj.toVertex ? edgeObj.toVertex.get('name') : null;
       console.debug("Processing vertex ", edgeObj, " (",pName, " > ", cName,")");
+      if(edgeObj.parent && edgeObj.depth < edgeObj.parent.depth + 1){
+        console.debug("Updating child edge to " + (edgeObj.parent.depth + 1));
+        edgeObj.depth = edgeObj.parent.depth + 1;
+      }
       var node = vertexIdToNode[vertex.get('id')];
       for ( var k = depthToNodes.length; k <= edgeObj.depth; k++) {
         depthToNodes.push([]);
@@ -325,10 +329,23 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       } else {
         // Existing node
         if (edgeObj.depth > node.depth) {
-          var oldIndex = depthToNodes[node.depth].indexOf(node);
-          depthToNodes[node.depth].splice(oldIndex, 1);
-          node.depth = edgeObj.depth;
-          depthToNodes[node.depth].push(node);
+          function moveNodeToDepth(node, newDepth) {
+            console.debug("Moving " + node.name + " from depth " + node.depth + " to " + newDepth);
+            var oldIndex = depthToNodes[node.depth].indexOf(node);
+            depthToNodes[node.depth].splice(oldIndex, 1);
+            node.depth = newDepth;
+            if (!depthToNodes[node.depth]) {
+              depthToNodes[node.depth] = [];
+            }
+            depthToNodes[node.depth].push(node);
+            if (node.children) {
+              // Move children down depth
+              node.children.forEach(function(c) {
+                moveNodeToDepth(c, node.depth + 1);
+              })
+            }
+          }
+          moveNodeToDepth(node, edgeObj.depth);
         }
       }
       if (depthToNodes[node.depth].length > maxRowLength) {
@@ -509,6 +526,23 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     //
     var self = this;
     var force = d3.layout.force().nodes(dagVisualModel.nodes).links(dagVisualModel.links).start();
+    var nodeDragData = {
+      nodeRelativeX : 0,
+      nodeRelativeY : 0
+    };
+    var nodeDrag = d3.behavior.drag().on('dragstart', function(node){
+      d3.event.sourceEvent.stopPropagation();
+      var rc = d3.mouse(this);
+      nodeDragData.nodeRelativeX = rc[0];
+      nodeDragData.nodeRelativeY = rc[1];
+    }).on('drag', function(node){
+      var nx = d3.event.x - nodeDragData.nodeRelativeX;
+      var ny = d3.event.y - nodeDragData.nodeRelativeY;
+      self.dragVertex(d3.select(this), node, [nx, ny], diagonal);
+    }).on('dragend', function(){
+      nodeDragData.nodeRelativeX = 0;
+      nodeDragData.nodeRelativeY = 0;
+    });
     // Create Links
     var diagonal = d3.svg.diagonal().source(function(d) {
       return {
@@ -521,7 +555,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         y : d.target.incomingY - 12
       }
     });
-    var link = svgLayer.selectAll(".link").data(dagVisualModel.links).enter().append("g").attr("class", "link").attr("marker-end", "url(#arrow)");
+    var link = svgLayer.selectAll(".link-g").data(dagVisualModel.links).enter().append("g").attr("class", "link-g").attr("marker-end", "url(#arrow)");
     link.append("path").attr("class", function(l) {
       var classes = "link svg-tooltip ";
       switch (l.edgeType) {
@@ -540,7 +574,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       return Em.I18n.t("jobs.hive.tez.edge." + lower);
     });
     // Create Nodes
-    var node = svgLayer.selectAll(".node").data(dagVisualModel.nodes).enter().append("g").attr("class", "node");
+    var node = svgLayer.selectAll(".node").data(dagVisualModel.nodes).enter().append("g").attr("class", "node").call(nodeDrag);
     node.append("rect").attr("class", "background").attr("width", function(n) {
       return n.width;
     }).attr("height", function(n) {
@@ -666,6 +700,25 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       width : canvasWidth,
       height : canvasHeight
     }
+  },
+
+  dragVertex: function(d3Vertex, node, newPosition, diagonal){
+    console.debug("Dragging vertex [", node.name, "] to (", newPosition[0], ",", newPosition[1], ")");
+    // Move vertex
+    node.x = newPosition[0];
+    node.y = newPosition[1];
+    node.incomingX = newPosition[0] + (node.width/2);
+    node.incomingY = newPosition[1];
+    node.outgoingX = newPosition[0] + (node.width/2);
+    node.outgoingY = newPosition[1] + node.height;
+    d3Vertex.attr('transform', 'translate(' + newPosition[0] + ',' + newPosition[1] + ')');
+    // Move links
+    d3.selectAll('.link').filter(function(l) {
+      if (l && (l.source === node || l.target === node)) {
+        return this
+      }
+      return null;
+    }).attr('d', diagonal);
   },
 
   /**
