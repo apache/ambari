@@ -2613,7 +2613,7 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
 
   command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
                                              "updateStackId",
-                                            json.dumps(stackId))
+                                            "'" + json.dumps(stackId) + "'")
   (retcode, stdout, stderr) = run_os_command(command)
   print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
   if retcode > 0:
@@ -2631,7 +2631,7 @@ def run_metainfo_upgrade(keyValueMap = None):
   if keyValueMap:
     command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
                                               'updateMetaInfo',
-                                              json.dumps(keyValueMap))
+                                              "'" + json.dumps(keyValueMap) + "'")
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
     if retcode > 0:
