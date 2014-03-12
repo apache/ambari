@@ -89,6 +89,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     this.createSvg();
   },
 
+  willDestroyElement : function() {
+    $('.svg-tooltip').tooltip('destroy');
+  },
+
   createSvg : function() {
     var self = this;
     var dagVisualModel = this.get('dagVisualModel');
