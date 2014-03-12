@@ -274,8 +274,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.setHostToPrincipal(oozieService, 'oozie_servername','oozie_http_principal_name','HTTP/');
     this.setHostToPrincipal(falconService, 'falcon_server_host','falcon_principal_name','falcon/');
     this.setHostToPrincipal(falconService, 'falcon_server_host','falcon_http_principal_name','HTTP/');
-    this.setHostToPrincipal(oozieService, 'webhcatserver_host','webHCat_http_principal_name','HTTP/');
-    this.setHostToPrincipal(oozieService, 'nagios_server','nagios_principal_name','nagios/');
+    this.setHostToPrincipal(webHcatService, 'webhcatserver_host','webHCat_http_principal_name','HTTP/');
+    this.setHostToPrincipal(nagiosService, 'nagios_server','nagios_principal_name','nagios/');
   },
 
   changeCategoryOnHa: function (serviceConfigs, stepConfigs) {
