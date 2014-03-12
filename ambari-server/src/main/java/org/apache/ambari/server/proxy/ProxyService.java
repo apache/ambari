@@ -93,15 +93,18 @@ public class ProxyService {
       try {
         HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, body, getHeaderParamsToForward(headers));
         int responseCode = connection.getResponseCode();
+        InputStream resultInputStream = null;
         if (responseCode >= HTTP_ERROR_RANGE_START) {
-          throw new WebApplicationException(connection.getResponseCode());
+          resultInputStream = connection.getErrorStream();
+        } else {
+          resultInputStream = connection.getInputStream();
         }
         String contentType = connection.getContentType();
         Response.ResponseBuilder rb = Response.status(responseCode);
         if (contentType.indexOf(APPLICATION_JSON) != -1) {
-          rb.entity(new Gson().fromJson(new InputStreamReader(connection.getInputStream()), Map.class));
+          rb.entity(new Gson().fromJson(new InputStreamReader(resultInputStream), Map.class));
         } else {
-          rb.entity(connection.getInputStream());
+          rb.entity(resultInputStream);
         }
         return rb.type(contentType).build();
       } catch (IOException e) {
