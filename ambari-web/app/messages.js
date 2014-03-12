@@ -1860,6 +1860,7 @@ Em.I18n.translations = {
 
   'mirroring.manageClusters.ambariServer':'Ambari Server',
   'mirroring.manageClusters.interfaces':'Interfaces',
+  'mirroring.manageClusters.locations':'Locations',
   'mirroring.manageClusters.specifyName':'Specify name for new target cluster:',
   'mirroring.manageClusters.execute':'Execute',
   'mirroring.manageClusters.readonly':'Readonly',
@@ -1869,6 +1870,8 @@ Em.I18n.translations = {
   'mirroring.manageClusters.working':'Working',
   'mirroring.manageClusters.temp':'Temp',
   'mirroring.manageClusters.error' :'Error in saving changes',
+  'mirroring.manageClusters.create.cluster.popup' :'Create Target Cluster',
+  'mirroring.manageClusters.remove.confirmation' :'Are you sure you want to delete the target cluster {0}?',
 
   'mirroring.table.noDatasets':'No datasets to display',
   'mirroring.table.datasetStatus':'Status',

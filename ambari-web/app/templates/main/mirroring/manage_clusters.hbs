@@ -15,59 +15,49 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="mirroring-manage-clusters">
+<div class="mirroring-manage-clusters">
   <div class="row-fluid">
-    <div class="span5">
+    <div class="span4">
       {{view view.clusterSelect}}
       <div class="btn-toolbar pull-right">
         <button class="btn" {{action addCluster target="controller"}}><i class="icon-plus"></i></button>
         <button class="btn" {{action removeCluster target="controller"}} {{bindAttr disabled="view.removeDisabled"}}><i class="icon-minus"></i></button>
       </div>
     </div>
-    <div class="span7" style="padding-left: 15px">
+    <div class="span8 target-cluster-form">
       <form class="form-horizontal">
-        <div class="control-group">
-          <div style="margin-bottom: 15px">{{t mirroring.manageClusters.interfaces}}</div>
+        <div class="control-group form-category">
+          <div class="category-title">{{t mirroring.manageClusters.interfaces}}</div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.execute}}</label>
-            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.execute" disabledBinding="controller.isEditDisabled"}}
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.execute" disabled="disabled"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.readonly}}</label>
-            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.readonly" disabledBinding="controller.isEditDisabled"}}
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.readonly" disabled="disabled"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
-            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.workflow" disabledBinding="controller.isEditDisabled"}}
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.workflow" disabled="disabled"}}
           </div>
           <div class="control-group">
             <label class="control-label-manage-clusters">{{t mirroring.manageClusters.write}}</label>
-            {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.write" disabledBinding="controller.isEditDisabled"}}
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.write" disabled="disabled"}}
           </div>
         </div>
-        <div class="accordion control-group" id="advanced-fields">
-          <div class="accordion-group">
-            <div class="accordion-heading">
-              <a class="accordion-toggle" data-toggle="collapse" data-parent="#advanced-fields" href="#collapse-fields">
-                <i class="icon-caret-down"></i> {{t common.advanced}}
-              </a>
-            </div>
-            <div id="collapse-fields" class="accordion-body collapse in">
-              <div class="accordion-inner">
-                <div class="control-group">
-                  <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>
-                  {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.staging" disabledBinding="controller.isEditDisabled"}}
-                </div>
-                <div class="control-group">
-                  <label class="control-label-manage-clusters">{{t mirroring.manageClusters.working}}</label>
-                  {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.working" disabledBinding="controller.isEditDisabled"}}
-                </div>
-                <div class="control-group">
-                  <label class="control-label-manage-clusters">{{t mirroring.manageClusters.temp}}</label>
-                  {{view Ember.TextField class="span8" valueBinding="controller.selectedCluster.temp" disabledBinding="controller.isEditDisabled"}}
-                </div>
-              </div>
-            </div>
+        <div class="control-group form-category">
+          <div class="category-title">{{t mirroring.manageClusters.locations}}</div>
+          <div class="control-group">
+            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.staging" disabled="disabled"}}
+          </div>
+          <div class="control-group">
+            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.working}}</label>
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.working" disabled="disabled"}}
+          </div>
+          <div class="control-group">
+            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.temp}}</label>
+            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.temp" disabled="disabled"}}
           </div>
         </div>
       </form>

@@ -320,17 +320,14 @@ App.MainMirroringController = Em.ArrayController.extend({
 
   manageClusters: function () {
     var self = this;
-    var manageClustersController = App.router.get('mainMirroringManageClustersController');
-    var popup = App.ModalPopup.show({
+    App.ModalPopup.show({
       header: Em.I18n.t('mirroring.dataset.manageClusters'),
+      classNames: ['sixty-percent-width-modal'],
       bodyClass: App.MainMirroringManageClusterstView.extend({
-        controller: manageClustersController
+        controller: App.router.get('mainMirroringManageClustersController')
       }),
-      primary: Em.I18n.t('common.save'),
-      secondary: null,
-      onPrimary: function () {
-        manageClustersController.save();
-      },
+      primary: null,
+      secondary: Em.I18n.t('common.close'),
       hide: function () {
         self.loadData();
         App.router.send('gotoShowJobs');
@@ -341,6 +338,5 @@ App.MainMirroringController = Em.ArrayController.extend({
         this.fitHeight();
       }
     });
-    manageClustersController.set('popup', popup);
   }
 });

@@ -1,0 +1,59 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+<div class="mirroring-manage-clusters">
+  <form class="form-horizontal">
+    <div class="control-group target-cluster-name">
+      <label class="control-label-manage-clusters">{{t common.name}}</label>
+      {{view Ember.TextField class="span5" valueBinding="controller.newCluster.name"}}
+    </div>
+    <div class="control-group form-category">
+      <div class="category-title">{{t mirroring.manageClusters.interfaces}}</div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.execute}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.execute" placeholder="resourcemanager-host:8050"}}
+      </div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.readonly}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.readonly" placeholder="hftp://namenode-host:50070"}}
+      </div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.workflow" placeholder="http://oozie-host:11000/oozie"}}
+      </div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.write}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.write" placeholder="hdfs://namenode-host:8020"}}
+      </div>
+    </div>
+    <div class="control-group form-category">
+      <div class="category-title">{{t mirroring.manageClusters.locations}}</div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.staging"}}
+      </div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.working}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.working"}}
+      </div>
+      <div class="control-group">
+        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.temp}}</label>
+        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.temp"}}
+      </div>
+    </div>
+  </form>
+</div>
