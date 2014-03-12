@@ -151,8 +151,8 @@ App.MainServiceController = Em.ArrayController.extend({
       }
     });
   },
-  allServicesCallErrorCallback: function() {
-    console.log("ERROR");
+  allServicesCallErrorCallback: function(xhr, textStatus, errorThrown, opt) {
+    App.ajax.defaultErrorHandler(xhr, opt.url, 'PUT', xhr.status);
   },
 
   gotoAddService: function() {
