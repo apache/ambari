@@ -48,9 +48,9 @@ import java.util.HashMap;
 @Path("/")
 public class ProxyService {
 
-  private static final int REPO_URL_CONNECT_TIMEOUT = 3000;
-  private static final int REPO_URL_READ_TIMEOUT = 3000;
-  private static final int HTTP_ERROR_RANGE_START = 400;
+  private static final int URL_CONNECT_TIMEOUT = 20000;
+  private static final int URL_READ_TIMEOUT = 15000;
+  private static final int HTTP_ERROR_RANGE_START = Response.Status.BAD_REQUEST.getStatusCode();
 
   private static final String REQUEST_TYPE_GET = "GET";
   private static final String REQUEST_TYPE_POST = "POST";
@@ -85,8 +85,8 @@ public class ProxyService {
   }
 
   private Response handleRequest(String requestType, UriInfo ui, InputStream body, HttpHeaders headers) {
-    URLStreamProvider urlStreamProvider = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
-                                                REPO_URL_READ_TIMEOUT, null, null, null);
+    URLStreamProvider urlStreamProvider = new URLStreamProvider(URL_CONNECT_TIMEOUT,
+                                                URL_READ_TIMEOUT, null, null, null);
     String query = ui.getRequestUri().getQuery();
     if (query != null && query.indexOf(QUERY_PARAMETER_URL) != -1) {
       String url = query.replaceFirst(QUERY_PARAMETER_URL, "");
@@ -106,6 +106,8 @@ public class ProxyService {
         return rb.type(contentType).build();
       } catch (IOException e) {
         LOG.error(ERROR_PROCESSING_URL + url, e);
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).type(MediaType.TEXT_PLAIN).
+               entity(e.getMessage()).build();
       }
     }
     return null;
