@@ -119,6 +119,11 @@ App.TezDagVertex = DS.Model.extend({
   fileWriteOps : DS.attr('number'),
 
   /**
+   * Spilled records
+   */
+  spilledRecords : DS.attr('number'),
+
+  /**
    * HDFS usage metrics for this vertex
    */
   hdfsReadBytes : DS.attr('number'),

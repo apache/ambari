@@ -161,6 +161,10 @@
                       <td>{{view.selectedVertexIODisplay.file.read.ops}} / {{view.selectedVertexIODisplay.file.read.bytes}}</td>
                       <td>{{view.selectedVertexIODisplay.file.write.ops}} / {{view.selectedVertexIODisplay.file.write.bytes}}</td>
                     </tr>
+                    <tr>
+                        <td>{{t jobs.hive.tez.spilledRecords}}</td>
+                        <td>{{view.selectedVertex.spilledRecords}}</td>
+                    </tr>
                     {{#if view.selectedVertexIODisplay.records.read}}
                       <tr>
                         <td>{{t jobs.hive.tez.records}}</td>

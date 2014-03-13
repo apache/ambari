@@ -212,14 +212,16 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       output : Number.MAX_VALUE,
       recordsRead : Number.MAX_VALUE,
       recordsWrite : Number.MAX_VALUE,
-      tezTasks : Number.MAX_VALUE
+      tezTasks : Number.MAX_VALUE,
+      spilledRecords : Number.MAX_VALUE
     };
     dagVisualModel.maxMetrics = {
       input : 0,
       output : 0,
       recordsRead : 0,
       recordsWrite : 0,
-      tezTasks : 0
+      tezTasks : 0,
+      spilledRecords : 0
     };
     if (dagVisualModel.nodes) {
       dagVisualModel.nodes.forEach(function(node) {
@@ -230,6 +232,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           node.metrics['recordsRead'] = vertex.get('recordReadCount');
           node.metrics['recordsWrite'] = vertex.get('recordWriteCount');
           node.metrics['tezTasks'] = vertex.get('tasksCount');
+          node.metrics['spilledRecords'] = vertex.get('spilledRecords');
           node.state = vertex.get('state');
           // Min metrics
           dagVisualModel.minMetrics.input = Math.min(dagVisualModel.minMetrics.input, node.metrics.input);
@@ -237,12 +240,14 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           dagVisualModel.minMetrics.recordsRead = Math.min(dagVisualModel.minMetrics.recordsRead, node.metrics.recordsRead);
           dagVisualModel.minMetrics.recordsWrite = Math.min(dagVisualModel.minMetrics.recordsWrite, node.metrics.recordsWrite);
           dagVisualModel.minMetrics.tezTasks = Math.min(dagVisualModel.minMetrics.tezTasks, node.metrics.tezTasks);
+          dagVisualModel.minMetrics.spilledRecords = Math.min(dagVisualModel.minMetrics.spilledRecords, node.metrics.spilledRecords);
           // Max metrics
           dagVisualModel.maxMetrics.input = Math.max(dagVisualModel.maxMetrics.input, node.metrics.input);
           dagVisualModel.maxMetrics.output = Math.max(dagVisualModel.maxMetrics.output, node.metrics.output);
           dagVisualModel.maxMetrics.recordsRead = Math.max(dagVisualModel.maxMetrics.recordsRead, node.metrics.recordsRead);
           dagVisualModel.maxMetrics.recordsWrite = Math.max(dagVisualModel.maxMetrics.recordsWrite, node.metrics.recordsWrite);
           dagVisualModel.maxMetrics.tezTasks = Math.max(dagVisualModel.maxMetrics.tezTasks, node.metrics.tezTasks);
+          dagVisualModel.maxMetrics.spilledRecords = Math.max(dagVisualModel.maxMetrics.spilledRecords, node.metrics.spilledRecords);
         }
       });
     }
@@ -250,7 +255,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   }.observes('content.tezDag.vertices.@each.fileReadBytes', 'content.tezDag.vertices.@each.fileWriteBytes', 
       'content.tezDag.vertices.@each.hdfsReadBytes', 'content.tezDag.vertices.@each.hdfsWriteBytes', 
       'content.tezDag.vertices.@each.recordReadCount', 'content.tezDag.vertices.@each.recordWriteCount',
-      'content.tezDag.vertices.@each.state'),
+      'content.tezDag.vertices.@each.state', 'content.tezDag.vertices.@each.spilledRecords'),
 
   /**
    * Determines layout and creates Tez graph. In the process it populates the

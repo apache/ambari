@@ -197,6 +197,11 @@ module.exports = {
                     'HDFS_WRITE_OPS' : 'hdfsWriteOps'
                   };
                   break;
+                case 'org.apache.tez.common.counters.TaskCounter':
+                  cNameToPropetyMap = {
+                     'SPILLED_RECORDS' : 'spilledRecords'
+                    };
+                  break;
                 case 'HIVE':
                   cNameToPropetyMap = {
                     'RECORDS_READ' : 'recordReadCount',
