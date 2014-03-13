@@ -151,16 +151,14 @@ class LiveStatus:
   LIVE_STATUS = "STARTED"
   DEAD_STATUS = "INSTALLED"
 
-  def __init__(self, cluster, service, component, globalConfig, config,
-               configTags):
+  def __init__(self, cluster, service, component, globalConfig, config):
     self.cluster = cluster
     self.service = service
     self.component = component
     self.globalConfig = globalConfig
     versionsFileDir = config.get('agent', 'prefix')
     self.versionsHandler = StackVersionsFileHandler(versionsFileDir)
-    self.configTags = configTags
-    self.actualConfigHandler = ActualConfigHandler(config, configTags)
+    self.actualConfigHandler = ActualConfigHandler(config)
 
   def belongsToService(self, component):
     #TODO: Should also check belonging of server to cluster
@@ -196,7 +194,7 @@ class LiveStatus:
                  "stackVersion": self.versionsHandler.
                  read_stack_version(self.component)
     }
-    active_config = self.actualConfigHandler.read_actual_component(self.component) #
+    active_config = self.actualConfigHandler.read_actual_component(self.component)
     if not active_config is None:
       livestatus['configurationTags'] = active_config
 
