@@ -150,6 +150,7 @@ Em.I18n.translations = {
   'common.userSettings': 'User Settings',
   'common.aboutAmbari': 'About',
   'common.notAvailable': 'Not Available',
+  'common.na': 'n/a',
   'common.operations': 'Operations',
   'common.startTime': 'Start Time',
   'common.duration': 'Duration',

@@ -91,7 +91,8 @@ module.exports = {
     var endDate = new Date(endTimestamp);
     var self = this;
     if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
-      return '';
+      // not started
+      return Em.I18n.t('common.na');
     }
     if (endDate.getFullYear() != 1969 && endTimestamp > 0) {
       return '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
