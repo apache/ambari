@@ -25,6 +25,15 @@ public class SystemException extends Exception {
   /**
    * Constructor.
    *
+   * @param msg  message
+   */
+  public SystemException(String msg) {
+    super(msg);
+  }
+
+  /**
+   * Constructor.
+   *
    * @param msg        message
    * @param throwable  root exception
    */

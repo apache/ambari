@@ -802,7 +802,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     // modified?
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return getManagementController().createStages(cluster, requestProperties, null, null, changedComps, changedScHosts,
+    return getManagementController().createAndPersistStages(cluster, requestProperties, null, null, changedComps, changedScHosts,
         ignoredScHosts, runSmokeTest, false);
   }
 

@@ -973,7 +973,6 @@ public class AmbariManagementControllerTest {
       fail("ServiceComponentHost creation should fail for invalid state");
     } catch (Exception e) {
       // Expected
-      e.printStackTrace();
     }
 
     try {

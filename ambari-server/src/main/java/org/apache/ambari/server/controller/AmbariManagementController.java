@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -420,7 +421,7 @@ public interface AmbariManagementController {
   public String getAuthName();
 
   /**
-   * Create the stages required to persist an action and return a result containing the
+   * Create and persist the request stages and return a response containing the
    * associated request and resulting tasks.
    *
    * @param cluster             the cluster
@@ -437,14 +438,40 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException is thrown if the stages can not be created
    */
-  public RequestStatusResponse createStages(Cluster cluster, Map<String, String> requestProperties,
-                                            Map<String, String> requestParameters,
-                                            Map<State, List<Service>> changedServices,
-                                            Map<State, List<ServiceComponent>> changedComponents,
-                                            Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
-                                            Collection<ServiceComponentHost> ignoredHosts,
-                                            boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+  public RequestStatusResponse createAndPersistStages(Cluster cluster, Map<String, String> requestProperties,
+                                                      Map<String, String> requestParameters,
+                                                      Map<State, List<Service>> changedServices,
+                                                      Map<State, List<ServiceComponent>> changedComponents,
+                                                      Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                                                      Collection<ServiceComponentHost> ignoredHosts,
+                                                      boolean runSmokeTest, boolean reconfigureClients)
+                                                      throws AmbariException;
 
+  /**
+   * Add stages to the request.
+   *
+   * @param requestStages       Stages currently associated with request
+   * @param cluster             cluster being acted on
+   * @param requestProperties   the request properties
+   * @param requestParameters   the request parameters; may be null
+   * @param changedServices     the services being changed; may be null
+   * @param changedComponents   the components being changed
+   * @param changedHosts        the hosts being changed
+   * @param ignoredHosts        the hosts to be ignored
+   * @param runSmokeTest        indicates whether or not the smoke tests should be run
+   * @param reconfigureClients  indicates whether or not the clients should be reconfigured
+   *
+   * @return request stages
+   *
+   * @throws AmbariException if stages can't be created
+   */
+  public RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                                 Map<String, String> requestParameters,
+                                 Map<State, List<Service>> changedServices,
+                                 Map<State, List<ServiceComponent>> changedComponents,
+                                 Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                                 Collection<ServiceComponentHost> ignoredHosts,
+                                 boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
 
   /**
    * Getter for the url of JDK, stored at server resources folder
@@ -511,7 +538,7 @@ public interface AmbariManagementController {
 
   /**
    * Get the Factory to create Request schedules
-   * @return
+   * @return the request execution factory
    */
   public RequestExecutionFactory getRequestExecutionFactory();
 

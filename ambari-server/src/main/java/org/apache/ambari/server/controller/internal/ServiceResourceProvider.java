@@ -43,6 +43,8 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -82,7 +84,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   protected static final String SERVICE_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "cluster_name");
   protected static final String SERVICE_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
   protected static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
-  protected static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state");
+  protected static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state");
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -188,28 +190,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public RequestStatus updateResources(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
-    RequestStatusResponse     response = null;
+    RequestStageContainer requestStages = doUpdateResources(null, request, predicate);
 
-    Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
-    if (iterator.hasNext()) {
-      for (Map<String, Object> propertyMap : getPropertyMaps(iterator.next(), predicate)) {
-        requests.add(getRequest(propertyMap));
-      }
-
-      final boolean runSmokeTest = "true".equals(getQueryParameterValue(
-          QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate));
-
-      final boolean reconfigureClients = !"false".equals(getQueryParameterValue(
-          QUERY_PARAMETERS_RECONFIGURE_CLIENT, predicate));
-
-      response = modifyResources(new Command<RequestStatusResponse>() {
-        @Override
-        public RequestStatusResponse invoke() throws AmbariException {
-          return updateServices(requests,
-              request.getRequestInfoProperties(), runSmokeTest, reconfigureClients);
-        }
-      });
+    RequestStatusResponse response = null;
+    if (requestStages != null) {
+      requestStages.persist();
+      response = requestStages.getRequestStatusResponse();
     }
     notifyUpdate(Resource.Type.Service, request, predicate);
 
@@ -264,7 +250,78 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
 
+  // ----- ServiceResourceProvider -----------------------------------------
+
+  RequestStatusResponse installAndStart(String clusterName) throws  SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException {
+
+    final RequestStageContainer requestStages;
+    Map<String, Object> installProperties = new HashMap<String, Object>();
+    installProperties.put(SERVICE_SERVICE_STATE_PROPERTY_ID, "INSTALLED");
+    Map<String, String> requestInfo = new HashMap<String, String>();
+    requestInfo.put("context", "Install and start all services");
+    Request installRequest = new RequestImpl(null, Collections.singleton(installProperties), requestInfo, null);
+    Predicate statePredicate = new EqualsPredicate<String>(SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
+    Predicate clusterPredicate = new EqualsPredicate<String>(SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+    Predicate installPredicate = new AndPredicate(statePredicate, clusterPredicate);
+
+    final Request startRequest;
+    Predicate startPredicate;
+    try {
+      LOG.info("Installing all services");
+      requestStages = doUpdateResources(null, installRequest, installPredicate);
+      notifyUpdate(Resource.Type.Service, installRequest, installPredicate);
+
+      Map<String, Object> startProperties = new HashMap<String, Object>();
+      startProperties.put(SERVICE_SERVICE_STATE_PROPERTY_ID, "STARTED");
+      startRequest = new RequestImpl(null, Collections.singleton(startProperties), requestInfo, null);
+      Predicate installedStatePredicate = new EqualsPredicate<String>(SERVICE_SERVICE_STATE_PROPERTY_ID, "INSTALLED");
+      Predicate serviceClusterPredicate = new EqualsPredicate<String>(SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+      startPredicate = new AndPredicate(installedStatePredicate, serviceClusterPredicate);
+
+      LOG.info("Starting all services");
+      doUpdateResources(requestStages, startRequest, startPredicate);
+      notifyUpdate(Resource.Type.Service, startRequest, startPredicate);
+      requestStages.persist();
+      return requestStages.getRequestStatusResponse();
+
+    } catch (NoSuchResourceException e) {
+      throw new SystemException("Attempted to modify a non-existing service",  e);
+    }
+  }
+
+
   // ----- utility methods -------------------------------------------------
+
+  private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request, Predicate predicate)
+      throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    RequestStageContainer requestStages = null;
+
+    Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
+    if (iterator.hasNext()) {
+      for (Map<String, Object> propertyMap : getPropertyMaps(iterator.next(), predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+
+      final boolean runSmokeTest = "true".equals(getQueryParameterValue(
+          QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate));
+
+      final boolean reconfigureClients = !"false".equals(getQueryParameterValue(
+          QUERY_PARAMETERS_RECONFIGURE_CLIENT, predicate));
+
+      requestStages = modifyResources(new Command<RequestStageContainer>() {
+        @Override
+        public RequestStageContainer invoke() throws AmbariException {
+          return updateServices(stages, requests, request.getRequestInfoProperties(),
+              runSmokeTest, reconfigureClients);
+        }
+      });
+    }
+    return requestStages;
+  }
+
   /**
    * Get a service request object from a map of property values.
    *
@@ -482,9 +539,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Update services based on the given requests.
-  protected synchronized RequestStatusResponse updateServices(
-      Set<ServiceRequest> requests, Map<String, String> requestProperties,
-      boolean runSmokeTest, boolean reconfigureClients) throws AmbariException {
+  protected synchronized RequestStageContainer updateServices(RequestStageContainer requestStages, Set<ServiceRequest> requests,
+                                                      Map<String, String> requestProperties, boolean runSmokeTest,
+                                                      boolean reconfigureClients) throws AmbariException {
 
     AmbariManagementController controller = getManagementController();
 
@@ -708,7 +765,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
            * This is hack for now wherein we don't fail if the
            * sch is in INSTALL_FAILED
            */
-          if (!State.isValidStateTransition(oldSchState, newState)) {
+          if (! isValidStateTransition(requestStages, oldSchState, newState, sch)) {
             String error = "Invalid transition for"
                 + " servicecomponenthost"
                 + ", clusterName=" + cluster.getClusterName()
@@ -768,7 +825,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return controller.createStages(cluster, requestProperties, null, changedServices, changedComps, changedScHosts,
+    return controller.addStages(requestStages, cluster, requestProperties, null, changedServices, changedComps, changedScHosts,
         ignoredScHosts, runSmokeTest, reconfigureClients);
   }
 
@@ -1068,5 +1125,27 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       return State.UNKNOWN;
     }
   }
-  
+
+  /**
+   * Determine whether a service state change is valid.
+   * Looks at projected state from the current stages associated with the request.
+   *
+   *
+   * @param stages        request stages
+   * @param startState    service start state
+   * @param desiredState  service desired state
+   * @param host          host where state change is occurring
+   *
+   * @return whether the state transition is valid
+   */
+  private boolean isValidStateTransition(RequestStageContainer stages, State startState,
+                                         State desiredState, ServiceComponentHost host) {
+
+    if (stages != null) {
+      State projectedState = stages.getProjectedState(host.getHostName(), host.getServiceComponentName());
+      startState = projectedState == null ? startState : projectedState;
+    }
+
+    return State.isValidStateTransition(startState, desiredState);
+  }
 }

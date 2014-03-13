@@ -236,7 +236,7 @@ public class ClusterControllerImpl implements ClusterController {
           return null;
         }
       }
-        return provider.updateResources(request, predicate);
+      return provider.updateResources(request, predicate);
     }
     return null;
   }
@@ -260,6 +260,24 @@ public class ClusterControllerImpl implements ClusterController {
     }
     return null;
   }
+
+
+  // ----- ClusterControllerImpl ---------------------------------------------
+
+  /**
+   * Get the resource provider for the given type, creating it if required.
+   *
+   * @param type  the resource type
+   *
+   * @return the resource provider
+   */
+  public ResourceProvider ensureResourceProvider(Resource.Type type) {
+    synchronized (resourceProviders) {
+      if (!resourceProviders.containsKey(type)) {
+        resourceProviders.put(type, providerModule.getResourceProvider(type));
+      }
+    }
+    return resourceProviders.get(type);   }
 
 
   // ----- helper methods ----------------------------------------------------
@@ -442,22 +460,6 @@ public class ClusterControllerImpl implements ClusterController {
     int size = requestPropertyIds.size();
 
     return size > provider.checkPropertyIds(requestPropertyIds).size();
-  }
-
-  /**
-   * Get the resource provider for the given type, creating it if required.
-   *
-   * @param type  the resource type
-   *
-   * @return the resource provider
-   */
-  private ResourceProvider ensureResourceProvider(Resource.Type type) {
-    synchronized (resourceProviders) {
-      if (!resourceProviders.containsKey(type)) {
-        resourceProviders.put(type, providerModule.getResourceProvider(type));
-      }
-    }
-    return resourceProviders.get(type);
   }
 
   /**

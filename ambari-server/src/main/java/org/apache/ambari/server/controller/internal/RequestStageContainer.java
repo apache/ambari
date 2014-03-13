@@ -1,0 +1,199 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.controller.internal;
+
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.actionmanager.RequestFactory;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ShortTaskStatus;
+import org.apache.ambari.server.state.State;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+
+/**
+ * Contains stages associated with a request.
+ */
+public class RequestStageContainer {
+  /**
+   * Request id
+   */
+  private Long id;
+
+  /**
+   * Request stages
+   */
+  private List<Stage> stages;
+
+  /**
+   * Request Factory used to create Request instance
+   */
+  private RequestFactory requestFactory;
+
+  /**
+   * Action Manager
+   */
+  private ActionManager actionManager;
+
+  /**
+   * Logger
+   */
+  private final static Logger LOG =
+      LoggerFactory.getLogger(RequestStageContainer.class);
+
+  /**
+   * Constructor.
+   *
+   * @param id       request id
+   * @param stages   stages
+   * @param factory  request factory
+   * @param manager  action manager
+   */
+  public RequestStageContainer(Long id, List<Stage> stages, RequestFactory factory, ActionManager manager) {
+    this.id = id;
+    this.stages = stages == null ? new ArrayList<Stage>() : stages;
+    this.requestFactory = factory;
+    this.actionManager = manager;
+  }
+
+  /**
+   * Get the request id.
+   *
+   * @return request id
+   */
+  public Long getId()  {
+    return id;
+  }
+
+  /**
+   * Add stages to request.
+   *
+   * @param stages stages to add
+   */
+  public void addStages(List<Stage> stages) {
+    if (stages != null) {
+      this.stages.addAll(stages);
+    }
+  }
+
+  /**
+   * Get request stages.
+   *
+   * @return  list of stages
+   */
+  public List<Stage> getStages() {
+    return stages;
+  }
+
+  /**
+   * Get the stage id of the last stage.
+   *
+   * @return stage id of the last stage or -1 if no stages present
+   */
+  public long getLastStageId() {
+    return stages.isEmpty() ? -1 : stages.get(stages.size() - 1).getStageId();
+  }
+
+  /**
+   * Determine the projected state for a host component from the existing stages.
+   *
+   * @param host       host name
+   * @param component  component name
+   *
+   * @return the projected state of a host component after all stages successfully complete
+   *         or null if the host component state is not modified in the current stages
+   */
+  public State getProjectedState(String host, String component) {
+    RoleCommand lastCommand = null;
+
+    ListIterator<Stage> iterator = stages.listIterator(stages.size());
+    while (lastCommand == null && iterator.hasPrevious()) {
+      Stage stage = iterator.previous();
+      HostRoleCommand hostRoleCommand = stage.getHostRoleCommand(host, component);
+      if (hostRoleCommand != null && hostRoleCommand.getRoleCommand() != RoleCommand.SERVICE_CHECK) {
+        lastCommand = hostRoleCommand.getRoleCommand();
+      }
+    }
+
+    State resultingState = null;
+    if (lastCommand != null) {
+      switch(lastCommand) {
+        case INSTALL:
+        case STOP:
+          resultingState = State.INSTALLED;
+          break;
+        case START:
+          resultingState = State.STARTED;
+          break;
+        case UNINSTALL:
+          resultingState = State.INIT;
+          break;
+        default:
+          resultingState = State.UNKNOWN;
+      }
+    }
+    return resultingState;
+  }
+
+  /**
+   * Persist the stages.
+   */
+  public void persist() {
+    if (!stages.isEmpty()) {
+      Request request = requestFactory.createNewFromStages(stages);
+      if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Triggering Action Manager, request=%s", request));
+        }
+        actionManager.sendActions(request, null);
+      }
+    }
+  }
+
+  /**
+   * Build a request status response.
+   *
+   * @return a {@link org.apache.ambari.server.controller.RequestStatusResponse} for the request
+   */
+  public RequestStatusResponse getRequestStatusResponse() {
+    RequestStatusResponse response = null;
+
+    if (! stages.isEmpty()) {
+      response = new RequestStatusResponse(id);
+      List<HostRoleCommand> hostRoleCommands =
+          actionManager.getRequestTasks(id);
+
+      response.setRequestContext(actionManager.getRequestContext(id));
+      List<ShortTaskStatus> tasks = new ArrayList<ShortTaskStatus>();
+
+      for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
+        tasks.add(new ShortTaskStatus(hostRoleCommand));
+      }
+      response.setTasks(tasks);
+    }
+    return response;
+  }
+}

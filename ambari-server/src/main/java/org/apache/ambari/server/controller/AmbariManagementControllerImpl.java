@@ -37,13 +37,13 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -589,11 +589,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private Stage createNewStage(Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
+  private Stage createNewStage(long id, Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
         stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext, clusterHostInfo);
-    stage.setStageId(0);
+    stage.setStageId(id);
     return stage;
   }
 
@@ -1324,7 +1324,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private List<Stage> doStageCreation(Cluster cluster,
+  private List<Stage> doStageCreation(RequestStageContainer requestStages,
+      Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
@@ -1360,7 +1361,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (!changedScHosts.isEmpty()
         || !smokeTestServices.isEmpty()) {
       long nowTimestamp = System.currentTimeMillis();
-      Long requestId = actionManager.getNextRequestId();
 
       // FIXME cannot work with a single stage
       // multiple stages may be needed for reconfigure
@@ -1369,7 +1369,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
-      Stage stage = createNewStage(cluster, requestId, requestContext, clusterHostInfoJson);
+      Stage stage = createNewStage(requestStages.getLastStageId() + 1, cluster,
+          requestStages.getId(), requestContext, clusterHostInfoJson);
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1436,8 +1437,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
                     scHost.getServiceComponentName());
-                if (oldSchState == State.INSTALLED
-                    || oldSchState == State.STARTING) {
+
+
+                if (oldSchState == State.INSTALLED ||
+                    oldSchState == State.STARTING ||
+                    requestStages.getProjectedState(scHost.getHostName(),
+                        scHost.getServiceComponentName()) == State.INSTALLED) {
                   roleCommand = RoleCommand.START;
                   event = new ServiceComponentHostStartEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
@@ -1496,7 +1501,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             if (LOG.isDebugEnabled()) {
               LOG.debug("Create a new host action"
-                  + ", requestId=" + requestId
+                  + ", requestId=" + requestStages.getId()
                   + ", componentName=" + scHost.getServiceComponentName()
                   + ", hostname=" + scHost.getHostName()
                   + ", roleCommand=" + roleCommand.name());
@@ -1573,22 +1578,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return hostLevelParams;
   }
 
-  private void persistStages(List<Stage> stages) throws AmbariException {
-    if (stages != null && !stages.isEmpty()) {
-      persistRequest(requestFactory.createNewFromStages(stages));
-    }
-  }
-
-  //TODO use when request created externally
-  private void persistRequest(Request request) {
-    if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(String.format("Triggering Action Manager, request=%s", request));
-      }
-      actionManager.sendActions(request, null);
-    }
-  }
-
   @Transactional
   void updateServiceStates(
       Map<State, List<Service>> changedServices,
@@ -1638,23 +1627,40 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public RequestStatusResponse createStages(Cluster cluster, Map<String, String> requestProperties,
-                                            Map<String, String> requestParameters,
-                                            Map<State, List<Service>> changedServices,
-                                            Map<State, List<ServiceComponent>> changedComponents,
-                                            Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
-                                            Collection<ServiceComponentHost> ignoredHosts,
-                                            boolean runSmokeTest, boolean reconfigureClients) throws AmbariException {
+  public RequestStatusResponse createAndPersistStages(Cluster cluster, Map<String, String> requestProperties,
+                                                      Map<String, String> requestParameters,
+                                                      Map<State, List<Service>> changedServices,
+                                                      Map<State, List<ServiceComponent>> changedComponents,
+                                                      Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                                                      Collection<ServiceComponentHost> ignoredHosts,
+                                                      boolean runSmokeTest, boolean reconfigureClients) throws AmbariException {
 
-    List<Stage> stages = doStageCreation(cluster, changedServices, changedComponents,
+    RequestStageContainer request = addStages(null, cluster, requestProperties, requestParameters, changedServices,
+        changedComponents, changedHosts, ignoredHosts, runSmokeTest, reconfigureClients);
+
+    request.persist();
+    return request.getRequestStatusResponse();
+  }
+
+  @Override
+  public RequestStageContainer addStages(RequestStageContainer requestStages, Cluster cluster, Map<String, String> requestProperties,
+                                 Map<String, String> requestParameters, Map<State, List<Service>> changedServices,
+                                 Map<State, List<ServiceComponent>> changedComponents,
+                                 Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                                 Collection<ServiceComponentHost> ignoredHosts, boolean runSmokeTest,
+                                 boolean reconfigureClients) throws AmbariException {
+
+    if (requestStages == null) {
+      requestStages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
+    }
+
+    List<Stage> stages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
         changedHosts, requestParameters, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
         runSmokeTest, reconfigureClients);
 
-    persistStages(stages);
-
+    requestStages.addStages(stages);
     updateServiceStates(changedServices, changedComponents, changedHosts, ignoredHosts);
-
-    return stages == null || stages.isEmpty() ? null : getRequestStatusResponse(stages.get(0).getRequestId());
+    return requestStages;
   }
 
   @Override
@@ -1894,7 +1900,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return createStages(cluster, requestProperties, null, null, null, changedScHosts, ignoredScHosts, runSmokeTest,
+    return createAndPersistStages(cluster, requestProperties, null, null, null, changedScHosts, ignoredScHosts, runSmokeTest,
         false);
   }
 
@@ -2106,7 +2112,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * fully populates a request resource including the set of task sub-resources
    * in the request response.
    */
-  private RequestStatusResponse getRequestStatusResponse(long requestId) {
+  RequestStatusResponse getRequestStatusResponse(long requestId) {
     RequestStatusResponse response = new RequestStatusResponse(requestId);
     List<HostRoleCommand> hostRoleCommands =
         actionManager.getRequestTasks(requestId);
@@ -2360,7 +2366,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         clusters.getHostsForCluster(cluster.getClusterName()), cluster);
 
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-    Stage stage = createNewStage(cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
+    Stage stage = createNewStage(0, cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
 
     Map<String, String> params = createDefaultHostParams(cluster);
 
