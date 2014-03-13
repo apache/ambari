@@ -54,7 +54,5 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _kerberos_domain = config['configurations']['global']['kerberos_domain']
   _storm_principal_name = config['configurations']['global']['storm_principal_name']
-  
-  storm_jaas_principal = format("{_storm_principal_name}/{_hostname_lowercase}@{_kerberos_domain}")
+  storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['global']['storm_keytab']
-

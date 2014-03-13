@@ -353,6 +353,10 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
             var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
             zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
           }
+          if (this.get('secureServices').someProperty('serviceName', 'STORM')) {
+            var stormPrincipalName = this.get('globalProperties').findProperty('name', 'storm_principal_name');
+            stormPrincipalName.value = stormPrincipalName.value + '@' + realmName.value;
+          }
           this.get('globalProperties').forEach(function (_globalProperty) {
             if (!/_hosts?$/.test(_globalProperty.name)) {
               _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
@@ -401,7 +405,6 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
   onDeleteError: function () {
     console.warn('Error: Can\'t delete APP_TIMELINE_SERVER');
   },
-
 
   onJsError: function () {
     App.ModalPopup.show({

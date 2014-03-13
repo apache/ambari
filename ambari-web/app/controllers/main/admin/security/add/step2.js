@@ -253,19 +253,16 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
     this.setHostsToConfig(falconService, 'falcon_server_host', 'FALCON_SERVER');
     if (stormService) {
-      var stormMasterComponents = [
-        {
-          configName: 'storm_ui_server_host',
-          componentName: 'STORM_UI_SERVER'
-        },
-        {
-          configName: 'nimbus_host',
-          componentName: 'NIMBUS'
-        }
-      ];
-      stormMasterComponents.forEach(function(masterComponent) {
-        this.setHostsToConfig(stormService, masterComponent.configName, masterComponent.componentName);
+      var stormComponents = ['STORM_UI_SERVER','NIMBUS','SUPERVISOR'];
+      var stormHosts = [];
+      stormComponents.forEach(function(componentName) {
+        stormHosts.pushObjects(App.Service.find(stormService.serviceName)
+          .get('hostComponents')
+          .filterProperty('componentName', componentName)
+          .mapProperty('host.hostName'));
       }, this);
+      var hosts = stormService.configs.findProperty('name', 'storm_host');
+      hosts.defaultValue  = stormHosts.uniq();
     }
 
     // Oozie, Falcon, WebHcat and Nagios does not support _HOST in the principal name. Actual hostname should be set instead of _HOST

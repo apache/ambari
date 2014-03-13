@@ -77,7 +77,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').value;
     var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'hdfs_user_keytab').value;
     var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'hbase_user_keytab').value;
-    var stormUserKeytabPath = generalConfigs.findProperty('name', 'storm_keytab').value;
 
     var hadoopHttpPrincipal = hdfsConfigs.findProperty('name', 'hadoop_http_principal_name');
     var hadoopHttpKeytabPath = hdfsConfigs.findProperty('name', 'hadoop_http_keytab').value;
@@ -134,18 +133,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           keytabFile: stringUtils.getFileFromPath(hbaseUserKeytabPath),
           keytab: stringUtils.getPath(hbaseUserKeytabPath),
           owner: hbaseUserId,
-          group: hadoopGroupId,
-          acl: '440'
-        });
-      }
-      if (isStormInstalled) {
-        result.push({
-          host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.user.stormUser'),
-          principal: stormUser,
-          keytabFile: stringUtils.getFileFromPath(stormUserKeytabPath),
-          keytab: stringUtils.getPath(stormUserKeytabPath),
-          owner: stormUserId,
           group: hadoopGroupId,
           acl: '440'
         });
