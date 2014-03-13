@@ -28,32 +28,48 @@ App.HostPopup = Em.Object.create({
   servicesInfo: null,
   hosts: null,
   inputData: null,
+
+  /**
+   * @type {string}
+   */
   serviceName: "",
+
+  /**
+   * @type {Number}
+   */
   currentServiceId: null,
   previousServiceId: null,
+
+  /**
+   * @type {string}
+   */
   popupHeaderName: "",
+
+  /**
+   * @type {App.Controller}
+   */
   dataSourceController: null,
+
+  /**
+   * @type {bool}
+   */
   isBackgroundOperations: false,
+
+  /**
+   * @type {string}
+   */
   currentHostName: null,
+
+  /**
+   * @type {App.ModalPopup}
+   */
   isPopup: null,
 
   /**
-   * Sort object array
-   * @param array
-   * @param p
-   * @return {*}
-   */
-  sortArray: function (array, p) {
-    return array.sort(function (a, b) {
-      return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-    });
-  },
-
-  /**
    * Entering point of this component
-   * @param serviceName
-   * @param controller
-   * @param isBackgroundOperations
+   * @param {String} serviceName
+   * @param {App.Controller} controller
+   * @param {bool} isBackgroundOperations
    */
   initPopup: function (serviceName, controller, isBackgroundOperations) {
     if (!isBackgroundOperations) {
@@ -72,6 +88,9 @@ App.HostPopup = Em.Object.create({
     return this.createPopup();
   },
 
+  /**
+   * clear info popup data
+   */
   clearHostPopup: function () {
     this.set('servicesInfo', null);
     this.set('hosts', null);
@@ -87,7 +106,7 @@ App.HostPopup = Em.Object.create({
 
   /**
    * Depending on tasks status
-   * @param tasks
+   * @param {Array} tasks
    * @return {Array} [Status, Icon type, Progressbar color, is IN_PROGRESS]
    */
   getStatus: function(tasks){
@@ -135,14 +154,14 @@ App.HostPopup = Em.Object.create({
 
   /**
    * Progress of host or service depending on tasks status
-   * @param tasks
+   * @param {Array} tasks
    * @return {Number} percent of completion
    */
   getProgress: function (tasks) {
     var completedActions = 0;
     var queuedActions = 0;
     var inProgressActions = 0;
-    tasks.forEach(function(task){
+    tasks.forEach(function(task) {
       if(['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status)){
         completedActions++;
       } else if(task.Tasks.status === 'QUEUED'){
@@ -153,10 +172,11 @@ App.HostPopup = Em.Object.create({
     });
     return Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasks.length * 100);
   },
+
   /**
    * Count number of operations for select box options
-   * @param obj
-   * @param categories
+   * @param {Object[]} obj
+   * @param {Object[]} categories
    */
   setSelectCount: function (obj, categories) {
     if (!obj) return;
@@ -194,7 +214,7 @@ App.HostPopup = Em.Object.create({
           countTimedout++;
           break;
       }
-    }, this);
+    });
 
     categories.findProperty("value", 'all').set("count", countAll);
     categories.findProperty("value", 'pending').set("count", countPending);
@@ -207,7 +227,7 @@ App.HostPopup = Em.Object.create({
 
   /**
    * For Background operation popup calculate number of running Operations, and set popup header
-   * @param isServiceListHidden
+   * @param {bool} isServiceListHidden
    */
   setBackgroundOperationHeader: function (isServiceListHidden) {
     if (this.get('isBackgroundOperations') && !isServiceListHidden) {
@@ -219,6 +239,7 @@ App.HostPopup = Em.Object.create({
   /**
    * Create services obj data structure for popup
    * Set data for services
+   * @param {bool} isServiceListHidden
    */
   onServiceUpdate: function (isServiceListHidden) {
     if (this.get('isBackgroundOperations') && this.get("inputData")) {
@@ -261,11 +282,11 @@ App.HostPopup = Em.Object.create({
 
   /**
    * create task Ember object
-   * @param _task
-   * @return {*}
+   * @param {Object} _task
+   * @return {Em.Object}
    */
   createTask: function (_task) {
-    return Ember.Object.create({
+    return Em.Object.create({
       id: _task.Tasks.id,
       hostName: _task.Tasks.host_name,
       command: ( _task.Tasks.command.toLowerCase() != 'service_check') ? _task.Tasks.command.toLowerCase() : '',
@@ -293,6 +314,7 @@ App.HostPopup = Em.Object.create({
       }.property('status')
     });
   },
+
   /**
    * Create hosts and tasks data structure for popup
    * Set data for hosts and tasks
@@ -400,7 +422,7 @@ App.HostPopup = Em.Object.create({
 
   /**
    * Show popup
-   * @return PopupObject For testing purposes
+   * @return {App.ModalPopup} PopupObject For testing purposes
    */
   createPopup: function () {
     var self = this;
@@ -416,21 +438,51 @@ App.HostPopup = Em.Object.create({
       }.property('count')
     });
     self.set('isPopup', App.ModalPopup.show({
-      //no need to track is it loaded when popup contain only list of hosts
+      /**
+       * no need to track is it loaded when popup contain only list of hosts
+       * @type {bool}
+       */
       isLoaded: !isBackgroundOperations,
+
+      /**
+       * is BG-popup opened
+       * @type {bool}
+       */
       isOpen: false,
+
       didInsertElement: function(){
         this._super();
         this.set('isOpen', true);
       },
-      headerClass: Ember.View.extend({
+
+      /**
+       * @type {Em.View}
+       */
+      headerClass: Em.View.extend({
         controller: this,
         template: Ember.Handlebars.compile('{{popupHeaderName}}')
       }),
+
+      /**
+       * @type {String[]}
+       */
       classNames: ['sixty-percent-width-modal', 'host-progress-popup'],
-      // for the checkbox: do not show this dialog again
+
+      /**
+       * for the checkbox: do not show this dialog again
+       * @type {bool}
+       */
       hasFooterCheckbox: true,
+
+      /**
+       * Auto-display BG-popup
+       * @type {bool}
+       */
       isNotShowBgChecked : null,
+
+      /**
+       * Save user pref about auto-display BG-popup
+       */
       updateNotShowBgChecked: function () {
         var curVal = !this.get('isNotShowBgChecked');
         var key = App.router.get('applicationController').persistKey();
@@ -458,7 +510,7 @@ App.HostPopup = Em.Object.create({
       },
       secondary: null,
 
-      bodyClass: Ember.View.extend({
+      bodyClass: Em.View.extend({
         templateName: require('templates/common/host_progress_popup'),
         isLogWrapHidden: true,
         isTaskListHidden: true,
@@ -574,7 +626,7 @@ App.HostPopup = Em.Object.create({
          * Depending on selected filter type, set object visibility value
          * @param filter
          * @param obj
-         * @return {Boolean} isEmptyList
+         * @return {bool} isEmptyList
          */
         setVisibility: function (filter, obj) {
           var isEmptyList = true;
@@ -661,22 +713,19 @@ App.HostPopup = Em.Object.create({
         },
         /**
          * Onclick handler for button <-Tasks
-         * @param event
-         * @param context
          */
-        backToTaskList: function (event, context) {
+        backToTaskList: function () {
           this.destroyClipBoard();
           this.set("openedTaskId", 0);
           this.set("isLogWrapHidden", true);
           this.set("isTaskListHidden", false);
+          this.switchLevel("TASKS_LIST");
         },
 
         /**
          * Onclick handler for button <-Hosts
-         * @param event
-         * @param context
          */
-        backToHostList: function (event, context) {
+        backToHostList: function () {
           this.set("isHostListHidden", false);
           this.set("isTaskListHidden", true);
           this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
@@ -685,10 +734,8 @@ App.HostPopup = Em.Object.create({
 
         /**
          * Onclick handler for button <-Services
-         * @param event
-         * @param context
          */
-        backToServiceList: function (event, context) {
+        backToServiceList: function () {
           this.get("controller").set("serviceName", "");
           this.set("isHostListHidden", true);
           this.set("isServiceListHidden", false);
@@ -700,10 +747,9 @@ App.HostPopup = Em.Object.create({
 
         /**
          * Onclick handler for selected Service
-         * @param event
-         * @param context
+         * @param {Object} event
          */
-        gotoHosts: function (event, context) {
+        gotoHosts: function (event) {
           this.get("controller").set("serviceName", event.context.get("name"));
           this.get("controller").set("currentServiceId", event.context.get("id"));
           this.get("controller").set("currentHostName", null);
@@ -724,7 +770,7 @@ App.HostPopup = Em.Object.create({
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
           if (servicesInfo.length > 100) {
-            Ember.run.next(this, function(){
+            Em.run.next(this, function(){
               this.set('hosts', this.get('hosts').concat(servicesInfo.slice(50, servicesInfo.length)));
             });
           }
@@ -793,10 +839,9 @@ App.HostPopup = Em.Object.create({
 
         /**
          * Onclick handler for selected Host
-         * @param event
-         * @param context
+         * @param {Object} event
          */
-        gotoTasks: function (event, context) {
+        gotoTasks: function (event) {
           var tasksInfo = [];
           event.context.logTasks.forEach(function (_task) {
             tasksInfo.pushObject(this.get("controller").createTask(_task));
@@ -840,10 +885,9 @@ App.HostPopup = Em.Object.create({
 
         /**
          * Onclick event for show task detail info
-         * @param event
-         * @param context
+         * @param {Object} event
          */
-        toggleTaskLog: function (event, context) {
+        toggleTaskLog: function (event) {
           var taskInfo = event.context;
           this.set("isLogWrapHidden", false);
           if ($(".task-detail-log-clipboard").length > 0) {
@@ -859,14 +903,9 @@ App.HostPopup = Em.Object.create({
 
         /**
          * Onclick event for copy to clipboard button
-         * @param event
          */
-        textTrigger: function (event) {
-          if ($(".task-detail-log-clipboard").length > 0) {
-            this.destroyClipBoard();
-          } else {
-            this.createClipBoard();
-          }
+        textTrigger: function () {
+          $(".task-detail-log-clipboard").length > 0 ? this.destroyClipBoard() : this.createClipBoard();
         },
 
         /**
@@ -891,10 +930,10 @@ App.HostPopup = Em.Object.create({
           $(".task-detail-log-clipboard").remove();
           $(".task-detail-log-maintext").css("display", "block");
         }
+
       })
     }));
     return self.get('isPopup');
   }
 
 });
-

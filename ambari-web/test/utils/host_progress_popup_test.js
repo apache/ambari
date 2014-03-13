@@ -241,77 +241,76 @@ describe('App.HostPopup', function () {
     }
   ];
 
-  var itemsForStatusTest = [
-    {
-      title: 'Empty',
-      data: [],
-      result: [0, 0, 0, 0, 0, 0, 0]
-    },
-    {
-      title: 'All Pending',
-      data: [
-        {status: 'pending'},
-        {status: 'queued'}
-      ],
-      result: [2, 2, 0, 0, 0, 0, 0]
-    },
-    {
-      title: 'All Completed',
-      data: [
-        {status: 'success'},
-        {status: 'completed'}
-      ],
-      result: [2, 0, 0, 0, 2, 0, 0]
-    },
-    {
-      title: 'All Failed',
-      data: [
-        {status: 'failed'},
-        {status: 'failed'}
-      ],
-      result: [2, 0, 0, 2, 0, 0, 0]
-    },
-    {
-      title: 'All InProgress',
-      data: [
-        {status: 'in_progress'},
-        {status: 'in_progress'}
-      ],
-      result: [2, 0, 2, 0, 0, 0, 0]
-    },
-    {
-      title: 'All Aborted',
-      data: [
-        {status: 'aborted'},
-        {status: 'aborted'}
-      ],
-      result: [2, 0, 0, 0, 0, 2, 0]
-    },
-    {
-      title: 'All Timedout',
-      data: [
-        {status: 'timedout'},
-        {status: 'timedout'}
-      ],
-      result: [2, 0, 0, 0, 0, 0, 2]
-    },
-    {
-      title: 'Every Category',
-      data: [
-        {status: 'pending'},
-        {status: 'queued'},
-        {status: 'success'},
-        {status: 'completed'},
-        {status: 'failed'},
-        {status: 'in_progress'},
-        {status: 'aborted'},
-        {status: 'timedout'}
-      ],
-      result: [8, 2, 1, 1, 2, 1, 1]
-    }
-  ];
-
   describe('#setSelectCount', function () {
+    var itemsForStatusTest = [
+      {
+        title: 'Empty',
+        data: [],
+        result: [0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        title: 'All Pending',
+        data: [
+          {status: 'pending'},
+          {status: 'queued'}
+        ],
+        result: [2, 2, 0, 0, 0, 0, 0]
+      },
+      {
+        title: 'All Completed',
+        data: [
+          {status: 'success'},
+          {status: 'completed'}
+        ],
+        result: [2, 0, 0, 0, 2, 0, 0]
+      },
+      {
+        title: 'All Failed',
+        data: [
+          {status: 'failed'},
+          {status: 'failed'}
+        ],
+        result: [2, 0, 0, 2, 0, 0, 0]
+      },
+      {
+        title: 'All InProgress',
+        data: [
+          {status: 'in_progress'},
+          {status: 'in_progress'}
+        ],
+        result: [2, 0, 2, 0, 0, 0, 0]
+      },
+      {
+        title: 'All Aborted',
+        data: [
+          {status: 'aborted'},
+          {status: 'aborted'}
+        ],
+        result: [2, 0, 0, 0, 0, 2, 0]
+      },
+      {
+        title: 'All Timedout',
+        data: [
+          {status: 'timedout'},
+          {status: 'timedout'}
+        ],
+        result: [2, 0, 0, 0, 0, 0, 2]
+      },
+      {
+        title: 'Every Category',
+        data: [
+          {status: 'pending'},
+          {status: 'queued'},
+          {status: 'success'},
+          {status: 'completed'},
+          {status: 'failed'},
+          {status: 'in_progress'},
+          {status: 'aborted'},
+          {status: 'timedout'}
+        ],
+        result: [8, 2, 1, 1, 2, 1, 1]
+      }
+    ];
     var categories = [
       Ember.Object.create({value: 'all'}),
       Ember.Object.create({value: 'pending'}),
@@ -341,14 +340,6 @@ describe('App.HostPopup', function () {
     test_tasks.forEach(function(test_task) {
       it(test_task.m, function() {
         expect(App.HostPopup.getProgress(test_task.t)).to.equal(test_task.p);
-      });
-    });
-  });
-
-  describe('#sortTasksById', function() {
-    test_tasks.forEach(function(test_task) {
-      it(test_task.m, function() {
-        expect(App.HostPopup.sortTasksById(test_task.t).mapProperty('Tasks.id')).to.eql(test_task.ids);
       });
     });
   });
