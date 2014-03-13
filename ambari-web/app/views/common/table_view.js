@@ -29,6 +29,12 @@ App.TableView = Em.View.extend(App.UserPref, {
   filteringComplete: false,
 
   /**
+   * intermediary for filteringComplete
+   * @type {Boolean}
+   */
+  tableFilteringComplete: false,
+
+  /**
    * Loaded from local storage startIndex value
    * @type {Number}
    */
@@ -74,12 +80,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     } else {
       this.clearFilters();
     }
-
-    Em.run.next(function() {
-      Em.run.next(function() {
-        self.set('filteringComplete', true);
-      });
-    });
+    self.set('tableFilteringComplete', true);
   },
 
   /**

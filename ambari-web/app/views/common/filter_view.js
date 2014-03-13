@@ -59,7 +59,6 @@ var wrapperView = Ember.View.extend({
   },
 
   setValueOnApply: function() {
-    this.set('disabled', true);
     if(this.get('value') == null){
       this.set('value', '')
     }
@@ -235,7 +234,6 @@ module.exports = {
    * @param config parameters of <code>wrapperView</code>
    */
   createTextView : function(config){
-
     config.fieldType = config.fieldType || 'input-medium';
     config.filterView = textFieldView.extend({
       classNames : [ config.fieldType ]

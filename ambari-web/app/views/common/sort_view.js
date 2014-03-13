@@ -31,6 +31,12 @@ var wrapperView = Em.View.extend({
 
   classNames: ['sort-wrapper'],
 
+  willInsertElement:function () {
+    if(this.get('parentView.tableFilteringComplete')){
+      this.get('parentView').set('filteringComplete', true);
+    }
+  },
+
   /**
    * Load sort statuses from local storage
    * Works only after finish filtering in the parent View

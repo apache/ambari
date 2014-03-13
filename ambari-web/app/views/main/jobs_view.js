@@ -33,6 +33,8 @@ App.MainJobsView = App.TableView.extend({
    */
   noDataToShow:true,
 
+  filterCondition:[],
+
   /*
    If no jobs to display set noDataToShow to true, else set emptyData to false.
    */
@@ -44,18 +46,73 @@ App.MainJobsView = App.TableView.extend({
     }
   }.observes("controller.content.length"),
 
+  willInsertElement: function () {
+    var self = this;
+    var name = this.get('controller.name');
+    var colPropAssoc = this.get('colPropAssoc');
+    var filterConditions = App.db.getFilterConditions(name);
+    if (filterConditions) {
+      this.set('filterConditions', filterConditions);
+      var childViews = this.get('childViews');
+
+      filterConditions.forEach(function(condition) {
+        var view = childViews.findProperty('column', condition.iColumn);
+        if (view) {
+          //self.get('controller.filterObject').set(colPropAssoc[condition.iColumn], condition.value);
+          view.set('value', condition.value);
+          if(view.get('setPropertyOnApply')){
+            view.setValueOnApply();
+          }
+          Em.run.next(function() {
+            view.showClearFilter();
+          });
+        }
+      });
+    } else {
+      this.clearFilters();
+    }
+    this.onApplyIdFilter();
+    this.set('tableFilteringComplete', true);
+  },
+
+  didInsertElement: function () {
+    if(!this.get('controller.sortingColumn')){
+      var columns = this.get('childViews')[0].get('childViews')
+      if(columns && columns.findProperty('name', 'startTime')){
+        columns.findProperty('name','startTime').set('status', 'sorting_desc');
+        this.get('controller').set('sortingColumn', columns.findProperty('name','startTime'))
+      }
+    }
+  },
+
   onApplyIdFilter: function() {
     var isIdFilterApplied = this.get('controller.filterObject.isIdFilterApplied');
     this.get('childViews').forEach(function(childView) {
-      if (childView['clearFilter'] && childView.get('column') != 0) {
-        childView.clearFilter();
+      if (childView['clearFilter'] && childView.get('column') != 1) {
+        if(isIdFilterApplied){
+          childView.clearFilter();
+        }
         var childOfChild = childView.get('childViews')[0];
         if(childOfChild){
-          childOfChild.set('disabled', isIdFilterApplied);
+          Em.run.next(function() {
+            childOfChild.set('disabled', isIdFilterApplied);
+          })
         }
       }
     });
   }.observes('controller.filterObject.isIdFilterApplied'),
+
+  saveFilter: function () {
+    if(this.get('tableFilteringComplete')){
+      this.updateFilter(1, this.get('controller.filterObject.id'), 'string');
+      this.updateFilter(2, this.get('controller.filterObject.user'), 'string');
+      this.updateFilter(4, this.get('controller.filterObject.windowEnd'), 'date');
+    }
+  }.observes(
+      'controller.filterObject.id',
+      'controller.filterObject.user',
+      'controller.filterObject.windowEnd'
+  ),
 
   sortView: sort.wrapperView,
   idSort: sort.fieldView.extend({
@@ -148,7 +205,10 @@ App.MainJobsView = App.TableView.extend({
     fieldType: 'input-120',
     column: 3,
     content: ['Any', 'Past 1 hour',  'Past 1 Day', 'Past 2 Days', 'Past 7 Days', 'Past 14 Days', 'Past 30 Days', 'Custom'],
-    valueBinding: "controller.filterObject.startTime"
+    valueBinding: "controller.filterObject.startTime",
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
+    }
   }),
 
   /**
@@ -159,6 +219,7 @@ App.MainJobsView = App.TableView.extend({
     associations[1] = 'id';
     associations[2] = 'user';
     associations[3] = 'startTime';
+    associations[4] = 'endTime';
     return associations;
   }.property(),
 

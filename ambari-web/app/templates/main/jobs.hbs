@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-{{#if controller.loaded}}
+
   <div id="jobs">
       <div class="jobs_head">
         <div>{{t menu.item.jobs}}</div>
@@ -26,7 +26,7 @@
       </div>
       <table id="jobs-table" class="table table-bordered table-striped">
           <thead>
-          {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+          {{#view view.sortView classNames="label-row" contentBinding="controller.content"}}
               <th></th>
               {{view view.parentView.idSort}}
               {{view view.parentView.userSort}}
@@ -50,7 +50,7 @@
                 <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>{{t jobs.nothingToShow}}</td>
               </tr>
           {{else}}
-            {{#each job in view.pageContent}}
+            {{#each job in controller.content}}
               <tr>
                 <td>
                   {{#if job.failed}}
@@ -93,4 +93,4 @@
           </div>
       </div>
   </div>
-{{/if}}
+
