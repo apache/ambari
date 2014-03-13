@@ -23,7 +23,7 @@ from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
 import os
 import logging
-import json
+from mock.mock import patch
 
 class TestActualConfigHandler(TestCase):
 
@@ -33,9 +33,9 @@ class TestActualConfigHandler(TestCase):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
-    handler = ActualConfigHandler(config)
-    
+
     tags = { "global": "version1", "core-site": "version2" }
+    handler = ActualConfigHandler(config, tags)
     handler.write_actual(tags)
     output = handler.read_actual()
     self.assertEquals(tags, output)
@@ -45,7 +45,7 @@ class TestActualConfigHandler(TestCase):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
-    handler = ActualConfigHandler(config)
+    handler = ActualConfigHandler(config, {})
 
     conf_file = open(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME), 'w')
     conf_file.write("")
@@ -59,11 +59,11 @@ class TestActualConfigHandler(TestCase):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
-    handler = ActualConfigHandler(config)
 
     tags1 = { "global": "version1", "core-site": "version2" }
+    handler = ActualConfigHandler(config, {})
     handler.write_actual(tags1)
-    handler.copy_to_component('FOO')
+    handler.write_actual_component('FOO', tags1)
 
     output1 = handler.read_actual_component('FOO')
     output2 = handler.read_actual_component('GOO') 
@@ -80,3 +80,64 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(tags1, output4)
     os.remove(os.path.join(tmpdir, "FOO_" + ActualConfigHandler.CONFIG_NAME))
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
+
+  def test_write_actual_component(self):
+    config = AmbariConfig().getConfig()
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
+
+    tags1 = { "global": "version1", "core-site": "version2" }
+    tags2 = { "global": "version33", "core-site": "version33" }
+    handler = ActualConfigHandler(config, {})
+    handler.write_actual_component('HDFS_CLIENT', tags1)
+    handler.write_actual_component('HBASE_CLIENT', tags1)
+    self.assertEquals(tags1, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
+    handler.write_actual_component('DATANODE', tags2)
+    self.assertEquals(tags2, handler.read_actual_component('DATANODE'))
+    self.assertEquals(tags2, handler.read_actual_component('HDFS_CLIENT'))
+
+    os.remove(os.path.join(tmpdir, "DATANODE_" + ActualConfigHandler.CONFIG_NAME))
+    os.remove(os.path.join(tmpdir, "HBASE_CLIENT_" + ActualConfigHandler.CONFIG_NAME))
+    os.remove(os.path.join(tmpdir, "HDFS_CLIENT_" + ActualConfigHandler.CONFIG_NAME))
+
+  @patch.object(ActualConfigHandler, "write_file")
+  def test_write_client_components(self, write_file_mock):
+    config = AmbariConfig().getConfig()
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
+
+    tags0 = {"global": "version0", "core-site": "version0"}
+    tags1 = {"global": "version1", "core-site": "version2"}
+    tags2 = {"global": "version33", "core-site": "version33"}
+    configTags = {'HDFS_CLIENT': tags0, 'HBASE_CLIENT': tags1}
+    handler = ActualConfigHandler(config, configTags)
+    self.assertEquals(tags0, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
+    handler.write_client_components(tags2)
+    self.assertEquals(tags2, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEquals(tags2, handler.read_actual_component('HBASE_CLIENT'))
+    self.assertTrue(write_file_mock.called)
+    self.assertEqual(2, write_file_mock.call_count)
+
+  @patch.object(ActualConfigHandler, "write_file")
+  @patch.object(ActualConfigHandler, "read_file")
+  def test_read_actual_component_inmemory(self, read_file_mock, write_file_mock):
+    config = AmbariConfig().getConfig()
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
+
+    tags1 = { "global": "version1", "core-site": "version2" }
+    read_file_mock.return_value = tags1
+
+    handler = ActualConfigHandler(config, {})
+
+    handler.write_actual_component('NAMENODE', tags1)
+    self.assertTrue(write_file_mock.called)
+    self.assertEquals(tags1, handler.read_actual_component('NAMENODE'))
+    self.assertFalse(read_file_mock.called)
+    self.assertEquals(tags1, handler.read_actual_component('DATANODE'))
+    self.assertTrue(read_file_mock.called)
+    self.assertEquals(1, read_file_mock.call_count)
+    self.assertEquals(tags1, handler.read_actual_component('DATANODE'))
+    self.assertEquals(1, read_file_mock.call_count)
