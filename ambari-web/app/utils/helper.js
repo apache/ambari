@@ -438,6 +438,34 @@ App.registerBoundHelper('formatNull', Em.View.extend({
 }));
 
 /**
+ * Return formatted string with inserted <code>wbr</code>-tag after each dot
+ *
+ * @param {String} content
+ *
+ * Examples:
+ *
+ * returns 'apple'
+ * {{formatWordBreak 'apple'}}
+ *
+ * returns 'apple.<wbr />banana'
+ * {{formatWordBreak 'apple.banana'}}
+ *
+ * returns 'apple.<wbr />banana.<wbr />uranium'
+ * {{formatWordBreak 'apple.banana.uranium'}}
+ */
+App.registerBoundHelper('formatWordBreak', Em.View.extend({
+  tagName: 'span',
+  template: Em.Handlebars.compile('{{{view.result}}}'),
+
+  /**
+   * @type {string}
+   */
+  result: function() {
+    return this.get('content').replace(/\./g, '.<wbr />');
+  }.property('content')
+}));
+
+/**
  * Ambari overrides the default date transformer.
  * This is done because of the non-standard data
  * sent. For example Nagios sends date as "12345678".

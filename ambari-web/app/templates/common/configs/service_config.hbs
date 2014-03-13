@@ -99,7 +99,7 @@
                           {{#if showLabel}}
                             <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
                               <label class="control-label">
-                                {{displayName}}
+                                {{formatWordBreak displayName}}
                                 {{#if App.supports.secureCluster}}
                                   {{#if isSecureConfig}}
                                     <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
