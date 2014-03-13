@@ -54,7 +54,7 @@ module.exports = {
     var self = this;
     // TODO - to be changed to history server when implemented in stack.
     var yarnService = App.YARNService.find().objectAt(0);
-    var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
+    var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
     var ahsWebPort = yarnService.get('ahsWebPort');
     var hiveJobId = hiveJob.get('id');
     // First refresh query
@@ -117,7 +117,7 @@ module.exports = {
     var self = this;
     var yarnService = App.YARNService.find().objectAt(0);
     var ahsWebPort = yarnService.get('ahsWebPort');
-    var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
+    var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
     var tezDag = App.TezDag.find(tezDagId);
     if (tezDag) {
       var tezDagInstanceId = tezDag.get('instanceId');
@@ -171,7 +171,7 @@ module.exports = {
   refreshTezDagVertex : function(tezDagId, tezVertexInstanceId, successCallback) {
     var yarnService = App.YARNService.find().objectAt(0);
     var ahsWebPort = yarnService.get('ahsWebPort');
-    var historyServerHostName = yarnService.get('resourceManagerNode.hostName');
+    var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
     var sender = {
       loadTezDagVertexSuccess : function(data) {
         if (data && data.otherinfo) {
