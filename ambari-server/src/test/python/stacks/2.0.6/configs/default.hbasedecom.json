@@ -7,7 +7,7 @@
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
-        "stack_version": "2.0.8", 
+        "stack_version": "2.0",
         "stack_name": "HDP", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
