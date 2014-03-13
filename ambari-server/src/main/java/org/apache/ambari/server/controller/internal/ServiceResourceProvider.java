@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -637,7 +638,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
         }
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()){
+
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
           State oldSchState = sch.getState();
           if (oldSchState == State.DISABLED || oldSchState == State.UNKNOWN) {
             //Ignore host components updates in this state
@@ -678,6 +680,22 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                   + ", componentName=" + sc.getName()
                   + ", hostname=" + sch.getHostName());
             }
+            continue;
+          }
+          Host host = clusters.getHost(sch.getHostName());
+
+          if (schMaint == MaintenanceState.IMPLIED
+             && host != null
+             && host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.OFF) {
+
+            // Host is in Passive mode, ignore the SCH
+            ignoredScHosts.add(sch);
+            LOG.info("Ignoring ServiceComponentHost since "
+              + "the host is in passive mode"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + s.getName()
+              + ", componentName=" + sc.getName()
+              + ", hostname=" + sch.getHostName());
             continue;
           }
           
