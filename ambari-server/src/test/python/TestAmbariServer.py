@@ -2763,8 +2763,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
-                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
-        'updateStackId ' + json.dumps(stackIdMap) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
+                                          'org.apache.ambari.server.upgrade.StackUpgradeHelper '
+                                          'updateStackId ' + "'" + json.dumps(stackIdMap) + "'" +
+                                          ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
   @patch.object(ambari_server, 'get_conf_dir')
   @patch.object(ambari_server, 'get_ambari_classpath')
@@ -2785,8 +2786,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
-                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
-        'updateStackId ' + json.dumps(stackIdMap) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
+                                          'org.apache.ambari.server.upgrade.StackUpgradeHelper '
+                                          'updateStackId ' + "'" + json.dumps(stackIdMap) + "'" +
+                                          ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
   @patch.object(ambari_server, 'get_conf_dir')
   @patch.object(ambari_server, 'get_ambari_classpath')
@@ -2807,8 +2809,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_conf_dir_mock.called)
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
-                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
-        'updateStackId ' + json.dumps(stackIdMap) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
+                                          'org.apache.ambari.server.upgrade.StackUpgradeHelper '
+                                          'updateStackId ' + "'" + json.dumps(stackIdMap) + "'" +
+                                          ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
 
   @patch.object(ambari_server, 'get_conf_dir')
@@ -2853,7 +2856,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf:test:path12 '
                                            'org.apache.ambari.server.upgrade.StackUpgradeHelper updateMetaInfo ' +
-                                           json.dumps(json_map) + ' > /var/log/ambari-server/ambari-server.out 2>&1')
+                                           "'" + json.dumps(json_map) + "'" +
+                                           ' > /var/log/ambari-server/ambari-server.out 2>&1')
 
 
   @patch("__builtin__.open")
