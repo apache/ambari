@@ -1223,8 +1223,11 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   restartAllStaleConfigComponents: function() {
-    var staleComponents = this.get('content.componentsWithStaleConfigs');
-    batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(this.get('content.hostName')));
+    var self = this;
+    App.showConfirmationPopup(function () {
+      var staleComponents = self.get('content.componentsWithStaleConfigs');
+      batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')));
+    });
   },
 
   /**

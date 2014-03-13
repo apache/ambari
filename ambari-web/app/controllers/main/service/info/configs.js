@@ -1626,18 +1626,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   restartAllStaleConfigComponents: function() {
-    var content = this;
-    return App.ModalPopup.show({
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      body: Em.I18n.t('question.sure'),
-      content: content,
-      onPrimary: function () {
-        var selectedService = this.content.get('content.id');
-        this.hide();
-        batchUtils.restartAllServiceHostComponents(selectedService, true);
-      }
+    var self = this;
+    App.showConfirmationPopup(function () {
+      var selectedService = self.get('content.id');
+      batchUtils.restartAllServiceHostComponents(selectedService, true);
     });
   },
 
