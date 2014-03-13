@@ -348,6 +348,10 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     //add new sequence for config groups
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
       "VALUES('configgroup_id_seq', 1)", true);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+      "VALUES('requestschedule_id_seq', 1)", true);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+      "VALUES('resourcefilter_id_seq', 1)", true);
 
     //clear cache due to direct table manipulation
     ((JpaEntityManager)em.getDelegate()).getServerSession().getIdentityMapAccessor().invalidateAll();
