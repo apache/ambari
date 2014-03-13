@@ -66,6 +66,7 @@ public class Configuration {
   public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
+  public static final String SRVR_CSR_NAME_KEY = "security.server.csr_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
   public static final String KSTR_NAME_KEY =
       "security.server.keystore_name";
@@ -176,6 +177,7 @@ public class Configuration {
   public static final String SRVR_ONE_WAY_SSL_PORT_DEFAULT = "8440";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
+  public static final String SRVR_CSR_NAME_DEFAULT = "ca.csr";
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
   public static final String CLIENT_API_SSL_KSTR_NAME_DEFAULT = "https.keystore.p12";
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT = "https.pass.txt";
@@ -299,7 +301,9 @@ public class Configuration {
     configsMap.put(SRVR_CRT_NAME_KEY, properties.getProperty(
         SRVR_CRT_NAME_KEY, SRVR_CRT_NAME_DEFAULT));
     configsMap.put(SRVR_KEY_NAME_KEY, properties.getProperty(
-        SRVR_KEY_NAME_KEY, SRVR_KEY_NAME_DEFAULT));
+      SRVR_KEY_NAME_KEY, SRVR_KEY_NAME_DEFAULT));
+    configsMap.put(SRVR_CSR_NAME_KEY, properties.getProperty(
+      SRVR_CSR_NAME_KEY, SRVR_CSR_NAME_DEFAULT));
     configsMap.put(KSTR_NAME_KEY, properties.getProperty(
         KSTR_NAME_KEY, KSTR_NAME_DEFAULT));
     configsMap.put(SRVR_CRT_PASS_FILE_KEY, properties.getProperty(

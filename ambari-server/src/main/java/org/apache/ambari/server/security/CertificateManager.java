@@ -49,10 +49,11 @@ public class CertificateManager {
   private static final String GEN_SRVR_KEY = "openssl genrsa -des3 " +
       "-passout pass:{0} -out {1}/{2} 4096 ";
   private static final String GEN_SRVR_REQ = "openssl req -passin pass:{0} " +
-      "-new -key {1}/{2} -out {1}/{3} -batch";
-  private static final String SIGN_SRVR_CRT = "openssl x509 " +
-      "-passin pass:{0} -req -days 365 -in {1}/{3} -signkey {1}/{2} " +
-      "-out {1}/{3} \n";
+      "-new -key {1}/{2} -out {1}/{5} -batch";
+  private static final String SIGN_SRVR_CRT = "openssl ca -create_serial " +
+    "-out {1}/{3} -days 365 -keyfile {1}/{2} -key {0} -selfsign " +
+    "-extensions jdk7_ca -config {1}/ca.config -batch " +
+    "-infiles {1}/{5}";
   private static final String EXPRT_KSTR = "openssl pkcs12 -export" +
       " -in {1}/{3} -inkey {1}/{2} -certfile {1}/{3} -out {1}/{4} " +
       "-password pass:{0} -passin pass:{0} \n";
@@ -139,12 +140,13 @@ public class CertificateManager {
     Map<String, String> configsMap = configs.getConfigsMap();
     String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
     String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
+    String srvrCsrName = configsMap.get(Configuration.SRVR_CSR_NAME_KEY);;
     String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME_KEY);
     String kstrName = configsMap.get(Configuration.KSTR_NAME_KEY);
     String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
 
     Object[] scriptArgs = {srvrCrtPass, srvrKstrDir, srvrKeyName,
-        srvrCrtName, kstrName};
+        srvrCrtName, kstrName, srvrCsrName};
 
     String command = MessageFormat.format(GEN_SRVR_KEY,scriptArgs);
     runCommand(command);

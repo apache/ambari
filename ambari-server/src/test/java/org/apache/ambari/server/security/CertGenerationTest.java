@@ -23,7 +23,9 @@ import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Properties;
 
+import com.google.common.io.Files;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -64,17 +66,16 @@ public class CertGenerationTest extends TestCase {
   
   protected Properties buildTestProperties() {
     try {
-		temp.create();
-	} catch (IOException e) {
-		e.printStackTrace();
-	}
-	Properties properties = new Properties();
-	properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, temp.getRoot().getAbsolutePath());
+      temp.create();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+	  Properties properties = new Properties();
+	  properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY,
+      temp.getRoot().getAbsolutePath());
+    System.out.println(properties.get(Configuration.SRVR_CRT_PASS_KEY));
 	
-	
-	System.out.println(properties.get(Configuration.SRVR_CRT_PASS_KEY));
-	
-	return properties;
+	  return properties;
   }
  
   protected Constructor<Configuration> getConfigurationConstructor() {
@@ -91,6 +92,24 @@ public class CertGenerationTest extends TestCase {
 
     injector = Guice.createInjector(new SecurityModule());
     certMan = injector.getInstance(CertificateManager.class);
+
+    //Test using actual ca.config.
+    try {
+      File caConfig = new File("conf/unix/ca.config");
+      File caConfigTest  =
+        new File(temp.getRoot().getAbsolutePath(), "ca.config");
+      File newCertsDir = new File(temp.getRoot().getAbsolutePath(), "newcerts");
+      newCertsDir.mkdirs();
+      File indexTxt = new File(temp.getRoot().getAbsolutePath(), "index.txt");
+      indexTxt.createNewFile();
+
+      String content = IOUtils.toString(new FileInputStream(caConfig));
+      content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
+      IOUtils.write(content, new FileOutputStream(caConfigTest));
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
 
     certMan.initRootCert();
   }
@@ -139,8 +158,6 @@ public class CertGenerationTest extends TestCase {
     //Emulate existing agent certificate
     File fakeAgentCertFile = new File(temp.getRoot().getAbsoluteFile() +
       File.separator + agentHostname + ".crt");
-    assertFalse(fakeAgentCertFile.exists());
-    fakeAgentCertFile.createNewFile();
     assertTrue(fakeAgentCertFile.exists());
 
     //Revoke command was executed
