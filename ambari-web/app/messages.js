@@ -1863,6 +1863,9 @@ Em.I18n.translations = {
   'mirroring.dataset.middayPeriod.am':'AM',
   'mirroring.dataset.middayPeriod.pm':'PM',
   'mirroring.dataset.entity':'entity',
+  'mirroring.dataset.services.not.started':'Both Falcon and Oozie should be started for correct work',
+  'mirroring.dataset.dataset.loading.error':'Unable to load datasets',
+  'mirroring.dataset.dataset.loading.instances':'Unable to load instances',
 
   'mirroring.manageClusters.ambariServer':'Ambari Server',
   'mirroring.manageClusters.interfaces':'Interfaces',

@@ -96,59 +96,67 @@
     </tr>
     </thead>
     <tbody>
-    {{#if view.isLoaded}}
-      {{#if view.pageContent}}
-        {{#each job in view.pageContent}}
-          {{#view view.JobView contentBinding="job"}}
-          <td class="first">
-            <span {{ bindAttr class="job.healthClass"}}></span>
-          </td>
+    {{#if view.parentView.controller.isDatasetLoadingError}}
+      <td class="first"></td>
+      <td colspan="4">
+        {{t mirroring.dataset.dataset.loading.instances}}
+      </td>
+    {{else}}
+      {{#if view.isLoaded}}
+        {{#if view.pageContent}}
+          {{#each job in view.pageContent}}
+            {{#view view.JobView contentBinding="job"}}
+            <td class="first">
+              <span {{ bindAttr class="job.healthClass"}}></span>
+            </td>
 
-          <td>{{unbound job.name}}</td>
-          <td>{{unbound job.startFormatted}}</td>
-          <td>{{unbound job.endFormatted}}</td>
-          <td>
-            {{#if view.showActions}}
-              <div class="btn-group display-inline-block">
-                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                  {{job.statusFormatted}}
-                  <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  {{#if job.isSuspended}}
+            <td>{{unbound job.name}}</td>
+            <td>{{unbound job.startFormatted}}</td>
+            <td>{{unbound job.endFormatted}}</td>
+            <td>
+              {{#if view.showActions}}
+                <div class="btn-group display-inline-block">
+                  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                    {{job.statusFormatted}}
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    {{#if job.isSuspended}}
+                      <li>
+                        <a href="javascript:void(null)" {{action resumeInstance job target="controller"}}>{{t mirroring.dataset.resumeInstance}}</a>
+                      </li>
+                    {{else}}
+                      <li>
+                        <a href="javascript:void(null)" {{action suspendInstance job target="controller"}}>{{t mirroring.dataset.suspendInstance}}</a>
+                      </li>
+                    {{/if}}
                     <li>
-                      <a href="javascript:void(null)" {{action resumeInstance job target="controller"}}>{{t mirroring.dataset.resumeInstance}}</a>
+                      <a href="javascript:void(null)" {{action killInstance job target="controller"}}>{{t mirroring.dataset.killInstance}}</a>
                     </li>
-                  {{else}}
-                    <li>
-                      <a href="javascript:void(null)" {{action suspendInstance job target="controller"}}>{{t mirroring.dataset.suspendInstance}}</a>
-                    </li>
-                  {{/if}}
-                  <li>
-                    <a href="javascript:void(null)" {{action killInstance job target="controller"}}>{{t mirroring.dataset.killInstance}}</a>
-                  </li>
-                </ul>
-              </div>
-            {{else}}
-              {{job.statusFormatted}}
-            {{/if}}
-          </td>
-          {{/view}}
-        {{/each}}
+                  </ul>
+                </div>
+              {{else}}
+                {{job.statusFormatted}}
+              {{/if}}
+            </td>
+            {{/view}}
+          {{/each}}
+        {{else}}
+          <tr>
+            <td class="first"></td>
+            <td colspan="4">
+              {{t mirroring.table.noJobs}}
+            </td>
+          </tr>
+        {{/if}}
       {{else}}
         <tr>
           <td class="first"></td>
           <td colspan="4">
-            {{t mirroring.table.noJobs}}
+            <div class="spinner"></div>
           </td>
         </tr>
       {{/if}}
-    {{else}}
-      <tr>
-        <td colspan="5">
-          <div class="spinner"></div>
-        </td>
-      </tr>
     {{/if}}
     </tbody>
   </table>

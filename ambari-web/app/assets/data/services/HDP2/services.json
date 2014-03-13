@@ -6,7 +6,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "GANGLIA"
+        "service_name" : "GANGLIA",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -21,7 +22,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "HBASE"
+        "service_name" : "HBASE",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -36,7 +38,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "HCATALOG"
+        "service_name" : "HCATALOG",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -51,7 +54,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "HDFS"
+        "service_name" : "HDFS",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -66,7 +70,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "MAPREDUCE2"
+        "service_name" : "MAPREDUCE2",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -81,7 +86,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "NAGIOS"
+        "service_name" : "NAGIOS",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -96,7 +102,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "OOZIE"
+        "service_name" : "OOZIE",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -111,7 +118,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "SQOOP"
+        "service_name" : "SQOOP",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -126,7 +134,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "PIG"
+        "service_name" : "PIG",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -141,7 +150,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "YARN"
+        "service_name" : "YARN",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -156,7 +166,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "ZOOKEEPER"
+        "service_name" : "ZOOKEEPER",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -171,7 +182,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "OFF",
         "cluster_name" : "cl",
-        "service_name" : "FALCON"
+        "service_name" : "FALCON",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {
@@ -186,7 +198,8 @@
       "ServiceInfo" : {
         "maintenance_state" : "ON",
         "cluster_name" : "cl",
-        "service_name" : "STORM"
+        "service_name" : "STORM",
+        "state": "STARTED"
       },
       "alerts" : {
         "summary" : {

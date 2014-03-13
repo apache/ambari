@@ -27,6 +27,7 @@ App.statusMapper = App.QuickDataMapper.create({
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
       var previousComponentPassiveStates = App.cache['previousComponentPassiveStates'];
       var hostComponentRecordsMap = App.cache['hostComponentRecordsMap'];
+      var servicesCache = App.cache['services'];
       var hostStatuses = {};
       var addedHostComponents = [];
       var updatedHostComponents = [];
@@ -131,6 +132,15 @@ App.statusMapper = App.QuickDataMapper.create({
           hostComponentRecordsMap[hostComponent.get('id')] = hostComponent;
         });
       }
+
+      // update services workStatus and passiveState
+      App.Service.find().forEach(function (service) {
+        var cachedServiceData = servicesCache.findProperty('ServiceInfo.service_name', service.get('serviceName'));
+        if (cachedServiceData) {
+          service.set('workStatus', cachedServiceData.ServiceInfo.state);
+          service.set('passiveState', cachedServiceData.ServiceInfo.passive_state);
+        }
+      }, this);
 
       App.cache['previousHostStatuses'] = currentHostStatuses;
       App.cache['previousComponentStatuses'] = currentComponentStatuses;

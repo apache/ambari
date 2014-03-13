@@ -16,6 +16,9 @@
 * limitations under the License.
 }}
 <div id="mirroring">
+  {{#unless controller.isRequiredServicesStarted}}
+    <div class="alert alert-error">{{t mirroring.dataset.services.not.started}}</div>
+  {{/unless}}
   <div class="row-fluid">
     <div class="span4">
       <div>
@@ -24,8 +27,8 @@
         </div>
         {{#if App.isAdmin}}
           <div class="mirroring-top-nav pull-right btn-group">
-            <button class="btn">{{t common.actions}}</button>
-            <button class="btn dropdown-toggle" data-toggle="dropdown">
+            <button {{bindAttr disabled="controller.actionsDisabled"}} class="btn">{{t common.actions}}</button>
+            <button {{bindAttr disabled="controller.actionsDisabled"}} class="btn dropdown-toggle" data-toggle="dropdown">
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu pull-left">
@@ -59,33 +62,41 @@
         </tr>
         </thead>
         <tbody>
-        {{#if controller.isLoaded}}
-          {{#if view.pageContent}}
-            {{#each dataset in view.pageContent}}
-            {{#view view.DatasetView contentBinding="dataset"}}
-            <td class="first">
-              <span {{bindAttr class="dataset.healthClass"}}></span>
-            </td>
-            <td class="name">
-              <a title="{{unbound dataset.name}}" href="javascript:void(null)">{{unbound dataset.name}}</a>
-            </td>
-            <td><span {{bindAttr class="dataset.isRunning:text-info dataset.isSuspended:text-warning"}}>{{dataset.statusFormatted}}</span></td>
-            {{/view}}
-            {{/each}}
+        {{#if controller.isDatasetLoadingError}}
+          <td class="first"></td>
+          <td colspan="2">
+            {{t mirroring.dataset.dataset.loading.error}}
+          </td>
+        {{else}}
+          {{#if controller.isLoaded}}
+            {{#if view.pageContent}}
+              {{#each dataset in view.pageContent}}
+              {{#view view.DatasetView contentBinding="dataset"}}
+              <td class="first">
+                <span {{bindAttr class="dataset.healthClass"}}></span>
+              </td>
+              <td class="name">
+                <a title="{{unbound dataset.name}}" href="javascript:void(null)">{{unbound dataset.name}}</a>
+              </td>
+              <td><span {{bindAttr class="dataset.isRunning:text-info dataset.isSuspended:text-warning"}}>{{dataset.statusFormatted}}</span></td>
+              {{/view}}
+              {{/each}}
+            {{else}}
+              <tr>
+                <td class="first"></td>
+                <td colspan="2">
+                  {{t mirroring.table.noDatasets}}
+                </td>
+              </tr>
+            {{/if}}
           {{else}}
             <tr>
               <td class="first"></td>
               <td colspan="2">
-                {{t mirroring.table.noDatasets}}
+                <div class="spinner"></div>
               </td>
             </tr>
           {{/if}}
-        {{else}}
-          <tr>
-            <td colspan="3">
-              <div class="spinner"></div>
-            </td>
-          </tr>
         {{/if}}
         </tbody>
       </table>
