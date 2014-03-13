@@ -107,7 +107,7 @@ class Controller(threading.Thread):
         self.isRegistered = True
         if 'statusCommands' in ret.keys():
           logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']) )
-          self.addToQueue(ret['statusCommands'])
+          self.addToStatusQueue(ret['statusCommands'])
           pass
         else:
           self.hasMappedComponents = False
@@ -136,6 +136,13 @@ class Controller(threading.Thread):
     else:
       """Only add to the queue if not empty list """
       self.actionQueue.put(commands)
+    pass
+
+  def addToStatusQueue(self, commands):
+    if not commands:
+      logger.debug("No status commands from the server : " + pprint.pformat(commands))
+    else:
+      self.actionQueue.put_status(commands)
     pass
 
   # For testing purposes
@@ -190,8 +197,8 @@ class Controller(threading.Thread):
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
           pass
-        if 'statusCommands' in response.keys() and self.actionQueue.empty():
-          self.addToQueue(response['statusCommands'])
+        if 'statusCommands' in response.keys():
+          self.addToStatusQueue(response['statusCommands'])
           pass
         if "true" == response['restartAgent']:
           logger.error("Got restartAgent command")

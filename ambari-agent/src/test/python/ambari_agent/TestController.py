@@ -78,10 +78,10 @@ class TestController(unittest.TestCase):
     self.assertEqual({"responseId":1}, self.controller.registerWithServer())
 
     self.controller.sendRequest.return_value = '{"responseId":1, "statusCommands": "commands", "log":"", "exitstatus":"0"}'
-    self.controller.addToQueue = MagicMock(name="addToQueue")
+    self.controller.addToStatusQueue = MagicMock(name="addToStatusQueue")
     self.controller.isRegistered = False
     self.assertEqual({'exitstatus': '0', 'responseId': 1, 'log': '', 'statusCommands': 'commands'}, self.controller.registerWithServer())
-    self.controller.addToQueue.assert_called_with("commands")
+    self.controller.addToStatusQueue.assert_called_with("commands")
 
     calls = []
 
@@ -102,7 +102,7 @@ class TestController(unittest.TestCase):
     sys.stdout = sys.__stdout__
 
     self.controller.sendRequest = Controller.Controller.sendRequest
-    self.controller.addToQueue = Controller.Controller.addToQueue
+    self.controller.addToStatusQueue = Controller.Controller.addToStatusQueue
 
 
   @patch("pprint.pformat")
@@ -114,6 +114,17 @@ class TestController(unittest.TestCase):
     self.assertFalse(actionQueue.put.called)
     self.controller.addToQueue("cmd")
     self.assertTrue(actionQueue.put.called)
+
+
+  @patch("pprint.pformat")
+  def test_addToStatusQueue(self, pformatMock):
+
+    actionQueue = MagicMock()
+    self.controller.actionQueue = actionQueue
+    self.controller.addToStatusQueue(None)
+    self.assertFalse(actionQueue.put_status.called)
+    self.controller.addToStatusQueue("cmd")
+    self.assertTrue(actionQueue.put_status.called)
 
 
   @patch("urllib2.build_opener")
@@ -369,17 +380,25 @@ class TestController(unittest.TestCase):
 
     restartAgent.assert_called_once_with()
 
-    # executionCommands, statusCommands
+    # executionCommands
     self.controller.responseId = 1
     addToQueue = MagicMock(name="addToQueue")
     self.controller.addToQueue = addToQueue
     response["executionCommands"] = "executionCommands"
+    self.controller.DEBUG_STOP_HEARTBEATING = False
+    self.controller.heartbeatWithServer()
+
+    addToQueue.assert_has_calls([call("executionCommands")])
+
+    # statusCommands
+    self.controller.responseId = 1
+    addToStatusQueue = MagicMock(name="addToStatusQueue")
+    self.controller.addToStatusQueue = addToStatusQueue
     response["statusCommands"] = "statusCommands"
     self.controller.DEBUG_STOP_HEARTBEATING = False
     self.controller.heartbeatWithServer()
 
-    addToQueue.assert_has_calls([call("executionCommands"),
-                                 call("statusCommands")])
+    addToStatusQueue.assert_has_calls([call("statusCommands")])
 
     # restartAgent command
     self.controller.responseId = 1
@@ -404,6 +423,8 @@ class TestController(unittest.TestCase):
     sys.stdout = sys.__stdout__
     self.controller.sendRequest = Controller.Controller.sendRequest
     self.controller.sendRequest = Controller.Controller.addToQueue
+    self.controller.sendRequest = Controller.Controller.addToStatusQueue
+
 
   @patch("pprint.pformat")
   @patch("time.sleep")

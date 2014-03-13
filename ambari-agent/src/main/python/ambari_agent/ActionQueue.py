@@ -46,6 +46,11 @@ class ActionQueue(threading.Thread):
   # How many actions can be performed in parallel. Feel free to change
   MAX_CONCURRENT_ACTIONS = 5
 
+
+  #How much time(in seconds) we need wait for new incoming execution command before checking
+  #status command queue
+  EXECUTION_COMMAND_WAIT_TIME = 2
+
   STATUS_COMMAND = 'STATUS_COMMAND'
   EXECUTION_COMMAND = 'EXECUTION_COMMAND'
   ROLE_COMMAND_INSTALL = 'INSTALL'
@@ -64,6 +69,7 @@ class ActionQueue(threading.Thread):
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
+    self.statusCommandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
       self.status_update_callback)
     self.config = config
@@ -81,6 +87,17 @@ class ActionQueue(threading.Thread):
   def stopped(self):
     return self._stop.isSet()
 
+  def put_status(self, commands):
+    #Was supposed that we got all set of statuses, we don't need to keep old ones
+    self.statusCommandQueue.queue.clear()
+
+    for command in commands:
+      logger.info("Adding " + command['commandType'] + " for service " + \
+                    command['serviceName'] + " of cluster " + \
+                    command['clusterName'] + " to the queue.")
+      logger.debug(pprint.pformat(command))
+      self.statusCommandQueue.put(command)
+
   def put(self, commands):
     for command in commands:
       logger.info("Adding " + command['commandType'] + " for service " + \
@@ -89,14 +106,21 @@ class ActionQueue(threading.Thread):
       logger.debug(pprint.pformat(command))
       self.commandQueue.put(command)
 
-  def empty(self):
-    return self.commandQueue.empty()
-
-
   def run(self):
     while not self.stopped():
-      command = self.commandQueue.get() # Will block if queue is empty
-      self.process_command(command)
+      while  not self.statusCommandQueue.empty():
+        try:
+          command = self.statusCommandQueue.get(False)
+          self.process_command(command)
+        except (Queue.Empty):
+          pass
+      try:
+        command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+        self.process_command(command)
+      except (Queue.Empty):
+        pass
+
+
 
 
   def process_command(self, command):
