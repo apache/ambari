@@ -26,7 +26,7 @@
   <div {{bindAttr class="controller.isLoaded::hidden-scroll :pre-scrollable" }}>
       <div {{bindAttr class=":spinner-overlay controller.isLoaded:hidden"}}></div>
       <i {{bindAttr class=":icon-spin :spinner controller.isLoaded:hidden"}}></i>
-    <table class="table table-striped">
+    <table class="table table-striped" id="component_assign_table">
       <thead>
         <tr>
           <th>{{t common.host}}</th>
@@ -54,7 +54,7 @@
             {{/view}}
             {{#each checkbox in host.checkboxes}}
               <td>
-                  <label class="checkbox">{{view App.WizardStep6CheckboxView checkboxBinding="checkbox"}}</label>
+                  <label class="checkbox"><input {{bindAttr disabled="checkbox.isInstalled" checked="checkbox.checked" id="checkbox.id"}} type="checkbox"/>{{checkbox.title}}</label>
               </td>
             {{/each}}
           </tr>

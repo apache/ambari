@@ -58,7 +58,32 @@ App.WizardStep6View = Em.View.extend({
         }
     }, this);
     this.set('label', label);
-  }
+  },
+  /**
+   * attach event handlers to checkboxes
+   */
+  attachHandlers: function () {
+    var controller = this.get('controller');
+    var checkBuildStatus = function () {
+      setTimeout(function () {
+        var checkboxes = jQuery("#component_assign_table input[type=checkbox]");
+        if (checkboxes.length === controller.get('checkboxesCount')) {
+          checkboxes.bind('click', function (event) {
+            var idInfo = event.target.id.split('_DELIMITER_');
+            var component = idInfo[0];
+            var hostName = idInfo[1];
+            controller.get('hosts').findProperty('hostName', hostName).get('checkboxes').findProperty('component', component).toggleProperty('checked');
+            controller.checkCallback(component);
+          });
+        } else {
+          checkBuildStatus();
+        }
+      }, 100);
+    };
+    if (this.get('controller.isLoaded') && this.state === "inDOM") {
+      checkBuildStatus();
+    }
+  }.observes('controller.isLoaded')
 });
 
 App.WizardStep6HostView = Em.View.extend({
@@ -83,36 +108,4 @@ App.WizardStep6HostView = Em.View.extend({
       }
     }
   }
-});
-
-/**
- * Binding host property with dynamic name
- * @type {*}
- */
-App.WizardStep6CheckboxView = Em.Checkbox.extend({
-  /**
-   * Header object with host property name
-   */
-  checkbox: null,
-
-  //if setAll true there is no need to check every checkbox whether all checked or not
-  setAllBinding: 'checkbox.setAll',
-
-  checkedBinding: 'checkbox.checked',
-
-  disabledBinding: 'checkbox.isInstalled',
-
-  checkCallback: function() {
-    var self = this;
-    if(this.get('setAll')){
-      this.set('setAll', false);
-    } else {
-      Ember.run.next(function(){
-        self.get('controller').checkCallback(self.get('checkbox.title'));
-      });
-    }
-  }.observes('checked'),
-
-  template: Ember.Handlebars.compile('{{checkbox.title}}')
-
 });

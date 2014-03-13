@@ -39,6 +39,10 @@ App.WizardStep6Controller = Em.Controller.extend({
   headers: [],
 
   /**
+   * number of checkboxes for detecting time point when they are completely inserted into the view
+   */
+  checkboxesCount: 0,
+  /**
    * true - assign ZK, HB
    * false - slaves and clients
    */
@@ -118,7 +122,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param event
    */
   selectAllNodes: function (event) {
-    this.setAllNodes(event.context.label, true);
+    this.setAllNodes(event.context.name, true);
   },
 
   /**
@@ -126,24 +130,23 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param event
    */
   deselectAllNodes: function (event) {
-    this.setAllNodes(event.context.label, false);
+    this.setAllNodes(event.context.name, false);
   },
 
   /**
    * Enable/disable some service for all hosts
-   * @param {String} label - service name
+   * @param {String} component - component name
    * @param {Boolean} checked - true - enable, false - disable
    */
-  setAllNodes: function (label, checked) {
+  setAllNodes: function (component, checked) {
     this.get('hosts').forEach(function (host) {
       host.get('checkboxes').filterProperty('isInstalled', false).forEach(function (checkbox) {
-        if (checkbox.get('title') === label) {
-          checkbox.set('setAll', true);
+        if (checkbox.get('component') === component) {
           checkbox.set('checked', checked);
         }
       });
     });
-    this.checkCallback(label);
+    this.checkCallback(component);
   },
 
   /**
@@ -158,17 +161,16 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Checkbox check callback
-   * @param {String} title
+   * @param {String} component
    */
-  checkCallback: function (title) {
-
-    var header = this.get('headers').findProperty('label', title);
+  checkCallback: function (component) {
+    var header = this.get('headers').findProperty('name', component);
     var hosts = this.get('hosts');
     var allTrue = true;
     var allFalse = true;
     hosts.forEach(function (host) {
       host.get('checkboxes').filterProperty('isInstalled', false).forEach(function (cb) {
-        if (cb.get('title') === title) {
+        if (cb.get('component') === component) {
           allTrue &= cb.get('checked');
           allFalse &= !cb.get('checked');
         }
@@ -296,14 +298,17 @@ App.WizardStep6Controller = Em.Controller.extend({
 
       self.get('headers').forEach(function (header) {
         obj.checkboxes.pushObject(Em.Object.create({
+          component: header.name,
           title: header.label,
           checked: false,
-          isInstalled: false
+          isInstalled: false,
+          id: header.name + "_DELIMITER_" + _hostName
         }));
       });
 
       hostsObj.push(obj);
     });
+    this.set('checkboxesCount', (allHosts.length * self.get('headers').length));
 
     if (this.get('isMasters')) {
       hostsObj = this.renderMasters(hostsObj);
@@ -319,7 +324,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         context: this,
         initSize: 50,
         chunkSize: 100,
-        delay: 100
+        delay: 50
       });
     } else {
       hostsObj.forEach(function (host) {
@@ -328,7 +333,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       this.set('isLoaded', true);
     }
     this.get('headers').forEach(function (header) {
-      self.checkCallback(header.get('label'));
+      self.checkCallback(header.get('name'));
     });
   },
 
