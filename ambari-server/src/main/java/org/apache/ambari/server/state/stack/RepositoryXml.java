@@ -27,13 +27,23 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Represents the repository file <code>$STACK_VERSION/metainfo.xml</code>.
+ * Represents the repository file <code>$STACK_VERSION/repos/repoinfo.xml</code>.
  */
 @XmlRootElement(name="reposinfo")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RepositoryXml {
+
+  @XmlElement(name="latest")
+  private String latestUri;
   @XmlElement(name="os")
   private List<Os> oses = new ArrayList<Os>();
+
+  /**
+   * @return the latest URI defined, if any.
+   */
+  public String getLatestURI() {
+    return latestUri;
+  }
   
   /**
    * @return the list of <code>os</code> elements.
@@ -41,7 +51,6 @@ public class RepositoryXml {
   public List<Os> getOses() {
     return oses;
   }
-  
   
   /**
    * The <code>os</code> tag.
@@ -77,10 +86,11 @@ public class RepositoryXml {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Repo {
-    private String baseurl;
-    private String mirrorslist;
-    private String repoid;
-    private String reponame;
+    private String baseurl = null;
+    private String mirrorslist = null;
+    private String repoid = null;
+    private String reponame = null;
+    private String latest = null;
 
     private Repo() {
     }
@@ -111,6 +121,10 @@ public class RepositoryXml {
      */
     public String getRepoName() {
       return reponame;
+    }
+    
+    public String getLatestUri() {
+      return latest;
     }
     
     

@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.xml.bind.JAXBException;
 
@@ -50,6 +53,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
@@ -108,6 +112,7 @@ public class AmbariMetaInfo {
   private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
       "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
       "oraclelinux6", "suse11", "sles11", "ubuntu12");
+  
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
   private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
@@ -677,6 +682,15 @@ public class AmbariMetaInfo {
         "stackRoot = " + stackRootAbsPath);
     }
 
+    ExecutorService es = Executors.newSingleThreadExecutor(new ThreadFactory() {
+      @Override
+      public Thread newThread(Runnable r) {
+        return new Thread(r, "Stack Version Loading Thread");
+      }
+    });
+    
+    List<LatestRepoCallable> lookupList = new ArrayList<LatestRepoCallable>();
+    
     for (StackInfo stack : stacks) {
       LOG.debug("Adding new stack to known stacks"
         + ", stackName = " + stack.getName()
@@ -698,8 +712,8 @@ public class AmbariMetaInfo {
           + ", stackVersion=" + stack.getVersion()
           + ", repoFolder=" + repositoryFolder.getPath());
 
-        List<RepositoryInfo> repositoryInfoList = getRepository
-          (repositoryFolder, stack.getVersion());
+        List<RepositoryInfo> repositoryInfoList = getRepository(repositoryFolder,
+            stack, lookupList);
 
         stack.getRepositories().addAll(repositoryInfoList);
       } else {
@@ -719,6 +733,10 @@ public class AmbariMetaInfo {
               resolveHooksFolder(stack);
       stack.setStackHooksFolder(stackHooksToUse);
     }
+    
+    es.invokeAll(lookupList);
+    
+    es.shutdown();
   }
 
 
@@ -726,9 +744,10 @@ public class AmbariMetaInfo {
     return serverVersion;
   }
 
-  private List<RepositoryInfo> getRepository(File repositoryFile, String stackVersion)
+  private List<RepositoryInfo> getRepository(File repositoryFile, StackInfo stack,
+      List<LatestRepoCallable> lookupList)
       throws JAXBException {
-
+    
     RepositoryXml rxml = StackExtensionHelper.unmarshal(RepositoryXml.class, repositoryFile);
 
     List<RepositoryInfo> list = new ArrayList<RepositoryInfo>();
@@ -743,10 +762,11 @@ public class AmbariMetaInfo {
           ri.setOsType(os.trim());
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
-
+          ri.setLatestBaseUrl(r.getBaseUrl());
+          
           if (null != metainfoDAO) {
             LOG.debug("Checking for override for base_url");
-            String key = generateRepoMetaKey(r.getRepoName(), stackVersion,
+            String key = generateRepoMetaKey(r.getRepoName(), stack.getVersion(),
                 o.getType(), r.getRepoId(), REPOSITORY_XML_PROPERTY_BASEURL);
             MetainfoEntity entity = metainfoDAO.findByKey(key);
             if (null != entity) {
@@ -762,6 +782,11 @@ public class AmbariMetaInfo {
           list.add(ri);
         }
       }
+    }
+    
+    if (null != rxml.getLatestURI() && list.size() > 0) {
+      lookupList.add(new LatestRepoCallable(rxml.getLatestURI(),
+          repositoryFile.getParentFile(), stack));
     }
 
     return list;

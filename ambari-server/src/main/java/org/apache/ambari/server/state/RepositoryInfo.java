@@ -27,6 +27,7 @@ public class RepositoryInfo {
   private String repoName;
   private String mirrorsList;
   private String defaultBaseUrl;
+  private String latestBaseUrl;
 
   /**
    * @return the baseUrl
@@ -112,6 +113,20 @@ public class RepositoryInfo {
     defaultBaseUrl = url;
   }
 
+  /**
+   * @return the latest determined base url
+   */
+  public String getLatestBaseUrl() {
+    return latestBaseUrl;
+  }
+  
+  /**
+   * @param url the latest determined base url
+   */
+  public void setLatestBaseUrl(String url) {
+    latestBaseUrl = url;
+  }  
+  
   @Override
   public String toString() {
     return "[ repoInfo: "
@@ -126,6 +141,9 @@ public class RepositoryInfo {
   
   public RepositoryResponse convertToResponse()
   {
-    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(), getRepoName(), getMirrorsList(), getDefaultBaseUrl());
+    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
+        getRepoName(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
   }
+
+
 }

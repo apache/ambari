@@ -28,16 +28,18 @@ public class RepositoryResponse {
   private String repoName;
   private String mirrorsList;
   private String defaultBaseUrl;
+  private String latestBaseUrl;
   
   
   public RepositoryResponse(String baseUrl, String osType, String repoId,
-      String repoName, String mirrorsList, String defaultBaseUrl) {
+      String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
     setBaseUrl(baseUrl);
     setOsType(osType);
     setRepoId(repoId);
     setRepoName(repoName);
     setMirrorsList(mirrorsList);
     setDefaultBaseUrl(defaultBaseUrl);
+    setLatestBaseUrl(latestBaseUrl);
   }
 
   public String getStackName() {
@@ -108,6 +110,14 @@ public class RepositoryResponse {
   
   public void setDefaultBaseUrl(String url) {
     this.defaultBaseUrl = url;
+  }
+  
+  public String getLatestBaseUrl() {
+    return latestBaseUrl;
+  }
+  
+  public void setLatestBaseUrl(String url) {
+    latestBaseUrl = url;
   }
 
 

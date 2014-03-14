@@ -27,7 +27,6 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -43,7 +42,16 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -1277,6 +1285,15 @@ public class AmbariMetaInfoTest {
     }
     
     Assert.assertTrue(found);
+  }
+
+  @Test
+  public void testLatestRepo() throws Exception {
+    
+    for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "centos6")) {
+      Assert.assertEquals("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118",
+          ri.getLatestBaseUrl());
+    }
   }
 
 }

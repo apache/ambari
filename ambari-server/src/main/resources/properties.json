@@ -182,6 +182,7 @@
         "Repositories/mirrors_list",
         "Repositories/default_base_url",
         "Repositories/verify_base_url",
+        "Repositories/latest_base_url",
         "_"
     ],
     "StackService":[
