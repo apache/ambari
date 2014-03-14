@@ -626,7 +626,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var displayName = component.get('displayName');
 
     App.ModalPopup.show({
-      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
+      primary: Em.I18n.t('hosts.host.installComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       installComponentMessage: function(){
         return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
