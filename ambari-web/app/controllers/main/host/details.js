@@ -44,6 +44,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.router.transitionTo('main.services.service.summary',service);
   },
 
+  serviceActiveComponents: function() {
+    return this.get('content.hostComponents').filterProperty('service.passiveState','OFF')
+  }.property('content.hostComponents'),
+
   /**
    * Send specific command to server
    * @param url
@@ -102,10 +106,10 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param component  When <code>null</code> all startable components are started. 
    * @param context  Context under which this command is beign sent. 
    */
-  sendStartComponentCommand: function(component, context) {
-    var url = component !== null ?
-        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/maintenance_state=OFF';
+  sendStartComponentCommand: function(components, context) {
+    var url = Em.isArray(components) ?
+        '/hosts/' + this.get('content.hostName') + '/host_components' :
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + components.get('componentName').toUpperCase();
     var dataToSend = {
       RequestInfo : {
         "context" : context
@@ -116,17 +120,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       }
     };
-    if (component === null) {
-      var allComponents = this.get('content.hostComponents');
-      var startable = [];
-      allComponents.forEach(function (c) {
-        if (c.get('passiveState') == 'OFF') {
-          if (c.get('isMaster') || c.get('isSlave')) {
-            startable.push(c.get('componentName'));
-          }
-        }
-      });
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + startable.join(',') + ")";
+    if (Em.isArray(components)) {
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")";
     }
     this.sendCommandToServer(url, dataToSend, 'PUT',
       function(requestId){
@@ -138,7 +133,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       console.log('Send request for STARTING successfully');
 
       if (App.testMode) {
-        if(component === null){
+        if(Em.isArray(components)){
           var allComponents = this.get('content.hostComponents');
           allComponents.forEach(function(component){
             component.set('workStatus', App.HostComponentStatus.stopping);
@@ -147,9 +142,9 @@ App.MainHostDetailsController = Em.Controller.extend({
             },App.testModeDelayForActions);
           });
         } else {
-          component.set('workStatus', App.HostComponentStatus.starting);
+          components.set('workStatus', App.HostComponentStatus.starting);
           setTimeout(function(){
-            component.set('workStatus', App.HostComponentStatus.started);
+            components.set('workStatus', App.HostComponentStatus.started);
           },App.testModeDelayForActions);
         }
       } else {
@@ -315,10 +310,10 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param component  When <code>null</code> all components are stopped. 
    * @param context  Context under which this command is beign sent. 
    */
-  sendStopComponentCommand: function(component, context){
-    var url = component !== null ?
-        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components?HostRoles/maintenance_state=OFF';
+  sendStopComponentCommand: function(components, context){
+    var url = Em.isArray(components) ?
+        '/hosts/' + this.get('content.hostName') + '/host_components' :
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + components.get('componentName').toUpperCase();
     var dataToSend = {
       RequestInfo : {
         "context" : context
@@ -329,17 +324,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       }
     };
-    if (component === null) {
-      var allComponents = this.get('content.hostComponents');
-      var startable = [];
-      allComponents.forEach(function (c) {
-        if (c.get('passiveState') == 'OFF') {
-          if (c.get('isMaster') || c.get('isSlave')) {
-            startable.push(c.get('componentName'));
-          }
-        }
-      });
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + startable.join(',') + ")";
+    if (Em.isArray(components)) {
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")";
     }
     this.sendCommandToServer( url, dataToSend, 'PUT',
       function(requestId){
@@ -350,18 +336,17 @@ App.MainHostDetailsController = Em.Controller.extend({
       console.log('Send request for STOPPING successfully');
 
       if (App.testMode) {
-        if(component === null){
-          var allComponents = this.get('content.hostComponents');
-          allComponents.forEach(function(component){
+        if(Em.isArray(components)){
+          components.forEach(function(component){
             component.set('workStatus', App.HostComponentStatus.stopping);
             setTimeout(function(){
               component.set('workStatus', App.HostComponentStatus.stopped);
             },App.testModeDelayForActions);
           });
         } else {
-          component.set('workStatus', App.HostComponentStatus.stopping);
+          components.set('workStatus', App.HostComponentStatus.stopping);
           setTimeout(function(){
-            component.set('workStatus', App.HostComponentStatus.stopped);
+            components.set('workStatus', App.HostComponentStatus.stopped);
           },App.testModeDelayForActions);
         }
 
@@ -1021,31 +1006,29 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   doStartAllComponents: function() {
     var self = this;
-    var components = this.get('content.hostComponents');
+    var components = this.get('serviceActiveComponents');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {
-        self.sendStartComponentCommand(null, 
-            Em.I18n.t('hosts.host.maintainance.startAllComponents.context'));
+        self.sendStartComponentCommand(components, Em.I18n.t('hosts.host.maintainance.startAllComponents.context'));
       });
     }
   },
   
   doStopAllComponents: function() {
     var self = this;
-    var components = this.get('content.hostComponents');
+    var components = this.get('serviceActiveComponents');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {
-        self.sendStopComponentCommand(null, 
-            Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'));
+        self.sendStopComponentCommand(components, Em.I18n.t('hosts.host.maintainance.stopAllComponents.context'));
       });
     }
   },
 
   doRestartAllComponents: function() {
     var self = this;
-    var components = this.get('content.hostComponents').filterProperty('passiveState','OFF');
+    var components = this.get('serviceActiveComponents');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {

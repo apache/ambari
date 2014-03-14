@@ -73,7 +73,7 @@ module.exports = {
     var service = App.Service.find(serviceName);
     var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
     if (service) {
-      var hostComponents = service.get('hostComponents');
+      var hostComponents = service.get('hostComponents').filterProperty('host.passiveState','OFF');
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }

@@ -146,7 +146,12 @@ App.RollingRestartView = Em.View.extend({
    * @type {Array}
    */
   restartHostComponents : function() {
-    var hostComponents = this.get('skipMaintenance') ? this.get('allHostComponents') : this.get('nonMaintainanceHostComponents');
+    var hostComponents = null;
+    if (this.get('skipMaintenance')) {
+      hostComponents = this.get('allHostComponents').filterProperty('host.passiveState','OFF');
+    } else {
+      hostComponents = this.get('nonMaintainanceHostComponents');
+    }
     if (this.get('staleConfigsOnly')) {
       hostComponents = hostComponents.filterProperty('staleConfigs', true);
     }
