@@ -35,7 +35,16 @@ var lazyloading = require('utils/lazy_loading');
 App.WizardStep6Controller = Em.Controller.extend({
 
   hosts: [],
-
+  /**
+   * List of components info about selecting/deselecting status for components.
+   *
+   * @type {Array}
+   *  @item {Em.Object}
+   *    @property name {String} - component name
+   *    @property label {String} - component display name
+   *    @property allChecked {Boolean} - all checkboxes are checked
+   *    @property noChecked {Boolean} - no checkboxes checked
+   */
   headers: [],
 
   /**

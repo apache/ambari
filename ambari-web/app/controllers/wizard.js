@@ -517,9 +517,6 @@ App.WizardController = Em.Controller.extend({
 
   loadServicesFromServer: function () {
     var services = this.getDBProperty('service');
-    if (services) {
-//      return;
-    }
     var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);
     this.setDBProperty('service',apiService);

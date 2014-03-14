@@ -56,7 +56,6 @@ module.exports = Em.Route.extend({
                 if (!installerController.get('isStep9')) {
                   installerController.setCurrentStep('9');
                 }
-                App.db.data = currentClusterStatus.localdb;
                 router.transitionTo('step' + installerController.get('currentStep'));
                 break;
               case 'CLUSTER_INSTALLED_4' :
