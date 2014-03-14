@@ -502,6 +502,7 @@ Em.I18n.translations = {
   'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
   'installer.step3.warnings.missingHosts':'There is no registered host',
   'installer.step3.warning.registeredHosts': '{0} Other Registered Hosts',
+  'installer.step3.warning.loading':'Please wait while the hosts are being checked for potential problems...',
   'installer.step3.registeredHostsPopup': 'These are the hosts that have registered with the server, but do not appear in the list of hosts that you are adding.',
   'installer.step3.removeSelected':'Remove Selected',
   'installer.step3.retryFailed':'Retry Failed',

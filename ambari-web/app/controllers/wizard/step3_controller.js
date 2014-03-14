@@ -26,6 +26,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   content: [],
   bootHosts: [],
   registeredHosts: [],
+  repoCategoryWarnings: [],
+  diskCategoryWarnings: [],
   registrationStartedAt: null,
   registrationTimeoutSecs: function(){
     if(this.get('content.installOptions.manualInstall')){
@@ -526,6 +528,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    * Get disk info and cpu count of booted hosts from server
    */
   getHostInfo: function () {
+    this.set('isWarningsLoaded', false);
     App.ajax.send({
       name: 'wizard.step3.host_info',
       sender: this,
@@ -600,6 +603,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   getHostInfoErrorCallback: function () {
     console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
+    this.set('isWarningsLoaded', true);
     this.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
   },
 
@@ -780,6 +784,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   warnings: [],
   warningsByHost: [],
   warningsTimeInterval: 60000,
+  isWarningsLoaded: false,
   /**
    * check are hosts have any warnings
    */
@@ -847,7 +852,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       //parse all directories and files warnings for host
 
       //todo: to be removed after check in new API
-      var stackFoldersAndFiles = _host.Hosts.last_agent_env.stackFoldersAndFiles;
+      var stackFoldersAndFiles = _host.Hosts.last_agent_env.stackFoldersAndFiles || [];
       stackFoldersAndFiles.forEach(function (path) {
         warning = warningCategories.fileFoldersWarnings[path.name];
         if (warning) {
@@ -1013,6 +1018,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
     this.set('warnings', warnings);
     this.set('warningsByHost', hosts);
+    this.set('isWarningsLoaded', true);
   },
   /**
    * open popup that contain hosts' warnings

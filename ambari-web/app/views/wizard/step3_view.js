@@ -39,17 +39,17 @@ App.WizardStep3View = Em.View.extend({
   }.observes('controller.registeredHosts'),
 
   monitorStatuses: function() {
-    var failedHosts = 0;
     var hosts = this.get('controller.bootHosts');
-    hosts.forEach(function(host) {
-      if (host.get('bootStatus') == 'FAILED') {
-        failedHosts++;
-      }
-    });
-    if (hosts.length==0) {
+    var failedHosts = hosts.filterProperty('bootStatus', 'FAILED').length;
+
+    if (hosts.length === 0) {
       this.set('status', 'alert-warn');
       this.set('linkText', '');
       this.set('message', Em.I18n.t('installer.step3.warnings.missingHosts'));
+    } else if (!this.get('controller.isWarningsLoaded')) {
+      this.set('status', 'alert-info');
+      this.set('linkText', '');
+      this.set('message', Em.I18n.t('installer.step3.warning.loading'));
     } else if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length') || this.get('controller.diskCategoryWarnings.length')) {
       this.set('status', 'alert-warn');
       this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
@@ -67,10 +67,10 @@ App.WizardStep3View = Em.View.extend({
         this.set('message', Em.I18n.t('installer.step3.warnings.allFailed').format(failedHosts));
       } else {
         // some failed
-        this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length-failedHosts), failedHosts));
+        this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length - failedHosts), failedHosts));
       }
     }
-  }.observes('controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings')
+  }.observes('controller.isWarningsLoaded', 'controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings')
 });
 
 //todo: move it inside WizardStep3View
