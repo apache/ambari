@@ -77,9 +77,9 @@ var configs = [
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
-    "templateName": ["falconserver_host"],
+    "templateName": [],
     "foreignKey": ["falcon_user"],
-    "value": "<templateName[0]>",
+    "value": "*",
     "filename": "core-site.xml",
     "isOverridable": true
   },
