@@ -166,24 +166,41 @@ App.MainHiveJobDetailsView = Em.View.extend({
     if (status) {
       status = stringUtils.getCamelCase(status);
     }
+    var fileReadOps = v.get('fileReadOps');
+    var fileWriteOps = v.get('fileWriteOps');
+    var hdfsReadOps = v.get('hdfsReadOps');
+    var hdfsWriteOps = v.get('hdfsWriteOps');
+    var naString = Em.I18n.t('common.na');
+    if (fileReadOps === null) {
+      fileReadOps = naString;
+    }
+    if (fileWriteOps === null) {
+      fileWriteOps = naString;
+    }
+    if (hdfsReadOps === null) {
+      hdfsReadOps = naString;
+    }
+    if (hdfsWriteOps === null) {
+      hdfsWriteOps = naString;
+    }
     return {
       file : {
         read : {
-          ops : Em.I18n.t('jobs.hive.tez.reads').format(v.get('fileReadOps')),
+          ops : Em.I18n.t('jobs.hive.tez.reads').format(fileReadOps),
           bytes : numberUtils.bytesToSize(v.get('fileReadBytes'))
         },
         write : {
-          ops : Em.I18n.t('jobs.hive.tez.writes').format(v.get('fileWriteOps')),
+          ops : Em.I18n.t('jobs.hive.tez.writes').format(fileWriteOps),
           bytes : numberUtils.bytesToSize(v.get('fileWriteBytes'))
         }
       },
       hdfs : {
         read : {
-          ops : Em.I18n.t('jobs.hive.tez.reads').format(v.get('hdfsReadOps')),
+          ops : Em.I18n.t('jobs.hive.tez.reads').format(hdfsReadOps),
           bytes : numberUtils.bytesToSize(v.get('hdfsReadBytes'))
         },
         write : {
-          ops : Em.I18n.t('jobs.hive.tez.writes').format(v.get('hdfsWriteOps')),
+          ops : Em.I18n.t('jobs.hive.tez.writes').format(hdfsWriteOps),
           bytes : numberUtils.bytesToSize(v.get('hdfsWriteBytes'))
         }
       },

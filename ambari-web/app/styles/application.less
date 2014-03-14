@@ -5796,6 +5796,14 @@ i.icon-asterisks {
         fill: #DBD4EB;
         stroke: #bbbbbb;
       }
+      .background.union {
+        fill: #BCE6DD;
+        stroke: #bbbbbb;
+      }
+      .background.unknown-vertex-type {
+        fill: #EBE8CC;
+        stroke: #bbbbbb;
+      }
       .background.selected {
         stroke: #3a87ad;
       }
@@ -5860,9 +5868,16 @@ i.icon-asterisks {
     path.link.type-broadcast {
       stroke: teal;
     }
-    path.link.type-scatter-gather {
+    path.link.type-scatter_gather {
       stroke: orange;
       stroke-dasharray: 10,3;
+    }
+    path.link.type-contains {
+      stroke: green;
+      stroke-dasharray: 10,2,5,2;
+    }
+    path.link.type-unknown {
+      stroke: gray;
     }
   }
 }

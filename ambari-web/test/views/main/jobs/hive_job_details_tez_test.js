@@ -17,13 +17,13 @@
 
 var App = require('app');
 module.exports = {
-  _createVertex : function(row, col, state, isMap, numOps, inEdges, outEdges, vertexJsons) {
+  _createVertex : function(row, col, state, type, numOps, inEdges, outEdges, vertexJsons) {
     var v = {
       id : 'v_' + row + '_' + col,
       instance_id : 'vi_' + row + '_' + col,
       name : 'Vertex ' + row + ', ' + col,
       state : state,
-      is_map : isMap,
+      type : type,
       operations : [],
       outgoing_edges : outEdges,
       incoming_edges : inEdges
@@ -70,20 +70,20 @@ module.exports = {
     var vertexJsons = [];
     var edgeJsons = [];
     // Row 1
-    var v1 = this._createVertex(1, 1, "FAILED", true, 30, [], [ 'e1' ], vertexJsons);
-    var v2 = this._createVertex(1, 2, "RUNNING", true, 2, [], [ 'e2' ], vertexJsons);
-    var v3 = this._createVertex(1, 3, "FAILED", true, 5, [], [ 'e3' ], vertexJsons);
-    var v4 = this._createVertex(1, 4, "FAILED", true, 10, [], [ 'e4' ], vertexJsons);
-    var v5 = this._createVertex(1, 5, "FAILED", true, 15, [], [ 'e5' ], vertexJsons);
-    var v6 = this._createVertex(1, 6, "FAILED", true, 20, [], [ 'e6' ], vertexJsons);
+    var v1 = this._createVertex(1, 1, "FAILED", App.TezDagVertexType.MAP, 30, [], [ 'e1' ], vertexJsons);
+    var v2 = this._createVertex(1, 2, "RUNNING", App.TezDagVertexType.REDUCE, 2, [], [ 'e2' ], vertexJsons);
+    var v3 = this._createVertex(1, 3, "FAILED", App.TezDagVertexType.MAP, 5, [], [ 'e3' ], vertexJsons);
+    var v4 = this._createVertex(1, 4, "FAILED", App.TezDagVertexType.REDUCE, 10, [], [ 'e4' ], vertexJsons);
+    var v5 = this._createVertex(1, 5, "FAILED", App.TezDagVertexType.MAP, 15, [], [ 'e5' ], vertexJsons);
+    var v6 = this._createVertex(1, 6, "FAILED", App.TezDagVertexType.REDUCE, 20, [], [ 'e6' ], vertexJsons);
     // Row 2
-    var v7 = this._createVertex(2, 1, "SUCCEEDED", false, 30, [ 'e1', 'e2', 'e3', 'e4', 'e5', 'e6' ], [ 'e7', 'e8', 'e9', 'e10', 'e11' ], vertexJsons);
+    var v7 = this._createVertex(2, 1, "SUCCEEDED", App.TezDagVertexType.UNION, 30, [ 'e1', 'e2', 'e3', 'e4', 'e5', 'e6' ], [ 'e7', 'e8', 'e9', 'e10', 'e11' ], vertexJsons);
     // Row 3
-    var v8 = this._createVertex(3, 1, "FAILED", false, 30, [ 'e7' ], [], vertexJsons);
-    var v9 = this._createVertex(3, 2, "RUNNING", false, 2, [ 'e8' ], [], vertexJsons);
-    var v10 = this._createVertex(3, 3, "FAILED", false, 5, [ 'e9' ], [], vertexJsons);
-    var v11 = this._createVertex(3, 4, "FAILED", true, 10, [ 'e10' ], [], vertexJsons);
-    var v12 = this._createVertex(3, 5, "FAILED", true, 15, [ 'e11' ], [], vertexJsons);
+    var v8 = this._createVertex(3, 1, "FAILED", App.TezDagVertexType.REDUCE, 30, [ 'e7' ], [], vertexJsons);
+    var v9 = this._createVertex(3, 2, "RUNNING", App.TezDagVertexType.MAP, 2, [ 'e8' ], [], vertexJsons);
+    var v10 = this._createVertex(3, 3, "FAILED", App.TezDagVertexType.REDUCE, 5, [ 'e9' ], [], vertexJsons);
+    var v11 = this._createVertex(3, 4, "FAILED", App.TezDagVertexType.MAP, 10, [ 'e10' ], [], vertexJsons);
+    var v12 = this._createVertex(3, 5, "FAILED", App.TezDagVertexType.REDUCE, 15, [ 'e11' ], [], vertexJsons);
     // Edges 1-2
     this._createEdge('e1', 'BROADCAST', v1, v7, edgeJsons);
     this._createEdge('e2', 'BROADCAST', v2, v7, edgeJsons);
@@ -132,18 +132,18 @@ module.exports = {
     var vertexJsons = [];
     var edgeJsons = [];
     // Row 1
-    var v1 = this._createVertex(1, 1, "FAILED", true, 30, [], [ 'e1' ], vertexJsons);
-    var v4 = this._createVertex(1, 4, "FAILED", true, 10, [], [ 'e4' ], vertexJsons);
-    var v6 = this._createVertex(1, 6, "FAILED", true, 20, [], [ 'e6' ], vertexJsons);
-    var v2 = this._createVertex(1, 2, "RUNNING", true, 2, [], [ 'e2' ], vertexJsons);
-    var v3 = this._createVertex(1, 3, "FAILED", true, 5, [], [ 'e3' ], vertexJsons);
-    var v5 = this._createVertex(1, 5, "FAILED", true, 15, [], [ 'e5' ], vertexJsons);
-    var v7 = this._createVertex(1, 7, "FAILED", true, 4, [], [ 'e7' ], vertexJsons);
+    var v1 = this._createVertex(1, 1, "FAILED", App.TezDagVertexType.REDUCE, 30, [], [ 'e1' ], vertexJsons);
+    var v4 = this._createVertex(1, 4, "FAILED", App.TezDagVertexType.MAP, 10, [], [ 'e4' ], vertexJsons);
+    var v6 = this._createVertex(1, 6, "FAILED", App.TezDagVertexType.REDUCE, 20, [], [ 'e6' ], vertexJsons);
+    var v2 = this._createVertex(1, 2, "RUNNING", App.TezDagVertexType.MAP, 2, [], [ 'e2' ], vertexJsons);
+    var v3 = this._createVertex(1, 3, "FAILED", App.TezDagVertexType.REDUCE, 5, [], [ 'e3' ], vertexJsons);
+    var v5 = this._createVertex(1, 5, "FAILED", App.TezDagVertexType.MAP, 15, [], [ 'e5' ], vertexJsons);
+    var v7 = this._createVertex(1, 7, "FAILED", App.TezDagVertexType.REDUCE, 4, [], [ 'e7' ], vertexJsons);
     // Row 2
-    var v8 = this._createVertex(2, 1, "SUCCEEDED", false, 30, [ 'e1', 'e2', 'e3', 'e4' ], [ 'e8' ], vertexJsons);
-    var v9 = this._createVertex(2, 2, "FAILED", false, 30, [ 'e5', 'e6', 'e7' ], ['e9'], vertexJsons);
+    var v8 = this._createVertex(2, 1, "SUCCEEDED", App.TezDagVertexType.MAP, 30, [ 'e1', 'e2', 'e3', 'e4' ], [ 'e8' ], vertexJsons);
+    var v9 = this._createVertex(2, 2, "FAILED", App.TezDagVertexType.REDUCE, 30, [ 'e5', 'e6', 'e7' ], ['e9'], vertexJsons);
     // Row 3
-    var v10 = this._createVertex(3, 1, "RUNNING", false, 2, [ 'e8', 'e9' ], [], vertexJsons);
+    var v10 = this._createVertex(3, 1, "RUNNING", App.TezDagVertexType.UNION, 2, [ 'e8', 'e9' ], [], vertexJsons);
     // Edges 1-2
     this._createEdge('e1', 'BROADCAST', v1, v8, edgeJsons);
     this._createEdge('e2', 'BROADCAST', v2, v8, edgeJsons);

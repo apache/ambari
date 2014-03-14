@@ -38,7 +38,7 @@ App.TezDagEdge = DS.Model.extend({
   toVertex : DS.belongsTo('App.TezDagVertex'),
   /**
    * Type of this edge connecting vertices. Should be one of constants defined
-   * in 'App.TezDagVertexType'.
+   * in 'App.TezDagEdgeType'.
    */
   edgeType : DS.attr('string')
 });
@@ -58,9 +58,10 @@ App.TezDagVertex = DS.Model.extend({
   state : DS.attr('string'),
 
   /**
-   * @return {Boolean} Whether this vertex is a Map or Reduce operation.
+   * Vertex type has to be one of the types defined in 'App.TezDagVertexType'
+   * @return {string}
    */
-  isMap : DS.attr('boolean'),
+  type : DS.attr('string'),
 
   /**
    * A vertex can have multiple incoming edges.
@@ -158,8 +159,15 @@ App.TezDagVertexState = {
 };
 
 App.TezDagVertexType = {
+  MAP: 'MAP',
+  REDUCE: 'REDUCE',
+  UNION: 'UNION'
+};
+
+App.TezDagEdgeType = {
   SCATTER_GATHER : "SCATTER_GATHER",
-  BROADCAST : "BROADCAST"
+  BROADCAST : "BROADCAST",
+  CONTAINS: "CONTAINS"
 };
 
 App.TezDag.FIXTURES = [];

@@ -95,13 +95,15 @@ App.hiveJobMapper = App.QuickDataMapper.create({
               return ops;
             }
             if (vertex["Map Operator Tree:"] != null) {
-              vertexObj.is_map = true;
+              vertexObj.type = App.TezDagVertexType.MAP;
               vertexObj.operations = operatorExtractor(vertex["Map Operator Tree:"]);
               vertexObj.operation_plan = JSON.stringify(vertex["Map Operator Tree:"], undefined, "  ");
             } else if (vertex["Reduce Operator Tree:"] != null) {
-              vertexObj.is_map = false;
+              vertexObj.type = App.TezDagVertexType.REDUCE;
               vertexObj.operations = operatorExtractor(vertex["Reduce Operator Tree:"]);
               vertexObj.operation_plan = JSON.stringify(vertex["Reduce Operator Tree:"], undefined, "  ");
+            } else if (vertex["Vertex:"] != null && vertexName==vertex['Vertex:']) {
+              vertexObj.type = App.TezDagVertexType.UNION;
             }
             vertexIdMap[vertexObj.id] = vertexObj;
             vertices.push(vertexObj);
@@ -117,6 +119,15 @@ App.hiveJobMapper = App.QuickDataMapper.create({
             }
             childVertices.forEach(function(e) {
               var parentVertex = e.parent;
+              if (e.type == 'CONTAINS') {
+                var parentVertexNode = vertexIdMap[dagName + "/" + parentVertex];
+                if (parentVertexNode != null && parentVertexNode.type == App.TezDagVertexType.UNION) {
+                  // We flip the edges for Union vertices
+                  var tmp = childVertex;
+                  childVertex = parentVertex;
+                  parentVertex = tmp;
+                }
+              }
               var edgeObj = {
                 id : dagName + "/" + parentVertex + "-" + childVertex,
                 from_vertex_id : dagName + "/" + parentVertex,
@@ -127,10 +138,13 @@ App.hiveJobMapper = App.QuickDataMapper.create({
               edgeIds.push(edgeObj.id);
               switch (e.type) {
               case "BROADCAST_EDGE":
-                edgeObj.edge_type = App.TezDagVertexType.BROADCAST;
+                edgeObj.edge_type = App.TezDagEdgeType.BROADCAST;
                 break;
               case "SIMPLE_EDGE":
-                edgeObj.edge_type = App.TezDagVertexType.SCATTER_GATHER;
+                edgeObj.edge_type = App.TezDagEdgeType.SCATTER_GATHER;
+                break;
+              case "CONTAINS":
+                edgeObj.edge_type = App.TezDagEdgeType.CONTAINS;
                 break;
               default:
                 break;
