@@ -465,4 +465,7 @@ class TestGangliaMonitor(RMFTestCase):
 
     self.assertResourceCalled('Execute', 'chkconfig gmond off',
                           path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],)
+
+    self.assertResourceCalled('Execute', 'chkconfig gmetad off',
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],)
     self.assertNoMoreResources()

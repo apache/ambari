@@ -187,6 +187,9 @@ class GangliaMonitor(Script):
     Execute("chkconfig gmond off",
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
 
+    Execute("chkconfig gmetad off",
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin')
+
 
 if __name__ == "__main__":
   GangliaMonitor().execute()
