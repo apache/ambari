@@ -266,9 +266,6 @@ module.exports = {
       primary : Em.I18n.t('rollingrestart.dialog.primary'),
       onPrimary : function() {
         var dialog = this;
-        if (!dialog.get('enablePrimary')) {
-          return;
-        }
         var restartComponents = this.get('innerView.restartHostComponents');
         var batchSize = this.get('innerView.batchSize');
         var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
@@ -280,7 +277,7 @@ module.exports = {
       },
       updateButtons : function() {
         var errors = this.get('innerView.errors');
-        this.set('enablePrimary', !(errors != null && errors.length > 0))
+        this.set('disablePrimary', (errors != null && errors.length > 0))
       }.observes('innerView.errors')
     });
   },

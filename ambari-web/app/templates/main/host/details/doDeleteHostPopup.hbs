@@ -28,7 +28,7 @@
 <p><i class="icon-warning-sign"></i> {{{deletePopupBody}}}</p>
 {{#if lastComponent}}
     <div class="alert-error row-fluid">
-        <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="enablePrimary"}}</div>
+        <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
         <div class='span10'>{{view lastComponentError}}</div>
     </div>
 {{/if}}

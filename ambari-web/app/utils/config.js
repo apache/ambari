@@ -1135,13 +1135,10 @@ App.config = Em.Object.create({
       availableConfigGroups: availableConfigGroups,
       selectedConfigGroup: selectedConfigGroup,
       newConfigGroupName: '',
-      enablePrimary: function () {
-        return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').trim().length > 0 && !this.get('isWarning'));
+      disablePrimary: function () {
+        return !(this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').trim().length > 0 && !this.get('isWarning')));
       }.property('newConfigGroupName', 'optionSelectConfigGroup', 'warningMessage'),
       onPrimary: function () {
-        if (!this.get('enablePrimary')) {
-          return false;
-        }
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
           this.hide();
@@ -1244,23 +1241,23 @@ App.config = Em.Object.create({
       header: Em.I18n.t('config.group.host.switch.dialog.title'),
       configGroups: configGroups,
       selectedConfigGroup: selectedGroup,
-      enablePrimary: function () {
-        return this.get('selectedConfigGroup.name') !== selectedGroup.get('name');
+      disablePrimary: function () {
+        return !(this.get('selectedConfigGroup.name') !== selectedGroup.get('name'));
       }.property('selectedConfigGroup'),
       onPrimary: function () {
-        if (this.get('enablePrimary')) {
-          var newGroup = this.get('selectedConfigGroup');
-          selectedGroup.get('hosts').removeObject(hostName);
-          if (!selectedGroup.get('isDefault')) {
-            self.updateConfigurationGroup(selectedGroup, function(){}, function(){});
-          }
-          newGroup.get('hosts').pushObject(hostName);
-          callback(newGroup);
-          if (!newGroup.get('isDefault')) {
-            self.updateConfigurationGroup(newGroup, function(){}, function(){});
-          }
-          this.hide();
+        var newGroup = this.get('selectedConfigGroup');
+        selectedGroup.get('hosts').removeObject(hostName);
+        if (!selectedGroup.get('isDefault')) {
+          self.updateConfigurationGroup(selectedGroup, function () {
+          }, function () {});
         }
+        newGroup.get('hosts').pushObject(hostName);
+        callback(newGroup);
+        if (!newGroup.get('isDefault')) {
+          self.updateConfigurationGroup(newGroup, function () {
+          }, function () {});
+        }
+        this.hide();
       },
       bodyClass: Ember.View.extend({
         templateName: require('templates/utils/config_launch_switch_config_group_of_host')

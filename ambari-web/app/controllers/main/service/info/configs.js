@@ -1730,9 +1730,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
       primary: Em.I18n.t('common.save'),
       onPrimary: function() {
-        if (!this.get('enablePrimary')) {
-          return false;
-        }
         var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
         // Save modified config-groups
         if (!!controller) {
@@ -1834,7 +1831,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
       updateButtons: function(){
         var modified = this.get('subViewController.isHostsModified');
-        this.set('enablePrimary', modified);
+        this.set('disablePrimary', !modified);
       }.observes('subViewController.isHostsModified'),
       secondary : Em.I18n.t('common.cancel'),
       didInsertElement: function () {}

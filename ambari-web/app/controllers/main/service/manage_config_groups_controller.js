@@ -313,13 +313,10 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName', 'configGroupDesc'),
-      enablePrimary: function () {
-        return this.get('configGroupName').trim().length > 0 && !this.get('warningMessage');
+      disablePrimary: function () {
+        return !(this.get('configGroupName').trim().length > 0 && !this.get('warningMessage'));
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
       onPrimary: function () {
-        if (!this.get('enablePrimary')) {
-          return;
-        }
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
         self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
         self.get('selectedConfigGroup.properties').forEach(function(property){
@@ -357,13 +354,10 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName'),
-      enablePrimary: function () {
-        return this.get('configGroupName').trim().length > 0 && !this.get('warningMessage');
+      disablePrimary: function () {
+        return !(this.get('configGroupName').trim().length > 0 && !this.get('warningMessage'));
       }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
-        if (!this.get('enablePrimary')) {
-          return false;
-        }
         var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
         var properties = [];
         var newConfigGroupData = App.ConfigGroup.create({

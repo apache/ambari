@@ -76,10 +76,8 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onPrimary: function () {
-        if (this.get('enablePrimary')) {
-          this.set('enablePrimary', false);
-          self.createNewCluster();
-        }
+        this.set('disablePrimary', true);
+        self.createNewCluster();
       },
       willInsertElement: function () {
         var clusterName = App.get('clusterName');
@@ -149,7 +147,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
   },
 
   onCreateClusterError: function () {
-    this.set('newClusterPopup.enablePrimary', true);
+    this.set('newClusterPopup.disablePrimary', false);
     App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('mirroring.manageClusters.error') + ': ' + arguments[2]);
   },
 

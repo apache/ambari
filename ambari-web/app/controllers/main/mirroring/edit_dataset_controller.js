@@ -100,13 +100,10 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
       saveDisabled: function () {
         return self.get('saveDisabled');
       }.property('App.router.' + self.get('name') + '.saveDisabled'),
-      enablePrimary: function () {
-        return !this.get('saveDisabled');
+      disablePrimary: function () {
+        return this.get('saveDisabled');
       }.property('saveDisabled'),
       onPrimary: function () {
-        if (this.get('saveDisabled')) {
-          return false;
-        }
         // Apply form validation for first click
         if (!this.get('primaryWasClicked')) {
           this.toggleProperty('primaryWasClicked');

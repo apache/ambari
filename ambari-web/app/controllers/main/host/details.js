@@ -181,13 +181,16 @@ App.MainHostDetailsController = Em.Controller.extend({
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
-      enablePrimary: false,
+      isChecked: false,
+      disablePrimary: function () {
+        return !this.get('isChecked');
+      }.property('isChecked'),
       lastComponent: function() {
         if (isLastComponent) {
-          this.set('enablePrimary',false);
+          this.set('isChecked', false);
           return true;
         } else {
-          this.set('enablePrimary',true);
+          this.set('isChecked', true);
           return false;
         }
       }.property(),
@@ -201,7 +204,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
       }.property(),
       onPrimary: function () {
-        if (!this.get('enablePrimary')) return;
         self._doDeleteHostComponent(component);
         self.set('redrawComponents', true);
         this.hide();
@@ -1154,14 +1156,17 @@ App.MainHostDetailsController = Em.Controller.extend({
       }.property(),
       lastComponent: function() {
          if (lastComponents && lastComponents.length) {
-           this.set('enablePrimary',false);
+           this.set('isChecked', false);
            return true;
          } else {
-           this.set('enablePrimary',true);
+           this.set('isChecked', true);
            return false;
          }
       }.property(),
-      enablePrimary: false,
+      disablePrimary: function () {
+        return !this.get('isChecked');
+      }.property('isChecked'),
+      isChecked: false,
       lastComponentError:  Em.View.extend({
         template: Ember.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(lastComponents))
       }),
@@ -1175,7 +1180,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),
       onPrimary: function() {
-        if (!this.get('enablePrimary')) return;
         self.set('fromDeleteHost', true);
         var allComponents = self.get('content.hostComponents');
         var deleteError = null;

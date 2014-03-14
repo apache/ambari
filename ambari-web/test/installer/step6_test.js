@@ -127,28 +127,32 @@ describe('App.WizardStep6Controller', function () {
     var test_config = [
       {
         title: 'DataNode',
+        name: 'DATANODE',
         state: false
       },
       {
         title: 'DataNode',
+        name: 'DATANODE',
         state: true
       },
       {
         title: 'TaskTracker',
+        name: 'TASKTRACKER',
         state: false
       },
       {
         title: 'TaskTracker',
+        name: 'TASKTRACKER',
         state: true
       }
     ];
 
     test_config.forEach(function(test) {
       it((test.state?'Select':'Deselect') + ' all ' + test.title, function() {
-        controller.setAllNodes(test.title, test.state);
+        controller.setAllNodes(test.name, test.state);
         var hosts = controller.get('hosts');
         hosts.forEach(function(host) {
-          var cb = host.get('checkboxes').filterProperty('isInstalled', false).findProperty('title', test.title);
+          var cb = host.get('checkboxes').filterProperty('isInstalled', false).findProperty('component', test.name);
           if (cb) {
             expect(cb.get('checked')).to.equal(test.state);
           }

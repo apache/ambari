@@ -29,8 +29,8 @@ App.ModalPopup = Ember.View.extend({
   primary: Em.I18n.t('ok'),
   secondary: Em.I18n.t('common.cancel'),
   autoHeight: true,
-  enablePrimary: true,
-  enableSecondary: true,
+  disablePrimary: false,
+  disableSecondary: false,
   primaryClass: 'btn-success',
   onPrimary: function () {
     this.hide();
@@ -160,8 +160,8 @@ App.showConfirmationFeedBackPopup = function (primary, secondary) {
     query: Em.Object.create({status: "INIT"}),
     onPrimary: function () {
       this.set('query.status', "INIT");
-      this.set('enablePrimary', false);
-      this.set('enableSecondary', false);
+      this.set('disablePrimary', true);
+      this.set('disableSecondary', true);
       this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.sending'));
       primary(this.get('query'));
     },
@@ -172,8 +172,8 @@ App.showConfirmationFeedBackPopup = function (primary, secondary) {
       } else if(this.get('query.status') === "FAIL") {
         this.set('primaryClass', 'btn-primary');
         this.set('primary', Em.I18n.t('common.retry'));
-        this.set('enablePrimary', true);
-        this.set('enableSecondary', true);
+        this.set('disablePrimary', false);
+        this.set('disableSecondary', false);
         this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.query.fail'));
       }
     }.observes('query.status'),
