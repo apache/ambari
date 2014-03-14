@@ -347,7 +347,6 @@ App.ClusterController = Em.Controller.extend({
       }, true);
       App.router.get('updateController').updateServiceMetric(function () {}, true);
     });
-
   },
   /**
    * json from serviceMetricsMapper on initial load

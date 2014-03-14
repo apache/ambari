@@ -39,7 +39,8 @@ App.MainMenuView = Em.CollectionView.extend({
 
     if (!App.get('isHadoop2Stack')) {
       result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
-    } else if( App.router.get('mainAdminController.isAccessAvailable') && App.supports.jobs && (App.db.getShowJobsForNonAdmin() || App.get('isAdmin'))) {
+    } else if( App.router.get('mainAdminController.isAccessAvailable') && App.supports.jobs
+      && (App.router.get('mainAdminAccessController.showJobs') || App.get('isAdmin'))) {
       result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'jobs'});
     }
 

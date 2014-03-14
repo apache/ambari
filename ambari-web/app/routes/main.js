@@ -25,17 +25,19 @@ module.exports = Em.Route.extend({
     App.db.updateStorage();
     console.log('in /main:enter');
     if (router.getAuthenticated()) {
-      App.router.get('clusterController').loadClusterName(false);
-      if(App.testMode){
-        router.get('mainController').initialize();
-      }else{
-        App.router.get('clusterController').loadClientServerClockDistance().done(function() {
+      App.router.get('mainAdminAccessController').loadShowJobsForUsers().done(function() {
+        App.router.get('clusterController').loadClusterName(false);
+        if(App.testMode) {
           router.get('mainController').initialize();
-        });
-      }
+        }else {
+          App.router.get('clusterController').loadClientServerClockDistance().done(function() {
+            router.get('mainController').initialize();
+          });
+        }
+      });
       // TODO: redirect to last known state
     } else {
-      Ember.run.next(function () {
+      Em.run.next(function () {
         router.transitionTo('login');
       });
     }
@@ -120,7 +122,7 @@ module.exports = Em.Route.extend({
   jobs : Em.Route.extend({
     route : '/jobs',
     enter: function (router) {
-      if(!App.db.getShowJobsForNonAdmin() && !App.get('isAdmin')){
+      if(!App.router.get('mainAdminAccessController.showJobs') && !App.get('isAdmin')){
         Em.run.next(function () {
           router.transitionTo('main.dashboard');
         });

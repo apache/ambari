@@ -18,20 +18,55 @@
 
 var App = require('app');
 
-App.MainAdminAccessController = Em.Controller.extend({
+App.MainAdminAccessController = Em.Controller.extend(App.UserPref, {
   name:'mainAdminAccessController',
 
+  /**
+   * Show jobs by default
+   * @type {bool}
+   */
   showJobs: true,
 
-  /* Handle Save button click event*/
+  /**
+   * User pref request should be sync
+   * @type {bool}
+   */
+  makeRequestAsync: false,
+
+  /**
+   * User pref key
+   * @type {string}
+   */
+  persistKey: 'showJobsForNonAdmin',
+
+  /**
+   * Handle Save button click event
+   */
   save: function() {
-    App.db.setShowJobsForNonAdmin(this.get('showJobs'));
-    App.clusterStatus.setClusterStatus({
-      localdb: App.db.data
-    });
+    this.postUserPref(this.get('persistKey'), this.get('showJobs'));
   },
 
-  loadData: function() {
-    this.set('showJobs',  App.db.getShowJobsForNonAdmin());
+  loadShowJobsForUsers: function () {
+    var dfd = $.Deferred();
+    this.getUserPref(this.get('persistKey')).done(function (value) {
+      dfd.resolve(value);
+    }).fail(function(value) {
+      dfd.resolve(value);
+    });
+    return dfd.promise();
+  },
+
+  getUserPrefSuccessCallback: function (data) {
+    this.set('showJobs', data);
+    return data;
+  },
+
+  getUserPrefErrorCallback: function () {
+    if (App.get('isAdmin')) {
+      this.postUserPref(this.get('persistKey'), true);
+    }
+    this.set('showJobs', true);
+    return true;
   }
+
 });
