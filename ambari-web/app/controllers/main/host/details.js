@@ -1245,47 +1245,6 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  turnOnOffPassiveConfirmation: function(event){
-    var self = this;
-    var component = event.context;
-    var state, onOff, message;
-    if (component.get("passiveState") == "ON") {
-      onOff = "Off";
-      state = "OFF";
-      message =  Em.I18n.t('passiveState.turnOffFor').format(component.get('displayName'));
-    } else {
-      onOff = "On";
-      state = "ON";
-      message = Em.I18n.t('passiveState.turnOnFor').format(component.get('displayName'));
-    }
-    App.showConfirmationPopup(function() {
-          self.turnOnOffPassive(state, component, message)
-        },
-        Em.I18n.t('hosts.passiveMode.popup').format(onOff,component.get('displayName'))
-    );
-  },
-
-  turnOnOffPassive: function(state,component,message) {
-    var hostName = this.get('content.hostName');
-    App.ajax.send({
-      name: 'host_component.passive',
-      sender: this,
-      data: {
-        component: component,
-        hostName: hostName,
-        componentName: component.get('componentName'),
-        passive_state: state,
-        requestInfo: message
-      },
-      success: 'updateComponentPassiveState'
-    });
-  },
-
-  updateComponentPassiveState: function(data, opt, params) {
-    params.component.set('passiveState',params.passive_state);
-    batchUtils.infoPassiveState(params.passive_state);
-  },
-
   /**
    * Restart clients host components to apply config changes
    */

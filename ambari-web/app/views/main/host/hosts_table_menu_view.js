@@ -87,26 +87,6 @@ App.HostTableMenuView = Em.View.extend({
         })
       }));
     }
-    menuItems.pushObjects(Em.A([
-      Em.Object.create({
-        label: Em.I18n.t('passiveState.turnOn'),
-        operationData: Em.Object.create({
-          state: 'ON',
-          action: 'PASSIVE_STATE',
-          message: Em.I18n.t('passiveState.turnOnFor').format(App.format.components[componentNameForOtherActions]),
-          componentName: componentNameForOtherActions
-        })
-      }),
-      Em.Object.create({
-        label: Em.I18n.t('passiveState.turnOff'),
-        operationData: Em.Object.create({
-          state: 'OFF',
-          action: 'PASSIVE_STATE',
-          message: Em.I18n.t('passiveState.turnOffFor').format(App.format.components[componentNameForOtherActions]),
-          componentName: componentNameForOtherActions
-        })
-      })
-    ]));
     return menuItems;
   },
 

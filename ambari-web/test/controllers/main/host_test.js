@@ -36,7 +36,6 @@ describe('MainHostController', function () {
         bulkOperationForHostComponentsRestart: function(){},
         bulkOperationForHostComponentsDecommission: function(){},
         bulkOperationForHostComponents: function(){},
-        bulkOperationForHostComponentsPassiveState: function(){},
         bulkOperationForHostsPassiveState: function(){}
       });
       sinon.spy(hostController, 'bulkOperationForHostsRestart');
@@ -44,7 +43,6 @@ describe('MainHostController', function () {
       sinon.spy(hostController, 'bulkOperationForHostComponentsRestart');
       sinon.spy(hostController, 'bulkOperationForHostComponentsDecommission');
       sinon.spy(hostController, 'bulkOperationForHostComponents');
-      sinon.spy(hostController, 'bulkOperationForHostComponentsPassiveState');
       sinon.spy(hostController, 'bulkOperationForHostsPassiveState');
     });
 
@@ -54,7 +52,6 @@ describe('MainHostController', function () {
       hostController.bulkOperationForHostComponentsRestart.restore();
       hostController.bulkOperationForHostComponentsDecommission.restore();
       hostController.bulkOperationForHostComponents.restore();
-      hostController.bulkOperationForHostComponentsPassiveState.restore();
       hostController.bulkOperationForHostsPassiveState.restore();
 
     });
@@ -134,15 +131,6 @@ describe('MainHostController', function () {
       };
       hostController.bulkOperation(operationData, []);
       expect(hostController.bulkOperationForHostComponentsDecommission.calledOnce).to.equal(true);
-    });
-
-    it('PASSIVE_STATE for hostComponents', function() {
-      var operationData = {
-        action: 'PASSIVE_STATE',
-        componentNameFormatted: 'DataNodes'
-      };
-      hostController.bulkOperation(operationData, []);
-      expect(hostController.bulkOperationForHostComponentsPassiveState.calledOnce).to.equal(true);
     });
 
   });
@@ -305,115 +293,6 @@ describe('MainHostController', function () {
     tests.forEach(function(test) {
       it(test.m, function() {
         hostController.bulkOperationForHostsPassiveState(test.operationData, test.hosts);
-        expect($.ajax.calledOnce).to.equal(test.e)
-      });
-    });
-
-  });
-
-  describe('#bulkOperationForHostComponentsPassiveState', function() {
-
-    beforeEach(function(){
-      hostController = App.MainHostController.create({});
-      sinon.spy($, 'ajax');
-    });
-
-    afterEach(function() {
-      $.ajax.restore();
-    });
-
-    var tests = [
-      {
-        hosts: Em.A([]),
-        operationData: {},
-        m: 'No hosts',
-        e: false
-      },
-      {
-        hosts: Em.A([
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          }),
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          })
-        ]),
-        operationData: {
-          componentName: 'CN',
-          state: 'OFF'
-        },
-        m: 'Two hosts with components in state that they should get',
-        e: false
-      },
-      {
-        hosts: Em.A([
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          }),
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ON'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          })
-        ]),
-        operationData: {
-          componentName: 'CN',
-          state: 'ON'
-        },
-        m: 'One host with component in proper state (OFF)',
-        e: true
-      },
-      {
-        hosts: Em.A([
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          }),
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'ON'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          })
-        ]),
-        operationData: {
-          componentName: 'CN',
-          state: 'ON'
-        },
-        m: 'One host with component in proper state (ON)',
-        e: true
-      },
-      {
-        hosts: Em.A([
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          }),
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'IMPLIED'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          })
-        ]),
-        operationData: {
-          componentName: 'CN',
-          state: 'ON'
-        },
-        m: 'One host with component in proper state (OFF)',
-        e: true
-      },
-      {
-        hosts: Em.A([
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'OFF'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          }),
-          Em.Object.create({
-            hostComponents: Em.A([Em.Object.create({componentName:'CN',passiveState:'IMPLIED'}), Em.Object.create({componentName:'ACN',passiveState:'OFF'})])
-          })
-        ]),
-        operationData: {
-          componentName: 'CN',
-          state: 'OFF'
-        },
-        m: 'One host with component in proper state (ON)',
-        e: true
-      }
-    ];
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        hostController.bulkOperationForHostComponentsPassiveState(test.operationData, test.hosts);
         expect($.ajax.calledOnce).to.equal(test.e)
       });
     });

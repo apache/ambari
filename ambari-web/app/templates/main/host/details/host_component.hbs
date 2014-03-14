@@ -105,21 +105,6 @@
               </a>
             </li>
           {{/if}}
-          {{#if view.isActive}}
-            {{#unless view.isInit}}
-              <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-                <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                  {{t passiveState.turnOn}}
-                </a>
-              </li>
-            {{/unless}}
-          {{else}}
-            <li rel='passiveTooltip' {{bindAttr class="view.noActionAvailable" title="view.passiveImpliedTextStatus"}}>
-              <a href="javascript:void(null)" {{bindAttr class="view.isImplied:disabled"}} data-toggle="modal" {{action "turnOnOffPassiveConfirmation" view.content target="controller"}}>
-                {{t passiveState.turnOff}}
-              </a>
-            </li>
-          {{/if}}
         {{/unless}}
         {{#if view.isInit}}
           <li {{bindAttr class="view."}}>
