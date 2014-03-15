@@ -1229,7 +1229,7 @@ var urls = {
   },
   'wizard.step9.installer.get_host_status': {
     'real': '/clusters/{cluster}/hosts?fields=Hosts/host_state,host_components/HostRoles/state',
-    'mock': '/data/wizard/deploy/5_hosts/get_host_status.json',
+    'mock': '/data/wizard/deploy/5_hosts/get_host_state.json',
     'format': function () {
       return {
         async: false

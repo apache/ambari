@@ -126,7 +126,9 @@ App.WizardStep9Controller = Em.Controller.extend({
    * Observer function: Enables previous steps link if install task failed in installer wizard.
    */
   togglePreviousSteps: function () {
-    if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
+    if (App.testMode) {
+      return;
+    } else if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
       App.router.get('installerController').setStepsEnable();
     } else {
       App.router.get('installerController').setLowerStepsDisable(9);
@@ -546,7 +548,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         isCompleted: false
       };
       this.hostHasClientsOnly(false);
-      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+      this.saveClusterStatus(clusterStatus);
     } else {
       console.log('ERROR: Error occurred in parsing JSON data');
       this.hostHasClientsOnly(true);
@@ -555,7 +557,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         isStartError: false,
         isCompleted: true
       };
-      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+      this.saveClusterStatus(clusterStatus);
       this.set('status', 'success');
       this.set('progress', '100');
     }
@@ -603,11 +605,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       isStartError: false,
       isCompleted: false
     };
-    if (App.testMode) {
-      this.set('content.cluster', clusterStatus);
-    } else {
-      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
-    }
+    this.saveClusterStatus(clusterStatus);
     this.get('hosts').forEach(function (host) {
       host.set('progress', '100');
     });
@@ -812,8 +810,8 @@ App.WizardStep9Controller = Em.Controller.extend({
       } else {
         clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed
       }
-      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
-      App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
+      this.saveClusterStatus(clusterStatus);
+      this.saveInstalledHosts(this);
       return true;
     }
     return false;
@@ -833,14 +831,12 @@ App.WizardStep9Controller = Em.Controller.extend({
       };
       if (this.get('status') === 'failed') {
         clusterStatus.status = 'INSTALL FAILED';
+        this.saveClusterStatus(clusterStatus);
         this.set('progress', '100');
         this.get('hosts').forEach(function (host) {
-          if (host.get('status') !== 'failed' && host.get('status') !== 'warning') {
-            this.isAllComponentsInstalled();
-          }
           host.set('progress', '100');
-        }, this);
-        App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+        });
+        this.isAllComponentsInstalled();
       } else {
         this.set('progress', '34');
         if (this.get('content.controllerName') === 'installerController') {
@@ -849,7 +845,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           this.launchStartServices();
         }
       }
-      App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
+      this.saveInstalledHosts(this);
       return true;
     }
     return false;
@@ -1133,7 +1129,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       isCompleted: false
     };
     var hostsWithHeartbeatLost = [];
-    var hostComponents = jsonData.items.mapProperty('host_components');
     jsonData.items.filterProperty('Hosts.host_state', 'HEARTBEAT_LOST').forEach(function (host) {
       var hostComponentObj = {hostName: host.Hosts.host_name};
       var componentArr = [];
@@ -1155,9 +1150,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         host.set('progress', '100');
       });
       this.set('progress', '100');
-      if (!App.testMode) {
-        App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
-      }
+      this.saveClusterStatus(clusterStatus);
     } else if (this.get('content.cluster.status') === 'PENDING') {
       this.launchStartServices();
     }
@@ -1181,7 +1174,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         host.set('progress', '100');
       }
     });
-    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+    this.saveClusterStatus(clusterStatus);
   },
 
   /**
@@ -1203,5 +1196,27 @@ App.WizardStep9Controller = Em.Controller.extend({
       }
     }, this);
     return label;
+  },
+
+  /**
+   * save cluster status in the parentController and localdb
+   * @param clusterStatus {Object}
+   */
+  saveClusterStatus: function(clusterStatus) {
+    if (!App.testMode) {
+      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+    } else {
+      this.set('content.cluster',clusterStatus);
+    }
+  },
+
+  /**
+   * save cluster status in the parentController and localdb
+   * @param context
+   */
+  saveInstalledHosts: function(context) {
+    if (!App.testMode) {
+      App.router.get(this.get('content.controllerName')).saveInstalledHosts(context)
+    }
   }
 });

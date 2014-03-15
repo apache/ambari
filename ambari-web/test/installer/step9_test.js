@@ -1121,7 +1121,69 @@ describe('App.InstallerStep9Controller', function () {
         });
       });
     });
-  })
+  });
+
+   // isServicesInstalled is called after every poll for "Install All Services" request.
+   // This function should result into a call to "Start All Services" request only if install request completed successfully.
+  describe('#isServicesInstalled', function () {
+
+    var hostStateJsonData =  {
+      "items" : [
+        {
+          "Hosts" : {
+            "cluster_name" : "c1",
+            "host_name" : "ambari-1.c.apache.internal",
+            "host_state" : "HEALTHY"
+          },
+          "host_components" : [
+            {
+              "HostRoles" : {
+                "cluster_name" : "c1",
+                "component_name" : "GANGLIA_MONITOR",
+                "host_name" : "ambari-1.c.apache.internal",
+                "state" : "STARTED"
+              }
+            }
+          ]
+        }
+      ]
+    };
+    var hosts = Em.A([Em.Object.create({name: 'host1', progress: '33', status: 'info'}),
+                      Em.Object.create({name: 'host2', progress: '33', status: 'info'})]);
+    // polledData has all hosts with status completed to trigger transition from install->start request.
+    var polledData =  Em.A([Em.Object.create({Tasks: {name: 'host1', status: 'COMPLETED'}}),
+                            Em.Object.create({Tasks: {name: 'host2', status: 'COMPLETED'}})]);
+    var controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController',
+                                                       cluster: {status: 'PENDING',name: 'c1'}},launchStartServices: function() {return true;}});
+    var tests = Em.A([
+      // controller has "status" value as "info" initially. If no errors are encountered then wizard stages
+      // transition info->success, on error info->error, on warning info->warning
+      {status: 'info' , e:{startServicesCalled:true}, m:'If no failed tasks then start services request should be called'},
+      {status: 'failed', e:{startServicesCalled:false}, m: 'If install request has failed tasks then start services call should not be called'}
+    ]);
+
+    beforeEach(function() {
+      App.testMode = true;
+      sinon.spy(controller, 'launchStartServices');
+      sinon.stub($, 'ajax').yieldsTo('success', hostStateJsonData);
+    });
+
+    afterEach(function() {
+      App.testMode = false;
+      controller.launchStartServices.restore();
+      $.ajax.restore();
+    });
+
+    tests.forEach(function(test){
+      it(test.m, function() {
+        controller.set('status',test.status);
+        //Action
+        controller.isServicesInstalled(polledData);
+        //Validation
+         expect(controller.launchStartServices.called).to.equal(test.e.startServicesCalled);
+      });
+    });
+  });
 
   // On completion of Start all services error callback function,
   // Cluster Status should be INSTALL FAILED
