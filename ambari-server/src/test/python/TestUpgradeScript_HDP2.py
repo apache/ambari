@@ -211,7 +211,7 @@ class TestUpgradeHDP2Script(TestCase):
     read_mapping_mock.return_value = {
       "TASKTRACKER": ["c6401", "c6402"],
       "JOBTRACKER": ["c6401"],
-      "HISTORYSERVER": ["c6402"],
+      "HISTORYSERVER": ["c6401"],
       "MAPREDUCE_CLIENT": ["c6403"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
@@ -231,6 +231,8 @@ class TestUpgradeHDP2Script(TestCase):
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/RESOURCEMANAGER"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/NODEMANAGER"),
+      call(False, '-u', 'admin:admin', '-H', 'X-Requested-By: ambari', '-X', 'POST',
+           'http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/HISTORYSERVER'),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/NODEMANAGER"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",

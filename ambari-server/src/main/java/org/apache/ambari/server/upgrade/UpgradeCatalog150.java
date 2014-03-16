@@ -510,8 +510,11 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
       
       HostComponentStateEntity jtHostComponentStateEntity = serviceComponentDesiredStateEntityJT.getHostComponentStateEntities().iterator().next();
+      HostComponentDesiredStateEntity jtHostComponentDesiredStateEntity = serviceComponentDesiredStateEntityJT.getHostComponentDesiredStateEntities().iterator().next();
       String jtHostname = jtHostComponentStateEntity.getHostName();
       State jtCurrState = jtHostComponentStateEntity.getCurrentState();
+      State jtHostComponentDesiredState = jtHostComponentDesiredStateEntity.getDesiredState();
+      State jtServiceComponentDesiredState = serviceComponentDesiredStateEntityJT.getDesiredState();
           
       ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
       pk.setClusterId(clusterEntity.getClusterId());
@@ -523,7 +526,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       final ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
       serviceComponentDesiredStateEntity.setComponentName("HISTORYSERVER");
       serviceComponentDesiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
-      serviceComponentDesiredStateEntity.setDesiredState(State.STARTED);
+      serviceComponentDesiredStateEntity.setDesiredState(jtServiceComponentDesiredState);
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
       serviceComponentDesiredStateEntity.setHostComponentDesiredStateEntities(new ArrayList<HostComponentDesiredStateEntity>());
 
@@ -533,7 +536,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       stateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
       
       final HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
-      desiredStateEntity.setDesiredState(State.STARTED);
+      desiredStateEntity.setDesiredState(jtHostComponentDesiredState);
       desiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
       
       persistComponentEntities(stateEntity, desiredStateEntity, serviceComponentDesiredStateEntity);
