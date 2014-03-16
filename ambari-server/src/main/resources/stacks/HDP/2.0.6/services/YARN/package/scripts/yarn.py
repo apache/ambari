@@ -121,6 +121,11 @@ def yarn(name = None):
        group=params.user_group
   )
 
+  File(params.rm_nodes_exclude_path,
+       owner=params.yarn_user,
+       group=params.user_group
+  )
+
   File(params.mapred_job_summary_log,
        owner=params.mapred_user,
        group=params.user_group
