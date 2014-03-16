@@ -651,7 +651,7 @@ def read_mapping():
 
 
 def get_mr1_mapping(options):
-  components = ["MAPREDUCE_CLIENT", "JOBTRACKER", "TASKTRACKER"]
+  components = ["MAPREDUCE_CLIENT", "JOBTRACKER", "TASKTRACKER", "HISTORYSERVER"]
   GET_URL_FORMAT = URL_FORMAT + '/services/MAPREDUCE/components/{2}'
   hostmapping = {}
   for component in components:
@@ -705,7 +705,7 @@ def delete_mr(options):
 
   SERVICE_URL_FORMAT = URL_FORMAT + '/services/MAPREDUCE'
   COMPONENT_URL_FORMAT = URL_FORMAT + '/hosts/{2}/host_components/{3}'
-  NON_CLIENTS = ["JOBTRACKER", "TASKTRACKER"]
+  NON_CLIENTS = ["JOBTRACKER", "TASKTRACKER", "HISTORYSERVER"]
   PUT_IN_DISABLED = """{"HostRoles": {"state": "DISABLED"}}"""
   hostmapping = read_mapping()
 
@@ -747,6 +747,7 @@ def add_services(options):
   new_old_host_map = {
     "NODEMANAGER": "TASKTRACKER",
     "HISTORYSERVER": "JOBTRACKER",
+    "HISTORYSERVER": "HISTORYSERVER",
     "RESOURCEMANAGER": "JOBTRACKER",
     "YARN_CLIENT": "MAPREDUCE_CLIENT",
     "MAPREDUCE2_CLIENT": "MAPREDUCE_CLIENT"}

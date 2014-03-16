@@ -141,7 +141,7 @@ class TestUpgradeHDP2Script(TestCase):
     options = self.get_mock_options()
     args = ["save-mr-mapping"]
     opm.parse_args.return_value = (options, args)
-    curl_mock.side_effect = ['"href" : "', '"href" : "', '"href" : "']
+    curl_mock.side_effect = ['"href" : "', '"href" : "', '"href" : "', '"href" : "']
     json_loads_mock.return_value = {"host_components": [{"HostRoles": {"host_name": "host1"}}]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
@@ -211,6 +211,7 @@ class TestUpgradeHDP2Script(TestCase):
     read_mapping_mock.return_value = {
       "TASKTRACKER": ["c6401", "c6402"],
       "JOBTRACKER": ["c6401"],
+      "HISTORYSERVER": ["c6402"],
       "MAPREDUCE_CLIENT": ["c6403"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
@@ -228,8 +229,6 @@ class TestUpgradeHDP2Script(TestCase):
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/YARN_CLIENT"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/RESOURCEMANAGER"),
-      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
-           "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/HISTORYSERVER"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/NODEMANAGER"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
