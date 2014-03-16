@@ -329,7 +329,7 @@
             "temporal": true
           },
           "metrics/storm/nimbus/usedslots": {
-            "metric": "Total Executors",
+            "metric": "Used Slots",
             "pointInTime": true,
             "temporal": true
           }
