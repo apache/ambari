@@ -53,9 +53,13 @@ class TestHbaseRegionServer(RMFTestCase):
                    config_file="default.json"
     )
     
-    self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver && rm -f /var/run/hbase/hbase-hbase-regionserver.pid',
-      not_if = None,
+    self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
       user = 'hbase',
+      on_timeout = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`', 
+      timeout = 30,
+    )
+    
+    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-regionserver.pid',
     )
     self.assertNoMoreResources()
     
@@ -90,9 +94,13 @@ class TestHbaseRegionServer(RMFTestCase):
                    config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver && rm -f /var/run/hbase/hbase-hbase-regionserver.pid',
-      not_if = None,
+    self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
       user = 'hbase',
+      on_timeout = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`', 
+      timeout = 30,
+    )
+    
+    self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-regionserver.pid',
     )
     self.assertNoMoreResources()
 

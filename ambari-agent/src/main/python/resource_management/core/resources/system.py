@@ -85,6 +85,12 @@ class Execute(Resource):
   actions = Resource.actions + ["run"]
   logoutput = BooleanArgument(default=False)
   """
+  if on_timeout is not set leads to failing after x seconds,
+  otherwise calls on_timeout
+  """
+  timeout = ResourceArgument() # seconds
+  on_timeout = ResourceArgument()
+  """
   Wait for command to finish or not. 
   
   NOTE:

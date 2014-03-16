@@ -24,20 +24,21 @@ __all__ = ["checked_call", "call"]
 
 import subprocess
 import pipes
+from subprocess import TimeoutExpired
 from exceptions import Fail
 from resource_management.core.logger import Logger
 
 def checked_call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True):
-  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
+  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout)
 
 def call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True):
-  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish)
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
+  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout)
   
 
 def _call(command, logoutput=False, throw_on_failure=True, 
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
   """
   Execute shell command
   
@@ -63,8 +64,14 @@ def _call(command, logoutput=False, throw_on_failure=True,
 
   if not wait_for_finish:
     return None, None
+  
 
-  out = proc.communicate()[0].strip('\n')
+  try:
+    out = proc.communicate(timeout=timeout)[0].strip('\n')
+  except TimeoutExpired as ex:
+    proc.terminate()
+    raise ex
+    
   code = proc.returncode
   
   if logoutput and out:

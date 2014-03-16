@@ -27,6 +27,7 @@ import os
 import pwd
 import time
 import shutil
+from subprocess import TimeoutExpired
 from resource_management.core import shell
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
@@ -231,7 +232,7 @@ class ExecuteProvider(Provider):
         shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
                             cwd=self.resource.cwd, env=self.resource.environment,
                             preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
-                            wait_for_finish=self.resource.wait_for_finish)
+                            wait_for_finish=self.resource.wait_for_finish, timeout=self.resource.timeout)
         break
       except Fail as ex:
         if i == self.resource.tries-1: # last try
@@ -239,6 +240,14 @@ class ExecuteProvider(Provider):
         else:
           Logger.info("Retrying after %d seconds. Reason: %s" % (self.resource.try_sleep, str(ex)))
           time.sleep(self.resource.try_sleep)
+      except TimeoutExpired:
+        err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (self.resource.command, self.resource.timeout)
+        
+        if self.resource.on_timeout:
+          Logger.info("Executing '%s'. Reason: %s" % (self.resource.on_timeout, err_msg))
+          shell.checked_call(self.resource.on_timeout)
+        else:
+          raise Fail(err_msg)
        
 
 class ExecuteScriptProvider(Provider):
