@@ -27,9 +27,9 @@ import os
 import pwd
 import time
 import shutil
-from subprocess import TimeoutExpired
 from resource_management.core import shell
 from resource_management.core.base import Fail
+from resource_management.core import ExecuteTimeoutException
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
 
@@ -240,7 +240,7 @@ class ExecuteProvider(Provider):
         else:
           Logger.info("Retrying after %d seconds. Reason: %s" % (self.resource.try_sleep, str(ex)))
           time.sleep(self.resource.try_sleep)
-      except TimeoutExpired:
+      except ExecuteTimeoutException:
         err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (self.resource.command, self.resource.timeout)
         
         if self.resource.on_timeout:
