@@ -137,6 +137,9 @@ public class UpgradeCatalog150Test {
     hostComponentStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     
     componentDesiredStateEntity.getHostComponentStateEntities().add(hostComponentStateEntity);
+    componentDesiredStateEntity.setHostComponentDesiredStateEntities(new ArrayList<HostComponentDesiredStateEntity>());
+    componentDesiredStateEntity.getHostComponentDesiredStateEntities().add(hostComponentDesiredStateEntity);
+    
     hostEntity.getHostComponentStateEntities().add(hostComponentStateEntity);
     hostEntity.getHostComponentDesiredStateEntities().add(hostComponentDesiredStateEntity);
     clusterServiceEntity.getServiceComponentDesiredStateEntities().add(componentDesiredStateEntity);
