@@ -31,12 +31,16 @@ module.exports = {
    * @param timestamp
    * @return string date
    */
-  dateFormat:function (timestamp) {
+  dateFormat:function (timestamp, showSeconds) {
     if (!validator.isValidInt(timestamp)) return timestamp;
     var date = new Date(timestamp);
     var months = this.dateMonths;
     var days = this.dateDays;
-    return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
+    var formattedDate = days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
+    if (showSeconds) {
+      formattedDate += ':' + this.dateFormatZeroFirst(date.getSeconds());
+    };
+    return formattedDate;
   },
   /**
    * Convert timestamp to date-string 'DAY_OF_THE_WEEK MONTH DAY YEAR'
