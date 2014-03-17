@@ -168,7 +168,9 @@ App.MainJobsView = App.TableView.extend({
 
   pageContentObserver: function () {
     Ember.run.later(this, function() {
-      $('.job-link').tooltip();
+      $('.job-link').tooltip({
+        template: '<div class="tooltip jobs-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+      });
     }, 1000);
   }.observes('pageContent', 'pageContent.length', 'pageContent.@each.id'),
 
