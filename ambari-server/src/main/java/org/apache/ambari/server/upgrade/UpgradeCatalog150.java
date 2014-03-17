@@ -3,24 +3,36 @@ package org.apache.ambari.server.upgrade;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.State;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +41,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -427,8 +440,16 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
         }
       }
     });
-
-
+    
+    // add history server on the host where jobtracker is
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        addHistoryServer();
+      }
+    });
+    
+      
     // ========================================================================
     // Finally update schema version
     updateMetaInfoVersion(getTargetVersion());
@@ -445,6 +466,91 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
         }
       }
     });
+  }
+  
+  protected void addHistoryServer() {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    
+    List<ClusterEntity> clusterEntities = clusterDAO.findAll();
+    for (final ClusterEntity clusterEntity : clusterEntities) {
+      ServiceComponentDesiredStateEntityPK pkHS = new ServiceComponentDesiredStateEntityPK();
+      pkHS.setComponentName("HISTORYSERVER");
+      pkHS.setClusterId(clusterEntity.getClusterId());
+      pkHS.setServiceName("MAPREDUCE");
+      
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityHS = serviceComponentDesiredStateDAO.findByPK(pkHS);
+      
+      // already have historyserver
+      if(serviceComponentDesiredStateEntityHS != null)
+        continue;
+      
+      ServiceComponentDesiredStateEntityPK pkJT = new ServiceComponentDesiredStateEntityPK();
+      pkJT.setComponentName("JOBTRACKER");
+      pkJT.setClusterId(clusterEntity.getClusterId());
+      pkJT.setServiceName("MAPREDUCE");
+      
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityJT = serviceComponentDesiredStateDAO.findByPK(pkJT);
+      
+      // no jobtracker present probably mapreduce is not installed
+      if(serviceComponentDesiredStateEntityJT == null)
+        continue;
+
+      
+      HostComponentStateEntity jtHostComponentStateEntity = serviceComponentDesiredStateEntityJT.getHostComponentStateEntities().iterator().next();
+      String jtHostname = jtHostComponentStateEntity.getHostName();
+      State jtCurrState = jtHostComponentStateEntity.getCurrentState();
+          
+      ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+      pk.setClusterId(clusterEntity.getClusterId());
+      pk.setServiceName("MAPREDUCE");
+      
+      ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(pk);
+      
+      
+      final ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
+      serviceComponentDesiredStateEntity.setComponentName("HISTORYSERVER");
+      serviceComponentDesiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
+      serviceComponentDesiredStateEntity.setDesiredState(State.STARTED);
+      serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+      serviceComponentDesiredStateEntity.setHostComponentDesiredStateEntities(new ArrayList<HostComponentDesiredStateEntity>());
+
+      final HostComponentStateEntity stateEntity = new HostComponentStateEntity();
+      stateEntity.setHostName(jtHostname);
+      stateEntity.setCurrentState(jtCurrState);
+      stateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
+      
+      final HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
+      desiredStateEntity.setDesiredState(State.STARTED);
+      desiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
+      
+      persistComponentEntities(stateEntity, desiredStateEntity, serviceComponentDesiredStateEntity);
+    }
+  }
+    
+  private void persistComponentEntities(HostComponentStateEntity stateEntity, HostComponentDesiredStateEntity desiredStateEntity, ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
+    
+    HostEntity hostEntity = hostDAO.findByName(stateEntity.getHostName());
+    hostEntity.getHostComponentStateEntities().add(stateEntity);
+    hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+
+    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+
+    desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+    desiredStateEntity.setHostEntity(hostEntity);
+    stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+    stateEntity.setHostEntity(hostEntity);
+
+    hostComponentStateDAO.create(stateEntity);
+    hostComponentDesiredStateDAO.create(desiredStateEntity);
+
+    serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
+    hostDAO.merge(hostEntity);
   }
 
   protected void processDecommissionedDatanodes() {

@@ -20,9 +20,10 @@ package org.apache.ambari.server.upgrade;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
+
 import junit.framework.Assert;
-import org.apache.ambari.server.orm.DBAccessorImpl;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -30,27 +31,31 @@ import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Collections;
+
+import javax.persistence.EntityManager;
 
 public class UpgradeCatalog150Test {
   private Injector injector;
   private final String CLUSTER_NAME = "c1";
   private final String SERVICE_NAME = "HDFS";
   private final String HOST_NAME = "h1";
+  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.4\"}";
 
   @Before
   public void setup() throws Exception {
@@ -81,6 +86,26 @@ public class UpgradeCatalog150Test {
     clusterServiceDAO.create(clusterServiceEntity);
     return clusterServiceEntity;
   }
+  
+  private ClusterServiceEntity addService(ClusterEntity clusterEntity, String serviceName) {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    
+    ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+    clusterServiceEntity.setClusterEntity(clusterEntity);
+    clusterServiceEntity.setServiceName(serviceName);
+    
+    ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
+    serviceDesiredStateEntity.setDesiredStackVersion(DESIRED_STACK_VERSION);
+    serviceDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+    
+    clusterServiceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
+    clusterEntity.getClusterServiceEntities().add(clusterServiceEntity);
+    
+    clusterDAO.merge(clusterEntity);
+    
+    return clusterServiceEntity;
+  }
+
 
   private HostEntity createHost(ClusterEntity clusterEntity) {
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
@@ -92,6 +117,69 @@ public class UpgradeCatalog150Test {
     clusterEntity.getHostEntities().add(hostEntity);
     clusterDAO.merge(clusterEntity);
     return hostEntity;
+  }
+  
+  private void addComponent(ClusterEntity clusterEntity, ClusterServiceEntity clusterServiceEntity, HostEntity hostEntity, String componentName) {
+    ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
+    componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
+    componentDesiredStateEntity.setComponentName(componentName);
+    componentDesiredStateEntity.setHostComponentStateEntities(new ArrayList<HostComponentStateEntity>());
+    
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
+    hostComponentDesiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
+    hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
+    hostComponentDesiredStateEntity.setHostEntity(hostEntity);
+    
+    HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
+    hostComponentStateEntity.setHostEntity(hostEntity);
+    hostComponentStateEntity.setHostName(hostEntity.getHostName());
+    hostComponentStateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
+    hostComponentStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
+    
+    componentDesiredStateEntity.getHostComponentStateEntities().add(hostComponentStateEntity);
+    hostEntity.getHostComponentStateEntities().add(hostComponentStateEntity);
+    hostEntity.getHostComponentDesiredStateEntities().add(hostComponentDesiredStateEntity);
+    clusterServiceEntity.getServiceComponentDesiredStateEntities().add(componentDesiredStateEntity);
+    
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+    clusterServiceDAO.merge(clusterServiceEntity);
+  }
+  
+  protected void executeInTransaction(Runnable func) {
+    EntityManager entityManager = injector.getProvider(EntityManager.class).get();
+    if (entityManager.getTransaction().isActive()) { //already started, reuse
+      func.run();
+    } else {
+      entityManager.getTransaction().begin();
+      try {
+        func.run();
+        entityManager.getTransaction().commit();
+      } catch (Exception e) {
+        //LOG.error("Error in transaction ", e);
+        if (entityManager.getTransaction().isActive()) {
+          entityManager.getTransaction().rollback();
+        }
+        throw new RuntimeException(e);
+      }
+
+    }
+  }
+  
+  @Test
+  public void testAddHistoryServer() throws AmbariException {
+    final ClusterEntity clusterEntity = createCluster();
+    final ClusterServiceEntity clusterServiceEntityMR = addService(clusterEntity, "MAPREDUCE");
+    final HostEntity hostEntity = createHost(clusterEntity);
+    
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        addComponent(clusterEntity, clusterServiceEntityMR, hostEntity, "JOBTRACKER");
+      }
+    });
+    
+    UpgradeCatalog150 upgradeCatalog150 = injector.getInstance(UpgradeCatalog150.class);
+    upgradeCatalog150.addHistoryServer();
   }
 
   @Test
