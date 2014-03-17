@@ -168,14 +168,16 @@ App.MainMirroringController = Em.ArrayController.extend({
     if (data && data.instances) {
       var datasetJobs = [];
       data.instances.forEach(function (instance) {
-        datasetJobs.push({
-          dataset: opts.dataset,
-          id: instance.instance + '_' + opts.dataset,
-          name: instance.instance,
-          status: instance.status,
-          endTime: new Date(instance.endTime).getTime(),
-          startTime: new Date(instance.startTime).getTime()
-        });
+        if (instance.cluster == App.get('clusterName')) {
+          datasetJobs.push({
+            dataset: opts.dataset,
+            id: instance.instance + '_' + opts.dataset,
+            name: instance.instance,
+            status: instance.status,
+            endTime: new Date(instance.endTime).getTime(),
+            startTime: new Date(instance.startTime).getTime()
+          });
+        }
       }, this);
       datasetsData.findProperty('name', opts.dataset).set('instances', datasetJobs);
     }
