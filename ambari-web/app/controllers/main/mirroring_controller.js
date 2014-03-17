@@ -139,18 +139,23 @@ App.MainMirroringController = Em.ArrayController.extend({
           instances: []
         })
     );
-    App.ajax.send({
-      name: 'mirroring.dataset.get_all_instances',
-      sender: this,
-      data: {
-        dataset: parsedData.feed['@attributes'].name,
-        start: sourceCluster.validity['@attributes'].start,
-        end: sourceCluster.validity['@attributes'].end,
-        falconServer: App.get('falconServerURL')
-      },
-      success: 'onLoadDatasetInstancesSuccess',
-      error: 'onLoadDatasetsInstancesError'
-    });
+    var currentDate = new Date(App.dateTime());
+    if (currentDate > new Date(sourceCluster.validity['@attributes'].start)) {
+      App.ajax.send({
+        name: 'mirroring.dataset.get_all_instances',
+        sender: this,
+        data: {
+          dataset: parsedData.feed['@attributes'].name,
+          start: sourceCluster.validity['@attributes'].start,
+          end: App.router.get('mainMirroringEditDataSetController').toTZFormat(currentDate),
+          falconServer: App.get('falconServerURL')
+        },
+        success: 'onLoadDatasetInstancesSuccess',
+        error: 'onLoadDatasetsInstancesError'
+      });
+    } else {
+      this.saveDataset();
+    }
   },
 
   onLoadDatasetDefinitionError: function () {
@@ -173,8 +178,6 @@ App.MainMirroringController = Em.ArrayController.extend({
         });
       }, this);
       datasetsData.findProperty('name', opts.dataset).set('instances', datasetJobs);
-    } else {
-      datasetsData.findProperty('name', opts.dataset).set('instances', []);
     }
     this.saveDataset();
   },
@@ -194,8 +197,6 @@ App.MainMirroringController = Em.ArrayController.extend({
 
   onLoadDatasetsInstancesError: function () {
     console.error('Failed to load dataset instances.');
-    var datasetName = arguments[4].dataset;
-    this.get('datasetsData').findProperty('name', datasetName).set('instances', []);
     this.saveDataset();
   },
 
@@ -235,14 +236,15 @@ App.MainMirroringController = Em.ArrayController.extend({
       }, this);
     } else {
       var defaultFS = this.loadDefaultFS();
+      var clusterName = App.get('clusterName');
       var sourceCluster = Ember.Object.create({
-        name: App.get('clusterName'),
+        name: clusterName,
         execute: App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName') + ':8050',
         readonly: 'hftp://' + App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('host.hostName') + ':50070',
         workflow: 'http://' + App.HostComponent.find().findProperty('componentName', 'OOZIE_SERVER').get('host.hostName') + ':11000/oozie',
         write: defaultFS,
-        staging: '/apps/falcon/sandbox/staging',
-        working: '/apps/falcon/sandbox/working',
+        staging: '/apps/falcon/' + clusterName + '/staging',
+        working: '/apps/falcon/' + clusterName + '/working',
         temp: '/tmp'
       });
       var sourceClusterData = App.router.get('mainMirroringManageClustersController').formatClusterXML(sourceCluster);

@@ -37,7 +37,17 @@ App.MainDatasetJobsView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content'),
 
-  sortView: sort.wrapperView,
+  sortView: sort.wrapperView.extend({
+    loadSortStatuses: function(){
+      this._super();
+      var statuses = App.db.getSortingStatuses(this.get('controller.name'));
+      if (!statuses || statuses.everyProperty('status', 'sorting')) {
+        var sorting = this.get('childViews').findProperty('name', 'startDate');
+        this.sort(sorting, true);
+        sorting.set('status', 'sorting_desc');
+      }
+    }.observes('parentView.filteringComplete')
+  }),
   idSort: sort.fieldView.extend({
     column: 1,
     name: 'name',

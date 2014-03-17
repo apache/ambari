@@ -353,7 +353,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     } else {
       this.set('filteredContent', content.toArray());
     }
-  }.observes('content'),
+  }.observes('content.length'),
 
   /**
    * Does any filter is used on the page

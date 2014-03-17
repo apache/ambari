@@ -199,7 +199,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
   // Convert date to TZ format
   toTZFormat: function (date) {
-    return date.getFullYear() + '-' + this.addZero(date.getMonth() + 1) + '-' + this.addZero(date.getDate()) + 'T' + this.addZero(date.getHours()) + ':' + this.addZero(date.getMinutes()) + 'Z';
+    return date.toISOString().replace(/\:\d{2}\.\d{3}/,'');
   },
 
   // Converts hours value from 24-hours format to AM/PM format

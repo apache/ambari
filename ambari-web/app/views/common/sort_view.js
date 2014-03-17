@@ -98,6 +98,23 @@ var wrapperView = Em.View.extend({
       this.set('content', content);
     }
   },
+
+  isSorting: false,
+
+  onContentChange: function () {
+    if (!this.get('isSorting') && this.get('content.length')) {
+      this.get('childViews').forEach(function (view) {
+        if (view.status !== 'sorting') {
+          var status = view.get('status');
+          this.set('isSorting', true);
+          this.sort(view, status == 'sorting_desc');
+          this.set('isSorting', false);
+          view.set('status', status);
+        }
+      }, this);
+    }
+  }.observes('content.length'),
+
   /**
    * reset all sorts fields
    */
