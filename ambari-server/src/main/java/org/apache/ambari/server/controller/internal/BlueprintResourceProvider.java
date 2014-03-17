@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -70,6 +72,9 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
   protected static final String COMPONENT_PROPERTY_ID ="components";
   protected static final String COMPONENT_NAME_PROPERTY_ID ="name";
 
+  // Configurations
+  protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
+
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -79,6 +84,8 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    * Blueprint data access object.
    */
   private static BlueprintDAO dao;
+
+  private static Gson jsonSerializer;
 
 
   // ----- Constructors ----------------------------------------------------
@@ -94,13 +101,15 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
   }
 
   /**
-   * Static initialization of DAO.
+   * Static initialization.
    *
    * @param blueprintDAO  blueprint data access object
+   * @param gson          gson json serializer
    */
   @Inject
-  public static void init(BlueprintDAO blueprintDAO) {
-    dao = blueprintDAO;
+  public static void init(BlueprintDAO blueprintDAO, Gson gson) {
+    dao            = blueprintDAO;
+    jsonSerializer = gson;
   }
 
 
@@ -238,8 +247,19 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       }
       mapGroupProps.put(COMPONENT_PROPERTY_ID, listComponentProps);
     }
-
     setResourceProperty(resource, HOST_GROUP_PROPERTY_ID, listGroupProps, requestedIds);
+
+    List<Map<String, Object>> listConfigurations = new ArrayList<Map<String, Object>>();
+    Collection<BlueprintConfigEntity> configurations = entity.getConfigurations();
+    for (BlueprintConfigEntity config : configurations) {
+      Map<String, Object> mapConfigurations = new HashMap<String, Object>();
+      String type = config.getType();
+      Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
+          config.getConfigData(), Map.class);
+      mapConfigurations.put(type, properties);
+      listConfigurations.add(mapConfigurations);
+    }
+    setResourceProperty(resource, CONFIGURATION_PROPERTY_ID, listConfigurations, requestedIds);
 
     return resource;
   }
@@ -250,6 +270,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    * @param resource the resource to convert
    * @return  a new blueprint entity
    */
+  @SuppressWarnings("unchecked")
   protected BlueprintEntity toEntity(Resource resource) {
     BlueprintEntity entity = new BlueprintEntity();
     entity.setBlueprintName((String) resource.getPropertyValue(BLUEPRINT_NAME_PROPERTY_ID));
@@ -287,6 +308,9 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       blueprintHostGroups.add(group);
     }
 
+    entity.setConfigurations(createConfigEntities(
+        (Collection<Map<String, String>>) resource.getPropertyValue(CONFIGURATION_PROPERTY_ID), entity));
+
     return entity;
   }
 
@@ -296,6 +320,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    * @param properties  property map
    * @return new blueprint entity
    */
+  @SuppressWarnings("unchecked")
   protected BlueprintEntity toEntity(Map<String, Object> properties) {
     String name = (String) properties.get(BLUEPRINT_NAME_PROPERTY_ID);
     if (name == null || name.isEmpty()) {
@@ -337,7 +362,46 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       blueprintHostGroups.add(group);
     }
 
+    blueprint.setConfigurations(createConfigEntities(
+        (Collection<Map<String, String>>) properties.get(CONFIGURATION_PROPERTY_ID), blueprint));
+
     return blueprint;
+  }
+
+  /**
+   * Create blueprint configuration entities from properties.
+   *
+   * @param setConfigurations  set of property maps
+   * @param blueprint          blueprint entity
+   *
+   * @return collection of blueprint config entities
+   */
+  private Collection<BlueprintConfigEntity> createConfigEntities(Collection<Map<String, String>> setConfigurations,
+                                                                 BlueprintEntity blueprint) {
+
+    Collection<BlueprintConfigEntity> configurations = new ArrayList<BlueprintConfigEntity>();
+    if (setConfigurations != null) {
+      for (Map<String, String> configuration : setConfigurations) {
+        BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
+        configEntity.setBlueprintEntity(blueprint);
+        configEntity.setBlueprintName(blueprint.getBlueprintName());
+        Map<String, String> configData = new HashMap<String, String>();
+
+        for (Map.Entry<String, String> entry : configuration.entrySet()) {
+          String absolutePropName = entry.getKey();
+
+          int idx = absolutePropName.indexOf('/');
+          if (configEntity.getType() == null) {
+            configEntity.setType(absolutePropName.substring(0, idx));
+          }
+          configData.put(absolutePropName.substring(idx + 1), entry.getValue());
+        }
+        configEntity.setConfigData(jsonSerializer.toJson(configData));
+        configurations.add(configEntity);
+      }
+    }
+
+    return configurations;
   }
 
   /**

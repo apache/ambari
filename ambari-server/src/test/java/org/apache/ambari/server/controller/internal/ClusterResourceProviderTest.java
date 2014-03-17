@@ -54,6 +54,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -236,6 +237,7 @@ public class ClusterResourceProviderTest {
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
+    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>emptyList());
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");

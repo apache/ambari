@@ -53,6 +53,9 @@ public class BlueprintEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<HostGroupEntity> hostGroups;
 
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
+  private Collection<BlueprintConfigEntity> configurations;
+
 
   /**
    * Get the blueprint name.
@@ -124,5 +127,23 @@ public class BlueprintEntity {
    */
   public void setHostGroups(Collection<HostGroupEntity> hostGroups) {
     this.hostGroups = hostGroups;
+  }
+
+  /**
+   * Get the collection of associated configurations.
+   *
+   * @return collection of configurations
+   */
+  public Collection<BlueprintConfigEntity> getConfigurations() {
+    return configurations;
+  }
+
+  /**
+   * Set the configuration collection.
+   *
+   * @param configurations  collection of associated configurations
+   */
+  public void setConfigurations(Collection<BlueprintConfigEntity> configurations) {
+    this.configurations = configurations;
   }
 }

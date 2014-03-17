@@ -310,6 +310,7 @@
         "Blueprints/stack_version",
         "host_groups",
         "host_groups/components",
-        "host_groups/cardinality"
+        "host_groups/cardinality",
+        "configurations"
     ]
 }

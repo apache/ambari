@@ -197,6 +197,14 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     dbAccessor.createTable("blueprint", columns, "blueprint_name");
 
+    // Blueprint Config
+    columns.clear();
+    columns.add(new DBColumnInfo("blueprint_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("type_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("config_data", String.class, 32000, null, false));
+
+    dbAccessor.createTable("blueprint_configuration", columns, "blueprint_name", "type_name");
+
     // HostGroup
     columns.clear();
     columns.add(new DBColumnInfo("blueprint_name", String.class, 255, null, false));
@@ -303,7 +311,10 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("requestresourcefilter", "FK_requestresourcefilter_req_id", "request_id", "request", "request_id", true);
-
+    dbAccessor.addFKConstraint("hostgroup", "FK_hostgroup_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
+    dbAccessor.addFKConstraint("hostgroup_component", "FK_component_blueprint_name", "blueprint_name", "hostgroup", "blueprint_name", true);
+    dbAccessor.addFKConstraint("hostgroup_component", "FK_component_hostgroup_name", "hostgroup_name", "hostgroup", "name", true);
+    dbAccessor.addFKConstraint("blueprint_configuration", "FK_configuration_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
   }
 
   private void moveRCATableInMySQL(String tableName, String dbName) throws SQLException {

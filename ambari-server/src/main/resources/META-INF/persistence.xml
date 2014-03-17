@@ -41,6 +41,7 @@
     <class>org.apache.ambari.server.orm.entities.RequestScheduleEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity</class>
     <class>org.apache.ambari.server.orm.entities.BlueprintEntity</class>
+    <class>org.apache.ambari.server.orm.entities.BlueprintConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostGroupComponentEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestResourceFilterEntity</class>

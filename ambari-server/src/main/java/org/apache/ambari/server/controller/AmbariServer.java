@@ -505,7 +505,7 @@ public class AmbariServer {
     StackDefinedPropertyProvider.init(injector);
     NagiosPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
-    BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class));
+    BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class), injector.getInstance(Gson.class));
     ClusterResourceProvider.injectBlueprintDAO(injector.getInstance(BlueprintDAO.class));
   }
 

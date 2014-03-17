@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -30,12 +31,14 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.easymock.Capture;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -64,7 +67,6 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
 
-
 /**
  * BlueprintResourceProvider unit tests.
  */
@@ -73,10 +75,11 @@ public class BlueprintResourceProviderTest {
   private static String BLUEPRINT_NAME = "test-blueprint";
 
   private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
+  private final static Gson gson = new Gson();
 
   @BeforeClass
   public static void initClass() {
-    BlueprintResourceProvider.init(dao);
+    BlueprintResourceProvider.init(dao, gson);
   }
 
   @Before
@@ -113,7 +116,42 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    validateEntity(entityCapture.getValue());
+    validateEntity(entityCapture.getValue(), false);
+
+    verify(dao, request);
+  }
+
+  @Test
+  public void testCreateResources_withConfiguration() throws ResourceAlreadyExistsException, SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    setConfigurationProperties(setProperties);
+    Request request = createMock(Request.class);
+    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    dao.create(capture(entityCapture));
+
+    replay(dao, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    validateEntity(entityCapture.getValue(), true);
 
     verify(dao, request);
   }
@@ -138,8 +176,34 @@ public class BlueprintResourceProviderTest {
     assertEquals(1, setResults.size());
 
     verify(dao);
-    validateResource(setResults.iterator().next());
+    validateResource(setResults.iterator().next(), false);
   }
+
+  @Test
+  public void testGetResourcesNoPredicate_withConfiguration() throws SystemException, UnsupportedPropertyException,
+      NoSuchParentResourceException, NoSuchResourceException {
+    Request request = createNiceMock(Request.class);
+
+    ResourceProvider provider = createProvider();
+    Set<Map<String, Object>> testProperties = getTestProperties();
+    setConfigurationProperties(testProperties);
+    BlueprintEntity entity = ((BlueprintResourceProvider) provider).toEntity(
+        testProperties.iterator().next());
+
+    List<BlueprintEntity> results = new ArrayList<BlueprintEntity>();
+    results.add(entity);
+
+    // set expectations
+    expect(dao.findAll()).andReturn(results);
+    replay(dao, request);
+
+    Set<Resource> setResults = provider.getResources(request, null);
+    assertEquals(1, setResults.size());
+
+    verify(dao);
+    validateResource(setResults.iterator().next(), true);
+  }
+
 
   @Test
   public void testDeleteResources() throws SystemException, UnsupportedPropertyException,
@@ -172,7 +236,7 @@ public class BlueprintResourceProviderTest {
 
     verify(dao);
 
-    validateEntity(entityCapture.getValue());
+    validateEntity(entityCapture.getValue(), false);
   }
 
   private Set<Map<String, Object>> getTestProperties() {
@@ -213,7 +277,17 @@ public class BlueprintResourceProviderTest {
     return Collections.singleton(mapProperties);
   }
 
-  private void validateEntity(BlueprintEntity entity) {
+  private void setConfigurationProperties(Set<Map<String, Object>> properties ) {
+    Map<String, String> mapConfigsProps = new HashMap<String, String>();
+    mapConfigsProps.put("core-site/fs.trash.interval", "480");
+    mapConfigsProps.put("core-site/ipc.client.idlethreshold", "8500");
+
+    // single entry in set which was created in getTestProperties
+    Map<String, Object> mapProperties = properties.iterator().next();
+    mapProperties.put("configurations", Collections.singleton(mapConfigsProps));
+  }
+
+  private void validateEntity(BlueprintEntity entity, boolean containsConfig) {
     assertEquals(BLUEPRINT_NAME, entity.getBlueprintName());
     assertEquals("test-stack-name", entity.getStackName());
     assertEquals("test-stack-version", entity.getStackVersion());
@@ -243,9 +317,24 @@ public class BlueprintResourceProviderTest {
         fail("Unexpected host group name");
       }
     }
+    Collection<BlueprintConfigEntity> configurations = entity.getConfigurations();
+    if (containsConfig) {
+      assertEquals(1, configurations.size());
+      BlueprintConfigEntity blueprintConfigEntity = configurations.iterator().next();
+      assertEquals(BLUEPRINT_NAME, blueprintConfigEntity.getBlueprintName());
+      assertSame(entity, blueprintConfigEntity.getBlueprintEntity());
+      assertEquals("core-site", blueprintConfigEntity.getType());
+      Map<String, String> properties = gson.<Map<String, String>>fromJson(
+          blueprintConfigEntity.getConfigData(), Map.class);
+      assertEquals(2, properties.size());
+      assertEquals("480", properties.get("fs.trash.interval"));
+      assertEquals("8500", properties.get("ipc.client.idlethreshold"));
+    } else {
+      assertEquals(0, configurations.size());
+    }
   }
 
-  private void validateResource(Resource resource) {
+  private void validateResource(Resource resource, boolean containsConfig) {
     assertEquals(BLUEPRINT_NAME, resource.getPropertyValue(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID));
     assertEquals("test-stack-name", resource.getPropertyValue(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID));
     assertEquals("test-stack-version", resource.getPropertyValue(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID));
@@ -278,6 +367,19 @@ public class BlueprintResourceProviderTest {
       } else {
         fail("Unexpected host group name");
       }
+    }
+
+    if (containsConfig) {
+      Collection<Map<String, Object>> blueprintConfigurations = (Collection<Map<String, Object>>)
+          resource.getPropertyValue(BlueprintResourceProvider.CONFIGURATION_PROPERTY_ID);
+      assertEquals(1, blueprintConfigurations.size());
+
+      Map<String, Object> typeConfigs = blueprintConfigurations.iterator().next();
+      assertEquals(1, typeConfigs.size());
+      Map<String, String> properties = (Map<String, String>) typeConfigs.get("core-site");
+      assertEquals(2, properties.size());
+      assertEquals("480", properties.get("fs.trash.interval"));
+      assertEquals("8500", properties.get("ipc.client.idlethreshold"));
     }
   }
 

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
@@ -52,6 +53,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -313,7 +315,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, HostGroup> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
     applyRequestInfoToHostGroups(properties, blueprintHostGroups);
-    processConfigurations(stack, blueprintHostGroups);
+    processConfigurations(processBlueprintConfigurations(blueprint), stack, blueprintHostGroups);
 
     String clusterName = (String) properties.get(CLUSTER_NAME_PROPERTY_ID);
     createClusterResource(buildClusterResourceProperties(stack, clusterName));
@@ -486,9 +488,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private void setConfigurationsOnCluster(String clusterName) throws SystemException {
     for (Map.Entry<String, Map<String, String>> entry : mapClusterConfigurations.entrySet()) {
       String type = entry.getKey();
-      if (type.endsWith(".xml")) {
-        type = type.substring(0, type.length() - 4);
-      }
+
       try {
         //todo: properly handle non system exceptions
         setConfigurationsOnCluster(clusterName, type, entry.getValue());
@@ -651,17 +651,36 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Process cluster configurations.  This includes obtaining the default configuration properties from the stack,
-   * overlaying configuration properties specified in the cluster create request and updating properties with
-   * topology specific information.
+   * Process configurations contained in blueprint.
+   *
+   * @param blueprint  blueprint entity
+   *
+   * @return configuration properties contained within in blueprint
+   */
+  private Map<String, Map<String, String>> processBlueprintConfigurations(BlueprintEntity blueprint) {
+    Map<String, Map<String, String>> mapConfigurations = new HashMap<String, Map<String, String>>();
+    Collection<BlueprintConfigEntity> configs = blueprint.getConfigurations();
+    Gson jsonSerializer = new Gson();
+    for (BlueprintConfigEntity config : configs) {
+      mapConfigurations.put(config.getType(), jsonSerializer.<Map<String, String>> fromJson(
+          config.getConfigData(), Map.class));
+    }
+    return mapConfigurations;
+  }
+
+  /**
+   * Process cluster configurations.  This includes obtaining the default configuration properties
+   * from the stack,overlaying configuration properties specified in the blueprint and cluster
+   * create request and updating properties with topology specific information.
    *
    * @param stack                associated stack
    * @param blueprintHostGroups  host groups contained in the blueprint
    */
-  // processing at cluster level only now
-  public void processConfigurations(Stack stack, Map<String, HostGroup> blueprintHostGroups)  {
-    Set<String> services = getServicesToDeploy(stack, blueprintHostGroups);
+  private void processConfigurations(Map<String, Map<String, String>> blueprintConfigurations,
+                                    Stack stack, Map<String,
+                                    HostGroup> blueprintHostGroups)  {
 
+    Set<String> services = getServicesToDeploy(stack, blueprintHostGroups);
     for (String service : services) {
       Collection<String> configTypes = stack.getConfigurationTypes(service);
       for (String type : configTypes) {
@@ -669,6 +688,18 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         for (Map.Entry<String, String> entry : properties.entrySet()) {
           String propName = entry.getKey();
           String value    = entry.getValue();
+
+          //todo: move to Stack
+          //strip .xml from type
+          if (type.endsWith(".xml")) {
+            type = type.substring(0, type.length() - 4);
+          }
+          // overlay property if specified at cluster scope in blueprint
+          Map<String, String> blueprintTypeConfig = blueprintConfigurations.get(type);
+          if (blueprintTypeConfig != null && blueprintTypeConfig.containsKey(propName)) {
+            System.out.println("Overwriting property: " + propName + " for configuration " + type);
+            value = blueprintTypeConfig.get(propName);
+          }
 
           Map<String, String> typeProps = mapClusterConfigurations.get(type);
           if (typeProps == null) {
@@ -689,10 +720,10 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
     // AMBARI-4921
     //todo: hard-coding default values for required global config properties which are not in stack definition
-    Map<String, String> globalProperties = mapClusterConfigurations.get("global.xml");
+    Map<String, String> globalProperties = mapClusterConfigurations.get("global");
     if (globalProperties == null) {
       globalProperties = new HashMap<String, String>();
-      mapClusterConfigurations.put("global.xml", globalProperties);
+      mapClusterConfigurations.put("global", globalProperties);
     }
     globalProperties.put("user_group", "hadoop");
     globalProperties.put("smokeuser", "ambari-qa");

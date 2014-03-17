@@ -59,4 +59,12 @@ public class BlueprintEntityTest {
     assertSame(hostGroups, entity.getHostGroups());
   }
 
+  @Test
+  public void testSetGetConfigurations() {
+    BlueprintEntity entity = new BlueprintEntity();
+    Collection<BlueprintConfigEntity> configurations = Collections.emptyList();
+    entity.setConfigurations(configurations);
+    assertSame(configurations, entity.getConfigurations());
+  }
+
 }
