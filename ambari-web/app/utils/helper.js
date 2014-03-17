@@ -476,15 +476,18 @@ App.registerBoundHelper('formatWordBreak', Em.View.extend({
 DS.attr.transforms.date = {
   from: function (serialized) {
     var type = typeof serialized;
-    if (type === "string") {
+    if (type === Em.I18n.t('common.type.string')) {
       serialized = parseInt(serialized);
       type = typeof serialized;
     }
-    if (type === "number") {
+    if (type === Em.I18n.t('common.type.number')) {
+      if (!serialized ){  //serialized timestamp = 0;
+        return 0;
+      }
       // The number could be seconds or milliseconds.
-      // If seconds, then multiplying with 1000 should still
-      // keep it below the current time.
-      if (serialized * 1000 < App.dateTime()) {
+      // If seconds, then the length is 10
+      // If milliseconds, the length is 13
+      if (serialized.toString().length < 13) {
         serialized = serialized * 1000;
       }
       return new Date(serialized);

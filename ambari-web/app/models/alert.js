@@ -85,28 +85,46 @@ App.Alert = Em.Object.extend({
   timeSinceAlert: function () {
     var d = this.get('date');
     if (d) {
-      var prefix = this.t('services.alerts.OK.timePrefix');
+      var timeFormat = this.t('services.alerts.OK.timePrefix');
       switch (this.get('status')) {
         case "1":
-          prefix = this.t('services.alerts.WARN.timePrefix');
+          timeFormat = this.t('services.alerts.WARN.timePrefix');
           break;
         case "2":
-          prefix = this.t('services.alerts.CRIT.timePrefix');
+          timeFormat = this.t('services.alerts.CRIT.timePrefix');
           break;
         case "3":
-          prefix = this.t('services.alerts.MAINT.timePrefix');
+          timeFormat = this.t('services.alerts.MAINT.timePrefix');
           break;
         case "4":
-          prefix = this.t('services.alerts.UNKNOWN.timePrefix');
+          timeFormat = this.t('services.alerts.UNKNOWN.timePrefix');
           break;
       }
       var prevSuffix = $.timeago.settings.strings.suffixAgo;
       $.timeago.settings.strings.suffixAgo = '';
-      var since = prefix + $.timeago(this.makeTimeAtleastMinuteAgo(d));
+      var since = timeFormat.format($.timeago(this.makeTimeAtleastMinuteAgo(d)));
       $.timeago.settings.strings.suffixAgo = prevSuffix;
       return since;
+    } else if (d == 0) {
+      var timeFormat = this.t('services.alerts.OK.timePrefixShort');
+      switch (this.get('status')) {
+        case "1":
+          timeFormat = this.t('services.alerts.WARN.timePrefixShort');
+          break;
+        case "2":
+          timeFormat = this.t('services.alerts.CRIT.timePrefixShort');
+          break;
+        case "3":
+          timeFormat = this.t('services.alerts.MAINT.timePrefixShort');
+          break;
+        case "4":
+          timeFormat = this.t('services.alerts.UNKNOWN.timePrefixShort');
+          break;
+      }
+      return timeFormat;
+    } else {
+      return "";
     }
-    return "";
   }.property('date', 'status'),
   
   makeTimeAtleastMinuteAgo: function(d){
@@ -129,13 +147,13 @@ App.Alert = Em.Object.extend({
     if (date) {
       var dateString = date.toDateString();
       dateString = dateString.substr(dateString.indexOf(" ") + 1);
-      dateString = "Occurred on " + dateString + ", " + date.toLocaleTimeString();
+      dateString = Em.I18n.t('services.alerts.occurredOn').format(dateString, date.toLocaleTimeString());
       details += dateString;
     }
     var lastCheck = this.get('lastCheck');
     if (lastCheck) {
       lastCheck = new Date(lastCheck * 1000);
-      details = details + "<br>Last checked " + $.timeago(lastCheck);
+      details = details ? details + Em.I18n.t('services.alerts.brLastCheck').format($.timeago(lastCheck)) : Em.I18n.t('services.alerts.lastCheck').format($.timeago(lastCheck));
     }
     return details;
   }.property('lastCheck', 'date'),
