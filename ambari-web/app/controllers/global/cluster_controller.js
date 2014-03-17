@@ -284,6 +284,7 @@ App.ClusterController = Em.Controller.extend({
     }
 
     if(this.get('isLoaded')) { // do not load data repeatedly
+      App.router.get('mainController').startPolling();
       return;
     }
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');

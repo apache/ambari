@@ -1378,7 +1378,7 @@ var urls = {
   },
   'ambari.service': {
     'real': '/services/AMBARI/components/AMBARI_SERVER',
-    'mock': ''
+    'mock': '/data/services/ambari_server.json'
   },
   'ambari.service.load_server_clock': {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock',
