@@ -33,6 +33,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   // zoomScaleTo: -1, // Bound from parent view
   // zoomScale: -1, // Bound from parent view
   zoomTranslate: [0, 0],
+  zoomBehavior: null,
+  svgCreated: false,
 
   content : null,
 
@@ -121,10 +123,12 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       self.set('zoomTranslate', d3.event.translate);
     });
     svg.call(zoom);
+    this.set('zoomBehavior', zoom);
     this.set('zoomTranslate', [0, 0]);
     this.set('zoomScaleFrom', minScale);
     this.set('zoomScaleTo', 2);
     this.set('zoomScale', minScale);
+    this.set('svgCreated', true);
   },
 
   zoomScaleObserver : function() {
@@ -133,8 +137,39 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     var newScaleFrom = this.get('zoomScaleFrom');
     var newScaleTo = this.get('zoomScaleTo');
     var zoomTranslate = this.get('zoomTranslate');
+    var zoomBehavior = this.get('zoomBehavior');
+    if (d3.event == null && this.get('svgCreated')) {
+      // Values were set from actions instead of UI events
+      // We need to center in on selected vertex if available.
+      var selectedNode = null;
+      var dagVisualModel = this.get('dagVisualModel');
+      if (dagVisualModel && dagVisualModel.nodes && dagVisualModel.nodes.length > 0) {
+        dagVisualModel.nodes.every(function(node) {
+          if (node.selected) {
+            selectedNode = node;
+            return false;
+          }
+          return true;
+        })
+      }
+      if (selectedNode != null) {
+        var cX = selectedNode.x + selectedNode.width / 2;
+        var cY = selectedNode.y + selectedNode.height / 2;
+        var mX = (cX * zoomBehavior.scale()) + zoomTranslate[0];
+        var mY = (cY * zoomBehavior.scale()) + zoomTranslate[1];
+        var pX = (cX * newScale) + zoomTranslate[0];
+        var pY = (cY * newScale) + zoomTranslate[1];
+        var nX = (mX - pX);
+        var nY = (mY - pY);
+        zoomTranslate[0] += nX;
+        zoomTranslate[1] += nY;
+        this.set('zoomTranslate', zoomTranslate);
+      }
+    }
     console.debug("zoomScaleObserver(): New scale = " + newScale + ", Range = [" + newScaleFrom + ", " + newScaleTo + "]. Translate = ", zoomTranslate.join(','));
-    tezRoot.attr("transform", "translate("+zoomTranslate+")scale(" + newScale + ")");
+    zoomBehavior.scale(newScale);
+    zoomBehavior.translate(zoomTranslate);
+    tezRoot.attr("transform", "translate(" + zoomTranslate + ")scale(" + newScale + ")");
   }.observes('zoomScale', 'zoomScaleFrom', 'zoomScaleTo', 'zoomTranslate'),
 
   /**
