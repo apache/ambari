@@ -85,7 +85,7 @@ App.Router = Em.Router.extend({
     return currentStep;
   },
 
-  loggedIn: false,
+  loggedIn: App.db.getAuthenticated(),
 
   loginName: function() {
     return this.getLoginName();
