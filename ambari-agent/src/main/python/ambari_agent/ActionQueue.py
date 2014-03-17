@@ -28,7 +28,6 @@ import os
 from LiveStatus import LiveStatus
 from shell import shellRunner
 import PuppetExecutor
-import PythonExecutor
 from ActualConfigHandler import ActualConfigHandler
 from CommandStatusDict import CommandStatusDict
 from CustomServiceOrchestrator import CustomServiceOrchestrator
@@ -75,6 +74,7 @@ class ActionQueue(threading.Thread):
     self.config = config
     self.controller = controller
     self.sh = shellRunner()
+    self.configTags = {}
     self._stop = threading.Event()
     self.tmpdir = config.get('agent', 'prefix')
     self.customServiceOrchestrator = CustomServiceOrchestrator(config,
@@ -214,7 +214,7 @@ class ActionQueue(threading.Thread):
       roleResult['structuredOut'] = ''
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
-      configHandler = ActualConfigHandler(self.config)
+      configHandler = ActualConfigHandler(self.config, self.configTags)
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
@@ -226,7 +226,8 @@ class ActionQueue(threading.Thread):
         (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and \
         command['hostLevelParams'].has_key('custom_command') and \
         command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
-        configHandler.copy_to_component(command['role'])
+        configHandler.write_actual_component(command['role'], command['configurationTags'])
+        configHandler.write_client_components(command['serviceName'], command['configurationTags'])
         roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
     self.commandStatuses.put_command_status(command, roleResult)
 
@@ -248,7 +249,7 @@ class ActionQueue(threading.Thread):
       command_format = self.determine_command_format_version(command)
 
       livestatus = LiveStatus(cluster, service, component,
-                              globalConfig, self.config)
+                              globalConfig, self.config, self.configTags)
       component_status = None
       if command_format == self.COMMAND_FORMAT_V2:
         # For custom services, responsibility to determine service status is

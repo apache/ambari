@@ -21,15 +21,16 @@ limitations under the License.
 import json
 import logging
 import os
-import shutil
+import LiveStatus
 
 logger = logging.getLogger()
 
 class ActualConfigHandler:
   CONFIG_NAME = 'config.json'
 
-  def __init__(self, config):
-    self.config = config;
+  def __init__(self, config, configTags):
+    self.config = config
+    self.configTags = configTags
 
   def findRunDir(self):
     runDir = '/var/run/ambari-agent'
@@ -39,18 +40,28 @@ class ActualConfigHandler:
       runDir = '/tmp'
     return runDir
 
-  def write_actual(self, configTags):
-    runDir = self.findRunDir()
-    conf_file = open(os.path.join(runDir, self.CONFIG_NAME), 'w')
-    json.dump(configTags, conf_file)
-    conf_file.close()
+  def write_actual(self, tags):
+    self.write_file(self.CONFIG_NAME, tags)
 
-  def copy_to_component(self, componentName):
+  def write_actual_component(self, component, tags):
+    self.configTags[component] = tags
+    filename = component + "_" + self.CONFIG_NAME
+    self.write_file(filename, tags)
+
+  def write_client_components(self, serviceName, tags):
+    for comp in LiveStatus.LiveStatus.CLIENT_COMPONENTS:
+      if comp['serviceName'] == serviceName:
+        componentName = comp['componentName']
+        if componentName in self.configTags and \
+            tags != self.configTags[componentName]:
+          self.write_actual_component(componentName, tags)
+    pass
+
+  def write_file(self, filename, tags):
     runDir = self.findRunDir()
-    srcfile = os.path.join(runDir, self.CONFIG_NAME)
-    if os.path.isfile(srcfile):
-      dstfile = os.path.join(runDir, componentName + "_" + self.CONFIG_NAME)
-      shutil.copy(srcfile, dstfile)
+    conf_file = open(os.path.join(runDir, filename), 'w')
+    json.dump(tags, conf_file)
+    conf_file.close()
 
   def read_file(self, filename):
     runDir = self.findRunDir()
@@ -75,6 +86,7 @@ class ActualConfigHandler:
     return self.read_file(self.CONFIG_NAME)
 
   def read_actual_component(self, componentName):
-    return self.read_file(componentName + "_" + self.CONFIG_NAME)
-    
-
+    if componentName not in self.configTags.keys():
+      self.configTags[componentName] = \
+        self.read_file(componentName + "_" + self.CONFIG_NAME)
+    return self.configTags[componentName]

@@ -21,10 +21,9 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
-import socket
 import os, sys, StringIO
 from ambari_agent import ActualConfigHandler
-from mock.mock import patch, MagicMock, call
+from mock.mock import patch
 import pprint
 from ambari_agent import StatusCheck
 
@@ -46,7 +45,7 @@ class TestLiveStatus(TestCase):
     for component in LiveStatus.COMPONENTS:
       config = AmbariConfig().getConfig()
       config.set('agent', 'prefix', "ambari_agent" + os.sep + "dummy_files")
-      livestatus = LiveStatus('', component['serviceName'], component['componentName'], {}, config)
+      livestatus = LiveStatus('', component['serviceName'], component['componentName'], {}, config, {})
       livestatus.versionsHandler.versionsFilePath = "ambari_agent" + os.sep + "dummy_files" + os.sep + "dummy_current_stack"
       result = livestatus.build()
       print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
@@ -57,23 +56,23 @@ class TestLiveStatus(TestCase):
 
     # Test build status for CLIENT component (in LiveStatus.CLIENT_COMPONENTS)
     read_actual_component_mock.return_value = "some tags"
-    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config)
+    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})
     result = livestatus.build()
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result.has_key('configurationTags'))
     # Test build status with forsed_component_status
     ## Alive
-    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config)
+    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})
     result = livestatus.build(forsed_component_status = LiveStatus.LIVE_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
     ## Dead
-    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config)
+    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})
     result = livestatus.build(forsed_component_status = LiveStatus.DEAD_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.DEAD_STATUS)
 
-    livestatus = LiveStatus('c1', 'TEZ', 'TEZ_CLIENT', { }, config)
+    livestatus = LiveStatus('c1', 'TEZ', 'TEZ_CLIENT', { }, config, {})
     result = livestatus.build(forsed_component_status = LiveStatus.LIVE_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
@@ -89,7 +88,7 @@ class TestLiveStatus(TestCase):
     config = AmbariConfig().getConfig()
     config.set('agent', 'prefix', "ambari_agent" + os.sep + "dummy_files")
     livestatus = LiveStatus('', 'SOME_UNKNOWN_SERVICE',
-                            'SOME_UNKNOWN_COMPONENT', {}, config)
+                            'SOME_UNKNOWN_COMPONENT', {}, config, {})
     livestatus.versionsHandler.versionsFilePath = "ambari_agent" + \
                       os.sep + "dummy_files" + os.sep + "dummy_current_stack"
     result = livestatus.build(forsed_component_status = "STARTED")
