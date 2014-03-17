@@ -71,7 +71,14 @@
                   <div class="span3 align-right">{{t common.clients}}&nbsp;/</div>
                   <div class="span7">
                     {{#each component in view.clients}}
-                      {{component.displayName}}{{#if component.staleConfigs}} <i class="text-warning icon-refresh"></i>{{/if}}{{#unless component.isLast}},{{/unless}}
+                      {{component.displayName}}
+                      {{#if component.staleConfigs}}
+                        <span class="text-warning icon-refresh"></span>
+                      {{/if}}
+                      {{#if component.service.isInPassive}}
+                        <span class="icon-medkit"></span>
+                      {{/if}}
+                      {{#unless component.isLast}},{{/unless}}
                     {{/each}}
                 </div>
               {{/if}}

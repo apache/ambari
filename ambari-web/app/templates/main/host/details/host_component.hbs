@@ -24,7 +24,7 @@
       </a>
     {{/if}}
   {{else}}
-    <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass :components-health" data-original-title="view.componentStatusTooltip"}}></span>&nbsp;
+    <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
   {{/if}}
   {{#if component.displayNameAdvanced}}
     {{component.displayNameAdvanced}}
@@ -35,7 +35,10 @@
   <a href="#" {{action routeToService component.service target="controller"}}>{{component.service.displayName}}</a>
   &nbsp;
   {{#if component.staleConfigs}}
-    <i class="text-warning icon-refresh"></i>
+    <span class="text-warning icon-refresh"></span>
+  {{/if}}
+  {{#if component.service.isInPassive}}
+    <span class="icon-medkit"></span>
   {{/if}}
 </div>
 <div class="span5 pull-right">

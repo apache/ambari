@@ -78,11 +78,6 @@ App.Decommissionable = Em.Mixin.create({
       return 'health-status-color-blue icon-cog';
     }
 
-    //Class when maintenance
-    if (this.get('content.passiveState') != "OFF") {
-      return 'icon-medkit';
-    }
-
     if (this.get('isComponentRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
       return 'health-status-DEAD-ORANGE';
     }
@@ -90,7 +85,7 @@ App.Decommissionable = Em.Mixin.create({
     //For all other cases
     return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
 
-  }.property('content.passiveState','workStatus', 'isComponentRecommissionAvailable', 'isComponentDecommissioning'),
+  }.property('workStatus', 'isComponentRecommissionAvailable', 'isComponentDecommissioning'),
 
   /**
    * Return host component text status
@@ -110,7 +105,7 @@ App.Decommissionable = Em.Mixin.create({
       }
     }
     return componentTextStatus;
-  }.property('content.passiveState','workStatus','isComponentRecommissionAvailable','isComponentDecommissioning'),
+  }.property('workStatus','isComponentRecommissionAvailable','isComponentDecommissioning'),
 
   /**
    * For Stopping or Starting states, also for decommissioning

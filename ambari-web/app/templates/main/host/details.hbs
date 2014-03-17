@@ -17,12 +17,17 @@
 }}
 
 <div id="host-details">
-  <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass"}} {{bindAttr data-original-title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
-  {{#if view.content.criticalAlertsCount}}
-    <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.criticalAlertsCount}}</span>
-  {{else}}
-    <span class="label label-success alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{t hosts.host.alert.noAlerts}}</span>
-  {{/if}}
+  <div class="status-info">
+    <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass"}} {{bindAttr data-original-title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
+    {{#if view.content.criticalAlertsCount}}
+      <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.criticalAlertsCount}}</span>
+    {{else}}
+      <span class="label label-success alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{t hosts.host.alert.noAlerts}}</span>
+    {{/if}}
+    {{#unless view.isActive}}
+      <span class="alert alert-warning pull-right"><span class="icon-warning-sign"></span> {{t hosts.host.passive.mode}}</span>
+    {{/unless}}
+  </div>  
   <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
   <div class="content">
     {{view App.MainHostMenuView}}
@@ -38,8 +43,7 @@
 				        <!-- dropdown menu links -->
 				        {{#each option in view.maintenance}}
 				        <li {{bindAttr class="controller.isStopDisabled:disabled option.liClass"}}>
-				          <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass option.liClass"}}></i>
-{{option.label}}</a>
+				          <a {{action "doAction" option target="controller" href=true}}><i {{bindAttr class="option.cssClass option.liClass"}}></i> {{option.label}}</a>
 				        </li>
 				        {{/each}}
 				      </ul>

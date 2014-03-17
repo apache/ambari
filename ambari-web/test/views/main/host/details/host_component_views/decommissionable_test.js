@@ -112,12 +112,12 @@ describe('App.Decommissionable', function() {
       {
         content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ON'}),
         isComponentRecommissionAvailable: false,
-        e: 'icon-medkit'
+        e: 'health-status-started'
       },
       {
         content: Em.Object.create({workStatus: 'STARTED', passiveState: 'IMPLIED'}),
         isComponentRecommissionAvailable: false,
-        e: 'icon-medkit'
+        e: 'health-status-started'
       },
       {
         content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),

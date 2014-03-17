@@ -32,72 +32,6 @@ describe('App.HostComponentView', function() {
     });
   });
 
-  describe('#componentStatusTooltip', function() {
-
-    var tests = Em.A([
-      {
-        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'ON'}),
-        m: 'ON state',
-        e: Em.I18n.t('hosts.component.passive.short.mode')
-      },
-      {
-        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'IMPLIED'}),
-        m: 'IMPLIED state',
-        e: Em.I18n.t('hosts.component.passive.short.mode')
-      },
-      {
-        content: Em.Object.create({componentTextStatus: 'status', passiveState: 'OFF'}),
-        m: 'OFF state',
-        e: 'status'
-      }
-    ]);
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        hostComponentView.set('content', test.content);
-        expect(hostComponentView.get('componentStatusTooltip')).to.equal(test.e);
-      });
-    });
-
-  });
-
-  describe('#passiveImpliedTextStatus', function() {
-
-    var tests = Em.A([
-      {
-        content: {service: {passiveState: 'ON'}},
-        parentView: {content: {passiveState: 'ON'}},
-        m: 'service in ON, host in ON',
-        e: Em.I18n.t('hosts.component.passive.implied.host.mode.tooltip')
-      },
-      {
-        content: {service: {passiveState: 'ON', serviceName:'SERVICE_NAME'}},
-        parentView: {content: {passiveState: 'OFF'}},
-        m: 'service in ON, host in OFF',
-        e: Em.I18n.t('hosts.component.passive.implied.service.mode.tooltip').format('SERVICE_NAME')
-      },
-      {
-        content: {service: {passiveState: 'OFF'}},
-        parentView: {content: {passiveState: 'OFF'}},
-        m: 'service in OFF, host in OFF',
-        e: ''
-      }
-    ]);
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        hostComponentView = App.HostComponentView.create({
-          startBlinking: function(){},
-          doBlinking: function(){},
-          parentView: test.parentView,
-          content: test.content
-        });
-        expect(hostComponentView.get('passiveImpliedTextStatus')).to.equal(test.e);
-      });
-    });
-
-  });
-
   describe('#disabled', function() {
 
     var tests = Em.A([
@@ -405,11 +339,11 @@ describe('App.HostComponentView', function() {
       },
       {
         content: Em.Object.create({workStatus: 'STARTED', passiveState: 'ON'}),
-        e: 'icon-medkit'
+        e: 'health-status-started'
       },
       {
         content: Em.Object.create({workStatus: 'STARTED', passiveState: 'IMPLIED'}),
-        e: 'icon-medkit'
+        e: 'health-status-started'
       },
       {
         content: Em.Object.create({workStatus: 'STARTED', passiveState: 'OFF'}),
