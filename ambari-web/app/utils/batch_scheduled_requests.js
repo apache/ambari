@@ -312,6 +312,7 @@ module.exports = {
     var enabled = passiveState == 'OFF' ? 'enabled' : 'suppressed';
     App.ModalPopup.show({
       header: Em.I18n.t('common.information'),
+      secondary: null,
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile('<p>{{view.message}}</p>'),
         message: function() {
