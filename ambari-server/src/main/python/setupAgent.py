@@ -68,6 +68,9 @@ def runAgent(passPhrase, expected_hostname):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
   agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" +\
                                   expected_hostname, shell=True)
+  # need this, because, very rarely,
+  # main.py(ambari-agent) starts a bit later then it should be started
+  time.sleep(1)
   try:
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
     try:
