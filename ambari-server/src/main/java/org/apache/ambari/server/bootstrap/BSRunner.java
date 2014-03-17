@@ -258,10 +258,16 @@ class BSRunner extends Thread {
           }
           boolean pendingHosts = false;
           BootStrapStatus tmpStatus = bsImpl.getStatus(requestId);
-          for (BSHostStatus status : tmpStatus.getHostsStatus()) {
-            if (status.getStatus().equals("RUNNING")) {
-              pendingHosts = true;
+          List <BSHostStatus> hostStatusList = tmpStatus.getHostsStatus();
+          if (hostStatusList != null) {
+            for (BSHostStatus status : hostStatusList) {
+              if (status.getStatus().equals("RUNNING")) {
+                pendingHosts = true;
+              }
             }
+          } else {
+            //Failed to get host status, waiting for hosts status to be updated
+            pendingHosts = true;
           }
           if (LOG.isDebugEnabled()) {
             LOG.debug("Whether hosts status yet to be updated, pending="
@@ -302,11 +308,16 @@ class BSRunner extends Thread {
     finally {
       /* get the bstatus */
       BootStrapStatus tmpStatus = bsImpl.getStatus(requestId);
-      for (BSHostStatus hostStatus : tmpStatus.getHostsStatus()) {
-        if ("FAILED".equals(hostStatus.getStatus())) {
-          stat = BSStat.ERROR;
-          break;
+      List <BSHostStatus> hostStatusList = tmpStatus.getHostsStatus();
+      if (hostStatusList != null) {
+        for (BSHostStatus hostStatus : hostStatusList) {
+          if ("FAILED".equals(hostStatus.getStatus())) {
+            stat = BSStat.ERROR;
+            break;
+          }
         }
+      } else {
+        stat = BSStat.ERROR;
       }
       tmpStatus.setLog(scriptlog);
       tmpStatus.setStatus(stat);

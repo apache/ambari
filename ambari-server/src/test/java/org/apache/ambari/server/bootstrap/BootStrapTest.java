@@ -89,7 +89,7 @@ public class BootStrapTest extends TestCase {
     BootStrapStatus status = impl.getStatus(response.getRequestId());
     LOG.info("Status " + status.getStatus());
     int num = 0;
-    while ((status.getStatus() != BSStat.SUCCESS) && (num < 10000)) {
+    while ((status.getStatus() == BSStat.RUNNING) && (num < 500)) {
         status = impl.getStatus(response.getRequestId());
         Thread.sleep(100);
         num++;
@@ -133,15 +133,24 @@ public class BootStrapTest extends TestCase {
         BSResponse response = impl.runBootStrap(info);
         long requestId = response.getRequestId();
         LOG.info("Response id from bootstrap " + requestId);
-    /* create failed done file for host1 */
+    /* create failed done file for host2 */
         File requestDir = new File(bootdir, Long.toString(requestId));
+    /* wait while directory is created */
+        int num = 0;
+        while (!requestDir.exists() && num<500) {
+            Thread.sleep(100);
+            num++;
+        }
+        if (!requestDir.exists()) {
+            LOG.warn("RequestDir does not exists");
+        }
         FileUtils.writeStringToFile(new File(requestDir, "host1.done"), "0");
         FileUtils.writeStringToFile(new File(requestDir, "host2.done"), "1");
     /* do a query */
         BootStrapStatus status = impl.getStatus(response.getRequestId());
         LOG.info("Status " + status.getStatus());
-        int num = 0;
-        while ((status.getStatus() != BSStat.ERROR) && (num < 10000)) {
+        num = 0;
+        while ((status.getStatus() == BSStat.RUNNING) && (num < 500)) {
             status = impl.getStatus(response.getRequestId());
             Thread.sleep(100);
             num++;
