@@ -243,8 +243,18 @@ App.TableView = Em.View.extend(App.UserPref, {
   /**
    * Calculates default value for startIndex property after applying filter or changing displayLength
    */
-  updatePaging: function () {
-    this.set('startIndex', Math.min(1, this.get('filteredContent.length')));
+  updatePaging: function (controller, property) {
+    var displayLength = this.get('displayLength');
+    var filteredContentLength = this.get('filteredContent.length');
+    if (property == 'displayLength') {
+      this.set('startIndex', Math.min(1, filteredContentLength));
+    } else if (this.get('startIndex') > filteredContentLength) {
+      this.set('startIndex', Math.floor((filteredContentLength - 1) / displayLength) * displayLength + 1);
+    } else if (!filteredContentLength) {
+      this.set('startIndex', 0);
+    } else if (!this.get('startIndex')) {
+      this.set('startIndex', 1);
+    }
   }.observes('displayLength', 'filteredContent.length'),
 
   /**
