@@ -80,7 +80,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     var data = this.get('content.serviceConfigProperties');
     var hdfsSiteProperties = data.items.findProperty('type', 'hdfs-site').properties;
     var coreSiteProperties = data.items.findProperty('type', 'core-site').properties;
-    this.set('configsSaved', false);
+    var self = this;
     App.ajax.send({
       name: 'admin.high_availability.save_configs',
       sender: this,
@@ -88,28 +88,22 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
         siteName: 'hdfs-site',
         properties: hdfsSiteProperties
       },
-      success: 'installHDFSClients',
       error: 'onTaskError'
-    });
-    App.ajax.send({
-      name: 'admin.high_availability.save_configs',
-      sender: this,
-      data: {
-        siteName: 'core-site',
-        properties: coreSiteProperties
-      },
-      success: 'installHDFSClients',
-      error: 'onTaskError'
+    }).done(function() {
+      App.ajax.send({
+        name: 'admin.high_availability.save_configs',
+        sender: self,
+        data: {
+          siteName: 'core-site',
+          properties: coreSiteProperties
+        },
+        error: 'onTaskError',
+        success: 'installHDFSClients'
+      });
     });
   },
 
-  configsSaved: false,
-
   installHDFSClients: function () {
-    if (!this.get('configsSaved')) {
-      this.set('configsSaved', true);
-      return;
-    }
     var nnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     var jnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     var hostNames = $.extend([], nnHostNames, jnHostNames);

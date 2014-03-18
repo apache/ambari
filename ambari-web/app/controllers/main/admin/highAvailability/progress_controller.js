@@ -253,17 +253,17 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     for (var i = 0; i < hostName.length; i++) {
       hostComponents = App.HostComponent.find().filterProperty('componentName', componentName);
       if (!hostComponents.length || !hostComponents.mapProperty('host.hostName').contains(hostName[i])) {
-      App.ajax.send({
-        name: 'admin.high_availability.create_component',
-        sender: this,
-        data: {
-          hostName: hostName[i],
-          componentName: componentName,
-          taskNum: hostName.length
-        },
-        success: 'onCreateComponent',
-        error: 'onCreateComponentError'
-      });
+        App.ajax.send({
+          name: 'admin.high_availability.create_component',
+          sender: this,
+          data: {
+            hostName: hostName[i],
+            componentName: componentName,
+            taskNum: hostName.length
+          },
+          success: 'onCreateComponent',
+          error: 'onCreateComponentError'
+        });
       } else {
         // Simulates format returned from ajax.send
         this.onCreateComponent(null, null, {hostName: hostName[i], componentName: componentName, taskNum: hostName.length});
