@@ -23,8 +23,8 @@ var App = require('app');
  */
 var defaultSuccessCallback = function(data, ajaxOptions, params) {
   App.router.get('applicationController').dataLoading().done(function(initValue) {
+    params.query && params.query.set('status', 'SUCCESS');
     if (initValue) {
-      params.query && params.query.set('status', 'SUCCESS');
       App.router.get('backgroundOperationsController').showPopup();
     }
   });
@@ -270,9 +270,9 @@ module.exports = {
         var batchSize = this.get('innerView.batchSize');
         var waitTime = this.get('innerView.interBatchWaitTimeSeconds');
         var tolerateSize = this.get('innerView.tolerateSize');
-        self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function() {
+        self._doPostBatchRollingRestartRequest(restartComponents, batchSize, waitTime, tolerateSize, function(data, ajaxOptions, params) {
           dialog.hide();
-          defaultSuccessCallback();
+          defaultSuccessCallback(data, ajaxOptions, params);
         });
       },
       updateButtons : function() {

@@ -248,10 +248,10 @@ App.TableView = Em.View.extend(App.UserPref, {
     var filteredContentLength = this.get('filteredContent.length');
     if (property == 'displayLength') {
       this.set('startIndex', Math.min(1, filteredContentLength));
-    } else if (this.get('startIndex') > filteredContentLength) {
-      this.set('startIndex', Math.floor((filteredContentLength - 1) / displayLength) * displayLength + 1);
     } else if (!filteredContentLength) {
       this.set('startIndex', 0);
+    } else if (this.get('startIndex') > filteredContentLength) {
+      this.set('startIndex', Math.floor((filteredContentLength - 1) / displayLength) * displayLength + 1);
     } else if (!this.get('startIndex')) {
       this.set('startIndex', 1);
     }
