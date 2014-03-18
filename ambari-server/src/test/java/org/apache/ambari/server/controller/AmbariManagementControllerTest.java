@@ -259,7 +259,6 @@ public class AmbariManagementControllerTest {
     controller.createHostComponents(requests);
   }
 
-  @Transactional
   private Long createConfigGroup(Cluster cluster, String name, String tag,
                               List<String> hosts, List<Config> configs)
                               throws AmbariException {
@@ -9565,6 +9564,57 @@ public class AmbariManagementControllerTest {
       ShortTaskStatus task = (ShortTaskStatus)obj;
       return task.getRole().equals(role);
     }
+  }
+
+  @Test
+  public void testReinstallClientSchSkippedInMaintenance() throws Exception {
+    Cluster c1 = setupClusterWithHosts("c1", "HDP-1.2.0",
+      new ArrayList<String>() {{
+        add("h1");
+        add("h2");
+        add("h3");
+      }},
+      "centos5");
+
+    Service hdfs = c1.addService("HDFS");
+    hdfs.persist();
+    createServiceComponent("c1", "HDFS", "NAMENODE", State.INIT);
+    createServiceComponent("c1", "HDFS", "DATANODE", State.INIT);
+    createServiceComponent("c1", "HDFS", "HDFS_CLIENT", State.INIT);
+
+    createServiceComponentHost("c1", "HDFS", "NAMENODE", "h1", State.INIT);
+    createServiceComponentHost("c1", "HDFS", "DATANODE", "h1", State.INIT);
+    createServiceComponentHost("c1", "HDFS", "HDFS_CLIENT", "h1", State.INIT);
+    createServiceComponentHost("c1", "HDFS", "HDFS_CLIENT", "h2", State.INIT);
+    createServiceComponentHost("c1", "HDFS", "HDFS_CLIENT", "h3", State.INIT);
+
+    installService("c1", "HDFS", false, false);
+
+    clusters.getHost("h3").setMaintenanceState(c1.getClusterId(), MaintenanceState.ON);
+
+    Long id = startService("c1", "HDFS", false ,true);
+
+    Assert.assertNotNull(id);
+    List<Stage> stages = actionDB.getAllStages(id);
+    Assert.assertNotNull(stages);
+    HostRoleCommand hrc1 = null;
+    HostRoleCommand hrc2 = null;
+    HostRoleCommand hrc3 = null;
+    for (Stage s : stages) {
+      for (HostRoleCommand hrc : s.getOrderedHostRoleCommands()) {
+        if (hrc.getRole().equals(Role.HDFS_CLIENT) && hrc.getHostName().equals("h1")) {
+          hrc1 = hrc;
+        } else if (hrc.getRole().equals(Role.HDFS_CLIENT) && hrc.getHostName().equals("h2")) {
+          hrc2 = hrc;
+        } else if (hrc.getRole().equals(Role.HDFS_CLIENT) && hrc.getHostName().equals("h3")) {
+          hrc3 = hrc;
+        }
+      }
+    }
+
+    Assert.assertNotNull(hrc1);
+    Assert.assertNotNull(hrc2);
+    Assert.assertNull(hrc3);
   }
 
   @Test

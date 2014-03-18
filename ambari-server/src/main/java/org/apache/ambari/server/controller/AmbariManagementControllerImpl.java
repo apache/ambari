@@ -1059,6 +1059,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Set<String> services = new HashSet<String>();
 
+    // This is done to account for services with client only components.
     if (changedServices != null) {
       for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
         if (State.STARTED != entry.getKey()) {
@@ -1073,14 +1074,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // Flatten changed Schs that are going to be Started
-    List<ServiceComponentHost> serviceComponentHosts = new
-      ArrayList<ServiceComponentHost>();
+    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
     if (changedScHosts != null && !changedScHosts.isEmpty()) {
       for (String sc : changedScHosts.keySet()) {
-        for (State state : changedScHosts.get(sc).keySet())
+        for (State state : changedScHosts.get(sc).keySet()) {
           if (state == State.STARTED) {
             serviceComponentHosts.addAll(changedScHosts.get(sc).get(state));
           }
+        }
       }
     }
 
@@ -1090,23 +1091,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    if (services.isEmpty())
+    if (services.isEmpty()) {
       return;
+    }
 
-    Map<String, List<ServiceComponentHost>> clientSchs = new
-      HashMap<String, List<ServiceComponentHost>>();
+    Map<String, List<ServiceComponentHost>> clientSchs = new HashMap<String, List<ServiceComponentHost>>();
 
     for (String serviceName : services) {
       Service s = cluster.getService(serviceName);
       for (String component : s.getServiceComponents().keySet()) {
-        List<ServiceComponentHost> potentialHosts = new
-          ArrayList<ServiceComponentHost>();
+        List<ServiceComponentHost> potentialHosts = new ArrayList<ServiceComponentHost>();
         ServiceComponent sc = s.getServiceComponents().get(component);
         if (sc.isClientComponent()) {
-          for (ServiceComponentHost potentialSch : sc
-            .getServiceComponentHosts().values()) {
-            if (!potentialSch.getHostState().equals(HostState
-                .HEARTBEAT_LOST)) {
+          for (ServiceComponentHost potentialSch : sc.getServiceComponentHosts().values()) {
+            Host host = clusters.getHost(potentialSch.getHostName());
+            // Host is alive and neither host nor SCH is in Maintenance State
+            if (!potentialSch.getHostState().equals(HostState.HEARTBEAT_LOST)
+                && potentialSch.getMaintenanceState() != MaintenanceState.ON
+                && host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.OFF) {
               potentialHosts.add(potentialSch);
             }
           }
@@ -1120,8 +1122,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (changedScHosts != null) {
       for (String sc : clientSchs.keySet()) {
-        Map<State, List<ServiceComponentHost>> schMap = new
-            HashMap<State, List<ServiceComponentHost>>();
+        Map<State, List<ServiceComponentHost>> schMap = new HashMap<State, List<ServiceComponentHost>>();
         schMap.put(State.INSTALLED, clientSchs.get(sc));
         changedScHosts.put(sc, schMap);
       }
