@@ -50,8 +50,14 @@ App.MainHiveJobDetailsView = Em.View.extend({
   }.property('showQuery'),
 
   summaryMetricType: 'input',
-  summaryMetricTypesDisplay : [ Em.I18n.t('jobs.hive.tez.metric.input'), Em.I18n.t('jobs.hive.tez.metric.output'), Em.I18n.t('jobs.hive.tez.metric.recordsRead'),
-                                Em.I18n.t('jobs.hive.tez.metric.recordsWrite'), Em.I18n.t('jobs.hive.tez.metric.tezTasks'), Em.I18n.t('jobs.hive.tez.metric.spilledRecords') ],
+  summaryMetricTypesDisplay : [
+    Em.I18n.t('jobs.hive.tez.metric.input'),
+    Em.I18n.t('jobs.hive.tez.metric.output'),
+   /* Em.I18n.t('jobs.hive.tez.metric.recordsRead'),
+    Em.I18n.t('jobs.hive.tez.metric.recordsWrite'), */
+    Em.I18n.t('jobs.hive.tez.metric.tezTasks'),
+    Em.I18n.t('jobs.hive.tez.metric.spilledRecords')
+  ],
   summaryMetricTypeDisplay: function(){
     return Em.I18n.t('jobs.hive.tez.metric.'+this.get('summaryMetricType'));
   }.property('summaryMetricType'),
