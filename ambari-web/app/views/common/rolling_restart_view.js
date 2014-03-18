@@ -141,6 +141,13 @@ App.RollingRestartView = Em.View.extend({
   }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
 
   /**
+   * List of host components with host in Maintenance mode
+   * @type {Array}
+   */
+  componentsWithMaintenanceHost: function() {
+    return this.get('allHostComponents').filterProperty('host.passiveState','ON');
+  }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
+  /**
    * List of host components without components in out-of-service state
    * If <code>staleConfigsOnly</code> is true, components with <code>staleConfigs</code> = false are also filtered
    * @type {Array}
@@ -169,9 +176,7 @@ App.RollingRestartView = Em.View.extend({
    * @type {String}
    */
   maintainanceMessage : function() {
-    var allCount = this.get('allHostComponents.length');
-    var nonMaintainCount = this.get('nonMaintainanceHostComponents.length');
-    var count = allCount - nonMaintainCount;
+    var count = this.get('componentsWithMaintenanceHost.length');
     if (count > 0) {
       var name = this.get('hostComponentDisplayName');
       if (count > 1) {
@@ -180,7 +185,7 @@ App.RollingRestartView = Em.View.extend({
       return Em.I18n.t('rollingrestart.dialog.msg.maintainance').format(count, name)
     }
     return null;
-  }.property('allHostComponents', 'nonMaintainanceHostComponents', 'hostComponentDisplayName'),
+  }.property('componentsWithMaintenanceHost', 'hostComponentDisplayName'),
 
   /**
    * @type {String}
