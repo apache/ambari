@@ -48,6 +48,11 @@ App.MainHostDetailsController = Em.Controller.extend({
     return this.get('content.hostComponents').filterProperty('service.isInPassive',false);
   }.property('content.hostComponents'),
 
+  serviceNonClientActiveComponents: function() {
+    return this.get('serviceActiveComponents').filterProperty('isClient',false);
+  }.property('serviceActiveComponents'),
+
+
   /**
    * Send specific command to server
    * @param url
@@ -1006,7 +1011,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   doStartAllComponents: function() {
     var self = this;
-    var components = this.get('serviceActiveComponents');
+    var components = this.get('serviceNonClientActiveComponents');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {
@@ -1017,7 +1022,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   
   doStopAllComponents: function() {
     var self = this;
-    var components = this.get('serviceActiveComponents');
+    var components = this.get('serviceNonClientActiveComponents');
     var componentsLength = components == null ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function() {
