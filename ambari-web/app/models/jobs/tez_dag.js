@@ -137,17 +137,24 @@ App.TezDagVertex = DS.Model.extend({
   recordReadCount : DS.attr('number'),
   recordWriteCount : DS.attr('number'),
 
-  totalReadBytesDisplay : function() {
-    return numberUtils.bytesToSize(this.get('fileReadBytes') + this.get('hdfsReadBytes'));
+  totalReadBytes : function() {
+    return this.get('fileReadBytes') + this.get('hdfsReadBytes');
   }.property('fileReadBytes', 'hdfsReadBytes'),
 
-  totalWriteBytesDisplay : function() {
-    return numberUtils.bytesToSize(this.get('fileWriteBytes') + this.get('hdfsWriteBytes'));
+  totalWriteBytes : function() {
+    return this.get('fileWriteBytes') + this.get('hdfsWriteBytes');
   }.property('fileWriteBytes', 'hdfsWriteBytes'),
 
+  totalReadBytesDisplay : function() {
+    return numberUtils.bytesToSize(this.get('totalReadBytes'));
+  }.property('totalReadBytes'),
+
+  totalWriteBytesDisplay : function() {
+    return numberUtils.bytesToSize(this.get('totalWriteBytes'));
+  }.property('totalWriteBytes'),
+
   durationDisplay : function() {
-    var duration = this.get('duration');
-    return dateUtils.timingFormat(duration, true);
+    return dateUtils.timingFormat(this.get('duration'), true);
   }.property('duration')
 });
 

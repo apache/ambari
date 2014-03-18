@@ -134,7 +134,7 @@ var wrapperView = Em.View.extend({
         func = function (a, b) {
           var a = misc.ipToInt(a.get(property.get('name')));
           var b = misc.ipToInt(b.get(property.get('name')));
-          if(order){
+          if (order) {
             return b - a;
           } else {
             return a - b;
@@ -145,7 +145,7 @@ var wrapperView = Em.View.extend({
         func = function (a, b) {
           var a = parseFloat(a.get(property.get('name')));
           var b = parseFloat(b.get(property.get('name')));
-          if(order){
+          if (order) {
             return b - a;
           } else {
             return a - b;

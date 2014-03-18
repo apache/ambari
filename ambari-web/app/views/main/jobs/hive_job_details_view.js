@@ -277,7 +277,7 @@ App.MainHiveJobDetailsVerticesTableView = App.TableView.extend({
 
   didInsertElement: function () {
     if(!this.get('controller.sortingColumn')){
-      var columns = this.get('childViews')[0].get('childViews')
+      var columns = this.get('childViews')[0].get('childViews');
       if(columns && columns.findProperty('name', 'name')){
         columns.findProperty('name','name').set('status', 'sorting_asc');
         this.get('controller').set('sortingColumn', columns.findProperty('name','name'))
@@ -299,19 +299,19 @@ App.MainHiveJobDetailsVerticesTableView = App.TableView.extend({
   }),
   inputSort: sort.fieldView.extend({
     column: 2,
-    name: 'totalReadBytesDisplay',
+    name: 'totalReadBytes',
     displayName: Em.I18n.t('apps.item.dag.input'),
     type: 'number'
   }),
   outputSort: sort.fieldView.extend({
     column: 3,
-    name: 'totalWriteBytesDisplay',
+    name: 'totalWriteBytes',
     displayName: Em.I18n.t('apps.item.dag.output'),
     type: 'number'
   }),
   durationSort: sort.fieldView.extend({
     column: 4,
-    name: 'durationDisplay',
+    name: 'duration',
     displayName: Em.I18n.t('apps.item.dag.duration'),
     type: 'number'
   })
