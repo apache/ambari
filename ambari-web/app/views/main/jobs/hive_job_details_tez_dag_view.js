@@ -300,6 +300,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    * visual (d3) terms.
    */
   drawTezDag : function() {
+    var self = this;
     var width = this.get('svgWidth');
     var svgLayer = this.get('svgVerticesLayer');
     var vertices = this.get('content.tezDag.vertices');
@@ -309,6 +310,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     var depthToNodes = []; // Array of id arrays
     var dagVisualModel = this.get('dagVisualModel');
     var selectedVertex = this.get('selectedVertex');
+    var minVertexDuration = Number.MAX_VALUE;
 
     //
     // CALCULATE DEPTH - BFS to get correct graph depth
@@ -362,7 +364,11 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
             recordsRead : -1,
             recordsWrite : -1,
             tezTasks : -1
-          }
+          },
+          duration: vertex.get('duration')
+        }
+        if (node.duration < minVertexDuration && node.duration > 0) {
+          minVertexDuration = node.duration;
         }
         vertexIdToNode[vertex.get('id')] = node;
         depthToNodes[node.depth].push(node);
@@ -478,7 +484,10 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var maxNodeHeight = 0;
       for ( var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
         var node = nodes[nodeIndex];
-        var nodeDim = this.getNodeCalculatedDimensions(node);
+        var nodeDim = this.getNodeCalculatedDimensions(node, minVertexDuration);
+        node.drawWidth = nodeDim.drawWidth;
+        node.drawHeight = nodeDim.drawHeight;
+        node.scale = nodeDim.scale;
         node.width = nodeDim.width;
         node.height = nodeDim.height;
         if (maxNodeHeight < node.height) {
@@ -496,7 +505,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           // fraction of parentage
           var childrenWidth = 0;
           node.children.forEach(function(child) {
-            childrenWidth += ((node.width + xGap) / child.parents.length);
+            var childDim = self.getNodeCalculatedDimensions(child, minVertexDuration);
+            childrenWidth += ((childDim.width + xGap) / child.parents.length);
           });
           updateNodeEffectiveWidth(node, Math.max(childrenWidth, (node.width+xGap)));
         } else {
@@ -573,8 +583,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     var nodeDrag = d3.behavior.drag().on('dragstart', function(node){
       d3.event.sourceEvent.stopPropagation();
       var rc = d3.mouse(this);
-      nodeDragData.nodeRelativeX = rc[0];
-      nodeDragData.nodeRelativeY = rc[1];
+      nodeDragData.nodeRelativeX = (rc[0] * node.scale);
+      nodeDragData.nodeRelativeY = (rc[1] * node.scale);
     }).on('drag', function(node){
       var nx = d3.event.x - nodeDragData.nodeRelativeX;
       var ny = d3.event.y - nodeDragData.nodeRelativeY;
@@ -611,9 +621,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     // Create Nodes
     var node = svgLayer.selectAll(".node").data(dagVisualModel.nodes).enter().append("g").attr("class", "node").call(nodeDrag);
     node.append("rect").attr("class", "background").attr("width", function(n) {
-      return n.width;
+      return n.drawWidth;
     }).attr("height", function(n) {
-      return n.height;
+      return n.drawHeight;
     }).attr("rx", "10").attr("filter", "url(#shadow)").on('mousedown', function(n) {
       var vertex = App.TezDagVertex.find(n.id);
       if (vertex != null) {
@@ -718,7 +728,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     iconContainer.append('rect').attr('width', '1em').attr('height', '1em').attr('class', 'vertex-icon-rect  svg-tooltip ');
     iconContainer.append('text').attr('dy', '10px').attr("font-family", "FontAwesome").attr('class', 'vertex-icon-text');
     node.attr("transform", function(d) {
-      return "translate(" + d.x + "," + d.y + ")";
+      return "translate(" + d.x + "," + d.y + ") scale("+d.scale+") ";
     });
     this.vertexMetricsUpdated();
     $('.svg-tooltip').tooltip({
@@ -758,7 +768,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     node.incomingY = newPosition[1];
     node.outgoingX = newPosition[0] + (node.width/2);
     node.outgoingY = newPosition[1] + node.height;
-    d3Vertex.attr('transform', 'translate(' + newPosition[0] + ',' + newPosition[1] + ')');
+    d3Vertex.attr('transform', 'translate(' + newPosition[0] + ',' + newPosition[1] + ') scale('+node.scale+') ');
     // Move links
     d3.selectAll('.link').filter(function(l) {
       if (l && (l.source === node || l.target === node)) {
@@ -869,20 +879,39 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   },
 
   /**
-   * Determines the node width and height in pixels.
+   * Determines the size of a node by taking into account its duration and
+   * number of operations performed.
    *
-   * Takes into account the various contents of the a node. { width: 200,
-   * height: 60 }
+   * @return {Object} Provides various metrics necessary in drawing a node.
+   * <code>
+   * {
+   *  width: 360, // Scaled width of the node
+   *  height: 80, // Scaled height of the node
+   *  scale: 2, // Scale used on vertex dimensions. Quickest vertex is scaled to 1.
+   *  drawWidth: 180, // Width of actual drawing (that will be scaled)
+   *  drawHeight: 40 // Height of actual drawing (that will be scaled)
+   * }
+   * </code>
    */
-  getNodeCalculatedDimensions : function(node) {
+  getNodeCalculatedDimensions : function(node, minVertexDuration) {
     var size = {
       width : 180,
-      height : 40
+      height : 40,
+      drawWidth : 180,
+      drawHeight : 40,
+      scale : 1
     }
     if (node.operations && node.operations.length > 0) {
       var opsHeight = Math.ceil(node.operations.length / 3);
-      size.height += (opsHeight * 20);
+      size.drawHeight += (opsHeight * 20);
     }
+    size.scale = (minVertexDuration < Number.MAX_VALUE && node.duration > 0) ? (node.duration / minVertexDuration) : 1;
+    if (size.scale < 1) {
+      size.scale = 1;
+    }
+    size.scale = Math.sqrt(size.scale);
+    size.width = size.drawWidth * size.scale;
+    size.height = size.drawHeight * size.scale;
     return size;
   }
 

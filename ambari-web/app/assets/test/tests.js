@@ -106,6 +106,7 @@ require('test/views/main/dashboard/widgets/namenode_cpu_test');
 require('test/views/main/host/summary_test');
 require('test/views/main/host/details/host_component_view_test');
 require('test/views/main/host/details/host_component_views/decommissionable_test');
+require('test/views/main/jobs/hive_job_details_tez_dag_view_test');
 require('test/views/common/configs/services_config_test');
 require('test/views/wizard/step9_view_test');
 require('test/models/host_test');
