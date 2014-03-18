@@ -45,7 +45,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   serviceActiveComponents: function() {
-    return this.get('content.hostComponents').filterProperty('service.isInPassive',true);
+    return this.get('content.hostComponents').filterProperty('service.isInPassive',false);
   }.property('content.hostComponents'),
 
   /**
