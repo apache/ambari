@@ -96,6 +96,11 @@
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
                   <arg value="build"/>
                 </exec>
+                <!-- sets Ambari version to make it accessible from code -->
+                <exec dir="${basedir}" executable="sh" failonerror="false">
+                  <arg value="${basedir}/set-ambari-version.sh"/>
+                  <arg value="${newVersion}"/>
+                </exec>
                 <!-- sets default stack and version to use for install -->
                 <exec dir="${basedir}" executable="sh" failonerror="false">
                   <arg value="${basedir}/set-default-stack-version.sh"/>
