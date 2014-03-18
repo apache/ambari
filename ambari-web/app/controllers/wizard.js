@@ -748,6 +748,13 @@ App.WizardController = Em.Controller.extend({
         // if modified configs detected push all service's configs for update
         if (configs.length)
           updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
+        // watch for properties that are not modified but have to be updated
+        if (_content.get('configs').someProperty('forceUpdate')) {
+          // check for already added modified properties
+          if (!updateServiceConfigProperties.findProperty('serviceName', _content.get('serviceName'))) {
+            updateServiceConfigProperties = updateServiceConfigProperties.concat(serviceConfigProperties.filterProperty('serviceName',_content.get('serviceName')));
+          }
+        }
       }
     }, this);
     this.setDBProperty('serviceConfigProperties', serviceConfigProperties);

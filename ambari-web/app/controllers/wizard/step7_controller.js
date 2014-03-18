@@ -332,6 +332,7 @@ App.WizardStep7Controller = Em.Controller.extend({
         var config = configs.findProperty('name', configName);
         var predefinedConfig = App.config.get('preDefinedSiteProperties').findProperty('name', configName);
         config.value = config.defaultValue = config.value.format(gangliaServerHost);
+        config.forceUpdate = true;
       }, this);
     }
   },
