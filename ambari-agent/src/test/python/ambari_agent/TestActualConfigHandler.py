@@ -98,6 +98,7 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(tags1, handler.read_actual_component('HDFS_CLIENT'))
     handler.write_client_components('HDFS', tags2)
     self.assertEquals(tags2, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
 
     os.remove(os.path.join(tmpdir, "DATANODE_" + ActualConfigHandler.CONFIG_NAME))
     os.remove(os.path.join(tmpdir, "HBASE_CLIENT_" + ActualConfigHandler.CONFIG_NAME))
