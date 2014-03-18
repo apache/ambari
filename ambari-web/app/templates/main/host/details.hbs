@@ -25,7 +25,7 @@
       <span class="label label-success alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{t hosts.host.alert.noAlerts}}</span>
     {{/if}}
     {{#unless view.isActive}}
-      <span class="alert alert-warning pull-right"><span class="icon-warning-sign"></span> {{t hosts.host.passive.mode}}</span>
+      <span class="host-maintenance-notice pull-right"><span class="icon-medkit"></span> {{t hosts.host.passive.mode}}</span>
     {{/unless}}
   </div>  
   <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
