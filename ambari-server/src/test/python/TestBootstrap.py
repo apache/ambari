@@ -241,7 +241,7 @@ class TestBootstrap(TestCase):
     self.assertEquals(command_str, "['scp', '-o', 'ConnectTimeout=60', '-o', "
         "'BatchMode=yes', '-o', 'StrictHostKeyChecking=no', '-i', 'sshkey_file',"
         " 'src/file', 'root@dummy-host:dst/file']")
-    self.assertEqual(retcode, 0)
+    self.assertEqual(retcode["exitstatus"], 0)
 
     log['text'] = ""
     #unsuccessfull run
@@ -251,7 +251,7 @@ class TestBootstrap(TestCase):
 
     self.assertTrue(log_sample in log['text'])
     self.assertTrue(error_sample in log['text'])
-    self.assertEqual(retcode, 1)
+    self.assertEqual(retcode["exitstatus"], 1)
 
 
   @patch("subprocess.Popen")
@@ -284,7 +284,7 @@ class TestBootstrap(TestCase):
     self.assertEquals(command_str, "['ssh', '-o', 'ConnectTimeOut=60', '-o', "
             "'StrictHostKeyChecking=no', '-o', 'BatchMode=yes', '-tt', '-i', "
             "'sshkey_file', 'root@dummy-host', 'dummy-command']")
-    self.assertEqual(retcode, 0)
+    self.assertEqual(retcode["exitstatus"], 0)
 
     log['text'] = ""
     #unsuccessfull run
@@ -294,7 +294,7 @@ class TestBootstrap(TestCase):
 
     self.assertTrue(log_sample in log['text'])
     self.assertTrue(error_sample in log['text'])
-    self.assertEqual(retcode, 1)
+    self.assertEqual(retcode["exitstatus"], 1)
 
     log['text'] = ""
     # unsuccessful run with error message
@@ -308,7 +308,7 @@ class TestBootstrap(TestCase):
     self.assertTrue(log_sample in log['text'])
     self.assertTrue(error_sample in log['text'])
     self.assertTrue(dummy_error_message in log['text'])
-    self.assertEqual(retcode, 1)
+    self.assertEqual(retcode["exitstatus"], 1)
 
 
   def test_getOsCheckScript(self):
@@ -407,16 +407,16 @@ class TestBootstrap(TestCase):
     getRepoDir.return_value  = "RepoDir"
     getRemoteName_mock.return_value = "RemoteName"
     getRepoFile_mock.return_value = "RepoFile"
-    expected1 = 42
-    expected2 = 17
-    expected3 = 1
+    expected1 = {"exitstatus": 42, "log": "log42", "errormsg": "errorMsg"}
+    expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
+    expected3 = {"exitstatus": 1, "log": "log1", "errormsg": "errorMsg"}
     scp_init_mock.return_value = None
     ssh_init_mock.return_value = None
     # Testing max retcode return
     scp_run_mock.side_effect = [expected1, expected3]
     ssh_run_mock.side_effect = [expected2]
     res = bootstrap_obj.copyNeededFiles()
-    self.assertEquals(res, expected1)
+    self.assertEquals(res, expected1["exitstatus"])
     input_file = str(scp_init_mock.call_args[0][3])
     remote_file = str(scp_init_mock.call_args[0][4])
     self.assertEqual(input_file, "setupAgentFile")
@@ -424,21 +424,21 @@ class TestBootstrap(TestCase):
     command = str(ssh_init_mock.call_args[0][3])
     self.assertEqual(command, "MoveRepoFileCommand")
     # Another order
-    expected1 = 0
-    expected2 = 17
-    expected3 = 1
+    expected1 = {"exitstatus": 0, "log": "log0", "errormsg": "errorMsg"}
+    expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
+    expected3 = {"exitstatus": 1, "log": "log1", "errormsg": "errorMsg"}
     scp_run_mock.side_effect = [expected1, expected3]
     ssh_run_mock.side_effect = [expected2]
     res = bootstrap_obj.copyNeededFiles()
-    self.assertEquals(res, expected2)
+    self.assertEquals(res, expected2["exitstatus"])
     # yet another order
-    expected1 = 33
-    expected2 = 17
-    expected3 = 42
+    expected1 = {"exitstatus": 33, "log": "log33", "errormsg": "errorMsg"}
+    expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
+    expected3 = {"exitstatus": 42, "log": "log42", "errormsg": "errorMsg"}
     scp_run_mock.side_effect = [expected1, expected3]
     ssh_run_mock.side_effect = [expected2]
     res = bootstrap_obj.copyNeededFiles()
-    self.assertEquals(res, expected3)
+    self.assertEquals(res, expected3["exitstatus"])
 
 
   @patch.object(Bootstrap, "getOsCheckScriptRemoteLocation")
@@ -571,14 +571,14 @@ class TestBootstrap(TestCase):
     bootstrap_obj = Bootstrap("hostname", shared_state)
     getPasswordFile_mock.return_value = "PasswordFile"
      # Testing max retcode return
-    expected1 = 42
-    expected2 = 17
+    expected1 = {"exitstatus": 42, "log": "log42", "errormsg": "errorMsg"}
+    expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     scp_init_mock.return_value = None
     scp_run_mock.return_value = expected1
     ssh_init_mock.return_value = None
     ssh_run_mock.return_value = expected2
     res = bootstrap_obj.copyPasswordFile()
-    self.assertEquals(res, expected1)
+    self.assertEquals(res, expected1["exitstatus"])
     input_file = str(scp_init_mock.call_args[0][3])
     remote_file = str(scp_init_mock.call_args[0][4])
     self.assertEqual(input_file, "PasswordFile")
@@ -586,8 +586,8 @@ class TestBootstrap(TestCase):
     command = str(ssh_init_mock.call_args[0][3])
     self.assertEqual(command, "chmod 600 PasswordFile")
     # Another order
-    expected1 = 0
-    expected2 = 17
+    expected1 = {"exitstatus": 0, "log": "log0", "errormsg": "errorMsg"}
+    expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     scp_run_mock.return_value = expected1
     ssh_run_mock.return_value = expected2
 
@@ -620,8 +620,8 @@ class TestBootstrap(TestCase):
                                None, "8440")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Normal case
-    ret = bootstrap_obj.try_to_execute(lambda : expected)
-    self.assertEqual(ret, expected)
+    ret = bootstrap_obj.try_to_execute(lambda : {"exitstatus": expected})
+    self.assertEqual(ret["exitstatus"], expected)
     self.assertFalse(write_mock.called)
 
     write_mock.reset_mock()
@@ -629,7 +629,7 @@ class TestBootstrap(TestCase):
     def act():
       raise IOError()
     ret = bootstrap_obj.try_to_execute(act)
-    self.assertEqual(ret, 177)
+    self.assertEqual(ret["exitstatus"], 177)
     self.assertTrue(write_mock.called)
 
 
@@ -648,7 +648,7 @@ class TestBootstrap(TestCase):
     # Testing workflow without password
     bootstrap_obj.copied_password_file = False
     hasPassword_mock.return_value = False
-    try_to_execute_mock.return_value = 0
+    try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
     self.assertEqual(try_to_execute_mock.call_count, 5) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
@@ -659,7 +659,7 @@ class TestBootstrap(TestCase):
     # Testing workflow with password
     bootstrap_obj.copied_password_file = True
     hasPassword_mock.return_value = True
-    try_to_execute_mock.return_value = 0
+    try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
     self.assertEqual(try_to_execute_mock.call_count, 8) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
@@ -672,7 +672,7 @@ class TestBootstrap(TestCase):
     # Testing workflow when some action failed before copying password
     bootstrap_obj.copied_password_file = False
     hasPassword_mock.return_value = False
-    try_to_execute_mock.side_effect = [0, 1]
+    try_to_execute_mock.side_effect = [{"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}, {"exitstatus": 1, "log":"log1", "errormsg":"errormsg1"}]
     bootstrap_obj.run()
     self.assertEqual(try_to_execute_mock.call_count, 2) # <- Adjust if changed
     self.assertTrue("ERROR" in error_mock.call_args[0][0])
@@ -685,7 +685,7 @@ class TestBootstrap(TestCase):
     # Testing workflow when some action failed after copying password
     bootstrap_obj.copied_password_file = True
     hasPassword_mock.return_value = True
-    try_to_execute_mock.side_effect = [0, 42, 0]
+    try_to_execute_mock.side_effect = [{"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}, {"exitstatus": 42, "log":"log42", "errormsg":"errormsg42"}, {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}]
     bootstrap_obj.run()
     self.assertEqual(try_to_execute_mock.call_count, 3) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
@@ -699,7 +699,7 @@ class TestBootstrap(TestCase):
     # removing password failed too
     bootstrap_obj.copied_password_file = True
     hasPassword_mock.return_value = True
-    try_to_execute_mock.side_effect = [0, 17, 19]
+    try_to_execute_mock.side_effect = [{"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}, {"exitstatus": 17, "log":"log17", "errormsg":"errormsg17"}, {"exitstatus": 19, "log":"log19", "errormsg":"errormsg19"}]
     bootstrap_obj.run()
     self.assertEqual(try_to_execute_mock.call_count, 3) # <- Adjust if changed
     self.assertTrue("ERROR" in write_mock.call_args_list[0][0][0])

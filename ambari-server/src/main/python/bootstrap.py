@@ -84,12 +84,13 @@ class SCP:
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = scpstat.communicate()
+    errorMsg = log[1]
     log = log[0] + "\n" + log[1]
     self.host_log.write("==========================")
     self.host_log.write(log)
     self.host_log.write("scp " + self.inputFile)
     self.host_log.write("host=" + self.host + ", exitcode=" + str(scpstat.returncode) )
-    return scpstat.returncode
+    return {"exitstatus": scpstat.returncode, "log": log, "errormsg": errorMsg}
 
 
 
@@ -127,7 +128,7 @@ class SSH:
     self.host_log.write(log)
     self.host_log.write("SSH command execution finished")
     self.host_log.write("host=" + self.host + ", exitcode=" + str(sshstat.returncode))
-    return sshstat.returncode
+    return  {"exitstatus": sshstat.returncode, "log": log, "errormsg": errorMsg}
 
 
 
@@ -274,7 +275,7 @@ class Bootstrap(threading.Thread):
     retcode3 = scp.run()
     self.host_log.write("\n")
 
-    return max(retcode1, retcode2, retcode3)
+    return max(retcode1["exitstatus"], retcode2["exitstatus"], retcode3["exitstatus"])
 
 
   def getAmbariVersion(self):
@@ -392,7 +393,7 @@ class Bootstrap(threading.Thread):
     retcode2 = ssh.run()
 
     self.host_log.write("Copying password file finished")
-    return max(retcode1, retcode2)
+    return max(retcode1["exitstatus"], retcode2["exitstatus"])
 
 
   def changePasswordFileModeOnHost(self):
@@ -419,11 +420,11 @@ class Bootstrap(threading.Thread):
     return retcode
 
   def try_to_execute(self, action):
+    last_retcode = {"exitstatus": 177, "log":"Try to execute '{0}'".format(str(action)), "errormsg":"Execute of '{0}' failed".format(str(action))}
     try:
       last_retcode = action()
     except Exception, e:
       self.host_log.write("Traceback: " + traceback.format_exc())
-      last_retcode = 177
     return last_retcode
 
   def run(self):
@@ -446,17 +447,20 @@ class Bootstrap(threading.Thread):
     last_retcode = 0
     while action_queue and last_retcode == 0:
       action = action_queue.pop(0)
-      last_retcode = self.try_to_execute(action)
+      ret = self.try_to_execute(action)
+      last_retcode = ret["exitstatus"]
+      err_msg = ret["errormsg"]
+      std_out = ret["log"]
     # Checking execution result
     if last_retcode != 0:
       message = "ERROR: Bootstrap of host {0} fails because previous action " \
-        "finished with non-zero exit code ({1})".format(self.host, last_retcode)
+        "finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(self.host, last_retcode, err_msg, std_out)
       self.host_log.write(message)
       logging.error(message)
     # Try to delete password file
     if self.hasPassword() and self.copied_password_file:
       retcode = self.try_to_execute(self.deletePasswordFile)
-      if retcode != 0:
+      if retcode["exitstatus"] != 0:
         message = "WARNING: failed to delete password file " \
           "at {0}. Please delete it manually".format(self.getPasswordFile())
         self.host_log.write(message)
