@@ -75,9 +75,9 @@
         </thead>
 
         <tbody>
-        {{#if controller.visibleHosts.length}}
-          {{#each host in controller.visibleHosts}}
-            {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
+        {{#if isAnyHostDisplayed}}
+          {{#each host in hosts}}
+            {{#view App.HostStatusView objBinding="host" controllerBinding="controller" classBinding="host.isVisible::hidden"}}
               <td>
                 {{host.name}}
               </td>

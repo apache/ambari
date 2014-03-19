@@ -39,10 +39,9 @@ App.WizardStep9Controller = Em.Controller.extend({
   hosts: [],
 
   /*
-   * Array of above hosts that should be made visible depending upon "Host State Filter" chosen <Possible filter values:
-   * All, In Progress, Warning, Success and Fail>
+   * Indicate whether to show the message(that there are no hosts to display) instead of list of hosts
    */
-  visibleHosts: [],
+  isAnyHostDisplayed: true,
 
   /**
    * overall progress of <Install,Start and Test> page shown as progress bar on the top of the page
@@ -236,16 +235,26 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   updateVisibleHosts: function () {
     var targetStatus = this.get('category.hostStatus');
-    var visibleHosts = (targetStatus === 'all') ? this.get('hosts') : this.get('hosts').filter(function (_host) {
-      if (targetStatus == 'inProgress') {
-        return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
-      } else if (targetStatus === 'failed') {
-        return (_host.get('status') === 'failed' || _host.get('status') === 'heartbeat_lost');
-      } else {
-        return (_host.get('status') == targetStatus);
-      }
-    }, this);
-    this.set('visibleHosts', visibleHosts);
+    var isAnyHostDisplayed = false;
+    if (targetStatus === 'all') {
+      isAnyHostDisplayed = true;
+      this.get('hosts').setEach('isVisible', true);
+    } else {
+      this.get('hosts').forEach(function (_host) {
+        var isVisible = false;
+        var status = _host.get('status');
+        if (targetStatus == 'inProgress') {
+          isVisible = (status == 'info' || status == 'pending' || status == 'in_progress');
+        } else if (targetStatus === 'failed') {
+          isVisible = (status === 'failed' || status === 'heartbeat_lost');
+        } else {
+          isVisible = (status == targetStatus);
+        }
+        isAnyHostDisplayed = (isAnyHostDisplayed || isVisible);
+        _host.set('isVisible', isVisible);
+      }, this)
+    }
+    this.set('isAnyHostDisplayed', isAnyHostDisplayed);
   }.observes('category'),
 
   /**
