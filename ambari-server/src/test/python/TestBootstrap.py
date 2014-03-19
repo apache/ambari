@@ -620,10 +620,17 @@ class TestBootstrap(TestCase):
                                None, "8440")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Normal case
-    ret = bootstrap_obj.try_to_execute(lambda : {"exitstatus": expected})
+    def act_normal_return_int():
+      return 43
+    ret = bootstrap_obj.try_to_execute(act_normal_return_int)
     self.assertEqual(ret["exitstatus"], expected)
     self.assertFalse(write_mock.called)
-
+    write_mock.reset_mock()
+    def act_normal_return():
+        return {"exitstatus": 43}
+    ret = bootstrap_obj.try_to_execute(act_normal_return)
+    self.assertEqual(ret["exitstatus"], expected)
+    self.assertFalse(write_mock.called)
     write_mock.reset_mock()
     # Exception scenario
     def act():

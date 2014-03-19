@@ -422,7 +422,11 @@ class Bootstrap(threading.Thread):
   def try_to_execute(self, action):
     last_retcode = {"exitstatus": 177, "log":"Try to execute '{0}'".format(str(action)), "errormsg":"Execute of '{0}' failed".format(str(action))}
     try:
-      last_retcode = action()
+      retcode = action()
+      if isinstance(retcode, int):
+        last_retcode["exitstatus"] = retcode
+      else:
+        last_retcode = retcode
     except Exception, e:
       self.host_log.write("Traceback: " + traceback.format_exc())
     return last_retcode
