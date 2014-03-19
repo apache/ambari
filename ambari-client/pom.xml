@@ -146,6 +146,31 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <dataSet>
+            <data>
+              <src>${project.build.directory}/${project.artifactId}-${project.version}/ambari_client</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${install.dir}</prefix>
+              </mapper>
+            </data>
+          </dataSet>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
