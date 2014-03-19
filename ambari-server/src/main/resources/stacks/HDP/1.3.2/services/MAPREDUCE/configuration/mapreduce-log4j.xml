@@ -25,6 +25,8 @@
   <property>
     <name>content</name>
     <value>
+#Relative to Mapred LOG DIR Prefix
+mapred.log.dir=.
 #
 # Job Summary Appender
 #
@@ -36,7 +38,7 @@ hadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}
 hadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log
 log4j.appender.JSA=org.apache.log4j.DailyRollingFileAppender
 
-log4j.appender.JSA.File={{hdfs_log_dir_prefix}}/{{mapred_user}}/${hadoop.mapreduce.jobsummary.log.file}
+log4j.appender.JSA.File=${mapred.log.dir}/${hadoop.mapreduce.jobsummary.log.file}
 
 log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
 log4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n

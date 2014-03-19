@@ -25,6 +25,8 @@
   <property>
     <name>content</name>
     <value>
+#Relative to Yarn Log Dir Prefix
+yarn.log.dir=.
 #
 # Job Summary Appender
 #
@@ -51,7 +53,7 @@ yarn.server.resourcemanager.appsummary.logger=${hadoop.root.logger}
 #    - yarn.server.resourcemanager.appsummary.log.file (resource manager app summary log filename)
 #    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)
 log4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
-log4j.appender.RMSUMMARY.File={{yarn_log_dir_prefix}}/{{yarn_user}}/${yarn.server.resourcemanager.appsummary.log.file}
+log4j.appender.RMSUMMARY.File=${yarn.log.dir}/${yarn.server.resourcemanager.appsummary.log.file}
 log4j.appender.RMSUMMARY.MaxFileSize=256MB
 log4j.appender.RMSUMMARY.MaxBackupIndex=20
 log4j.appender.RMSUMMARY.layout=org.apache.log4j.PatternLayout
