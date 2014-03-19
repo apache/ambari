@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-<!-- Licensed under the Apache License, Version 2.0 (the "License"); you 
-  may not use this file except in compliance with the License. You may obtain 
-  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless 
-  required by applicable law or agreed to in writing, software distributed 
-  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
-  OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
-  the specific language governing permissions and limitations under the License. 
+<!-- Licensed under the Apache License, Version 2.0 (the "License"); you
+  may not use this file except in compliance with the License. You may obtain
+  a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless
+  required by applicable law or agreed to in writing, software distributed
+  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+  OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
   See accompanying LICENSE file. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -25,6 +25,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
+    <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
+    <deb.architecture>amd64</deb.architecture>
+    <deb.dependency.list>openssl, postgresql (&gt;= 8.1), ${deb.python.ver}</deb.dependency.list>
+
     <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
@@ -426,6 +430,348 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <!-- unbinds rpm creation from maven lifecycle -->
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <dataSet>
+            <data>
+              <type>template</type>
+              <paths>
+                <path>/usr/lib/ambari-server</path>
+                <path>/var/run/ambari-server</path>
+                <path>/var/run/ambari-server/bootstrap</path>
+                <path>/var/log/ambari-server</path>
+                <path>/var/lib/ambari-server/resources/upgrade</path>
+              </paths>
+            </data>
+            <!-- TODO: should be included all subdirs, if exists-->
+            <data>
+              <src>${basedir}/../ambari-web/public</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/lib/ambari-server/web</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>${project.build.directory}/${project.artifactId}-${project.version}-dist/${project.artifactId}-${project.version}/lib</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/lib</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>src/main/python/ambari-server.py</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/sbin</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+            <data>
+              <src>src/main/python/ambari-server.py</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/sbin</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+            <data>
+              <src>${basedir}/target/src/ambari-server</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/sbin</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+          <data>
+            <src>conf/unix/ambari.properties</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/etc/ambari-server/conf</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>conf/unix/log4j.properties</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/etc/ambari-server/conf</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>conf/unix/krb5JAASLogin.conf</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/etc/ambari-server/conf</prefix>
+            </mapper>
+          </data>
+           <!-- /q001 -->
+          <data>
+            <src>conf/unix/ambari-env.sh</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>700</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>conf/unix/ca.config</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/keys</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/db</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/keys/db</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>700</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>target/classes/Ambari-DDL-Postgres-CREATE.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/Ambari-DDL-Postgres-DROP.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>target/classes/Ambari-DDL-Postgres-REMOTE-CREATE.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>target/classes/Ambari-DDL-Oracle-CREATE.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>target/classes/Ambari-DDL-MySQL-CREATE.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/Ambari-DDL-Oracle-DROP.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/Ambari-DDL-MySQL-DROP.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/hive-schema-0.10.0.oracle.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/hive-schema-0.12.0.oracle.sql</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>${project.build.directory}/DBConnectionVerification.jar</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/role_command_order.json</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/scripts</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/scripts</prefix>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/python/UpgradeHelper_HDP2.py</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/scripts</prefix>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/upgrade/ddl</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/upgrade/ddl</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/upgrade/dml</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/upgrade/dml</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>target/classes/stacks/HDP</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/stacks/HDP</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/python/ambari_server</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/usr/lib/python2.6/site-packages/ambari_server</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/python/bootstrap.py</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/usr/lib/python2.6/site-packages/ambari_server</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/python/setupAgent.py</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/usr/lib/python2.6/site-packages/ambari_server</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/python/os_type_check.sh</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/usr/lib/python2.6/site-packages/ambari_server</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>${basedir}/target/src/version</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/custom_action_definitions</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/custom_action_definitions</prefix>
+            </mapper>
+          </data>
+          <data>
+            <src>src/main/resources/custom_actions</src>
+            <type>directory</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/resources/custom_actions</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>755</filemode>
+            </mapper>
+          </data>
+          </dataSet>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
         <version>2.5.2</version>
@@ -471,7 +817,7 @@
         <groupId>com.atlassian.maven.plugins</groupId>
         <artifactId>maven-clover2-plugin</artifactId>
         <version>3.1.11</version>
-        <!-- <configuration> <licenseLocation>/path/to/clover.license</licenseLocation> 
+        <!-- <configuration> <licenseLocation>/path/to/clover.license</licenseLocation>
           </configuration> -->
       </plugin>
       <plugin>
@@ -512,6 +858,39 @@
             <goals>
               <goal>run</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+          <executions>
+           <execution>
+            <id>copy-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/src</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>sbin</directory>
+                  <includes>
+                    <include>ambari-server</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+                <resource>
+                  <directory>..</directory>
+                  <includes>
+                    <include>version</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -870,7 +1249,7 @@
       <version>2.2.1</version>
     </dependency>
   </dependencies>
-  <!--<reporting> <plugins> <plugin> <groupId>org.codehaus.mojo</groupId> 
-    <artifactId>findbugs-maven-plugin</artifactId> <version>2.5.2</version> </plugin> 
+  <!--<reporting> <plugins> <plugin> <groupId>org.codehaus.mojo</groupId>
+    <artifactId>findbugs-maven-plugin</artifactId> <version>2.5.2</version> </plugin>
     </plugins> </reporting> -->
 </project>

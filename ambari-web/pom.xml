@@ -59,6 +59,22 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <!-- unbinds deb creation from maven lifecycle -->
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
@@ -127,7 +143,7 @@
             </goals>
             <configuration>
               <target name="ambari-web-test">
-                <!-- 
+                <!--
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
                   <arg value="test"/>
                 </exec>
