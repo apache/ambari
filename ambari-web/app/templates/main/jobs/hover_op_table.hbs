@@ -1,0 +1,20 @@
+<table id="hover-op-table" class="table table-bordered">
+    <thead>
+    <tr>
+        <th>{{t common.name}}</th>
+        <th>{{t common.value}}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each keys in content}}
+        <tr>
+            <td>
+              {{keys.name}}
+            </td>
+            <td>
+              {{keys.value}}
+            </td>
+        </tr>
+    {{/each}}
+    </tbody>
+</table>

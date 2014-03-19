@@ -292,6 +292,25 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       'content.tezDag.vertices.@each.recordReadCount', 'content.tezDag.vertices.@each.recordWriteCount',
       'content.tezDag.vertices.@each.state', 'content.tezDag.vertices.@each.spilledRecords'),
 
+  createOperationPlanObj: function (vertexName, op) {
+    var operatorPlanObj = [];
+    var text = this.get('content.tezDag.vertices').findProperty('name', vertexName).get('operationPlan');
+    text = text.replace(/:"/g,'"');
+    var jsonText =  $.parseJSON(text);
+    var jsonText = op.findIn(jsonText);
+    for (var key in jsonText) {
+      if (jsonText.hasOwnProperty(key) && typeof(jsonText[key]) == "string") {
+        operatorPlanObj.push(
+          {
+            name: key,
+            value: jsonText[key]
+          }
+        );
+      }
+    }
+    return operatorPlanObj;
+  },
+
   /**
    * Determines layout and creates Tez graph. In the process it populates the
    * visual model into 'dagVisualModel' field.
@@ -574,7 +593,6 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     //
     // Draw SVG
     //
-    var self = this;
     var force = d3.layout.force().nodes(dagVisualModel.nodes).links(dagVisualModel.links).start();
     var nodeDragData = {
       nodeRelativeX : 0,
@@ -648,61 +666,15 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           }
           return opCount[op];
         }).on('mousedown', function(op) {
-          var opIndex = this.getAttribute ? this.getAttribute("opIndex") : null;
-          if (numberUtils.validateInteger(opIndex) == null) {
-            console.log("Clicked on operator: ", op, " [", opIndex, "]");
-            var textArea = document.getElementById('tez-vertex-operator-plan-textarea');
-            if (textArea && textArea.value) {
-              var text = textArea.value;
-              var opText = "\"" + op + "\"";
-              var count = 1;
-              var index = text.indexOf(opText);
-              while (index > -1 && count < opIndex) {
-                index = text.indexOf(opText, index + 1);
-                count++;
-              }
-              if (index > -1) {
-                var start = index;
-                var end = index;
-                var matchCount = 0;
-                var splits = text.substring(start).split(/({|})/);
-                splits.every(function(s) {
-                  if (s == '{') {
-                    matchCount++;
-                  } else if (s == '}') {
-                    matchCount--;
-                    if (matchCount == 0) {
-                      end += s.length;
-                      return false;
-                    }
-                  }
-                  end += s.length;
-                  return true;
-                });
-                textArea.setSelectionRange(start, end);
-                // Now scroll to the selection
-                var lines = 0;
-                var totalLines = 0;
-                var index = text.indexOf("\n");
-                while (index > 0) {
-                  index = text.indexOf("\n", index + 1);
-                  if (index < start) {
-                    lines++;
-                  }
-                  totalLines++;
-                }
-                console.log("Selection is from row ", lines, " out of ", totalLines);
-                lines -= 5;
-                var lineHeight = Math.floor(textArea.scrollHeight / totalLines);
-                var scrollHeight = Math.round(lines * lineHeight);
-                textArea.scrollTop = scrollHeight;
-              }
-            }
-          }
-        });
-        opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "50").attr("height", "16").attr("title", function(op) {
-          return op;
-        });
+          var operatorPlanObj = self.createOperationPlanObj(n.name, op);
+          self.get('parentView').set('operatorPlan', operatorPlanObj);
+        }).on('mouseover', function(op) {
+          var operatorPlanObj = self.createOperationPlanObj(n.name, op);
+          var template = App.HoverOpTable.create({content: operatorPlanObj}) ;
+          $(event.currentTarget).find('.svg-tooltip').attr('title', template.renderToBuffer().string()).tooltip('fixTitle').tooltip('show');
+        })
+
+        opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "50").attr("height", "16");
         opGroups.append("text").attr("x", "2").attr("dy", "1em").text(function(op) {
           return op != null ? op.split(' ')[0] : '';
         });
@@ -915,4 +887,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     return size;
   }
 
+});
+
+App.HoverOpTable = Ember.View.extend({
+  templateName : require('templates/main/jobs/hover_op_table')
 });

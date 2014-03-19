@@ -172,13 +172,24 @@
                         <td>{{view.selectedVertexIODisplay.records.write}}</td>
                       </tr>
                     {{/if}}
-                    <tr>
-                      <td>{{t jobs.hive.tez.operatorPlan}}</td>
-                      <td></td>
-                      <td></td>
-                    </tr>
                   </table>
-                  {{view Ember.TextArea valueBinding="view.selectedVertex.operationPlan" rows="15" id="tez-vertex-operator-plan-textarea"}}
+                  <p>{{t jobs.hive.tez.operatorPlan}}</p>
+                  <table id="operator-table" class="table table-bordered table-striped">
+                    <thead>
+                      <tr>
+                        <th>{{t common.name}}</th>
+                        <th>{{t common.value}}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{#each keys in view.operatorPlan}}
+                        <tr>
+                          <td>{{keys.name}}</td>
+                          <td>{{keys.value}}</td>
+                        </tr>
+                      {{/each}}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

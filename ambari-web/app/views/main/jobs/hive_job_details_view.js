@@ -26,6 +26,7 @@ App.MainHiveJobDetailsView = Em.View.extend({
   templateName : require('templates/main/jobs/hive_job_details'),
 
   selectedVertex : null,
+  operatorPlan: [],
   content : null,
   zoomScaleFrom : 1,
   zoomScaleTo: 2,
