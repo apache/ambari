@@ -861,39 +861,39 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.6</version>
-          <executions>
-           <execution>
-            <id>copy-resources</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/target/src</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>sbin</directory>
-                  <includes>
-                    <include>ambari-server</include>
-                  </includes>
-                  <filtering>true</filtering>
-                </resource>
-                <resource>
-                  <directory>..</directory>
-                  <includes>
-                    <include>version</include>
-                  </includes>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-resources-plugin</artifactId>-->
+        <!--<version>2.6</version>-->
+          <!--<executions>-->
+           <!--<execution>-->
+            <!--<id>copy-resources</id>-->
+            <!--<phase>prepare-package</phase>-->
+            <!--<goals>-->
+              <!--<goal>copy-resources</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<outputDirectory>${basedir}/target/src</outputDirectory>-->
+              <!--<resources>-->
+                <!--<resource>-->
+                  <!--<directory>sbin</directory>-->
+                  <!--<includes>-->
+                    <!--<include>ambari-server</include>-->
+                  <!--</includes>-->
+                  <!--<filtering>true</filtering>-->
+                <!--</resource>-->
+                <!--<resource>-->
+                  <!--<directory>..</directory>-->
+                  <!--<includes>-->
+                    <!--<include>version</include>-->
+                  <!--</includes>-->
+                  <!--<filtering>true</filtering>-->
+                <!--</resource>-->
+              <!--</resources>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
     </plugins>
     <resources>
       <resource>
