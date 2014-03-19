@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
@@ -383,36 +382,12 @@ class ActionScheduler implements Runnable {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
-        Service svc = cluster.getService(c.getServiceName());
-        ServiceComponent svcComp = svc.getServiceComponent(roleStr);
 
-        // Check that service host component is not deleted
-        Map<String, ServiceComponentHost> scHosts =
-                svcComp.getServiceComponentHosts();
-        if (! scHosts.containsKey(host)) {
-          String message = String.format(
-                  "Service component host not found when trying to " +
-                          "schedule an execution command. " +
-                          "The most probable reason " +
-                          "for that is that host component " +
-                          "has been deleted recently. "+
-                          "The command has been aborted and dequeued. " +
-                          "Execution command details: " +
-                          "cluster=%s; host=%s; service=%s; component=%s; " +
-                          "cmdId: %s; taskId: %s; roleCommand: %s",
-                  c.getClusterName(), host, svcComp.getServiceName(),
-                  svcComp.getName(),
-                  c.getCommandId(), c.getTaskId(), c.getRoleCommand());
-          LOG.warn(message);
-          // Abort the command itself
-          db.abortHostRole(host, s.getRequestId(),
-                  s.getStageId(), c.getRole(), message);
-          status = HostRoleStatus.ABORTED;
-        } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
-                taskTimeout)) {
-          // Process command timeouts
+        // Process command timeouts
+        if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
+          taskTimeout)) {
           LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:"
-                  + s.getActionId() + " timed out");
+              + s.getActionId() + " timed out");
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
             LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:"
                 + s.getActionId() + " expired");
@@ -489,10 +464,6 @@ class ActionScheduler implements Runnable {
     } catch (ServiceComponentNotFoundException scnex) {
       LOG.debug(componentName + " associated with service " + serviceName +
         " is not a service component, assuming it's an action.");
-    } catch (ServiceComponentHostNotFoundException e) {
-      String msg = String.format("Service component host %s not found, " +
-              "unable to transition to failed state.", componentName);
-      LOG.warn(msg, e);
     } catch (InvalidStateTransitionException e) {
       if (ignoreTransitionException) {
         LOG.debug("Unable to transition to failed state.", e);
@@ -567,7 +538,7 @@ class ActionScheduler implements Runnable {
           Service svc = c.getService(cmd.getServiceName());
           ServiceComponent svcComp = svc.getServiceComponent(roleStr);
           ServiceComponentHost svcCompHost =
-                  svcComp.getServiceComponentHost(hostname);
+              svcComp.getServiceComponentHost(hostname);
           svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr).getEvent());
         } catch (ServiceComponentNotFoundException scnex) {
           LOG.debug("Not a service component, assuming its an action");
