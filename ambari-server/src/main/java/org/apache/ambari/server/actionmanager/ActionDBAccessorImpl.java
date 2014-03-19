@@ -388,9 +388,16 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void abortHostRole(String host, long requestId, long stageId, String role) {
+    String reason = "Host Role in invalid state";
+    abortHostRole(host, requestId, stageId, role, reason);
+  }
+
+  @Override
+  public void abortHostRole(String host, long requestId, long stageId,
+                            String role, String reason) {
     CommandReport report = new CommandReport();
     report.setExitCode(999);
-    report.setStdErr("Host Role in invalid state");
+    report.setStdErr(reason);
     report.setStdOut("");
     report.setStatus("ABORTED");
     updateHostRoleState(host, requestId, stageId, role, report);

@@ -151,7 +151,6 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, currentResponseId);
     hostResponses.put(hostname, response);
 
-    HostState hostState = hostObject.getState();
     // If the host is waiting for component status updates, notify it
     if (heartbeat.componentStatus.size() > 0
         && hostObject.getState().equals(HostState.WAITING_FOR_HOST_STATUS_UPDATES)) {
