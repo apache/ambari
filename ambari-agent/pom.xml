@@ -45,10 +45,6 @@
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
-    <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
-    <deb.architecture>amd64</deb.architecture>
-    <deb.dependency.list>openssl, zlibc, ${deb.python.ver}</deb.dependency.list>
-
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
@@ -376,162 +372,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.vafer</groupId>
-        <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <phase>none</phase>
-            <goals>
-              <goal>jdeb</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <dataSet>
-            <data>
-              <src>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${agent.install.dir}</prefix>
-              </mapper>
-            </data>
-            <data>
-              <src>${project.build.directory}/${project.artifactId}-${project.version}/resource_management</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${resmgmt.install.dir}</prefix>
-              </mapper>
-            </data>
-            <data>
-              <src>${project.build.directory}/lib</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${lib.dir}</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${project.basedir}/../ambari-common/src/main/python/jinja2/jinja2</src>
-              <excludes>${project.basedir}/../ambari-common/src/main/python/jinja2/jinja2/testsuite</excludes>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${jinja.install.dir}</prefix>
-              </mapper>
-            </data>
-            <data>
-              <src>src/examples</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${lib.dir}/examples</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>src/main/puppet</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/${project.artifactId}/puppet</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/ambari-agent.ini</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/etc/ambari-agent/conf</prefix>
-                  <user>root</user>
-                  <group>root</group>
-                  <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${basedir}/target/src/ambari-agent</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/usr/sbin</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/ambari-env.sh</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>700</filemode>
-              </mapper>
-            </data>
-            <data>
-              <type>template</type>
-              <paths>
-                <path>${package.pid.dir}</path>
-                <path>/var/lib/${project.artifactId}/data</path>
-                <path>/var/lib/${project.artifactId}/keys</path>
-                <path>${package.log.dir}</path>
-              </paths>
-              <mapper>
-                <type>perm</type>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>etc/init.d/ambari-agent</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/etc/init.d</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${basedir}/target/src/version</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/${project.artifactId}/data</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${target.cache.dir}</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent/cache</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-          </dataSet>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>com.github.goldin</groupId>
         <artifactId>copy-maven-plugin</artifactId>
         <version>0.2.5</version>
@@ -588,32 +428,6 @@
               </resources>
             </configuration>
           </execution>
-           <execution>
-            <id>copy-resources-filter</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/target/src</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>conf/unix</directory>
-                  <includes>
-                    <include>ambari-agent</include>
-                  </includes>
-                  <filtering>true</filtering>
-                </resource>
-                <resource>
-                  <directory>..</directory>
-                  <includes>
-                    <include>version</include>
-                  </includes>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -637,7 +451,7 @@
           <version>${buildnumber-maven-plugin-version}</version>
           <configuration>
               <urlScm>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-ambari.git</urlScm>
-          </configuration>
+          </configuration>    
           <executions>
               <execution>
                   <phase>validate</phase>
@@ -646,7 +460,7 @@
                   </goals>
               </execution>
           </executions>
-      </plugin>
+      </plugin>      
     </plugins>
     <extensions>
       <extension>
