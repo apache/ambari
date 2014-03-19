@@ -25,8 +25,7 @@ App.QuickViewLinks = Em.View.extend({
     App.ajax.send({
       name: 'config.tags.sync',
       sender: this,
-      success: 'loadTagsSuccess',
-      error: 'loadTagsError'
+      success: 'loadTagsSuccess'
     });
   },
 
