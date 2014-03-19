@@ -31,6 +31,7 @@ import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.state.scheduler.Batch;
 import org.apache.ambari.server.state.scheduler.BatchRequest;
+import org.apache.ambari.server.state.scheduler.BatchRequestResponse;
 import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -340,5 +341,46 @@ public class RequestExecutionTest {
     Assert.assertNotNull(scheduleEntity);
     Assert.assertEquals(RequestExecution.Status.COMPLETED.name(),
       scheduleEntity.getStatus());
+  }
+
+  @Test
+  public void testUpdateBatchRequest() throws Exception {
+    RequestExecution requestExecution = createRequestSchedule();
+    Assert.assertNotNull(requestExecution);
+    Assert.assertNotNull(cluster.getAllRequestExecutions().get
+      (requestExecution.getId()));
+
+    RequestScheduleEntity scheduleEntity = requestScheduleDAO.findById(requestExecution.getId());
+    Assert.assertNotNull(scheduleEntity);
+    Assert.assertEquals(RequestExecution.Status.SCHEDULED.name(), scheduleEntity.getStatus());
+
+    Collection<RequestScheduleBatchRequestEntity> batchRequestEntities =
+      scheduleEntity.getRequestScheduleBatchRequestEntities();
+
+    Assert.assertNotNull(batchRequestEntities);
+    Assert.assertEquals(2, batchRequestEntities.size());
+
+    BatchRequestResponse batchRequestResponse = new BatchRequestResponse();
+    batchRequestResponse.setRequestId(1L);
+    batchRequestResponse.setReturnCode(200);
+    batchRequestResponse.setReturnMessage("test");
+    batchRequestResponse.setStatus("IN_PROGRESS");
+
+    requestExecution.updateBatchRequest(10L, batchRequestResponse, false);
+
+    scheduleEntity = requestScheduleDAO.findById(requestExecution.getId());
+    RequestScheduleBatchRequestEntity testEntity = null;
+
+    for (RequestScheduleBatchRequestEntity entity :
+        scheduleEntity.getRequestScheduleBatchRequestEntities()) {
+      if (entity.getBatchId().equals(10L)) {
+        testEntity = entity;
+      }
+    }
+
+    Assert.assertNotNull(testEntity);
+    Assert.assertEquals(200, testEntity.getReturnCode().intValue());
+    Assert.assertEquals("test", testEntity.getReturnMessage());
+    Assert.assertEquals("IN_PROGRESS", testEntity.getRequestStatus());
   }
 }

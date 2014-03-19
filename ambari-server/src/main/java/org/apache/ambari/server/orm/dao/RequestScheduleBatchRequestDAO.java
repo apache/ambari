@@ -68,8 +68,7 @@ public class RequestScheduleBatchRequestDAO {
   }
 
   @Transactional
-  public RequestScheduleBatchRequestEntity merge
-    (RequestScheduleBatchRequestEntity batchRequestEntity) {
+  public RequestScheduleBatchRequestEntity merge(RequestScheduleBatchRequestEntity batchRequestEntity) {
 
     return entityManagerProvider.get().merge(batchRequestEntity);
   }

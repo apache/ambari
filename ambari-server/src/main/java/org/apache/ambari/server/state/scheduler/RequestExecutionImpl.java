@@ -427,24 +427,28 @@ public class RequestExecutionImpl implements RequestExecution {
   public void updateBatchRequest(long batchId,
                                  BatchRequestResponse batchRequestResponse,
                                  boolean statusOnly) {
-    long executionId = requestScheduleEntity.getScheduleId();
 
-    RequestScheduleBatchRequestEntityPK batchRequestEntityPK = new
-        RequestScheduleBatchRequestEntityPK();
-    batchRequestEntityPK.setScheduleId(executionId);
-    batchRequestEntityPK.setBatchId(batchId);
-    RequestScheduleBatchRequestEntity batchRequestEntity =
-        batchRequestDAO.findByPk(batchRequestEntityPK);
+    RequestScheduleBatchRequestEntity batchRequestEntity = null;
 
-    batchRequestEntity.setRequestStatus(batchRequestResponse.getStatus());
-
-    if (!statusOnly) {
-      batchRequestEntity.setReturnCode(batchRequestResponse.getReturnCode());
-      batchRequestEntity.setRequestId(batchRequestResponse.getRequestId());
-      batchRequestEntity.setReturnMessage(batchRequestResponse.getReturnMessage());
+    for (RequestScheduleBatchRequestEntity entity :
+        requestScheduleEntity.getRequestScheduleBatchRequestEntities()) {
+      if (entity.getBatchId() == batchId
+          && entity.getScheduleId() == requestScheduleEntity.getScheduleId()) {
+        batchRequestEntity = entity;
+      }
     }
 
-    batchRequestDAO.merge(batchRequestEntity);
+    if (batchRequestEntity != null) {
+      batchRequestEntity.setRequestStatus(batchRequestResponse.getStatus());
+
+      if (!statusOnly) {
+        batchRequestEntity.setReturnCode(batchRequestResponse.getReturnCode());
+        batchRequestEntity.setRequestId(batchRequestResponse.getRequestId());
+        batchRequestEntity.setReturnMessage(batchRequestResponse.getReturnMessage());
+      }
+
+      batchRequestDAO.merge(batchRequestEntity);
+    }
 
     BatchRequest batchRequest = getBatchRequest(batchId);
 
@@ -456,6 +460,7 @@ public class RequestExecutionImpl implements RequestExecution {
     }
 
     setLastExecutionStatus(batchRequestResponse.getStatus());
+    requestScheduleDAO.merge(requestScheduleEntity);
   }
 
   @Override

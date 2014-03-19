@@ -184,4 +184,18 @@ public class RequestScheduleBatchRequestEntity {
     result = 31 * result + batchId.hashCode();
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "RequestScheduleBatchRequestEntity{" +
+      "scheduleId=" + scheduleId +
+      ", batchId=" + batchId +
+      ", requestId=" + requestId +
+      ", requestType='" + requestType + '\'' +
+      ", requestUri='" + requestUri + '\'' +
+      ", requestStatus='" + requestStatus + '\'' +
+      ", returnCode=" + returnCode +
+      ", returnMessage='" + returnMessage + '\'' +
+      '}';
+  }
 }
