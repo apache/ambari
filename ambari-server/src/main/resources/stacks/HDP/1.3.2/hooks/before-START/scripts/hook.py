@@ -32,6 +32,7 @@ class BeforeConfigureHook(Hook):
     setup_java()
     setup_hadoop()
     setup_configs()
+    create_javahome_symlink()
 
 if __name__ == "__main__":
   BeforeConfigureHook().execute()

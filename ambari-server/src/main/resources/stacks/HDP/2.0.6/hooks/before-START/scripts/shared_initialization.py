@@ -309,3 +309,9 @@ def install_snappy():
     format("mkdir -p {so_target_dir_x86}; ln -sf {so_src_x86} {so_target_x86}"))
   Execute(
     format("mkdir -p {so_target_dir_x64}; ln -sf {so_src_x64} {so_target_x64}"))
+
+
+def create_javahome_symlink():
+  if os.path.exists("/usr/jdk/jdk1.6.0_31") and not os.path.exists("/usr/jdk64/jdk1.6.0_31"):
+    Execute("mkdir -p /usr/jdk64/")
+    Execute("ln -s /usr/jdk/jdk1.6.0_31 /usr/jdk64/jdk1.6.0_31")
