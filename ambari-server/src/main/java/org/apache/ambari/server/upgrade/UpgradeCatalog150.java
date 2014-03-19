@@ -201,7 +201,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     columns.clear();
     columns.add(new DBColumnInfo("blueprint_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("type_name", String.class, 255, null, false));
-    columns.add(new DBColumnInfo("config_data", String.class, 32000, null, false));
+    columns.add(new DBColumnInfo("config_data", byte[].class, null, null, false));
 
     dbAccessor.createTable("blueprint_configuration", columns, "blueprint_name", "type_name");
 
