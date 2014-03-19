@@ -720,15 +720,30 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
     // AMBARI-4921
     //todo: hard-coding default values for required global config properties which are not in stack definition
-    Map<String, String> globalProperties = mapClusterConfigurations.get("global");
-    if (globalProperties == null) {
-      globalProperties = new HashMap<String, String>();
-      mapClusterConfigurations.put("global", globalProperties);
+    ensureProperty("global", "user_group", "hadoop");
+    ensureProperty("global", "nagios_contact", "default@REPLACEME.NOWHERE");
+    ensureProperty("global", "nagios_web_password", "admin");
+    ensureProperty("global", "smokeuser", "ambari-qa");
+  }
+
+  /**
+   * Ensure that the specified property exists.
+   * If not, set a default value.
+   *
+   * @param type          config type
+   * @param property      property name
+   * @param defaultValue  default value
+   */
+  private void ensureProperty(String type, String property, String defaultValue) {
+    Map<String, String> properties = mapClusterConfigurations.get(type);
+    if (properties == null) {
+      properties = new HashMap<String, String>();
+      mapClusterConfigurations.put(type, properties);
     }
-    globalProperties.put("user_group", "hadoop");
-    globalProperties.put("smokeuser", "ambari-qa");
-    globalProperties.put("nagios_contact", "default@REPLACEME.NOWHERE");
-    globalProperties.put("nagios_web_password", "admin");
+
+    if (! properties.containsKey(property)) {
+      properties.put(property, defaultValue);
+    }
   }
 
   /**

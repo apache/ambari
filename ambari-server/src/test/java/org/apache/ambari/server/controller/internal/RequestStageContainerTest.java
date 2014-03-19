@@ -34,6 +34,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -114,10 +115,10 @@ public class RequestStageContainerTest {
     stages.add(stage4);
 
     //expectations
-    expect(stage1.getHostRoleCommand(hostname, componentName)).andReturn(command1).anyTimes();
-    expect(stage2.getHostRoleCommand(hostname, componentName)).andReturn(command2).anyTimes();
-    expect(stage3.getHostRoleCommand(hostname, componentName)).andReturn(command3).anyTimes();
-    expect(stage4.getHostRoleCommand(hostname, componentName)).andReturn(null).anyTimes();
+    expect(stage1.getHostRoleCommands()).andReturn(Collections.singletonMap(hostname, Collections.singletonMap(componentName, command1))).anyTimes();
+    expect(stage2.getHostRoleCommands()).andReturn(Collections.singletonMap(hostname, Collections.singletonMap(componentName, command2))).anyTimes();
+    expect(stage3.getHostRoleCommands()).andReturn(Collections.singletonMap(hostname, Collections.singletonMap(componentName, command3))).anyTimes();
+    expect(stage4.getHostRoleCommands()).andReturn(Collections.<String, Map<String, HostRoleCommand>>emptyMap()).anyTimes();
 
     expect(command3.getRoleCommand()).andReturn(RoleCommand.SERVICE_CHECK).anyTimes();
     expect(command2.getRoleCommand()).andReturn(RoleCommand.INSTALL).anyTimes();

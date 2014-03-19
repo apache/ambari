@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * Contains stages associated with a request.
@@ -132,9 +133,16 @@ public class RequestStageContainer {
     ListIterator<Stage> iterator = stages.listIterator(stages.size());
     while (lastCommand == null && iterator.hasPrevious()) {
       Stage stage = iterator.previous();
-      HostRoleCommand hostRoleCommand = stage.getHostRoleCommand(host, component);
-      if (hostRoleCommand != null && hostRoleCommand.getRoleCommand() != RoleCommand.SERVICE_CHECK) {
-        lastCommand = hostRoleCommand.getRoleCommand();
+
+      Map<String, Map<String, HostRoleCommand>> stageCommands = stage.getHostRoleCommands();
+      if (stageCommands != null) {
+        Map<String, HostRoleCommand> hostCommands = stageCommands.get(host);
+        if (hostCommands != null) {
+          HostRoleCommand roleCommand = hostCommands.get(component);
+          if (roleCommand != null && roleCommand.getRoleCommand() != RoleCommand.SERVICE_CHECK) {
+            lastCommand = roleCommand.getRoleCommand();
+          }
+        }
       }
     }
 
