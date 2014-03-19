@@ -1255,41 +1255,52 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var filenameExceptions = App.config.get('filenameExceptions');
 
     serviceConfigTags.forEach(function (_serviceTags) {
+      var loadedProperties;
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside global");
         var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName, this.get('globalConfigs'));
         siteNameToServerDataMap['global'] = serverGlobalConfigs;
-        var loadedProperties = configController.getConfigsByTags([{siteName: 'global', tagName: this.loadedClusterSiteToTagMap['global']}]);
+        loadedProperties = configController.getConfigsByTags([{siteName: 'global', tagName: this.loadedClusterSiteToTagMap['global']}]);
         if (loadedProperties && loadedProperties[0]) {
           loadedProperties = loadedProperties[0].properties;
         }
         if (this.isConfigChanged(loadedProperties, serverGlobalConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverGlobalConfigs);
         }
-      } else if (_serviceTags.siteName === 'core-site') {
-        console.log("TRACE: Inside core-site");
-        if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
-          var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
-          siteNameToServerDataMap['core-site'] = coreSiteConfigs;
-          var loadedProperties = configController.getConfigsByTags([{siteName: 'core-site', tagName: this.loadedClusterSiteToTagMap['core-site']}]);
+      }
+      else {
+        if (_serviceTags.siteName === 'core-site') {
+          console.log("TRACE: Inside core-site");
+          if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
+            var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
+            siteNameToServerDataMap['core-site'] = coreSiteConfigs;
+            loadedProperties = configController.getConfigsByTags([{siteName: 'core-site', tagName: this.loadedClusterSiteToTagMap['core-site']}]);
+            if (loadedProperties && loadedProperties[0]) {
+              loadedProperties = loadedProperties[0].properties;
+            }
+            if (this.isConfigChanged(loadedProperties, coreSiteConfigs.properties)) {
+              result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
+            }
+          }
+        }
+        else {
+          var filename = (filenameExceptions.contains(_serviceTags.siteName)) ? _serviceTags.siteName : _serviceTags.siteName + '.xml';
+          var siteConfigs = this.get('uiConfigs').filterProperty('filename', filename);
+          var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName, siteConfigs);
+          siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
+          loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);
           if (loadedProperties && loadedProperties[0]) {
             loadedProperties = loadedProperties[0].properties;
           }
-          if (this.isConfigChanged(loadedProperties, coreSiteConfigs.properties)) {
-            result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
+          if (!loadedProperties) {
+            loadedProperties = {};
           }
-        }
-      } else {
-        var filename = (filenameExceptions.contains(_serviceTags.siteName)) ? _serviceTags.siteName : _serviceTags.siteName + '.xml';
-        var siteConfigs = this.get('uiConfigs').filterProperty('filename', filename);
-        var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName, siteConfigs);
-        siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
-        var loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);
-        if (loadedProperties && loadedProperties[0]) {
-          loadedProperties = loadedProperties[0].properties;
-        }
-        if (this.isConfigChanged(loadedProperties, serverConfigs.properties)) {
-          result = result && this.doPUTClusterConfigurationSite(serverConfigs);
+          if (filename === 'mapred-queue-acls' && !App.supports.capacitySchedulerUi) {
+            return;
+          }
+          if (this.isConfigChanged(loadedProperties, serverConfigs.properties)) {
+            result = result && this.doPUTClusterConfigurationSite(serverConfigs);
+          }
         }
       }
     }, this);
@@ -1306,6 +1317,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (loadedConfig != null && savingConfig != null) {
       var seenLoadKeys = [];
       for (var loadKey in loadedConfig) {
+        if (!loadedConfig.hasOwnProperty(loadKey)) continue;
         seenLoadKeys.push(loadKey);
         var loadValue = loadedConfig[loadKey];
         var saveValue = savingConfig[loadKey];
@@ -1335,33 +1347,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * contains the site name and tag to be used.
    */
   doPUTClusterConfigurationSite: function (data) {
-    var result;
-    var url = this.getUrl('', '');
-    var clusterData = {
-      Clusters: {
-        desired_config: data
-      }
-    };
-    console.log("applyClusterConfigurationToSite(): PUTting data:", clusterData);
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      async: false,
-      dataType: 'text',
-      data: JSON.stringify(clusterData),
-      timeout: 5000,
-      success: function (data) {
-        console.log("applyClusterConfigurationToSite(): In success for data:", data);
-        result = true;
+    App.ajax.send({
+      name: 'config.cluster_configuration.put',
+      sender: this,
+      data: {
+        data: JSON.stringify({
+          Clusters: {
+            desired_config: data
+          }
+        }),
+        cluster: App.router.getClusterName()
       },
-      error: function (request, ajaxOptions, error) {
-        console.log('applyClusterConfigurationToSite(): ERROR:', request.responseText, ", error=", error);
-        result = false;
-      },
-      statusCode: require('data/statusCodes')
+      success: 'doPUTClusterConfigurationSiteSuccessCallback',
+      error: 'doPUTClusterConfigurationSiteErrorCallback'
     });
-    console.log("applyClusterConfigurationToSite(): Exiting with result=" + result);
-    return result;
+    return this.get('doPUTClusterConfigurationSiteResult');
+  },
+
+  /**
+   * @type {bool}
+   */
+  doPUTClusterConfigurationSiteResult: null,
+
+  doPUTClusterConfigurationSiteSuccessCallback: function(data) {
+    console.log("applyClusterConfigurationToSite(): In success for data:", data);
+    this.set('doPUTClusterConfigurationSiteResult', true);
+  },
+
+  doPUTClusterConfigurationSiteErrorCallback: function(request, ajaxOptions, error) {
+    console.log('applyClusterConfigurationToSite(): ERROR:', request.responseText, ", error=", error);
+    this.set('doPUTClusterConfigurationSiteResult', false);
   },
 
   /**

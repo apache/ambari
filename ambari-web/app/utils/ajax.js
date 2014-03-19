@@ -284,6 +284,19 @@ var urls = {
     }
   },
 
+  'config.cluster_configuration.put': {
+    'real': '/clusters/{cluster}',
+    'mock': '',
+    'format': function(data) {
+      return {
+        type: 'PUT',
+        async: false,
+        dataType: 'text',
+        data: data.data
+      }
+    }
+  },
+
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
@@ -1130,7 +1143,7 @@ var urls = {
   'admin.stack_upgrade.run_upgrade': {
     'real': '/clusters/{clusterName}',
     'mock': '',
-    'format': function () {
+    'format': function (data) {
       return {
         type: 'PUT',
         async: false,
@@ -1141,7 +1154,7 @@ var urls = {
   'admin.stack_upgrade.stop_services': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
     'mock': '',
-    'format': function () {
+    'format': function (data) {
       return {
         type: 'PUT',
         async: false,
