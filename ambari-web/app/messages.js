@@ -1542,6 +1542,7 @@ Em.I18n.translations = {
   'hosts.host.alerts.st':'&nbsp;!&nbsp;',
   'hosts.decommission.popup.body':'Are you sure?',
   'hosts.decommission.popup.header':'Confirmation',
+  'hosts.decommission.tooltip.warning':'Cannot {0} since {1} is not running',
   'hosts.delete.popup.body':'Are you sure you want to delete host <i>{0}</i>?',
   'hosts.delete.popup.body.msg1':'By removing this host, Ambari will ignore future communications from this host. Software packages will not be removed from the host. The components on the host should not be restarted. If you wish to readd this host to the cluster, be sure to clean the host.',
   'hosts.delete.popup.body.msg2':'After deleting this host, Nagios should be restarted to remove this host from Nagios monitoring. Go to the <i>Services</i> page to restart Nagios.',

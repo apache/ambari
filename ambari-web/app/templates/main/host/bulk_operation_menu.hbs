@@ -26,56 +26,116 @@
     <li class="dropdown-submenu">
       <a {{bindAttr class="view.parentView.selectedCategory.hasHosts::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.s.label}}
         ({{view.parentView.selectedCategory.hostsCount}})</a>
-      <ul {{bindAttr class="view.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
-        {{#each subMenuItem in view.menuItems.s.submenu}}
-          <li class="dropdown-submenu">
-            <a href="javascript:void(null);">{{subMenuItem.label}}</a>
-            <ul class="dropdown-menu">
-              {{#each menuL3Item in subMenuItem.submenu}}
-                <li>
-                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView"}} href="#">{{menuL3Item.label}}</a>
-                </li>
-              {{/each}}
-            </ul>
-          </li>
-        {{/each}}
-      </ul>
+        <ul {{bindAttr class="view.parentView.selectedCategory.hasHosts::hidden :dropdown-menu"}}>
+          {{#view view.hostItemView}}
+              <a href="javascript:void(null);">{{view.label}}</a>
+              <ul class="dropdown-menu">
+                {{#each operation in view.operationsInfo}}
+                  {{#if operation.label.length}}
+                      <li>
+                        {{#view view.operationView contentBinding="operation.operationData" selection="s"}}
+                            <a href="javascript:void(null);">{{operation.label}}</a>
+                        {{/view}}
+                      </li>
+                  {{/if}}
+                {{/each}}
+              </ul>
+          {{/view}}
+          {{#each component in view.components}}
+            {{#view view.slaveItemView contentBinding="component"}}
+                <a href="javascript:void(null);">{{component.componentNameFormatted}}</a>
+                <ul class="dropdown-menu">
+                  {{#each operation in view.operationsInfo}}
+                    {{#if operation.decommission}}
+                      {{#view view.advancedOperationView contentBinding="operation.operationData" selection="s"}}
+                          <a href="javascript:void(null);">{{operation.label}}</a>
+                      {{/view}}
+                    {{else}}
+                      {{#view view.commonOperationView contentBinding="operation.operationData" selection="s"}}
+                          <a href="javascript:void(null);">{{operation.label}}</a>
+                      {{/view}}
+                    {{/if}}
+                  {{/each}}
+                </ul>
+            {{/view}}
+          {{/each}}
+        </ul>
     </li>
     <li class="dropdown-submenu">
       <a {{bindAttr class="view.parentView.hasFilteredItems::disabled"}} tabindex="-1" href="javascript:void(null);">{{view.menuItems.f.label}}
         ({{view.parentView.filteredContent.length}})</a>
-      <ul {{bindAttr class="view.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
-        {{#each subMenuItem in view.menuItems.f.submenu}}
-          <li class="dropdown-submenu">
-            <a href="javascript:void(null);">{{subMenuItem.label}}</a>
+        <ul {{bindAttr class="view.parentView.hasFilteredItems::hidden :dropdown-menu"}}>
+          {{#view view.hostItemView}}
+            <a href="javascript:void(null);">{{view.label}}</a>
             <ul class="dropdown-menu">
-              {{#each menuL3Item in subMenuItem.submenu}}
-                <li>
-                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView"}} href="#">{{menuL3Item.label}}</a>
-                </li>
+              {{#each operation in view.operationsInfo}}
+                {{#if operation.label.length}}
+                  <li>
+                    {{#view view.operationView contentBinding="operation.operationData" selection="f"}}
+                      <a href="javascript:void(null);">{{operation.label}}</a>
+                    {{/view}}
+                  </li>
+                {{/if}}
               {{/each}}
             </ul>
-          </li>
-        {{/each}}
-      </ul>
+          {{/view}}
+          {{#each component in view.components}}
+              {{#view view.slaveItemView contentBinding="component"}}
+                <a href="javascript:void(null);">{{component.componentNameFormatted}}</a>
+                  <ul class="dropdown-menu">
+                    {{#each operation in view.operationsInfo}}
+                      {{#if operation.decommission}}
+                        {{#view view.advancedOperationView contentBinding="operation.operationData" selection="f"}}
+                        <a href="javascript:void(null);">{{operation.label}}</a>
+                        {{/view}}
+                      {{else}}
+                        {{#view view.commonOperationView contentBinding="operation.operationData" selection="f"}}
+                        <a href="javascript:void(null);">{{operation.label}}</a>
+                        {{/view}}
+                      {{/if}}
+                    {{/each}}
+                  </ul>
+              {{/view}}
+          {{/each}}
+        </ul>
     </li>
     <li class="dropdown-submenu">
       <a tabindex="-1" href="javascript:void(null);">{{view.menuItems.a.label}}
         ({{view.parentView.content.length}})</a>
-      <ul class="dropdown-menu">
-        {{#each subMenuItem in view.menuItems.a.submenu}}
-          <li class="dropdown-submenu">
-            <a href="javascript:void(null);">{{subMenuItem.label}}</a>
-            <ul class="dropdown-menu">
-              {{#each menuL3Item in subMenuItem.submenu}}
-                <li>
-                  <a {{action "bulkOperationConfirm" menuL3Item.operationData target="view.parentView"}} href="#">{{menuL3Item.label}}</a>
-                </li>
-              {{/each}}
-            </ul>
-          </li>
-        {{/each}}
-      </ul>
+        <ul class="dropdown-menu">
+          {{#view view.hostItemView}}
+              <a href="javascript:void(null);">{{view.label}}</a>
+              <ul class="dropdown-menu">
+                {{#each operation in view.operationsInfo}}
+                  {{#if operation.label.length}}
+                      <li>
+                        {{#view view.operationView contentBinding="operation.operationData" selection="a"}}
+                            <a href="javascript:void(null);">{{operation.label}}</a>
+                        {{/view}}
+                      </li>
+                  {{/if}}
+                {{/each}}
+              </ul>
+          {{/view}}
+          {{#each component in view.components}}
+            {{#view view.slaveItemView contentBinding="component"}}
+                <a href="javascript:void(null);">{{component.componentNameFormatted}}</a>
+                <ul class="dropdown-menu">
+                  {{#each operation in view.operationsInfo}}
+                    {{#if operation.decommission}}
+                      {{#view view.advancedOperationView contentBinding="operation.operationData" selection="a"}}
+                          <a href="javascript:void(null);">{{operation.label}}</a>
+                      {{/view}}
+                    {{else}}
+                      {{#view view.commonOperationView contentBinding="operation.operationData" selection="a"}}
+                          <a href="javascript:void(null);">{{operation.label}}</a>
+                      {{/view}}
+                    {{/if}}
+                  {{/each}}
+                </ul>
+            {{/view}}
+          {{/each}}
+        </ul>
     </li>
   </ul>
 </div>

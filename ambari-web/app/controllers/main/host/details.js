@@ -671,12 +671,11 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * send command to server to run decommission on DATANODE, TASKTRACKER, NODEMANAGER, REGIONSERVER
-   * @param event
+   * @param component
    */
-  decommission: function(event){
+  decommission: function(component){
     var self = this;
     App.showConfirmationPopup(function(){
-      var component = event.context;
       var svcName = component.get('service.serviceName');
       var hostName = self.get('content.hostName');
       // HDFS service, decommission DataNode
@@ -707,12 +706,11 @@ App.MainHostDetailsController = Em.Controller.extend({
   
   /**
    * send command to server to run recommission on DATANODE, TASKTRACKER, NODEMANAGER
-   * @param event
+   * @param component
    */
-  recommission: function(event){
+  recommission: function(component){
     var self = this;
     App.showConfirmationPopup(function(){
-      var component = event.context;
       var svcName = component.get('service.serviceName');
       var hostName = self.get('content.hostName');
       // HDFS service, Recommission datanode

@@ -63,6 +63,24 @@ App.Decommissionable = Em.Mixin.create({
   isComponentRecommissionAvailable: null,
 
   /**
+   * Component with stopped masters can't be docommissioned
+   * @type {bool}
+   */
+  isComponentDecommissionDisable: function() {
+    return this.get('content.service.workStatus') != App.HostComponentStatus.started;
+  }.property('content.service.workStatus'),
+
+  /**
+   * Tooltip message shows if decommission/recommission is disabled
+   * when masters for current component is down
+   */
+  decommissionTooltipMessage: function() {
+    if (this.get('isComponentDecommissionDisable') && (this.get('isComponentRecommissionAvailable') || this.get('isComponentDecommissionAvailable'))) {
+      var decom = this.get('isComponentRecommissionAvailable') ? Em.I18n.t('common.recommission') : Em.I18n.t('common.decommission');
+      return Em.I18n.t('hosts.decommission.tooltip.warning').format(decom, App.format.role(this.get('componentForCheckDecommission')));
+    }
+  }.property('isComponentDecommissionDisable', 'isComponentRecommissionAvailable', 'isComponentDecommissionAvailable', 'componentForCheckDecommission'),
+  /**
    * Recalculated component status based on decommission
    * @type {string}
    */
@@ -243,6 +261,30 @@ App.Decommissionable = Em.Mixin.create({
    */
   updateDecommissionStatus: function() {
     Em.run.once(this, 'loadComponentDecommissionStatus');
-  }.observes('content.workStatus', 'content.passiveState')
+  }.observes('content.workStatus', 'content.passiveState'),
 
+
+  decommissionView: Em.View.extend({
+
+    templateName: require('templates/main/host/decommission'),
+
+    text: function() {
+      return this.get('parentView.isComponentDecommissionAvailable') ? Em.I18n.t('common.decommission') : Em.I18n.t('common.recommission');
+    }.property('parentView.isComponentDecommissionAvailable'),
+
+    didInsertElement: function() {
+      this._super();
+      App.tooltip($("[rel='decommissionTooltip']"));
+    },
+
+    click: function() {
+      if (!this.get('parentView.isComponentDecommissionDisable')) {
+        if (this.get('parentView.isComponentDecommissionAvailable')) {
+          this.get('controller').decommission(this.get('parentView.content'));
+        } else {
+          this.get('controller').recommission(this.get('parentView.content'));
+        }
+      }
+    }
+  })
 });

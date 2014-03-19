@@ -20,6 +20,7 @@ var App = require('app');
 
 App.RegionServerComponentView = App.HostComponentView.extend(App.Decommissionable, {
 
+  componentForCheckDecommission: 'HBASE_MASTER',
   /**
    * load Recommission/Decommission status of RegionServer
    */

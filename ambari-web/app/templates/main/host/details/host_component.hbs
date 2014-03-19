@@ -50,18 +50,10 @@
       </a>
       <ul class="dropdown-menu">
         {{#if view.isComponentDecommissionAvailable}}
-          <li {{bindAttr class="view.noActionAvailable"}}>
-            <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
-              {{t common.decommission}}
-            </a>
-          </li>
+          {{view view.decommissionView}}
         {{/if}}
         {{#if view.isComponentRecommissionAvailable}}
-          <li {{bindAttr class="view.noActionAvailable"}}>
-            <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
-              {{t common.recommission}}
-            </a>
-          </li>
+          {{view view.decommissionView}}
         {{/if}}
         {{#if view.isRestartableComponent}}
           <li {{bindAttr class="view.isRestartComponentDisabled:hidden"}}>

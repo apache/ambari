@@ -110,11 +110,10 @@ App.MainHostView = App.TableView.extend({
   /**
    * Confirmation Popup for bulk Operations
    */
-  bulkOperationConfirm: function(event) {
-    var operationData = event.context;
+  bulkOperationConfirm: function(operationData, selection) {
     var hosts = [];
     var self = this;
-    switch(operationData.selection) {
+    switch(selection) {
       case 's':
         hosts = this.get('content').filterProperty('selected');
         break;
