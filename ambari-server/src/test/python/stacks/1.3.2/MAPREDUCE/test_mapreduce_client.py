@@ -42,11 +42,13 @@ class TestMapreduceClient(RMFTestCase):
       owner = 'mapred',
       recursive = True,
       mode = 0755,
+      ignore_failures=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred1',
       owner = 'mapred',
       recursive = True,
       mode = 0755,
+      ignore_failures=True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
       owner = 'mapred',
@@ -79,6 +81,7 @@ class TestMapreduceClient(RMFTestCase):
       owner = 'mapred',
       recursive = True,
       mode = 0755,
+      ignore_failures=True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
       owner = 'mapred',

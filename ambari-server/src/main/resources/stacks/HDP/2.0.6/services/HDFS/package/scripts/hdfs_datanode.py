@@ -34,7 +34,9 @@ def datanode(action=None):
                 recursive=True,
                 mode=0755,
                 owner=params.hdfs_user,
-                group=params.user_group)
+                group=params.user_group,
+                ignore_failures=True
+      )
 
   elif action == "start" or action == "stop":
     service(

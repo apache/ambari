@@ -140,12 +140,14 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs',
                               mode = 0755,
                               recursive = True,
+                              ignore_failures=True,
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0750,
                               recursive = False,
+                              ignore_failures=True,
                               )
 
   def assert_configure_secured(self):
@@ -158,10 +160,12 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs',
                               mode = 0755,
                               recursive = True,
+                              ignore_failures=True,
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0750,
                               recursive = False,
+                              ignore_failures=True,
                               )

@@ -64,7 +64,8 @@ def mapreduce(name=None):
   Directory(params.mapred_local_dir.split(','),
             owner=params.mapred_user,
             mode=0755,
-            recursive=True
+            recursive=True,
+            ignore_failures=True
   )
 
   File(params.exclude_file_path,

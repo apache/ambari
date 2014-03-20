@@ -163,6 +163,7 @@ class TestDatanode(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              ignore_failures=True,
                               )
 
   def assert_configure_secured(self):
@@ -177,4 +178,5 @@ class TestDatanode(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              ignore_failures=True,
                               )

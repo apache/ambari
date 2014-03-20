@@ -71,17 +71,10 @@ def yarn(name = None):
             group=params.user_group,
             recursive=True
   )
-  Directory(params.nm_local_dirs.split(','),
+  Directory(params.nm_local_dirs.split(',')+params.nm_log_dirs.split(',')+[params.yarn_log_dir_prefix],
             owner=params.yarn_user,
-            recursive=True
-  )
-  Directory(params.nm_log_dirs.split(','),
-            owner=params.yarn_user,
-            recursive=True
-  )
-  Directory(params.yarn_log_dir_prefix,
-            owner=params.yarn_user,
-            recursive=True
+            recursive=True,
+            ignore_failures=True,
   )
 
   XmlConfig("core-site.xml",

@@ -33,12 +33,16 @@ def datanode(action=None):
     for data_dir in params.dfs_data_dir.split(","):
       Directory(os.path.dirname(data_dir),
                 recursive=True,
-                mode=0755)
+                mode=0755,
+                ignore_failures=True
+      )
       Directory(data_dir,
                 recursive=False,
                 mode=0750,
                 owner=params.hdfs_user,
-                group=params.user_group)
+                group=params.user_group,
+                ignore_failures=True
+      )
 
   elif action == "start" or action == "stop":
     service(

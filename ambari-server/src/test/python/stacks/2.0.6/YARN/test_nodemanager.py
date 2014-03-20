@@ -193,22 +193,27 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -341,14 +346,17 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
       recursive = True,
+      ignore_failures = True,
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
