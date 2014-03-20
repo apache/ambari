@@ -2682,6 +2682,7 @@ def upgrade(args):
 
   retcode = run_schema_upgrade()
   if not retcode == 0:
+    print_error_msg("Ambari server upgrade failed. Please look at /var/log/ambari-server/ambari-server.log, for more details.")
     raise FatalException(11, 'Schema upgrade failed.')
 
   user = read_ambari_user()
