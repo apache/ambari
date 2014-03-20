@@ -299,7 +299,12 @@ var urls = {
 
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
-    'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json'
+    'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
+    'format': function() {
+      return {
+        async: false
+      };
+    }
   },
   'config.advanced.global': {
     'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/type',

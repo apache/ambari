@@ -62,8 +62,6 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   serviceConfigsData: require('data/service_configs'),
 
-  isAdvancedConfigLoaded: true,
-
   isSubmitDisabled: function () {
     return (!this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
   }.property('stepConfigs.@each.errorCount', 'miscModalVisible'),
@@ -344,9 +342,6 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
-    if (!this.get('isAdvancedConfigLoaded')) {
-      return;
-    }
     this.clearStep();
     //STEP 1: Load advanced configs
     var advancedConfigs = this.get('content.advancedServiceConfig');
@@ -408,8 +403,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     if (this.get('content.skipConfigStep')) {
       App.router.send('next');
     }
-  }.observes('isAdvancedConfigLoaded'),
-
+  },
   getConfigTags: function() {
     App.ajax.send({
       name: 'config.tags.sync',
