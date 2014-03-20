@@ -25,15 +25,42 @@
       <a {{action "toggleShowQuery" target="view"}} href="#" id="toggle-query">{{view.toggleShowQueryText}}</a>
       <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
       <div {{bindAttr class="view.showQuery::hidden"}}>
-        <div class="query-section"><span class="query-title">{{t jobs.hive.query}}</span> {{view.content.queryText}}</div>
-        <div class="query-section">
-          <span class="query-title">{{t jobs.hive.stages}}</span>
-          <ol>
-            {{#each stage in view.content.stages}}
-              <li>{{stage.id}}{{stage.description}}.</li>
-            {{/each}}
-          </ol>
-        </div>
+        <table id="job-more-details-table">
+          <tr>
+            <td>
+              {{t jobs.hive.query}}
+            </td>
+            <td>
+              {{view.content.queryText}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              {{t jobs.hive.yarnApplication}}
+            </td>
+            <td>
+              {{#if view.yarnApplicationIdLink}}
+                <a {{bindAttr href="view.yarnApplicationIdLink"}} target="_blank">
+                  {{view.content.tezDag.yarnApplicationId}}
+                </a>
+              {{else}}
+                {{view.content.tezDag.yarnApplicationId}}
+              {{/if}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              {{t jobs.hive.stages}}
+            </td>
+            <td>
+              <ol>
+                {{#each stage in view.content.stages}}
+                  <li>{{stage.id}}{{stage.description}}.</li>
+                {{/each}}
+              </ol>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
 

@@ -86,6 +86,29 @@ App.MainHiveJobDetailsView = Em.View.extend({
     }
   }.observes('controller.loaded'),
 
+  yarnApplicationIdLink : function() {
+    var yarnService = App.YARNService.find().objectAt(0);
+    var appId = this.get('content.tezDag.yarnApplicationId');
+    if (yarnService != null) {
+      var quickLinksView = App.QuickViewLinks.create();
+      try {
+        quickLinksView.set('content', yarnService);
+        quickLinksView.setQuickLinks();
+        var links = quickLinksView.get('quickLinks');
+        if (links && links.length > 0) {
+          var rmUILink = links.findProperty('label', 'ResourceManager UI');
+          if (rmUILink != null) {
+            return rmUILink.get('url') + '/cluster/app/' + appId;
+          }
+        }
+      } finally {
+        quickLinksView.destroy();
+        quickLinksView = null;
+      }
+    }
+    return null;
+  }.property('content.tezDag.yarnApplicationId', 'App.YARNService.resourceManagerNode.hostName'),
+
   jobObserver : function() {
     var content = this.get('content');
     var selectedVertex = this.get('selectedVertex');

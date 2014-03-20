@@ -123,16 +123,21 @@ module.exports = {
       var tezDagInstanceId = tezDag.get('instanceId');
       var sender = {
         loadTezDagSuccess : function(data) {
-          if (data && data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
-            var count = data.relatedentities.TEZ_VERTEX_ID.length;
-            data.relatedentities.TEZ_VERTEX_ID.forEach(function(v) {
-              self.refreshTezDagVertex(tezDagId, v, function() {
-                if (--count <= 0) {
-                  // all vertices succeeded
-                  successCallback();
-                }
+          if (data) {
+            if (data.otherinfo && data.otherinfo.applicationId) {
+              tezDag.set('yarnApplicationId', data.otherinfo.applicationId);
+            }
+            if (data.relatedentities && data.relatedentities.TEZ_VERTEX_ID != null) {
+              var count = data.relatedentities.TEZ_VERTEX_ID.length;
+              data.relatedentities.TEZ_VERTEX_ID.forEach(function(v) {
+                self.refreshTezDagVertex(tezDagId, v, function() {
+                  if (--count <= 0) {
+                    // all vertices succeeded
+                    successCallback();
+                  }
+                });
               });
-            });
+            }
           }
         },
         loadTezDagError : function(jqXHR, url, method, showStatus) {

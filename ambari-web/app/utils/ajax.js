@@ -1725,7 +1725,7 @@ var urls = {
     'apiPrefix': ''
   },
   'jobs.tezDag.tezDagId': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities',
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID/{tezDagId}?fields=relatedentities,otherinfo',
     'mock': '/data/jobs/tezDag.json',
     'apiPrefix': ''
   },
