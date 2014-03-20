@@ -84,7 +84,7 @@ ALTER TABLE requestschedulebatchrequest ADD CONSTRAINT FK_rsbatchrequest_schedul
 ALTER TABLE hostgroup ADD FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name);
 ALTER TABLE hostgroup_component ADD FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup(blueprint_name, name);
 ALTER TABLE blueprint_configuration ADD FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name);
-ALTER TABLE requestresourcefilter ADD CONSTRAINT FK_requestresourcefilter_req_id FOREIGN KEY (request_id) REFERENCES request (request_id);
+ALTER TABLE requestresourcefilter ADD CONSTRAINT FK_reqresfilter_req_id FOREIGN KEY (request_id) REFERENCES request (request_id);
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);

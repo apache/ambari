@@ -39,6 +39,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
@@ -135,14 +136,8 @@ public class DBAccessorImpl implements DBAccessor {
   public boolean tableExists(String tableName) throws SQLException {
     boolean result = false;
     DatabaseMetaData metaData = getDatabaseMetaData();
-    String schemaFilter = null;
-    if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
-      // Optimization to not query everything
-      schemaFilter = configuration.getDatabaseUser();
-    }
 
-    ResultSet res = metaData.getTables(null, schemaFilter,
-      convertObjectName(tableName), new String[] { "TABLE" });
+    ResultSet res = metaData.getTables(null, null, convertObjectName(tableName), new String[] { "TABLE" });
 
     if (res != null) {
       try {
@@ -195,14 +190,8 @@ public class DBAccessorImpl implements DBAccessor {
   public boolean tableHasColumn(String tableName, String columnName) throws SQLException {
     boolean result = false;
     DatabaseMetaData metaData = getDatabaseMetaData();
-    String schemaFilter = null;
-    if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
-      // Optimization to not query everything
-      schemaFilter = configuration.getDatabaseUser();
-    }
 
-    ResultSet rs = metaData.getColumns(null, schemaFilter,
-        convertObjectName(tableName), convertObjectName(columnName));
+    ResultSet rs = metaData.getColumns(null, null, convertObjectName(tableName), convertObjectName(columnName));
 
     if (rs != null) {
       try {
@@ -274,7 +263,9 @@ public class DBAccessorImpl implements DBAccessor {
       } catch (SQLException e) {
         LOG.warn("Add FK constraint failed" +
           ", constraintName = " + constraintName +
-          ", tableName = " + tableName, e);
+          ", tableName = " + tableName + ", errorCode = " + e.getErrorCode() +
+          ", message = " + e.getMessage());
+        LOG.debug("Exception on add FK constraint.", e);
         if (!ignoreFailure) {
           throw e;
         }

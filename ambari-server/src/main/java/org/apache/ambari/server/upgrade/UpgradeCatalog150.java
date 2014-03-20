@@ -280,7 +280,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       String msg = String.format("Table \"%s\" was not created during schema upgrade", tableName);
       LOG.error(msg);
       throw new AmbariException(msg);
-    }else if (!dbAccessor.tableHasData(tableName)) {
+    } else if (!dbAccessor.tableHasData(tableName)) {
       String query;
       if (getDbType().equals(Configuration.POSTGRES_DB_NAME)) {
         query = getPostgresRequestUpgradeQuery();
@@ -301,7 +301,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("stage", "FK_stage_request_id", "request_id", "request", "request_id", true);
     dbAccessor.addFKConstraint("request", "FK_request_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("request", "FK_request_schedule_id", "request_schedule_id", "requestschedule", "schedule_id", true);
-    dbAccessor.addFKConstraint("requestschedulebatchrequest", "FK_requestschedulebatchrequest_schedule_id", "schedule_id", "requestschedule", "schedule_id", true);
+    dbAccessor.addFKConstraint("requestschedulebatchrequest", "FK_rsbatchrequest_schedule_id", "schedule_id", "requestschedule", "schedule_id", true);
     dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfigmapping_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfigmapping_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("configgroup", "FK_configgroup_cluster_id", "cluster_id", "clusters", "cluster_id", true);
@@ -310,7 +310,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_configgroup_id", "config_group_id", "configgroup", "group_id", true);
     dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
-    dbAccessor.addFKConstraint("requestresourcefilter", "FK_requestresourcefilter_req_id", "request_id", "request", "request_id", true);
+    dbAccessor.addFKConstraint("requestresourcefilter", "FK_reqresfilter_req_id", "request_id", "request", "request_id", true);
     dbAccessor.addFKConstraint("hostgroup", "FK_hostgroup_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
     dbAccessor.addFKConstraint("hostgroup_component", "FK_component_blueprint_name", "blueprint_name", "hostgroup", "blueprint_name", true);
     dbAccessor.addFKConstraint("hostgroup_component", "FK_component_hostgroup_name", "hostgroup_name", "hostgroup", "name", true);
@@ -658,7 +658,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     return "INSERT INTO request" +
       "(request_id, cluster_id, request_context, start_time, end_time, create_time) " +
       "SELECT DISTINCT s.request_id, s.cluster_id, s.request_context, " +
-      "nvl(cmd.start_time, -1), nvl(cmd.end_time, -1), -1" +
+      "nvl(cmd.start_time, -1), nvl(cmd.end_time, -1), -1 " +
       "FROM " +
       "(SELECT DISTINCT request_id, cluster_id, request_context FROM stage ) s " +
       "LEFT JOIN " +
