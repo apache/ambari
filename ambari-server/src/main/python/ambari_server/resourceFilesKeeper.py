@@ -76,10 +76,10 @@ class ResourceFilesKeeper():
     """
     stacks_root = os.path.join(self.resources_dir, self.STACKS_DIR)
     self.dbg_out("Updating archives for stack dirs at {0}...".format(stacks_root))
-    active_stacks = self.list_active_stacks(stacks_root)
-    self.dbg_out("Active stacks: {0}".format(pprint.pformat(active_stacks)))
-    # Iterate over active stack directories
-    for stack_dir in active_stacks:
+    valid_stacks = self.list_stacks(stacks_root)
+    self.dbg_out("Stacks: {0}".format(pprint.pformat(valid_stacks)))
+    # Iterate over stack directories
+    for stack_dir in valid_stacks:
       for root, dirs, _ in os.walk(stack_dir):
         for d in dirs:
           if d in self.ARCHIVABLE_DIRS:
@@ -95,21 +95,21 @@ class ResourceFilesKeeper():
 
 
 
-  def list_active_stacks(self, stacks_root):
+  def list_stacks(self, stacks_root):
     """
-    Builds a list of stack directories, that are active (enabled)
+    Builds a list of stack directories
     """
-    active_stacks = [] # Format: <stack_dir, ignore(True|False)>
+    valid_stacks = [] # Format: <stack_dir, ignore(True|False)>
     glob_pattern = "{0}/*/*".format(stacks_root)
     try:
       stack_dirs = glob.glob(glob_pattern)
       for directory in stack_dirs:
         metainfo_file = os.path.join(directory, self.METAINFO_XML)
-        if os.path.exists(metainfo_file) and self.is_active_stack(metainfo_file):
-          active_stacks.append(directory)
-      return active_stacks
+        if os.path.exists(metainfo_file):
+          valid_stacks.append(directory)
+      return valid_stacks
     except Exception, err:
-      raise KeeperException("Can not list active stacks: {0}".format(str(err)))
+      raise KeeperException("Can not list stacks: {0}".format(str(err)))
 
 
   def update_directory_archive(self, directory):
@@ -223,42 +223,6 @@ class ResourceFilesKeeper():
       sys.stderr.write("{0}\n".format(text))
     if not self.DEBUG and self.verbose:
       print text
-
-
-  def is_active_stack(self, xmlfile):
-    try:
-      xmldoc = minidom.parse(xmlfile)
-      value = self.xpath_like_bycicle(xmldoc, ['metainfo', 'versions', 'active'])
-      return value.lower().strip() == 'true'
-    except Exception, err:
-      raise KeeperException("Can not parse XML file {0} : {1}",
-                            xmlfile, str(err))
-
-
-  def xpath_like_bycicle(self, xml_doc, path):
-    # Default Python 2.6 distribution have no good XPATH support,
-    # implementing own bycicle here
-    cur_elem = xml_doc
-    for name in path:
-      elem = self.find_xml_element_by_name(cur_elem._get_childNodes(), name)
-      if name:
-        cur_elem = elem
-      else:
-        return None
-    # Select text in tags
-    value = cur_elem._get_childNodes()[0].nodeValue
-    if value:
-      return value.lower().strip()
-    else:
-      return None
-
-
-  def find_xml_element_by_name(self, elements, element_name):
-    for xml_element in elements:
-      if xml_element.nodeType == xml_element.ELEMENT_NODE and \
-                      xml_element.nodeName == element_name:
-        return xml_element
-    return None
 
 
 def main(argv=None):

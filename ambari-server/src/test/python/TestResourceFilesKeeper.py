@@ -66,7 +66,7 @@ class TestResourceFilesKeeper(TestCase):
 
 
   @patch.object(ResourceFilesKeeper, "update_directory_archive")
-  @patch.object(ResourceFilesKeeper, "list_active_stacks")
+  @patch.object(ResourceFilesKeeper, "list_stacks")
   @patch("os.path.abspath")
   def test_update_directory_archieves(self, abspath_mock,
                                       list_active_stacks_mock,
@@ -91,20 +91,18 @@ class TestResourceFilesKeeper(TestCase):
 
   @patch("glob.glob")
   @patch("os.path.exists")
-  @patch.object(ResourceFilesKeeper, "is_active_stack")
-  def test_list_active_stacks(self, is_active_stack_mock, exists_mock, glob_mock):
+  def test_list_stacks(self, exists_mock, glob_mock):
     resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH)
     # Test normal execution flow
-    glob_mock.return_value = ["stack1", "stack2", "stack3", "stack4", "stack5"]
-    exists_mock.side_effect = [True, True, False, True, True]
-    is_active_stack_mock.side_effect = [True, False,      False, True]
-    res = resource_files_keeper.list_active_stacks(self.SOME_PATH)
-    self.assertEquals(pprint.pformat(res), "['stack1', 'stack5']")
+    glob_mock.return_value = ["stack1", "stack2", "stack3"]
+    exists_mock.side_effect = [True, False, True]
+    res = resource_files_keeper.list_stacks(self.SOME_PATH)
+    self.assertEquals(pprint.pformat(res), "['stack1', 'stack3']")
 
     # Test exception handling
     glob_mock.side_effect = self.keeper_exc_side_effect
     try:
-      resource_files_keeper.list_active_stacks(self.SOME_PATH)
+      resource_files_keeper.list_stacks(self.SOME_PATH)
       self.fail('KeeperException not thrown')
     except KeeperException:
       pass # Expected
@@ -302,28 +300,6 @@ class TestResourceFilesKeeper(TestCase):
     self.assertTrue(resource_files_keeper.is_ignored("dummy.pyc"))
     self.assertFalse(resource_files_keeper.is_ignored("dummy.py"))
     self.assertFalse(resource_files_keeper.is_ignored("1.sh"))
-
-
-  def test_is_active_stack(self):
-    # Test normal flow
-    resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertTrue(
-      resource_files_keeper.is_active_stack(
-        os.path.join(self.DUMMY_ACTIVE_STACK, ResourceFilesKeeper.METAINFO_XML)))
-    self.assertFalse(
-      resource_files_keeper.is_active_stack(
-        os.path.join(self.DUMMY_INACTIVE_STACK, ResourceFilesKeeper.METAINFO_XML)))
-    # Test exception handling
-    with patch("xml.dom.minidom.parse") as parse_mock:
-      parse_mock.side_effect = self.exc_side_effect
-      try:
-        resource_files_keeper.is_active_stack("path-to-xml")
-        self.fail('KeeperException not thrown')
-      except KeeperException:
-        pass # Expected
-      except Exception, e:
-        self.fail('Unexpected exception thrown:' + str(e))
-
 
 
   def exc_side_effect(self, *a):
