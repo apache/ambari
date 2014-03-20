@@ -1895,6 +1895,11 @@ Em.I18n.translations = {
   'mirroring.manageClusters.error' :'Error in saving changes',
   'mirroring.manageClusters.create.cluster.popup' :'Create Target Cluster',
   'mirroring.manageClusters.remove.confirmation' :'Are you sure you want to delete the target cluster {0}?',
+  'mirroring.manageClusters.executeTooltip' :'The "execute" interface specifies the endpoint for ResourceManager.<br>Example: resourcemanager-host:8050',
+  'mirroring.manageClusters.readonlyTooltip' :'The "readonly" interface specifies the endpoint for Hadoop\'s HFTP protocol.<br>Example: hftp://namenode-host:50070',
+  'mirroring.manageClusters.workflowTooltip' :'The "workflow" interface specifies the endpoint for Oozie URL.<br>Example: http://oozie-host:11000/oozie',
+  'mirroring.manageClusters.writeTooltip' :'The "write" interface is the endpoint to write to HDFS. Set this to the value of fs.defaultFS (in core-site.xml) of the target cluster.<br>Example:<br>hdfs://namenode-host:8020 (non-HA); hdfs://nameservice-id:8020 (HA)',
+  'mirroring.manageClusters.locationsMessage' :'Specify the following for the target cluster, not the source cluster.',
 
   'mirroring.table.noDatasets':'No datasets to display',
   'mirroring.table.datasetStatus':'Status',

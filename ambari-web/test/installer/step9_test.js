@@ -123,35 +123,6 @@ describe('App.InstallerStep9Controller', function () {
     });
   });
 
-  describe('#visibleHosts', function () {
-    var hosts = [
-      Em.Object.create({status: 'failed'}),
-      Em.Object.create({status: 'heartbeat_lost'}),
-      Em.Object.create({status: 'success'}),
-      Em.Object.create({status: 'success'}),
-      Em.Object.create({status: 'warning'}),
-      Em.Object.create({status: 'info'}),
-      Em.Object.create({status: 'info'})
-    ];
-    var tests = Em.A([
-      {category: {hostStatus: 'all'}, e: hosts.length},
-      {category: {hostStatus: 'inProgress'}, e: 2},
-      {category: {hostStatus: 'warning'}, e: 1},
-      {category: {hostStatus: 'failed'}, e: 2},
-      {category: {hostStatus: 'success'}, e: 2}
-    ]);
-
-    tests.forEach(function (test) {
-      it('selected category with hostStatus "' + test.category.hostStatus + '"', function () {
-        var controller = App.WizardStep9Controller.create({
-          hosts: hosts
-        });
-        controller.selectCategory({context: test.category});
-        expect(controller.get('visibleHosts.length')).to.equal(test.e);
-      });
-    });
-  });
-
   describe('#showRetry', function () {
     it('cluster status is not INSTALL FAILED', function () {
       var controller = App.WizardStep9Controller.create({content: {cluster: {status: 'INSTALLED'}}});

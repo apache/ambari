@@ -28,36 +28,50 @@
       <form class="form-horizontal">
         <div class="control-group form-category">
           <div class="category-title">{{t mirroring.manageClusters.interfaces}}</div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.execute}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.execute" disabled="disabled"}}
-          </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.readonly}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.readonly" disabled="disabled"}}
-          </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.workflow" disabled="disabled"}}
-          </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.write}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.write" disabled="disabled"}}
-          </div>
+          {{#view App.InputContainer titleBinding="controller.executeTooltip"}}
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.execute}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.execute" disabled="disabled"}}
+            </div>
+          {{/view}}
+          {{#view App.InputContainer titleBinding="controller.readonlyTooltip"}}
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.readonly}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.readonly" disabled="disabled"}}
+            </div>
+          {{/view}}
+          {{#view App.InputContainer titleBinding="controller.workflowTooltip"}}
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.workflow}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.workflow" disabled="disabled"}}
+            </div>
+          {{/view}}
+          {{#view App.InputContainer titleBinding="controller.writeTooltip"}}
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.write}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.write" disabled="disabled"}}
+            </div>
+          {{/view}}
         </div>
         <div class="control-group form-category">
           <div class="category-title">{{t mirroring.manageClusters.locations}}</div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.staging" disabled="disabled"}}
+          <div class="control-group row-fluid">
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.staging}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.staging" disabled="disabled"}}
+            </div>
           </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.working}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.working" disabled="disabled"}}
+          <div class="control-group row-fluid">
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.working}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.working" disabled="disabled"}}
+            </div>
           </div>
-          <div class="control-group">
-            <label class="control-label-manage-clusters">{{t mirroring.manageClusters.temp}}</label>
-            {{view Ember.TextField class="span9" valueBinding="controller.selectedCluster.temp" disabled="disabled"}}
+          <div class="control-group row-fluid">
+            <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.temp}}</div>
+            <div class="span10">
+              {{view Ember.TextField class="input-fluid" valueBinding="controller.selectedCluster.temp" disabled="disabled"}}
+            </div>
           </div>
         </div>
       </form>

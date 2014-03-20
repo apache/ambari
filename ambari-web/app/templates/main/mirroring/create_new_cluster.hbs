@@ -17,42 +17,59 @@
 }}
 <div class="mirroring-manage-clusters">
   <form class="form-horizontal">
-    <div class="control-group target-cluster-name">
-      <label class="control-label-manage-clusters">{{t common.name}}</label>
-      {{view Ember.TextField class="span5" valueBinding="controller.newCluster.name"}}
+    <div class="control-group row-fluid">
+      <div class="control-label-manage-clusters span2">{{t common.name}}</div>
+      <div class="span10">
+        {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.name"}}
+      </div>
     </div>
     <div class="control-group form-category">
       <div class="category-title">{{t mirroring.manageClusters.interfaces}}</div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.execute}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.execute" placeholder="resourcemanager-host:8050"}}
-      </div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.readonly}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.readonly" placeholder="hftp://namenode-host:50070"}}
-      </div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.workflow}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.workflow" placeholder="http://oozie-host:11000/oozie"}}
-      </div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.write}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.write" placeholder="hdfs://namenode-host:8020"}}
-      </div>
+      {{#view App.InputContainer titleBinding="controller.executeTooltip"}}
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.execute}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.execute" placeholder="resourcemanager-host:8050"}}
+        </div>
+      {{/view}}
+      {{#view App.InputContainer titleBinding="controller.readonlyTooltip"}}
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.readonly}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.readonly" placeholder="hftp://namenode-host:50070"}}
+        </div>
+      {{/view}}
+      {{#view App.InputContainer titleBinding="controller.workflowTooltip"}}
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.workflow}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.workflow" placeholder="http://oozie-host:11000/oozie"}}
+        </div>
+      {{/view}}
+      {{#view App.InputContainer titleBinding="controller.writeTooltip"}}
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.write}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.write" placeholder="hdfs://namenode-host:8020"}}
+        </div>
+      {{/view}}
     </div>
+    <div class="alert alert-info">{{t mirroring.manageClusters.locationsMessage}}</div>
     <div class="control-group form-category">
       <div class="category-title">{{t mirroring.manageClusters.locations}}</div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.staging}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.staging"}}
+      <div class="control-group row-fluid">
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.staging}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.staging"}}
+        </div>
       </div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.working}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.working"}}
+      <div class="control-group row-fluid">
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.working}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.working"}}
+        </div>
       </div>
-      <div class="control-group">
-        <label class="control-label-manage-clusters">{{t mirroring.manageClusters.temp}}</label>
-        {{view Ember.TextField class="span5" valueBinding="controller.newCluster.temp"}}
+      <div class="control-group row-fluid">
+        <div class="control-label-manage-clusters span2">{{t mirroring.manageClusters.temp}}</div>
+        <div class="span10">
+          {{view Ember.TextField class="input-fluid" valueBinding="controller.newCluster.temp"}}
+        </div>
       </div>
     </div>
   </form>

@@ -24,6 +24,11 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
   // link to popup object
   popup: null,
 
+  executeTooltip: Em.I18n.t('mirroring.manageClusters.executeTooltip'),
+  readonlyTooltip: Em.I18n.t('mirroring.manageClusters.readonlyTooltip'),
+  workflowTooltip: Em.I18n.t('mirroring.manageClusters.workflowTooltip'),
+  writeTooltip: Em.I18n.t('mirroring.manageClusters.writeTooltip'),
+
   clusters: [],
 
   newCluster: null,
@@ -87,8 +92,8 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
           workflow: '',
           write: '',
           readonly: '',
-          staging: '/apps/falcon/' + clusterName + '/staging',
-          working: '/apps/falcon/' + clusterName + '/working',
+          staging: '/apps/falcon/<cluster-name>/staging',
+          working: '/apps/falcon/<cluster-name>/working',
           temp: '/tmp'
         });
         self.set('newCluster', newCluster);

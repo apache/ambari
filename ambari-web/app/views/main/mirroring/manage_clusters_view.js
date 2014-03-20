@@ -66,4 +66,13 @@ App.MainMirroringManageClusterstView = Em.View.extend({
   }
 });
 
+App.InputContainer = Em.View.extend({
+  tagName: 'div',
+  classNames: ['control-group', 'row-fluid'],
+  attributeBindings: ['title'],
+  didInsertElement: function () {
+    $(this.get('element')).tooltip({placement: 'right'});
+  }
+});
+
 
