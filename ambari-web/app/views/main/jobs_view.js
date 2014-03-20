@@ -167,15 +167,33 @@ App.MainJobsView = App.TableView.extend({
   }.property('content.length', 'filteredContent.length', 'controller.totalOfJobs'),
 
   pageContentObserver: function () {
-    Ember.run.later(this, function() {
-      $('.job-link').tooltip({
-        template: '<div class="tooltip jobs-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+    if (!$.browser.mozilla) {
+      $('.job-link').on('mouseleave', function() {
+        $('.tooltip').remove();
       });
-    }, 1000);
-  }.observes('pageContent', 'pageContent.length', 'pageContent.@each.id'),
+    };
+    if (!this.get('controller.loading')) {
+      if ($('.tooltip').length) {
+        Ember.run.later(this, function() {
+          if ($('.tooltip').length > 1) {
+            $('.tooltip').first().remove();
+          };
+        }, 500);
+      };
+    };
+  }.observes('controller.loading'),
+
+  init: function() {
+    this._super();
+    App.tooltip($('body'), {
+      selector: '[rel="tooltip"]',
+      template: '<div class="tooltip jobs-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+      placement: 'bottom'
+    });
+  },
 
   willDestroyElement : function() {
-    $('.job-link').tooltip('destroy');
+    $('.tooltip').remove();
   },
 
   /**

@@ -671,8 +671,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         }).on('mouseover', function(op) {
           var operatorPlanObj = self.createOperationPlanObj(n.name, op);
           var template = App.HoverOpTable.create({content: operatorPlanObj}) ;
-          $(event.currentTarget).find('.svg-tooltip').attr('title', template.renderToBuffer().string()).tooltip('fixTitle').tooltip('show');
-        })
+          $(this).find('.svg-tooltip').attr('title', template.renderToBuffer().string()).tooltip('fixTitle').tooltip('show');
+          })
 
         opGroups.append("rect").attr("class", "operation svg-tooltip ").attr("width", "50").attr("height", "16");
         opGroups.append("text").attr("x", "2").attr("dy", "1em").text(function(op) {
@@ -703,6 +703,30 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       return "translate(" + d.x + "," + d.y + ") scale("+d.scale+") ";
     });
     this.vertexMetricsUpdated();
+    $('.svg-tooltip').each(function() {
+      var item = $(this);
+      if (item.prop('tagName') == 'path') {
+        item.hover(function(e) {
+          var offset = $(this).offset();
+          item.prop('offsetWidth', function() {
+            return 2 * (e.pageX - offset.left);
+          });
+          item.prop('offsetHeight', function() {
+            return 2 * (e.pageY - offset.top);
+          });
+        });
+      };
+      if (item.prop('offsetWidth') == undefined) {
+        item.prop('offsetWidth', function() {
+          return item.width();
+        });
+      };
+      if (item.prop('offsetHeight') == undefined) {
+        item.prop('offsetHeight', function() {
+          return item.height();
+        });
+      };
+    });
     $('.svg-tooltip').tooltip({
       placement : 'left'
     });

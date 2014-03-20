@@ -255,8 +255,6 @@ App.MainJobsController = Em.ArrayController.extend({
           + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;
       App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
         complete : function(jqXHR, textStatus) {
-          self.set('loading', false);
-          self.set('loaded', true);
           var sortColumn = self.get('sortingColumn');
           if(sortColumn && sortColumn.get('status')){
             var sortColumnStatus = sortColumn.get('status');
@@ -265,6 +263,8 @@ App.MainJobsController = Em.ArrayController.extend({
             sortColumn.set('status', sortColumnStatus);
             self.set('content',sortColumn.get('parentView').get('content'));
           }
+          self.set('loading', false);
+          self.set('loaded', true);
         }
       }, function (jqXHR, textStatus) {
         App.hiveJobsMapper.map({entities : []});
