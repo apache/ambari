@@ -77,7 +77,7 @@ if lzo_enabled or jdbc_driver_name:
 else:
   jar_option = ""
   
-lzo_jar_suffix = "/usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar" if lzo_enabled else ""
+lzo_jar_suffix = '`find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*"`' if lzo_enabled else ""
   
 if lzo_enabled and jdbc_driver_name:
     jar_path = format("{lzo_jar_suffix}:{jdbc_driver_jar}")        
