@@ -62,27 +62,30 @@ App.ServiceConfigsValidator = Em.Object.extend({
     }
     defaultValue = parseInt(defaultValue.toString().replace( /\D+/g, ''));
     if (defaultValue && currentValue &&  currentValue < defaultValue) {
-      return "Value is less than the recommended default of "+defaultValue;
+      return "Value is less than the recommended default of " + defaultValue;
     }
     return null;
   },
 
   /**
-   * Check if provided <code>config.value</code> is less than <code>recommendedDefaults</code>
+   * Check if provided <code>config.value</code> is less than <code>recommendedDefaults</code> or <code>config.defaultValue</code>
    * Value looks like "-Xmx****m"
    * @param {object} config
    * @return {string|null}
    */
   validateXmxValue: function(config) {
-    var defaultValueRaw = this.get('recommendedDefaults')[config.get('name')];
+    var recomendedDefault = this.get('recommendedDefaults')[config.get('name')];
+    var defaultValueRaw = Em.isNone(recomendedDefault) ? config.get('defaultValue') : recomendedDefault;
+    Em.assert('validateXmxValue: Config\'s default value can\'t be null or undefined', !Em.isNone(defaultValueRaw));
     var currentValueRaw = config.get('value');
     if (!this._checkXmxValueFormat(currentValueRaw)) {
       return 'Invalid value format';
     }
     var currentValue = this._formatXmxSizeToBytes(this._getXmxSize(currentValueRaw));
-    var defaultValue = this._formatXmxSizeToBytes(this._getXmxSize(defaultValueRaw));
+    var defaultValueXmx = this._getXmxSize(defaultValueRaw);
+    var defaultValue = this._formatXmxSizeToBytes(defaultValueXmx);
     if (currentValue < defaultValue) {
-      return "Value is less than the recommended default of " + defaultValueRaw;
+      return "Value is less than the recommended default of -Xmx" + defaultValueXmx;
     }
     return null;
   },

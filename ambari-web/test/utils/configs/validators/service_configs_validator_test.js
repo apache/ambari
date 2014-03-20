@@ -262,6 +262,24 @@ describe('App.ServiceConfigsValidator', function() {
           name: 'property1'
         }),
         e: 'string'
+      },
+      {
+        recommendedDefaults: {},
+        config: Em.Object.create({
+          defaultValue: '-Xmx123',
+          value: '-Xmx123',
+          name: 'name'
+        }),
+        e: null
+      },
+      {
+        recommendedDefaults: {},
+        config: Em.Object.create({
+          defaultValue: '-Xmx124',
+          value: '-Xmx123',
+          name: 'name'
+        }),
+        e: 'string'
       }
     ]);
     tests.forEach(function(test) {
@@ -277,6 +295,13 @@ describe('App.ServiceConfigsValidator', function() {
         }
       });
     });
+
+    it('Error should be thrown', function() {
+      var v = App.ServiceConfigsValidator.create({});
+      v.set('recommendedDefaults', {});
+      expect(function() {v.validateXmxValue(Em.Object.create({value:''}));}).to.throw(Error);
+    });
+
   });
 
 });
