@@ -163,7 +163,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
   openInfoInNewTab: function (xml) {
     var newWindow = window.open('');
     var newDocument = newWindow.document;
-    newDocument.write('<pre>' + App.config.escapeXMLCharacters(xml) + '</pre>');
+    newDocument.write('<pre>' + App.config.escapeXMLCharacters(xml, true) + '</pre>');
     newWindow.focus();
   },
 

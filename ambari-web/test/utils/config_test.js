@@ -230,4 +230,36 @@ describe('App.config', function () {
       expect(result.length).to.equal(1);
     });
   });
+
+  describe('#escapeXMLCharacters', function () {
+
+    var testConfigs = [
+      {
+        html: '&>"',
+        json: '&>"'
+      },
+      {
+        html: '&amp;&gt;&quot;&apos;',
+        json: '&>"\''
+      },
+      {
+        html: '&&gt;',
+        json: '&>'
+      },
+      {
+        html: '&&&amp;',
+        json: '&&&'
+      },
+      {
+        html: 'LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`',
+        json: 'LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &> /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`'
+      }
+    ];
+    testConfigs.forEach(function(t){
+      it('parsing html ' + t.html, function () {
+        expect(t.json).to.equal(App.config.escapeXMLCharacters(t.html));
+      });
+    });
+
+  });
 });
