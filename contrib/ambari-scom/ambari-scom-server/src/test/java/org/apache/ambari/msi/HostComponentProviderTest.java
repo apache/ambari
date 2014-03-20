@@ -41,7 +41,7 @@ public class HostComponentProviderTest {
     ClusterDefinition clusterDefinition = new ClusterDefinition(new TestStateProvider(), new TestClusterDefinitionProvider(), new TestHostInfoProvider());
     HostComponentProvider provider = new HostComponentProvider(clusterDefinition);
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
-    Assert.assertEquals(26, resources.size());
+    Assert.assertEquals(25, resources.size());
   }
 
   @Test

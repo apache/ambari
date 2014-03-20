@@ -60,13 +60,15 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
   private static Map<String, String> serviceNames = new HashMap<String, String>();
 
-  static {
+  private void initServiceNames() {
+    Integer majorStackVersion = clusterDefinition.getMajorStackVersion();
+    if(majorStackVersion != null) {
+        serviceNames.put("HIVE_SERVER", majorStackVersion == 1 ? "hiveserver" : "hiveserver2");
+    }
     serviceNames.put("NAMENODE", "namenode");
     serviceNames.put("SECONDARY_NAMENODE", "secondarynamenode");
     serviceNames.put("JOBTRACKER", "jobtracker");
     serviceNames.put("HISTORYSERVER", "historyserver");
-    serviceNames.put("HIVE_SERVER", "hiveserver");
-    serviceNames.put("HIVE_SERVER2", "hiveserver2");
     serviceNames.put("HIVE_METASTORE", "metastore");
     serviceNames.put("HIVE_CLIENT", "hwi");
     serviceNames.put("OOZIE_SERVER", "oozieservice");
@@ -89,6 +91,7 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
   public SQLProviderModule() {
     clusterDefinition = new ClusterDefinition(this, ClusterDefinitionProvider.instance(), this);
+    initServiceNames();
   }
 
 

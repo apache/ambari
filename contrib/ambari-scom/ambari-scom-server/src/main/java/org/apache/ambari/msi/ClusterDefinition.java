@@ -83,7 +83,6 @@ public class ClusterDefinition {
 
     Set<String> hiveComponents = new HashSet<String>();
     hiveComponents.add("HIVE_SERVER");
-    hiveComponents.add("HIVE_SERVER2");
     hiveComponents.add("HIVE_METASTORE");
     hiveComponents.add("HIVE_CLIENT");
     componentNameMap.put("HIVE_SERVER_HOST", hiveComponents);
@@ -125,7 +124,6 @@ public class ClusterDefinition {
     componentServiceMap.put("DATANODE",           "HDFS");
     componentServiceMap.put("SECONDARY_NAMENODE", "HDFS");
     componentServiceMap.put("HIVE_SERVER",        "HIVE");
-    componentServiceMap.put("HIVE_SERVER2",       "HIVE");
     componentServiceMap.put("HIVE_METASTORE",     "HIVE");
     componentServiceMap.put("HIVE_CLIENT",        "HIVE");
     componentServiceMap.put("OOZIE_SERVER",       "OOZIE");
@@ -183,7 +181,7 @@ public class ClusterDefinition {
     initComponentServiceMap();
   }
 
-  private Integer getMajorStackVersion() {
+  public Integer getMajorStackVersion() {
     if(StringUtils.isNotEmpty(versionId)) {
       String majorVersion = StringUtils.substring(versionId, 4, 5);
       if(StringUtils.isNotEmpty(majorVersion)) {
