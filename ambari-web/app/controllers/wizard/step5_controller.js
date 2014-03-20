@@ -442,7 +442,6 @@ App.WizardStep5Controller = Em.Controller.extend({
       case 'FALCON_SERVER':
         return this.getOozieServer(noOfHosts);
       case 'STORM_UI_SERVER':
-      case 'LOGVIEWER_SERVER':
       case 'DRPC_SERVER':
       case 'STORM_REST_API':
       case 'NIMBUS':

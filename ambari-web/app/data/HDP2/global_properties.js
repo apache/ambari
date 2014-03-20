@@ -1374,20 +1374,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "logviewerserver_host",
-      "displayName": "Logviewer Server host",
-      "description": "The host that has been assigned to run Logviewer Server",
-      "defaultValue": "",
-      "displayType": "masterHost",
-      "isReconfigurable": false,
-      "isVisible": true,
-      "isRequiredByAgent": false,
-      "serviceName": "STORM",
-      "category": "LogviewerServer",
-      "filename": "global.xml"
-    },
-    {
-      "id": "puppet var",
       "name": "drpcserver_host",
       "displayName": "DRPC Server host",
       "description": "The host that has been assigned to run DRPC Server",

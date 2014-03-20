@@ -1585,7 +1585,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       case 'STORM':
         var masterHostComponents = [
           { name: 'STORM_UI_SERVER', propertyName: 'stormuiserver_host' },
-          { name: 'LOGVIEWER_SERVER', propertyName: 'logviewerserver_host' },
           { name: 'DRPC_SERVER', propertyName: 'drpcserver_host' },
           { name: 'STORM_REST_API', propertyName: 'storm_rest_api_host' }
         ];

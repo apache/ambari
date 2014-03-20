@@ -302,12 +302,6 @@ module.exports = [
             isMaster: true
           }),
           Ember.Object.create({
-            display_name: 'Logviewer Server',
-            component_name: 'LOGVIEWER_SERVER',
-            component_value: '',
-            isMaster: true
-          }),
-          Ember.Object.create({
             display_name: 'Supervisor',
             component_name: 'SUPERVISOR',
             component_value: '',

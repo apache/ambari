@@ -384,14 +384,6 @@ module.exports = new Ember.Set([
   },
   {
     service_name: 'STORM',
-    component_name: 'LOGVIEWER_SERVER',
-    display_name: 'Logviewer Server',
-    isMaster: true,
-    isClient: false,
-    description: 'Master component for STORM'
-  },
-  {
-    service_name: 'STORM',
     component_name: 'DRPC_SERVER',
     display_name: 'DRPC Server',
     isMaster: true,

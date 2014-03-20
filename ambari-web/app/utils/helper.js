@@ -239,7 +239,6 @@ App.format = {
     'KERBEROS_ADMIN_CLIENT': 'Kerberos Admin Client',
     'KERBEROS_CLIENT': 'Kerberos Client',
     'KERBEROS_SERVER': 'Kerberos Server',
-    'LOGVIEWER_SERVER': 'Logviewer Server',
     'MAPREDUCE2_CLIENT': 'MapReduce2 Client',
     'MAPREDUCE2_SERVICE_CHECK': 'MapReduce2 Service Check',
     'MAPREDUCE_CLIENT': 'MapReduce Client',

@@ -81,7 +81,6 @@ App.HostComponent = DS.Model.extend({
       case 'FALCON_SERVER':
       case 'NIMBUS':
       case 'STORM_UI_SERVER':
-      case 'LOGVIEWER_SERVER':
       case 'DRPC_SERVER':
       case 'STORM_REST_API':
       case 'RESOURCEMANAGER':

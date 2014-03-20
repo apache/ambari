@@ -414,9 +414,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'falconserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName);
         break;
-      case 'logviewerserver_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'LOGVIEWER_SERVER').hostName);
-        break;
       case 'drpcserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'DRPC_SERVER').hostName);
         break;
