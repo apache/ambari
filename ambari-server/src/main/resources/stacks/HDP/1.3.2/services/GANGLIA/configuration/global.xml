@@ -32,11 +32,6 @@
     <description>Run directories for Ganglia</description>
   </property>
   <property>
-    <name>ganglia_runtime_dir</name>
-    <value>/var/run/ganglia/hdp</value>
-    <description>Run directories for Ganglia</description>
-  </property>
-  <property>
     <name>gmetad_user</name>
     <value>nobody</value>
     <description>User </description>

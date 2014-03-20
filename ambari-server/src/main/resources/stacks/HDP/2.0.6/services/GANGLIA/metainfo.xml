@@ -158,6 +158,9 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <configuration-dependencies>
+        <config-type>global</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
