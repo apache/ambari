@@ -247,8 +247,8 @@ App.MainServiceItemController = Em.Controller.extend({
     if (data.Requests.id) {
       // load data (if we need to show this background operations popup) from persist
       App.router.get('applicationController').dataLoading().done(function (initValue) {
+        params.query.set('status', 'SUCCESS');
         if (initValue) {
-          params.query.set('status', 'SUCCESS');
           App.router.get('backgroundOperationsController').showPopup();
         }
       });
