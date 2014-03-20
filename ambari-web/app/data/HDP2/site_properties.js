@@ -1203,6 +1203,7 @@ module.exports =
       "id": "site property",
       "name": "*.application.services",
       "displayName": "*.application.services",
+      "displayType": "multiLine",
       "category": "FalconStartupSite",
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
@@ -1219,6 +1220,7 @@ module.exports =
       "id": "site property",
       "name": "*.configstore.listeners",
       "displayName": "*.configstore.listeners",
+      "displayType": "multiLine",
       "category": "FalconStartupSite",
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
@@ -1227,6 +1229,7 @@ module.exports =
       "id": "site property",
       "name": "prism.configstore.listeners",
       "displayName": "prism.configstore.listeners",
+      "displayType": "multiLine",
       "category": "FalconStartupSite",
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
