@@ -151,7 +151,9 @@ public class StackUpgradeUtil {
   /**
    * @param stackName
    * @param stackVersion
-   * @param localRepo
+   * @param repoUrl
+   * @param repoUrlOs
+   * @throws Exception
    */
   public void updateLocalRepo(String stackName, String stackVersion,
       String repoUrl, String repoUrlOs) throws Exception {

@@ -32,6 +32,8 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -73,6 +75,7 @@ public class UpgradeCatalog150Test {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1L);
     clusterEntity.setClusterName(CLUSTER_NAME);
+    clusterEntity.setDesiredStackVersion(DESIRED_STACK_VERSION);
     clusterDAO.create(clusterEntity);
     return clusterEntity;
   }
@@ -167,7 +170,7 @@ public class UpgradeCatalog150Test {
 
     }
   }
-  
+
   @Test
   public void testAddHistoryServer() throws AmbariException {
     final ClusterEntity clusterEntity = createCluster();
@@ -249,5 +252,45 @@ public class UpgradeCatalog150Test {
     keyValueEntity = keyValueDAO.findByKey("decommissionDataNodesTag-Moved");
     Assert.assertNotNull(keyValueEntity);
     Assert.assertEquals("1394147791230", keyValueEntity.getValue());
+  }
+
+  @Test
+  public void testAddMissingLog4jConfigs() throws Exception {
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+
+    ClusterEntity clusterEntity = createCluster();
+    ClusterServiceEntity clusterServiceEntityMR = addService(clusterEntity, "HDFS");
+
+    Long clusterId = clusterEntity.getClusterId();
+
+    ClusterConfigEntityPK configEntityPK = new ClusterConfigEntityPK();
+    configEntityPK.setClusterId(clusterId);
+    configEntityPK.setType("hdfs-log4j");
+    configEntityPK.setTag("version1");
+    ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
+    Assert.assertNull(configEntity);
+
+    for (ClusterConfigMappingEntity ccme : clusterEntity.getConfigMappingEntities()) {
+      if ("hdfs-log4j".equals(ccme.getType())) {
+        Assert.fail();
+      }
+    }
+
+    UpgradeCatalog150 upgradeCatalog150 = injector.getInstance(UpgradeCatalog150.class);
+    upgradeCatalog150.addMissingLog4jConfigs();
+
+    configEntity = clusterDAO.findConfig(configEntityPK);
+    Assert.assertNotNull(configEntity);
+
+    //Get updated cluster
+    clusterEntity = clusterDAO.findById(1L);
+
+    boolean failFlag = true;
+    for (ClusterConfigMappingEntity ccme : clusterEntity.getConfigMappingEntities()) {
+      if ("hdfs-log4j".equals(ccme.getType())) {
+        failFlag = false;
+      }
+    }
+    Assert.assertFalse(failFlag);
   }
 }

@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -19,6 +20,7 @@ import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
@@ -32,6 +34,8 @@ import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
@@ -48,6 +52,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.HashMap;
 
 public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog150.class);
@@ -459,8 +465,15 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
         addHistoryServer();
       }
     });
-    
-      
+
+    // Add default log4j configs if they are absent
+    executeInTransaction(new Runnable() {
+      @Override
+      public void run() {
+        addMissingLog4jConfigs();
+      }
+    });
+
     // ========================================================================
     // Finally update schema version
     updateMetaInfoVersion(getTargetVersion());
@@ -478,7 +491,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       }
     });
   }
-  
+
   protected void addHistoryServer() {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
@@ -565,6 +578,97 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
     hostDAO.merge(hostEntity);
+  }
+
+  protected void addMissingLog4jConfigs() {
+
+    final String log4jConfigTypeContains = "log4j";
+    final String defaultVersionTag = "version1";
+    final String defaultUser = "admin";
+
+    LOG.debug("Adding missing configs into Ambari DB.");
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
+
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    Gson gson = injector.getInstance(Gson.class);
+
+    List <ClusterEntity> clusterEntities = clusterDAO.findAll();
+    for (final ClusterEntity clusterEntity : clusterEntities) {
+      Long clusterId = clusterEntity.getClusterId();
+      String desiredStackVersion = clusterEntity.getDesiredStackVersion();
+
+      Map<String, String> clusterInfo =
+        gson.<Map<String, String>>fromJson(desiredStackVersion, Map.class);
+
+      String stackName = clusterInfo.get("stackName");
+      String stackVersion = clusterInfo.get("stackVersion");
+
+      List<ClusterServiceEntity> clusterServiceEntities = clusterServiceDAO.findAll();
+      for (final ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
+        String serviceName = clusterServiceEntity.getServiceName();
+        ServiceInfo serviceInfo = null;
+        try {
+          serviceInfo = ambariMetaInfo.getService(stackName, stackVersion, serviceName);
+        } catch (AmbariException e) {
+          LOG.error("Service " + serviceName + " not found for " + stackName + stackVersion);
+          continue;
+        }
+        List<String> configTypes = serviceInfo.getConfigDependencies();
+        if (configTypes != null) {
+          for (String configType : configTypes) {
+            if (configType.contains(log4jConfigTypeContains)) {
+              ClusterConfigEntityPK configEntityPK = new ClusterConfigEntityPK();
+              configEntityPK.setClusterId(clusterId);
+              configEntityPK.setType(configType);
+              configEntityPK.setTag(defaultVersionTag);
+              ClusterConfigEntity configEntity = clusterDAO.findConfig(configEntityPK);
+
+              if (configEntity == null) {
+                String filename = configType + ".xml";
+                Map<String, String> properties = new HashMap<String, String>();
+                for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
+                  if (filename.equals(propertyInfo.getFilename())) {
+                    properties.put(propertyInfo.getName(), propertyInfo.getValue());
+                  }
+                }
+                if (!properties.isEmpty()) {
+                  String configData = gson.toJson(properties);
+                  configEntity = new ClusterConfigEntity();
+                  configEntity.setClusterId(clusterId);
+                  configEntity.setType(configType);
+                  configEntity.setTag(defaultVersionTag);
+                  configEntity.setData(configData);
+                  configEntity.setTimestamp(System.currentTimeMillis());
+                  configEntity.setClusterEntity(clusterEntity);
+                  LOG.debug("Creating new " + configType + " config...");
+                  clusterDAO.createConfig(configEntity);
+
+                  Collection<ClusterConfigMappingEntity> entities =
+                    clusterEntity.getConfigMappingEntities();
+
+                  ClusterConfigMappingEntity clusterConfigMappingEntity =
+                    new ClusterConfigMappingEntity();
+                  clusterConfigMappingEntity.setClusterEntity(clusterEntity);
+                  clusterConfigMappingEntity.setClusterId(clusterId);
+                  clusterConfigMappingEntity.setType(configType);
+                  clusterConfigMappingEntity.setCreateTimestamp(
+                    Long.valueOf(System.currentTimeMillis()));
+                  clusterConfigMappingEntity.setSelected(1);
+                  clusterConfigMappingEntity.setUser(defaultUser);
+                  clusterConfigMappingEntity.setVersion(configEntity.getTag());
+                  entities.add(clusterConfigMappingEntity);
+                  clusterDAO.merge(clusterEntity);
+                }
+              }
+            }
+
+          }
+
+        }
+      }
+    }
+    LOG.debug("Missing configs have been successfully added into Ambari DB.");
   }
 
   protected void processDecommissionedDatanodes() {

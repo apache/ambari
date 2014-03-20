@@ -26,8 +26,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -72,7 +70,6 @@ public class SchemaUpgradeHelper {
   }
 
   public String readSourceVersion() {
-    String sourceVersion = null;
 
     ResultSet resultSet = null;
     try {
