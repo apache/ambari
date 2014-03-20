@@ -280,6 +280,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
+      var wizardStep7Controller = router.get('wizardStep7Controller');
 
       if (wizardStep6Controller.validate()) {
         controller.saveSlaveComponentHosts(wizardStep6Controller);
@@ -287,7 +288,7 @@ module.exports = Em.Route.extend({
         controller.setDBProperty('serviceConfigProperties', null);
         controller.setDBProperty('advancedServiceConfig', null);
         controller.setDBProperty('serviceConfigGroups', null);
-        controller.loadAdvancedConfigs();
+        controller.loadAdvancedConfigs(wizardStep7Controller);
         router.transitionTo('step7');
       }
     }

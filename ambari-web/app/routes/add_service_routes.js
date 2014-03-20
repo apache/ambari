@@ -185,9 +185,9 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('addServiceController');
       controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
-        controller.loadAllPriorSteps();
-        controller.loadAdvancedConfigs();
         var wizardStep7Controller = router.get('wizardStep7Controller');
+        controller.loadAllPriorSteps();
+        controller.loadAdvancedConfigs(wizardStep7Controller);
         wizardStep7Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep7', controller.get('content'));
       })
