@@ -18,11 +18,11 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
 from hive import hive
 from hive_service import hive_service
 import os
+import fnmatch
 
 class HiveServer(Script):
 
@@ -86,13 +86,26 @@ class HiveServer(Script):
                 path='/bin'
         )
 
-      CopyFromLocal(params.hive_exec_jar_path,
+      hive_exec_jar_path = self.find_hive_exec_jar_path(params.hive_lib)
+      if hive_exec_jar_path is None:
+        hive_exec_jar_path = params.hive_exec_jar_path
+      pass
+
+      CopyFromLocal(hive_exec_jar_path,
                     mode=0755,
                     owner=params.hive_user,
                     dest_dir=hdfs_path,
                     kinnit_if_needed=kinit_if_needed,
                     hdfs_user=params.hdfs_user
       )
+    pass
+
+  def find_hive_exec_jar_path(self, hive_lib_dir):
+    if os.path.exists(hive_lib_dir) and os.path.isdir(hive_lib_dir):
+      for file in os.listdir(hive_lib_dir):
+        if fnmatch.fnmatch(file, 'hive-exec*.jar') and not os.path.islink(file):
+          return os.path.join(hive_lib_dir, file)
+      pass
     pass
 
   def install_tez_jars(self, params):
