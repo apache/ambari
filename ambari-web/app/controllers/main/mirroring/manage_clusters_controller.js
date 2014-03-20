@@ -119,7 +119,7 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
           falconServer: App.get('falconServerURL')
         },
         success: 'onRemoveClusterSuccess',
-        error: 'onRemoveClusterError'
+        error: 'onError'
       });
     }, Em.I18n.t('mirroring.manageClusters.remove.confirmation').format(selectedClusterName));
   },
@@ -128,8 +128,13 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
     this.set('clusters', this.get('clusters').without(this.get('selectedCluster')));
   },
 
-  onRemoveClusterError: function () {
-    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('mirroring.manageClusters.error') + ': ' + arguments[2]);
+  onError: function (response) {
+    if (response && response.responseText) {
+      var errorMessage = /(?:\<message\>)((.|\n)+)(?:\<\/message\>)/.exec(response.responseText);
+      if (errorMessage.length > 1) {
+        App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('mirroring.manageClusters.error') + ': ' + errorMessage[1]);
+      }
+    }
   },
 
   createNewCluster: function () {
@@ -151,9 +156,9 @@ App.MainMirroringManageClustersController = Em.ArrayController.extend({
     this.get('newClusterPopup').hide();
   },
 
-  onCreateClusterError: function () {
+  onCreateClusterError: function (response) {
     this.set('newClusterPopup.disablePrimary', false);
-    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('mirroring.manageClusters.error') + ': ' + arguments[2]);
+    this.onError(response);
   },
 
   /**

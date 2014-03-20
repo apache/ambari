@@ -91,18 +91,19 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
   showPopup: function (header) {
     var self = this;
-    App.ModalPopup.show({
+    var popup = App.ModalPopup.show({
       classNames: ['sixty-percent-width-modal'],
       header: header,
       primary: Em.I18n.t('mirroring.dataset.save'),
       secondary: Em.I18n.t('common.cancel'),
       showCloseButton: false,
+      isSaving: false,
       saveDisabled: function () {
         return self.get('saveDisabled');
       }.property('App.router.' + self.get('name') + '.saveDisabled'),
       disablePrimary: function () {
-        return this.get('saveDisabled');
-      }.property('saveDisabled'),
+        return this.get('saveDisabled') || this.get('isSaving');
+      }.property('saveDisabled', 'isSaving'),
       onPrimary: function () {
         // Apply form validation for first click
         if (!this.get('primaryWasClicked')) {
@@ -113,7 +114,6 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
           }
         }
         self.save();
-        this.hide();
         App.router.transitionTo('main.mirroring.index');
       },
       primaryWasClicked: false,
@@ -125,6 +125,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
         controller: self
       })
     });
+    this.set('popup', popup);
   },
 
   // Set observer to call validate method if any property from formFields will change
@@ -210,6 +211,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
   },
 
   save: function () {
+    this.set('popup.isSaving', true);
     var datasetName = this.get('formFields.datasetName');
     var sourceCluster = App.get('clusterName');
     var targetCluster = this.get('formFields.datasetTargetClusterName');
@@ -222,6 +224,15 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     var scheduleStartDateFormatted = this.toTZFormat(startDate);
     var scheduleEndDateFormatted = this.toTZFormat(endDate);
 
+    var newDataset = {
+      id: datasetName,
+      name: datasetName,
+      source_cluster_name: sourceCluster,
+      target_cluster_name: targetCluster,
+      source_dir: sourceDir,
+      target_dir: targetDir,
+      dataset_jobs: []
+    };
     // Compose XML data, that will be sended to server
     var dataToSend = '<?xml version="1.0"?><feed description="" name="' + datasetName + '" xmlns="uri:falcon:feed:0.1"><frequency>' + repeatOptionSelected + '(' + datasetFrequency + ')' +
         '</frequency><clusters><cluster name="' + sourceCluster + '" type="source"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
@@ -236,7 +247,8 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
           name: datasetName,
           type: 'feed',
           entity: dataToSend,
-          falconServer: App.get('falconServerURL')
+          falconServer: App.get('falconServerURL'),
+          datasetObj: newDataset
         },
         success: 'onSaveSuccess',
         error: 'onSaveError'
@@ -248,32 +260,32 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
         sender: this,
         data: {
           dataset: dataToSend,
-          falconServer: App.get('falconServerURL')
+          falconServer: App.get('falconServerURL'),
+          datasetObj: newDataset
         },
         success: 'onSaveSuccess',
         error: 'onSaveError'
       });
     }
-
-    var newDataset = {
-      id: datasetName,
-      name: datasetName,
-      source_cluster_name: sourceCluster,
-      target_cluster_name: targetCluster,
-      source_dir: sourceDir,
-      target_dir: targetDir,
-      dataset_jobs: []
-    };
-    App.store.load(App.Dataset, newDataset);
   },
 
   onSaveSuccess: function () {
+    this.set('popup.isSaving', false);
+    this.get('popup').hide();
+    var datasetObj = arguments[2].datasetObj;
+    App.store.load(App.Dataset, datasetObj);
     App.router.send('gotoShowJobs');
     App.router.get('mainMirroringController').loadData();
   },
 
-  onSaveError: function () {
-    console.error('Error in sending new dataset data to server.');
+  onSaveError: function (response) {
+    this.set('popup.isSaving', false);
+    if (response && response.responseText) {
+      var errorMessage = /(?:\<message\>)((.|\n)+)(?:\<\/message\>)/.exec(response.responseText);
+      if (errorMessage.length > 1) {
+        App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('mirroring.manageClusters.error') + ': ' + errorMessage[1]);
+      }
+    }
   },
 
   saveDisabled: function () {
