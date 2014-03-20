@@ -750,7 +750,7 @@ App.config = Em.Object.create({
    * @param serviceName
    * @return {*}
    */
-  loadAdvancedConfig: function (serviceName, callback, sync) {
+  loadAdvancedConfig: function (serviceName, callback) {
     App.ajax.send({
       name: 'config.advanced',
       sender: this,
@@ -758,8 +758,7 @@ App.config = Em.Object.create({
         serviceName: serviceName,
         stack2VersionUrl: App.get('stack2VersionURL'),
         stackVersion: App.get('currentStackVersionNumber'),
-        callback: callback,
-        sync: sync
+        callback: callback
       },
       success: 'loadAdvancedConfigSuccess',
       error: 'loadAdvancedConfigError'
