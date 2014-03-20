@@ -403,7 +403,6 @@ function hdp_mon_generate_response( $response_data )
       case "STORM_UI_SERVER":
       case "NIMBUS":
       case "DRPC_SERVER":
-      case "LOGVIEWER_SERVER":
       case "SUPERVISOR":
       case "STORM_REST_API":
         $pieces[0] = "STORM";

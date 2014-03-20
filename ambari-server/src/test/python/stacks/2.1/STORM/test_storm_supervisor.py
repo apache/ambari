@@ -55,6 +55,18 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
       try_sleep = 10,
     )
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm logviewer',
+                               wait_for_finish = False,
+                               not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+                               user = 'storm'
+    )
+
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.logviewer$" && pgrep -f "^java.+backtype.storm.daemon.logviewer$" > /var/run/storm/logviewer.pid',
+                              logoutput = True,
+                              tries = 6,
+                              user = 'storm',
+                              try_sleep = 10
+    )
 
     self.assertNoMoreResources()
 
@@ -72,6 +84,14 @@ class TestStormSupervisor(RMFTestCase):
                               ignore_failures=True
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/supervisor.pid')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+                              not_if = '! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)')
+
+    self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)',
+                              ignore_failures = True)
+
+    self.assertResourceCalled('Execute', 'rm -f /var/run/storm/logviewer.pid')
     self.assertNoMoreResources()
 
   def test_configure_default(self):
@@ -104,7 +124,18 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
       try_sleep = 10,
     )
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm logviewer',
+                        wait_for_finish = False,
+                        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+                        user = 'storm'
+    )
 
+    self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.logviewer$" && pgrep -f "^java.+backtype.storm.daemon.logviewer$" > /var/run/storm/logviewer.pid',
+                        logoutput = True,
+                        tries = 6,
+                        user = 'storm',
+                        try_sleep = 10
+    )
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
@@ -121,6 +152,14 @@ class TestStormSupervisor(RMFTestCase):
                               ignore_failures=True
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/storm/supervisor.pid')
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+                              not_if = '! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)')
+
+    self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
+                              not_if = 'sleep 2; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1)',
+                              ignore_failures = True)
+
+    self.assertResourceCalled('Execute', 'rm -f /var/run/storm/logviewer.pid')
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

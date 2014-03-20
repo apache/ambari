@@ -143,9 +143,7 @@ class LiveStatus:
       {"serviceName" : "STORM",
        "componentName" : "STORM_UI_SERVER"},
       {"serviceName" : "STORM",
-       "componentName" : "DRPC_SERVER"},
-      {"serviceName" : "STORM",
-       "componentName" : "LOGVIEWER_SERVER"}
+       "componentName" : "DRPC_SERVER"}
   ]
 
   LIVE_STATUS = "STARTED"

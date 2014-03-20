@@ -41,12 +41,14 @@ class Supervisor(Script):
     self.configure(env)
 
     service("supervisor", action="start")
+    service("logviewer", action="start")
 
   def stop(self, env):
     import params
     env.set_params(params)
 
     service("supervisor", action="stop")
+    service("logviewer", action="stop")
 
   def status(self, env):
     import status_params

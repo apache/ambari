@@ -74,18 +74,7 @@
             <timeout>600</timeout>
           </commandScript>
         </component>
-
-        <component>
-          <name>LOGVIEWER_SERVER</name>
-          <category>MASTER</category>
-          <commandScript>
-            <script>scripts/logviewer_server.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
-        </component>
       </components>
-
 
       <osSpecifics>
         <osSpecific>

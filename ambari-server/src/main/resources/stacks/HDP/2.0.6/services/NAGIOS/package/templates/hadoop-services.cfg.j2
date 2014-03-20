@@ -288,22 +288,8 @@ define service {
 }
 {% endif %}
 
-{% if hostgroup_defs['logviewer-server'] %}
-# logviewer Checks
-define service {
-        hostgroup_name          logviewer-server
-        use                     hadoop-service
-        service_description     LOGVIEWER_SERVER::Logviewer Server process
-        servicegroups           STORM
-        check_command           check_tcp_wrapper!{{ logviewer_port }}!-w 1 -c 1
-        normal_check_interval   0.5
-        retry_check_interval    0.25
-        max_check_attempts      3
-}
-{% endif %}
-
 {% if hostgroup_defs['storm_rest_api'] %}
-# logviewer Checks
+# Storm REST API Checks
 define service {
         hostgroup_name          storm_rest_api
         use                     hadoop-service
