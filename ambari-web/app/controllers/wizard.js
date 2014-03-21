@@ -691,23 +691,16 @@ App.WizardController = Em.Controller.extend({
   /**
    * load advanced configs from server
    */
-  loadAdvancedConfigs: function (dependentController) {
-    var self = this;
-    var counter = this.get('content.services').filterProperty('isSelected').length;
-    var loadAdvancedConfigResult = [];
-    dependentController.set('isAdvancedConfigLoaded', false);
-    this.get('content.services').filterProperty('isSelected').mapProperty('serviceName').forEach(function (_serviceName) {
-      App.config.loadAdvancedConfig(_serviceName, function(properties){
-        loadAdvancedConfigResult.pushObjects(properties);
-        counter--;
-        //pass configs to controller after last call is completed
-        if (counter === 0) {
-          self.set('content.advancedServiceConfig', loadAdvancedConfigResult);
-          self.setDBProperty('advancedServiceConfig', loadAdvancedConfigResult);
-          dependentController.set('isAdvancedConfigLoaded', true);
-        }
-      });
+  loadAdvancedConfigs: function () {
+    var configs = (this.getDBProperty('advancedServiceConfig')) ? this.getDBProperty('advancedServiceConfig') : [];
+    this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
+      var serviceComponents = App.config.loadAdvancedConfig(_serviceName);
+      if (serviceComponents) {
+        configs = configs.concat(serviceComponents);
+      }
     }, this);
+    this.set('content.advancedServiceConfig', configs);
+    this.setDBProperty('advancedServiceConfig', configs);
   },
   /**
    * Load serviceConfigProperties to model

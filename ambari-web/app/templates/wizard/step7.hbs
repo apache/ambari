@@ -23,12 +23,7 @@
       {{t installer.step7.body}}
     </div>
 
-    {{#if isAdvancedConfigLoaded}}
-      {{view App.ServicesConfigView}}
-    {{else}}
-      <div class="spinner"></div>
-    {{/if}}
-
+    {{view App.ServicesConfigView}}
 
     <div class="btn-area">
         <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
