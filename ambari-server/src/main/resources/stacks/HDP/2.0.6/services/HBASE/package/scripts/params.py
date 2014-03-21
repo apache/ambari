@@ -53,6 +53,7 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, 0.2, 512)
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
+# TODO UPGRADE default, update site during upgrade
 _local_dir_conf = default('/configurations/hbase-site/hbase.local.dir', "${hbase.tmp.dir}/local")
 local_dir = substitute_vars(_local_dir_conf, config['configurations']['hbase-site'])
 

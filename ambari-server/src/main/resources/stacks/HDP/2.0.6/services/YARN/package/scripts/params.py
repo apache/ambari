@@ -41,7 +41,8 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 rm_host = config['clusterHostInfo']['rm_host'][0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = "8090"
-rm_nodes_exclude_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
+# TODO UPGRADE default, update site during upgrade
+rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
 java64_home = config['hostLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
