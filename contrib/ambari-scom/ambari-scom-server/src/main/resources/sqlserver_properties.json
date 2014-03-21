@@ -23137,6 +23137,293 @@
         "pointInTime": false,
         "temporal": true
       }
+    },
+    "HISTORYSERVER":{
+      "metrics/memory/mem_total": {
+        "metric": "mem_total",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/memHeapCommittedM": {
+        "metric": "jvm.JvmMetrics.MemHeapCommittedM",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/threadsRunnable": {
+        "metric": "jvm.JvmMetrics.ThreadsRunnable",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/threadsNew": {
+        "metric": "jvm.JvmMetrics.ThreadsNew",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/rpcAuthorizationFailures": {
+        "metric": "rpc.metrics.RpcAuthorizationFailures",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/ugi/loginSuccess_avg_time": {
+        "metric": "ugi.ugi.LoginSuccessAvgTime",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/RpcQueueTime_avg_time": {
+        "metric": "rpc.rpc.RpcQueueTimeAvgTime",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/SentBytes": {
+        "metric": "rpc.rpc.SentBytes",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/memNonHeapUsedM": {
+        "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/logWarn": {
+        "metric": "jvm.JvmMetrics.LogWarn",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/threadsTimedWaiting": {
+        "metric": "jvm.JvmMetrics.ThreadsTimedWaiting",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/process/proc_run": {
+        "metric": "proc_run",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/gcCount": {
+        "metric": "jvm.JvmMetrics.GcCount",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/ReceivedBytes": {
+        "metric": "rpc.rpc.ReceivedBytes",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/memory/swap_total": {
+        "metric": "swap_total",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_nice": {
+        "metric": "cpu_nice",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/threadsBlocked": {
+        "metric": "jvm.JvmMetrics.ThreadsBlocked",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/RpcQueueTime_num_ops": {
+        "metric": "rpc.rpc.RpcQueueTimeNumOps",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/process/proc_total": {
+        "metric": "proc_total",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/disk/part_max_used": {
+        "metric": "part_max_used",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/rpc/NumOpenConnections": {
+        "metric": "rpc.rpc.NumOpenConnections",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/memHeapUsedM": {
+        "metric": "jvm.JvmMetrics.MemHeapUsedM",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/threadsWaiting": {
+        "metric": "jvm.JvmMetrics.ThreadsWaiting",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/disk/disk_free": {
+        "metric": "disk_free",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/memory/mem_buffers": {
+        "metric": "mem_buffers",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/ugi/loginSuccess_num_ops": {
+        "metric": "ugi.ugi.LoginSuccessNumOps",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/gcTimeMillis": {
+        "metric": "jvm.JvmMetrics.GcTimeMillis",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_idle": {
+        "metric": "cpu_idle",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/threadsTerminated": {
+        "metric": "jvm.JvmMetrics.ThreadsTerminated",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/network/bytes_out": {
+        "metric": "bytes_out",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_aidle": {
+        "metric": "cpu_aidle",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/memory/mem_free": {
+        "metric": "mem_free",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_user": {
+        "metric": "cpu_user",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/memory/swap_free": {
+        "metric": "swap_free",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_system": {
+        "metric": "cpu_system",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/network/bytes_in": {
+        "metric": "bytes_in",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/boottime": {
+        "metric": "boottime",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/network/pkts_out": {
+        "metric": "pkts_out",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/memNonHeapCommittedM": {
+        "metric": "jvm.JvmMetrics.MemNonHeapCommittedM",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/callQueueLen": {
+        "metric": "rpc.rpc.CallQueueLength",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/memory/mem_cached": {
+        "metric": "mem_cached",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/disk/disk_total": {
+        "metric": "disk_total",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/logInfo": {
+        "metric": "jvm.JvmMetrics.LogInfo",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/ugi/loginFailure_num_ops": {
+        "metric": "ugi.ugi.LoginFailureNumOps",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops": {
+        "metric": "rpc.rpc.RpcProcessingTimeNumOps",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/memory/mem_shared": {
+        "metric": "mem_shared",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_wio": {
+        "metric": "cpu_wio",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/jvm/logError": {
+        "metric": "jvm.JvmMetrics.LogError",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/ugi/loginFailure_avg_time": {
+        "metric": "ugi.ugi.LoginFailureAvgTime",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_num": {
+        "metric": "cpu_num",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/cpu/cpu_speed": {
+        "metric": "cpu_speed",
+        "pointInTime": true,
+        "temporal": true
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses": {
+        "metric": "rpc.rpc.RpcAuthorizationSuccesses",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/jvm/logFatal": {
+        "metric": "jvm.JvmMetrics.LogFatal",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time": {
+        "metric": "rpc.rpc.RpcProcessingTimeAvgTime",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses": {
+        "metric": "rpc.metrics.RpcAuthenticationSuccesses",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/rpc/rpcAuthenticationFailures": {
+        "metric": "rpc.metrics.RpcAuthenticationFailures",
+        "pointInTime": false,
+        "temporal": true
+      },
+      "metrics/network/pkts_in": {
+        "metric": "pkts_in",
+        "pointInTime": true,
+        "temporal": true
+      }
     }
   }
 }
