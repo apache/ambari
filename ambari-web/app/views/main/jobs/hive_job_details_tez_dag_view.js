@@ -665,12 +665,14 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
             opCount[op] = opCount[op]+1;
           }
           return opCount[op];
-        }).on('mousedown', function(op) {
-          var operatorPlanObj = self.createOperationPlanObj(n.name, op);
-          self.get('parentView').set('operatorPlan', operatorPlanObj);
         }).on('mouseover', function(op) {
+          var viewContent = {
+            operationName: op,
+            operatorPlanObj: []
+          };
           var operatorPlanObj = self.createOperationPlanObj(n.name, op);
-          var template = App.HoverOpTable.create({content: operatorPlanObj}) ;
+          viewContent.operatorPlanObj = operatorPlanObj;
+          var template = App.HoverOpTable.create({content: viewContent}) ;
           $(this).find('.svg-tooltip').attr('title', template.renderToBuffer().string()).tooltip('fixTitle').tooltip('show');
           })
 
