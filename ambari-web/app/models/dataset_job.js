@@ -50,7 +50,31 @@ App.DataSetJob = DS.Model.extend({
   }.property('endDate'),
 
   healthClass: function () {
-    return this.get('status') === 'FAILED' ? 'health-status-DEAD-RED' : 'health-status-LIVE';
+    var result = 'icon-question-sign';
+    switch (this.get('status')) {
+      case 'SUCCEEDED':
+        result = 'icon-ok';
+        break;
+      case 'SUSPENDED':
+        result = 'icon-cog';
+        break;
+      case 'WAITING':
+        result = 'icon-time';
+        break;
+      case 'RUNNING':
+        result = 'icon-play';
+        break;
+      case 'KILLED':
+        result = 'icon-exclamation-sign';
+        break;
+      case 'FAILED':
+        result = 'icon-warning-sign';
+        break;
+      case 'ERROR':
+        result = 'icon-remove';
+        break;
+    }
+    return result;
   }.property('status')
 });
 

@@ -90,7 +90,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
       name: 'mirroring.suspend_instance',
       sender: this,
       data: {
-        feed: this.get('content.name'),
+        feed: this.get('content.prefixedName'),
         name: event.context.get('name'),
         job: event.context,
         falconServer: App.get('falconServerURL')
@@ -109,7 +109,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
       name: 'mirroring.resume_instance',
       sender: this,
       data: {
-        feed: this.get('content.name'),
+        feed: this.get('content.prefixedName'),
         name: event.context.get('name'),
         job: event.context,
         falconServer: App.get('falconServerURL')
@@ -128,7 +128,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
       name: 'mirroring.kill_instance',
       sender: this,
       data: {
-        feed: this.get('content.name'),
+        feed: this.get('content.prefixedName'),
         name: event.context.get('name'),
         job: event.context,
         falconServer: App.get('falconServerURL')

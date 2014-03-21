@@ -2,17 +2,17 @@
 <entities>
     <entity>
         <type>feed</type>
-        <name>dataset1</name>
+        <name>ambari-mirroring-dataset1</name>
         <status>RUNNING</status>
     </entity>
     <entity>
         <type>feed</type>
-        <name>dataset2</name>
+        <name>ambari-mirroring-dataset2</name>
         <status>SUSPENDED</status>
     </entity>
     <entity>
         <type>feed</type>
-        <name>dataset3</name>
+        <name>ambari-mirroring-dataset3</name>
         <status>SUBMITTED</status>
     </entity>
 </entities>

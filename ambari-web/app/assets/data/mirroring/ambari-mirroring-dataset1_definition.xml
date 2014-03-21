@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<feed xmlns="uri:falcon:feed:0.1" name="dataset3" description=""><frequency>hours(1)</frequency>
+<feed xmlns="uri:falcon:feed:0.1" name="ambari-mirroring-dataset1" description=""><frequency>hours(1)</frequency>
     <clusters>
         <cluster name="source-cluster" type="source">
             <validity end="2014-12-31T00:00Z" start="2013-10-24T00:00Z"/>
@@ -10,13 +10,13 @@
             <validity end="2014-12-31T00:00Z" start="2013-10-24T00:00Z"/>
             <retention action="delete" limit="months(1)"/>
             <locations>
-                <location type="data" path="/backup/app-logs3"/>
+                <location type="data" path="/backup/app-logs1"/>
             </locations>
         </cluster>
     </clusters>
 
     <locations>
-        <location type="data" path="/app-logs3"/>
+        <location type="data" path="/app-logs1"/>
     </locations>
     <ACL permission="0755" group="users" owner="hue"/>
     <schema provider="none" location="/none"/>

@@ -129,9 +129,10 @@ App.MainMirroringController = Em.ArrayController.extend({
       targetCluster = clusters.cluster[1];
       sourceCluster = clusters.cluster[0];
     }
+    var datasetName = parsedData.feed['@attributes'].name.replace(App.mirroringDatasetNamePrefix, '');
     this.get('datasetsData').push(
         Ember.Object.create({
-          name: parsedData.feed['@attributes'].name.replace(App.mirroringDatasetNamePrefix, ''),
+          name: datasetName,
           status: arguments[2].status,
           sourceClusterName: sourceCluster['@attributes'].name,
           targetClusterName: targetCluster['@attributes'].name,
@@ -151,6 +152,7 @@ App.MainMirroringController = Em.ArrayController.extend({
         sender: this,
         data: {
           dataset: parsedData.feed['@attributes'].name,
+          formattedDatasetName: datasetName,
           start: sourceCluster.validity['@attributes'].start,
           end: App.router.get('mainMirroringEditDataSetController').toTZFormat(currentDate),
           falconServer: App.get('falconServerURL')
@@ -175,7 +177,7 @@ App.MainMirroringController = Em.ArrayController.extend({
       data.instances.forEach(function (instance) {
         if (instance.cluster == App.get('clusterName')) {
           datasetJobs.push({
-            dataset: opts.dataset,
+            dataset: opts.formattedDatasetName,
             id: instance.instance + '_' + opts.dataset,
             name: instance.instance,
             status: instance.status,
@@ -184,7 +186,7 @@ App.MainMirroringController = Em.ArrayController.extend({
           });
         }
       }, this);
-      datasetsData.findProperty('name', opts.dataset).set('instances', datasetJobs);
+      datasetsData.findProperty('name', opts.formattedDatasetName).set('instances', datasetJobs);
     }
     this.saveDataset();
   },
