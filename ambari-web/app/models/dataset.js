@@ -32,6 +32,11 @@ App.Dataset = DS.Model.extend({
   scheduleEndDate: DS.attr('string'),
   datasetJobs: DS.hasMany('App.DataSetJob'),
 
+  // name with special prefix to distinguish feeds created with Ambari
+  prefixedName: function () {
+    return App.mirroringDatasetNamePrefix + this.get('name');
+  }.property('name'),
+
   statusFormatted: function (){
     var status = this.get('status');
     if (status) {

@@ -212,7 +212,9 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
   save: function () {
     this.set('popup.isSaving', true);
+    var datasetNamePrefix = App.mirroringDatasetNamePrefix;
     var datasetName = this.get('formFields.datasetName');
+    var prefixedDatasetName = datasetNamePrefix + datasetName;
     var sourceCluster = App.get('clusterName');
     var targetCluster = this.get('formFields.datasetTargetClusterName');
     var sourceDir = this.get('formFields.datasetSourceDir');
@@ -234,7 +236,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
       dataset_jobs: []
     };
     // Compose XML data, that will be sended to server
-    var dataToSend = '<?xml version="1.0"?><feed description="" name="' + datasetName + '" xmlns="uri:falcon:feed:0.1"><frequency>' + repeatOptionSelected + '(' + datasetFrequency + ')' +
+    var dataToSend = '<?xml version="1.0"?><feed description="" name="' + prefixedDatasetName + '" xmlns="uri:falcon:feed:0.1"><frequency>' + repeatOptionSelected + '(' + datasetFrequency + ')' +
         '</frequency><clusters><cluster name="' + sourceCluster + '" type="source"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
         '"/><retention limit="days(7)" action="delete"/></cluster><cluster name="' + targetCluster + '" type="target"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
         '"/><retention limit="months(1)" action="delete"/><locations><location type="data" path="' + targetDir + '" /></locations></cluster></clusters><locations><location type="data" path="' +
@@ -244,7 +246,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
         name: 'mirroring.update_entity',
         sender: this,
         data: {
-          name: datasetName,
+          name: prefixedDatasetName,
           type: 'feed',
           entity: dataToSend,
           falconServer: App.get('falconServerURL'),

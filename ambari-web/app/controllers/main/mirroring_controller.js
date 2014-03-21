@@ -85,8 +85,13 @@ App.MainMirroringController = Em.ArrayController.extend({
   onLoadDatasetsListSuccess: function (data) {
     var parsedData = misc.xmlToObject(data);
     var datasets = parsedData.entities.entity;
-    if (data && datasets) {
+    if (datasets) {
       datasets = Em.isArray(datasets) ? datasets : [datasets];
+      datasets = datasets.filter(function (dataset) {
+        return dataset.name['#text'].indexOf(App.mirroringDatasetNamePrefix) === 0;
+      });
+    }
+    if (datasets && datasets.length) {
       this.set('datasetCount', datasets.length);
       datasets.forEach(function (dataset) {
         App.ajax.send({
@@ -126,7 +131,7 @@ App.MainMirroringController = Em.ArrayController.extend({
     }
     this.get('datasetsData').push(
         Ember.Object.create({
-          name: parsedData.feed['@attributes'].name,
+          name: parsedData.feed['@attributes'].name.replace(App.mirroringDatasetNamePrefix, ''),
           status: arguments[2].status,
           sourceClusterName: sourceCluster['@attributes'].name,
           targetClusterName: targetCluster['@attributes'].name,

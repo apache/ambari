@@ -26,7 +26,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
       name: 'mirroring.suspend_entity',
       sender: this,
       data: {
-        name: this.get('content.name'),
+        name: this.get('content.prefixedName'),
         type: 'feed',
         falconServer: App.get('falconServerURL')
       },
@@ -45,7 +45,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
       name: 'mirroring.schedule_entity',
       sender: this,
       data: {
-        name: this.get('content.name'),
+        name: this.get('content.prefixedName'),
         type: 'feed',
         falconServer: App.get('falconServerURL')
       },
@@ -67,7 +67,7 @@ App.MainDatasetJobsController = Em.Controller.extend({
         name: 'mirroring.delete_entity',
         sender: self,
         data: {
-          name: self.get('content.name'),
+          name: self.get('content.prefixedName'),
           type: 'feed',
           falconServer: App.get('falconServerURL')
         },
