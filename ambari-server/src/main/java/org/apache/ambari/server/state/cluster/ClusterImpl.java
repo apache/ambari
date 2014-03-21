@@ -843,7 +843,7 @@ public class ClusterImpl implements Cluster {
     try {
       readLock.lock();
       try {
-        return Collections.unmodifiableMap(services);
+        return new HashMap<String, Service>(services);
       } finally {
         readLock.unlock();
       }

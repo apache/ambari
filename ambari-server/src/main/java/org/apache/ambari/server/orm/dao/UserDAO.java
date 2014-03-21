@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.UserEntity;
 
 import javax.persistence.EntityManager;
@@ -37,25 +38,25 @@ public class UserDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public UserEntity findByPK(Integer userPK) {
     return entityManagerProvider.get().find(UserEntity.class, userPK);
   }
 
-  @Transactional
+  @RequiresSession
   public List<UserEntity> findAll() {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user", UserEntity.class);
     return daoUtils.selectList(query);
   }
 
-  @Transactional
+  @RequiresSession
   public List<UserEntity> findAllLocalUsersByRole(RoleEntity roleEntity) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT role.userEntities FROM RoleEntity role WHERE role = :roleEntity", UserEntity.class);
     query.setParameter("roleEntity", roleEntity);
     return query.getResultList();
   }
-  
-  @Transactional
+
+  @RequiresSession
   public UserEntity findLocalUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("localUserByName", UserEntity.class);
     query.setParameter("username", userName.toLowerCase());
@@ -66,7 +67,7 @@ public class UserDAO {
     }
   }
 
-  @Transactional
+  @RequiresSession
   public UserEntity findLdapUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("ldapUserByName", UserEntity.class);
     query.setParameter("username", userName.toLowerCase());

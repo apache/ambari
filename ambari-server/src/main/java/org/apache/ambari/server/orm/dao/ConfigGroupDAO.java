@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -28,6 +29,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Singleton
+@RequiresSession
 public class ConfigGroupDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -39,7 +41,7 @@ public class ConfigGroupDAO {
    * @param groupName
    * @return ConfigGroupEntity
    */
-  @Transactional
+  @RequiresSession
   public ConfigGroupEntity findByName(String groupName) {
     TypedQuery<ConfigGroupEntity> query = entityManagerProvider.get()
       .createNamedQuery("configGroupByName", ConfigGroupEntity.class);
@@ -56,15 +58,32 @@ public class ConfigGroupDAO {
    * @param id
    * @return
    */
-  @Transactional
+  @RequiresSession
   public ConfigGroupEntity findById(Long id) {
     return entityManagerProvider.get().find(ConfigGroupEntity.class, id);
   }
 
-  @Transactional
+  @RequiresSession
   public List<ConfigGroupEntity> findAll() {
     TypedQuery<ConfigGroupEntity> query = entityManagerProvider.get()
       .createNamedQuery("allConfigGroups", ConfigGroupEntity.class);
+    try {
+      return query.getResultList();
+    } catch (NoResultException ignored) {
+    }
+    return null;
+  }
+
+  /**
+   * Find config groups by service name and so on
+   * @param tag
+   * @return
+   */
+  @RequiresSession
+  public List<ConfigGroupEntity> findAllByTag(String tag) {
+    TypedQuery<ConfigGroupEntity> query = entityManagerProvider.get()
+      .createNamedQuery("configGroupsByTag", ConfigGroupEntity.class);
+    query.setParameter("tagName", tag);
     try {
       return query.getResultList();
     } catch (NoResultException ignored) {
@@ -98,22 +117,5 @@ public class ConfigGroupDAO {
   }
 
   // DAO methods on associated objects
-
-  /**
-   * Find config groups by service name and so on
-   * @param tag
-   * @return
-   */
-  @Transactional
-  public List<ConfigGroupEntity> findAllByTag(String tag) {
-    TypedQuery<ConfigGroupEntity> query = entityManagerProvider.get()
-      .createNamedQuery("configGroupsByTag", ConfigGroupEntity.class);
-    query.setParameter("tagName", tag);
-    try {
-      return query.getResultList();
-    } catch (NoResultException ignored) {
-    }
-    return null;
-  }
 
 }

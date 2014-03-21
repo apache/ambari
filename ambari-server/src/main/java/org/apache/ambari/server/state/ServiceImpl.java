@@ -176,7 +176,7 @@ public class ServiceImpl implements Service {
     try {
       readWriteLock.readLock().lock();
       try {
-        return Collections.unmodifiableMap(components);
+        return new HashMap<String, ServiceComponent>(components);
       } finally {
         readWriteLock.readLock().unlock();
       }

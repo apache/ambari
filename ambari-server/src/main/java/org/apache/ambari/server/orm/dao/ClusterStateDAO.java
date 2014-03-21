@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 
 import javax.persistence.EntityManager;
@@ -34,12 +35,12 @@ public class ClusterStateDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public ClusterStateEntity findByPK(long clusterId) {
     return entityManagerProvider.get().find(ClusterStateEntity.class, clusterId);
   }
 
-  @Transactional
+  @RequiresSession
   public List<ClusterStateEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), ClusterStateEntity.class);
   }

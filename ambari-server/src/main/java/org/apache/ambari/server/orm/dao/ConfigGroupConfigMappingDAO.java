@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntityPK;
 import javax.persistence.EntityManager;
@@ -35,14 +36,14 @@ public class ConfigGroupConfigMappingDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public ConfigGroupConfigMappingEntity findByPK
     (ConfigGroupConfigMappingEntityPK configGroupConfigMappingEntityPK) {
     return entityManagerProvider.get().find(ConfigGroupConfigMappingEntity.class,
       configGroupConfigMappingEntityPK);
   }
 
-  @Transactional
+  @RequiresSession
   public List<ConfigGroupConfigMappingEntity> findByGroup(Long groupId) {
     TypedQuery<ConfigGroupConfigMappingEntity> query = entityManagerProvider
       .get().createNamedQuery("configsByGroup", ConfigGroupConfigMappingEntity.class);
@@ -55,7 +56,7 @@ public class ConfigGroupConfigMappingDAO {
     return null;
   }
 
-  @Transactional
+  @RequiresSession
   public List<ConfigGroupConfigMappingEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), ConfigGroupConfigMappingEntity.class);
   }

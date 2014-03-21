@@ -498,6 +498,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // now doing actual work
+    persistServiceComponentHosts(requests);
+  }
+
+  @Transactional
+  void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests) throws AmbariException {
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
@@ -525,6 +530,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       sch.persist();
     }
   }
+
 
   @Override
   public synchronized void createConfiguration(
@@ -645,15 +651,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private Set<ServiceComponentHostResponse> getHostComponents(
       ServiceComponentHostRequest request) throws AmbariException {
+    LOG.debug("Processing request {}", request);
+
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
-      throw new IllegalArgumentException("Invalid arguments, cluster name should not be null");
+      IllegalArgumentException e = new IllegalArgumentException("Invalid arguments, cluster name should not be null");
+      LOG.debug("Cluster not specified in request", e);
+      throw e;
     }
 
     final Cluster cluster;
     try {
       cluster = clusters.getCluster(request.getClusterName());
     } catch (ClusterNotFoundException e) {
+      LOG.error("Cluster not found ", e);
       throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
     }
 
@@ -661,10 +672,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       try {
         if (!clusters.getClustersForHost(request.getHostname()).contains(cluster)) {
           // case where host exists but not associated with given cluster
+          LOG.error("Host doesn't belong to cluster");
           throw new ParentObjectNotFoundException("Parent Host resource doesn't exist",
               new HostNotFoundException(request.getClusterName(), request.getHostname()));
         }
       } catch (HostNotFoundException e) {
+        LOG.error("Host not found", e);
         // creating new HostNotFoundException to add cluster name
         throw new ParentObjectNotFoundException("Parent Host resource doesn't exist",
             new HostNotFoundException(request.getClusterName(), request.getHostname()));
@@ -686,6 +699,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         if (serviceName == null
             || serviceName.isEmpty()) {
+          LOG.error("Unable to find service for component {}", request.getComponentName());
           throw new ServiceComponentHostNotFoundException(
               cluster.getClusterName(), null, request.getComponentName(), request.getHostname());
         }
@@ -748,8 +762,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           try {
             if (serviceComponentHostMap == null
                 || !serviceComponentHostMap.containsKey(request.getHostname())) {
-              throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
+              ServiceComponentHostNotFoundException e = new ServiceComponentHostNotFoundException(cluster.getClusterName(),
                 s.getName(), sc.getName(), request.getHostname());
+              throw e;
             }
 
             ServiceComponentHost sch = serviceComponentHostMap.get(request.getHostname());
@@ -779,9 +794,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             response.add(r);
           } catch (ServiceComponentHostNotFoundException e) {
             if (request.getServiceName() != null && request.getComponentName() != null) {
+              LOG.error("ServiceComponentHost not found ", e);
               throw new ServiceComponentHostNotFoundException(cluster.getClusterName(),
                   request.getServiceName(), request.getComponentName(), request.getHostname());
             } else {
+              LOG.debug("Ignoring not specified host_component ", e);
               // ignore this since host_component was not specified
               // this is an artifact of how we get host_components and can happen
               // in case where we get all host_components for a host
@@ -2178,6 +2195,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public Set<ServiceComponentHostResponse> getHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
+    LOG.debug("Processing requests: {}", requests);
     Set<ServiceComponentHostResponse> response =
         new HashSet<ServiceComponentHostResponse>();
     for (ServiceComponentHostRequest request : requests) {
@@ -2188,6 +2206,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           // only throw exception if 1 request.
           // there will be > 1 request in case of OR predicate
           throw e;
+        } else {
+          LOG.debug("Ignoring not found exception due to other requests", e);
         }
       } catch (ServiceNotFoundException e) {
         if (requests.size() == 1) {
@@ -2196,6 +2216,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           // In 'OR' case, a host_component may be included in predicate
           // that has no corresponding service
           throw e;
+        } else {
+          LOG.debug("Ignoring not found exception due to other requests", e);
         }
       } catch (ServiceComponentNotFoundException e) {
         if (requests.size() == 1) {
@@ -2204,6 +2226,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           // In 'OR' case, a host_component may be included in predicate
           // that has no corresponding component
           throw e;
+        } else {
+          LOG.debug("Ignoring not found exception due to other requests", e);
         }
       } catch (ParentObjectNotFoundException e) {
         // If there is only one request, always throw exception.
@@ -2217,6 +2241,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (r.getHostname() == null) {
               // host_name provided in query since all requests don't have host_name set
               throwException = false;
+              LOG.debug("HostNotFoundException ignored", e);
               break;
             }
           }

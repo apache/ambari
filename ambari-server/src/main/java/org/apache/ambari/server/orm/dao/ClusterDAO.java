@@ -25,6 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import com.google.inject.Singleton;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -44,12 +45,12 @@ public class ClusterDAO {
    * @param id ID of Cluster
    * @return Found entity or NULL
    */
-  @Transactional
+  @RequiresSession
   public ClusterEntity findById(long id) {
     return entityManagerProvider.get().find(ClusterEntity.class, id);
   }
 
-  @Transactional
+  @RequiresSession
   public ClusterEntity findByName(String clusterName) {
     TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery("clusterByName", ClusterEntity.class);
     query.setParameter("clusterName", clusterName);
@@ -60,7 +61,7 @@ public class ClusterDAO {
     }
   }
 
-  @Transactional
+  @RequiresSession
   public List<ClusterEntity> findAll() {
     TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery("allClusters", ClusterEntity.class);
     try {
@@ -68,6 +69,12 @@ public class ClusterDAO {
     } catch (NoResultException ignored) {
     }
     return null;
+  }
+
+  @RequiresSession
+  public ClusterConfigEntity findConfig(ClusterConfigEntityPK configEntityPK) {
+    return entityManagerProvider.get().find(ClusterConfigEntity.class,
+      configEntityPK);
   }
 
   /**
@@ -85,12 +92,6 @@ public class ClusterDAO {
   @Transactional
   public void createConfig(ClusterConfigEntity entity) {
     entityManagerProvider.get().persist(entity);
-  }
-
-  @Transactional
-  public ClusterConfigEntity findConfig(ClusterConfigEntityPK configEntityPK) {
-    return entityManagerProvider.get().find(ClusterConfigEntity.class,
-      configEntityPK);
   }
 
   /**

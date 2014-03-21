@@ -20,8 +20,10 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 
@@ -30,35 +32,36 @@ import javax.persistence.TypedQuery;
 import java.util.Collection;
 import java.util.List;
 
+@Singleton
 public class RequestDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public RequestEntity findByPK(Long requestId) {
     return entityManagerProvider.get().find(RequestEntity.class, requestId);
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds) {
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
         "WHERE request.requestId IN ?1", RequestEntity.class);
     return daoUtils.selectList(query, requestIds);
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), RequestEntity.class);
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestResourceFilterEntity> findAllResourceFilters() {
     return daoUtils.selectAll(entityManagerProvider.get(), RequestResourceFilterEntity.class);
   }
 
-  @Transactional
+  @RequiresSession
   public boolean isAllTasksCompleted(long requestId) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(
         "SELECT task.taskId FROM HostRoleCommandEntity task WHERE task.requestId = ?1 AND " +
@@ -70,7 +73,7 @@ public class RequestDAO {
     return daoUtils.selectList(query, requestId, HostRoleStatus.getCompletedStates()).isEmpty();
   }
 
-  @Transactional
+  @RequiresSession
   public Long getLastStageId(long requestId) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT max(stage.stageId) " +
       "FROM StageEntity stage WHERE stage.requestId=?1", Long.class);

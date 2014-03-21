@@ -159,16 +159,14 @@ public class ServiceComponentHostRequest {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("{"
-        + " clusterName=" + clusterName
-        + ", serviceName=" + serviceName
-        + ", componentName=" + componentName
-        + ", hostname=" + hostname
-        + ", desiredState=" + desiredState
-        + ", desiredStackId=" + desiredStackId
-        + ", staleConfig=" + staleConfig
-        + ", adminState=" + adminState
-        + "}");
+    sb.append("{" + " clusterName=").append(clusterName)
+      .append(", serviceName=").append(serviceName)
+      .append(", componentName=").append(componentName)
+      .append(", hostname=").append(hostname)
+      .append(", desiredState=").append(desiredState)
+      .append(", desiredStackId=").append(desiredStackId)
+      .append(", staleConfig=").append(staleConfig)
+      .append(", adminState=").append(adminState).append("}");
     return sb.toString();
   }
 

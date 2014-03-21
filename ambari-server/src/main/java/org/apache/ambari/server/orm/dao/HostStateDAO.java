@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 
 import javax.persistence.EntityManager;
@@ -34,12 +35,12 @@ public class HostStateDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public HostStateEntity findByHostName(String hostName) {
     return entityManagerProvider.get().find(HostStateEntity.class, hostName);
   }
 
-  @Transactional
+  @RequiresSession
   public List<HostStateEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), HostStateEntity.class);
   }

@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 
 import javax.persistence.EntityManager;
@@ -36,12 +37,12 @@ public class KeyValueDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public KeyValueEntity findByKey(String key) {
     return entityManagerProvider.get().find(KeyValueEntity.class, key);
   }
 
-  @Transactional
+  @RequiresSession
   public Collection<KeyValueEntity> findAll() {
     TypedQuery<KeyValueEntity> query =
         entityManagerProvider.get().createQuery("SELECT keyValue FROM KeyValueEntity keyValue", KeyValueEntity.class);
