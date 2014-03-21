@@ -164,8 +164,12 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       
       if (null == matchValue)
         continue;
-      
-      String clusterName = res.getPropertyValue(clusterNameProperty).toString();
+
+      Object clusterPropertyValue = res.getPropertyValue(clusterNameProperty);
+      if (null == clusterPropertyValue)
+        continue;
+
+      String clusterName = clusterPropertyValue.toString();
       if (null == clusterName)
         continue;
       

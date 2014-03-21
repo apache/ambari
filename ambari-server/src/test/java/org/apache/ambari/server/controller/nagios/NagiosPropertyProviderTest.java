@@ -120,6 +120,29 @@ public class NagiosPropertyProviderTest {
     
     Assert.assertFalse("Expected no alerts", values.containsKey("alerts"));
   }
+
+
+  @Test
+  public void testClusterDoesNotExistNPE() throws Exception {
+    TestStreamProvider streamProvider = new TestStreamProvider("nagios_alerts.txt");
+
+    NagiosPropertyProvider npp = new NagiosPropertyProvider(Resource.Type.Service,
+        streamProvider,
+        "ServiceInfo/cluster_name",
+        "ServiceInfo/service_name");
+
+    Resource resource = new ResourceImpl(Resource.Type.Service);
+    resource.setProperty("ServiceInfo/cluster_name", null);
+    resource.setProperty("ServiceInfo/service_name", "HBASE");
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet(),
+            new HashMap<String, TemporalInfo>());
+
+    Set<Resource> set = npp.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, set.size());
+
+  }
   
   @Test
   public void testNoNagiosServerCompoonent() throws Exception {
