@@ -300,9 +300,9 @@ var urls = {
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
-    'format': function() {
+    'format': function (data) {
       return {
-        async: false
+        async: !data.sync
       };
     }
   },

@@ -342,7 +342,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
     this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
     //STEP 3: Load advanced configs from server
-    var advancedConfigs = App.config.loadAdvancedConfig(serviceName) || [];
+    var advancedConfigs = [];
+    App.config.loadAdvancedConfig(serviceName, function (properties) {
+      advancedConfigs.pushObjects(properties);
+    }, true);
     //STEP 4: Load on-site config by service from server
     var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     //STEP 5: Merge global and on-site configs with pre-defined

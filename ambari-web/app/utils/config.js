@@ -20,7 +20,6 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 var categotyConfigs = require('data/service_configs');
-var serviceComponents = {};
 var configGroupsByTag = [];
 
 App.config = Em.Object.create({
@@ -751,19 +750,20 @@ App.config = Em.Object.create({
    * @param serviceName
    * @return {*}
    */
-  loadAdvancedConfig: function (serviceName) {
+  loadAdvancedConfig: function (serviceName, callback, sync) {
     App.ajax.send({
       name: 'config.advanced',
       sender: this,
       data: {
         serviceName: serviceName,
         stack2VersionUrl: App.get('stack2VersionURL'),
-        stackVersion: App.get('currentStackVersionNumber')
+        stackVersion: App.get('currentStackVersionNumber'),
+        callback: callback,
+        sync: sync
       },
-      success: 'loadAdvancedConfigSuccess'
+      success: 'loadAdvancedConfigSuccess',
+      error: 'loadAdvancedConfigError'
     });
-    return serviceComponents[serviceName];
-    //TODO clean serviceComponents
   },
 
   loadAdvancedConfigSuccess: function (data, opt, params) {
@@ -793,8 +793,13 @@ App.config = Em.Object.create({
           });
         }
       }, this);
-      serviceComponents[data.items[0].StackConfigurations.service_name] = properties;
     }
+    params.callback(properties);
+  },
+
+  loadAdvancedConfigError: function (request, ajaxOptions, error, opt, params) {
+    console.log('ERROR: failed to load stack configs for', params.serviceName);
+    params.callback([]);
   },
 
   /**
