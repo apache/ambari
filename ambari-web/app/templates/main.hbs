@@ -15,20 +15,29 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-{{#if isClusterDataLoaded}}
-  <div id="main-nav">
-    <div class="navbar">
-      <div class="navbar-inner">
-        {{view App.MainMenuView}}
+{{#if isServerClientVersionMismatch}}
+  <div id="version-mismatch-title">{{t app.versionMismatchAlert.title}}</div>
+  <div class="alert alert-danger">
+    {{{versionConflictAlertBody}}}
+  </div>
+{{else}}
+  {{#if isClusterDataLoaded}}
+    <div id="main-nav">
+      <div class="navbar">
+        <div class="navbar-inner">
+          {{view App.MainMenuView}}
+        </div>
       </div>
     </div>
-  </div>
-  {{outlet}}
+    {{outlet}}
+  {{/if}}
+  {{#unless isClusterDataLoaded}}
+    <h2>{{t app.loadingPlaceholder}} </h2>
+    <div class="progress progress-striped active">
+      <div class="bar" {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
+    </div>
+  {{/unless}}
 {{/if}}
-{{#unless isClusterDataLoaded}}
-  <h2>{{t app.loadingPlaceholder}} </h2>
-  <div class="progress progress-striped active">
-    <div class="bar" {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
-  </div>
-{{/unless}}
+
+
+

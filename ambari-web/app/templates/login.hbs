@@ -16,16 +16,18 @@
 * limitations under the License.
 }}
 
+{{#unless isServerClientVersionMismatch}}
 <div class="well login span4">
-    <h2>{{t login.header}}</h2>
-    {{#if errorMessage}}
-    <div class="alert alert-error">
-        {{errorMessage}}
-    </div>
-    {{/if}}
-    <label>{{t login.username}}</label>
-    {{view view.loginTextField valueBinding="loginName" class="span4"}}
-    <label>{{t common.password}}</label>
-    {{view view.passTextField type="password" valueBinding="password" class="span4"}}
-        <button class="btn btn-success" {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
+  <h2>{{t login.header}}</h2>
+  {{#if errorMessage}}
+  <div class="alert alert-error">
+    {{errorMessage}}
+  </div>
+  {{/if}}
+  <label>{{t login.username}}</label>
+  {{view view.loginTextField valueBinding="loginName" class="span4"}}
+  <label>{{t common.password}}</label>
+  {{view view.passTextField type="password" valueBinding="password" class="span4"}}
+    <button class="btn btn-success" {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
 </div>
+{{/unless}}

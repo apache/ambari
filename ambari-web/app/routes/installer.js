@@ -28,55 +28,60 @@ module.exports = Em.Route.extend({
     App.clusterStatus.set('wizardControllerName',App.router.get('installerController.name'));
 
     if (router.getAuthenticated()) {
-      var name = 'Cluster Install Wizard';
-      $('title').text('Ambari - ' + name);
+      // check server/web client versions match
+      App.router.get('installerController').checkServerClientVersion().done(function() {
 
-      if (App.get('isAdmin')) {
-        router.get('mainController').stopPolling();
-        console.log('In installer with successful authenticated');
-        console.log('current step=' + router.get('installerController.currentStep'));
-        Ember.run.next(function () {
-          var installerController = router.get('installerController');
+        var name = 'Cluster Install Wizard';
+        $('title').text('Ambari - ' + name);
 
-          App.clusterStatus.updateFromServer();
-          var currentClusterStatus = App.clusterStatus.get('value');
+        if (App.get('isAdmin')) {
+          router.get('mainController').stopPolling();
+          console.log('In installer with successful authenticated');
+          console.log('current step=' + router.get('installerController.currentStep'));
+          Ember.run.next(function () {
+            var installerController = router.get('installerController');
 
-          if (currentClusterStatus) {
-            switch (currentClusterStatus.clusterState) {
-              case 'CLUSTER_NOT_CREATED_1' :
-                router.transitionTo('step' + installerController.get('currentStep'));
-                break;
-              case 'CLUSTER_DEPLOY_PREP_2' :
-                installerController.setCurrentStep('8');
-                App.db.data = currentClusterStatus.localdb;
-                router.transitionTo('step' + installerController.get('currentStep'));
-                break;
-              case 'CLUSTER_INSTALLING_3' :
-              case 'SERVICE_STARTING_3' :
-                if (!installerController.get('isStep9')) {
-                  installerController.setCurrentStep('9');
-                }
-                router.transitionTo('step' + installerController.get('currentStep'));
-                break;
-              case 'CLUSTER_INSTALLED_4' :
-                if (!installerController.get('isStep10')) {
-                  installerController.setCurrentStep('10');
-                }
-                App.db.data = currentClusterStatus.localdb;
-                router.transitionTo('step' + installerController.get('currentStep'));
-                break;
-              case 'DEFAULT' :
-              default:
-                router.transitionTo('main.dashboard');
-                break;
+            App.clusterStatus.updateFromServer();
+            var currentClusterStatus = App.clusterStatus.get('value');
+
+            if (currentClusterStatus) {
+              switch (currentClusterStatus.clusterState) {
+                case 'CLUSTER_NOT_CREATED_1' :
+                  router.transitionTo('step' + installerController.get('currentStep'));
+                  break;
+                case 'CLUSTER_DEPLOY_PREP_2' :
+                  installerController.setCurrentStep('8');
+                  App.db.data = currentClusterStatus.localdb;
+                  router.transitionTo('step' + installerController.get('currentStep'));
+                  break;
+                case 'CLUSTER_INSTALLING_3' :
+                case 'SERVICE_STARTING_3' :
+                  if (!installerController.get('isStep9')) {
+                    installerController.setCurrentStep('9');
+                  }
+                  router.transitionTo('step' + installerController.get('currentStep'));
+                  break;
+                case 'CLUSTER_INSTALLED_4' :
+                  if (!installerController.get('isStep10')) {
+                    installerController.setCurrentStep('10');
+                  }
+                  App.db.data = currentClusterStatus.localdb;
+                  router.transitionTo('step' + installerController.get('currentStep'));
+                  break;
+                case 'DEFAULT' :
+                default:
+                  router.transitionTo('main.dashboard');
+                  break;
+              }
             }
-          }
-        });
-      } else {
-        Em.run.next(function () {
-          App.router.transitionTo('main.services');
-        });
-      }
+          });
+        } else {
+          Em.run.next(function () {
+            App.router.transitionTo('main.services');
+          });
+        }
+
+      });
     } else {
       console.log('In installer but its not authenticated');
       console.log('value of authenticated is: ' + router.getAuthenticated());

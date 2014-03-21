@@ -33,5 +33,4 @@ App.LoginView = Em.View.extend({
       this.get("controller").submit();
     }
   })
-
 });

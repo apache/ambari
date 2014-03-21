@@ -1389,6 +1389,10 @@ var urls = {
       };
     }
   },
+  'ambari.service.load_server_version': {
+    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version',
+    'mock': ''
+  },
   'ambari.service': {
     'real': '/services/AMBARI/components/AMBARI_SERVER',
     'mock': '/data/services/ambari_server.json'
@@ -1397,6 +1401,7 @@ var urls = {
     'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock',
     'mock': ''
   },
+
   'config_groups.create': {
     'real': '/clusters/{clusterName}/config_groups',
     'mock': '',

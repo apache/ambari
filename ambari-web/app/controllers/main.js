@@ -119,5 +119,35 @@ App.MainController = Em.Controller.extend({
 
   stopAllService: function(event){
     App.router.get('mainServiceController').stopAllService(event);
+  },
+
+  /**
+   * check server version and web client version
+   */
+  checkServerClientVersion: function () {
+    var dfd = $.Deferred();
+    var self = this;
+    self.getServerVersion().done(function () {
+      dfd.resolve();
+    });
+    return dfd.promise();
+  },
+  getServerVersion: function(){
+    return App.ajax.send({
+      name: 'ambari.service.load_server_version',
+      sender: this,
+      success: 'getServerVersionSuccessCallback',
+      error: 'getServerVersionErrorCallback'
+    });
+  },
+  getServerVersionSuccessCallback: function (data) {
+    var clientVersion = App.get('version');
+    var serverVersion = (data.RootServiceComponents.component_version).toString();
+    this.set('versionConflictAlertBody', Em.I18n.t('app.versionMismatchAlert.body').format(serverVersion, clientVersion));
+    this.set('isServerClientVersionMismatch', clientVersion != serverVersion);
+  },
+  getServerVersionErrorCallback: function () {
+    console.log('ERROR: Cannot load Ambari server version');
   }
+
 });

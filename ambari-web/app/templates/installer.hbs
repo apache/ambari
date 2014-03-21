@@ -15,34 +15,42 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<div class="wizard">
-  <div class="container">
-    <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span3">
-          <!--Sidebar content-->
-          <div class="well">
-            <ul class="nav nav-pills nav-stacked">
-              <li class="nav-header">{{t installer.header}}</li>
-              <li {{bindAttr class="isStep0:active view.isStep0Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep0 target="controller"}}>{{t installer.step0.header}}</a></li>
-              <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t installer.step1.header}}</a></li>
-              <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t installer.step2.header}}</a></li>
-              <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t installer.step3.header}}</a></li>
-              <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t installer.step4.header}}</a></li>
-              <li {{bindAttr class="isStep5:active view.isStep5Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep5 target="controller"}}>{{t installer.step5.header}}</a></li>
-              <li {{bindAttr class="isStep6:active view.isStep6Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep6 target="controller"}}>{{t installer.step6.header}}</a></li>
-              <li {{bindAttr class="isStep7:active view.isStep7Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep7 target="controller"}}>{{t installer.step7.header}}</a></li>
-              <li {{bindAttr class="isStep8:active view.isStep8Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep8 target="controller"}}>{{t installer.step8.header}}</a></li>
-              <li {{bindAttr class="isStep9:active view.isStep9Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep9 target="controller"}}>{{t installer.step9.header}}</a></li>
-              <li {{bindAttr class="isStep10:active view.isStep10Disabled:disabled"}}><a href="javascript:void(null);" {{action gotoStep10 target="controller"}}>{{t installer.step10.header}}</a></li>
-            </ul>
+{{#if isServerClientVersionMismatch}}
+  <div id="version-mismatch-title">{{t app.versionMismatchAlert.title}}</div>
+  <div class="alert alert-danger">
+    {{{versionConflictAlertBody}}}
+  </div>
+{{else}}
+  <div class="wizard">
+    <div class="container">
+      <div class="container-fluid">
+        <div class="row-fluid">
+          <div class="span3">
+            <!--Sidebar content-->
+            <div class="well">
+              <ul class="nav nav-pills nav-stacked">
+                <li class="nav-header">{{t installer.header}}</li>
+                <li {{bindAttr class="isStep0:active view.isStep0Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep0 target="controller"}}>{{t installer.step0.header}}</a></li>
+                <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t installer.step1.header}}</a></li>
+                <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t installer.step2.header}}</a></li>
+                <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t installer.step3.header}}</a></li>
+                <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t installer.step4.header}}</a></li>
+                <li {{bindAttr class="isStep5:active view.isStep5Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep5 target="controller"}}>{{t installer.step5.header}}</a></li>
+                <li {{bindAttr class="isStep6:active view.isStep6Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep6 target="controller"}}>{{t installer.step6.header}}</a></li>
+                <li {{bindAttr class="isStep7:active view.isStep7Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep7 target="controller"}}>{{t installer.step7.header}}</a></li>
+                <li {{bindAttr class="isStep8:active view.isStep8Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep8 target="controller"}}>{{t installer.step8.header}}</a></li>
+                <li {{bindAttr class="isStep9:active view.isStep9Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep9 target="controller"}}>{{t installer.step9.header}}</a></li>
+                <li {{bindAttr class="isStep10:active view.isStep10Disabled:disabled"}}><a href="javascript:void(null);" {{action gotoStep10 target="controller"}}>{{t installer.step10.header}}</a></li>
+              </ul>
+            </div>
           </div>
-        </div>
-        <div class="wizard-content well span9">
-          {{outlet}}
+          <div class="wizard-content well span9">
+            {{outlet}}
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+{{/if}}
+
+

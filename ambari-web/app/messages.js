@@ -24,6 +24,14 @@ Em.I18n.translations = {
   'app.reloadPopup.header': 'Reload Page',
 
   'app.loadingPlaceholder': 'Loading...',
+  'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
+  'app.versionMismatchAlert.body': 'Ambari Server and Web Client versions do not match:<br> ' +
+    '<br>Ambari Server: <strong>{0}</strong>' +
+    '<br>Ambari Web Client: <strong>{1}</strong><br>' +
+    '<br>This typically happens after upgrading Ambari due to Ambari Web Client code cached in the browser.' +
+    '<br>Perform hard refresh to see if this message disappears.' +
+    '<br>If you keep seeing this message, clear the browser cache completely and hit this URL again.' +
+    '<br>You must resolve this error in order to continue.',
   'app.signout':'Sign out',
   'app.settings':'Settings',
   'app.aboutAmbari':'About',
