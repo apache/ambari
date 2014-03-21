@@ -103,8 +103,9 @@ class HiveServer(Script):
   def find_hive_exec_jar_path(self, hive_lib_dir):
     if os.path.exists(hive_lib_dir) and os.path.isdir(hive_lib_dir):
       for file in os.listdir(hive_lib_dir):
-        if fnmatch.fnmatch(file, 'hive-exec*.jar') and not os.path.islink(file):
-          return os.path.join(hive_lib_dir, file)
+        file_path = os.path.join(hive_lib_dir, file)
+        if fnmatch.fnmatch(file, 'hive-exec*.jar') and not os.path.islink(file_path):
+          return file_path
       pass
     pass
 
