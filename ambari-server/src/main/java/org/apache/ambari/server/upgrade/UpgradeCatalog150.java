@@ -308,8 +308,8 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("request", "FK_request_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("request", "FK_request_schedule_id", "request_schedule_id", "requestschedule", "schedule_id", true);
     dbAccessor.addFKConstraint("requestschedulebatchrequest", "FK_rsbatchrequest_schedule_id", "schedule_id", "requestschedule", "schedule_id", true);
-    dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfigmapping_cluster_id", "cluster_id", "clusters", "cluster_id", true);
-    dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfigmapping_host_name", "host_name", "hosts", "host_name", true);
+    dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfmapping_cluster_id", "cluster_id", "clusters", "cluster_id", true);
+    dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfmapping_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("configgroup", "FK_configgroup_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cg_cluster_cm_config_tag", new String[] {"version_tag", "config_type", "cluster_id"}, "clusterconfig", new String[] {"version_tag", "type_name", "cluster_id"}, true);
     dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cg_cluster_cm_group_id", "config_group_id", "configgroup", "group_id", true);
@@ -318,9 +318,9 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("requestresourcefilter", "FK_reqresfilter_req_id", "request_id", "request", "request_id", true);
     dbAccessor.addFKConstraint("hostgroup", "FK_hostgroup_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
-    dbAccessor.addFKConstraint("hostgroup_component", "FK_component_blueprint_name", "blueprint_name", "hostgroup", "blueprint_name", true);
-    dbAccessor.addFKConstraint("hostgroup_component", "FK_component_hostgroup_name", "hostgroup_name", "hostgroup", "name", true);
-    dbAccessor.addFKConstraint("blueprint_configuration", "FK_configuration_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
+    dbAccessor.addFKConstraint("hostgroup_component", "FK_hg_blueprint_name", "blueprint_name", "hostgroup", "blueprint_name", true);
+    dbAccessor.addFKConstraint("hostgroup_component", "FK_hgc_blueprint_name", "hostgroup_name", "hostgroup", "name", true);
+    dbAccessor.addFKConstraint("blueprint_configuration", "FK_cfg_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
   }
 
   private void moveRCATableInMySQL(String tableName, String dbName) throws SQLException {
@@ -375,12 +375,18 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       }
     }
 
-    //add new sequence for config groups
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+    //add new sequences for config groups
+    //TODO evalate possibility to automatically wrap object names in DBAcessor
+    String valueColumnName = "\"value\"";
+    if (Configuration.ORACLE_DB_NAME.equals(dbType) || Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      valueColumnName = "value";
+    }
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
       "VALUES('configgroup_id_seq', 1)", true);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
       "VALUES('requestschedule_id_seq', 1)", true);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, \"value\") " +
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
       "VALUES('resourcefilter_id_seq', 1)", true);
 
     //clear cache due to direct table manipulation
