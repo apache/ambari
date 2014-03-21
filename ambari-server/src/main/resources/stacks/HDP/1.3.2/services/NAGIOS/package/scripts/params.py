@@ -85,14 +85,6 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
-dfs_ha_enabled = False
-dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
-dfs_ha_namenode_ids = default(format("hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
-if dfs_ha_namenode_ids:
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namenode_ids.split(","))
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
-
 ganglia_port = "8651"
 ganglia_collector_slaves_port = "8660"
 ganglia_collector_namenode_port = "8661"

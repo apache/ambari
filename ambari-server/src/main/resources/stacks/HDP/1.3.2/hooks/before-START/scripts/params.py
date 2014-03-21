@@ -144,22 +144,6 @@ mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
 
 yarn_log_dir_prefix = default("yarn_log_dir_prefix","/var/log/hadoop-yarn")
 
-#hdfs ha properties
-dfs_ha_enabled = False
-dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
-dfs_ha_namenode_ids = default(format("hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
-if dfs_ha_namenode_ids:
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namenode_ids.split(","))
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
-
-if dfs_ha_enabled:
-  for nn_id in dfs_ha_namenode_ids:
-    nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}')]
-    if hostname in nn_host:
-      namenode_id = nn_id
-  namenode_id = None
-
 dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
 #log4j.properties

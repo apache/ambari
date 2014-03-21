@@ -538,18 +538,6 @@ define service {
         max_check_attempts      3
 }
 
-{% if dfs_ha_enabled %}
-define service {
-        hostgroup_name          nagios-server
-        use                     hadoop-service
-        service_description     HDFS::Percent JournalNodes live
-        servicegroups           HDFS
-        check_command           check_aggregate!"JOURNALNODE::JournalNode process"!33%!50%
-        normal_check_interval   0.5
-        retry_check_interval    0.25
-        max_check_attempts      3
-}
-{% endif %}
 {% endif %}
 
 {% if hostgroup_defs['slaves'] %}
