@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.mina.util.CopyOnWriteMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,7 +210,7 @@ public class ServiceComponentImpl implements ServiceComponent {
     try {
       readWriteLock.readLock().lock();
       try {
-        return Collections.unmodifiableMap(hostComponents);
+        return new HashMap<String, ServiceComponentHost>(hostComponents);
       } finally {
         readWriteLock.readLock().unlock();
       }

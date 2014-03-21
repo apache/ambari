@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntityPK;
 
@@ -36,13 +37,13 @@ public class RoleSuccessCriteriaDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public RoleSuccessCriteriaEntity findByPK(RoleSuccessCriteriaEntityPK roleSuccessCriteriaEntityPK) {
     entityManagerProvider.get().clear();
     return entityManagerProvider.get().find(RoleSuccessCriteriaEntity.class, roleSuccessCriteriaEntityPK);
   }
 
-  @Transactional
+  @RequiresSession
   public List<RoleSuccessCriteriaEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), RoleSuccessCriteriaEntity.class);
   }

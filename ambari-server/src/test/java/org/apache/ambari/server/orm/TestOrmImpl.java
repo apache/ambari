@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -243,12 +244,15 @@ public class TestOrmImpl extends Assert {
   @Test
   public void testConcurrentModification() throws InterruptedException {
     final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    final AmbariJpaPersistService ambariJpaPersistService = injector.getInstance(AmbariJpaPersistService.class);
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("cluster1");
     clusterDAO.create(clusterEntity);
+//    assertFalse(ambariJpaPersistService.isWorking());
 
     clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
     assertEquals("cluster1", clusterEntity.getClusterName());
+//    assertFalse(ambariJpaPersistService.isWorking());
 
     Thread thread = new Thread(){
       @Override
@@ -256,6 +260,7 @@ public class TestOrmImpl extends Assert {
         ClusterEntity clusterEntity1 = clusterDAO.findByName("cluster1");
         clusterEntity1.setClusterName("anotherName");
         clusterDAO.merge(clusterEntity1);
+//        assertFalse(ambariJpaPersistService.isWorking());
       }
     };
 
@@ -263,6 +268,7 @@ public class TestOrmImpl extends Assert {
     thread.join();
 
     clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
+//    assertFalse(ambariJpaPersistService.isWorking());
     assertEquals("anotherName", clusterEntity.getClusterName());
 
     thread = new Thread(){

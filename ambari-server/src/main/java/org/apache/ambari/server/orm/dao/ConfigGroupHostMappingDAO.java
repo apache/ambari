@@ -22,6 +22,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMappingImpl;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
@@ -45,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -112,7 +112,7 @@ public class ConfigGroupHostMappingDAO {
    * @param configGroupHostMappingEntityPK
    * @return
    */
-  @Transactional
+  @RequiresSession
   public ConfigGroupHostMappingEntity findByPK(final ConfigGroupHostMappingEntityPK
         configGroupHostMappingEntityPK) {
     
@@ -120,7 +120,7 @@ public class ConfigGroupHostMappingDAO {
       .find(ConfigGroupHostMappingEntity.class, configGroupHostMappingEntityPK);
   }
 
-  @Transactional
+  @RequiresSession
   public Set<ConfigGroupHostMapping> findByHost(String hostname) {
     
     populateCache();
@@ -134,7 +134,7 @@ public class ConfigGroupHostMappingDAO {
     
   }
 
-  @Transactional
+  @RequiresSession
   public Set<ConfigGroupHostMapping> findByGroup(final Long groupId) {
     
     populateCache();
@@ -161,7 +161,7 @@ public class ConfigGroupHostMappingDAO {
     
   }
 
-  @Transactional
+  @RequiresSession
   public List<ConfigGroupHostMappingEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), ConfigGroupHostMappingEntity.class);
   }

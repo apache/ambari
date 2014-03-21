@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.persist.jpa.JpaPersistModule;
+import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 
 import junit.framework.Assert;
 
@@ -265,7 +265,7 @@ public class AgentResourceTest extends JerseyTest {
     }
 
     private void installDependencies() {
-      install(new JpaPersistModule("ambari-javadb"));
+      install(new AmbariJpaPersistModule("ambari-javadb"));
       install(new FactoryModuleBuilder().implement(
           Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
       install(new FactoryModuleBuilder().implement(

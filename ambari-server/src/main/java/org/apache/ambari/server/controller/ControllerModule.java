@@ -24,7 +24,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
-import com.google.inject.persist.jpa.JpaPersistModule;
+import com.google.inject.persist.PersistModule;
+import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -153,9 +154,9 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(ExecutionCommandWrapper.class);
   }
 
-  private JpaPersistModule buildJpaPersistModule() {
+  private PersistModule buildJpaPersistModule() {
     PersistenceType persistenceType = configuration.getPersistenceType();
-    JpaPersistModule jpaPersistModule = new JpaPersistModule(Configuration.JDBC_UNIT_NAME);
+    AmbariJpaPersistModule jpaPersistModule = new AmbariJpaPersistModule(Configuration.JDBC_UNIT_NAME);
 
     Properties properties = new Properties();
 

@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 
@@ -35,9 +36,21 @@ public class ServiceDesiredStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
-  @Transactional
+  @RequiresSession
   public ServiceDesiredStateEntity findByPK(ServiceDesiredStateEntityPK primaryKey) {
     return entityManagerProvider.get().find(ServiceDesiredStateEntity.class, primaryKey);
+  }
+
+  @RequiresSession
+  public List<ServiceDesiredStateEntity> findAll() {
+    TypedQuery<ServiceDesiredStateEntity> query =
+      entityManagerProvider.get().
+        createQuery("SELECT sd from ServiceDesiredStateEntity sd", ServiceDesiredStateEntity.class);
+    try {
+      return query.getResultList();
+    } catch (NoResultException ignored) {
+    }
+    return null;
   }
 
   @Transactional
@@ -63,17 +76,5 @@ public class ServiceDesiredStateDAO {
   @Transactional
   public void removeByPK(ServiceDesiredStateEntityPK primaryKey) {
     remove(findByPK(primaryKey));
-  }
-
-  @Transactional
-  public List<ServiceDesiredStateEntity> findAll() {
-    TypedQuery<ServiceDesiredStateEntity> query =
-      entityManagerProvider.get().
-        createQuery("SELECT sd from ServiceDesiredStateEntity sd", ServiceDesiredStateEntity.class);
-    try {
-      return query.getResultList();
-    } catch (NoResultException ignored) {
-    }
-    return null;
   }
 }

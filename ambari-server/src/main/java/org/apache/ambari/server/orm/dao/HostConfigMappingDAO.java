@@ -18,7 +18,6 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -27,6 +26,7 @@ import javax.persistence.TypedQuery;
 
 import com.google.inject.Singleton;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMappingImpl;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
@@ -134,7 +134,7 @@ public class HostConfigMappingDAO {
     return hostConfigMapping;
   }
 
-  @Transactional
+  @RequiresSession
   public Set<HostConfigMapping> findByType(final long clusterId, String hostName, final String type) {
     
     populateCache();
@@ -157,7 +157,7 @@ public class HostConfigMappingDAO {
     return set;
   }
 
-  @Transactional
+  @RequiresSession
   public HostConfigMapping findSelectedByType(final long clusterId,
       String hostName, final String type) {
     
@@ -184,7 +184,7 @@ public class HostConfigMappingDAO {
     
   }
 
-  @Transactional
+  @RequiresSession
   public Set<HostConfigMapping> findSelected(final long clusterId, String hostName) {
     
     populateCache();
@@ -207,7 +207,7 @@ public class HostConfigMappingDAO {
     return set;
   }
 
-  @Transactional
+  @RequiresSession
   public Set<HostConfigMapping> findSelectedByHosts(long clusterId, Collection<String> hostNames) {
     
     populateCache();
@@ -244,7 +244,7 @@ public class HostConfigMappingDAO {
   }
 
 
-  @Transactional
+  @RequiresSession
   public Map<String, List<HostConfigMapping>> findSelectedHostsByTypes(final long clusterId,
                                                                              Collection<String> types) {
     
@@ -282,7 +282,7 @@ public class HostConfigMappingDAO {
     return mappingsByType;
   }
 
-  @Transactional
+  @RequiresSession
   public List<HostConfigMappingEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), HostConfigMappingEntity.class);
   }

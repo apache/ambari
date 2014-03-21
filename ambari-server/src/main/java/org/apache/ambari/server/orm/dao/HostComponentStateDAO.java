@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 
@@ -35,9 +36,20 @@ public class HostComponentStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
-  @Transactional
+  @RequiresSession
   public HostComponentStateEntity findByPK(HostComponentStateEntityPK primaryKey) {
     return entityManagerProvider.get().find(HostComponentStateEntity.class, primaryKey);
+  }
+
+  @RequiresSession
+  public List<HostComponentStateEntity> findAll() {
+    TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get()
+      .createQuery("SELECT hsc from HostComponentStateEntity hsc", HostComponentStateEntity.class);
+    try {
+      return query.getResultList();
+    } catch (NoResultException ignored) {
+    }
+    return null;
   }
 
   @Transactional
@@ -63,16 +75,5 @@ public class HostComponentStateDAO {
   @Transactional
   public void removeByPK(HostComponentStateEntityPK primaryKey) {
     remove(findByPK(primaryKey));
-  }
-
-  @Transactional
-  public List<HostComponentStateEntity> findAll() {
-    TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get()
-      .createQuery("SELECT hsc from HostComponentStateEntity hsc", HostComponentStateEntity.class);
-    try {
-      return query.getResultList();
-    } catch (NoResultException ignored) {
-    }
-    return null;
   }
 }

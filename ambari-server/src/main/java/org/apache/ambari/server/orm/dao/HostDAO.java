@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 
@@ -37,12 +38,12 @@ public class HostDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
-  @Transactional
+  @RequiresSession
   public HostEntity findByName(String hostName) {
     return entityManagerProvider.get().find(HostEntity.class, hostName);
   }
 
-  @Transactional
+  @RequiresSession
   public List<HostEntity> findAll() {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery("SELECT host FROM HostEntity host", HostEntity.class);
     try {
@@ -52,7 +53,7 @@ public class HostDAO {
     }
   }
 
-  @Transactional
+  @RequiresSession
   public List<HostEntity> findByStage(StageEntity stageEntity) {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery(
         "SELECT host FROM HostEntity host " +

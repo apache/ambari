@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -32,12 +33,12 @@ public class RequestScheduleDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
-  @Transactional
+  @RequiresSession
   public RequestScheduleEntity findById(Long id) {
     return entityManagerProvider.get().find(RequestScheduleEntity.class, id);
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestScheduleEntity> findByStatus(String status) {
     TypedQuery<RequestScheduleEntity> query = entityManagerProvider.get()
       .createNamedQuery("reqScheduleByStatus", RequestScheduleEntity.class);
@@ -49,7 +50,7 @@ public class RequestScheduleDAO {
     }
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestScheduleEntity> findAll() {
     TypedQuery<RequestScheduleEntity> query = entityManagerProvider.get()
       .createNamedQuery("allReqSchedules", RequestScheduleEntity.class);

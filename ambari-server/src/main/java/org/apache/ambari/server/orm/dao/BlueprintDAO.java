@@ -23,6 +23,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 
 import javax.persistence.EntityManager;
@@ -49,6 +50,7 @@ public class BlueprintDAO {
    *
    * @return  a matching blueprint or null
    */
+  @RequiresSession
   public BlueprintEntity findByName(String blueprint_name) {
     return entityManagerProvider.get().find(BlueprintEntity.class, blueprint_name);
   }
@@ -58,6 +60,7 @@ public class BlueprintDAO {
    *
    * @return all blueprints or an empty List
    */
+  @RequiresSession
   public List<BlueprintEntity> findAll() {
     TypedQuery<BlueprintEntity> query = entityManagerProvider.get().
         createNamedQuery("allBlueprints", BlueprintEntity.class);

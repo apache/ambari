@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntityPK;
 import javax.persistence.EntityManager;
@@ -35,7 +36,7 @@ public class RequestScheduleBatchRequestDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public RequestScheduleBatchRequestEntity findByPk
     (RequestScheduleBatchRequestEntityPK batchRequestEntity) {
 
@@ -43,7 +44,7 @@ public class RequestScheduleBatchRequestDAO {
       .find(RequestScheduleBatchRequestEntity.class, batchRequestEntity);
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestScheduleBatchRequestEntity> findByScheduleId(Long scheduleId) {
     TypedQuery<RequestScheduleBatchRequestEntity> query = entityManagerProvider
       .get().createNamedQuery("findByScheduleId",
@@ -57,7 +58,7 @@ public class RequestScheduleBatchRequestDAO {
     return null;
   }
 
-  @Transactional
+  @RequiresSession
   public List<RequestScheduleBatchRequestEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), RequestScheduleBatchRequestEntity.class);
   }

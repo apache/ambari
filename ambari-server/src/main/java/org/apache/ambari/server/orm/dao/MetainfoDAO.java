@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 
 import javax.persistence.EntityManager;
@@ -36,12 +37,12 @@ public class MetainfoDAO {
   @Inject
   DaoUtils daoUtils;
 
-  @Transactional
+  @RequiresSession
   public MetainfoEntity findByKey(String key) {
     return entityManagerProvider.get().find(MetainfoEntity.class, key);
   }
 
-  @Transactional
+  @RequiresSession
   public Collection<MetainfoEntity> findAll() {
     TypedQuery<MetainfoEntity> query =
         entityManagerProvider.get().createQuery("SELECT metainfo FROM MetainfoEntity metainfo", MetainfoEntity.class);
