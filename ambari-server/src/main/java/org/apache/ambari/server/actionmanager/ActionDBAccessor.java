@@ -96,6 +96,12 @@ public interface ActionDBAccessor {
   public void abortHostRole(String host, long requestId, long stageId, String role);
 
   /**
+   * Mark the task as to have been aborted. Reason should be specified manually.
+   */
+  public void abortHostRole(String host, long requestId, long stageId,
+                            String role, String reason);
+
+  /**
    * Return the last persisted Request ID as seen when the DBAccessor object
    * was initialized.
    * Value should remain unchanged through the lifetime of the object instance.
