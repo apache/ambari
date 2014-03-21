@@ -26,23 +26,39 @@ from resource_management.core.resources import Package
 from resource_management.core import shell
 
 class TestPackageResource(TestCase):
+  
+  @patch.object(shell, "call")
+  @patch.object(shell, "checked_call")
+  @patch.object(System, "os_family", new = 'debian')
+  def test_action_install_debian(self, shell_mock, call_mock):
+    call_mock.return_value= (1, None)
+    with Environment('/') as env:
+      Package("some_package",
+      )
+    call_mock.assert_called_with('dpkg --get-selections some_package | grep -v deinstall')    
+    shell_mock.assert_called_with("/usr/bin/apt-get --assume-yes install some_package")
 
-  @patch.object(shell, "call", new = MagicMock(return_value=(1, None)))
+
+  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
-  def test_action_install_rhel(self, shell_mock):
+  def test_action_install_rhel(self, shell_mock, call_mock):
+    call_mock.return_value= (1, None)
     with Environment('/') as env:
       Package("some_package",
-      )    
+      )
+    call_mock.assert_called_with('rpm -q --quiet some_package')    
     shell_mock.assert_called_with("/usr/bin/yum -d 0 -e 0 -y install some_package")
 
-  @patch.object(shell, "call", new = MagicMock(return_value=(1, None)))
+  @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
-  def test_action_install_suse(self, shell_mock):
+  def test_action_install_suse(self, shell_mock, call_mock):
+    call_mock.return_value= (1, None)
     with Environment('/') as env:
       Package("some_package",
-      )    
+      )
+    call_mock.assert_called_with('rpm -q --quiet some_package')    
     shell_mock.assert_called_with("/usr/bin/zypper --quiet install --auto-agree-with-licenses --no-confirm some_package")
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))

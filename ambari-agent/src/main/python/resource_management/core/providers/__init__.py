@@ -47,6 +47,9 @@ PROVIDERS = dict(
   suse=dict(
     Package="resource_management.core.providers.package.zypper.ZypperProvider",
   ),
+  debian=dict(
+    Package="resource_management.core.providers.package.apt.AptProvider",
+  ),
   default=dict(
     File="resource_management.core.providers.system.FileProvider",
     Directory="resource_management.core.providers.system.DirectoryProvider",
