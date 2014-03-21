@@ -31,7 +31,7 @@ module.exports = {
    * @param timestamp
    * @return string date
    */
-  dateFormat:function (timestamp, showSeconds) {
+  dateFormat:function (timestamp, showSeconds, showMilliseconds) {
     if (!validator.isValidInt(timestamp)) return timestamp;
     var date = new Date(timestamp);
     var months = this.dateMonths;
@@ -39,6 +39,9 @@ module.exports = {
     var formattedDate = days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
     if (showSeconds) {
       formattedDate += ':' + this.dateFormatZeroFirst(date.getSeconds());
+      if (showMilliseconds) {
+        formattedDate += '.' + this.dateFormatZeroFirst(date.getMilliseconds());
+      };
     };
     return formattedDate;
   },
