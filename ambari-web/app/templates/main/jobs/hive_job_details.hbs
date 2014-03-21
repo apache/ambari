@@ -24,7 +24,7 @@
       <a {{action "routeToJobs" target="controller"}} href="#">{{t menu.item.jobs}}</a> > {{view.content.name}}
       <a {{action "toggleShowQuery" target="view"}} href="#" id="toggle-query">{{view.toggleShowQueryText}}</a>
       <div class="pull-right">Job Type: <span class="label label-info">{{view.content.jobType}}</span></div>
-      <div {{bindAttr class="view.showQuery::hidden"}}>
+      <div class="alert alert-info query-info">
         <table id="job-more-details-table">
           <tr>
             <td>

@@ -30,6 +30,8 @@ App.MainHiveJobDetailsView = Em.View.extend({
   zoomScaleFrom : 1,
   zoomScaleTo: 2,
   zoomScale : 1,
+  showQuery : false,
+
   zoomStep : function() {
     var zoomStep = 0.01;
     var zoomFrom = this.get('zoomScaleFrom');
@@ -41,10 +43,16 @@ App.MainHiveJobDetailsView = Em.View.extend({
   }.property('zoomScaleFrom', 'zoomScaleTo'),
   isGraphMaximized: false,
 
-  showQuery : false,
   toggleShowQuery : function () {
     this.toggleProperty('showQuery');
+    var queryBlock =  $('.query-info');
+    if (this.get('showQuery')) {
+      queryBlock.slideDown();
+    } else {
+      queryBlock.slideUp();
+    };
   },
+
   toggleShowQueryText : function () {
     return this.get('showQuery') ? Em.I18n.t('jobs.hive.less') : Em.I18n.t('jobs.hive.more');
   }.property('showQuery'),
