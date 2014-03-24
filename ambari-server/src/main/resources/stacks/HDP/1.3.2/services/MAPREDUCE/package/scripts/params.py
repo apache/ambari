@@ -56,7 +56,7 @@ exclude_file_path = config['configurations']['mapred-site']['mapred.hosts.exclud
 mapred_hosts_file_path = config['configurations']['mapred-site']['mapred.hosts']
 
 #hdfs directories
-mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']
+mapreduce_jobhistory_intermediate_done_dir = default('/configurations/mapred-site/mapreduce.jobhistory.intermediate-done-dir', '/mr-history/tmp')
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapred.job.tracker.history.completed.location']
 #for create_hdfs_directory
 hostname = config["hostname"]
