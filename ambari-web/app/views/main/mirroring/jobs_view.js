@@ -37,6 +37,10 @@ App.MainDatasetJobsView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content'),
 
+  showActions: function () {
+    return this.get('isLoaded') && this.get('dataset.status') && !this.get('parentView.controller.isDatasetLoadingError');
+  }.property('isLoaded', 'dataset.status', 'parentView.controller.isDatasetLoadingError'),
+
   sortView: sort.wrapperView.extend({
     loadSortStatuses: function(){
       this._super();

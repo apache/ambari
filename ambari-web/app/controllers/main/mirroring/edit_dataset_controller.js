@@ -226,15 +226,6 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     var scheduleStartDateFormatted = this.toTZFormat(startDate);
     var scheduleEndDateFormatted = this.toTZFormat(endDate);
 
-    var newDataset = {
-      id: datasetName,
-      name: datasetName,
-      source_cluster_name: sourceCluster,
-      target_cluster_name: targetCluster,
-      source_dir: sourceDir,
-      target_dir: targetDir,
-      dataset_jobs: []
-    };
     // Compose XML data, that will be sended to server
     var dataToSend = '<?xml version="1.0"?><feed description="" name="' + prefixedDatasetName + '" xmlns="uri:falcon:feed:0.1"><frequency>' + repeatOptionSelected + '(' + datasetFrequency + ')' +
         '</frequency><clusters><cluster name="' + sourceCluster + '" type="source"><validity start="' + scheduleStartDateFormatted + '" end="' + scheduleEndDateFormatted +
@@ -249,8 +240,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
           name: prefixedDatasetName,
           type: 'feed',
           entity: dataToSend,
-          falconServer: App.get('falconServerURL'),
-          datasetObj: newDataset
+          falconServer: App.get('falconServerURL')
         },
         success: 'onSaveSuccess',
         error: 'onSaveError'
@@ -262,8 +252,7 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
         sender: this,
         data: {
           dataset: dataToSend,
-          falconServer: App.get('falconServerURL'),
-          datasetObj: newDataset
+          falconServer: App.get('falconServerURL')
         },
         success: 'onSaveSuccess',
         error: 'onSaveError'
@@ -274,9 +263,6 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
   onSaveSuccess: function () {
     this.set('popup.isSaving', false);
     this.get('popup').hide();
-    var datasetObj = arguments[2].datasetObj;
-    App.store.load(App.Dataset, datasetObj);
-    App.router.send('gotoShowJobs');
     App.router.get('mainMirroringController').loadData();
   },
 

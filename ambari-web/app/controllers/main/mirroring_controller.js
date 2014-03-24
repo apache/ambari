@@ -200,6 +200,7 @@ App.MainMirroringController = Em.ArrayController.extend({
       var selectedDataset = this.get('selectedDataset');
       if (!selectedDataset) {
         this.set('selectedDataset', sortedDatasets[0]);
+        App.router.send('gotoShowJobs');
       }
     }
   },
