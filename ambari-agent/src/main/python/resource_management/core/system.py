@@ -69,7 +69,15 @@ class System(object):
     In case cannot detect --> Fail
     """
     return OSCheck().get_os_version()
-    
+  
+  @lazy_property
+  def os_release_name(self):
+    """
+    For Ubuntu 12.04:
+    precise
+    """
+    return OSCheck().get_os_release_name()
+                       
   @lazy_property
   def os_type(self):
     """

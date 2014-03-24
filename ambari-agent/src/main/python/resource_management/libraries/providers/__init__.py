@@ -22,10 +22,13 @@ Ambari Agent
 
 PROVIDERS = dict(
   redhat=dict(
+    Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
   ),
   suse=dict(
+    Repository="resource_management.libraries.providers.repository.RhelSuseRepositoryProvider",
   ),
   debian=dict(
+    Repository="resource_management.libraries.providers.repository.DebianRepositoryProvider",
   ),
   default=dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
@@ -33,7 +36,6 @@ PROVIDERS = dict(
     XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
     PropertiesFile="resource_management.libraries.providers.properties_file.PropertiesFileProvider",
     MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
-    Repository="resource_management.libraries.providers.repository.RepositoryProvider",
     HdfsDirectory="resource_management.libraries.providers.hdfs_directory.HdfsDirectoryProvider",
     CopyFromLocal="resource_management.libraries.providers.copy_from_local.CopyFromLocalProvider"
   ),

@@ -16,14 +16,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
+import tempfile
 from unittest import TestCase
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 
 from resource_management import *
-from resource_management.libraries.providers.repository \
-    import RepositoryProvider
-from resource_management.libraries.resources.repository \
-    import Repository
 
 
 class TestRepositoryResource(TestCase):
@@ -86,8 +84,96 @@ name={{repo_file_name}}
 {% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}
 path=/
 enabled=1
-gpgcheck=0""", template)
+gpgcheck=0""", template)   
+    
+    
+    @patch.object(tempfile, "NamedTemporaryFile")
+    @patch("resource_management.libraries.providers.repository.Execute")
+    @patch("resource_management.libraries.providers.repository.File")
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
+    @patch("filecmp.cmp", new=MagicMock(return_value=False))
+    @patch.object(System, "os_release_name", new='precise')        
+    @patch.object(System, "os_family", new='debian')
+    def test_create_repo_debian_repo_exists(self, file_mock, execute_mock, tempfile_mock):
+      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
+      
+      with Environment('/') as env:
+          Repository('HDP',
+                     base_url='http://download.base_url.org/rpm/',
+                     repo_file_name='HDP',
+                     components = ['a','b','c']
+          )
+      
+      template_item = file_mock.call_args_list[0]
+      template_name = template_item[0][0]
+      template_content = template_item[1]['content'].get_content()
+      
+      self.assertEquals(template_name, '/tmp/1.txt')
+      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ precise a b c\n')
+      
+      copy_item = str(file_mock.call_args_list[1])
+      self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
+      
+      execute_command_item = execute_mock.call_args_list[0][0][0]
+      self.assertEqual(execute_command_item, 'apt-get update -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
 
+    @patch.object(tempfile, "NamedTemporaryFile")
+    @patch("resource_management.libraries.providers.repository.Execute")
+    @patch("resource_management.libraries.providers.repository.File")
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
+    @patch("filecmp.cmp", new=MagicMock(return_value=True))
+    @patch.object(System, "os_release_name", new='precise')        
+    @patch.object(System, "os_family", new='debian')
+    def test_create_repo_debian_doesnt_repo_exist(self, file_mock, execute_mock, tempfile_mock):
+      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
+      
+      with Environment('/') as env:
+          Repository('HDP',
+                     base_url='http://download.base_url.org/rpm/',
+                     repo_file_name='HDP',
+                     components = ['a','b','c']
+          )
+      
+      template_item = file_mock.call_args_list[0]
+      template_name = template_item[0][0]
+      template_content = template_item[1]['content'].get_content()
+      
+      self.assertEquals(template_name, '/tmp/1.txt')
+      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ precise a b c\n')
+      
+      self.assertEqual(file_mock.call_count, 1)
+      self.assertEqual(execute_mock.call_count, 0)
+      
+    
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
+    @patch.object(System, "os_family", new='debian')
+    @patch("resource_management.libraries.providers.repository.Execute")
+    @patch("resource_management.libraries.providers.repository.File")
+    def test_remove_repo_debian_repo_exist(self, file_mock, execute_mock):
+      with Environment('/') as env:
+          Repository('HDP',
+                     action = "remove",
+                     repo_file_name='HDP'
+          )
+          
+      self.assertEqual(str(file_mock.call_args), "call('/etc/apt/sources.list.d/HDP.list', action='delete')")
+      self.assertEqual(execute_mock.call_args[0][0], 'apt-get update -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
+
+    @patch("os.path.isfile", new=MagicMock(return_value=False))
+    @patch.object(System, "os_family", new='debian')
+    @patch("resource_management.libraries.providers.repository.Execute")
+    @patch("resource_management.libraries.providers.repository.File")
+    def test_remove_repo_debian_repo_doenst_exist(self, file_mock, execute_mock):
+      with Environment('/') as env:
+          Repository('HDP',
+                     action = "remove",
+                     repo_file_name='HDP'
+          )
+          
+      self.assertEqual(file_mock.call_count, 0)
+      self.assertEqual(execute_mock.call_count, 0)
 
     @patch.object(System, "os_family", new='redhat')
     @patch("resource_management.libraries.providers.repository.File")
