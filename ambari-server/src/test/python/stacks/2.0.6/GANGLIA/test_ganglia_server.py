@@ -199,6 +199,13 @@ class TestGangliaServer(RMFTestCase):
                        command="start",
                        config_file="default.json"
     )
+    self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/srv/www/cgi-bin/rrd.py',
+                              content = StaticFile('rrd.py'),
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Execute', 'service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               )
