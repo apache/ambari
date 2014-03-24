@@ -40,10 +40,6 @@ App.STORMDefaultsProvider = App.DefaultsProvider.extend({
     if (!this.clusterDataIsValid()) {
       return configs;
     }
-    configs['drpc.childopts'] = '-Xmx768m';
-    //ui childopts value should be taken from stack
-    //configs['ui.childopts'] = '-Xmx768m';
-    configs['logviewer.childopts'] = '-Xmx128m';
     return configs;
   },
 

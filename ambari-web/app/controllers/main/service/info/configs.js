@@ -380,7 +380,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.checkForRestart(serviceConfig, restartData);
     if (serviceName || serviceConfig.serviceName === 'MISC') {
       //STEP 11: render configs and wrap each in ServiceConfigProperty object
-      this.loadComponentConfigs(allConfigs, serviceConfig, restartData);
+      this.loadComponentConfigs(allConfigs, serviceConfig, restartData, advancedConfigs);
       this.get('stepConfigs').pushObject(serviceConfig);
     }
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
@@ -524,8 +524,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param configs
    * @param componentConfig
    * @param restartData
+   * @param advancedConfigs
    */
-  loadComponentConfigs: function (configs, componentConfig, restartData) {
+  loadComponentConfigs: function (configs, componentConfig, restartData, advancedConfigs) {
 
     var localDB = this.getInfoForDefaults();
     var recommendedDefaults = {};
@@ -537,7 +538,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var d = defaultsProvider.getDefaults(localDB);
         defaults.push(d);
         for (var name in d) {
-          recommendedDefaults[name] = d[name];
+          var defaultValueFromStack = advancedConfigs.findProperty('name',name);
+          if (!!d[name]) {
+            recommendedDefaults[name] = d[name];
+          } else {
+           // If property default value is not declared on client, fetch it from stack definition
+           // If it's not declared with any valid value in both server stack and client, then js reference error is expected to be thrown
+            recommendedDefaults[name] = defaultValueFromStack.value
+          }
         }
       });
     }
