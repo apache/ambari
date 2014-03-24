@@ -617,11 +617,16 @@ App.config = Em.Object.create({
         service.defaultsProviders.forEach(function (defaultsProvider) {
           var defaults = defaultsProvider.getDefaults(localDB);
           for (var name in defaults) {
-            recommendedDefaults[name] = defaults[name];
             var config = configsByService.findProperty('name', name);
-            if (config) {
+            if (!config) {
+              continue;
+            }
+            if (!!defaults[name]) {
+              recommendedDefaults[name] = defaults[name];
               config.set('value', defaults[name]);
               config.set('defaultValue', defaults[name]);
+            } else {
+              recommendedDefaults[name] = config.get('defaultValue');
             }
           }
         });
