@@ -1050,6 +1050,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var stoppedStates = [App.HostComponentStatus.stopped,
                          App.HostComponentStatus.install_failed,
                          App.HostComponentStatus.upgrade_failed,
+                         App.HostComponentStatus.init,
                          App.HostComponentStatus.unknown];
     var masterComponents = [];
     var runningComponents = [];
