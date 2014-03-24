@@ -31,6 +31,7 @@ import platform
 from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
+from common_functions import OSCheck
 
 logger = logging.getLogger()
 
@@ -102,7 +103,7 @@ class HostInfo:
   TIMEOUT_SECONDS = 60
   RESULT_UNAVAILABLE = "unable_to_determine"
 
-  OS_NAME = platform.dist()[0].lower()
+  OS_NAME = OSCheck().get_os_family()
   OS_UBUNTU = 'ubuntu'
   # service cmd
   SERVICE_CMD = "/sbin/service"
@@ -163,9 +164,7 @@ class HostInfo:
         etcResults.append(result)
 
   def get_os_type(self):
-    os_info = platform.linux_distribution(None, None, None, ['SuSE',
-                                          'redhat' ], 0)
-    return os_info[0].lower()
+    return OSCheck().get_os_family()
 
   def checkLiveServices(self, services, result):
     osType = self.get_os_type()
@@ -282,12 +281,6 @@ class HostInfo:
     else:
      return self.current_umask
 
-
-  def get_os_type(self):
-    os_info = platform.linux_distribution(
-      None, None, None, ['SuSE', 'redhat' ], 0
-    )
-    return os_info[0].lower()
 
   def checkIptables(self):
     iptablesIsRunning = False

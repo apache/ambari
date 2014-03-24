@@ -30,7 +30,7 @@ import subprocess
 
 import time
 import uuid
-import hostname
+from common_functions import OSCheck
 
 log = logging.getLogger()
 
@@ -99,7 +99,7 @@ class Facter():
 
   # Returns the short hostname
   def getHostname(self):
-    return hostname.hostname()
+    return self.getFqdn().split('.', 1)[0]
 
   # Returns the CPU hardware architecture
   def getArchitecture(self):
@@ -109,29 +109,13 @@ class Facter():
     else:
       return result
 
-  # Returns the name of the OS
+  # Returns the full name of the OS
   def getOperatingSystem(self):
-    dist = platform.linux_distribution()
-    operatingSystem = dist[0].lower()
-
-    if os.path.exists('/etc/oracle-release'):
-      return 'OracleLinux'
-    elif operatingSystem.startswith('suse linux enterprise server'):
-      return 'SLES'
-    elif operatingSystem.startswith('red hat enterprise linux server'):
-      return 'RedHat'
-    elif operatingSystem != '':
-      return operatingSystem
-    else:
-      return 'OS NOT SUPPORTED'
+    return OSCheck().get_os_type()
 
   # Returns the OS version
   def getOperatingSystemRelease(self):
-    dist = platform.linux_distribution()
-    if dist[1] != '':
-      return dist[1]
-    else:
-      return 'OS NOT SUPPORTED'
+    return OSCheck().get_os_version()
 
   # Returns the OS TimeZone
   def getTimeZone(self):
@@ -167,20 +151,7 @@ class Facter():
   # Returns the operating system family
 
   def getOsFamily(self):
-    os_family = self.getOperatingSystem().lower()
-    if os_family in ['redhat', 'fedora', 'centos', 'oraclelinux', 'ascendos',
-                     'amazon', 'xenserver', 'oel', 'ovs', 'cloudlinux',
-                     'slc', 'scientific', 'psbm']:
-      os_family = 'RedHat'
-    elif os_family in ['ubuntu', 'debian']:
-      os_family = 'Debian'
-    elif os_family in ['sles', 'sled', 'opensuse', 'suse']:
-      os_family = 'Suse'
-    elif os_family == '':
-      os_family = 'OS NOT SUPPORTED'
-    else:
-      os_family = self.getOperatingSystem()
-    return os_family
+    return OSCheck().get_os_family()
 
   def isSeLinux(self):
 

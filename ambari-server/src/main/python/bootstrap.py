@@ -135,7 +135,7 @@ class SSH:
 class Bootstrap(threading.Thread):
   """ Bootstrap the agent on a separate host"""
   TEMP_FOLDER = "/tmp"
-  OS_CHECK_SCRIPT_FILENAME = "os_type_check.sh"
+  OS_CHECK_SCRIPT_FILENAME = "os_check.py"
   AMBARI_REPO_FILENAME = "ambari.repo"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
   PASSWORD_FILENAME = "host_pass"

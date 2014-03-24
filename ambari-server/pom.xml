@@ -31,6 +31,7 @@
 
     <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
+    <common_functions.install.dir>/usr/lib/python2.6/site-packages/common_functions</common_functions.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
   </properties>
   <build>
@@ -227,7 +228,17 @@
                 </source>
               </sources>
             </mapping>
-            <mapping>
+              <mapping>
+                  <directory>${common_functions.install.dir}</directory>
+                  <sources>
+                      <source>
+                          <location>
+                              ${project.basedir}/../ambari-common/src/main/python/common_functions
+                          </location>
+                      </source>
+                  </sources>
+              </mapping>
+              <mapping>
               <directory>/usr/sbin</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -390,7 +401,7 @@
                   <location>src/main/python/setupAgent.py</location>
                 </source>
                 <source>
-                  <location>src/main/python/os_type_check.sh</location>
+                  <location>${project.basedir}/../ambari-common/src/main/python/common_functions/os_check.py</location>
                 </source>
               </sources>
             </mapping>
@@ -731,11 +742,11 @@
             </mapper>
           </data>
           <data>
-            <src>src/main/python/os_type_check.sh</src>
+            <src>${project.basedir}/../ambari-common/src/main/python/common_functions/os_check.py</src>
             <type>file</type>
             <mapper>
               <type>perm</type>
-              <prefix>/usr/lib/python2.6/site-packages/ambari_server</prefix>
+              <prefix>/usr/lib/python2.6/site-packages/common_functions</prefix>
               <user>root</user>
               <group>root</group>
               <filemode>755</filemode>
@@ -801,7 +812,7 @@
                 <argument>${custom.tests}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
+                  <PYTHONPATH>${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/jinja2:${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-common/src/main/python/common_functions:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/test/python:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

@@ -31,6 +31,7 @@ import sys
 import datetime
 import AmbariConfig
 from pwd import getpwnam
+from common_functions import OSCheck
 
 logger = logging.getLogger()
 configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
@@ -420,10 +421,7 @@ class HostCleanup:
     return os.getuid() == 0
 
   def get_os_type(self):
-    os_info = platform.linux_distribution(
-      None, None, None, ['SuSE', 'redhat'], 0
-    )
-    return os_info[0].lower()
+    return OSCheck().get_os_family()
 
 
   # Run command as sudoer by default, if root no issues

@@ -30,7 +30,9 @@ from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
 from ambari_agent.HostInfo import HostInfo
 from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
+from resource_management.core.system import System
 
+@patch.object(System, "os_family", new = 'redhat')
 class TestHostInfo(TestCase):
 
   logger = logging.getLogger()

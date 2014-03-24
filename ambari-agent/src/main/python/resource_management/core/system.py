@@ -28,6 +28,7 @@ import platform
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from functools import wraps
+from common_functions import OSCheck
 
 def lazy_property(undecorated):
   name = '_' + undecorated.__name__
@@ -65,13 +66,9 @@ class System(object):
     Example return value:
     "6.3" for "Centos 6.3"
     
-    In case cannot detect raises 'unknown'
+    In case cannot detect --> Fail
     """
-    dist = platform.linux_distribution()
-    if dist[1] != '':
-      return dist[1]
-    else:
-      return 'unknown'
+    return OSCheck().get_os_version()
     
   @lazy_property
   def os_type(self):
@@ -83,22 +80,7 @@ class System(object):
     
     In case cannot detect raises exception.
     """
-    dist = platform.linux_distribution()
-    operatingSystem = dist[0].lower()
-
-    # special cases
-    if os.path.exists('/etc/oracle-release'):
-      return 'oraclelinux'
-    elif operatingSystem.startswith('suse linux enterprise server'):
-      return 'sles'
-    elif operatingSystem.startswith('red hat enterprise linux server'):
-      return 'redhat'
-    
-    # in general
-    if operatingSystem:
-      return operatingSystem
-    else:
-      raise Fail("Cannot detect os type")
+    return OSCheck().get_os_type()
     
   @lazy_property
   def os_family(self):
@@ -108,19 +90,7 @@ class System(object):
     
     In case cannot detect raises exception
     """
-    os_type = self.os_type
-    if os_type in ['redhat', 'centos', 'fedora', 'oraclelinux', 'ascendos',
-                     'amazon', 'xenserver', 'oel', 'ovs', 'cloudlinux',
-                     'slc', 'scientific', 'psbm']:
-      os_family = 'redhat'
-    elif os_type in ['ubuntu', 'debian']:
-      os_family = 'debian'
-    elif os_type in ['sles', 'sled', 'opensuse', 'suse']:
-      os_family = 'suse'
-    else:
-      raise Fail("Cannot detect os family for os: {0}".format(os_type))
-      
-    return os_family
+    return OSCheck().get_os_family()
 
   @lazy_property
   def ec2(self):

@@ -41,6 +41,7 @@ import random
 import pwd
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 import json
+from common_functions import OSCheck
 
 # debug settings
 VERBOSE = False
@@ -48,8 +49,8 @@ SILENT = False
 SERVER_START_DEBUG = False
 
 # OS info
-OS, OS_VERSION, _ = platform.linux_distribution() 
-OS = OS.lower().strip()
+OS_VERSION = OSCheck().get_os_major_version()
+OS = OSCheck().get_os_family()
 OS_UBUNTU = 'ubuntu'
 OS_FEDORA = 'fedora'
 OS_OPENSUSE = 'opensuse'
@@ -1962,13 +1963,8 @@ def configure_os_settings():
     print_error_msg ("Non-Linux systems are not supported")
     return -1
 
-  os_info = platform.linux_distribution(
-    None, None, None, ['SuSE', 'redhat' ], 0
-  )
-  os_name = os_info[0].lower()
-  if os_name == 'suse':
-    os_name = 'sles'
-  os_version = os_info[1].split('.', 1)[0]
+  os_name = OSCheck().get_os_family()
+  os_version = OS_VERSION
   master_os_type = os_name + os_version    
   write_property(OS_TYPE_PROPERTY, master_os_type)
   return 0
