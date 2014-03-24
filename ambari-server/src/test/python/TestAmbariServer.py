@@ -29,6 +29,7 @@ import stat
 import datetime
 import operator
 import json
+import platform
 from pwd import getpwnam
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
@@ -2019,11 +2020,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                             popen_mock, sleep_mock):
     p = MagicMock()
     p.poll.return_value = 0
+    p.communicate.return_value = (None, None)
+    p.returncode = 0
     popen_mock.return_value = p
     run_os_command_mock.return_value = (0, None, None)
     rcode = ambari_server.check_postgre_up()
     self.assertEqual(0, rcode)
 
+    ambari_server.OS = 'suse'
     p.poll.return_value = 4
     get_postgre_status_mock.return_value = None
     rcode = ambari_server.check_postgre_up()

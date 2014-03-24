@@ -54,6 +54,7 @@ OS = OSCheck().get_os_family()
 OS_UBUNTU = 'ubuntu'
 OS_FEDORA = 'fedora'
 OS_OPENSUSE = 'opensuse'
+OS_SUSE = 'suse'
 
 # action commands
 SETUP_ACTION = "setup"
@@ -1053,17 +1054,21 @@ def check_postgre_up():
         stdin=subprocess.PIPE,
         stderr=subprocess.PIPE
       )
-      time.sleep(20)
-      result = process.poll()
-      print_info_msg("Result of postgres start cmd: " + str(result))
-      if result is None:
-        process.kill()
-        pg_status = get_postgre_status()
-        if pg_status == PG_STATUS_RUNNING:
-          print_info_msg("Postgres process is running. Returning...")
-          return 0
+      if OS == OS_SUSE:
+        time.sleep(20)
+        result = process.poll()
+        print_info_msg("Result of postgres start cmd: " + str(result))
+        if result is None:
+          process.kill()
+          pg_status = get_postgre_status()
+        else:
+          retcode = result
       else:
-        retcode = result
+        out, err = process.communicate()
+        retcode = process.returncode
+      if pg_status == PG_STATUS_RUNNING:
+        print_info_msg("Postgres process is running. Returning...")
+        return 0
     except (Exception), e:
       pg_status = get_postgre_status()
       if pg_status == PG_STATUS_RUNNING:
