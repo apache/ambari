@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -784,6 +785,26 @@ public class ServiceComponentHostTest {
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch3.convertToResponse().isStaleConfig());
+
+    // Test actual configs are updated for deleted config group
+    Long id = configGroup.getId();
+    HashMap<String, String> tags = new HashMap<String, String>();
+    tags.put("tag", "version1");
+    tags.put(id.toString(), "version2");
+    actual.put("core-site", tags);
+    sch3.updateActualConfigs(actual);
+
+    Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
+
+    cluster.deleteConfigGroup(id);
+    Assert.assertNull(cluster.getConfigGroups().get(id));
+
+    sch3.updateActualConfigs(actual);
+    Assert.assertTrue(sch3.convertToResponse().isStaleConfig());
+
+    tags.remove(id.toString());
+    sch3.updateActualConfigs(actual);
+    Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
   }
 
   /**
