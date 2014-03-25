@@ -385,7 +385,7 @@ limitations under the License.
     <name>hive.jar.directory</name>
     <value>hdfs:///apps/hive/install</value>
     <description>
-      This is the location hive in Tez mode will look for to find a site wide 
+      This is the location hive in Tez mode will look for to find a site wide
       installed hive instance.
     </description>
   </property>
@@ -407,5 +407,78 @@ limitations under the License.
     <value>false</value>
     <description></description>
   </property>
+
+  <property>
+    <name>hive.txn.manager</name>
+    <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
+    <description>Select the class to do transaction management. The default DummyTxnManager does no transactions and retains the legacy behavior.</description>
+  </property>
+
+  <property>
+    <name>hive.txn.driver</name>
+    <value></value>
+    <description>Gives the jdbc driver to use to connect to the metastore</description>
+  </property>
+
+  <property>
+    <name>hive.txn.connection.string</name>
+    <value></value>
+    <description>Gives the connection string to pass the jdbc driver</description>
+  </property>
+
+  <property>
+    <name>hive.txn.timeout</name>
+    <value>300</value>
+    <description>Time after which transactions are declared aborted if the client has not sent a heartbeat, in seconds.</description>
+  </property>
+
+  <property>
+    <name>hive.txn.max.open.batch</name>
+    <value>1000</value>
+    <description>Maximum number of transactions that can be fetched in one call to open_txns(). Increasing this will decrease the number of delta files created when streaming data into Hive. But it will also increase the number of open transactions at any given time, possibly impacting read performance.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.initiator.on</name>
+    <value>false</value>
+    <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should only be set to true for one of them.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.worker.threads</name>
+    <value>0</value>
+    <description>Number of compactor worker threads to run on this metastore instance. Can be different values on different metastore instances.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.worker.timeout</name>
+    <value>86400L</value>
+    <description>Time, in seconds, before a given compaction in working state is declared a failure and returned to the initiated state.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.check.interval</name>
+    <value>300L</value>
+    <description>Time in seconds between checks to see if any partitions need compacted. This should be kept high because each check for compaction requires many calls against the NameNode.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.delta.num.threshold</name>
+    <value>10</value>
+    <description>Number of delta files that must exist in a directory before the compactor will attempt a minor compaction.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.delta.pct.threshold</name>
+    <value>0.1f</value>
+    <description>Percentage (by size) of base that deltas can be before major compaction is initiated.</description>
+  </property>
+
+  <property>
+    <name>hive.compactor.abortedtxn.threshold</name>
+    <value>1000</value>
+    <description>Number of aborted transactions involving a particular table or partition before major compaction is initiated.</description>
+  </property>
+
 
 </configuration>
