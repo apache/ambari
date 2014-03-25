@@ -443,9 +443,14 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public void dropConstraint(String tableName, String constraintName) throws SQLException {
+    dropConstraint(tableName, constraintName, false);
+  }
+
+  @Override
+  public void dropConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
     String query = dbmsHelper.getDropConstraintStatement(tableName, constraintName);
 
-    executeQuery(query);
+    executeQuery(query, ignoreFailure);
   }
 
   @Override

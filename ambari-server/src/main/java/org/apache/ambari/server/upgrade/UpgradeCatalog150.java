@@ -301,6 +301,54 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       LOG.info("Table {} already filled", tableName);
     }
 
+    // Drop old constraints
+    // ========================================================================
+    if (Configuration.POSTGRES_DB_NAME.equals(getDbType())
+      || Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+
+      //recreate old constraints to sync with oracle
+      dbAccessor.dropConstraint("clusterconfigmapping", "FK_clusterconfigmapping_cluster_id");
+      dbAccessor.dropConstraint("hostcomponentdesiredstate", "FK_hostcomponentdesiredstate_host_name");
+      dbAccessor.dropConstraint("hostcomponentdesiredstate", "FK_hostcomponentdesiredstate_component_name");
+      dbAccessor.dropConstraint("hostcomponentstate", "FK_hostcomponentstate_component_name");
+      dbAccessor.dropConstraint("hostcomponentstate", "FK_hostcomponentstate_host_name");
+      dbAccessor.dropConstraint("servicecomponentdesiredstate", "FK_servicecomponentdesiredstate_service_name");
+      dbAccessor.dropConstraint("servicedesiredstate", "FK_servicedesiredstate_service_name");
+      dbAccessor.dropConstraint("role_success_criteria", "FK_role_success_criteria_stage_id");
+      dbAccessor.dropConstraint("ClusterHostMapping", "FK_ClusterHostMapping_host_name");
+      dbAccessor.dropConstraint("ClusterHostMapping", "FK_ClusterHostMapping_cluster_id");
+
+      dbAccessor.addFKConstraint("clusterconfigmapping", "clusterconfigmappingcluster_id", "cluster_id", "clusters", "cluster_id", false);
+      dbAccessor.addFKConstraint("hostcomponentdesiredstate", "hstcmponentdesiredstatehstname", "host_name", "hosts", "host_name", false);
+      dbAccessor.addFKConstraint("hostcomponentdesiredstate", "hstcmpnntdesiredstatecmpnntnme",
+        new String[] {"component_name", "cluster_id", "service_name"}, "servicecomponentdesiredstate",
+        new String[] {"component_name", "cluster_id", "service_name"}, false);
+      dbAccessor.addFKConstraint("hostcomponentstate", "hstcomponentstatecomponentname",
+        new String[] {"component_name", "cluster_id", "service_name"}, "servicecomponentdesiredstate",
+        new String[] {"component_name", "cluster_id", "service_name"}, false);
+      dbAccessor.addFKConstraint("hostcomponentstate", "hostcomponentstate_host_name", "host_name", "hosts", "host_name", false);
+      dbAccessor.addFKConstraint("servicecomponentdesiredstate", "srvccmponentdesiredstatesrvcnm",
+        new String[] {"service_name", "cluster_id"}, "clusterservices",
+        new String[] {"service_name", "cluster_id"}, false);
+      dbAccessor.addFKConstraint("servicedesiredstate", "servicedesiredstateservicename",
+        new String[] {"service_name", "cluster_id"}, "clusterservices",
+        new String[] {"service_name", "cluster_id"}, false);
+      dbAccessor.addFKConstraint("role_success_criteria", "role_success_criteria_stage_id",
+        new String[] {"stage_id", "request_id"}, "stage",
+        new String[] {"stage_id", "request_id"}, false);
+      dbAccessor.addFKConstraint("ClusterHostMapping", "ClusterHostMapping_cluster_id", "cluster_id", "clusters", "cluster_id", false);
+      dbAccessor.addFKConstraint("ClusterHostMapping", "ClusterHostMapping_host_name", "host_name", "hosts", "host_name", false);
+
+
+      //drop new constraints with to sync with oracle
+      dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confgroupclusterconfigmapping_config_tag", true);
+      dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confgroupclusterconfigmapping_group_id", true);
+      dbAccessor.dropConstraint("configgrouphostmapping", "FK_configgrouphostmapping_configgroup_id", true);
+      dbAccessor.dropConstraint("configgrouphostmapping", "FK_configgrouphostmapping_host_name", true);
+
+
+    }
+
     // ========================================================================
     // Add constraints
 
@@ -311,10 +359,10 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfmapping_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("hostconfigmapping", "FK_hostconfmapping_host_name", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("configgroup", "FK_configgroup_cluster_id", "cluster_id", "clusters", "cluster_id", true);
-    dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cg_cluster_cm_config_tag", new String[] {"version_tag", "config_type", "cluster_id"}, "clusterconfig", new String[] {"version_tag", "type_name", "cluster_id"}, true);
-    dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cg_cluster_cm_group_id", "config_group_id", "configgroup", "group_id", true);
-    dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_configgroup_id", "config_group_id", "configgroup", "group_id", true);
-    dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghostm_host_name", "host_name", "hosts", "host_name", true);
+    dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_confg", new String[] {"version_tag", "config_type", "cluster_id"}, "clusterconfig", new String[] {"version_tag", "type_name", "cluster_id"}, true);
+    dbAccessor.addFKConstraint("confgroupclusterconfigmapping", "FK_cgccm_gid", "config_group_id", "configgroup", "group_id", true);
+    dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghm_cgid", "config_group_id", "configgroup", "group_id", true);
+    dbAccessor.addFKConstraint("configgrouphostmapping", "FK_cghm_hname", "host_name", "hosts", "host_name", true);
     dbAccessor.addFKConstraint("clusterconfigmapping", "FK_clustercfgmap_cluster_id", "cluster_id", "clusters", "cluster_id", true);
     dbAccessor.addFKConstraint("requestresourcefilter", "FK_reqresfilter_req_id", "request_id", "request", "request_id", true);
     dbAccessor.addFKConstraint("hostgroup", "FK_hostgroup_blueprint_name", "blueprint_name", "blueprint", "blueprint_name", true);
