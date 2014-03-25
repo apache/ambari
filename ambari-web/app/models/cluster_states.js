@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 var App = require('app');
-require('mixins/common/userPref');
 
-App.clusterStatus = Em.Object.create(App.UserPref, {
+App.clusterStatus = Ember.Object.create({
   clusterName: '',
   validStates: [
     'DEFAULT',
@@ -60,60 +59,68 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    */
   updateFromServer: function(isAsync, overrideLocaldb) {
     // if isAsync is undefined, set it to false
-    this.set('makeRequestAsync', isAsync || false);
+    isAsync = isAsync || false;
     // if overrideLocaldb is undefined, set it to true
-    this.set('additionalData', {
-      user: App.db.getUser(),
-      login: App.db.getLoginName(),
-      overrideLocaldb: overrideLocaldb || true
-    });
-    return this.getUserPref(this.get('key'));
-  },
-
-  getUserPrefSuccessCallback: function (response, opt, params) {
-    if (response) {
-      if (response.clusterState) {
-        this.set('clusterState', response.clusterState);
-      }
-      if (response.clusterName) {
-        this.set('clusterName', response.clusterName);
-      }
-      if (response.wizardControllerName) {
-        this.set('wizardControllerName', response.wizardControllerName);
-      }
-      if (response.localdb) {
-        this.set('localdb', response.localdb);
-        // restore HAWizard data if process was started
-        var isHAWizardStarted = App.get('isAdmin') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
-        if (params.overrideLocaldb || isHAWizardStarted) {
-          App.db.data = response.localdb;
-          App.db.setLocalStorage();
-          App.db.setUser(params.user);
-          App.db.setLoginName(params.login);
-        }
-      }
+    if(typeof overrideLocaldb == "undefined"){
+      overrideLocaldb =  true;
     }
-    // this is to ensure that the local storage namespaces are initialized with all expected namespaces.
-    // after upgrading ambari, loading local storage data from the "persist" data saved via an older version of
-    // Ambari can result in missing namespaces that are defined in the new version of Ambari.
-    App.db.mergeStorage();
+    var user = App.db.getUser();
+    var login = App.db.getLoginName();
+    var url = App.apiPrefix + '/persist/' + this.get('key');
+    return jQuery.ajax(
+      {
+        url: url,
+        context: this,
+        async: isAsync,
+        success: function (response) {
+          if (response) {
+            var newValue = jQuery.parseJSON(response);
+            if (newValue.clusterState) {
+              this.set('clusterState', newValue.clusterState);
+            }
+            if (newValue.clusterName) {
+              this.set('clusterName', newValue.clusterName);
+            }
+            if (newValue.wizardControllerName) {
+              this.set('wizardControllerName', newValue.wizardControllerName);
+            }
+            if (newValue.localdb) {
+              this.set('localdb', newValue.localdb);
+              // restore HAWizard data if process was started
+              var isHAWizardStarted = App.get('isAdmin') && !App.isEmptyObject(newValue.localdb.HighAvailabilityWizard);
+              if (overrideLocaldb || isHAWizardStarted) {
+                App.db.data = newValue.localdb;
+                App.db.setLocalStorage();
+                App.db.setUser(user);
+                App.db.setLoginName(login);
+              }
+            }
+          } else {
+            // default status already set
+          }
+          // this is to ensure that the local storage namespaces are initialized with all expected namespaces.
+          // after upgrading ambari, loading local storage data from the "persist" data saved via an older version of
+          // Ambari can result in missing namespaces that are defined in the new version of Ambari.
+          App.db.mergeStorage();
+        },
+        error: function (xhr) {
+          if (xhr.status == 404) {
+            // default status already set
+            console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+            return;
+          }
+          App.ModalPopup.show({
+            header: Em.I18n.t('common.error'),
+            secondary: false,
+            bodyClass: Ember.View.extend({
+              template: Ember.Handlebars.compile('<p>{{t common.update.error}}</p>')
+            })
+          });
+        },
+        statusCode: require('data/statusCodes')
+      }
+    );
   },
-
-  getUserPrefErrorCallback: function (request, ajaxOptions, error) {
-    if (request.status == 404) {
-      // default status already set
-      console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
-      return;
-    }
-    App.ModalPopup.show({
-      header: Em.I18n.t('common.error'),
-      secondary: false,
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('<p>{{t common.update.error}}</p>')
-      })
-    });
-  },
-
   /**
    * update cluster status and post it on server
    * @param newValue
@@ -154,15 +161,28 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         App.db.setLoginName(login);
       }
 
-      this.set('makeRequestAsync', false);
-      this.postUserPref(this.get('key'), val);
+      var keyValuePair = {};
+
+      keyValuePair[this.get('key')] = JSON.stringify(val);
+
+      App.ajax.send({
+        name: 'cluster.state',
+        sender: this,
+        data: {
+          keyValuePair: keyValuePair
+        },
+        beforeSend: 'clusterStatusBeforeSend',
+        error: 'clusterStatusErrorCallBack'
+      });
       return newValue;
     }
   },
-
-  postUserPrefErrorCallback: function(request, ajaxOptions, error) {
+  clusterStatusBeforeSend: function (keyValuePair) {
+    console.log('BeforeSend: persistKeyValues', keyValuePair);
+  },
+  clusterStatusErrorCallBack: function(request, ajaxOptions, error, opt) {
     console.log("ERROR");
-    var msg = '', doc;
+    var msg, doc;
     try {
       msg = 'Error ' + (request.status) + ' ';
       doc = $.parseXML(request.responseText);
@@ -175,8 +195,8 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       header: Em.I18n.t('common.error'),
       secondary: false,
       response: msg,
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
       })
     });
   },

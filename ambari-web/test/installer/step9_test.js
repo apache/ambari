@@ -717,6 +717,18 @@ describe('App.InstallerStep9Controller', function () {
     });
   });
 
+  describe('#getUrl', function () {
+    var clusterName = 'tdk';
+    var cluster = App.WizardStep9Controller.create({content: {cluster: {name: clusterName, requestId: null}}});
+    it('check requestId priority', function () {
+      cluster.set('content.cluster.requestId', 123);
+      var url = cluster.getUrl(321);
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
+      url = cluster.getUrl();
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true');
+    });
+  });
+
   describe('#finishState', function () {
     var statuses = Em.A(['INSTALL FAILED', 'START FAILED', 'STARTED']);
     it('Installer is finished', function () {
@@ -1161,7 +1173,7 @@ describe('App.InstallerStep9Controller', function () {
     var controller = App.WizardStep9Controller.create({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: 'PENDING',name: 'c1'}},togglePreviousSteps: function(){}});
 
     //Action
-    controller.launchStartServicesErrorCallback({status:500, statusTesxt: 'Server Error'}, {}, '', {});
+    controller.launchStartServicesErrorCallback({status:500, statusTesxt: 'Server Error'});
     it('Cluster Status should be INSTALL FAILED', function () {
       expect(controller.get('content.cluster.status')).to.equal('INSTALL FAILED');
     });

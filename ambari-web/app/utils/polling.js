@@ -51,7 +51,7 @@ App.Poll = Em.Object.extend({
   }.property('isPolling', 'isStarted'),
 
   start: function () {
-    if (Em.isNone(this.get('requestId'))) {
+    if (this.get('requestId') === undefined) {
       this.setRequestId();
     } else {
       this.startPolling();

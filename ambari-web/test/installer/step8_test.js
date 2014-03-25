@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-require('utils/ajax/ajax_queue');
 require('controllers/wizard/step8_controller');
 
 var installerStep8Controller;
