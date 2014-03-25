@@ -74,6 +74,18 @@ module.exports = {
     var context = staleConfigsOnly ? Em.I18n.t('rollingrestart.context.allWithStaleConfigsForSelectedService').format(serviceName) : Em.I18n.t('rollingrestart.context.allForSelectedService').format(serviceName);
     if (service) {
       var hostComponents = service.get('hostComponents').filterProperty('host.passiveState','OFF');
+
+      // HCatalog components are technically owned by Hive.
+      if (serviceName == 'HIVE') {
+        var hcatService = App.Service.find('HCATALOG');
+        if (hcatService != null && hcatService.get('isLoaded')) {
+          var hcatHcs = hcatService.get('hostComponents').filterProperty('host.passiveState', 'OFF');
+          if (hcatHcs != null) {
+            hostComponents.pushObjects(hcatHcs);
+          }
+        }
+      }
+
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
