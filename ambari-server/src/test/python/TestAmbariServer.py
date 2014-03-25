@@ -1065,7 +1065,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(f.flush.called)
     self.assertTrue(f.close.called)
     self.assertEqual(2, len(dlprogress_mock.call_args_list))
-    
+
   @patch("shutil.copy")
   @patch("os.path.join")
   @patch("os.path.exists")
@@ -1276,7 +1276,7 @@ class TestAmbariServer(TestCase):
     # Testing call under root
     is_root_mock.return_value = True
     read_ambari_user_method.return_value = "user"
-    #Case #1: if client ssl is on and user didnt choose 
+    #Case #1: if client ssl is on and user didnt choose
     #disable ssl option and choose import certs and keys
     p.get_property.side_effect = ["key_dir", "5555", "6666", "true"]
     get_YN_input_mock.side_effect = [False, True]
@@ -1321,7 +1321,7 @@ class TestAmbariServer(TestCase):
     p.store.reset_mock()
     import_cert_and_key_action_mock.reset_mock()
 
-    #Case #3: if client ssl is off and user choose option 
+    #Case #3: if client ssl is off and user choose option
     #to import cert and keys
     p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [True, True]
@@ -1343,7 +1343,7 @@ class TestAmbariServer(TestCase):
     p.store.reset_mock()
     import_cert_and_key_action_mock.reset_mock()
 
-    #Case #4: if client ssl is off and 
+    #Case #4: if client ssl is off and
     #user did not choose option to import cert and keys
     p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [False]
@@ -1763,8 +1763,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os_path_exists_mock.return_value = False
     status, pid = ambari_server.is_server_runing()
     self.assertFalse(status)
-    
-    
+
+
   @patch.object(ambari_server, "run_os_command")
   @patch("__builtin__.open")
   @patch("os.path.exists")
@@ -1773,9 +1773,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os_path_exists_mock.return_value = True
     f = open_mock.return_value
     f.readline.return_value = "" # empty file content
-    run_os_command_mock.return_value = 0, "", ""  
+    run_os_command_mock.return_value = 0, "", ""
     self.assertRaises(NonFatalException, ambari_server.is_server_runing)
-    
+
     open_mock.side_effect = IOError('[Errno 13] Permission denied: /var/run/ambari-server/ambari-server.pid')
     self.assertRaises(FatalException, ambari_server.is_server_runing)
 
@@ -2533,7 +2533,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     is_root_mock.return_value = True
     find_jdk_mock.return_value = None
     is_server_running_mock.return_value = (False, 0)
-    
+
     try:
       ambari_server.start(args)
       self.fail("Should fail with 'No JDK found'")
@@ -3746,7 +3746,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
 
-    # Failed to copy_files    
+    # Failed to copy_files
 
     find_jdbc_driver_mock.side_effect = [drivers_list]
     try:
@@ -4707,5 +4707,4 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(load_stack_values_mock.called)
     self.assertTrue(run_metainfo_upgrade_mock.called)
     run_metainfo_upgrade_mock.assert_called_with({})
-
 
