@@ -52,9 +52,44 @@ App.MainHostDetailsController = Em.Controller.extend({
     return this.get('serviceActiveComponents').filterProperty('isClient',false);
   }.property('serviceActiveComponents'),
 
-  ajaxErrorCallback: function (request, ajaxOptions, error, opt, params) {
-    console.log('error on change component host status');
-    App.ajax.defaultErrorHandler(request, opt.url, opt.method);
+
+  /**
+   * Send specific command to server
+   * @param url
+   * @param _method
+   * @param postData
+   * @param callback
+   */
+  sendCommandToServer : function(url, postData, _method, callback){
+    var url =  (App.testMode) ?
+      '/data/wizard/deploy/poll_1.json' : //content is the same as ours
+      App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
+
+    var method = App.testMode ? 'GET' : _method;
+
+    $.ajax({
+      type: method,
+      url: url,
+      data: JSON.stringify(postData),
+      dataType: 'json',
+      timeout: App.timeout,
+      success: function(data){
+        if(data && data.Requests){
+          callback(data.Requests.id);
+        } else{
+          callback(null);
+          console.log('cannot get request id from ', data);
+        }
+      },
+
+      error: function (request, ajaxOptions, error) {
+        //do something
+        console.log('error on change component host status');
+        App.ajax.defaultErrorHandler(request, url, method);
+      },
+
+      statusCode: require('data/statusCodes')
+    });
   },
 
   /**
@@ -76,74 +111,57 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param component  When <code>null</code> all startable components are started. 
    * @param context  Context under which this command is beign sent. 
    */
-  sendStartComponentCommand: function(component, context) {
-
+  sendStartComponentCommand: function(components, context) {
+    var url = Em.isArray(components) ?
+        '/hosts/' + this.get('content.hostName') + '/host_components' :
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + components.get('componentName').toUpperCase();
     var dataToSend = {
       RequestInfo : {
         "context" : context
       },
       Body:{
-        HostRoles: {
+        HostRoles:{
           state: 'STARTED'
         }
       }
     };
-    if (Em.isArray(component)) {
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
-      App.ajax.send({
-        name: 'host.host_components.stop',
-        sender: this,
-        data: {
-          data: JSON.stringify(dataToSend),
-          hostName: this.get('content.hostName'),
-          component: component
-        },
-        success: 'stopComponentSuccessCallback',
-        error: 'ajaxErrorCallback'
-      });
+    if (Em.isArray(components)) {
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")";
     }
-    else {
-      App.ajax.send({
-        name: 'host.host_component.stop',
-        sender: this,
-        data: {
-          data: JSON.stringify(dataToSend),
-          hostName: this.get('content.hostName'),
-          componentName: component.get('componentName').toUpperCase(),
-          component: component
-        },
-        success: 'startComponentSuccessCallback',
-        error: 'ajaxErrorCallback'
-      });
-    }
-  },
+    this.sendCommandToServer(url, dataToSend, 'PUT',
+      function(requestId){
 
-  startComponentSuccessCallback: function(data, opt, params) {
-    console.log('Send request for STARTING successfully');
+      if(!requestId){
+        return;
+      }
 
-    if (App.testMode) {
-      if(Em.isArray(params.component)){
-        var allComponents = this.get('content.hostComponents');
-        allComponents.forEach(function(c){
-          c.set('workStatus', App.HostComponentStatus.stopping);
+      console.log('Send request for STARTING successfully');
+
+      if (App.testMode) {
+        if(Em.isArray(components)){
+          var allComponents = this.get('content.hostComponents');
+          allComponents.forEach(function(component){
+            component.set('workStatus', App.HostComponentStatus.stopping);
+            setTimeout(function(){
+              component.set('workStatus', App.HostComponentStatus.stopped);
+            },App.testModeDelayForActions);
+          });
+        } else {
+          components.set('workStatus', App.HostComponentStatus.starting);
           setTimeout(function(){
-            c.set('workStatus', App.HostComponentStatus.stopped);
+            components.set('workStatus', App.HostComponentStatus.started);
           },App.testModeDelayForActions);
-        });
+        }
       } else {
-        params.component.set('workStatus', App.HostComponentStatus.starting);
-        setTimeout(function(){
-          params.component.set('workStatus', App.HostComponentStatus.started);
-        },App.testModeDelayForActions);
+        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-    }
-    // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
+
     });
   },
 
@@ -209,46 +227,28 @@ App.MainHostDetailsController = Em.Controller.extend({
    *          when components failed to get deleted. 
    */
   _doDeleteHostComponent: function(component) {
-    if (component === null) {
-      App.ajax.send({
-        name: 'host.host_components.delete',
-        sender: this,
-        data: {
-          hostName:  this.get('content.hostName')
-        },
-        success: '_doDeleteHostComponentSuccessCallback',
-        error: '_doDeleteHostComponentErrorCallback'
+    var url = component !== null ? 
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
+        '/hosts/' + this.get('content.hostName') + '/host_components';
+    url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
+    var deleted = null;
+    $.ajax({
+      type: 'DELETE',
+      url: url,
+      timeout: App.timeout,
+      async: false,
+      success: function (data) {
+        deleted = null;
+      },
+      error: function (xhr, textStatus, errorThrown) {
+        console.log('Error deleting host component');
+        console.log(textStatus);
+        console.log(errorThrown);
+        deleted = {xhr: xhr, url: url, method: 'DELETE'};
+      },
+      statusCode: require('data/statusCodes')
       });
-    }
-    else {
-      App.ajax.send({
-        name: 'host.host_component.delete',
-        sender: this,
-        data: {
-          componentName: component.get('componentName').toUpperCase(),
-          hostName:  this.get('content.hostName')
-        },
-        success: '_doDeleteHostComponentSuccessCallback',
-        error: '_doDeleteHostComponentErrorCallback'
-      });
-    }
-    return this.get('_deletedHostComponentResult');
-  },
-
-  /**
-   * @type {object}
-   */
-  _deletedHostComponentResult: null,
-
-  _doDeleteHostComponentSuccessCallback: function() {
-    this.set('_deletedHostComponentResult', null);
-  },
-
-  _doDeleteHostComponentErrorCallback: function(xhr, textStatus, errorThrown) {
-    console.log('Error deleting host component');
-    console.log(textStatus);
-    console.log(errorThrown);
-    this.set('_deletedHostComponentResult', {xhr: xhr, url: url, method: 'DELETE'});
+    return deleted;
   },
 
   /**
@@ -259,15 +259,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     App.showConfirmationPopup(function() {
-
-      App.ajax.send({
-        name: 'host.host_component.upgrade',
-        sender: self,
-        data: {
-          component: component,
-          hostName: self.get('content.hostName'),
-          componentName: component.get('componentName').toUpperCase(),
-          data: JSON.stringify({
+      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
             RequestInfo : {
               "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('displayName')
             },
@@ -277,34 +269,33 @@ App.MainHostDetailsController = Em.Controller.extend({
                 state: 'INSTALLED'
               }
             }
-          })
-        },
-        success: 'upgradeComponentSuccessCallback',
-        error: 'ajaxErrorCallback'
-      });
+          }, 'PUT',
+          function(requestId){
+            if(!requestId){
+              return;
+            }
+
+            console.log('Send request for UPGRADE successfully');
+
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.starting);
+              setTimeout(function(){
+                component.set('workStatus', App.HostComponentStatus.started);
+              },App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
+
+          });
     });
   },
-
-  upgradeComponentSuccessCallback: function(data, opt, params) {
-    console.log('Send request for UPGRADE successfully');
-
-    if (App.testMode) {
-      params.component.set('workStatus', App.HostComponentStatus.starting);
-      setTimeout(function(){
-        params.component.set('workStatus', App.HostComponentStatus.started);
-      },App.testModeDelayForActions);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-    }
-
-    // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
-    });
-  },
-
   /**
    * send command to server to stop selected host component
    * @param event
@@ -321,76 +312,59 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * PUTs a command to server to stop a component. If no 
    * specific component is provided, all components are stopped.
-   * @param component  When <code>null</code> all components are stopped.
+   * @param component  When <code>null</code> all components are stopped. 
    * @param context  Context under which this command is beign sent. 
    */
-  sendStopComponentCommand: function(component, context) {
+  sendStopComponentCommand: function(components, context){
+    var url = Em.isArray(components) ?
+        '/hosts/' + this.get('content.hostName') + '/host_components' :
+        '/hosts/' + this.get('content.hostName') + '/host_components/' + components.get('componentName').toUpperCase();
     var dataToSend = {
       RequestInfo : {
         "context" : context
       },
       Body:{
-        HostRoles: {
+        HostRoles:{
           state: 'INSTALLED'
         }
       }
     };
-    if (Em.isArray(component)) {
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
-      App.ajax.send({
-        name: 'host.host_components.stop',
-        sender: this,
-        data: {
-          data: JSON.stringify(dataToSend),
-          hostName: this.get('content.hostName'),
-          component: component
-        },
-        success: 'stopComponentSuccessCallback'
-      });
+    if (Em.isArray(components)) {
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")";
     }
-    else {
-      App.ajax.send({
-        name: 'host.host_component.stop',
-        sender: this,
-        data: {
-          data: JSON.stringify(dataToSend),
-          hostName: this.get('content.hostName'),
-          componentName: component.get('componentName').toUpperCase(),
-          component: component
-        },
-        success: 'stopComponentSuccessCallback',
-        error: 'ajaxErrorCallback'
-      });
-    }
-  },
+    this.sendCommandToServer( url, dataToSend, 'PUT',
+      function(requestId){
+      if(!requestId){
+        return;
+      }
 
-  stopComponentSuccessCallback: function(data, opt, params) {
-    console.log('Send request for STOPPING successfully');
+      console.log('Send request for STOPPING successfully');
 
-    if (App.testMode) {
-      if(Em.isArray(params.component)) {
-        params.component.forEach(function(c){
-          c.set('workStatus', App.HostComponentStatus.stopping);
+      if (App.testMode) {
+        if(Em.isArray(components)){
+          components.forEach(function(component){
+            component.set('workStatus', App.HostComponentStatus.stopping);
+            setTimeout(function(){
+              component.set('workStatus', App.HostComponentStatus.stopped);
+            },App.testModeDelayForActions);
+          });
+        } else {
+          components.set('workStatus', App.HostComponentStatus.stopping);
           setTimeout(function(){
-            c.set('workStatus', App.HostComponentStatus.stopped);
+            components.set('workStatus', App.HostComponentStatus.stopped);
           },App.testModeDelayForActions);
-        });
+        }
+
+      } else {
+        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
-      else {
-        params.component.set('workStatus', App.HostComponentStatus.stopping);
-        setTimeout(function() {
-          params.component.set('workStatus', App.HostComponentStatus.stopped);
-        },App.testModeDelayForActions);
-      }
-    }
-    else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-    }
-    // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
 
@@ -437,19 +411,15 @@ App.MainHostDetailsController = Em.Controller.extend({
         App.ModalPopup.show({
           primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
           header: Em.I18n.t('popup.confirmation.commonHeader'),
-
           addComponentMsg: function() {
             return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
           }.property(),
-
-          bodyClass: Em.View.extend({
+          bodyClass: Ember.View.extend({
             templateName: require('templates/main/host/details/addComponentPopup')
           }),
-
-          restartNagiosMsg: Em.View.extend({
-            template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(dn))
+          restartNagiosMsg : Em.View.extend({
+            template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(dn))
           }),
-
           onPrimary: function () {
             this.hide();
             if (component.get('componentName') === 'CLIENTS') {
@@ -461,11 +431,10 @@ App.MainHostDetailsController = Em.Controller.extend({
                   displayName: App.format.role(sc),
                   componentName: sc
                 });
-                self.primary(c);
+                self.primary(c, scs.length - index === 1);
               });
-            }
-            else {
-              self.primary(component);
+            } else {
+              self.primary(component, true);
             }
           }
         });
@@ -473,92 +442,71 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
   },
 
-  primary: function(component) {
+  primary: function(component, showPopup) {
     var self = this;
-    var componentName = component.get('componentName').toUpperCase();
+    var componentName = component.get('componentName').toUpperCase().toString();
     var displayName = component.get('displayName');
 
-    App.ajax.send({
-      name: 'host.host_component.add_new_component',
-      sender: self,
-      data: {
-        hostName: self.get('content.hostName'),
-        component: component,
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-          },
-          Body: {
-            host_components: [
-              {
-                HostRoles: {
-                  component_name: componentName
-                }
+    self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
+        RequestInfo: {
+          "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+        },
+        Body: {
+          host_components: [
+            {
+              HostRoles: {
+                component_name: componentName
               }
-            ]
-          }
-        })
-      },
-      success: 'addNewComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
-    });
-  },
-
-  addNewComponentSuccessCallback: function(data, opt, params) {
-    console.log('Send request for ADDING NEW COMPONENT successfully');
-    App.ajax.send({
-      name: 'host.host_component.install_new_component',
-      sender: this,
-      data: {
-        hostName: this.get('content.hostName'),
-        componentName: params.componentName,
-        component: params.component,
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.displayName
-          },
-          Body: {
-            HostRoles: {
-              state: 'INSTALLED'
             }
-          }
-        })
+          ]
+        }
       },
-      success: 'installNewComponentSuccessCallback',
-      error: 'ajaxErrorCallback'
-    });
+      'POST',
+      function (requestId) {
+
+        console.log('Send request for ADDING NEW COMPONENT successfully');
+
+        self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
+            },
+            Body: {
+              HostRoles: {
+                state: 'INSTALLED'
+              }
+            }
+          },
+          'PUT',
+          function (requestId) {
+            if (!requestId) {
+              return;
+            }
+
+            console.log('Send request for INSTALLING NEW COMPONENT successfully');
+
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+              if (componentName === 'ZOOKEEPER_SERVER') {
+                self.set('zkRequestId', requestId);
+                self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
+                self.checkZkConfigs();
+              }
+            });
+          });
+      });
   },
-
-  installNewComponentSuccessCallback: function(data, opt, params) {
-    if (!data.Requests || !data.Requests.id) {
-      return;
-    }
-    var self = this;
-    console.log('Send request for INSTALLING NEW COMPONENT successfully');
-
-    if (App.testMode) {
-      params.component.set('workStatus', App.HostComponentStatus.installing);
-      setTimeout(function () {
-        params.component.set('workStatus', App.HostComponentStatus.stopped);
-      }, App.testModeDelayForActions);
-    }
-    else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-    }
-
-    // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
-      if (params.componentName === 'ZOOKEEPER_SERVER') {
-        self.set('zkRequestId', data.Requests.id);
-        self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
-        self.checkZkConfigs();
-      }
-    });
-  },
-
   /**
    * Load tags
    */
@@ -660,12 +608,13 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * send command to server to install selected host component
-   * @param {Object} event
+   * @param event
+   * @param context
    */
-  installComponent: function (event) {
+  installComponent: function (event, context) {
     var self = this;
     var component = event.context;
-    var componentName = component.get('componentName').toUpperCase();
+    var componentName = component.get('componentName').toUpperCase().toString();
     var displayName = component.get('displayName');
 
     App.ModalPopup.show({
@@ -675,53 +624,47 @@ App.MainHostDetailsController = Em.Controller.extend({
         return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
       }.property(),
       restartNagiosMsg : Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(displayName))
+        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(displayName))
       }),
-      bodyClass: Em.View.extend({
+      bodyClass: Ember.View.extend({
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
       onPrimary: function () {
         this.hide();
-
-        App.ajax.send({
-          name: 'host.host_component.install',
-          sender: self,
-          data: {
-            componentName: componentName,
-            component: component,
-            data: JSON.stringify({
-              RequestInfo: {
-                "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-              },
-              Body: {
-                HostRoles: {
-                  state: 'INSTALLED'
-                }
+        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(), {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+            },
+            Body: {
+              HostRoles: {
+                state: 'INSTALLED'
               }
-            })
+            }
           },
-          success: 'installComponentSuccessCallback',
-          error: 'ajaxErrorCallback'
-        });
-      }
-    });
-  },
+          'PUT',
+          function (requestId) {
+            if (!requestId) {
+              return;
+            }
 
-  installComponentSuccessCallback: function(data, opt, params) {
-    console.log('Send request for REINSTALL COMPONENT successfully');
-    if (App.testMode) {
-      params.component.set('workStatus', App.HostComponentStatus.installing);
-      setTimeout(function () {
-        params.component.set('workStatus', App.HostComponentStatus.stopped);
-      }, App.testModeDelayForActions);
-    } else {
-      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-    }
+            console.log('Send request for REINSTALL COMPONENT successfully');
 
-    // load data (if we need to show this background operations popup) from persist
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
+          });
       }
     });
   },

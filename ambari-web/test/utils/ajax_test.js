@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-require('utils/ajax/ajax');
+require('utils/ajax');
 
 describe('App.ajax', function() {
 

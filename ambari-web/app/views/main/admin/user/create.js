@@ -23,55 +23,53 @@ App.MainAdminUserCreateView = Em.View.extend({
   userId: false,
   isPasswordDirty: false,
 
-  create: function() {
+  create: function(event){
+    var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
     if(form.isValid()) {
       form.getField("userName").set('value', form.getField("userName").get('value').toLowerCase());
       if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
         form.getField("roles").set("value","admin,user");
         form.getField("admin").set("value","true");
-      }
-      else {
+      } else{
         form.getField("roles").set("value","user");
       }
+      parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "POST" , {
+        Users: {
+          password: form.getField("password").get('value'),
+          roles: form.getField("roles").get('value')
+        }
+      }, function (success) {
 
-      App.ajax.send({
-        name: 'admin.user.create',
-        sender: this,
-        data: {
-          user: form.getField("userName").get('value'),
-          form: form,
-          data: {
-            Users: {
-              password: form.getField("password").get('value'),
-              roles: form.getField("roles").get('value')
+        if (!success) {
+          App.ModalPopup.show({
+            header: Em.I18n.t('admin.users.addButton'),
+            body: Em.I18n.t('admin.users.createError'),
+            primary: Em.I18n.t('ok'),
+            secondary: null,
+            onPrimary: function() {
+              this.hide();
             }
+          });
+          return;
+        }
+        App.ModalPopup.show({
+          header: Em.I18n.t('admin.users.addButton'),
+          body: Em.I18n.t('admin.users.createSuccess'),
+          primary: Em.I18n.t('ok'),
+          secondary: null,
+          onPrimary: function() {
+            this.hide();
           }
-        },
-        success: 'createUserSuccessCallback',
-        error: 'createUserErrorCallback'
-      });
+        });
+        var persists = App.router.get('applicationController').persistKey(form.getField("userName").get('value'));
+        App.router.get('applicationController').postUserPref(persists,true);
+
+        form.save();
+
+        App.router.transitionTo("allUsers");
+      })
     }
-  },
-
-  createUserSuccessCallback: function(data, opts, params) {
-    App.ModalPopup.show({
-      header: Em.I18n.t('admin.users.addButton'),
-      body: Em.I18n.t('admin.users.createSuccess'),
-      secondary: null
-    });
-    var persists = App.router.get('applicationController').persistKey(params.form.getField("userName").get('value'));
-    App.router.get('applicationController').postUserPref(persists, true);
-    params.form.save();
-    App.router.transitionTo("allUsers");
-  },
-
-  createUserErrorCallback: function () {
-    App.ModalPopup.show({
-      header: Em.I18n.t('admin.users.addButton'),
-      body: Em.I18n.t('admin.users.createError'),
-      secondary: null
-    });
   },
 
   userForm: App.CreateUserForm.create({}),

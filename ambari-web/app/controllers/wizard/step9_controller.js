@@ -125,13 +125,12 @@ App.WizardStep9Controller = Em.Controller.extend({
    * Observer function: Enables previous steps link if install task failed in installer wizard.
    */
   togglePreviousSteps: function () {
-    if (!App.testMode) {
-      if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
-        App.router.get('installerController').setStepsEnable();
-      }
-      else {
-        App.router.get('installerController').setLowerStepsDisable(9);
-      }
+    if (App.testMode) {
+      return;
+    } else if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
+      App.router.get('installerController').setStepsEnable();
+    } else {
+      App.router.get('installerController').setLowerStepsDisable(9);
     }
   }.observes('content.cluster.status', 'content.controllerName'),
 
@@ -318,17 +317,14 @@ App.WizardStep9Controller = Em.Controller.extend({
       if (clusterStatus === 'INSTALL FAILED') {
         this.loadStep();
         this.loadLogData(this.get('content.cluster.requestId'));
+      } else if (clusterStatus === 'START FAILED') {
+        this.loadStep();
+        this.loadLogData(this.get('content.cluster.requestId'));
       } else {
-        if (clusterStatus === 'START FAILED') {
-          this.loadStep();
-          this.loadLogData(this.get('content.cluster.requestId'));
-        }
-        else {
-          // handle PENDING, INSTALLED
-          this.loadStep();
-          this.loadLogData(this.get('content.cluster.requestId'));
-          this.startPolling();
-        }
+        // handle PENDING, INSTALLED
+        this.loadStep();
+        this.loadLogData(this.get('content.cluster.requestId'));
+        this.startPolling();
       }
     } else {
       // handle STARTED
@@ -610,7 +606,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   /**
    * Error callback function for start services task.
    */
-  launchStartServicesErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+  launchStartServicesErrorCallback: function (jqXHR) {
     console.log("ERROR");
     this.set('startCallFailed',true);
     var clusterStatus = {
@@ -624,7 +620,18 @@ App.WizardStep9Controller = Em.Controller.extend({
     });
     this.set('progress','100');
 
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    var params = {
+      cluster: this.get('content.cluster.name')
+    };
+
+    if (this.get('content.controllerName') === 'addHostController') {
+      params.name = 'wizard.step9.add_host.launch_start_services';
+    } else {
+      params.name = 'wizard.step9.installer.launch_start_services';
+    }
+
+    var opt = App.formatRequest.call(App.urls[params.name], params);
+    App.ajax.defaultErrorHandler(jqXHR,opt.url,opt.type);
   },
 
   /**
@@ -946,15 +953,36 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   /**
-   * This function calls API just once to fetch log data of all tasks.
+   *
+   * @param requestId {Int} Request Id received on triggering install/start command successfully
+   * @returns {string} URL to poll to track the result of the triggered command
    */
-  loadLogData: function () {
+  getUrl: function (requestId) {
+    var clusterName = this.get('content.cluster.name');
+    var requestId = requestId || this.get('content.cluster.requestId');
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true';
+    console.log("URL for step9 is: " + url);
+    return url;
+  },
+
+  /**
+   * This function calls API just once to fetch log data of all tasks.
+   * @param requestId {Int} Request Id received on triggering install/start command successfully
+   */
+  loadLogData: function (requestId) {
+    var url = this.getUrl(requestId);
     var requestsId = this.get('wizardController').getDBProperty('cluster').oldRequestsId;
+    if (App.testMode) {
+      this.POLL_INTERVAL = 1;
+    }
+
     requestsId.forEach(function (requestId) {
+      url = this.getUrl(requestId);
       if (App.testMode) {
         this.POLL_INTERVAL = 1;
+        url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
       }
-      this.getLogsByRequest(false, requestId);
+      this.getLogsByRequest(url, false);
     }, this);
   },
   /**
@@ -1019,66 +1047,65 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   /**
    * Function polls the API to retrieve data for the request.
-   * @param {bool} polling whether to continue polling for status or not
-   * @param {number} requestId
+   * @param url {string} url to poll
+   * @param polling  {Boolean} whether to continue polling for status or not
    */
-  getLogsByRequest: function (polling, requestId) {
-    App.ajax.send({
-      name: 'wizard.step9.load_log',
-      sender: this,
-      data: {
-        polling: polling,
-        cluster: this.get('content.cluster.name'),
-        requestId: requestId,
-        numPolls: this.get('numPolls')
+  getLogsByRequest: function (url, polling) {
+    var self = this;
+    $.ajax({
+      type: 'GET',
+      url: url,
+      async: true,
+      timeout: App.timeout,
+      dataType: 'text',
+      success: function (data) {
+        var parsedData = jQuery.parseJSON(data);
+        console.log("TRACE: In success function for the GET logs data");
+        console.log("TRACE: Step9 -> The value is: ", parsedData);
+        var result = self.parseHostInfo(parsedData);
+        if (!polling) {
+          if (self.get('content.cluster.status') === 'INSTALL FAILED') {
+            self.isAllComponentsInstalled();
+          }
+          return;
+        }
+        if (result !== true) {
+          window.setTimeout(function () {
+            if (self.get('currentOpenTaskId')) {
+              self.loadCurrentTaskLog();
+            }
+            self.doPolling();
+          }, self.POLL_INTERVAL);
+        }
       },
-      success: 'getLogsByRequestSuccessCallback',
-      error: 'getLogsByRequestErrorCallback'
+
+      error: function (request, ajaxOptions, error) {
+        console.log("TRACE: STep9 -> In error function for the GET logs data");
+        console.log("TRACE: STep9 -> value of the url is: " + url);
+        console.log("TRACE: STep9 -> error code status is: " + request.status);
+      },
+
+      statusCode: require('data/statusCodes')
     }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
-      function() {
+      function () {
         App.showReloadPopup();
         console.log('Install services all retries failed');
       }
     );
   },
 
-  getLogsByRequestSuccessCallback: function(data, opt, params) {
-    var self = this;
-    var parsedData = jQuery.parseJSON(data);
-    console.log("TRACE: In success function for the GET logs data");
-    console.log("TRACE: Step9 -> The value is: ", parsedData);
-    var result = this.parseHostInfo(parsedData);
-    if (!params.polling) {
-      if (this.get('content.cluster.status') === 'INSTALL FAILED') {
-        this.isAllComponentsInstalled();
-      }
-      return;
-    }
-    if (result !== true) {
-      window.setTimeout(function () {
-        if (self.get('currentOpenTaskId')) {
-          self.loadCurrentTaskLog();
-        }
-        self.doPolling();
-      }, this.POLL_INTERVAL);
-    }
-  },
-
-  getLogsByRequestErrorCallback: function(request, ajaxOptions, error) {
-    console.log("TRACE: STep9 -> In error function for the GET logs data");
-    console.log("TRACE: STep9 -> value of the url is: " + url);
-    console.log("TRACE: STep9 -> error code status is: " + request.status);
-  },
-
   /**
    * Delegates the function call to {getLogsByRequest} with appropriate params
    */
   doPolling: function () {
-    var requestId = this.get('content.cluster.requestId');
+    var url = this.getUrl();
+
     if (App.testMode) {
-      this.incrementProperty('numPolls');
+      this.numPolls++;
+      url = this.get('mockDataPrefix') + '/poll_' + this.get('numPolls') + '.json';
+
     }
-    this.getLogsByRequest(true, requestId);
+    this.getLogsByRequest(url, true);
   },
 
   /**

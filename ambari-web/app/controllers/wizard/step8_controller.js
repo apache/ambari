@@ -56,6 +56,12 @@ App.WizardStep8Controller = Em.Controller.extend({
   globals: [],
 
   /**
+   * List of ajax-request to be executed
+   * @type {Array}
+   */
+  ajaxQueue: [],
+
+  /**
    * All configs
    * @type {Array}
    */
@@ -98,12 +104,6 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @type {Object[]}
    */
   serviceConfigTags: [],
-
-  /**
-   * Ajax-requests queue
-   * @type {App.ajaxQueue}
-   */
-  ajaxRequestsQueue: null,
 
   /**
    * Is cluster security enabled
@@ -164,9 +164,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').clear();
     this.get('serviceConfigTags').clear();
     this.set('servicesInstalled', false);
-    this.set('ajaxQueueLength', 0);
-    this.set('ajaxRequestsQueue', App.ajaxQueue.create());
-    this.set('ajaxRequestsQueue.finishedCallback', this.ajaxQueueFinished);
   },
 
   /**
@@ -208,88 +205,70 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     if (globals.someProperty('name', 'hive_database')) {
-      globals = this.removeHiveConfigs(globals);
-    }
-    if (globals.someProperty('name', 'oozie_database')) {
-      globals = this.removeOozieConfigs(globals);
-    }
-    this.set('globals', globals);
-  },
+      var hiveDb = globals.findProperty('name', 'hive_database');
+      var hiveDbType = {name: 'hive_database_type', value: 'mysql'};
 
-  /**
-   * Remove unused Hive configs
-   * @param {Ember.Enumerable} globals
-   * @returns {Ember.Enumerable}
-   */
-  removeHiveConfigs: function(globals) {
-    var hiveDb = globals.findProperty('name', 'hive_database');
-    var hiveDbType = {name: 'hive_database_type', value: 'mysql'};
-
-    var hive_properties = Em.A([]);
-
-    if (hiveDb.value === 'New MySQL Database') {
-      if (globals.someProperty('name', 'hive_ambari_host')) {
-        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
-        hiveDbType.value = 'mysql';
-      }
-      hive_properties.pushObjects(Em.A(['hive_existing_mysql_host','hive_existing_mysql_database','hive_existing_oracle_host','hive_existing_oracle_database']));
-    }
-    else {
-      if (hiveDb.value === 'Existing MySQL Database') {
+      if (hiveDb.value === 'New MySQL Database') {
+        if (globals.someProperty('name', 'hive_ambari_host')) {
+          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
+          hiveDbType.value = 'mysql';
+        }
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+      } else if (hiveDb.value === 'Existing MySQL Database'){
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
         hiveDbType.value = 'mysql';
-        hive_properties.pushObjects(Em.A(['hive_ambari_host','hive_ambari_database','hive_existing_oracle_host','hive_existing_oracle_database']));
-      }
-      else { //existing oracle database
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+      } else { //existing oracle database
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
         hiveDbType.value = 'oracle';
-        hive_properties.pushObjects(Em.A(['hive_ambari_host','hive_ambari_database','hive_existing_mysql_host','hive_existing_mysql_database']));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
       }
+      globals.push(hiveDbType);
     }
 
-    hive_properties.forEach(function(property) {
-      globals = globals.without(globals.findProperty('name', property));
-    });
+    if (globals.someProperty('name', 'oozie_database')) {
+      var oozieDb = globals.findProperty('name', 'oozie_database');
+      var oozieDbType = {name:'oozie_database_type'};
 
-    globals.pushObject(hiveDbType);
-    return globals;
-  },
-
-  /**
-   * Remove unused Oozie configs
-   * @param {Ember.Enumerable} globals
-   * @returns {Ember.Enumerable}
-   */
-  removeOozieConfigs: function(globals) {
-    var oozieDb = globals.findProperty('name', 'oozie_database');
-    var oozieDbType = {name:'oozie_database_type'};
-
-    var oozie_properties = Em.A(['oozie_ambari_host','oozie_ambari_database']);
-
-    if (oozieDb.value === 'New Derby Database') {
-      globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
-      oozieDbType.value = 'derby';
-      oozie_properties.pushObjects(Em.A(['oozie_existing_mysql_host','oozie_existing_mysql_database','oozie_existing_oracle_host','oozie_existing_oracle_database']));
-    }
-    else {
-      if (oozieDb.value === 'Existing MySQL Database') {
+      if (oozieDb.value === 'New Derby Database') {
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
+        oozieDbType.value = 'derby';
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+      } else if (oozieDb.value === 'Existing MySQL Database') {
         globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
         oozieDbType.value = 'mysql';
-        oozie_properties.pushObjects(Em.A(['oozie_existing_oracle_host','oozie_existing_oracle_database','oozie_derby_database']));
-      }
-      else { // existing oracle database
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
+      } else { // existing oracle database
         globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
         oozieDbType.value = 'oracle';
-        oozie_properties.pushObjects(Em.A(['oozie_existing_mysql_host','oozie_existing_mysql_database','oozie_derby_database']));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
       }
+      globals.push(oozieDbType);
     }
 
-    oozie_properties.forEach(function(property) {
-      globals = globals.without(globals.findProperty('name', property));
-    });
-
-    globals.pushObject(oozieDbType);
-    return globals;
+    this.set('globals', globals);
   },
 
   /**
@@ -541,7 +520,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         stackVersion: stackVersion
       },
       success: 'loadRepoInfoSuccessCallback',
-      error: 'loadRepoInfoErrorCallback'
+      error: 'loadRepositoriesErrorCallback'
     });
   },
 
@@ -784,27 +763,25 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.createSlaveAndClientsHostComponents();
     this.createAdditionalHostComponents();
 
-    this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
-    this.get('ajaxRequestsQueue').start();
+    this.doNextAjaxCall();
   },
 
   /**
    * Used in progress bar
    */
-  ajaxQueueLength: 0,
+  ajaxQueueLength: function () {
+    return this.get('ajaxQueue').length;
+  }.property('ajaxQueue.length'),
 
   /**
-   * Current cluster name
-   * @type {string}
+   * Used in progress bar
    */
+  ajaxQueueLeft: 0,
+
   clusterName: function () {
     return this.get('content.cluster.name');
   }.property('content.cluster.name'),
 
-  /**
-   * List of existing cluster names
-   * @type {string[]}
-   */
   clusterNames: [],
 
   /**
@@ -871,17 +848,13 @@ App.WizardStep8Controller = Em.Controller.extend({
         if (os.baseUrl !== os.originalBaseUrl) {
           console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
           self.addRequestToAjaxQueue({
-            name: 'wizard.step8.set_local_repos',
-            data: {
-              osType: os.osType,
-              name: stack.name,
-              stack2VersionURL: App.get('stack2VersionURL'),
-              data: JSON.stringify({
-                "Repositories": {
-                  "base_url": os.baseUrl
-                }
-              })
-            }
+            type: 'PUT',
+            url: App.apiPrefix + App.get('stack2VersionURL') + "/operatingSystems/" + os.osType + "/repositories/" + stack.name,
+            data: JSON.stringify({
+              "Repositories": {
+                "base_url": os.baseUrl
+              }
+            })
           });
         }
       });
@@ -903,10 +876,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (this.get('content.controllerName') !== 'installerController') return;
     var stackVersion = (this.get('content.installOptions.localRepo')) ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.create_cluster',
-      data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion }})
-      }
+      type: 'POST',
+      url: App.apiPrefix + '/clusters/' + this.get('clusterName'),
+      data: JSON.stringify({ "Clusters": {"version": stackVersion }})
     });
 
   },
@@ -920,10 +892,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     var data = this.createSelectedServicesData();
     if (!data.length) return;
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.create_selected_services',
-      data: {
-        data:JSON.stringify(data)
-      }
+      type: 'POST',
+      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services',
+      data: JSON.stringify(data)
     });
   },
 
@@ -953,11 +924,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       // Service must be specified in terms of a query for creating multiple components at the same time.
       // See AMBARI-1018.
       this.addRequestToAjaxQueue({
-        name: 'wizard.step8.create_components',
-        data: {
-          data: JSON.stringify({"components": componentsData}),
-          serviceName: serviceName
-        }
+        type: 'POST',
+        url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services?ServiceInfo/service_name=' + serviceName,
+        data: JSON.stringify({"components": componentsData})
       });
     }, this);
 
@@ -971,10 +940,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     var data = this.createRegisterHostData();
     if (!data.length) return;
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.register_host_to_cluster',
-      data: {
-        data: JSON.stringify(data)
-      }
+      type: 'POST',
+      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts',
+      data: JSON.stringify(data)
     });
   },
 
@@ -1127,10 +1095,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     };
 
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.register_host_to_component',
-      data: {
-        data: JSON.stringify(data)
-      }
+      type: 'POST',
+      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts',
+      data: JSON.stringify(data)
     });
   },
 
@@ -1213,10 +1180,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this).toString();
 
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.apply_configuration_to_cluster',
-      data: {
-        data: '[' + configData + ']'
-      }
+      type: 'PUT',
+      url: App.apiPrefix + '/clusters/' + this.get('clusterName'),
+      data: '[' + configData + ']'
     });
   },
 
@@ -1283,10 +1249,9 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   applyConfigurationGroups: function (sendData) {
     this.addRequestToAjaxQueue({
-      name: 'wizard.step8.apply_configuration_groups',
-      data: {
-        data: JSON.stringify(sendData)
-      }
+      type: 'POST',
+      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/config_groups',
+      data: JSON.stringify(sendData)
     });
   },
 
@@ -1454,33 +1419,77 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
+   * Do ajax-call with data in <code>ajaxQueue[0]</code> and shift <code>ajaxQueue</code>
+   */
+  doNextAjaxCall: function () {
+    if (this.get('ajaxBusy')) return;
+
+    var queue = this.get('ajaxQueue');
+    if (!queue.length) {
+      this.ajaxQueueFinished();
+      return;
+    }
+
+    var first = queue[0];
+    this.set('ajaxQueue', queue.slice(1));
+    this.set('ajaxQueueLeft', this.get('ajaxQueue').length);
+    this.set('ajaxBusy', true);
+
+    $.ajax(first);
+  },
+
+  /**
    * We need to do a lot of ajax calls async in special order. To do this,
    * generate array of ajax objects and then send requests step by step. All
-   * ajax objects are stored in <code>ajaxRequestsQueue</code>
+   * ajax objects are stored in <code>ajaxQueue</code>
+   *
+   * Each ajax-request success callback contains call of <code>doNextAjaxCall</code>
    *
    * @param {Object} params object with ajax-request parameters like url, type, data etc
    */
   addRequestToAjaxQueue: function (params) {
     if (App.testMode) return;
 
+    var self = this;
     params = jQuery.extend({
-      sender: this,
-      error: 'ajaxQueueRequestErrorCallback'
+      async: true,
+      dataType: 'text',
+      statusCode: require('data/statusCodes'),
+      timeout: App.timeout,
+      error: function () {
+        console.log('Step8: In Error ');
+      },
+      success: function () {
+        console.log("TRACE: Step8 -> In success function");
+      }
     }, params);
-    params.data['cluster'] = this.get('clusterName');
 
-    this.get('ajaxRequestsQueue').addRequest(params);
-  },
+    var success = params.success;
+    var error = params.error;
 
-  ajaxQueueRequestErrorCallback: function(xhr, status, error) {
-    var responseText = JSON.parse(xhr.responseText);
-    var controller = App.router.get(App.clusterStatus.wizardControllerName);
-    controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
-    this.set('hasErrorOccurred', true);
-    // an error will break the ajax call chain and allow submission again
-    this.set('isSubmitDisabled', false);
-    this.set('isBackBtnDisabled', false);
-    App.router.get(this.get('content.controllerName')).setStepsEnable();
+    params.success = function () {
+      if (success) {
+        success();
+      }
+
+      self.set('ajaxBusy', false);
+      self.doNextAjaxCall();
+    };
+
+    params.error = function (xhr, status, error) {
+      var responseText = JSON.parse(xhr.responseText);
+      var controller = App.router.get(App.clusterStatus.wizardControllerName);
+      controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
+      self.set('hasErrorOccurred', true);
+      // an error will break the ajax call chain and allow submission again
+      self.set('isSubmitDisabled', false);
+      self.set('isBackBtnDisabled', false);
+      App.router.get(self.get('content.controllerName')).setStepsEnable();
+      self.get('ajaxQueue').clear();
+      self.set('ajaxBusy', false);
+    };
+
+    this.get('ajaxQueue').pushObject(params);
   }
 
 });

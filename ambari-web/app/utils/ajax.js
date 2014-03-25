@@ -397,119 +397,6 @@ var urls = {
       }
     }
   },
-
-  'host.host_component.delete': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'format': function() {
-      return {
-        type: 'DELETE',
-        async: false
-      }
-    }
-  },
-
-  'host.host_components.delete': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}',
-    'mock': '',
-    'format': function() {
-      return {
-        type: 'DELETE',
-        async: false
-      }
-    }
-  },
-
-  'host.host_component.stop': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_components.stop': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        async: false,
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_component.start': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_components.start': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        async: false,
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_component.install': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_component.update': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_component.add_new_component': {
-    'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_component.install_new_component': {
-    'real': '/clusters/{clusterName}/host_components?HostRoles/host_name={hostName}\&HostRoles/component_name={componentName}\&HostRoles/state=INIT',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
   'host.host_component.slave_desired_admin_state': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}/?fields=HostRoles/desired_admin_state',
     'mock': ''
@@ -1275,39 +1162,6 @@ var urls = {
       };
     }
   },
-
-  'admin.user.create': {
-    'real': '/users/{user}',
-    'mock': '/data/users/users.json',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        data: JSON.stringify(data.data)
-      }
-    }
-  },
-
-  'admin.user.delete': {
-    'real': '/users/{user}',
-    'mock': '/data/users/users.json',
-    'format': function() {
-      return {
-        type: 'DELETE'
-      }
-    }
-  },
-
-  'admin.user.edit': {
-    'real': '/users/{user}',
-    'mock':'/data/users/users.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
   'admin.stack_upgrade.do_poll': {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
@@ -1421,19 +1275,6 @@ var urls = {
       };
     }
   },
-
-  'wizard.step9.load_log': {
-    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
-    'mock': '/data/wizard/deploy/5_hosts/poll_{numPolls}.json',
-    'format': function () {
-      return {
-        type: 'GET',
-        async: true,
-        dataType: 'text'
-      };
-    }
-  },
-
   'wizard.step8.delete_cluster': {
     'real': '/clusters/{name}',
     'mock': '',
@@ -1453,111 +1294,6 @@ var urls = {
       };
     }
   },
-
-  'wizard.step8.create_cluster': {
-    'real':'/clusters/{cluster}',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.create_selected_services': {
-    'real':'/clusters/{cluster}/services',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.create_components': {
-    'real':'/clusters/{cluster}/services?ServiceInfo/service_name={serviceName}',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.register_host_to_cluster': {
-    'real':'/clusters/{cluster}/hosts',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.register_host_to_component': {
-    'real':'/clusters/{cluster}/hosts',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.apply_configuration_to_cluster': {
-    'real':'/clusters/{cluster}',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.apply_configuration_groups': {
-    'real':'/clusters/{cluster}/config_groups',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'POST',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
-  'wizard.step8.set_local_repos': {
-    'real':'{stack2VersionURL}/operatingSystems/{osType}/repositories/{name}',
-    'mock':'',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        async: true,
-        dataType: 'text',
-        data: data.data
-      }
-    }
-  },
-
   'wizard.step3.host_info': {
     'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/ip',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
@@ -1821,9 +1557,9 @@ var urls = {
         contentType: 'text/xml',
         dataType: 'xml',
         data: data.entity,
-        headers: {
-          'AmbariProxy-Content-Type': 'text/xml'
-        }
+          headers: {
+        'AmbariProxy-Content-Type': 'text/xml'
+      }
       }
     }
   },
@@ -2225,3 +1961,5 @@ if ($.mocho) {
 }
 
 App.ajax = ajax.create({});
+App.formatRequest = formatRequest;
+App.urls = urls;

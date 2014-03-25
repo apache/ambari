@@ -33,8 +33,7 @@ require('templates');
 require('views');
 require('router');
 
-require('utils/ajax/ajax');
-require('utils/ajax/ajax_queue');
+require('utils/ajax');
 require('utils/updater');
 
 require('mappers/server_data_mapper');
