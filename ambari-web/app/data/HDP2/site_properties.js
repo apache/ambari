@@ -985,6 +985,8 @@ module.exports =
       "name": "ui.childopts",
       "displayType": "string"
     },
+    //@Todo: uncomment following properties when logviewer is treated as different section on storm service page
+    /*
     {
       "id": "site property",
       "serviceName": "STORM",
@@ -1009,6 +1011,7 @@ module.exports =
       "name": "logviewer.appender.name",
       "displayType": "string"
     },
+    */
     {
       "id": "site property",
       "serviceName": "STORM",
