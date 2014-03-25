@@ -374,6 +374,7 @@ ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 JDK_NAMES = ["jdk-7u45-linux-x64.tar.gz" , "jdk-6u31-linux-x64.bin"]
 JDK_URL_PROPERTIES = ["jdk1.7.url", "jdk1.6.url"]
 JCE_URL_PROPERTIES = ["jce_policy1.7.url", "jce_policy1.6.url"]
+DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
 JDK_INDEX = 0
 JDK_VERSION_REs = ["(jdk.*)/jre" , "Creating (jdk.*)/jre"]
 CUSTOM_JDK_NUMBER = "3"
@@ -566,6 +567,13 @@ def update_ambari_properties():
     # "root" anyway so it's a reasonable default
     if not NR_USER_PROPERTY in new_properties.keys():
       new_properties.process_pair(NR_USER_PROPERTY, "root")
+
+    isJDK16Installed = new_properties.get_property(JAVA_HOME_PROPERTY) == DEFAULT_JDK16_LOCATION
+    if not JDK_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
+      new_properties.process_pair(JDK_NAME_PROPERTY,JDK_NAMES[1])
+
+    if not JCE_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
+      new_properties.process_pair(JCE_NAME_PROPERTY,JCE_POLICY_FILENAMES[1])
 
     new_properties.store(open(conf_file,'w'))
 

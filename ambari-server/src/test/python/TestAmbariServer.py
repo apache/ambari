@@ -3209,6 +3209,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                   "agent.fqdn.service.url=URL\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
+    JDK_NAME_PROPERTY = 'jdk.name=jdk-6u31-linux-x64.bin\n'
+    JCE_NAME_PROPERTY = 'jce.name=jce_policy-6.zip\n'
     CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'
 
     get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
@@ -3249,6 +3251,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
           self.fail()
 
     if not NEW_PROPERTY in ambari_properties_content:
+      self.fail()
+
+    if not JDK_NAME_PROPERTY in ambari_properties_content:
+      self.fail()
+
+    if not JCE_NAME_PROPERTY in ambari_properties_content:
       self.fail()
 
     if CHANGED_VALUE_PROPERTY in ambari_properties_content:
