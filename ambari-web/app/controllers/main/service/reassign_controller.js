@@ -143,7 +143,7 @@ App.ReassignMasterController = App.WizardController.extend({
   loadConfirmedHosts: function () {
     var hosts = App.db.getHosts();
     if (!hosts || !hosts.length) {
-      var hosts = {};
+      hosts = {};
 
       App.Host.find().forEach(function (item) {
         hosts[item.get('id')] = {
