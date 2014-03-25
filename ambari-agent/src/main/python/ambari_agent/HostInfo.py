@@ -41,9 +41,9 @@ class HostInfo:
   DEFAULT_PROJECT_NAMES = [
     "hadoop*", "hadoop", "hbase", "hcatalog", "hive", "ganglia", "nagios",
     "oozie", "sqoop", "hue", "zookeeper", "mapred", "hdfs", "flume",
-    "ambari_qa", "hadoop_deploy", "rrdcached", "hcat", "ambari-qa",
-    "sqoop-ambari-qa", "sqoop-ambari_qa", "webhcat", "hadoop-hdfs", "hadoop-yarn",
-    "hadoop-mapreduce"
+    "storm", "hive-hcatalog", "tez", "falcon", "ambari_qa", "hadoop_deploy",
+    "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
+    "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce"
   ]
 
   # List of live services checked for on the host, takes a map of plan strings
