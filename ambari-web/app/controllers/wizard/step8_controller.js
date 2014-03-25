@@ -224,7 +224,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   removeHiveConfigs: function(globals) {
     var hiveDb = globals.findProperty('name', 'hive_database');
     var hiveDbType = {name: 'hive_database_type', value: 'mysql'};
-    var hiveJdbcDriver = {name: 'hive_jdbc_driver'};
 
     var hive_properties = Em.A([]);
 
@@ -232,7 +231,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (globals.someProperty('name', 'hive_ambari_host')) {
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
         hiveDbType.value = 'mysql';
-        hiveJdbcDriver.value = 'com.mysql.jdbc.Driver';
       }
       hive_properties.pushObjects(Em.A(['hive_existing_mysql_host','hive_existing_mysql_database','hive_existing_oracle_host','hive_existing_oracle_database']));
     }
@@ -240,13 +238,11 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (hiveDb.value === 'Existing MySQL Database') {
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
         hiveDbType.value = 'mysql';
-        hiveJdbcDriver.value = 'com.mysql.jdbc.Driver';
         hive_properties.pushObjects(Em.A(['hive_ambari_host','hive_ambari_database','hive_existing_oracle_host','hive_existing_oracle_database']));
       }
       else { //existing oracle database
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
         hiveDbType.value = 'oracle';
-        hiveJdbcDriver.value = 'oracle.jdbc.driver.OracleDriver';
         hive_properties.pushObjects(Em.A(['hive_ambari_host','hive_ambari_database','hive_existing_mysql_host','hive_existing_mysql_database']));
       }
     }
@@ -255,7 +251,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       globals = globals.without(globals.findProperty('name', property));
     });
 
-    globals.pushObjects([hiveDbType, hiveJdbcDriver]);
+    globals.pushObject(hiveDbType);
     return globals;
   },
 
@@ -267,27 +263,23 @@ App.WizardStep8Controller = Em.Controller.extend({
   removeOozieConfigs: function(globals) {
     var oozieDb = globals.findProperty('name', 'oozie_database');
     var oozieDbType = {name:'oozie_database_type'};
-    var oozieJdbcDriver = {name: 'oozie_jdbc_driver'};
 
     var oozie_properties = Em.A(['oozie_ambari_host','oozie_ambari_database']);
 
     if (oozieDb.value === 'New Derby Database') {
       globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
       oozieDbType.value = 'derby';
-      oozieJdbcDriver.value = 'org.apache.derby.jdbc.EmbeddedDriver';
       oozie_properties.pushObjects(Em.A(['oozie_existing_mysql_host','oozie_existing_mysql_database','oozie_existing_oracle_host','oozie_existing_oracle_database']));
     }
     else {
       if (oozieDb.value === 'Existing MySQL Database') {
         globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
         oozieDbType.value = 'mysql';
-        oozieJdbcDriver.value = 'com.mysql.jdbc.Driver';
         oozie_properties.pushObjects(Em.A(['oozie_existing_oracle_host','oozie_existing_oracle_database','oozie_derby_database']));
       }
       else { // existing oracle database
         globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
         oozieDbType.value = 'oracle';
-        oozieJdbcDriver.value = 'oracle.jdbc.driver.OracleDriver';
         oozie_properties.pushObjects(Em.A(['oozie_existing_mysql_host','oozie_existing_mysql_database','oozie_derby_database']));
       }
     }
@@ -296,7 +288,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       globals = globals.without(globals.findProperty('name', property));
     });
 
-    globals.pushObjects([oozieDbType, oozieJdbcDriver]);
+    globals.pushObject(oozieDbType);
     return globals;
   },
 
