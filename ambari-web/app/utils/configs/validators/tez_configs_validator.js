@@ -24,7 +24,7 @@ App.TezConfigsValidator = App.ServiceConfigsValidator.create({
    */
   configValidators: {
     'tez.am.resource.memory.mb': 'tezAMResourceMb',
-    'tez.am.java.opts': 'tezAMJavaOpts',
+    'tez.am.java.opts': 'tezAMJavaOpts'
   },
 
   tezAMResourceMb: function(config) {

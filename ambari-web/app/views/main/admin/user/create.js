@@ -90,6 +90,7 @@ App.MainAdminUserCreateView = Em.View.extend({
     }
     if (this.get('isPasswordDirty')) {
       this.get('userForm').isValid();
+      this.get('userForm').isWarn();
     }
   }.observes('userForm.fields.@each.value'),
 

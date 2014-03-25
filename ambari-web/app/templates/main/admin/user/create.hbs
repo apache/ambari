@@ -19,11 +19,16 @@
 <form class="form-horizontal" autocomplete="off">
   {{#each field in view.userForm.fields}}
   {{#unless field.isHidden}}
-  <div {{bindAttr class="field.errorMessage:error :control-group"}}>
+  <div {{bindAttr class="field.errorMessage:error field.warnMessage:warning :control-group"}}>
     <label class="control-label" for="input{{unbound field.name}}">{{unbound field.displayName}}</label>
     <div class="controls">
         {{view field.viewClass valueBinding="field.value" disabledBinding="field.disabled"}}
-      <span class="help-inline">{{field.errorMessage}}</span>
+      {{#if field.errorMessage}}
+        <span class="help-inline">{{field.errorMessage}}</span>
+      {{/if}}
+      {{#if field.warnMessage}}
+        <span class="help-inline">{{field.warnMessage}}</span>
+      {{/if}}
     </div>
   </div>
   {{/unless}}

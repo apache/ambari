@@ -139,11 +139,6 @@ App.CreateUserForm = App.Form.extend({
       var userNameField = this.getField('userName');
       var userName = userNameField.get('value');
 
-      if (!validator.isValidUserName(userName)) {
-        userNameField.set('errorMessage', this.t('users.userName.validationFail'));
-        isValid = false;
-      }
-
       if (users.mapProperty('userName').contains(userName)) {
         userNameField.set('errorMessage', this.t('admin.users.createError.userNameExists'));
         return isValid = false;
@@ -151,6 +146,19 @@ App.CreateUserForm = App.Form.extend({
     }
 
     return isValid;
+  },
+
+  isWarn: function() {
+    var isWarn = false;
+    var userNameField = this.getField('userName');
+    userNameField.set('warnMessage', '');
+    var userName = userNameField.get('value');
+
+    if (this.isValid() && !validator.isValidUserName(userName)) {
+      userNameField.set('warnMessage', this.t('users.userName.validationFail'));
+      isWarn = true;
+    }
+    return isWarn;
   },
 
   save: function () {

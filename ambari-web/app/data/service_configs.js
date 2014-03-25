@@ -23,11 +23,13 @@ require('utils/configs/defaults_providers/tez_defaults_provider');
 require('utils/configs/defaults_providers/hive_defaults_provider');
 require('utils/configs/defaults_providers/storm_defaults_provider');
 require('utils/configs/defaults_providers/oozie_defaults_provider');
+require('utils/configs/defaults_providers/user_defaults_provider');
 require('utils/configs/validators/yarn_configs_validator');
 require('utils/configs/validators/hive_configs_validator');
 require('utils/configs/validators/tez_configs_validator');
 require('utils/configs/validators/mapreduce2_configs_validator');
 require('utils/configs/validators/storm_configs_validator');
+require('utils/configs/validators/user_configs_validator');
 
 module.exports = [
   {
@@ -280,6 +282,8 @@ module.exports = [
   {
     serviceName: 'MISC',
     displayName: 'Misc',
+    configsValidator: App.userConfigsValidator,
+    defaultsProviders: [App.userDefaultsProvider.create()],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})

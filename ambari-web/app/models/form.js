@@ -125,6 +125,7 @@ App.FormField = Em.Object.extend({ // try to realize this as view
   displayType:'string', // string, digits, number, directories, textarea, checkbox
   disableRequiredOnPresent:false,
   errorMessage:'',
+  warnMessage:'',
   form:false,
   isRequired:true, // by default a config property is required
   unit:'',
