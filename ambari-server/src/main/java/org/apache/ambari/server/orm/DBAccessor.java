@@ -208,6 +208,14 @@ public interface DBAccessor {
   public void dropConstraint(String tableName, String constraintName) throws SQLException;
 
   /**
+   * Drop a constraint from table
+   * @param tableName
+   * @param constraintName
+   * @throws SQLException
+   */
+  void dropConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException;
+
+  /**
    * Verify if table exists by looking at metadata.
    * @param tableName
    * @return
