@@ -1445,7 +1445,7 @@ module.exports =
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HIVE","WEBHCAT","OOZIE","FALCON"],
-      "index": 17
+      "index": 18
     },
     {
       "id": "puppet var",
@@ -1697,6 +1697,21 @@ module.exports =
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HDFS"],
+      "index": 16
+    },
+    {
+      "id": "puppet var",
+      "name": "tez_user",
+      "displayName": "Tez User",
+      "description": "User to run Tez as",
+      "defaultValue": "tez",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName":"MISC",
+      "category": "Users and Groups",
+      "belongsToService":["TEZ"],
       "index": 15
     },
     {
