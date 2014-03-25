@@ -48,7 +48,7 @@ class HdfsServiceCheck(Script):
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
-                  tries=5
+                  tries=20
     )
     ExecuteHadoop(create_dir_cmd,
                   user=params.smoke_user,
