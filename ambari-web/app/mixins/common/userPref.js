@@ -25,6 +25,8 @@ var App = require('app');
  * <ul>
  *   <li>getUserPrefSuccessCallback</li>
  *   <li>getUserPrefErrorCallback</li>
+ *   <li>postuserPrefSuccessCallback</li>
+ *   <li>postuserPrefErrorCallback</li>
  * </ul>
  * @type {Em.Mixin}
  */
@@ -37,6 +39,12 @@ App.UserPref = Em.Mixin.create({
   makeRequestAsync: true,
 
   /**
+   * Additional to request data
+   * @type {object}
+   */
+  additionalData: {},
+
+  /**
    * Get persist value from server with persistKey
    * @param {String} key
    */
@@ -46,7 +54,8 @@ App.UserPref = Em.Mixin.create({
       sender: this,
       data: {
         key: key,
-        async: this.get('makeRequestAsync')
+        async: this.get('makeRequestAsync'),
+        data: this.get('additionalData')
       },
       success: 'getUserPrefSuccessCallback',
       error: 'getUserPrefErrorCallback'
@@ -85,9 +94,28 @@ App.UserPref = Em.Mixin.create({
       'data': {
         'async': this.get('makeRequestAsync'),
         'keyValuePair': keyValuePair
-      }
+      },
+      'success': 'postUserPrefSuccessCallback',
+      'error': 'postUserPrefErrorCallback'
     });
   },
+
+  /**
+   * Should be redeclared in objects that use this mixin
+   * @param {*} response
+   * @param {Object} request
+   * @param {Object} data
+   * @returns {*}
+   */
+  postUserPrefSuccessCallback: function (response, request, data) {},
+
+  /**
+   * Should be redeclared in objects that use this mixin
+   * @param {Object} request
+   * @param {Object} ajaxOptions
+   * @param {String} error
+   */
+  postUserPrefErrorCallback: function(request, ajaxOptions, error) {},
 
   /**
    * Little log before post request

@@ -21,45 +21,55 @@ var App = require('app');
 App.MainAdminUserEditView = Em.View.extend({
   templateName: require('templates/main/admin/user/edit'),
   userId: false,
-  edit: function(event){
+  edit: function() {
     var form = this.get("userForm");
-    if(form.isValid()) {
-      var Users={};
-      if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
-        form.getField("roles").set("value","admin,user");
-        form.getField("admin").set("value", true);
-      } else{
-        form.getField("roles").set("value","user");
-      }
+    if(!form.isValid()) return;
 
-      Users.roles = form.getField("roles").get('value');
-
-      if(form.getField("new_password").get('value') != "" && form.getField("old_password").get('value') != "") {
-        Users.password = form.getField("new_password").get('value');
-        Users.old_password = form.getField("old_password").get('value');
-      }
-
-      this.get("controller").sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
-       Users:Users
-      }, function (success, message) {
-        if (!success) {
-          App.ModalPopup.show({
-            header: Em.I18n.t('admin.users.editButton'),
-            body: message,
-            primary: Em.I18n.t('ok'),
-            secondary: null,
-            onPrimary: function() {
-              this.hide();
-            }
-          });
-          return;
-        }
-
-        form.save();
-
-        App.router.transitionTo("allUsers");
-      })
+    var Users={};
+    if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
+      form.getField("roles").set("value", "admin,user");
+      form.getField("admin").set("value", true);
     }
+    else {
+      form.getField("roles").set("value", "user");
+    }
+
+    Users.roles = form.getField("roles").get('value');
+
+    if(form.getField("new_password").get('value') != "" && form.getField("old_password").get('value') != "") {
+      Users.password = form.getField("new_password").get('value');
+      Users.old_password = form.getField("old_password").get('value');
+    }
+
+    App.ajax.send({
+      name: 'admin.user.edit',
+      sender: this,
+      data: {
+        form: form,
+        user: form.getField("userName").get('value'),
+        data: JSON.stringify({
+          Users:Users
+        })
+      },
+      success: 'editUserSuccessCallback',
+      error: 'editUserErrorCallback'
+    });
+  },
+
+  editUserSuccessCallback: function(data, opt, params) {
+    params.form.save();
+    App.router.transitionTo("allUsers");
+  },
+
+  editUserErrorCallback: function (request) {
+    var message = $.parseJSON(request.responseText).message;
+    message = message.substr(message.lastIndexOf(':') + 1);
+    App.ModalPopup.show({
+      header: Em.I18n.t('admin.users.editButton'),
+      body: message,
+      secondary: null
+    });
+    console.log(message);
   },
 
   keyPress: function(event) {

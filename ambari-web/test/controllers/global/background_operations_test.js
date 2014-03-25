@@ -21,7 +21,7 @@ var App = require('app');
 
 require('config');
 require('utils/updater');
-require('utils/ajax');
+require('utils/ajax/ajax');
 
 require('models/host_component');
 

@@ -186,15 +186,15 @@ App.parseJSON = function (value) {
  * Check for empty <code>Object</code>, built in Em.isEmpty()
  * doesn't support <code>Object</code> type
  *
- * @params obj {Object}
+ * @param {Object} obj
  *
- * @return {Boolean}
+ * @return {bool}
  */
 App.isEmptyObject = function(obj) {
   var empty = true;
   for (var prop in obj) { if (obj.hasOwnProperty(prop)) {empty = false; break;} }
   return empty;
-}
+};
 
 App.format = {
 
