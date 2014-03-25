@@ -75,24 +75,25 @@ App.MainMirroringEditDataSetView = Em.View.extend({
     var isEdit = this.get('controller.isEdit');
     var selectedDataset = App.router.get('mainMirroringController.selectedDataset');
     if (this.get('isLoaded') && selectedDataset && isEdit) {
+      var controller = this.get('controller');
       var dataset = App.Dataset.find().findProperty('name', selectedDataset.get('id'));
-      var scheduleStartDate = dataset.get('scheduleStartDate');
-      var scheduleEndDate = dataset.get('scheduleEndDate');
-      var formFields = this.get('controller.formFields');
+      var scheduleStartDate = new Date(dataset.get('scheduleStartDate'));
+      var scheduleEndDate = new Date(dataset.get('scheduleEndDate'));
+      var formFields = controller.get('formFields');
       formFields.set('datasetName', dataset.get('name'));
       formFields.set('datasetSourceDir', dataset.get('sourceDir'));
       formFields.set('datasetTargetDir', dataset.get('targetDir'));
       formFields.set('datasetTargetClusterName', dataset.get('targetClusterName'));
       formFields.set('datasetFrequency', dataset.get('frequency'));
       formFields.set('repeatOptionSelected', dataset.get('frequencyUnit'));
-      formFields.set('datasetStartDate', scheduleStartDate.slice(5, 7) + '/' + scheduleStartDate.slice(8, 10) + '/' + scheduleStartDate.slice(0, 4));
-      formFields.set('datasetEndDate', scheduleEndDate.slice(5, 7) + '/' + scheduleEndDate.slice(8, 10) + '/' + scheduleEndDate.slice(0, 4));
-      var startHours = scheduleStartDate.slice(11, 13);
-      var endHours = scheduleEndDate.slice(11, 13);
-      formFields.set('hoursForStart', this.get('controller').toAMPMHours(startHours));
-      formFields.set('hoursForEnd', this.get('controller').toAMPMHours(endHours));
-      formFields.set('minutesForStart', scheduleStartDate.slice(14, 16));
-      formFields.set('minutesForEnd', scheduleEndDate.slice(14, 16));
+      formFields.set('datasetStartDate', controller.addZero(scheduleStartDate.getMonth() + 1) + '/' + controller.addZero(scheduleStartDate.getDate()) + '/' + controller.addZero(scheduleStartDate.getFullYear()));
+      formFields.set('datasetEndDate', controller.addZero(scheduleEndDate.getMonth() + 1) + '/' + controller.addZero(scheduleEndDate.getDate()) + '/' + controller.addZero(scheduleEndDate.getFullYear()));
+      var startHours = scheduleStartDate.getHours();
+      var endHours = scheduleEndDate.getHours();
+      formFields.set('hoursForStart', controller.toAMPMHours(startHours));
+      formFields.set('hoursForEnd', controller.toAMPMHours(endHours));
+      formFields.set('minutesForStart', controller.addZero(scheduleStartDate.getMinutes()));
+      formFields.set('minutesForEnd', controller.addZero(scheduleEndDate.getMinutes()));
       formFields.set('middayPeriodForStart', startHours > 11 ? 'PM' : 'AM');
       formFields.set('middayPeriodForEnd', endHours > 11 ? 'PM' : 'AM');
     }
