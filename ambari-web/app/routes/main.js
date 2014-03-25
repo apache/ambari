@@ -607,7 +607,7 @@ module.exports = Em.Route.extend({
           var controller = router.get('mainController');
           controller.dataLoading().done(function () {
             var service = router.get('mainServiceItemController.content');
-            if (!service) {
+            if (!service || !service.get('isLoaded')) {
               service = App.Service.find().objectAt(0); // getting the first service to display
             }
             router.transitionTo('service.summary', service);
@@ -631,8 +631,12 @@ module.exports = Em.Route.extend({
         route: '/summary',
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
-          var viewName = 'mainServiceInfoSummary';
-          router.get('mainServiceItemController').connectOutlet('mainServiceInfoSummary', item);
+          //if service is not existed then route to default service
+          if (item.get('isLoaded')) {
+            router.get('mainServiceItemController').connectOutlet('mainServiceInfoSummary', item);
+          } else {
+            router.transitionTo('services.index');
+          }
         }
       }),
       metrics: Em.Route.extend({

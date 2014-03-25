@@ -40,6 +40,11 @@ App.MainHostDetailsView = Em.View.extend({
       {action: 'deleteHost', liClass:'', cssClass: 'icon-remove', 'label': this.t('hosts.host.details.deleteHost')}];
   }.property('controller.content','isActive', 'controller.content.isNotHeartBeating'),
   didInsertElement: function() {
+    //if host is not existed then route to list of hosts
+    if (!this.get('content.isLoaded')) {
+      App.router.transitionTo('main.hosts.index');
+      return;
+    }
     App.tooltip($("[rel='HealthTooltip']"));
   }
 });
