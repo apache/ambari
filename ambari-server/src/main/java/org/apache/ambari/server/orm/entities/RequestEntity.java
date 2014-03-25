@@ -29,6 +29,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -58,9 +59,9 @@ public class RequestEntity {
   @Basic
   private String commandName;
 
-  @Column(name = "inputs", length = 32000)
-  @Basic
-  private String inputs;
+  @Column(name = "inputs")
+  @Lob
+  private byte[] inputs = new byte[0];
 
   @Column(name = "request_type")
   @Enumerated(value = EnumType.STRING)
@@ -153,11 +154,11 @@ public class RequestEntity {
   }
 
   public String getInputs() {
-    return inputs;
+    return inputs != null ? new String(inputs) : null;
   }
 
   public void setInputs(String inputs) {
-    this.inputs = inputs;
+    this.inputs = inputs != null ? inputs.getBytes() : null;
   }
 
   public RequestType getRequestType() {

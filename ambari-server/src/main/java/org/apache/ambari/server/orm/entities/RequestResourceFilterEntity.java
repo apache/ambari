@@ -57,7 +57,7 @@ public class RequestResourceFilterEntity {
 
   @Column(name = "hosts")
   @Lob
-  private String hosts;
+  private byte[] hosts;
 
   @ManyToOne
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false, insertable = false, updatable = false)
@@ -88,11 +88,11 @@ public class RequestResourceFilterEntity {
   }
 
   public String getHosts() {
-    return hosts;
+    return hosts != null ? new String(hosts) : null;
   }
 
   public void setHosts(String hosts) {
-    this.hosts = hosts;
+    this.hosts = hosts != null ? hosts.getBytes() : null;
   }
 
   public Long getRequestId() {

@@ -235,7 +235,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("component_name", String.class, 255, null, true));
     columns.add(new DBColumnInfo("hosts", byte[].class, null, null, true));
 
-    dbAccessor.createTable("requestresourcefilter", columns, "request_id");
+    dbAccessor.createTable("requestresourcefilter", columns, "filter_id");
 
     createQuartzTables();
 
