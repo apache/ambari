@@ -44,27 +44,7 @@ ALT_KEYS = ["symlink_list", "target_list"]
 ALT_ERASE_CMD = "alternatives --remove {0} {1}"
 USER_HOMEDIR_SECTION = "usr_homedir"
 
-class TestHostCleanup(TestCase):
-
-  def setUp(self):
-    HostCleanup.logger = MagicMock()
-    self.hostcleanup = HostCleanup.HostCleanup()
-    # disable stdout
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-
-  def tearDown(self):
-    # enable stdout
-    sys.stdout = sys.__stdout__
-
-  @patch("os.listdir", create=True, autospec=True)
-  def test_read_host_check_file_with_content(self, os_listdir_mock):
-    out = StringIO.StringIO()
-    sys.stdout = out
-    tmpfile = tempfile.mktemp()
-    f = open(tmpfile,'w')
-    fileContent = """[processes]
+hostcheck_result_fileContent = """[processes]
 proc_list = 323,434
 
 [users]
@@ -85,7 +65,28 @@ pkg_list = sqoop.noarch,hadoop-libhdfs.x86_64,rrdtool.x86_64,ganglia-gmond.x86_6
 
 [metadata]
 created = 2013-07-02 20:39:22.162757"""
-    f.write(fileContent)
+
+class TestHostCleanup(TestCase):
+
+  def setUp(self):
+    HostCleanup.logger = MagicMock()
+    self.hostcleanup = HostCleanup.HostCleanup()
+    # disable stdout
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+
+  def tearDown(self):
+    # enable stdout
+    sys.stdout = sys.__stdout__
+
+  @patch("os.listdir", create=True, autospec=True)
+  def test_read_host_check_file_with_content(self, os_listdir_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+    tmpfile = tempfile.mktemp()
+    f = open(tmpfile,'w')
+    f.write(hostcheck_result_fileContent)
     f.close()
 
     os_listdir_mock.return_value = ['111']
@@ -97,7 +98,7 @@ created = 2013-07-02 20:39:22.162757"""
       patch_join_mock.return_value = f2.name
       propMap = self.hostcleanup.read_host_check_file(tmpfile)
 
-    self.assertTrue(111 in propMap["processes"])
+    self.assertTrue('434' in propMap["processes"])
     self.assertTrue("mysql" in propMap["users"])
     self.assertTrue("HDP-epel" in propMap["repositories"])
     self.assertTrue("/etc/hadoop" in propMap["directories"])
@@ -317,29 +318,23 @@ created = 2013-07-02 20:39:22.162757"""
     calls = [call('userdel -rf a'), call('userdel -rf b'), call('groupdel hadoop')]
     run_os_command_mock.assert_has_calls(calls)
 
-  @patch("ConfigParser.RawConfigParser")
-  @patch("__builtin__.open")
   @patch("os.listdir", create=True, autospec=True)
-  def test_read_host_check_file(self, os_listdir_mock, openMock, readMock):
+  def test_read_host_check_file(self, os_listdir_mock):
     out = StringIO.StringIO()
     sys.stdout = out
-    f = MagicMock()
+    tmpfile = tempfile.mktemp()
+    f = open(tmpfile,'w')
+    f.write(hostcheck_result_fileContent)
+    f.close()
 
-    openRead = MagicMock()
-    openRead.read.return_value = 'java_home|hadoop'
-    openMock.side_effect = [f, openRead]
-    os_listdir_mock.return_value = ['111']
+    propertyMap = self.hostcleanup.read_host_check_file(tmpfile)
 
-    propertyMap = self.hostcleanup.read_host_check_file('test')
-
-    self.assertTrue(openMock.called)
-    self.assertTrue(readMock.called)
     self.assertTrue(propertyMap.has_key(PACKAGE_SECTION))
     self.assertTrue(propertyMap.has_key(REPO_SECTION))
     self.assertTrue(propertyMap.has_key(USER_SECTION))
     self.assertTrue(propertyMap.has_key(DIR_SECTION))
     self.assertTrue(propertyMap.has_key(PROCESS_SECTION))
-    self.assertEquals(propertyMap[PROCESS_SECTION][0], 111)
+    self.assertEquals(propertyMap[PROCESS_SECTION][0], "323")
 
     sys.stdout = sys.__stdout__
 
