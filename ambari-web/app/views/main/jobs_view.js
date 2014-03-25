@@ -23,9 +23,7 @@ var sort = require('views/common/sort_view');
 App.MainJobsView = App.TableView.extend({
   templateName: require('templates/main/jobs'),
 
-  content: function () {
-    return this.get('controller.content');
-  }.property('controller.content.length'),
+  content: [],
 
 
   /**

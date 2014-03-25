@@ -72,6 +72,8 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
           hiveJob.end_time = entity.endtime;
         }
         hiveJobs.push(hiveJob);
+        hiveJob = null;
+        entity = null;
       });
       // Delete IDs not seen from server
       var hiveJobsModel = model.find().toArray();
@@ -82,7 +84,8 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
       }, this);
     }
     App.store.loadMany(model, hiveJobs);
-    App.router.get('mainJobsController').set('content', App.HiveJob.find().toArray());
+    json = null;
+    hiveJobs = null;
   },
   config : {}
 });

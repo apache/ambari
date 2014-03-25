@@ -18,11 +18,72 @@
 
 var App = require('app');
 
-App.MainJobsController = Em.ArrayController.extend({
-
+App.MainJobsController = Em.Controller.extend({
+/*
+ * https://github.com/emberjs/ember.js/issues/1221 prevents this controller
+ * from being an Ember.ArrayController. Doing so will keep the UI flashing
+ * whenever any of the 'sortProperties' or 'sortAscending' properties are set.
+ * 
+ *  To bypass this issue this controller will be a regular controller. Also,
+ *  for memory-leak issues and sorting purposes, we are decoupling the backend
+ *  model and the UI model. There will be simple Ember POJOs for the UI which
+ *  will be periodically updated from backend Jobs model. 
+ */
+  
   name:'mainJobsController',
 
-  content: [],
+  /**
+   * Unsorted ArrayProxy
+   */
+  content: App.HiveJob.find(),
+  
+  /**
+   * Sorted ArrayProxy
+   */
+  sortedContent: [],
+
+  contentAndSortObserver : function() {
+    Ember.run.once(this, 'contentAndSortUpdater');
+  }.observes('content.length', 'content.@each.id', 'content.@each.startTime', 'content.@each.endTime', 'sortProperties', 'sortAscending'),
+  
+  contentAndSortUpdater: function() {
+    var content = this.get('content');
+    var sortedContent = content.toArray();
+    var sortProperty = this.get('sortProperty');
+    var sortAscending = this.get('sortAscending');
+    sortedContent.sort(function(r1, r2) {
+      var r1id = r1.get(sortProperty);
+      var r2id = r2.get(sortProperty);
+      if (r1id < r2id)
+        return sortAscending ? -1 : 1;
+      if (r1id > r2id)
+        return sortAscending ? 1 : -1;
+      return 0;
+    });
+    var sortedArray = this.get('sortedContent');
+    var count = 0;
+    sortedContent.forEach(function(sortedJob){
+      if(sortedArray.length <= count) {
+        sortedArray.pushObject(Ember.Object.create());
+      }
+      sortedArray[count].set('failed', sortedJob.get('failed'));
+      sortedArray[count].set('hasTezDag', sortedJob.get('hasTezDag'));
+      sortedArray[count].set('queryText', sortedJob.get('queryText'));
+      sortedArray[count].set('name', sortedJob.get('name'));
+      sortedArray[count].set('user', sortedJob.get('user'));
+      sortedArray[count].set('id', sortedJob.get('id'));
+      sortedArray[count].set('startTimeDisplay', sortedJob.get('startTimeDisplay'));
+      sortedArray[count].set('endTimeDisplay', sortedJob.get('endTimeDisplay'));
+      sortedArray[count].set('durationDisplay', sortedJob.get('durationDisplay'));
+      count ++;
+    });
+    if(sortedArray.length > count) {
+      for(var c = sortedArray.length-1; c >= count; c--){
+        sortedArray.removeObject(sortedArray[c]);
+      }
+    }
+    sortedContent.length = 0;
+  },
 
   loaded : false,
   loading : false,
@@ -31,6 +92,15 @@ App.MainJobsController = Em.ArrayController.extend({
   jobsUpdateInterval: 6000,
   jobsUpdate: null,
   sortingColumn: null,
+  sortProperty: 'id',
+  sortAscending: true,
+
+  sortingColumnObserver: function () {
+    if(this.get('sortingColumn')){
+      this.set('sortProperty', this.get('sortingColumn').get('name'));
+      this.set('sortAscending', this.get('sortingColumn').get('status') == "sorting_desc" ? false : true );
+    }
+  }.observes('sortingColumn.name','sortingColumn.status'),
 
   updateJobs: function (controllerName, funcName) {
     clearInterval(this.get('jobsUpdate'));
@@ -255,14 +325,6 @@ App.MainJobsController = Em.ArrayController.extend({
           + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;
       App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
         complete : function(jqXHR, textStatus) {
-          var sortColumn = self.get('sortingColumn');
-          if(sortColumn && sortColumn.get('status')){
-            var sortColumnStatus = sortColumn.get('status');
-            sortColumn.get('parentView').set('content', self.get('content'));
-            sortColumn.get('parentView').sort(sortColumn, sortColumnStatus === "sorting_desc");
-            sortColumn.set('status', sortColumnStatus);
-            self.set('content',sortColumn.get('parentView').get('content'));
-          }
           self.set('loading', false);
           self.set('loaded', true);
         }
