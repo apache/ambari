@@ -29,8 +29,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -82,9 +84,12 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private static final List<String> IGNORABLE_FOR_HOSTS = new ArrayList<String>(
       Arrays.asList("percent"));
   
-  // holds alerts for clusters.  clusterName -> AlertStates
-  private static final Map<String, AlertState> CLUSTER_ALERTS = new ConcurrentHashMap<String, AlertState>();
+  // holds alerts for clusters.  clusterName is the key
+  private static final Map<String, List<NagiosAlert>> CLUSTER_ALERTS =
+      new ConcurrentHashMap<String, List<NagiosAlert>>();
   private static final ScheduledExecutorService scheduler;
+  
+  private static final Set<String> CLUSTER_NAMES = new CopyOnWriteArraySet<String>();
   
   static {
     NAGIOS_PROPERTY_IDS.add("alerts/summary");
@@ -96,14 +101,6 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         return new Thread(r, "NagiosPropertyProvider Request Reset Thread");
       }
     });
-    
-    scheduler.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        for (AlertState alertState : CLUSTER_ALERTS.values())
-          alertState.isReloadNeeded().set(true);
-      }
-    }, 0L, 20L, TimeUnit.SECONDS);
   }
 
   @Inject
@@ -112,7 +109,6 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
   private String clusterNameProperty;
   private String resourceTypeProperty;
   private StreamProvider urlStreamProvider;
-  
   
   @Inject
   public static void init(Injector injector) {
@@ -144,12 +140,28 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
     clusterNameProperty = clusterPropertyId;
     resourceTypeProperty = typeMatchPropertyId;
     urlStreamProvider = streamProvider;
+    
+    scheduler.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        for (String clusterName : CLUSTER_NAMES) {
+          try {
+            List<NagiosAlert> alerts = populateAlerts(clusterName);
+            
+            CLUSTER_ALERTS.put(clusterName, alerts);
+          } catch (Exception e) {
+            LOG.error("Could not load Nagios alerts: " + e.getMessage());
+          }
+        }
+      }
+    }, 0L, 20L, TimeUnit.SECONDS);    
   }
   
   /**
    * Use only for testing to remove all cached alerts.
    */
   public void forceReset() {
+    CLUSTER_NAMES.clear();
     CLUSTER_ALERTS.clear();
   }
   
@@ -169,19 +181,33 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       if (null == clusterPropertyValue)
         continue;
 
-      String clusterName = clusterPropertyValue.toString();
+      final String clusterName = clusterPropertyValue.toString();
       if (null == clusterName)
         continue;
       
       if (!CLUSTER_ALERTS.containsKey(clusterName)) {
-        CLUSTER_ALERTS.put(clusterName, new AlertState (populateAlerts(clusterName)));
-      } else if (CLUSTER_ALERTS.get(clusterName).isReloadNeeded().get()) {
-        LOG.debug("Alerts are stale for cluster " + clusterName);
-        CLUSTER_ALERTS.get(clusterName).setAlerts(populateAlerts(clusterName));
-        CLUSTER_ALERTS.get(clusterName).isReloadNeeded().set(false);
+        Future<List<NagiosAlert>> f = scheduler.submit(new Callable<List<NagiosAlert>>() {
+          @Override
+          public List<NagiosAlert> call() throws Exception {
+            return populateAlerts(clusterName);
+          }
+        });
+        
+        try {
+          CLUSTER_ALERTS.put(clusterName, f.get());
+        } catch (Exception e) {
+          LOG.error("Could not load metrics - Executor exception" +
+            " (" + e.getMessage() + ")");
+        }
       }
       
-      updateAlerts(res, matchValue, CLUSTER_ALERTS.get(clusterName).getAlerts(), propertyIds);
+      CLUSTER_NAMES.add(clusterName);
+      
+      List<NagiosAlert> alerts = CLUSTER_ALERTS.get(clusterName);
+      if (null != alerts) {
+        updateAlerts (res, matchValue, alerts, propertyIds);
+      }
+
     }
     
     return resources;
@@ -301,7 +327,7 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
    * @return a list of nagios alerts
    * @throws SystemException
    */
-  private List<NagiosAlert> populateAlerts(String clusterName) throws SystemException {
+  private List<NagiosAlert> populateAlerts(String clusterName) throws Exception {
     
     String nagiosHost = null;
     
@@ -317,7 +343,9 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
       LOG.debug("Cannot find a nagios service.  Skipping alerts.");
     }
     
-    if (null != nagiosHost) {
+    if (null == nagiosHost) {
+      return new ArrayList<NagiosAlert>();
+    } else {
       String template = NAGIOS_TEMPLATE;
 
       if (ComponentSSLConfiguration.instance().isNagiosSSL())
@@ -343,10 +371,9 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         });
         
         return alerts.alerts;
-      } catch (IOException ioe) {
-        LOG.error("Error reading HTTP response from " + url);
-      } catch (JsonSyntaxException jse) {
-        LOG.error("Error parsing HTTP response from " + url);
+      } catch (Exception e) {
+        throw new SystemException("Error reading HTTP response for cluster " + clusterName +
+            ", nagios=" + url + " (" + e.getMessage() + ")", e);
       } finally {
         if (in != null) {
           try {
@@ -358,8 +385,6 @@ public class NagiosPropertyProvider extends BaseProvider implements PropertyProv
         }
       }      
     }
-    
-    return new ArrayList<NagiosAlert>();
   }
   
   private static class NagiosAlerts {
