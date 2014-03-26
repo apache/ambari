@@ -89,7 +89,7 @@ yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
-exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
+exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
 
 hostname = config['hostname']
 
