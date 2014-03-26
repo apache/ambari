@@ -412,9 +412,12 @@ public class DBAccessorImpl implements DBAccessor {
     try {
       statement.execute(query);
     } catch (SQLException e) {
-      LOG.warn("Error executing query: "+query, e);
       if (!ignoreFailure) {
+        LOG.warn("Error executing query: " + query, e);
         throw e;
+      } else {
+        LOG.warn("Error executing query: " + query + ", " +
+          "errorCode = " + e.getErrorCode() + ", message = " + e.getMessage());
       }
     }
   }
