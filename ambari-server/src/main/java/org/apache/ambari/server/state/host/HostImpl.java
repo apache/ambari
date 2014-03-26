@@ -1192,8 +1192,7 @@ public class HostImpl implements Host {
       hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
     }
 
-    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname
-      (this.getHostName());
+    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname(this.getHostName());
 
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {

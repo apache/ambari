@@ -1295,21 +1295,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   
   @Override
   public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
-    Cluster cluster = null;
-    Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+    Map<Long, ConfigGroup> configGroupMap = null;
+    String clusterName = getClusterName();
     try {
-      cluster = clusters.getClusterById(getClusterId());
-      if (cluster != null) {
-        configGroupMap = cluster.getConfigGroups();
-      }
-    } catch (AmbariException ae) {
-      LOG.warn("Unable to get cluster info for cluster id = " + getClusterId());
+      Cluster cluster = clusters.getCluster(clusterName);
+      configGroupMap = cluster.getConfigGroups();
+    } catch (AmbariException e) {
+      LOG.warn("Unable to find cluster, " + clusterName);
+      return;
     }
 
     clusterGlobalLock.readLock().lock();
     try {
       writeLock.lock();
       try {
+        LOG.debug("Updating actual config tags: " + configTags);
         actualConfigs = new HashMap<String, HostConfig>();
 
         for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
@@ -1325,22 +1325,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
           if (!values.isEmpty()) {
             for (Entry<String, String> overrideEntry : values.entrySet()) {
-              try {
-                Long groupId = Long.parseLong(overrideEntry.getKey());
-                ConfigGroup configGroup = configGroupMap.get(groupId);
-                if (configGroup != null) {
-                  hc.getConfigGroupOverrides().put(groupId,
-                    overrideEntry.getValue());
-                } else {
-                  LOG.info("Cannot find config group with id = " + groupId);
-                }
-              } catch (Exception e) {
-                LOG.warn("Unable to retrieve config group info for id = " +
-                  overrideEntry.getKey());
+              Long groupId = Long.parseLong(overrideEntry.getKey());
+              hc.getConfigGroupOverrides().put(groupId, overrideEntry.getValue());
+              if (!configGroupMap.containsKey(groupId)) {
+                LOG.debug("Config group does not exist, id = " + groupId);
               }
             }
           }
-
         }
       } finally {
         writeLock.unlock();
@@ -1348,7 +1339,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
   
   @Override

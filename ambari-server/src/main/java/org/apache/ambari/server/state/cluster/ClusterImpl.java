@@ -362,15 +362,14 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
     throws AmbariException {
-    Map<Long, ConfigGroup> configGroupMap = getConfigGroups();
     Map<Long, ConfigGroup> configGroups = new HashMap<Long, ConfigGroup>();
+    Map<Long, ConfigGroup> configGroupMap = getConfigGroups();
 
     clusterGlobalLock.readLock().lock();
     try {
       readLock.lock();
       try {
-        Set<ConfigGroupHostMapping> hostMappingEntities =
-          configGroupHostMappingDAO.findByHost(hostname);
+        Set<ConfigGroupHostMapping> hostMappingEntities = configGroupHostMappingDAO.findByHost(hostname);
 
         if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
           for (ConfigGroupHostMapping entity : hostMappingEntities) {
