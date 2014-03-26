@@ -38,7 +38,7 @@ class ServiceCheck(Script):
             logoutput=True
     )
 
-    Execute(format("env PATH=$PATH:{java64_home}/bin storm kill WordCount{unique}"))
+    Execute(format("env JAVA_HOME={java64_home} storm kill WordCount{unique}"))
 
 if __name__ == "__main__":
   ServiceCheck().execute()

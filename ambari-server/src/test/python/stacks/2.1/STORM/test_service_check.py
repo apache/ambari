@@ -39,5 +39,5 @@ class TestStormServiceCheck(RMFTestCase):
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount -c nimbus.host=c6402.ambari.apache.org',
       logoutput = True,
     )
-    self.assertResourceCalled('Execute', 'env PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm kill WordCount')
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 storm kill WordCount')
 

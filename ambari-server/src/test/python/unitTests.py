@@ -116,6 +116,7 @@ def main():
   ambari_server_folder = get_parent_path(pwd,'ambari-server')
   ambari_agent_folder = os.path.join(ambari_server_folder,"../ambari-agent")
   ambari_common_folder = os.path.join(ambari_server_folder,"../ambari-common")
+  sys.path.append(ambari_common_folder + "/src/main/python")
   sys.path.append(ambari_common_folder + "/src/main/python/jinja2")
   sys.path.append(ambari_common_folder + "/src/main/python")
   sys.path.append(ambari_common_folder + "/src/test/python")
