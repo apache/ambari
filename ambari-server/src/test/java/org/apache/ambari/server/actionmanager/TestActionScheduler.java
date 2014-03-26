@@ -171,6 +171,8 @@ public class TestActionScheduler {
    * Test whether scheduler times out an action
    */
   @Test
+  // BUG-15597
+  @Ignore
   public void testActionTimeout() throws Exception {
     ActionQueue aq = new ActionQueue();
     Properties properties = new Properties();

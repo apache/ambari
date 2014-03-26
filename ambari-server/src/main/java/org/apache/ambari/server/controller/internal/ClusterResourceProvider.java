@@ -718,12 +718,32 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         }
       }
     }
+    setMissingConfigurations();
+  }
+
+  /**
+   * Explicitly set any properties that are required but not currently provided in the stack definition.
+   */
+  private void setMissingConfigurations() {
     // AMBARI-4921
-    //todo: hard-coding default values for required global config properties which are not in stack definition
     ensureProperty("global", "user_group", "hadoop");
     ensureProperty("global", "nagios_contact", "default@REPLACEME.NOWHERE");
     ensureProperty("global", "nagios_web_password", "admin");
     ensureProperty("global", "smokeuser", "ambari-qa");
+
+    // AMBARI-5206
+    Map<String, String> globalConfig = mapClusterConfigurations.get("global");
+    String[] userProps = {"oozie_user", "hive_user", "hcat_user", "hbase_user", "falcon_user"};
+    String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
+    String proxyUserGroups = "hadoop.proxyuser.%s.groups";
+
+    for (String userProp : userProps) {
+      String user = globalConfig.get(userProp);
+      if (user != null && !user.isEmpty()) {
+        ensureProperty("core-site", String.format(proxyUserHosts, user), "*");
+        ensureProperty("core-site", String.format(proxyUserGroups, user), "users");
+      }
+    }
   }
 
   /**
