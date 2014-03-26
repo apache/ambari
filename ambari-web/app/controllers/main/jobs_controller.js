@@ -121,7 +121,7 @@ App.MainJobsController = Em.Controller.extend({
   filterObject: Ember.Object.create({
     id: "",
     isIdFilterApplied: false,
-    jobsLimit: -1,
+    jobsLimit: 10,
     user: "",
     windowStart: "",
     windowEnd: "",
@@ -289,9 +289,9 @@ App.MainJobsController = Em.Controller.extend({
       if(this.get("id") !== "") {
         link = "/" + this.get("id") + link;
       }
-      if(this.get("jobsLimit") != -1){
-        link += "&limit=" + this.get("jobsLimit");
-      }
+
+      link += "&limit=" + this.get("jobsLimit");
+
       if(this.get("user") !== ""){
         link += "&primaryFilter=user:" + this.get("user");
       }
