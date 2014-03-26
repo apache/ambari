@@ -69,7 +69,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   @Override
   public void executeDDLUpdates() throws AmbariException, SQLException {
     LOG.debug("Upgrading schema...");
-
+    String dbType = getDbType();
     List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
 
     // ========================================================================
@@ -259,20 +259,24 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     // Alter columns
 
-    if (getDbType().equals(Configuration.POSTGRES_DB_NAME)) {
-      dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;", true);
+    if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
+      if (dbAccessor.tableExists("hostcomponentdesiredconfigmapping")) {
+        dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;", true);
+      }
       dbAccessor.executeQuery("ALTER TABLE users ALTER column user_id DROP DEFAULT;", true);
       dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END;", true);
     }
 
-    if (Configuration.ORACLE_DB_NAME.equals(getDbType()) ||
-        Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
-      dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info;", true);
+    if (Configuration.ORACLE_DB_NAME.equals(dbType) ||
+        Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+      if (dbAccessor.tableHasColumn("hosts", "disks_info")) {
+        dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info;", true);
+      }
     }
 
 
     //Move tables from ambarirca db to ambari db; drop ambarirca; Mysql
-    if (getDbType().equals(Configuration.MYSQL_DB_NAME)) {
+    if (dbType.equals(Configuration.MYSQL_DB_NAME)) {
       String dbName = configuration.getServerJDBCSchemaName();
       moveRCATableInMySQL("workflow", dbName);
       moveRCATableInMySQL("job", dbName);
@@ -293,9 +297,9 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       throw new AmbariException(msg);
     } else if (!dbAccessor.tableHasData(tableName)) {
       String query;
-      if (getDbType().equals(Configuration.POSTGRES_DB_NAME)) {
+      if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
         query = getPostgresRequestUpgradeQuery();
-      } else if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
+      } else if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
         query = getOracleRequestUpgradeQuery();
       } else {
         query = getMysqlRequestUpgradeQuery();
@@ -308,8 +312,8 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     // Drop old constraints
     // ========================================================================
-    if (Configuration.POSTGRES_DB_NAME.equals(getDbType())
-      || Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+    if (Configuration.POSTGRES_DB_NAME.equals(dbType)
+      || Configuration.MYSQL_DB_NAME.equals(dbType)) {
 
       //recreate old constraints to sync with oracle
       dbAccessor.dropConstraint("clusterconfigmapping", "FK_clusterconfigmapping_cluster_id");
