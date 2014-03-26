@@ -263,8 +263,13 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;", true);
       dbAccessor.executeQuery("ALTER TABLE users ALTER column user_id DROP DEFAULT;", true);
       dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END;", true);
+    }
+
+    if (Configuration.ORACLE_DB_NAME.equals(getDbType()) ||
+        Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
       dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info;", true);
     }
+
 
     //Move tables from ambarirca db to ambari db; drop ambarirca; Mysql
     if (getDbType().equals(Configuration.MYSQL_DB_NAME)) {
