@@ -29,6 +29,7 @@ hive_server_conf_dir = "/etc/hive/conf.server"
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
+hive_metastore_db_type = config['configurations']['global']['hive_database_type']
 
 #users
 hive_user = config['configurations']['global']['hive_user']
@@ -44,8 +45,11 @@ check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
 #common
+java_home = config['hostLevelParams']['java_home']
+hdp_stack_version = config['hostLevelParams']['stack_version']
 hive_metastore_port = config['configurations']['global']['hive_metastore_port']
 hive_var_lib = '/var/lib/hive'
+hive_bin = '/usr/lib/hive/bin'
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_url = format("jdbc:hive2://{hive_server_host}:10000")
 
@@ -106,9 +110,16 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 
 mysql_adduser_path = "/tmp/addMysqlUser.sh"
 
+######## Metastore Schema
+if str(hdp_stack_version).startswith('2.1') and \
+    config['configurations']['global']['hive_database'] == 'New MySQL Database':
+  init_metastore_schema =True
+else:
+  init_metastore_schema = False
+
 ########## HCAT
 
-if str(config['hostLevelParams']['stack_version']).startswith('2.0'):
+if str(hdp_stack_version).startswith('2.0'):
   hcat_conf_dir = '/etc/hcatalog/conf'
   hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
 # for newer versions
