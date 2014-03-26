@@ -28,5 +28,5 @@ config_dir = "/etc/tez/conf"
 hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']
 
-tez_user = 'tez'
+tez_user = config['configurations']['global']['tez_user']
 user_group = config['configurations']['global']['user_group']

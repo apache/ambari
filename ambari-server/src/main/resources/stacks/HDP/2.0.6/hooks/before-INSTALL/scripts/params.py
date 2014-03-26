@@ -38,7 +38,7 @@ zk_user = config['configurations']['global']['zk_user']
 gmetad_user = config['configurations']['global']["gmetad_user"]
 gmond_user = config['configurations']['global']["gmond_user"]
 storm_user = config['configurations']['global']['storm_user']
-tez_user = 'tez'
+tez_user = config['configurations']['global']['tez_user']
 falcon_user = config['configurations']['global']['falcon_user']
 
 user_group = config['configurations']['global']['user_group']

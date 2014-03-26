@@ -168,7 +168,7 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
-tez_user = 'tez'
+tez_user = config['configurations']['global']['tez_user']
 
 hive_exec_jar_path = '/usr/lib/hive/lib/hive-exec.jar'
 hive_exec_hdfs_path = default('/configurations/hive-site/hive.jar.directory', '/apps/hive/install')

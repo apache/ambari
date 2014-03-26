@@ -121,6 +121,11 @@
     <value>hive</value>
     <description>Hive User.</description>
   </property>
+  <property>
+    <name>tez_user</name>
+    <value>tez</value>
+    <description></description>
+  </property>
 
   <!--HCAT-->
 
