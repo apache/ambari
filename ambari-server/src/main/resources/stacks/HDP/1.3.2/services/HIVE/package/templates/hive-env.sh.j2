@@ -51,5 +51,8 @@ HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 export HIVE_CONF_DIR={{conf_dir}}
 
 # Folder containing extra ibraries required for hive compilation/execution can be controlled by:
-# export HIVE_AUX_JARS_PATH=
-export HIVE_AUX_JARS_PATH={{hive_aux_jars_path}}
+if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
+  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
+else
+  export HIVE_AUX_JARS_PATH={{hive_aux_jars_path}}
+fi
