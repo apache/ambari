@@ -531,7 +531,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   loadConfigsSuccessCallback: function(data) {
     var urlParams = [];
-    urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+    if (App.get('isHaEnabled')) {
+      urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+    }
     if (App.Service.find().someProperty('serviceName', 'HBASE')) {
       urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
     }
@@ -540,6 +542,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if (App.Service.find().someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
+    }
+    if (!urlParams.length) {
+      return;
     }
     App.ajax.send({
       name: 'reassign.load_configs',
