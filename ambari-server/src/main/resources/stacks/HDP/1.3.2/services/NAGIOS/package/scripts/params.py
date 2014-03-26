@@ -159,5 +159,6 @@ hostgroup_defs = {
     'resourcemanager' : _rm_host,
     'nodemanagers' : _nm_hosts,
     'historyserver2' : _hs_host,
+    'jobhistory': _hs_host,
     'journalnodes' : _journalnode_hosts
 }
