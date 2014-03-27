@@ -115,7 +115,7 @@
         "oozie-site": {
             "oozie.service.PurgeService.purge.interval": "3600", 
             "oozie.service.CallableQueueService.queue.size": "1000", 
-            "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd", 
+            "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd,hive-action-0.3.xsd",
             "oozie.service.JPAService.jdbc.url": "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true", 
             "oozie.service.HadoopAccessorService.nameNode.whitelist": " ", 
             "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", 
