@@ -1295,7 +1295,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   
   @Override
   public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
-    Map<Long, ConfigGroup> configGroupMap = null;
+    Map<Long, ConfigGroup> configGroupMap;
     String clusterName = getClusterName();
     try {
       Cluster cluster = clusters.getCluster(clusterName);

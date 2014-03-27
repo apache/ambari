@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -107,6 +108,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
 
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -615,7 +618,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (null != request.getMaintenanceState()) {
         MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());
         if (newMaint  != s.getMaintenanceState()) {
-          if (newMaint.equals(MaintenanceState.IMPLIED)) {
+          if (newMaint.equals(MaintenanceState.IMPLIED_FROM_HOST)
+              || newMaint.equals(MaintenanceState.IMPLIED_FROM_SERVICE)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
@@ -741,7 +745,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           }
           Host host = clusters.getHost(sch.getHostName());
 
-          if (schMaint == MaintenanceState.IMPLIED
+          if (schMaint == MaintenanceState.IMPLIED_FROM_HOST
              && host != null
              && host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.OFF) {
 
@@ -816,8 +820,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     
     if (maintenanceClusters.size() > 0) {
       try {
-        MaintenanceStateHelper.createRequests(controller, requestProperties,
-            maintenanceClusters);
+        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceClusters);
       } catch (Exception e) {
         LOG.warn("Could not send maintenance state to Nagios (" + e.getMessage() + ")");
       }
@@ -825,7 +828,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return controller.addStages(requestStages, cluster, requestProperties, null, changedServices, changedComps, changedScHosts,
+    return controller.addStages(requestStages, cluster, requestProperties,
+      null, changedServices, changedComps, changedScHosts,
         ignoredScHosts, runSmokeTest, reconfigureClients);
   }
 

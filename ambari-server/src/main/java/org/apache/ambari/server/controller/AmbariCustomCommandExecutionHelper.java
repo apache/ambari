@@ -112,6 +112,8 @@ public class AmbariCustomCommandExecutionHelper {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private ConfigHelper configHelper;
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
   protected static final String DECOMMISSION_COMMAND_NAME = "DECOMMISSION";
@@ -306,7 +308,7 @@ public class AmbariCustomCommandExecutionHelper {
       // if the target is NAGIOS (for example: restart command), make passive info always available
       if (execCmd.getRole().equals(Role.NAGIOS_SERVER.name())) {
         execCmd.setPassiveInfo(
-          MaintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
+          maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
       }
       
     }

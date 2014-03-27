@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -116,6 +117,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           HOST_NAME_PROPERTY_ID}));
+
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -572,7 +576,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         MaintenanceState newState = MaintenanceState.valueOf(request.getMaintenanceState());
         MaintenanceState oldState = h.getMaintenanceState(c.getClusterId());
         if (!newState.equals(oldState)) {
-          if (newState.equals(MaintenanceState.IMPLIED)) {
+          if (newState.equals(MaintenanceState.IMPLIED_FROM_HOST)
+              || newState.equals(MaintenanceState.IMPLIED_FROM_SERVICE)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
@@ -624,8 +629,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     
     if (maintenanceClusters.size() > 0) {
       try {
-        MaintenanceStateHelper.createRequests(controller, requestProperties,
-            maintenanceClusters);
+        maintenanceStateHelper.createRequests(controller, requestProperties, maintenanceClusters);
       } catch (Exception e) {
         LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
       }

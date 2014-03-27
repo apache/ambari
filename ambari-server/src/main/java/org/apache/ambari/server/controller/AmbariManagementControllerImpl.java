@@ -1314,7 +1314,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // Send passive host info to the Nagios host role
     if (execCmd.getRole().equals(Role.NAGIOS_SERVER.name())) {
       execCmd.setPassiveInfo(
-        MaintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
+        maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
     }
   }
 
@@ -1777,7 +1777,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           if (sc.isClientComponent()) {
             throw new IllegalArgumentException("Invalid arguments, cannot set " +
               "maintenance state on a client component");
-          } else if (newMaint.equals(MaintenanceState.IMPLIED)) {
+          } else if (newMaint.equals(MaintenanceState.IMPLIED_FROM_HOST)
+              || newMaint.equals(MaintenanceState.IMPLIED_FROM_SERVICE)) {
             throw new IllegalArgumentException("Invalid arguments, can only set " +
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
@@ -1909,8 +1910,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     
     if (maintenanceClusters.size() > 0) {
       try {
-        MaintenanceStateHelper.createRequests(this, requestProperties,
-            maintenanceClusters);
+        maintenanceStateHelper.createRequests(this, requestProperties, maintenanceClusters);
       } catch (Exception e) {
         LOG.warn("Could not send maintenance status to Nagios (" + e.getMessage() + ")");
       }
@@ -1918,8 +1918,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    return createAndPersistStages(cluster, requestProperties, null, null, null, changedScHosts, ignoredScHosts, runSmokeTest,
-        false);
+    return createAndPersistStages(cluster, requestProperties, null, null, null,
+      changedScHosts, ignoredScHosts, runSmokeTest, false);
   }
 
   private void validateServiceComponentHostRequest(ServiceComponentHostRequest request) {

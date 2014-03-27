@@ -17,17 +17,17 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -37,14 +37,18 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used to help manage maintenance state checks.
  */
+@Singleton
 public class MaintenanceStateHelper {
   private static final String NAGIOS_SERVICE = "NAGIOS";
   private static final String NAGIOS_COMPONENT = "NAGIOS_SERVER";
   private static final String NAGIOS_ACTION_NAME = "nagios_update_ignore";
+  private static final Logger LOG = LoggerFactory.getLogger(MaintenanceStateHelper.class);
   
   @Inject
   private Clusters clusters;
@@ -97,16 +101,30 @@ public class MaintenanceStateHelper {
    * @param sch the host component
    * @return the effective maintenance state
    */
-  private static MaintenanceState getEffectiveState(long clusterId, Service service,
-      Host host, ServiceComponentHost sch) {
-    if (MaintenanceState.ON == sch.getMaintenanceState())
-      return MaintenanceState.ON;
+  private MaintenanceState getEffectiveState(long clusterId,
+      Service service, Host host, ServiceComponentHost sch) {
 
-    if (MaintenanceState.OFF != service.getMaintenanceState() ||
-        MaintenanceState.OFF != host.getMaintenanceState(clusterId))
-      return MaintenanceState.IMPLIED;
+    MaintenanceState schState = sch.getMaintenanceState();
+    if (MaintenanceState.ON == schState) {
+      return MaintenanceState.ON;
+    }
+
+    MaintenanceState serviceState = service.getMaintenanceState();
+    MaintenanceState hostState = host.getMaintenanceState(clusterId);
+
+    if (MaintenanceState.OFF != serviceState && MaintenanceState.OFF != hostState) {
+      return MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST;
+    }
+
+    if (MaintenanceState.OFF != serviceState) {
+      return MaintenanceState.IMPLIED_FROM_SERVICE;
+    }
+
+    if (MaintenanceState.OFF != hostState) {
+      return MaintenanceState.IMPLIED_FROM_HOST;
+    }
     
-    return sch.getMaintenanceState();
+    return schState;
   }
 
   /**
@@ -114,9 +132,11 @@ public class MaintenanceStateHelper {
    * @param cluster the specific cluster to check
    * @return a property map of all host components that are in a
    * maintenance state (either {@link MaintenanceState#ON} or
-   * {@link MaintenanceState#IMPLIED})
+   * {@link MaintenanceState#IMPLIED_FROM_HOST} or
+   * {@link MaintenanceState#IMPLIED_FROM_SERVICE} or
+   * {@link MaintenanceState#IMPLIED_FROM_SERVICE_AND_HOST})
    */
-  public static Set<Map<String, String>> getMaintenanceHostComponents(Clusters clusters, Cluster cluster) throws AmbariException {
+  public Set<Map<String, String>> getMaintenanceHostComponents(Clusters clusters, Cluster cluster) throws AmbariException {
     
     Set<Map<String, String>> set = new HashSet<Map<String, String>>();
 
@@ -153,7 +173,7 @@ public class MaintenanceStateHelper {
    * @return the response
    * @throws AmbariException
    */
-  public static RequestStatusResponse createRequests(AmbariManagementController amc,
+  public RequestStatusResponse createRequests(AmbariManagementController amc,
       Map<String, String> requestProperties, Set<String> clusterNames) throws AmbariException {
     
     Map<String, String> params = new HashMap<String, String>();
@@ -169,10 +189,56 @@ public class MaintenanceStateHelper {
         clusterName, null, NAGIOS_ACTION_NAME,
         Collections.singletonList(resourceFilter), params);
       
-      if (null == response)
+      if (null == response) {
         response = amc.createAction(actionRequest, requestProperties);
+      }
     }    
     return response;
-  }  
-  
+  }
+
+  /**
+   * Determine based on the requesting Resource level and the state of the
+   * operand whether to allow operations on it.
+   *
+   * @param sourceType Request Source: {CLUSTER, SERVICE, HOSTCOMPONENT, HOST}
+   * @param sch HostComponent which is the operand of the operation
+   * @return
+   * @throws AmbariException
+   */
+  public boolean isOperationAllowed(Resource.Type sourceType,
+                                    ServiceComponentHost sch) throws AmbariException {
+    MaintenanceState maintenanceState = sch.getMaintenanceState();
+
+    if (sourceType.equals(Resource.Type.Cluster)) {
+
+      if (maintenanceState.equals(MaintenanceState.OFF)) {
+        return true;
+      }
+
+    } else if (sourceType.equals(Resource.Type.Service)) {
+
+      if (maintenanceState.equals(MaintenanceState.IMPLIED_FROM_SERVICE)
+          || maintenanceState.equals(MaintenanceState.OFF)) {
+        return true;
+      }
+
+    } else if (sourceType.equals(Resource.Type.Host)) {
+
+      if (maintenanceState.equals(MaintenanceState.IMPLIED_FROM_HOST)
+          || maintenanceState.equals(MaintenanceState.OFF)) {
+        return true;
+      }
+
+    } else if (sourceType.equals(Resource.Type.HostComponent)) {
+
+      return true;
+
+    } else {
+      LOG.warn("Unsupported Resource type, type = " + sourceType);
+    }
+
+    return false;
+  }
+
+
 }

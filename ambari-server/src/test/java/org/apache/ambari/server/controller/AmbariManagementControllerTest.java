@@ -9677,7 +9677,7 @@ public class AmbariManagementControllerTest {
     // check the host components implied state vs desired state
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        Assert.assertEquals(MaintenanceState.IMPLIED,
+        Assert.assertEquals(MaintenanceState.IMPLIED_FROM_SERVICE,
             controller.getEffectiveMaintenanceState(sch));
         Assert.assertEquals(MaintenanceState.OFF, sch.getMaintenanceState());
       }
@@ -9712,7 +9712,7 @@ public class AmbariManagementControllerTest {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         MaintenanceState implied = controller.getEffectiveMaintenanceState(sch);
         if (sch.getHostName().equals(host1)) {
-          Assert.assertEquals(MaintenanceState.IMPLIED, implied);
+          Assert.assertEquals(MaintenanceState.IMPLIED_FROM_HOST, implied);
         } else {
           Assert.assertEquals(MaintenanceState.OFF, implied);
         }
@@ -9783,7 +9783,8 @@ public class AmbariManagementControllerTest {
     
     // make SCH active
     targetSch.setMaintenanceState(MaintenanceState.OFF);
-    Assert.assertEquals(MaintenanceState.IMPLIED, controller.getEffectiveMaintenanceState(targetSch));
+    Assert.assertEquals(MaintenanceState.IMPLIED_FROM_SERVICE,
+      controller.getEffectiveMaintenanceState(targetSch));
     
     // update the service
     service.setMaintenanceState(MaintenanceState.OFF);
@@ -9792,7 +9793,8 @@ public class AmbariManagementControllerTest {
     host = hosts.get(host2);
     // update host
     host.setMaintenanceState(cluster.getClusterId(), MaintenanceState.ON);
-    Assert.assertEquals(MaintenanceState.IMPLIED, controller.getEffectiveMaintenanceState(targetSch));
+    Assert.assertEquals(MaintenanceState.IMPLIED_FROM_HOST,
+      controller.getEffectiveMaintenanceState(targetSch));
     
     targetSch.setMaintenanceState(MaintenanceState.ON);
     Assert.assertEquals(MaintenanceState.ON, controller.getEffectiveMaintenanceState(targetSch));

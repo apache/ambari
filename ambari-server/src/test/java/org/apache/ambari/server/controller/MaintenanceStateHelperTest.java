@@ -19,16 +19,23 @@ package org.apache.ambari.server.controller;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -68,6 +75,9 @@ public class MaintenanceStateHelperTest {
     Capture<ExecuteActionRequest> earCapture = new Capture<ExecuteActionRequest>();
     Capture<Map<String, String>> rpCapture = new Capture<Map<String, String>>();
     expect(amc.createAction(capture(earCapture), capture(rpCapture))).andReturn(null);
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper = createMockBuilder
+      (MaintenanceStateHelper.class).withConstructor(injector).createMock();
     
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -83,12 +93,11 @@ public class MaintenanceStateHelperTest {
     expect(sch.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
     expect(sch.getHostName()).andReturn("h1");
     
-    replay(amc, clusters, cluster, sch);
+    replay(amc, clusters, cluster, sch, maintenanceStateHelper);
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    MaintenanceStateHelper.createRequests(amc, map,
-        Collections.singleton(sch.getClusterName()));
+    maintenanceStateHelper.createRequests(amc, map, Collections.singleton(sch.getClusterName()));
     
     ExecuteActionRequest ear = earCapture.getValue();
     map = rpCapture.getValue();
@@ -103,12 +112,15 @@ public class MaintenanceStateHelperTest {
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));  
   }
-  
+
   private void testHost(MaintenanceState state) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<ExecuteActionRequest> earCapture = new Capture<ExecuteActionRequest>();
     Capture<Map<String, String>> rpCapture = new Capture<Map<String, String>>();
     expect(amc.createAction(capture(earCapture), capture(rpCapture))).andReturn(null);
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper = createMockBuilder
+      (MaintenanceStateHelper.class).withConstructor(injector).createMock();
 
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -140,12 +152,11 @@ public class MaintenanceStateHelperTest {
     expect(host.getHostName()).andReturn("h1").anyTimes();
     expect(host.getMaintenanceState(1L)).andReturn(state);
     
-    replay(amc, clusters, cluster, service, sch1, host);
+    replay(amc, clusters, cluster, service, sch1, host, maintenanceStateHelper);
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    MaintenanceStateHelper.createRequests(amc, map,
-        Collections.singleton(cluster.getClusterName()));
+    maintenanceStateHelper.createRequests(amc, map, Collections.singleton(cluster.getClusterName()));
     
     ExecuteActionRequest ear = earCapture.getValue();
     rpCapture.getValue();
@@ -160,12 +171,14 @@ public class MaintenanceStateHelperTest {
     Assert.assertTrue(map.containsKey("context"));    
   }
   
-  
   private void testService(MaintenanceState state) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Capture<ExecuteActionRequest> earCapture = new Capture<ExecuteActionRequest>();
     Capture<Map<String, String>> rpCapture = new Capture<Map<String, String>>();
     expect(amc.createAction(capture(earCapture), capture(rpCapture))).andReturn(null);
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper = createMockBuilder
+      (MaintenanceStateHelper.class).withConstructor(injector).createMock();
     
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -198,12 +211,11 @@ public class MaintenanceStateHelperTest {
     expect(service.getMaintenanceState()).andReturn(state);
     expect(service.getName()).andReturn("HDFS");
     
-    replay(amc, clusters, cluster, service, sc1, sc2, sch1);
+    replay(amc, clusters, cluster, service, sc1, sc2, sch1, maintenanceStateHelper);
     
     Map<String, String> map = new HashMap<String, String>();
     map.put("context", "abc");
-    MaintenanceStateHelper.createRequests(amc, map,
-        Collections.singleton("c1"));
+    maintenanceStateHelper.createRequests(amc, map, Collections.singleton("c1"));
     
     ExecuteActionRequest ear = earCapture.getValue();
     map = rpCapture.getValue();
@@ -217,5 +229,135 @@ public class MaintenanceStateHelperTest {
     Assert.assertEquals("c1", ear.getClusterName());
     Assert.assertTrue(map.containsKey("context"));
   }
-  
+
+  @Test
+  public void testHostComponentImpliedState() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper =
+      createMockBuilder(MaintenanceStateHelper.class)
+        .withConstructor(injector)
+        .createNiceMock();
+
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    ServiceComponentHost sch = createMock(ServiceComponentHost.class);
+    Service service = createNiceMock(Service.class);
+    final Host host = createNiceMock(Host.class);
+
+    expect(sch.getClusterName()).andReturn("c1").anyTimes();
+    expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(clusters.getHostsForCluster("c1")).andReturn(
+      new HashMap<String, Host>() {{
+        put("h1", host);
+      }}
+    ).anyTimes();
+    expect(sch.getHostName()).andReturn("h1").anyTimes();
+    expect(sch.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(cluster.getService("HDFS")).andReturn(service).anyTimes();
+
+    expect(sch.getMaintenanceState())
+      .andReturn(MaintenanceState.ON).times(1)
+      .andReturn(MaintenanceState.OFF).anyTimes();
+    expect(service.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(host.getMaintenanceState(1L)).andReturn(MaintenanceState.ON);
+    expect(service.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(host.getMaintenanceState(1L)).andReturn(MaintenanceState.OFF);
+    expect(service.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+    expect(host.getMaintenanceState(1L)).andReturn(MaintenanceState.ON);
+
+    Class<?> maintenanceHelperClass = MaintenanceStateHelper.class;
+    Field f = maintenanceHelperClass.getDeclaredField("clusters");
+    f.setAccessible(true);
+    f.set(maintenanceStateHelper, clusters);
+
+    replay(maintenanceStateHelper, clusters, cluster, sch, host, service);
+
+    MaintenanceState state = maintenanceStateHelper.getEffectiveState(sch);
+    Assert.assertEquals(MaintenanceState.ON, state);
+
+    state = maintenanceStateHelper.getEffectiveState(sch);
+    Assert.assertEquals(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST, state);
+
+    state = maintenanceStateHelper.getEffectiveState(sch);
+    Assert.assertEquals(MaintenanceState.IMPLIED_FROM_SERVICE, state);
+
+    state = maintenanceStateHelper.getEffectiveState(sch);
+    Assert.assertEquals(MaintenanceState.IMPLIED_FROM_HOST, state);
+
+    verify(maintenanceStateHelper, clusters, cluster, sch, host, service);
+  }
+
+  @Test
+  public void testHostComponentOperationsAllowance() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    MaintenanceStateHelper maintenanceStateHelper =
+      createMockBuilder(MaintenanceStateHelper.class)
+        .withConstructor(injector)
+        .createNiceMock();
+
+    ServiceComponentHost sch = createMock(ServiceComponentHost.class);
+
+    // Cluster
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+
+    // Service
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+
+    // Host
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+
+    // HostComponent
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.ON);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.IMPLIED_FROM_SERVICE_AND_HOST);
+    expect(sch.getMaintenanceState()).andReturn(MaintenanceState.OFF);
+
+
+    replay(maintenanceStateHelper, sch);
+
+    // Cluster
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, sch));
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, sch));
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, sch));
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, sch));
+
+    // Service
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, sch));
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, sch));
+    Assert.assertEquals(false , maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Service, sch));
+
+    // Host
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, sch));
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, sch));
+    Assert.assertEquals(false, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.Host, sch));
+
+    // HostComponent
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, sch));
+    Assert.assertEquals(true, maintenanceStateHelper.isOperationAllowed(Resource.Type.HostComponent, sch));
+
+    verify(maintenanceStateHelper, sch);
+  }
 }

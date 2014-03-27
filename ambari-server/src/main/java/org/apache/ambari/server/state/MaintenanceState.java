@@ -18,7 +18,7 @@
 package org.apache.ambari.server.state;
 
 /**
- * Indicates when a Service or Host participates in automated opererations, and
+ * Indicates when a Service or Host participates in automated operations, and
  * if alerts are enabled.
  */
 public enum MaintenanceState {
@@ -31,7 +31,15 @@ public enum MaintenanceState {
    */
   ON,
   /**
-   * Target is in maintenance, implied by a parent target.
+   * Target is in maintenance, implied by parent service.
    */
-  IMPLIED
+  IMPLIED_FROM_SERVICE,
+  /**
+   * Target is in maintenance, implied by parent host.
+   */
+  IMPLIED_FROM_HOST,
+  /**
+   * Target is in maintenance, implied by parent service and host.
+   */
+  IMPLIED_FROM_SERVICE_AND_HOST
 }

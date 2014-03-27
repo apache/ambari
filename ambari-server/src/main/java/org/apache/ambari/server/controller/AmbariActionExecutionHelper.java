@@ -74,6 +74,8 @@ public class AmbariActionExecutionHelper {
   private ActionManager actionManager;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  private MaintenanceStateHelper maintenanceStateHelper;
 
   /**
    * Validates the request to execute an action.
@@ -294,7 +296,7 @@ public class AmbariActionExecutionHelper {
     }
 
     Set<Map<String, String>> maintenanceSCHs =
-      MaintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster);
+      maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster);
 
     //create tasks for each host
     for (String hostName : targetHosts) {
