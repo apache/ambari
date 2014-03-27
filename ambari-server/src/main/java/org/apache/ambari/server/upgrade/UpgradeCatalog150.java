@@ -261,16 +261,16 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
       if (dbAccessor.tableExists("hostcomponentdesiredconfigmapping")) {
-        dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;", true);
+        dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping", true);
       }
-      dbAccessor.executeQuery("ALTER TABLE users ALTER column user_id DROP DEFAULT;", true);
-      dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END;", true);
+      dbAccessor.executeQuery("ALTER TABLE users ALTER column user_id DROP DEFAULT", true);
+      dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END", true);
     }
 
     if (Configuration.ORACLE_DB_NAME.equals(dbType) ||
         Configuration.POSTGRES_DB_NAME.equals(dbType)) {
       if (dbAccessor.tableHasColumn("hosts", "disks_info")) {
-        dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info;", true);
+        dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info", true);
       }
     }
 
@@ -285,7 +285,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       moveRCATableInMySQL("hdfsEvent", dbName);
       moveRCATableInMySQL("mapreduceEvent", dbName);
       moveRCATableInMySQL("clusterEvent", dbName);
-      dbAccessor.executeQuery("DROP DATABASE IF EXISTS ambarirca;");
+      dbAccessor.executeQuery("DROP DATABASE IF EXISTS ambarirca");
     }
 
     //Newly created tables should be filled before creating FKs
@@ -382,7 +382,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
   private void moveRCATableInMySQL(String tableName, String dbName) throws SQLException {
     if (!dbAccessor.tableExists(tableName)) {
-      dbAccessor.executeQuery(String.format("RENAME TABLE ambarirca.%s TO %s.%s;", tableName, dbName, tableName), true);
+      dbAccessor.executeQuery(String.format("RENAME TABLE ambarirca.%s TO %s.%s", tableName, dbName, tableName), true);
     }
   }
 
