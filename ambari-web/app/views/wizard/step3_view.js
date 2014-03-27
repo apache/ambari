@@ -67,12 +67,12 @@ App.WizardStep3View = App.TableView.extend({
     this.get('content').setEach('isChecked', false);
   },
 
-  watchSelectionOnce: function(){
+  watchSelectionOnce: function () {
     Em.run.once(this, 'watchSelection');
-  }.observes('content.@each.isChecked'),
+  }.observes('content.@each.isChecked', 'pageContent'),
 
   /**
-   * watch selection and calculate flags as:
+   * watch selection and calculate such flags as:
    * - noHostsSelected
    * - selectedHostsCount
    * - pageChecked
@@ -116,6 +116,12 @@ App.WizardStep3View = App.TableView.extend({
     ];
   }.property(),
 
+  hostBootStatusObserver: function(){
+    Ember.run.once(this, 'countCategoryHosts');
+    Ember.run.once(this, 'filter');
+    Ember.run.once(this, 'monitorStatuses');
+  }.observes('content.@each.bootStatus'),
+
   countCategoryHosts: function () {
     var counters = {
       "RUNNING": 0,
@@ -132,7 +138,7 @@ App.WizardStep3View = App.TableView.extend({
     this.get('categories').forEach(function(category) {
       category.set('hostsCount', counters[category.get('hostsBootStatus')]);
     }, this);
-  }.observes('content.@each.bootStatus'),
+  },
 
 
   /**
@@ -147,7 +153,7 @@ App.WizardStep3View = App.TableView.extend({
       result = this.get('content').filterProperty('bootStatus', this.get('selectedCategory.hostsBootStatus'));
     }
     this.set('filteredContent', result);
-  }.observes('content.@each.bootStatus', 'selectedCategory'),
+  }.observes('selectedCategory'),
   /**
    * Trigger on Category click
    * @param {Object} event
@@ -193,7 +199,7 @@ App.WizardStep3View = App.TableView.extend({
         this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length - failedHosts), failedHosts));
       }
     }
-  }.observes('controller.isWarningsLoaded', 'controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings')
+  }.observes('controller.isWarningsLoaded', 'controller.isHostHaveWarnings', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings')
 });
 
 //todo: move it inside WizardStep3View

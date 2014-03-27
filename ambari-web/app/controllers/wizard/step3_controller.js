@@ -43,7 +43,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   navigateStep: function () {
     if(this.get('isLoaded')){
-      if (this.get('content.installOptions.manualInstall') !== true) {
+      if (!this.get('content.installOptions.manualInstall')) {
         if (!this.get('wizardController').getDBProperty('bootStatus')) {
           this.startBootstrap();
         }
@@ -51,13 +51,11 @@ App.WizardStep3Controller = Em.Controller.extend({
         this.set('bootHosts', this.get('hosts'));
         if (App.testMode) {
           this.getHostInfo();
-          this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
           this.get('bootHosts').setEach('cpu', '2');
           this.get('bootHosts').setEach('memory', '2000000');
           this.set('isSubmitDisabled', false);
         } else {
           this.set('registrationStartedAt', null);
-          this.get('bootHosts').setEach('bootStatus', 'DONE');
           this.startRegistration();
         }
       }
@@ -88,11 +86,15 @@ App.WizardStep3Controller = Em.Controller.extend({
   loadHosts: function () {
     var hostsInfo = this.get('content.hosts');
     var hosts = [];
+    var bootStatus = (this.get('content.installOptions.manualInstall')) ? 'DONE' : 'PENDING';
+    if (App.testMode) {
+      bootStatus = 'REGISTERED';
+    }
 
     for (var index in hostsInfo) {
       var hostInfo = App.HostInfo.create({
         name: hostsInfo[index].name,
-        bootStatus: hostsInfo[index].bootStatus,
+        bootStatus: bootStatus,
         isChecked: false
       });
 
@@ -159,8 +161,19 @@ App.WizardStep3Controller = Em.Controller.extend({
       },
       secondary: null,
       bodyClass: Ember.View.extend({
+        templateName: require('templates/common/items_list_popup'),
         items: selectedHosts,
-        templateName: require('templates/common/items_list_popup')
+        insertedItems: [],
+        didInsertElement: function() {
+          lazyloading.run({
+            destination: this.get('insertedItems'),
+            source: this.get('items'),
+            context: this,
+            initSize: 100,
+            chunkSize: 500,
+            delay: 100
+          });
+        }
       })
     });
   },
@@ -206,11 +219,14 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.numPolls = 0;
     this.set('registrationStartedAt', null);
     this.set('bootHosts', this.get('hosts'));
-    this.get('bootHosts').setEach('bootStatus', 'PENDING');
     this.doBootstrap();
   },
 
   isRegistrationInProgress: true,
+
+  setRegistrationInProgressOnce: function () {
+    Ember.run.once(this, 'setRegistrationInProgress');
+  }.observes('bootHosts.@each.bootStatus'),
 
   setRegistrationInProgress: function () {
     var bootHosts = this.get('bootHosts');
@@ -223,7 +239,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       }
     }
     this.set('isRegistrationInProgress', result);
-  }.observes('bootHosts.@each.bootStatus'),
+  },
 
   disablePreviousSteps: function () {
     App.router.get('installerController.isStepDisabled').filter(function (step) {

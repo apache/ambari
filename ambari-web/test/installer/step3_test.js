@@ -281,27 +281,4 @@ describe('App.WizardStep3Controller', function () {
       });
     });
   });
-
-  describe('#noHostsSelected', function() {
-    tests.forEach(function(test) {
-      it(test.m + ' - nothing checked', function() {
-        var controller = App.WizardStep3Controller.create({
-          hosts: test.bootHosts
-        });
-        controller.get('hosts').setEach('isChecked', false);
-        console.log(controller.hosts);
-        expect(controller.get('noHostsSelected')).to.equal(true);
-      });
-      it(test.m + ' - one checked', function() {
-        var controller = App.WizardStep3Controller.create({
-          hosts: test.bootHosts
-        });
-        controller.get('hosts').setEach('isChecked', true);
-        expect(controller.get('noHostsSelected')).to.equal(false);
-      });
-    });
-  });
-
-
-
 });

@@ -18,6 +18,7 @@
 
 var App = require('app');
 var validator = require('utils/validator');
+var lazyloading = require('utils/lazy_loading');
 
 App.WizardStep2Controller = Em.Controller.extend({
   name: 'wizardStep2Controller',
@@ -310,7 +311,18 @@ App.WizardStep2Controller = Em.Controller.extend({
       },
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/items_list_popup'),
-        items: hostNames
+        items: hostNames,
+        insertedItems: [],
+        didInsertElement: function() {
+          lazyloading.run({
+            destination: this.get('insertedItems'),
+            source: this.get('items'),
+            context: this,
+            initSize: 100,
+            chunkSize: 500,
+            delay: 100
+          });
+        }
       })
     });
   },
