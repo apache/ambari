@@ -394,7 +394,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }, Em.I18n.t('hosts.host.addComponent.addZooKeeper'));
     }
     else {
-      if (securityEnabled) {
+      if (securityEnabled && component.get('componentName') !== 'CLIENTS') {
         App.showConfirmationPopup(function() {
           self.primary(component);
         }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName,self.get('content.hostName')));
