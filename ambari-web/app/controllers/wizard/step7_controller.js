@@ -79,7 +79,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   installedServiceNames: function () {
     var serviceNames = this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
     if(this.get('content.controllerName') !== 'installerController') {
-      return serviceNames.without('SQOOP');
+      return serviceNames.without('SQOOP').without('HCATALOG');
     }
     return serviceNames;
   }.property('content.services').cacheable(),
@@ -403,8 +403,12 @@ App.WizardStep7Controller = Em.Controller.extend({
         this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
     }
     this.activateSpecialConfigs();
-    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
-
+    if (this.get('wizardController.name') === 'addServiceController') {
+      this.set('selectedService', this.get('stepConfigs').filterProperty('selected', true).get('firstObject'));
+    }
+    else {
+      this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
+    }
     if (this.get('content.skipConfigStep')) {
       App.router.send('next');
     }

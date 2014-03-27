@@ -21,22 +21,6 @@ var App = require('app');
 
 App.WizardStep7View = Em.View.extend({
 
-  templateName: require('templates/wizard/step7'),
-
-  didInsertElement: function() {
-    var self = this;
-    Em.run.next(function() {
-      var tabs = self.get('controller.stepConfigs').filterProperty('showConfig', true).mapProperty('serviceName');
-      var selectedServiceNames = self.get('controller.selectedServiceNames');
-      var tabIndex = 0;
-      for (var i = 0; i < tabs.length; i++) {
-        if (selectedServiceNames.contains(tabs[i])) {
-          tabIndex = i;
-          break;
-        }
-      }
-      self.$().find('.nav-tabs li:eq(' + tabIndex + ') a').trigger('click');
-    });
-  }
+  templateName: require('templates/wizard/step7')
 
 });
