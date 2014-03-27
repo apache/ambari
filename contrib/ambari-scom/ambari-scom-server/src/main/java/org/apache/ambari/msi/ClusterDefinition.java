@@ -62,6 +62,32 @@ public class ClusterDefinition {
   private int nextTaskId = 1;
 
   /**
+   * Client only components
+   */
+  private final Set<String> clientOnlyComponents = new HashSet<String>(){{
+    add("PIG");
+    add("SQOOP");
+    add("YARN_CLIENT");
+    add("MAPREDUCE2_CLIENT");
+  }};
+
+  private Boolean isClientOnlyComponent(String componentName) {
+    return clientOnlyComponents.contains(componentName);
+  }
+
+  /**
+   * Client only services
+   */
+  private final Set<String> clientOnlyServices = new HashSet<String>(){{
+    add("PIG");
+    add("SQOOP");
+  }};
+
+  private Boolean isClientOnlyService(String serviceName) {
+    return clientOnlyServices.contains(serviceName);
+  }
+
+  /**
    * Component name mapping to account for differences in what is provided by the MSI
    * and what is expected by the Ambari providers.
    */
@@ -109,6 +135,10 @@ public class ClusterDefinition {
         //hiveComponents.add("MYSQL_SERVER");
 
         Set<String> clientHosts = new HashSet<String>();
+        clientHosts.add("PIG");
+        clientHosts.add("SQOOP");
+        clientHosts.add("YARN_CLIENT");
+        clientHosts.add("MAPREDUCE2_CLIENT");
         componentNameMap.put("CLIENT_HOSTS", clientHosts);
       }
     }
@@ -141,10 +171,14 @@ public class ClusterDefinition {
         componentServiceMap.put("TASKTRACKER",        "MAPREDUCE");
       }
       if(majorStackVersion == 2) {
+        componentServiceMap.put("PIG",                "PIG");
+        componentServiceMap.put("SQOOP",              "SQOOP");
         componentServiceMap.put("HISTORYSERVER",      "MAPREDUCE2");
+        componentServiceMap.put("MAPREDUCE2_CLIENT",  "MAPREDUCE2");
         componentServiceMap.put("JOURNALNODE",        "HDFS");
         componentServiceMap.put("NODEMANAGER",        "YARN");
         componentServiceMap.put("RESOURCEMANAGER",    "YARN");
+        componentServiceMap.put("YARN_CLIENT",        "YARN");
         //componentServiceMap.put("MYSQL_SERVER",       "HIVE");
       }
     }
@@ -307,6 +341,7 @@ public class ClusterDefinition {
         Set<String> componentNames = entry.getValue();
 
         for (String componentName : componentNames) {
+          if (isClientOnlyComponent(componentName)) continue;
           if (stateProvider.getRunningState(hostName, componentName) != StateProvider.State.Running) {
             return "INSTALLED";
           }
@@ -329,19 +364,21 @@ public class ClusterDefinition {
         state.equals("INSTALLED") ? StateProvider.State.Stopped : StateProvider.State.Unknown;
 
     int requestId = -1;
-    // if the state is already set to the desired state or state is unknown then skip it
-    if (s != StateProvider.State.Unknown && !state.equals(getServiceState(serviceName))) {
-      Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
-      if (serviceHostComponents != null) {
+    if (!isClientOnlyService(serviceName)) {
+      // if the state is already set to the desired state or state is unknown then skip it
+      if (s != StateProvider.State.Unknown && !state.equals(getServiceState(serviceName))) {
+        Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
+        if (serviceHostComponents != null) {
 
-        for (Map.Entry<String, Set<String>> entry : serviceHostComponents.entrySet()) {
-          String      hostName       = entry.getKey();
-          Set<String> componentNames = entry.getValue();
+          for (Map.Entry<String, Set<String>> entry : serviceHostComponents.entrySet()) {
+            String      hostName       = entry.getKey();
+            Set<String> componentNames = entry.getValue();
 
-          for (String componentName : componentNames) {
-            if(state.equals(getHostComponentState(hostName, componentName))) continue;
-            requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
-                "Set service " + serviceName + " state to " + s);
+            for (String componentName : componentNames) {
+              if(state.equals(getHostComponentState(hostName, componentName))) continue;
+              requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
+                      "Set service " + serviceName + " state to " + s);
+            }
           }
         }
       }
@@ -367,6 +404,7 @@ public class ClusterDefinition {
 
         for (String name : componentNames) {
           if (name.equals(componentName)) {
+            if (isClientOnlyComponent(componentName)) return "INSTALLED";
             if (stateProvider.getRunningState(hostName, componentName) != StateProvider.State.Running) {
               return "INSTALLED";
             }
@@ -392,20 +430,21 @@ public class ClusterDefinition {
         state.equals("INSTALLED") ? StateProvider.State.Stopped : StateProvider.State.Unknown;
 
     int requestId = -1;
+    if (!isClientOnlyComponent(componentName)) {
+      if (s != StateProvider.State.Unknown) {
+        Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
+        if (serviceHostComponents != null) {
 
-    if (s != StateProvider.State.Unknown) {
-      Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
-      if (serviceHostComponents != null) {
+          for (Map.Entry<String, Set<String>> entry : serviceHostComponents.entrySet()) {
+            String      hostName       = entry.getKey();
+            Set<String> componentNames = entry.getValue();
 
-        for (Map.Entry<String, Set<String>> entry : serviceHostComponents.entrySet()) {
-          String      hostName       = entry.getKey();
-          Set<String> componentNames = entry.getValue();
-
-          for (String name : componentNames) {
-            if (name.equals(componentName)) {
-              if(state.equals(getHostComponentState(hostName, componentName))) continue;
-              requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
-                  "Set component " + componentName + " state to " + s);
+            for (String name : componentNames) {
+              if (name.equals(componentName)) {
+                if(state.equals(getHostComponentState(hostName, componentName))) continue;
+                requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
+                        "Set component " + componentName + " state to " + s);
+              }
             }
           }
         }
@@ -423,8 +462,9 @@ public class ClusterDefinition {
     * @return the host component state
     */
   public String getHostComponentState(String hostName, String componentName) {
-
-    boolean healthy = stateProvider.getRunningState(hostName, componentName) == StateProvider.State.Running;
+    Boolean healthy = Boolean.FALSE;
+    if (!isClientOnlyComponent(componentName))
+      healthy = stateProvider.getRunningState(hostName, componentName) == StateProvider.State.Running;
     return healthy ? "STARTED" : "INSTALLED";
   }
 
@@ -441,10 +481,11 @@ public class ClusterDefinition {
         state.equals("INSTALLED") ? StateProvider.State.Stopped : StateProvider.State.Unknown;
 
     int requestId = -1;
-
-    if (s != StateProvider.State.Unknown && !state.equals(getHostComponentState(hostName, componentName))) {
-      requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), -1,
-          "Set host component " + componentName + " state to " + s);
+    if (!isClientOnlyComponent(componentName)) {
+      if (s != StateProvider.State.Unknown && !state.equals(getHostComponentState(hostName, componentName))) {
+        requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), -1,
+                "Set host component " + componentName + " state to " + s);
+      }
     }
     return requestId;
   }

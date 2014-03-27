@@ -300,10 +300,54 @@ public class ClusterDefinitionTest {
 
     ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
     Assert.assertFalse(clusterDefinition.getServices().contains("MAPREDUCE"));
+    Assert.assertTrue(clusterDefinition.getServices().contains("PIG"));
+    Assert.assertTrue(clusterDefinition.getServices().contains("SQOOP"));
     Assert.assertTrue(clusterDefinition.getServices().contains("YARN"));
     Assert.assertTrue(clusterDefinition.getServices().contains("MAPREDUCE2"));
+    Assert.assertTrue(clusterDefinition.getComponents("MAPREDUCE2").contains("MAPREDUCE2_CLIENT"));
     Assert.assertTrue(clusterDefinition.getComponents("YARN").contains("NODEMANAGER"));
     Assert.assertTrue(clusterDefinition.getComponents("YARN").contains("RESOURCEMANAGER"));
+    Assert.assertTrue(clusterDefinition.getComponents("YARN").contains("YARN_CLIENT"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetServiceState_IfServiceIsClientOnly() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(-1, clusterDefinition.setServiceState("PIG", "STARTED"));
+
+    verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+  }
+
+  @Test
+  public void testSetHostComponentState_IfHostComponentIsClientOnly() {
+    StateProvider mockStateProvider = createStrictMock(StateProvider.class);
+    ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);
+    HostInfoProvider mockHostInfoProvider = createStrictMock(HostInfoProvider.class);
+
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider();
+
+    expect(mockClusterDefinitionProvider.getClusterName()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getVersionId()).andDelegateTo(testClusterDefinitionProvider);
+    expect(mockClusterDefinitionProvider.getInputStream()).andDelegateTo(testClusterDefinitionProvider);
+
+    replay(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(mockStateProvider, mockClusterDefinitionProvider, mockHostInfoProvider);
+    Assert.assertEquals(-1, clusterDefinition.setHostComponentState("hostName", "SQOOP", "STARTED"));
 
     verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
   }
