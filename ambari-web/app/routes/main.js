@@ -600,17 +600,22 @@ module.exports = Em.Route.extend({
 
   services: Em.Route.extend({
     route: '/services',
-    index: Ember.Route.extend({
+    index: Em.Route.extend({
       route: '/',
       enter: function (router) {
-        Ember.run.next(function () {
+        Em.run.next(function () {
           var controller = router.get('mainController');
           controller.dataLoading().done(function () {
             var service = router.get('mainServiceItemController.content');
             if (!service || !service.get('isLoaded')) {
               service = App.Service.find().objectAt(0); // getting the first service to display
             }
-            router.transitionTo('service.summary', service);
+            if (service.get('routeToConfigs')) {
+              router.transitionTo('service.configs', service);
+            }
+            else {
+              router.transitionTo('service.summary', service);
+            }
           });
         });
       }
@@ -650,12 +655,19 @@ module.exports = Em.Route.extend({
         route: '/configs',
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
-          if (item.get('isConfigurable')) {
-            router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+          //if service is not existed then route to default service
+          if (item.get('isLoaded')) {
+            if (item.get('isConfigurable')) {
+              router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+            }
+            else {
+              // if service doesn't have configs redirect to summary
+              router.transitionTo('summary');
+            }
           }
           else {
-            // if service doesn't have configs redirect to summary
-            router.transitionTo('summary');
+            item.set('routeToConfigs', true);
+            router.transitionTo('services.index');
           }
         },
         unroutePath: function (router, context) {
