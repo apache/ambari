@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 require('controllers/main/service/info/configs');
 
@@ -63,6 +64,12 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     var sortOrder = this.get('configs').filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
 
     var sorted = [];
+
+    //stack, with version lower than 2.1, doesn't have Falcon service
+    var proxyUserGroup = misc_configs.findProperty('name', 'proxyuser_group');
+    if (proxyUserGroup && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.1") !== 1) {
+      proxyUserGroup.set('displayName', "Proxy group for Hive, WebHCat and Oozie");
+    }
 
     if(sortOrder) {
       sortOrder.forEach(function(name) {

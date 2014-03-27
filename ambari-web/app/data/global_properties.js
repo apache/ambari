@@ -1196,7 +1196,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "proxyuser_group",
-      "displayName": "Proxy group for Hive, WebHCat, and Oozie",
+      "displayName": "Proxy group for Hive, WebHCat and Oozie",
       "description": "",
       "defaultValue": "users",
       "isReconfigurable": false,
