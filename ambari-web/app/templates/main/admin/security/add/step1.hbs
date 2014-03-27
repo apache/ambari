@@ -26,6 +26,9 @@
         <li>{{t admin.security.step1.body.instruction2}}</li>
         <li>{{t admin.security.step1.body.instruction3}}</li>
         <li>{{t admin.security.step1.body.instruction4}}</li>
+      {{#if view.isATSInstalled}}
+        <li>{{{t admin.security.step1.body.instruction5}}}</li>
+      {{/if}}
     </ol>
 </div>
 

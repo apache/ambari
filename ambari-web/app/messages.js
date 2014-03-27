@@ -944,6 +944,7 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction2': 'Install and configure the Kerberos client on every host in the cluster',
   'admin.security.step1.body.instruction3': 'Create Kerberos principals for Hadoop services and hosts',
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
+  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
   'admin.security.step3.notice': 'You need to create the following principals and keytabs on the hosts shown.<br />'+
   'You can download the list as a CSV file and use it to create a script to generate the principals and keytabs. ' +
@@ -958,11 +959,9 @@ Em.I18n.translations = {
   'admin.security.disable.body.header' : 'Disabling kerberos security on the cluster',
   'admin.security.disable.body.success.header': 'Kerberos-based security has been disabled on your cluster. Please wait while services are started in non-secure mode.',
   'admin.security.disable.body.failure.header': 'Failed to disable Kerberos-based security on your cluster. Your cluster will keep running in secure mode.',
-  'admin.addSecurity.apply.stage1': '1. Checking KDC',
-  'admin.addSecurity.apply.stage2': '1. Stop Services',
-  'admin.addSecurity.apply.stage3': '2. Save Configurations',
-  'admin.addSecurity.apply.stage4': '3. Start Services',
-  'admin.addSecurity.apply.stage5': '5. Smoke Test',
+  'admin.addSecurity.apply.stop.services': 'Stop Services',
+  'admin.addSecurity.apply.save.config': 'Save Configurations',
+  'admin.addSecurity.apply.start.services': 'Start Services',
   'admin.addSecurity.apply.delete.ats': 'Delete ATS',
   'admin.addSecurity.user.smokeUser': 'Ambari Smoke Test User',
   'admin.addSecurity.user.hdfsUser': 'HDFS User',

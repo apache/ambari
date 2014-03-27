@@ -23,7 +23,7 @@
       <tr>
         <td>
           {{#view App.StageLabelView commandBinding="command"}}
-            <p {{bindAttr class="view.isStarted::faintText"}}>{{command.label}}</p>
+            <p {{bindAttr class="view.isStarted::faintText"}}>{{command.index}}.&nbsp{{command.label}}</p>
           {{/view}}
         </td>
         <td>

@@ -19,5 +19,9 @@
 var App = require('app');
 App.MainAdminSecurityAddStep1Controller = Em.Controller.extend({
 
-  name: 'mainAdminSecurityAddStep1Controller'
+  name: 'mainAdminSecurityAddStep1Controller',
+  isATSInstalled: function() {
+    return this.get('content.services').findProperty('serviceName', 'YARN') &&
+      App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER')
+  }
 });

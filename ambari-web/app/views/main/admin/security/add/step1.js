@@ -20,7 +20,12 @@ var App = require('app');
 
 App.MainAdminSecurityAddStep1View = Em.View.extend({
 
-  templateName: require('templates/main/admin/security/add/step1')
+  templateName: require('templates/main/admin/security/add/step1'),
+  isATSInstalled: false,
+  didInsertElement: function(){
+    var isATSInstalled = this.get('controller').isATSInstalled();
+    this.set('isATSInstalled',isATSInstalled);
+  }
 
 });
 

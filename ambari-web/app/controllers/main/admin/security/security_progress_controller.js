@@ -81,10 +81,17 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
 
   loadCommands: function () {
     this.get('commands').pushObjects([
-      App.Poll.create({name: 'STOP_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true }),
-      App.Poll.create({name: 'APPLY_CONFIGURATIONS', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false }),
-      App.Poll.create({name: 'START_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true })
+      App.Poll.create({name: 'STOP_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.stop.services'], isPolling: true }),
+      App.Poll.create({name: 'APPLY_CONFIGURATIONS', label: Em.I18n.translations['admin.addSecurity.apply.save.config'], isPolling: false }),
+      App.Poll.create({name: 'START_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.start.services'], isPolling: true })
     ]);
+    this.setIndex(this.get('commands'));
+  },
+
+  setIndex: function(commandArray) {
+    commandArray.forEach(function(command,index){
+      command.set('index',index+1);
+    },this);
   },
 
   startCommand: function (commnad) {

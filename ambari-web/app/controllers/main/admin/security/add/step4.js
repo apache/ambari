@@ -67,9 +67,10 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     this._super();
     // no need to remove ATS component if YARN and ATS are not installed
     if (this.get('secureServices').findProperty('serviceName', 'YARN') && App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER')) {
-      this.get('commands').splice(2, 0, App.Poll.create({name: 'DELETE_ATS', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false, isVisible: false}));
+      this.get('commands').splice(2, 0, App.Poll.create({name: 'DELETE_ATS', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false}));
       this.set('totalSteps', 4);
     }
+    this.setIndex(this.get('commands'));
   },
 
   loadStep: function () {
