@@ -37,7 +37,7 @@ class GangliaServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    server_files()
+    self.configure(env)
     ganglia_server_service.server("start")
 
   def stop(self, env):
