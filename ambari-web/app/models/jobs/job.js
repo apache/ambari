@@ -57,7 +57,7 @@ App.AbstractJob = DS.Model.extend({
   duration : function() {
     var startTime = this.get('startTime');
     var endTime = this.get('endTime');
-    if(endTime < startTime) {
+    if(endTime < startTime || endTime == undefined) {
       endTime =  App.get('currentServerTime');
     }
     return dateUtils.duration(startTime, endTime);
