@@ -28,7 +28,6 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>openssl, postgresql (&gt;= 8.1), ${deb.python.ver}</deb.dependency.list>
-
     <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
     <common_functions.install.dir>/usr/lib/python2.6/site-packages/common_functions</common_functions.install.dir>
@@ -79,7 +78,14 @@
                 <resource>
                   <directory>${basedir}/../</directory>
                   <includes>
-                    <include>**/version</include>
+                    <include>version</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+                <resource>
+                  <directory>${basedir}/sbin/</directory>
+                  <includes>
+                    <include>ambari-server</include>
                   </includes>
                   <filtering>true</filtering>
                 </resource>
@@ -454,6 +460,8 @@
           </execution>
         </executions>
         <configuration>
+          <controlDir>${basedir}/src/main/package/deb/control</controlDir>
+          <deb>${basedir}/target/${artifactId}_${version}.deb</deb>
           <dataSet>
             <data>
               <type>template</type>
@@ -505,7 +513,7 @@
               </mapper>
             </data>
             <data>
-              <src>${basedir}/target/src/ambari-server</src>
+              <src>${basedir}/target/ambari-server</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>
@@ -753,7 +761,7 @@
             </mapper>
           </data>
           <data>
-            <src>${basedir}/target/src/version</src>
+            <src>${basedir}/target/version</src>
             <type>file</type>
             <mapper>
               <type>perm</type>
@@ -872,39 +880,6 @@
           </execution>
         </executions>
       </plugin>
-      <!--<plugin>-->
-        <!--<groupId>org.apache.maven.plugins</groupId>-->
-        <!--<artifactId>maven-resources-plugin</artifactId>-->
-        <!--<version>2.6</version>-->
-          <!--<executions>-->
-           <!--<execution>-->
-            <!--<id>copy-resources</id>-->
-            <!--<phase>prepare-package</phase>-->
-            <!--<goals>-->
-              <!--<goal>copy-resources</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<outputDirectory>${basedir}/target/src</outputDirectory>-->
-              <!--<resources>-->
-                <!--<resource>-->
-                  <!--<directory>sbin</directory>-->
-                  <!--<includes>-->
-                    <!--<include>ambari-server</include>-->
-                  <!--</includes>-->
-                  <!--<filtering>true</filtering>-->
-                <!--</resource>-->
-                <!--<resource>-->
-                  <!--<directory>..</directory>-->
-                  <!--<includes>-->
-                    <!--<include>version</include>-->
-                  <!--</includes>-->
-                  <!--<filtering>true</filtering>-->
-                <!--</resource>-->
-              <!--</resources>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
     </plugins>
     <resources>
       <resource>

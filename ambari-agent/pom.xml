@@ -49,7 +49,6 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>openssl, zlibc, ${deb.python.ver}</deb.dependency.list>
-
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
@@ -397,6 +396,8 @@
           </execution>
         </executions>
         <configuration>
+          <controlDir>${basedir}/src/main/package/deb/control</controlDir>
+          <deb>${basedir}/target/${artifactId}_${version}.deb</deb>
           <dataSet>
             <data>
               <src>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</src>
@@ -614,7 +615,7 @@
                   <filtering>true</filtering>
                 </resource>
                 <resource>
-                  <directory>..</directory>
+                  <directory>${basedir}/../</directory>
                   <includes>
                     <include>version</include>
                   </includes>

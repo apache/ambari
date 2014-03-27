@@ -31,7 +31,6 @@
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-
   </properties>
   <pluginRepositories>
     <pluginRepository>
@@ -124,26 +123,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.vafer</groupId>
-        <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <phase>none</phase>
-            <goals>
-              <goal>jdeb</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <verbose>false</verbose>
-          <submodules>true</submodules>
-          <deb>${basedir}/target/${artifactId}_${version}.deb</deb>
-          <skip>false</skip>
-          <controlDir>${basedir}/src/main/package/deb/control</controlDir>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
@@ -180,6 +159,25 @@
             <!--Contributions-->
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
           </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <attach>false</attach>
+          <submodules>true</submodules>
+          <controlDir>${basedir}/ambari-project/src/main/package/deb/control</controlDir>
         </configuration>
       </plugin>
     </plugins>
