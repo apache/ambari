@@ -34,10 +34,6 @@ def setup_users():
        gid=params.user_group,
        groups=[params.proxyuser_group]
   )
-  User(params.tez_user,
-      gid=params.user_group,
-      groups=[params.proxyuser_group]
-  )
   smoke_user_dirs = format(
     "/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
   set_uid(params.smoke_user, smoke_user_dirs)
@@ -106,6 +102,12 @@ def setup_users():
          gid=params.user_group,
          groups=[params.user_group]
     )
+    
+  if params.has_tez:  
+    User(params.tez_user,
+      gid=params.user_group,
+      groups=[params.proxyuser_group]
+  )
 
 def set_uid(user, user_dirs):
   """
