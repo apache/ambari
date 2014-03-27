@@ -79,6 +79,18 @@ limitations under the License.
   </property>
 
   <property>
+    <name>templeton.hive.home</name>
+    <value>hive.tar.gz/hive</value>
+    <description>The path to the Hive home within the tar. Has no effect if templeton.hive.archive is not set.</description>
+  </property>
+
+  <property>
+    <name>templeton.hcat.home</name>
+    <value>hive.tar.gz/hive/hcatalog</value>
+    <description>The path to the HCat home within the tar. Has no effect if templeton.hive.archive is not set.</description>
+  </property>
+
+  <property>
     <name>templeton.hive.path</name>
     <value>hive.tar.gz/hive/bin/hive</value>
     <description>The path to the Hive executable.</description>
