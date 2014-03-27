@@ -47,6 +47,21 @@ App.TableView = Em.View.extend(App.UserPref, {
   displayLengthOnLoad: null,
 
   /**
+   * The number of rows to show on every page
+   * The value should be a number converted into string type in order to support select element API
+   * Example: "10", "25"
+   * @type {String}
+   */
+  displayLength: null,
+
+  /**
+   * default value of display length
+   * The value should be a number converted into string type in order to support select element API
+   * Example: "10", "25"
+   */
+  defaultDisplayLength: "10",
+
+  /**
    * Do filtering, using saved in the local storage filter conditions
    */
   willInsertElement:function () {
@@ -54,12 +69,14 @@ App.TableView = Em.View.extend(App.UserPref, {
     var name = this.get('controller.name');
 
     this.set('startIndexOnLoad', App.db.getStartIndex(name));
-    if (App.db.getDisplayLength(name)) {
-      this.set('displayLength', App.db.getDisplayLength(name));
-    } else {
-      self.dataLoading().done(function (initValue) {
-        self.set('displayLength', initValue);
-      });
+    if (!this.get('displayLength')) {
+      if (App.db.getDisplayLength(name)) {
+        this.set('displayLength', App.db.getDisplayLength(name));
+      } else {
+        self.dataLoading().done(function (initValue) {
+          self.set('displayLength', initValue);
+        });
+      }
     }
 
     var filterConditions = App.db.getFilterConditions(name);
@@ -130,7 +147,7 @@ App.TableView = Em.View.extend(App.UserPref, {
   getUserPrefErrorCallback: function () {
     // this user is first time login
     console.log('Persist did NOT find the key');
-    var displayLengthDefault = "10";
+    var displayLengthDefault = this.get('defaultDisplayLength');
     this.set('displayLengthOnLoad', displayLengthDefault);
     if (App.get('isAdmin')) {
       this.postUserPref(this.displayLengthKey(), displayLengthDefault);
@@ -173,7 +190,9 @@ App.TableView = Em.View.extend(App.UserPref, {
     }.property("parentView.startIndex", 'filteredContent.length'),
 
     click: function () {
-      this.get('parentView').previousPage();
+      if (this.get('class') === "paginate_previous") {
+        this.get('parentView').previousPage();
+      }
     }
   }),
 
@@ -189,7 +208,45 @@ App.TableView = Em.View.extend(App.UserPref, {
     }.property("parentView.endIndex", 'filteredContent.length'),
 
     click: function () {
-      this.get('parentView').nextPage();
+      if (this.get('class') === "paginate_next") {
+        this.get('parentView').nextPage();
+      }
+    }
+  }),
+
+  paginationFirst: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-step-backward"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if ((this.get("parentView.endIndex")) > parseInt(this.get("parentView.displayLength"))) {
+        return "paginate_previous";
+      }
+      return "paginate_disabled_previous";
+    }.property("parentView.endIndex", 'filteredContent.length'),
+
+    click: function () {
+      if (this.get('class') === "paginate_previous") {
+        this.get('parentView').firstPage();
+      }
+    }
+  }),
+
+  paginationLast: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-step-forward"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if (this.get("parentView.endIndex") !== this.get("parentView.filteredContent.length")) {
+        return "paginate_next";
+      }
+      return "paginate_disabled_next";
+    }.property("parentView.endIndex", 'filteredContent.length'),
+
+    click: function () {
+      if (this.get('class') === "paginate_next") {
+        this.get('parentView').lastPage();
+      }
     }
   }),
 
@@ -233,12 +290,22 @@ App.TableView = Em.View.extend(App.UserPref, {
       this.set('startIndex', result);
     }
   },
-
   /**
-   * The number of rows to show on every page
-   * @type {Number}
+   * Onclick handler for first page button on the page
    */
-  displayLength: null,
+  firstPage: function () {
+    this.set('startIndex', 1);
+  },
+  /**
+   * Onclick handler for last page button on the page
+   */
+  lastPage: function () {
+    var pagesCount = this.get('filteredContent.length') / parseInt(this.get('displayLength'));
+    var startIndex = (this.get('filteredContent.length') % parseInt(this.get('displayLength')) === 0) ?
+      (pagesCount - 1) * parseInt(this.get('displayLength')) :
+      Math.floor(pagesCount) * parseInt(this.get('displayLength'));
+    this.set('startIndex', ++startIndex);
+  },
 
   /**
    * Calculates default value for startIndex property after applying filter or changing displayLength

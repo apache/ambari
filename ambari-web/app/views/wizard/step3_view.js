@@ -19,24 +19,147 @@
 
 var App = require('app');
 
-App.WizardStep3View = Em.View.extend({
+App.WizardStep3View = App.TableView.extend({
 
   templateName: require('templates/wizard/step3'),
-  category: '',
 
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  },
+  content:function () {
+    return this.get('controller.hosts');
+  }.property('controller.hosts.length'),
 
   message:'',
   linkText: '',
   status: '',
 
+  selectedCategory: function() {
+    return this.get('categories').findProperty('isActive');
+  }.property('categories.@each.isActive'),
+
   registeredHostsMessage: '',
+
+  displayLength: "20",
+
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
+
+  pageChecked: false,
+
+  /**
+   * select checkboxes of hosts on page
+   */
+  onPageChecked: function () {
+    if (this.get('selectionInProgress')) return;
+    this.get('pageContent').setEach('isChecked', this.get('pageChecked'));
+  }.observes('pageChecked'),
+
+  /**
+   * select checkboxes of all hosts
+   */
+  selectAll: function () {
+    this.get('content').setEach('isChecked', true);
+  },
+
+  /**
+   * reset checkbox of all hosts
+   */
+  unSelectAll: function() {
+    this.get('content').setEach('isChecked', false);
+  },
+
+  watchSelectionOnce: function(){
+    Em.run.once(this, 'watchSelection');
+  }.observes('content.@each.isChecked'),
+
+  /**
+   * watch selection and calculate flags as:
+   * - noHostsSelected
+   * - selectedHostsCount
+   * - pageChecked
+   */
+  watchSelection: function() {
+    this.set('selectionInProgress', true);
+    this.set('pageChecked', !!this.get('pageContent.length') && this.get('pageContent').everyProperty('isChecked', true));
+    this.set('selectionInProgress', false);
+    var noHostsSelected = true;
+    var selectedHostsCount = 0;
+    this.get('content').forEach(function(host){
+      selectedHostsCount += ~~host.get('isChecked');
+      noHostsSelected = (noHostsSelected) ? !host.get('isChecked') : noHostsSelected;
+    });
+    this.set('noHostsSelected', noHostsSelected);
+    this.set('selectedHostsCount', selectedHostsCount);
+  },
 
   setRegisteredHosts: function(){
     this.set('registeredHostsMessage',Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('controller.registeredHosts').length));
   }.observes('controller.registeredHosts'),
+
+  categoryObject: Em.Object.extend({
+    hostsCount: 0,
+    label: function () {
+      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
+    }.property('value', 'hostsCount'),
+    isActive: false,
+    itemClass: function () {
+      return this.get('isActive') ? 'active' : '';
+    }.property('isActive')
+  }),
+
+  categories: function () {
+    return [
+      this.categoryObject.create({value: Em.I18n.t('common.all'), hostsBootStatus: 'ALL', isActive: true}),
+      this.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.installing'), hostsBootStatus: 'RUNNING'}),
+      this.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.registering'), hostsBootStatus: 'REGISTERING'}),
+      this.categoryObject.create({value: Em.I18n.t('common.success'), hostsBootStatus: 'REGISTERED' }),
+      this.categoryObject.create({value: Em.I18n.t('common.fail'), hostsBootStatus: 'FAILED', last: true })
+    ];
+  }.property(),
+
+  countCategoryHosts: function () {
+    var counters = {
+      "RUNNING": 0,
+      "REGISTERING": 0,
+      "REGISTERED": 0,
+      "FAILED": 0
+    };
+    this.get('content').forEach(function (host) {
+      if (counters[host.get('bootStatus')] !== undefined) {
+        counters[host.get('bootStatus')]++;
+      }
+    }, this);
+    counters["ALL"] = this.get('content.length');
+    this.get('categories').forEach(function(category) {
+      category.set('hostsCount', counters[category.get('hostsBootStatus')]);
+    }, this);
+  }.observes('content.@each.bootStatus'),
+
+
+  /**
+   * filter hosts by category
+   */
+  filter: function () {
+    var result = [];
+    var selectedCategory = this.get('selectedCategory');
+    if (!selectedCategory || selectedCategory.get('hostsBootStatus') === 'ALL') {
+      result = this.get('content');
+    } else {
+      result = this.get('content').filterProperty('bootStatus', this.get('selectedCategory.hostsBootStatus'));
+    }
+    this.set('filteredContent', result);
+  }.observes('content.@each.bootStatus', 'selectedCategory'),
+  /**
+   * Trigger on Category click
+   * @param {Object} event
+   */
+  selectCategory: function (event) {
+    var categoryStatus = event.context.get('hostsBootStatus');
+    var self = this;
+    this.get('categories').forEach(function (category) {
+      category.set('isActive', (category.get('hostsBootStatus') === categoryStatus));
+    });
+    this.watchSelection();
+  },
 
   monitorStatuses: function() {
     var hosts = this.get('controller.bootHosts');

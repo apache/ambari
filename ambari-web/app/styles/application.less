@@ -414,6 +414,19 @@ h1 {
     }
   }
   #confirm-hosts {
+    table {
+      margin-bottom: 0;
+      td {
+        input[type="checkbox"] {
+          margin-left: 15px;
+        }
+      }
+      th {
+        input[type="checkbox"] {
+          margin: 0;
+        }
+      }
+    }
     #host-filter {
       margin-top: 3px;
       ul {
@@ -435,6 +448,12 @@ h1 {
           text-decoration: none;
           color: #000000;
         }
+      }
+    }
+    .page-bar {
+      padding: 5px;
+      .selected-hosts-info {
+        margin: 0;
       }
     }
     .progress {

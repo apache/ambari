@@ -309,8 +309,8 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step2_host_name_pattern_popup'),
-        hostNames: hostNames
+        templateName: require('templates/common/items_list_popup'),
+        items: hostNames
       })
     });
   },

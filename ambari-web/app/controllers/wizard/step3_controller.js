@@ -38,68 +38,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   stopBootstrap: false,
   isSubmitDisabled: true,
 
-  categoryObject: Em.Object.extend({
-    hostsCount: function () {
-      var category = this;
-      var hosts = this.get('controller.hosts').filter(function(_host) {
-        if (_host.get('bootStatus') == category.get('hostsBootStatus')) {
-          return true;
-        } else {
-          return (_host.get('bootStatus') == 'DONE' && category.get('hostsBootStatus') == 'REGISTERING');
-        }
-      }, this);
-      return hosts.get('length');
-    }.property('controller.hosts.@each.bootStatus'), // 'hosts.@each.bootStatus'
-    label: function () {
-      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
-    }.property('value', 'hostsCount')
-  }),
-  getCategory: function(field, value){
-    return this.get('categories').find(function(item){
-      return item.get(field) == value;
-    });
-  },
-
-  categories: function () {
-    var self = this;
-    self.categoryObject.reopen({
-      controller: self,
-      isActive: function(){
-        return this.get('controller.category') == this;
-      }.property('controller.category'),
-      itemClass: function(){
-        return this.get('isActive') ? 'active' : '';
-      }.property('isActive')
-    });
-
-    var categories = [
-      self.categoryObject.create({value: Em.I18n.t('common.all'), hostsCount: function () {
-        return this.get('controller.hosts.length');
-      }.property('controller.hosts.length') }),
-      self.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.installing'), hostsBootStatus: 'RUNNING'}),
-      self.categoryObject.create({value: Em.I18n.t('installer.step3.hosts.status.registering'), hostsBootStatus: 'REGISTERING'}),
-      self.categoryObject.create({value: Em.I18n.t('common.success'), hostsBootStatus: 'REGISTERED' }),
-      self.categoryObject.create({value: Em.I18n.t('common.fail'), hostsBootStatus: 'FAILED', last: true })
-    ];
-
-    this.set('category', categories.get('firstObject'));
-
-    return categories;
-  }.property(),
-
-  category: false,
-
-  allChecked: false,
-
-  onAllChecked: function () {
-    var hosts = this.get('visibleHosts');
-    hosts.setEach('isChecked', this.get('allChecked'));
-  }.observes('allChecked'),
-
-  noHostsSelected: function () {
-    return !(this.hosts.someProperty('isChecked', true));
-  }.property('hosts.@each.isChecked'),
-
   isRetryDisabled: true,
   isLoaded: false,
 
@@ -160,20 +98,8 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       hosts.pushObject(hostInfo);
     }
-
-    if(hosts.length > 200) {
-      lazyloading.run({
-        destination: this.get('hosts'),
-        source: hosts,
-        context: this,
-        initSize: 100,
-        chunkSize: 150,
-        delay: 50
-      });
-    } else {
-      this.set('hosts', hosts);
-      this.set('isLoaded', true);
-    }
+    this.set('hosts', hosts);
+    this.set('isLoaded', true);
   },
 
   /**
@@ -195,22 +121,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     return this.get('bootHosts').length != 0 && this.get('bootHosts').someProperty('bootStatus', 'RUNNING');
   },
 
-  filterByCategory: function () {
-    var category = this.get('category.hostsBootStatus');
-    if (category) {
-      this.get('hosts').forEach(function (host) {
-        host.set('isVisible', (category === host.get('bootStatus')));
-      });
-    } else { // if (this.get('category') === 'All Hosts')
-      this.get('hosts').setEach('isVisible', true);
-    }
-  }.observes('category', 'hosts.@each.bootStatus'),
-
-  /* Returns the current set of visible hosts on view (All, Succeeded, Failed) */
-  visibleHosts: function () {
-    return this.get('hosts').filterProperty('isVisible');
-  }.property('hosts.@each.isVisible'),
-
   removeHosts: function (hosts) {
     var self = this;
     App.showConfirmationPopup(function() {
@@ -229,12 +139,30 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   removeSelectedHosts: function () {
     if (!this.get('noHostsSelected')) {
-      var selectedHosts = this.get('visibleHosts').filterProperty('isChecked', true);
+      var selectedHosts = this.get('hosts').filterProperty('isChecked', true);
       selectedHosts.forEach(function (_hostInfo) {
         console.log('Removing:  ' + _hostInfo.name);
       });
       this.removeHosts(selectedHosts);
     }
+  },
+
+  /**
+   * show popup with the list of hosts which are selected
+   */
+  selectedHostsPopup: function () {
+    var selectedHosts = this.get('hosts').filterProperty('isChecked').mapProperty('name');
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step3.selectedHosts.popup.header'),
+      onPrimary: function () {
+        this.hide();
+      },
+      secondary: null,
+      bodyClass: Ember.View.extend({
+        items: selectedHosts,
+        templateName: require('templates/common/items_list_popup')
+      })
+    });
   },
 
   retryHost: function (hostInfo) {
@@ -287,7 +215,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   setRegistrationInProgress: function () {
     var bootHosts = this.get('bootHosts');
     //if hosts aren't loaded yet then registration should be in progress
-    var result = (bootHosts.length === 0);
+    var result = (bootHosts.length === 0 && !this.get('isLoaded'));
     for (var i = 0, l = bootHosts.length; i < l; i++) {
       if (bootHosts[i].get('bootStatus') !== 'REGISTERED' && bootHosts[i].get('bootStatus') !== 'FAILED') {
         result = true;
@@ -679,20 +607,18 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   submit: function () {
-    if (!this.get('isSubmitDisabled')) {
-        if(this.get('isHostHaveWarnings')) {
-            var self = this;
-            App.showConfirmationPopup(
-                function(){
-                    self.set('content.hosts', self.get('bootHosts'));
-                    App.router.send('next');
-                },
-                Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
-        }
-        else {
-              this.set('content.hosts', this.get('bootHosts'));
-              App.router.send('next');
-        }
+    if (this.get('isHostHaveWarnings')) {
+      var self = this;
+      App.showConfirmationPopup(
+        function () {
+          self.set('content.hosts', self.get('bootHosts'));
+          App.router.send('next');
+        },
+        Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
+    }
+    else {
+      this.set('content.hosts', this.get('bootHosts'));
+      App.router.send('next');
     }
   },
 
@@ -1369,13 +1295,6 @@ App.WizardStep3Controller = Em.Controller.extend({
         registeredHosts: self.get('registeredHosts')
       })
     })
-  },
-
-  back: function () {
-    if (this.get('isRegistrationInProgress')) {
-      return;
-    }
-    App.router.send('back');
   }
 
 });
