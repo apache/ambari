@@ -75,6 +75,7 @@ has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_storm_server = not len(storm_server_hosts) == 0
 has_falcon_server = not len(falcon_host) == 0
+has_tez = 'tez-site' in config['configurations']
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
