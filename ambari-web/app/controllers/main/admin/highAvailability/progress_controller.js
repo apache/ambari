@@ -187,6 +187,28 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
 
   onTaskStatusChange: function () {
     console.warn('func: onTaskStatusChange1');
+    var statuses = this.get('tasks').mapProperty('status');
+    var logs = this.get('tasks').mapProperty('hosts');
+    var requestIds = this.get('currentRequestIds');
+    console.warn('func: onTaskStatusChange5',statuses, logs, requestIds);
+    // save task info
+    App.router.get(this.get('content.controllerName')).saveTasksStatuses(statuses);
+    App.router.get(this.get('content.controllerName')).saveRequestIds(requestIds);
+    App.router.get(this.get('content.controllerName')).saveLogs(logs);
+    // call saving of cluster status asynchronous
+    // synchronous executing cause problems in Firefox
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: this.get('clusterDeployState'),
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    }, { async: true, success: 'statusChangeCallback', sender: this });
+  },
+  /**
+   * Method that called after saving persist data to server.
+   * Switch task according its status.
+   */
+  statusChangeCallback: function() {
     if (!this.get('tasks').someProperty('status', 'IN_PROGRESS') && !this.get('tasks').someProperty('status', 'QUEUED') && !this.get('tasks').someProperty('status', 'FAILED')) {
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
       if (nextTask) {
@@ -210,24 +232,10 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     }
     this.get('tasks').filterProperty('status','COMPLETED').setEach('showRetry', false);
     this.get('tasks').filterProperty('status','COMPLETED').setEach('showRollback', false);
-
-    var statuses = this.get('tasks').mapProperty('status');
-    var logs = this.get('tasks').mapProperty('hosts');
-    var requestIds = this.get('currentRequestIds');
-    console.warn('func: onTaskStatusChange5',statuses, logs, requestIds);
-    App.router.get(this.get('content.controllerName')).saveTasksStatuses(statuses);
-    App.router.get(this.get('content.controllerName')).saveRequestIds(requestIds);
-    App.router.get(this.get('content.controllerName')).saveLogs(logs);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('content.cluster.name'),
-      clusterState: this.get('clusterDeployState'),
-      wizardControllerName: this.get('content.controllerName'),
-      localdb: App.db.data
-    });
   },
 
-  /*
-   run command of appropriate task
+  /**
+   * Run command of appropriate task
    */
   runTask: function (taskId) {
     console.warn('func: runTask',taskId);
@@ -370,6 +378,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     console.warn('func: doPolling');
     this.setTaskStatus(this.get('currentTaskId'), 'IN_PROGRESS');
     var requestIds = this.get('currentRequestIds');
+    this.set('logs', []);
     for (var i = 0; i < requestIds.length; i++) {
       App.ajax.send({
         name: 'admin.high_availability.polling',
@@ -415,7 +424,6 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
           self.doPolling()
         }, self.POLL_INTERVAL);
       }
-      this.set('logs', []);
     }
   },
 

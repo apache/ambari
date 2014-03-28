@@ -124,9 +124,11 @@ App.clusterStatus = Ember.Object.create({
   /**
    * update cluster status and post it on server
    * @param newValue
+   * @param opt - used for additional ajax request options, by default ajax used synchronous mode
+   *
    * @return {*}
    */
-  setClusterStatus: function(newValue){
+  setClusterStatus: function(newValue, opt){
     if(App.testMode) return false;
     var user = App.db.getUser();
     var login = App.db.getLoginName();
@@ -146,6 +148,7 @@ App.clusterStatus = Ember.Object.create({
         this.set('wizardControllerName', newValue.wizardControllerName);
         val.wizardControllerName = newValue.wizardControllerName;
       }
+
       if (newValue.localdb) {
         if (newValue.localdb.app && newValue.localdb.app.user)
           delete newValue.localdb.app.user;
@@ -156,7 +159,7 @@ App.clusterStatus = Ember.Object.create({
       } else {
         delete App.db.data.app.user;
         delete App.db.data.app.loginName;
-          val.localdb = App.db.data;
+        val.localdb = App.db.data;
         App.db.setUser(user);
         App.db.setLoginName(login);
       }
@@ -165,7 +168,7 @@ App.clusterStatus = Ember.Object.create({
 
       keyValuePair[this.get('key')] = JSON.stringify(val);
 
-      App.ajax.send({
+      var ajaxOptions = {
         name: 'cluster.state',
         sender: this,
         data: {
@@ -173,7 +176,17 @@ App.clusterStatus = Ember.Object.create({
         },
         beforeSend: 'clusterStatusBeforeSend',
         error: 'clusterStatusErrorCallBack'
-      });
+      };
+
+      if (opt) {
+        ajaxOptions.async = !!opt.async;
+        ajaxOptions.sender = opt.sender || this;
+        ajaxOptions.success = opt.success;
+        ajaxOptions.beforeSend = opt.beforeSend;
+        ajaxOptions.error = opt.error;
+      }
+
+      App.ajax.send(ajaxOptions);
       return newValue;
     }
   },
