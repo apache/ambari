@@ -19,11 +19,21 @@
 
 var App = require('app');
 
-App.WizardStep6View = Em.View.extend({
+App.WizardStep6View = App.TableView.extend({
 
   templateName: require('templates/wizard/step6'),
 
   title: '',
+
+  displayLength: "20",
+
+  content: function () {
+    return this.get('controller.hosts');
+  }.property('controller.hosts'),
+
+  filteredContent: function () {
+    return this.get('content');
+  }.property('content'),
 
   didInsertElement: function () {
     var controller = this.get('controller');
@@ -60,30 +70,25 @@ App.WizardStep6View = Em.View.extend({
     this.set('label', label);
   },
   /**
-   * attach event handlers to checkboxes
+   * Binding host property with dynamic name
+   * @type {*}
    */
-  attachHandlers: function () {
-    var controller = this.get('controller');
-    var checkBuildStatus = function () {
-      setTimeout(function () {
-        var checkboxes = jQuery("#component_assign_table input[type=checkbox]");
-        if (checkboxes.length === controller.get('checkboxesCount')) {
-          checkboxes.bind('click', function (event) {
-            var idInfo = event.target.id.split('_DELIMITER_');
-            var component = idInfo[0];
-            var hostName = idInfo[1];
-            controller.get('hosts').findProperty('hostName', hostName).get('checkboxes').findProperty('component', component).toggleProperty('checked');
-            controller.checkCallback(component);
-          });
-        } else {
-          checkBuildStatus();
-        }
-      }, 100);
-    };
-    if (this.get('controller.isLoaded') && this.state === "inDOM") {
-      checkBuildStatus();
+  checkboxView: Em.Checkbox.extend({
+    /**
+     * Header object with host property name
+     */
+    checkbox: null,
+
+    //if setAll true there is no need to check every checkbox whether all checked or not
+
+    checkedBinding: 'checkbox.checked',
+
+    disabledBinding: 'checkbox.isInstalled',
+
+    click: function () {
+      this.get('controller').checkCallback(this.get('checkbox.component'));
     }
-  }.observes('controller.isLoaded')
+  })
 });
 
 App.WizardStep6HostView = Em.View.extend({

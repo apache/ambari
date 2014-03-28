@@ -423,7 +423,9 @@ h1 {
       }
       th {
         input[type="checkbox"] {
-          margin: 0;
+          //fixes height discrepencies in IE
+          margin-bottom: -1px;
+          margin-top: -1px;
         }
       }
     }
@@ -450,14 +452,16 @@ h1 {
         }
       }
     }
+    .progress {
+      margin-bottom: 0;
+    }
+  }
+  #confirm-hosts, #step6 {
     .page-bar {
       padding: 5px;
       .selected-hosts-info {
         margin: 0;
       }
-    }
-    .progress {
-      margin-bottom: 0;
     }
   }
   #step4, #step5, #step6 {

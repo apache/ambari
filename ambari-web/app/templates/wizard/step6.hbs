@@ -23,9 +23,7 @@
     <div class="alert alert-error">{{errorMessage}}</div>
   {{/if}}
 
-  <div {{bindAttr class="controller.isLoaded::hidden-scroll :pre-scrollable" }}>
-      <div {{bindAttr class=":spinner-overlay controller.isLoaded:hidden"}}></div>
-      <i {{bindAttr class=":icon-spin :spinner controller.isLoaded:hidden"}}></i>
+  <div class="pre-scrollable">
     <table class="table table-striped" id="component_assign_table">
       <thead>
         <tr>
@@ -44,24 +42,41 @@
         </tr>
       </thead>
       <tbody>
-        {{#each host in hosts}}
+      {{#if view.pageContent}}
+        {{#each host in view.pageContent}}
           <tr>
             {{#view App.WizardStep6HostView hostBinding="host" }}
               {{host.hostName}}
-              {{#if host.isMaster}}
+              {{#if host.hasMaster}}
                 <i class=icon-asterisks>&#10037</i>
               {{/if}}
             {{/view}}
             {{#each checkbox in host.checkboxes}}
               <td>
-                  <label class="checkbox"><input {{bindAttr disabled="checkbox.isInstalled" checked="checkbox.checked" id="checkbox.id"}} type="checkbox"/>{{checkbox.title}}</label>
+                  <label class="checkbox">
+                    {{#view view.checkboxView checkboxBinding="checkbox"}}
+                      {{checkbox.title}}
+                    {{/view}}
+                  </label>
               </td>
             {{/each}}
           </tr>
         {{/each}}
+      {{/if}}
       </tbody>
     </table>
   </div>
+    <div id="hosts">
+        <div class="page-bar">
+            <div class="info">{{view.paginationInfo}}</div>
+            <div class="paging_two_button">
+              {{view view.paginationFirst}}
+              {{view view.paginationLeft}}
+              {{view view.paginationRight}}
+              {{view view.paginationLast}}
+            </div>
+        </div>
+    </div>
   <div class="btn-area">
     <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
