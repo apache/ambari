@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 
 import java.util.*;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -161,6 +162,8 @@ public class ClusterResourceProviderTest {
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
     Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
 
+    BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
+
     HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
     HostGroupComponentEntity hostGroupComponent1 = createNiceMock(HostGroupComponentEntity.class);
     HostGroupComponentEntity hostGroupComponent2 = createNiceMock(HostGroupComponentEntity.class);
@@ -233,12 +236,17 @@ public class ClusterResourceProviderTest {
     hostGroupHosts.add(hostGroupHostProperties);
     properties.put("host-groups", hostGroups);
 
+    // blueprint cluster configuration properties
+    Map<String, String> blueprintConfigProperties = new HashMap<String, String>();
+    blueprintConfigProperties.put("property1", "value2");
+    blueprintConfigProperties.put("new.property", "new.property.value");
+
     // expectations
     expect(request.getProperties()).andReturn(propertySet).anyTimes();
     expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
     expect(blueprint.getStackName()).andReturn(stackName);
     expect(blueprint.getStackVersion()).andReturn(stackVersion);
-    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>emptyList());
+    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
 
     expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
     expect(stackServiceResponse1.getServiceName()).andReturn("service1");
@@ -273,6 +281,10 @@ public class ClusterResourceProviderTest {
     expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
     expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
 
+    expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
+    expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintConfigProperties));
+
     expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup));
     expect(hostGroup.getName()).andReturn("group1");
     expect(hostGroup.getComponents()).andReturn(hostGroupComponents);
@@ -300,10 +312,9 @@ public class ClusterResourceProviderTest {
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
-           stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3,
-           stackConfigurationResponse4, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3,
-           serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
-           persistKeyValue);
+           stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+           blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, serviceResourceProvider,
+           componentResourceProvider, hostResourceProvider, hostComponentResourceProvider, persistKeyValue);
 
     // test
     ClusterResourceProvider.injectBlueprintDAO(blueprintDAO);
@@ -393,11 +404,12 @@ public class ClusterResourceProviderTest {
     assertEquals(1, hdfsConfigRequest.getProperties().size());
     assertEquals("value2", hdfsConfigRequest.getProperties().get("property2"));
     ConfigurationRequest coreConfigRequest = mapConfigRequests.get("core-site");
-    assertEquals(4, coreConfigRequest.getProperties().size());
-    assertEquals("value1", coreConfigRequest.getProperties().get("property1"));
+    assertEquals(5, coreConfigRequest.getProperties().size());
+    assertEquals("value2", coreConfigRequest.getProperties().get("property1"));
     assertEquals("value3", coreConfigRequest.getProperties().get("property3"));
     assertEquals("*", coreConfigRequest.getProperties().get("hadoop.proxyuser.oozie.hosts"));
     assertEquals("users", coreConfigRequest.getProperties().get("hadoop.proxyuser.oozie.groups"));
+    assertEquals("new.property.value", coreConfigRequest.getProperties().get("new.property"));
     assertNull(updateClusterPropertyMapCapture.getValue());
     assertNull(updateClusterPropertyMapCapture2.getValue());
     assertNull(updateClusterPropertyMapCapture3.getValue());
@@ -439,7 +451,7 @@ public class ClusterResourceProviderTest {
     verify(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-        hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, serviceResourceProvider,
+        blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, serviceResourceProvider,
         componentResourceProvider, hostResourceProvider, hostComponentResourceProvider, persistKeyValue);
   }
 

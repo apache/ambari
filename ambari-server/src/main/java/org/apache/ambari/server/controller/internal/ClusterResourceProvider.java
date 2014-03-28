@@ -677,48 +677,52 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @param blueprintHostGroups  host groups contained in the blueprint
    */
   private void processConfigurations(Map<String, Map<String, String>> blueprintConfigurations,
-                                    Stack stack, Map<String,
-                                    HostGroup> blueprintHostGroups)  {
+                                    Stack stack, Map<String, HostGroup> blueprintHostGroups)  {
 
-    Set<String> services = getServicesToDeploy(stack, blueprintHostGroups);
-    for (String service : services) {
-      Collection<String> configTypes = stack.getConfigurationTypes(service);
-      for (String type : configTypes) {
-        Map<String, String> properties = stack.getConfigurationProperties(service, type);
-        for (Map.Entry<String, String> entry : properties.entrySet()) {
-          String propName = entry.getKey();
-          String value    = entry.getValue();
+    for (String service : getServicesToDeploy(stack, blueprintHostGroups)) {
+      for (String type : stack.getConfigurationTypes(service)) {
+        Map<String, String> typeProps = mapClusterConfigurations.get(type);
+        if (typeProps == null) {
+          typeProps = new HashMap<String, String>();
+          mapClusterConfigurations.put(type, typeProps);
+        }
+        typeProps.putAll(stack.getConfigurationProperties(service, type));
+      }
+    }
+    processBlueprintClusterConfigurations(blueprintConfigurations);
 
-          //todo: move to Stack
-          //strip .xml from type
-          if (type.endsWith(".xml")) {
-            type = type.substring(0, type.length() - 4);
-          }
-          // overlay property if specified at cluster scope in blueprint
-          Map<String, String> blueprintTypeConfig = blueprintConfigurations.get(type);
-          if (blueprintTypeConfig != null && blueprintTypeConfig.containsKey(propName)) {
-            System.out.println("Overwriting property: " + propName + " for configuration " + type);
-            value = blueprintTypeConfig.get(propName);
-          }
-
-          Map<String, String> typeProps = mapClusterConfigurations.get(type);
-          if (typeProps == null) {
-            typeProps = new HashMap<String, String>();
-            mapClusterConfigurations.put(type, typeProps);
-          }
-          // todo: should an exception be thrown if a property is included under multiple services
-          if (! typeProps.containsKey(propName)) {
-            // see if property needs to be updated
-            PropertyUpdater propertyUpdater = propertyUpdaters.get(propName);
-            if (propertyUpdater != null) {
-              value = propertyUpdater.update(blueprintHostGroups, entry.getValue());
-            }
-            typeProps.put(propName, value);
-          }
+    for (Map.Entry<String, Map<String, String>> entry : mapClusterConfigurations.entrySet()) {
+      for (Map.Entry<String, String> propertyEntry : entry.getValue().entrySet()) {
+        String propName = propertyEntry.getKey();
+        // see if property needs to be updated
+        PropertyUpdater propertyUpdater = propertyUpdaters.get(propName);
+        if (propertyUpdater != null) {
+          propertyEntry.setValue(propertyUpdater.update(blueprintHostGroups, propertyEntry.getValue()));
         }
       }
     }
     setMissingConfigurations();
+  }
+
+  /**
+   * Process cluster scoped configurations provided in blueprint.
+   *
+   * @param blueprintConfigurations  map of blueprint configurations keyed by type
+   */
+  private void processBlueprintClusterConfigurations(Map<String, Map<String, String>> blueprintConfigurations) {
+    for (Map.Entry<String, Map<String, String>> entry : blueprintConfigurations.entrySet()) {
+      Map<String, String> properties = entry.getValue();
+      if (properties != null && !properties.isEmpty()) {
+        String type = entry.getKey();
+        Map<String, String> typeProps = mapClusterConfigurations.get(type);
+        if (typeProps == null) {
+          typeProps = new HashMap<String, String>();
+          mapClusterConfigurations.put(type, typeProps);
+        }
+        // override default properties
+        typeProps.putAll(properties);
+      }
+    }
   }
 
   /**
@@ -1028,10 +1032,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
       Set<StackConfigurationResponse> serviceConfigs = getManagementController().getStackConfigurations(
           Collections.singleton(new StackConfigurationRequest(name, version, service, null)
-      ));
+          ));
 
       for (StackConfigurationResponse config : serviceConfigs) {
         String type = config.getType();
+        //strip .xml from type
+        if (type.endsWith(".xml")) {
+          type = type.substring(0, type.length() - 4);
+        }
         Map<String, String> mapTypeConfig = mapServiceConfig.get(type);
         if (mapTypeConfig == null) {
           mapTypeConfig = new HashMap<String, String>();
