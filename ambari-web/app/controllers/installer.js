@@ -212,6 +212,7 @@ App.InstallerController = App.WizardController.extend({
                 oses.push({
                   osType: os.OperatingSystems.os_type,
                   baseUrl: latestBaseUrl,
+                  latestBaseUrl: latestBaseUrl,
                   originalLatestBaseUrl: latestBaseUrl,
                   originalBaseUrl: repo.Repositories.base_url,
                   defaultBaseUrl: defaultBaseUrl,

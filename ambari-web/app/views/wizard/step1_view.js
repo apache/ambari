@@ -240,6 +240,7 @@ App.WizardStep1View = Em.View.extend({
           os.validation = null;
           os.selected = false;
           targetGroup.set('baseUrl', os.latestBaseUrl);
+          targetGroup.set('latestBaseUrl', os.latestBaseUrl);
           targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('defaultBaseUrl'));
           targetGroup.set('invalid-error', false);
           targetGroup.set('validation', null);
