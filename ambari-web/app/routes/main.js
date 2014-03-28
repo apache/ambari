@@ -160,12 +160,7 @@ module.exports = Em.Route.extend({
       exit: function(router) {
         router.get('mainHiveJobDetailsController').set('loaded', false);
       }
-    }),
-    showJobDetails : function(router, event) {
-      if (event.context && event.context.get('hasTezDag')) {
-        router.transitionTo('jobDetails', event.context);
-      }
-    }
+    })
   }),
 
   mirroring: Em.Route.extend({

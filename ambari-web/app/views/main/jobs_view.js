@@ -229,6 +229,29 @@ App.MainJobsView = App.TableView.extend({
     }
   }),
 
+  jobNameView: Em.View.extend({
+    classNames: ['job-link'],
+    rel: 'tooltip',
+    href: '#',
+    template: Ember.Handlebars.compile('{{job.name}}'),
+    attributeBindings: function () {
+      var attributes = ['rel', 'job.queryText:data-original-title'];
+      if (this.get('job.hasTezDag')) {
+        attributes.push('href');
+      };
+      return attributes;
+    }.property('job.hasTezDag'),
+    tagName: function () {
+      return this.get('job.hasTezDag') ? 'a' : 'span';
+    }.property('job.hasTezDag'),
+    click: function(event) {
+      if (this.get('job.hasTezDag')) {
+        App.router.transitionTo('main.jobs.jobDetails', this.get('job'));
+      };
+      return false;
+    }
+  }),
+
   /**
    * associations between content (jobs list) property and column index
    */

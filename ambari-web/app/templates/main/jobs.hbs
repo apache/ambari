@@ -63,11 +63,7 @@
                 </td>
                 <td>
                   <div class="id">
-                    {{#if job.hasTezDag}}
-                      <a rel="tooltip" class="job-link" {{bindAttr data-original-title="job.queryText"}} href="#" {{action "showJobDetails" job}}>{{job.name}}</a>
-                    {{else}}
-                      <span rel="tooltip" class="job-link" {{bindAttr data-original-title="job.queryText"}}>{{job.name}}</span>
-                    {{/if}}
+                    {{view view.jobNameView jobBinding="job"}}
                   </div>
                 </td>
                 <td>
