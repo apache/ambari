@@ -44,8 +44,8 @@
         <ul class="dropdown-menu pull-right">
           {{#if view.dataset.isSuspended}}
             <li>
-              <a href="javascript:void(null);" {{action schedule target="controller"}}>
-                {{t mirroring.dataset.schedule}}
+              <a href="javascript:void(null);" {{action resume target="controller"}}>
+                {{t mirroring.dataset.resume}}
               </a>
             </li>
           {{/if}}
@@ -53,6 +53,13 @@
             <li>
               <a href="javascript:void(null);" {{action suspend target="controller"}}>
                 {{t mirroring.dataset.suspend}}
+              </a>
+            </li>
+          {{/if}}
+          {{#if view.dataset.isSubmitted}}
+            <li>
+              <a href="javascript:void(null);" {{action schedule target="controller"}}>
+                {{t mirroring.dataset.schedule}}
               </a>
             </li>
           {{/if}}

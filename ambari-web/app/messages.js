@@ -1872,6 +1872,7 @@ Em.I18n.translations = {
   'mirroring.dataset.targetCluster':'Target Cluster',
   'mirroring.dataset.targetDir':'Target Directory',
   'mirroring.dataset.schedule':'Schedule',
+  'mirroring.dataset.resume':'Resume',
   'mirroring.dataset.suspend':'Suspend',
   'mirroring.dataset.suspendInstance':'Suspend Instance',
   'mirroring.dataset.resumeInstance':'Resume Instance',

@@ -40,6 +40,25 @@ App.MainDatasetJobsController = Em.Controller.extend({
     this.get('content.datasetJobs').filterProperty('status', 'RUNNING').setEach('status', 'SUSPENDED');
   },
 
+  resume: function () {
+    App.ajax.send({
+      name: 'mirroring.resume_entity',
+      sender: this,
+      data: {
+        name: this.get('content.prefixedName'),
+        type: 'feed',
+        falconServer: App.get('falconServerURL')
+      },
+      success: 'onResumeSuccess',
+      error: 'onError'
+    });
+  },
+
+  onResumeSuccess: function() {
+    this.set('content.status', 'RUNNING');
+    this.get('content.datasetJobs').filterProperty('status', 'SUSPENDED').setEach('status', 'RUNNING');
+  },
+
   schedule: function () {
     App.ajax.send({
       name: 'mirroring.schedule_entity',
@@ -56,7 +75,6 @@ App.MainDatasetJobsController = Em.Controller.extend({
 
   onScheduleSuccess: function() {
     this.set('content.status', 'RUNNING');
-    this.get('content.datasetJobs').filterProperty('status', 'SUSPENDED').setEach('status', 'RUNNING');
   },
 
 

@@ -1589,8 +1589,20 @@ var urls = {
     }
   },
 
-  'mirroring.schedule_entity': {
+  'mirroring.resume_entity': {
     'real': '/proxy?url=http://{falconServer}:15000/api/entities/resume/{type}/{name}?user.name=ambari-qa',
+    'mock': '/data/mirroring/succeeded.json',
+    'apiPrefix': '',
+    'type': 'POST',
+    'format': function () {
+      return {
+        dataType: 'xml'
+      }
+    }
+  },
+
+  'mirroring.schedule_entity': {
+    'real': '/proxy?url=http://{falconServer}:15000/api/entities/schedule/{type}/{name}?user.name=ambari-qa',
     'mock': '/data/mirroring/succeeded.json',
     'apiPrefix': '',
     'type': 'POST',
