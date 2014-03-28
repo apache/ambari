@@ -29,8 +29,6 @@ class HiveMetastore(Script):
 
   def install(self, env):
     self.install_packages(env)
-    self.configure(env)
-    self._init_metastore_schema(env)
 
   def configure(self, env):
     import params
@@ -60,22 +58,6 @@ class HiveMetastore(Script):
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
-
-  def _init_metastore_schema(self, env):
-    import params
-    env.set_params(params)
-    if params.init_metastore_schema:
-      mysql_service(daemon_name=params.daemon_name, action='start')
-
-      cmd = format("export JAVA_HOME={java_home} ; {hive_bin}/schematool "
-                   "-dbType {hive_metastore_db_type} -initSchema "
-                   "-userName {hive_metastore_user_name} "
-                   "-passWord {hive_metastore_user_passwd}")
-
-      Execute(cmd
-      )
-
-      mysql_service(daemon_name=params.daemon_name, action='stop')
 
 if __name__ == "__main__":
   HiveMetastore().execute()

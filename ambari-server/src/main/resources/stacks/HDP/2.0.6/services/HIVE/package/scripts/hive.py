@@ -79,6 +79,21 @@ def hive(name=None):
          content=StaticFile('startMetastore.sh')
     )
 
+    if params.init_metastore_schema:
+      create_schema_cmd = format("{hive_bin}/schematool -initSchema "
+                                 "-dbType {hive_metastore_db_type} "
+                                 "-userName {hive_metastore_user_name} "
+                                 "-passWord {hive_metastore_user_passwd}")
+
+      check_schema_created_cmd = format("{hive_bin}/schematool -info "
+                                        "-dbType {hive_metastore_db_type} "
+                                        "-userName {hive_metastore_user_name} "
+                                        "-passWord {hive_metastore_user_passwd}")
+
+      Execute(create_schema_cmd,
+              not_if = check_schema_created_cmd
+      )
+
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
          mode=0755,

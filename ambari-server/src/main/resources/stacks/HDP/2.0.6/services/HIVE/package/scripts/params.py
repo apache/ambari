@@ -45,7 +45,6 @@ check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
 #common
-java_home = config['hostLevelParams']['java_home']
 hdp_stack_version = config['hostLevelParams']['stack_version']
 hive_metastore_port = config['configurations']['global']['hive_metastore_port']
 hive_var_lib = '/var/lib/hive'
@@ -113,7 +112,7 @@ mysql_adduser_path = "/tmp/addMysqlUser.sh"
 ######## Metastore Schema
 if str(hdp_stack_version).startswith('2.1') and \
     config['configurations']['global']['hive_database'] == 'New MySQL Database':
-  init_metastore_schema =True
+  init_metastore_schema = True
 else:
   init_metastore_schema = False
 
