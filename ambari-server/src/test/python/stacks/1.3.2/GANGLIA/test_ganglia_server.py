@@ -19,8 +19,10 @@ limitations under the License.
 '''
 
 from stacks.utils.RMFTestCase import *
+from mock.mock import MagicMock, call, patch
 
-
+@patch("os.path.exists", new = MagicMock(return_value=False))
+@patch("os.path.islink", new = MagicMock(return_value=False))
 class TestGangliaServer(RMFTestCase):
 
   def test_configure_default(self):
@@ -236,6 +238,15 @@ class TestGangliaServer(RMFTestCase):
                           content = StaticFile('rrd.py'),
                           mode = 0755,)
 
+    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
+                              action = ['delete'],
+                              )
+    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
+                              owner = 'nobody',
+                              group = 'nobody',
+                              recursive = True,
+                              mode = 0755,
+                              )
     self.assertResourceCalled('File', '/etc/ganglia/gmetad.conf',
                           owner = 'root',
                           group = 'hadoop',)
@@ -413,6 +424,15 @@ class TestGangliaServer(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/srv/www/cgi-bin/rrd.py',
                               content = StaticFile('rrd.py'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
+                              action = ['delete'],
+                              )
+    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
+                              owner = 'nobody',
+                              group = 'nobody',
+                              recursive = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('File', '/etc/ganglia/gmetad.conf',
