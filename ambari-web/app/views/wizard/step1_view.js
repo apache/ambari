@@ -18,13 +18,8 @@
 var App = require('app');
 
 App.WizardStep1View = Em.View.extend({
-
   templateName: require('templates/wizard/step1'),
 
-  /**
-   * List of available stacks
-   * @type {Em.Object[]}
-   */
   stacks: function () {
     var stacks = [];
     this.get('controller.content.stacks').forEach(function (stack) {
@@ -36,11 +31,7 @@ App.WizardStep1View = Em.View.extend({
     return stacks;
   }.property('controller.content.stacks.@each.isSelected'),
 
-  /**
-   * Checkbox for each stack
-   * @type {Em.Checkbox}
-   */
-  stackRadioButton: Em.Checkbox.extend({
+  stackRadioButton: Ember.Checkbox.extend({
     tagName: 'input',
     attributeBindings: [ 'type', 'checked' ],
     checked: function () {
@@ -54,50 +45,21 @@ App.WizardStep1View = Em.View.extend({
     }
   }),
 
-  /**
-   * List of all repo-groups
-   * @type {Object[][]}
-   */
   allRepositoriesGroup: [[],[],[]],
-
-  /**
-   * Verify if some repo has empty base-url
-   * @type {bool}
-   */
   emptyRepoExist: function () {
     return (this.get('allRepositoriesGroup').filterProperty('empty-error', true).length != 0);
   }.property('allRepositoriesGroup.@each.empty-error'),
-
-  /**
-   * Disable submit button flag
-   * @type {bool}
-   */
   isSubmitDisabled: function() {
     return this.get('emptyRepoExist') || this.get('allRepoUnchecked') || this.get('invalidUrlExist') ;
   }.property('emptyRepoExist', 'allRepoUnchecked', 'invalidUrlExist'),
-
-  /**
-   * Verify if some invalid repo-urls exist
-   * @type {bool}
-   */
   invalidUrlExist: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     var invalidExist = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length != 0;
     return (selectedStack.get('invalidCnt') > 0) && invalidExist;
   }.property('controller.content.stacks.@each.invalidCnt', 'allRepositoriesGroup.@each.validation'),
-
-  /**
-   * If all repo links are unchecked
-   * @type {bool}
-   */
   allRepoUnchecked: function () {
     return (!this.get('allRepositoriesGroup').filterProperty('checked', true).length);
   }.property('allRepositoriesGroup.@each.checked'),
-
-  /**
-   * Overall errors count
-   * @type {number}
-   */
   totalErrorCnt: function () {
     var emptyCnt = this.get('allRepositoriesGroup').filterProperty('empty-error', true).length;
     var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length;
@@ -117,13 +79,7 @@ App.WizardStep1View = Em.View.extend({
     this.$('.accordion-body').toggle('blind', 500);
     this.set('isRLCollapsed', !this.get('isRLCollapsed'));
   },
-
-  /**
-   * Is Repositories Accordion collapsed
-   * @type {bool}
-   */
   isRLCollapsed: true,
-
   didInsertElement: function () {
     if (this.get('isRLCollapsed')) {
       this.$('.accordion-body').hide();
@@ -131,10 +87,6 @@ App.WizardStep1View = Em.View.extend({
     $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
   },
 
-  /**
-   * Popover for repo-url error indicator
-   * @type {Em.View}
-   */
   popoverView: Em.View.extend({
     tagName: 'i',
     classNameBindings: ['repoGroup.validation'],
@@ -144,9 +96,6 @@ App.WizardStep1View = Em.View.extend({
     }
   }),
 
-  /**
-   * Format repo-group values and set it to <code>allRepositoriesGroup</code>
-   */
   loadRepositories: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     var reposGroup = [[],[],[]];
@@ -200,18 +149,10 @@ App.WizardStep1View = Em.View.extend({
     }
     this.set('allRepositoriesGroup', reposGroup);
   }.observes('controller.content.stacks.@each.isSelected', 'controller.content.stacks.@each.reload'),
-
-  /**
-   * Set group parameters according to operation system
-   * @param {Em.Object} group
-   * @param {Object} os
-   * @param {number} groupNumber
-   */
   setGroupByOs: function (group, os, groupNumber) {
     var isChecked = this.get('allGroupsCheckbox')[groupNumber];
     group.set('checked', isChecked);
     group.set('baseUrl', os.baseUrl);
-    group.set('latestBaseUrl', os.latestBaseUrl);
     group.set('defaultBaseUrl', os.defaultBaseUrl);
     group.set('empty-error', !os.baseUrl);
     group.set('invalid-error', os.validation == 'icon-exclamation-sign');
@@ -222,7 +163,6 @@ App.WizardStep1View = Em.View.extend({
     group.set('errorContent', os.errorContent);
     group.set('group-number', groupNumber);
   },
-
   /**
    * Onclick handler for checkbox of each repo group
    */
@@ -236,10 +176,10 @@ App.WizardStep1View = Em.View.extend({
         var groupNumber = self.osTypeToGroup(os.osType);
         var targetGroup = groups.findProperty('group-number', groupNumber);
         if (!targetGroup.get('checked')) {
-          os.baseUrl = os.latestBaseUrl;
+          os.baseUrl = os.defaultBaseUrl;
           os.validation = null;
           os.selected = false;
-          targetGroup.set('baseUrl', os.latestBaseUrl);
+          targetGroup.set('baseUrl', os.defaultBaseUrl);
           targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('defaultBaseUrl'));
           targetGroup.set('invalid-error', false);
           targetGroup.set('validation', null);
@@ -262,18 +202,8 @@ App.WizardStep1View = Em.View.extend({
     }
   }.observes('allRepositoriesGroup.@each.checked', 'skipValidationChecked'),
 
-  /**
-   * Checked flags for each repo-checkbox
-   * @type {bool[]}
-   */
   allGroupsCheckbox: [true, true, true],
-
-  /**
-   * Skip repo-validation
-   * @type {bool}
-   */
   skipValidationChecked: false,
-
   /**
    * Onclick handler for undo action of each repo group
    */
@@ -283,16 +213,11 @@ App.WizardStep1View = Em.View.extend({
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     osTypes.forEach( function (os) {
       var cos = selectedStack.operatingSystems.findProperty('osType', os );
-      cos.baseUrl = cos.latestBaseUrl;
+      cos.baseUrl = cos.defaultBaseUrl;
       cos.validation = null;
     });
     this.loadRepositories();
   },
-
-  /**
-   * Handler for clear icon click
-   * @param {object} event
-   */
   clearGroupLocalRepository: function (event) {
     var group = event.context;
     var osTypes = this.groupToOsType(group.get('group-number'));
@@ -304,10 +229,8 @@ App.WizardStep1View = Em.View.extend({
     });
     this.loadRepositories();
   },
-
   /**
    * Handler when editing any repo group BaseUrl
-   * @param {object} event
    */
   editGroupLocalRepository: function (event) {
     //upload to content
@@ -329,12 +252,6 @@ App.WizardStep1View = Em.View.extend({
       });
     }
   }.observes('allRepositoriesGroup.@each.baseUrl'),
-
-  /**
-   * Get list of OS for provided group number
-   * @param {number} groupNumber
-   * @returns {Array}
-   */
   groupToOsType: function (groupNumber) {
     switch (groupNumber) {
       case 0:
@@ -346,12 +263,6 @@ App.WizardStep1View = Em.View.extend({
     }
     return [];
   },
-
-  /**
-   * Get group number for provided OS
-   * @param  {string} osType
-   * @returns {number}
-   */
   osTypeToGroup: function (osType) {
     switch(osType) {
       case 'redhat5':

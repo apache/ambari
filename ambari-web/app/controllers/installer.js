@@ -188,7 +188,6 @@ App.InstallerController = App.WizardController.extend({
        *    baseUrl: 'http://...',
        *    originalBaseUrl: 'http://...',
        *    defaultBaseUrl: 'http://...',
-       *    latestBaseUrl: 'http://...',
        *    mirrorsList: '';
        *  },
        *  {
@@ -196,7 +195,6 @@ App.InstallerController = App.WizardController.extend({
        *    baseUrl: 'http://...',
        *    originalBaseUrl: 'http://...',
        *    defaultBaseUrl: 'http://...',
-       *    latestBaseUrl: 'http://...',
        *    mirrorsList: '';
        *  },
        * ]
@@ -206,15 +204,13 @@ App.InstallerController = App.WizardController.extend({
         version.operatingSystems.forEach(function (os) {
           if (os.repositories) {
             os.repositories.forEach(function (repo) {
-              if(repo.Repositories.repo_name == version.Versions.stack_name) {
-                var defaultBaseUrl = repo.Repositories.default_base_url || repo.Repositories.base_url;
-                var latestBaseUrl = repo.Repositories.latest_base_url || defaultBaseUrl;
+              if(repo.Repositories.repo_name == version.Versions.stack_name){
                 oses.push({
                   osType: os.OperatingSystems.os_type,
-                  baseUrl: latestBaseUrl,
-                  originalLatestBaseUrl: latestBaseUrl,
+                  baseUrl: repo.Repositories.base_url,
                   originalBaseUrl: repo.Repositories.base_url,
-                  defaultBaseUrl: defaultBaseUrl,
+                  defaultBaseUrl: repo.Repositories.default_base_url ? 
+                      repo.Repositories.default_base_url : repo.Repositories.base_url,
                   mirrorsList: repo.Repositories.mirrors_list
                 });
               }
@@ -223,7 +219,7 @@ App.InstallerController = App.WizardController.extend({
         });
       }
       result.push(
-          Em.Object.create({
+          Ember.Object.create({
             name: version.Versions.stack_name + "-" + version.Versions.stack_version,
             isSelected: false,
             operatingSystems: oses
