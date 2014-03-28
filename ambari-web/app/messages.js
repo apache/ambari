@@ -1833,6 +1833,7 @@ Em.I18n.translations = {
   'jobs.column.start.time':'Start Time',
   'jobs.column.end.time':'End Time',
   'jobs.column.duration':'Duration',
+  'jobs.new_jobs.info':'New jobs available on server.',
 
   'apps.table.column.appId':'App ID',
   'apps.table.column.runDate': 'Run Date',

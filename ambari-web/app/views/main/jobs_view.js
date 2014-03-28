@@ -107,9 +107,9 @@ App.MainJobsView = App.TableView.extend({
       this.updateFilter(4, this.get('controller.filterObject.windowEnd'), 'date');
     }
   }.observes(
-      'controller.filterObject.id',
-      'controller.filterObject.user',
-      'controller.filterObject.windowEnd'
+    'controller.filterObject.id',
+    'controller.filterObject.user',
+    'controller.filterObject.windowEnd'
   ),
 
   sortView: sort.wrapperView,
@@ -151,7 +151,19 @@ App.MainJobsView = App.TableView.extend({
   rowsPerPageSelectView: Em.Select.extend({
     content: ['10', '25', '50', '100', "250", "500"],
     valueBinding: "controller.filterObject.jobsLimit",
+    attributeBindings: ['disabled'],
+    disabled: false,
+    disabledObserver: function () {
+      if (this.get("parentView.hasBackLinks")) {
+        this.set('disabled', true);
+      }else{
+        this.set('disabled', false);
+      }
+    }.observes('parentView.hasBackLinks'),
+    attributeBindings: ['disabled'],
+    disabled: false,
     change: function () {
+      this.get('controller').set('navIDs.nextID', '');
       this.get('parentView').saveDisplayLength();
     }
   }),
@@ -274,5 +286,50 @@ App.MainJobsView = App.TableView.extend({
 
   jobFailMessage: function() {
     return Em.I18n.t('jobs.table.job.fail');
-  }.property()
+  }.property(),
+
+  jobsPaginationLeft: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-arrow-left"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if (this.get("parentView.hasBackLinks") && !this.get('controller.filterObject.isAnyFilterApplied')) {
+        return "paginate_previous";
+      }
+      return "paginate_disabled_previous";
+    }.property('parentView.hasBackLinks', 'controller.filterObject.isAnyFilterApplied'),
+
+    click: function () {
+      if (this.get("parentView.hasBackLinks") && !this.get('controller.filterObject.isAnyFilterApplied')) {
+        this.get('controller').navigateBack();
+      }
+    }
+  }),
+
+  jobsPaginationRight: Ember.View.extend({
+    tagName: 'a',
+    template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
+    classNameBindings: ['class'],
+    class: function () {
+      if (this.get("parentView.hasNextJobs") && !this.get('controller.filterObject.isAnyFilterApplied')) {
+        return "paginate_next";
+      }
+      return "paginate_disabled_next";
+    }.property("parentView.hasNextJobs", 'controller.filterObject.isAnyFilterApplied'),
+
+    click: function () {
+      if (this.get("parentView.hasNextJobs") && !this.get('controller.filterObject.isAnyFilterApplied')) {
+        this.get('controller').navigateNext();
+      }
+    }
+  }),
+
+  hasNextJobs: function() {
+    return (this.get("controller.navIDs.nextID.length") > 0);
+  }.property('controller.navIDs.nextID'),
+
+  hasBackLinks: function() {
+    return (this.get("controller.navIDs.backIDs").length > 1);
+  }.property('controller.navIDs.backIDs.[].length')
+
 })

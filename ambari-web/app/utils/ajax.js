@@ -1724,6 +1724,12 @@ var urls = {
     }
   },
 
+  'jobs.lastID': {
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1',
+    'mock': 'data/jobs/hive-queries.json',
+    'apiPrefix': ''
+  },
+
   'jobs.tezDag.NametoID': {
     'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:{tezDagName}',
     'mock': '/data/jobs/tezDag-name-to-id.json',

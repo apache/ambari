@@ -20,6 +20,11 @@
   <div id="jobs">
       <div class="jobs_head">
         <div>{{t menu.item.jobs}}</div>
+        {{#if controller.hasNewJobs}}
+          <div class="new-jobs-link">
+            <a href="javascript:void(null);" {{action updateJobsByClick target="controller"}}>{{t jobs.new_jobs.info}}</a>
+          </div>
+        {{/if}}
         <div class="jobs-type">
          {{t jobs.type}} : <span class="label label-info">{{t jobs.type.hive}}</span>
         </div>
@@ -91,6 +96,10 @@
           <div class="items-on-page">
               <label>{{t jobs.show.up.to}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
           </div>
+        <div class="paging_two_button">
+          {{view view.jobsPaginationLeft}}
+          {{view view.jobsPaginationRight}}
+        </div>
       </div>
   </div>
 

@@ -85,6 +85,12 @@ App.MainJobsController = Em.Controller.extend({
     sortedContent.length = 0;
   },
 
+  navIDs: {
+    backIDs: [],
+    nextID: ''
+  },
+  lastJobID: '',
+  hasNewJobs: false,
   loaded : false,
   loading : false,
   loadJobsTimeout: null,
@@ -101,6 +107,14 @@ App.MainJobsController = Em.Controller.extend({
       this.set('sortAscending', this.get('sortingColumn').get('status') == "sorting_desc" ? false : true );
     }
   }.observes('sortingColumn.name','sortingColumn.status'),
+
+  updateJobsByClick: function () {
+    this.set('navIDs.backIDs', []);
+    this.set('navIDs.nextID', '');
+    this.get('filterObject').set('nextFromId', '');
+    this.get('filterObject').set('backFromId', '');
+    this.get('filterObject').set('fromTs', '');
+  },
 
   updateJobs: function (controllerName, funcName) {
     clearInterval(this.get('jobsUpdate'));
@@ -125,6 +139,10 @@ App.MainJobsController = Em.Controller.extend({
     user: "",
     windowStart: "",
     windowEnd: "",
+    nextFromId: "",
+    backFromId: "",
+    fromTs: "",
+    isAnyFilterApplied: false,
 
     onApplyIdFilter: function () {
       if(this.get('id') == ""){
@@ -285,20 +303,40 @@ App.MainJobsController = Em.Controller.extend({
      */
     createJobsFiltersLink: function() {
       var link = "?fields=events,primaryfilters,otherinfo";
+      var numberOfAppliedFilters = 0;
 
       if(this.get("id") !== "") {
         link = "/" + this.get("id") + link;
+        numberOfAppliedFilters++;
       }
 
-      link += "&limit=" + this.get("jobsLimit");
+      link += "&limit=" + (parseInt(this.get("jobsLimit")) + 1);
 
       if(this.get("user") !== ""){
         link += "&primaryFilter=user:" + this.get("user");
+        numberOfAppliedFilters++;
       }
-      if(this.get("startTime") !== ""){
+      if(this.get("backFromId") != ""){
+        link += "&fromId=" + this.get("backFromId");
+      }
+      if(this.get("nextFromId") != ""){
+        link += "&fromId=" + this.get("nextFromId");
+      }
+      if(this.get("fromTs") != ""){
+        link += "&fromTs=" + this.get("fromTs");
+      }
+      if(this.get("startTime") !== "" && this.get("startTime") !== "Any"){
         link += this.get("windowStart") !== "" ? ("&windowStart=" + this.get("windowStart")) : "";
         link += this.get("windowEnd") !== "" ? ("&windowEnd=" + this.get("windowEnd")) : "";
+        numberOfAppliedFilters++;
       }
+
+      if(numberOfAppliedFilters > 0){
+        this.set('isAnyFilterApplied', true);
+      }else{
+        this.set('isAnyFilterApplied', false);
+      }
+
       return link;
     }
   }),
@@ -313,6 +351,22 @@ App.MainJobsController = Em.Controller.extend({
     ]
   }),
 
+  lastIDSuccessCallback: function(data, jqXHR, textStatus) {
+    var lastReceivedID = data.entities[0].entity;
+    if(this.get('lastJobID') == '') {
+      this.set('lastJobID', lastReceivedID);
+    } else {
+      if (this.get('lastJobID') !== lastReceivedID) {
+        this.set('lastJobID', lastReceivedID);
+        this.set('hasNewJobs', true);
+      }
+    }
+  },
+
+  lastIDErrorCallback: function(data, jqXHR, textStatus) {
+    console.debug(jqXHR);
+  },
+
   loadJobs : function() {
     var self = this;
     var timeout = this.get('loadTimeout');
@@ -322,10 +376,29 @@ App.MainJobsController = Em.Controller.extend({
       var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
       var filtersLink = this.get('filterObject').createJobsFiltersLink();
       var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-queries.json" : "/proxy?url=http://" + historyServerHostName
-          + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;
+        + ":" + yarnService.get('ahsWebPort') + "/ws/v1/timeline/HIVE_QUERY_ID" + filtersLink;
+      App.ajax.send({
+        name: 'jobs.lastID',
+        sender: self,
+        data: {
+          historyServerHostName: historyServerHostName,
+          ahsWebPort: yarnService.get('ahsWebPort')
+        },
+        success: 'lastIDSuccessCallback',
+        error : 'lastIDErrorCallback'
+      }),
       App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
-        complete : function(jqXHR, textStatus) {
+        complete : function(data, jqXHR, textStatus) {
           self.set('loading', false);
+          if(self.get('loaded') == false){
+            var back_link_IDs = self.get('navIDs.backIDs.[]');
+            if(!back_link_IDs.contains(App.HiveJob.find().objectAt(0).get('id'))) {
+              back_link_IDs.push(App.HiveJob.find().objectAt(0).get('id'));
+              self.set('navIDs.backIDs.[]', back_link_IDs);
+            }
+            self.set('filterObject.backFromId', App.HiveJob.find().objectAt(0).get('id'));
+            self.get('filterObject').set('fromTs', App.get('currentServerTime'));
+          }
           self.set('loaded', true);
         }
       }, function (jqXHR, textStatus) {
@@ -337,6 +410,29 @@ App.MainJobsController = Em.Controller.extend({
         self.loadJobs();
       }, 300);
     }
+  },
+
+  navigateNext: function() {
+    this.set("filterObject.backFromId", '');
+    var back_link_IDs = this.get('navIDs.backIDs.[]');
+    var lastBackID = this.get('navIDs.nextID');
+    if(!back_link_IDs.contains(lastBackID)) {
+      back_link_IDs.push(lastBackID);
+    }
+    this.set('navIDs.backIDs.[]', back_link_IDs);
+    this.set("filterObject.nextFromId", this.get('navIDs.nextID'));
+    this.set('navIDs.nextID', '');
+    this.loadJobs();
+  },
+
+  navigateBack: function() {
+    this.set("filterObject.nextFromId", '');
+    var back_link_IDs = this.get('navIDs.backIDs.[]');
+    back_link_IDs.pop();
+    var lastBackID = back_link_IDs[back_link_IDs.length - 1]
+    this.set('navIDs.backIDs.[]', back_link_IDs);
+    this.set("filterObject.backFromId", lastBackID);
+    this.loadJobs();
   },
 
   refreshLoadedJobs : function() {

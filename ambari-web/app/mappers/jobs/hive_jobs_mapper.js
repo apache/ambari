@@ -32,7 +32,7 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
           json.entities = [json];
         }
       }
-      var currentEntityMap = {}
+      var currentEntityMap = {};
       json.entities.forEach(function(entity) {
         currentEntityMap[entity.entity] = entity.entity;
         var hiveJob = {
@@ -75,6 +75,15 @@ App.hiveJobsMapper = App.QuickDataMapper.create({
         hiveJob = null;
         entity = null;
       });
+
+      if(hiveJobs.length > App.router.get('mainJobsController.filterObject.jobsLimit')) {
+        var lastJob = hiveJobs.pop();
+        if(App.router.get('mainJobsController.navIDs.nextID') != lastJob.id) {
+          App.router.set('mainJobsController.navIDs.nextID', lastJob.id);
+        }
+        currentEntityMap[lastJob.id] = null;
+      }
+
       // Delete IDs not seen from server
       var hiveJobsModel = model.find().toArray();
       hiveJobsModel.forEach(function(job) {

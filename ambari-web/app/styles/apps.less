@@ -194,6 +194,24 @@
       a {
         padding:0 5px;
       }
+      a.paginate_disabled_next, a.paginate_disabled_previous {
+        color: gray;
+        &:hover {
+          color: gray;
+          text-decoration: none;
+          cursor: default;
+          i {
+            cursor: default;
+          }
+        }
+      }
+
+      a.paginate_next, a.paginate_previous {
+        &:hover {
+          text-decoration: none;
+          cursor: pointer;
+        }
+      }
     }
   }
   #graph1 {
@@ -310,6 +328,12 @@
     margin-top: -24px;
   }
 
+  .new-jobs-link {
+    float: left;
+    margin-left: 496px;
+    margin-top: -20px;
+  }
+
   #filtered-jobs{
     float: left;
     margin-top: 8px;
@@ -347,6 +371,21 @@
     .paging_two_button {
       a {
         padding:0 5px;
+      }
+      a.paginate_disabled_next, a.paginate_disabled_previous {
+        color: gray;
+        &:hover i{
+          color: gray;
+          text-decoration: none;
+          cursor: default;
+        }
+      }
+
+      a.paginate_next, a.paginate_previous {
+        &:hover {
+          text-decoration: none;
+          cursor: pointer;
+        }
       }
     }
   }
