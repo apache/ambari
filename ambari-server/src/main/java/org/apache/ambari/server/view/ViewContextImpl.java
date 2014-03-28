@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
@@ -42,7 +43,12 @@ public class ViewContextImpl implements ViewContext {
   /**
    * The associated view definition.
    */
-  private final ViewInstanceDefinition viewInstanceDefinition;
+  private final ViewInstanceEntity viewInstanceEntity;
+
+  /**
+   * The view registry.
+   */
+  private final ViewRegistry viewRegistry;
 
   /**
    * The available stream provider.
@@ -53,13 +59,15 @@ public class ViewContextImpl implements ViewContext {
   // ---- Constructors -------------------------------------------------------
 
   /**
-   * Construct a view context from the given view definition.
+   * Construct a view context from the given view entity.
    *
-   * @param viewInstanceDefinition  the view definition
+   * @param viewInstanceEntity  the view entity
+   * @param viewRegistry        the view registry
    */
-  public ViewContextImpl(ViewInstanceDefinition viewInstanceDefinition) {
-    this.viewInstanceDefinition = viewInstanceDefinition;
-    this.streamProvider         = ViewURLStreamProvider.getProvider();
+  public ViewContextImpl(ViewInstanceEntity viewInstanceEntity, ViewRegistry viewRegistry) {
+    this.viewInstanceEntity = viewInstanceEntity;
+    this.viewRegistry       = viewRegistry;
+    this.streamProvider     = ViewURLStreamProvider.getProvider();
   }
 
 
@@ -67,27 +75,49 @@ public class ViewContextImpl implements ViewContext {
 
   @Override
   public String getViewName() {
-    return viewInstanceDefinition.getViewDefinition().getName();
+    return viewInstanceEntity.getViewName();
   }
 
   @Override
   public String getInstanceName() {
-    return viewInstanceDefinition.getName();
+    return viewInstanceEntity.getName();
   }
 
   @Override
   public Map<String, String> getProperties() {
-    return viewInstanceDefinition.getProperties();
+    return Collections.unmodifiableMap(viewInstanceEntity.getPropertyMap());
+  }
+
+  @Override
+  public void putInstanceData(String key, String value) {
+    viewInstanceEntity.putInstanceData(key, value);
+    viewRegistry.updateViewInstance(viewInstanceEntity);
+  }
+
+  @Override
+  public String getInstanceData(String key) {
+    return viewInstanceEntity.getInstanceDataMap().get(key);
+  }
+
+  @Override
+  public Map<String, String> getInstanceData() {
+    return Collections.unmodifiableMap(viewInstanceEntity.getInstanceDataMap());
+  }
+
+  @Override
+  public void removeInstanceData(String key) {
+    viewInstanceEntity.removeInstanceData(key);
+    viewRegistry.updateViewInstance(viewInstanceEntity);
   }
 
   @Override
   public String getAmbariProperty(String key) {
-    return viewInstanceDefinition.getViewDefinition().getAmbariProperty(key);
+    return viewInstanceEntity.getViewEntity().getAmbariProperty(key);
   }
 
   @Override
   public ResourceProvider<?> getResourceProvider(String type) {
-    return viewInstanceDefinition.getResourceProvider(type);
+    return viewInstanceEntity.getResourceProvider(type);
   }
 
   @Override

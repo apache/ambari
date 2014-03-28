@@ -21,6 +21,7 @@ package org.apache.ambari.server.view;
 import org.apache.ambari.server.api.resources.BaseResourceDefinition;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 
 import java.util.HashSet;
@@ -34,7 +35,7 @@ public class ViewSubResourceDefinition extends BaseResourceDefinition {
   /**
    * The associated view definition.
    */
-  private final ViewDefinition viewDefinition;
+  private final ViewEntity viewDefinition;
 
   /**
    * The configuration.
@@ -55,7 +56,7 @@ public class ViewSubResourceDefinition extends BaseResourceDefinition {
    * @param viewDefinition         the view definition
    * @param resourceConfiguration  the resource configuration
    */
-  public ViewSubResourceDefinition(ViewDefinition viewDefinition, ResourceConfig resourceConfiguration) {
+  public ViewSubResourceDefinition(ViewEntity viewDefinition, ResourceConfig resourceConfiguration) {
     super(new Resource.Type(viewDefinition.getQualifiedResourceTypeName(resourceConfiguration.getName())));
 
     this.viewDefinition        = viewDefinition;

@@ -20,6 +20,8 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.junit.Assert;
@@ -60,7 +62,7 @@ public class ViewSubResourceDefinitionTest {
   }
 
   public static ViewSubResourceDefinition getViewSubResourceDefinition() throws Exception {
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     ResourceConfig resourceConfig = ResourceConfigTest.getResourceConfigs().get(0);
 
     return new ViewSubResourceDefinition(viewDefinition, resourceConfig);

@@ -127,6 +127,19 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_component TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint_configuration TO :username;
 
+CREATE TABLE ambari.viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255) NOT NULL, version VARCHAR(255), archive VARCHAR(255), PRIMARY KEY(view_name));
+CREATE TABLE ambari.viewinstancedata (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(255) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
+CREATE TABLE ambari.viewinstance (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(view_name, name));
+CREATE TABLE ambari.viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(255) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
+CREATE TABLE ambari.viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255), required CHAR(1), PRIMARY KEY(view_name, name));
+CREATE TABLE ambari.viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), resource VARCHAR(255), PRIMARY KEY(view_name, name));
+GRANT ALL PRIVILEGES ON TABLE ambari.viewmain TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.viewinstancedata TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.viewinstance TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.viewinstanceproperty TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.viewparameter TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.viewresource TO :username;
+
 --------altering tables by creating foreign keys----------
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
@@ -163,6 +176,11 @@ ALTER TABLE ambari.hostgroup ADD CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (bl
 ALTER TABLE ambari.hostgroup_component ADD CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES ambari.hostgroup (blueprint_name, name);
 ALTER TABLE ambari.blueprint_configuration ADD CONSTRAINT FK_cfg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name);
 ALTER TABLE ambari.requestresourcefilter ADD CONSTRAINT FK_reqresfilter_req_id FOREIGN KEY (request_id) REFERENCES ambari.request (request_id);
+ALTER TABLE ambari.viewparameter ADD FOREIGN KEY (view_name) REFERENCES ambari.viewmain(view_name);
+ALTER TABLE ambari.viewresource ADD FOREIGN KEY (view_name) REFERENCES ambari.viewmain(view_name);
+ALTER TABLE ambari.viewinstance ADD FOREIGN KEY (view_name) REFERENCES ambari.viewmain(view_name);
+ALTER TABLE ambari.viewinstanceproperty ADD FOREIGN KEY (view_name, view_instance_name) REFERENCES ambari.viewinstance(view_name, name);
+ALTER TABLE ambari.viewinstancedata ADD FOREIGN KEY (view_name, view_instance_name) REFERENCES ambari.viewinstance(view_name, name);
 
 
 ---------inserting some data-----------

@@ -131,6 +131,33 @@ public class ResourceConfig {
   }
 
   /**
+   * Get the provider class name.
+   *
+   * @return the provider class name
+   */
+  public String getProvider() {
+    return provider;
+  }
+
+  /**
+   * Get the service class name.
+   *
+   * @return the service class name.
+   */
+  public String getService() {
+    return service;
+  }
+
+  /**
+   * Get the resource class name
+   *
+   * @return the resource classname
+   */
+  public String getResource() {
+    return resource;
+  }
+
+  /**
    * Get the resource provider class.
    *
    * @param cl  the class loader

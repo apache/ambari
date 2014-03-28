@@ -31,6 +31,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.ReadRequest;
 
 import java.beans.IntrospectionException;
@@ -55,7 +57,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
   private static final String VIEW_NAME_PROPERTY_ID = "view_name";
   private static final String INSTANCE_NAME_PROPERTY_ID = "instance_name";
 
-  private final ViewDefinition viewDefinition;
+  private final ViewEntity viewDefinition;
   private final String pkField;
   private final Resource.Type type;
   private final Map<String, PropertyDescriptor> descriptorMap;
@@ -75,7 +77,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
    *
    * @throws IntrospectionException if an exception occurs during introspection of the resource bean class
    */
-  public ViewSubResourceProvider(Resource.Type type, Class<?> clazz, String pkField, ViewDefinition viewDefinition)
+  public ViewSubResourceProvider(Resource.Type type, Class<?> clazz, String pkField, ViewEntity viewDefinition)
       throws IntrospectionException {
 
     super(discoverPropertyIds(clazz), getKeyPropertyIds(pkField, type));
@@ -120,14 +122,14 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    Set<ViewInstanceDefinition> instanceDefinitions = new HashSet<ViewInstanceDefinition>();
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
     try {
 
       Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
       int size = propertyMaps.size();
 
-      Collection<ViewInstanceDefinition> viewInstanceDefinitions = viewDefinition.getInstanceDefinitions();
+      Collection<ViewInstanceEntity> viewInstanceDefinitions = viewDefinition.getInstances();
       if (size == 0) {
         instanceDefinitions.addAll(viewInstanceDefinitions);
       } else {
@@ -144,14 +146,17 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
             instanceDefinitions.addAll(viewInstanceDefinitions);
             break;
           } else {
-            instanceDefinitions.add(viewDefinition.getInstanceDefinition(instanceName));
+            ViewInstanceEntity instanceDefinition = viewDefinition.getInstanceDefinition(instanceName);
+            if (instanceDefinition != null) {
+              instanceDefinitions.add(instanceDefinition);
+            }
           }
         }
       }
 
       Set<Resource> results = new HashSet<Resource>();
       ReadRequest readRequest = new ViewReadRequest(requestedIds, predicate == null ? "" : predicate.toString());
-      for (ViewInstanceDefinition instanceDefinition : instanceDefinitions) {
+      for (ViewInstanceEntity instanceDefinition : instanceDefinitions) {
 
         Set<?> beans = instanceDefinition.getResourceProvider(type).getResources(readRequest);
 

@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.view.ViewInstanceDefinition;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 
 import javax.ws.rs.DELETE;
@@ -74,11 +74,6 @@ public class ViewInstanceService extends BaseService {
   public Response getService(@Context HttpHeaders headers, @Context UriInfo ui,
                              @PathParam("instanceName") String instanceName) {
 
-    if (ViewRegistry.getInstance().getInstanceDefinition(m_viewName, instanceName) == null) {
-      throw new IllegalArgumentException("A view instance " +
-          m_viewName + "/" + instanceName + " can not be found.");
-    }
-
     return handleRequest(headers, null, ui, Request.Type.GET,
         createServiceResource(m_viewName, instanceName));
   }
@@ -115,7 +110,6 @@ public class ViewInstanceService extends BaseService {
   @Produces("text/plain")
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                                 @PathParam("instanceName") String instanceName) {
-
     return handleRequest(headers, body, ui, Request.Type.POST,
         createServiceResource(m_viewName, instanceName));
   }
@@ -205,7 +199,7 @@ public class ViewInstanceService extends BaseService {
   public Object getResourceHandler(@PathParam("instanceName") String instanceName,
                                             @PathParam("resources") String resources) {
 
-    ViewInstanceDefinition instanceDefinition =
+    ViewInstanceEntity instanceDefinition =
         ViewRegistry.getInstance().getInstanceDefinition(m_viewName, instanceName);
 
     if (instanceDefinition == null) {

@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.view.ViewInstanceDefinition;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -62,9 +62,9 @@ public class ViewExternalSubResourceService  extends BaseService {
 
   // ----- Constructors ------------------------------------------------------
 
-  public ViewExternalSubResourceService(Resource.Type type, ViewInstanceDefinition viewInstanceDefinition) {
+  public ViewExternalSubResourceService(Resource.Type type, ViewInstanceEntity viewInstanceDefinition) {
     this.type         = type;
-    this.viewName     = viewInstanceDefinition.getViewDefinition().getName();
+    this.viewName     = viewInstanceDefinition.getViewName();
     this.instanceName = viewInstanceDefinition.getName();
   }
 

@@ -50,7 +50,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
@@ -66,7 +69,6 @@ import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.ambari.server.view.ViewInstanceDefinition;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -285,8 +287,9 @@ public class AmbariServer {
 
       HandlerList handlerList = new HandlerList();
 
-      for (ViewInstanceDefinition viewInstanceDefinition : ViewRegistry.readViewArchives(configs)){
-        handlerList.addHandler(ViewRegistry.getWebAppContext(viewInstanceDefinition));
+      ViewRegistry viewRegistry = ViewRegistry.getInstance();
+      for (ViewInstanceEntity entity : viewRegistry.readViewArchives(configs)){
+        handlerList.addHandler(viewRegistry.getWebAppContext(entity));
       }
       handlerList.addHandler(root);
 
@@ -507,6 +510,7 @@ public class AmbariServer {
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
     BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class), injector.getInstance(Gson.class));
     ClusterResourceProvider.injectBlueprintDAO(injector.getInstance(BlueprintDAO.class));
+    ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class));
   }
 
   public static void main(String[] args) throws Exception {

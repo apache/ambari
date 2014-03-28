@@ -29,6 +29,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -67,7 +69,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
   /**
    * The associated view definition.
    */
-  private final ViewDefinition viewDefinition;
+  private final ViewEntity viewDefinition;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -78,7 +80,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
    * @param type            the resource type
    * @param viewDefinition  the associated view definition
    */
-  public ViewExternalSubResourceProvider(Resource.Type type, ViewDefinition viewDefinition) {
+  public ViewExternalSubResourceProvider(Resource.Type type, ViewEntity viewDefinition) {
     super(_getPropertyIds(), _getKeyPropertyIds(type));
 
     this.type           = type;
@@ -100,12 +102,12 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
 
     Set<Resource> resourceSet = new HashSet<Resource>();
 
-    Set<ViewInstanceDefinition> instanceDefinitions = new HashSet<ViewInstanceDefinition>();
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
     int size = propertyMaps.size();
 
-    Collection<ViewInstanceDefinition> viewInstanceDefinitions = viewDefinition.getInstanceDefinitions();
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = viewDefinition.getInstances();
     if (size == 0) {
       instanceDefinitions.addAll(viewInstanceDefinitions);
     } else {
@@ -120,7 +122,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
       }
     }
 
-    for (ViewInstanceDefinition viewInstanceDefinition : instanceDefinitions) {
+    for (ViewInstanceEntity viewInstanceDefinition : instanceDefinitions) {
       for (String resourceName : resourceNames) {
         ResourceImpl resource = new ResourceImpl(type);
         resource.setProperty(VIEW_NAME_PROPERTY_ID, viewDefinition.getName());

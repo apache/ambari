@@ -20,6 +20,9 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewEntityTest;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.view.ResourceProvider;
@@ -45,10 +48,11 @@ public class ViewContextImplTest {
   @Test
   public void testGetViewName() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
-    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Assert.assertEquals("MY_VIEW", viewContext.getViewName());
   }
@@ -56,10 +60,11 @@ public class ViewContextImplTest {
   @Test
   public void testGetInstanceName() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
-    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Assert.assertEquals("INSTANCE1", viewContext.getInstanceName());
   }
@@ -67,13 +72,14 @@ public class ViewContextImplTest {
   @Test
   public void testGetProperties() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
-    viewInstanceDefinition.addProperty("p1", "v1");
-    viewInstanceDefinition.addProperty("p2", "v2");
-    viewInstanceDefinition.addProperty("p3", "v3");
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+    viewInstanceDefinition.putProperty("p1", "v1");
+    viewInstanceDefinition.putProperty("p2", "v2");
+    viewInstanceDefinition.putProperty("p3", "v3");
 
-    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Map<String, String> properties = viewContext.getProperties();
     Assert.assertEquals(3, properties.size());
@@ -86,15 +92,16 @@ public class ViewContextImplTest {
   @Test
   public void testGetResourceProvider() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
     ResourceProvider provider = createNiceMock(ResourceProvider.class);
     Resource.Type type = new Resource.Type("MY_VIEW/myType");
 
     viewInstanceDefinition.addResourceProvider(type, provider);
 
-    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Assert.assertEquals(provider, viewContext.getResourceProvider("myType"));
   }
@@ -102,15 +109,16 @@ public class ViewContextImplTest {
   @Test
   public void testGetURLStreamProvider() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
     ResourceProvider provider = createNiceMock(ResourceProvider.class);
     Resource.Type type = new Resource.Type("MY_VIEW/myType");
 
     viewInstanceDefinition.addResourceProvider(type, provider);
 
-    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition);
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Assert.assertNotNull(viewContext.getURLStreamProvider());
   }

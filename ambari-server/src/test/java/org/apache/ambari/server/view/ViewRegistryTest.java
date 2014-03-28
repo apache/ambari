@@ -21,12 +21,14 @@ package org.apache.ambari.server.view;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewEntityTest;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
-import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +45,7 @@ import static org.easymock.EasyMock.createNiceMock;
 public class ViewRegistryTest {
   @Test
   public void testAddGetDefinitions() throws Exception {
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -51,7 +53,7 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(viewDefinition, registry.getDefinition("MY_VIEW"));
 
-    Collection<ViewDefinition> viewDefinitions = registry.getDefinitions();
+    Collection<ViewEntity> viewDefinitions = registry.getDefinitions();
 
     Assert.assertEquals(1, viewDefinitions.size());
 
@@ -60,8 +62,8 @@ public class ViewRegistryTest {
 
   @Test
   public void testAddGetInstanceDefinitions() throws Exception {
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = ViewInstanceDefinitionTest.getViewInstanceDefinition();
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = ViewInstanceEntityTest.getViewInstanceEntity();
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
@@ -71,7 +73,7 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(viewInstanceDefinition, registry.getInstanceDefinition("MY_VIEW", "INSTANCE1"));
 
-    Collection<ViewInstanceDefinition> viewInstanceDefinitions = registry.getInstanceDefinitions(viewDefinition);
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewDefinition);
 
     Assert.assertEquals(1, viewInstanceDefinitions.size());
 
@@ -80,7 +82,7 @@ public class ViewRegistryTest {
 
   @Test
   public void testGetSubResourceDefinitions() throws Exception {
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     ViewRegistry registry = ViewRegistry.getInstance();
 
     ResourceConfig config = ResourceConfigTest.getResourceConfigs().get(0);
@@ -98,19 +100,22 @@ public class ViewRegistryTest {
   }
 
   @Test
-  public void testInstallViewInstance() throws Exception {
+  public void testAddInstanceDefinition() throws Exception {
     ViewRegistry registry = ViewRegistry.getInstance();
 
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
+    ViewEntity viewEntity = ViewEntityTest.getViewEntity();
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
 
-    ViewInstanceDefinition viewInstanceDefinition = ViewRegistry.installViewInstance(viewDefinition, instanceConfig);
+    ViewInstanceEntity viewInstanceEntity = new ViewInstanceEntity(viewEntity, instanceConfig);
 
-    Collection<ViewInstanceDefinition> viewInstanceDefinitions = registry.getInstanceDefinitions(viewDefinition);
+    registry.addDefinition(viewEntity);
+    registry.addInstanceDefinition(viewEntity, viewInstanceEntity);
+
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
 
     Assert.assertEquals(1, viewInstanceDefinitions.size());
 
-    Assert.assertEquals(viewInstanceDefinition, viewInstanceDefinitions.iterator().next());
+    Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
   }
 
   @Before

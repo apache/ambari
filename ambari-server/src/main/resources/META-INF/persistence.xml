@@ -45,6 +45,12 @@
     <class>org.apache.ambari.server.orm.entities.HostGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostGroupComponentEntity</class>
     <class>org.apache.ambari.server.orm.entities.RequestResourceFilterEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewInstanceDataEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewInstanceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewParameterEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewResourceEntity</class>
 
     <properties>
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->

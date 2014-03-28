@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.orm.entities.ViewEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -89,7 +90,7 @@ public class ViewProviderModule implements ProviderModule {
     Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
 
     ViewRegistry registry = ViewRegistry.getInstance();
-    for (ViewDefinition definition : registry.getDefinitions()) {
+    for (ViewEntity definition : registry.getDefinitions()) {
       for (Resource.Type type : definition.getViewResourceTypes()){
         ResourceProvider provider = definition.getResourceProvider(type);
         resourceProviders.put(type, provider);

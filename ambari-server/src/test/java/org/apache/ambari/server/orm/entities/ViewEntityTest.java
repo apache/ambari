@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.ambari.server.view;
+package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.view.ViewSubResourceDefinition;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
@@ -37,54 +37,56 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-/**
- * ViewDefinition tests.
- */
-public class ViewDefinitionTest {
 
-  public static ViewDefinition getViewDefinition() throws Exception {
-    return getViewDefinition(ViewConfigTest.getConfig());
+/**
+ * ViewEntity tests.
+ */
+public class ViewEntityTest {
+
+
+  public static ViewEntity getViewEntity() throws Exception {
+    return getViewEntity(ViewConfigTest.getConfig());
   }
 
-  public static ViewDefinition getViewDefinition(ViewConfig viewConfig) throws Exception {
+  public static ViewEntity getViewEntity(ViewConfig viewConfig) throws Exception {
     Properties properties = new Properties();
     properties.put("p1", "v1");
     properties.put("p2", "v2");
     properties.put("p3", "v3");
 
     Configuration ambariConfig = new Configuration(properties);
-    return new ViewDefinition(viewConfig, ambariConfig, ViewDefinitionTest.class.getClassLoader(), "view.jar");
+    return new ViewEntity(viewConfig, ambariConfig, ViewEntityTest.class.getClassLoader(), "view.jar");
   }
 
   @Test
   public void testGetName() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
     Assert.assertEquals("MY_VIEW", viewDefinition.getName());
   }
 
   @Test
   public void testGetLabel() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
     Assert.assertEquals("My View!", viewDefinition.getLabel());
   }
 
   @Test
   public void testGetVersion() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
     Assert.assertEquals("1.0.0", viewDefinition.getVersion());
   }
 
   @Test
   public void testGetConfiguration() throws Exception {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
-    ViewDefinition viewDefinition = getViewDefinition(viewConfig);
+    ViewEntity viewDefinition = getViewEntity(viewConfig);
     Assert.assertEquals(viewConfig, viewDefinition.getConfiguration());
   }
 
   @Test
   public void testGetAmbariProperty() throws Exception {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
-    ViewDefinition viewDefinition = getViewDefinition(viewConfig);
+    ViewEntity viewDefinition = getViewEntity(viewConfig);
     Assert.assertEquals("v1", viewDefinition.getAmbariProperty("p1"));
     Assert.assertEquals("v2", viewDefinition.getAmbariProperty("p2"));
     Assert.assertEquals("v3", viewDefinition.getAmbariProperty("p3"));
@@ -92,7 +94,7 @@ public class ViewDefinitionTest {
 
   @Test
   public void testAddGetResourceProvider() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
 
     ResourceProvider provider1 = createNiceMock(ResourceProvider.class);
 
@@ -118,7 +120,7 @@ public class ViewDefinitionTest {
 
   @Test
   public void testAddGetResourceDefinition() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
 
     ViewSubResourceDefinition definition = createNiceMock(ViewSubResourceDefinition.class);
     Resource.Type type = new Resource.Type("myType");
@@ -136,7 +138,7 @@ public class ViewDefinitionTest {
 
   @Test
   public void testAddGetResourceConfiguration() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
 
     ResourceConfig config = ResourceConfigTest.getResourceConfigs().get(0);
 
@@ -155,11 +157,11 @@ public class ViewDefinitionTest {
 
   @Test
   public void testAddGetInstanceDefinition() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
+    ViewEntity viewDefinition = getViewEntity();
 
-    ViewInstanceDefinition definition = createNiceMock(ViewInstanceDefinition.class);
+    ViewInstanceEntity definition = createNiceMock(ViewInstanceEntity.class);
 
-    expect(definition.getName()).andReturn("instance1");
+    expect(definition.getName()).andReturn("instance1").anyTimes();
 
     replay(definition);
 
@@ -167,7 +169,7 @@ public class ViewDefinitionTest {
 
     Assert.assertEquals(definition, viewDefinition.getInstanceDefinition("instance1"));
 
-    Collection<ViewInstanceDefinition> definitions = viewDefinition.getInstanceDefinitions();
+    Collection<ViewInstanceEntity> definitions = viewDefinition.getInstances();
 
     Assert.assertEquals(1, definitions.size());
 
@@ -178,13 +180,13 @@ public class ViewDefinitionTest {
 
   @Test
   public void testGetClassLoader() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
-    Assert.assertEquals(ViewDefinitionTest.class.getClassLoader(), viewDefinition.getClassLoader());
+    ViewEntity viewDefinition = getViewEntity();
+    Assert.assertEquals(ViewEntityTest.class.getClassLoader(), viewDefinition.getClassLoader());
   }
 
   @Test
-  public void testGetArchivePath() throws Exception {
-    ViewDefinition viewDefinition = getViewDefinition();
-    Assert.assertEquals("view.jar", viewDefinition.getArchivePath());
+  public void testGetArchive() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+    Assert.assertEquals("view.jar", viewDefinition.getArchive());
   }
 }

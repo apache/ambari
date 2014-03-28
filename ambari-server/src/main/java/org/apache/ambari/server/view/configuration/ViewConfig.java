@@ -68,11 +68,6 @@ public class ViewConfig {
   private List<InstanceConfig> instances;
 
   /**
-   * The mapping of servlet names to URL patterns.
-   */
-  public Map<String, String> servletURLPatternMap = null;
-
-  /**
    * Get the unique name.
    *
    * @return the view name

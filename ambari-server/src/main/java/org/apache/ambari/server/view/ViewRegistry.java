@@ -20,6 +20,7 @@ package org.apache.ambari.server.view;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
@@ -28,7 +29,14 @@ import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewParameterEntity;
+import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
+import org.apache.ambari.server.view.configuration.ParameterConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
@@ -65,12 +73,12 @@ public class ViewRegistry {
   /**
    * Mapping of view names to view definitions.
    */
-  private Map<String, ViewDefinition> viewDefinitions = new HashMap<String, ViewDefinition>();
+  private Map<String, ViewEntity> viewDefinitions = new HashMap<String, ViewEntity>();
 
   /**
    * Mapping of view instances to view definition and instance name.
    */
-  private Map<ViewDefinition, Map<String, ViewInstanceDefinition>> viewInstanceDefinitions = new HashMap<ViewDefinition, Map<String, ViewInstanceDefinition>>();
+  private Map<ViewEntity, Map<String, ViewInstanceEntity>> viewInstanceDefinitions = new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
 
   /**
    * Mapping of view names to sub-resources.
@@ -86,6 +94,28 @@ public class ViewRegistry {
    * The logger.
    */
   protected final static Logger LOG = LoggerFactory.getLogger(ViewRegistry.class);
+
+  /**
+   * View data access object.
+   */
+  private static ViewDAO viewDAO;
+
+  /**
+   * View instance data access object.
+   */
+  private static ViewInstanceDAO instanceDAO;
+
+  /**
+   * Static initialization of DAO.
+   *
+   * @param vDAO  view data access object
+   * @param iDAO  view instance data access object
+   */
+  @Inject
+  public static void init(ViewDAO vDAO, ViewInstanceDAO iDAO) {
+    viewDAO     = vDAO;
+    instanceDAO = iDAO;
+  }
 
 
   // ----- Constructors ------------------------------------------------------
@@ -104,7 +134,7 @@ public class ViewRegistry {
    *
    * @return the collection of view definitions
    */
-  public Collection<ViewDefinition> getDefinitions() {
+  public Collection<ViewEntity> getDefinitions() {
     return viewDefinitions.values();
   }
 
@@ -115,7 +145,7 @@ public class ViewRegistry {
    *
    * @return the view definition for the given name
    */
-  public ViewDefinition getDefinition(String viewName) {
+  public ViewEntity getDefinition(String viewName) {
     return viewDefinitions.get(viewName);
   }
 
@@ -124,7 +154,7 @@ public class ViewRegistry {
    *
    * @param definition  the definition
    */
-  public void addDefinition(ViewDefinition definition) {
+  public void addDefinition(ViewEntity definition) {
     viewDefinitions.put(definition.getName(), definition);
   }
 
@@ -135,7 +165,7 @@ public class ViewRegistry {
    *
    * @return the collection of view instances for the view definition
    */
-  public Collection<ViewInstanceDefinition> getInstanceDefinitions(ViewDefinition definition) {
+  public Collection<ViewInstanceEntity> getInstanceDefinitions(ViewEntity definition) {
     return definition == null ? null : viewInstanceDefinitions.get(definition).values();
   }
 
@@ -147,8 +177,8 @@ public class ViewRegistry {
    *
    * @return the view instance definition for the given view and instance name
    */
-  public ViewInstanceDefinition getInstanceDefinition(String viewName, String instanceName) {
-    Map<String, ViewInstanceDefinition> viewInstanceDefinitionMap =
+  public ViewInstanceEntity getInstanceDefinition(String viewName, String instanceName) {
+    Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
         viewInstanceDefinitions.get(getDefinition(viewName));
 
     return viewInstanceDefinitionMap == null ? null : viewInstanceDefinitionMap.get(instanceName);
@@ -160,13 +190,26 @@ public class ViewRegistry {
    * @param definition          the owning view definition
    * @param instanceDefinition  the instance definition
    */
-  public void addInstanceDefinition(ViewDefinition definition, ViewInstanceDefinition instanceDefinition) {
-    Map<String, ViewInstanceDefinition> instanceDefinitions = viewInstanceDefinitions.get(definition);
+  public void addInstanceDefinition(ViewEntity definition, ViewInstanceEntity instanceDefinition) {
+    Map<String, ViewInstanceEntity> instanceDefinitions = viewInstanceDefinitions.get(definition);
     if (instanceDefinitions == null) {
-      instanceDefinitions = new HashMap<String, ViewInstanceDefinition>();
+      instanceDefinitions = new HashMap<String, ViewInstanceEntity>();
       viewInstanceDefinitions.put(definition, instanceDefinitions);
     }
     instanceDefinitions.put(instanceDefinition.getName(), instanceDefinition);
+  }
+
+  /**
+   * Remove an instance definition for the given view definition.
+   *
+   * @param definition    the owning view definition
+   * @param instanceName  the instance name
+   */
+  public void removeInstanceDefinition(ViewEntity definition, String instanceName) {
+    Map<String, ViewInstanceEntity> instanceDefinitions = viewInstanceDefinitions.get(definition);
+    if (instanceDefinitions != null) {
+      instanceDefinitions.remove(instanceName);
+    }
   }
 
   /**
@@ -191,7 +234,7 @@ public class ViewRegistry {
 
     if (subResourceDefinitions == null) {
       subResourceDefinitions = new HashSet<SubResourceDefinition>();
-      ViewDefinition definition = getDefinition(viewName);
+      ViewEntity definition = getDefinition(viewName);
       if (definition != null) {
         for (Resource.Type type : definition.getViewResourceTypes()) {
           subResourceDefinitions.add(new SubResourceDefinition(type));
@@ -207,12 +250,12 @@ public class ViewRegistry {
    *
    * @param configuration  Ambari configuration
    */
-  public static Set<ViewInstanceDefinition> readViewArchives(Configuration configuration) {
+  public Set<ViewInstanceEntity> readViewArchives(Configuration configuration) {
 
     File   viewDir = configuration.getViewsDir();
     File[] files   = viewDir.listFiles();
 
-    Set<ViewInstanceDefinition> instanceDefinitions = new HashSet<ViewInstanceDefinition>();
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
 
     if (files != null) {
       for (final File fileEntry : files) {
@@ -224,78 +267,106 @@ public class ViewRegistry {
             JAXBContext    jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
             Unmarshaller   jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             ViewConfig     viewConfig       = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-            ViewDefinition viewDefinition   = installView(viewConfig, configuration, cl, fileEntry.getAbsolutePath());
+            ViewEntity viewDefinition       = installView(viewConfig, configuration, cl, fileEntry.getAbsolutePath());
 
-            List<InstanceConfig> instances = viewConfig.getInstances();
+            for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
+              ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
 
-            for (InstanceConfig instanceConfig : instances) {
-              instanceDefinitions.add(installViewInstance(viewDefinition, instanceConfig));
+              for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
+                viewInstanceDefinition.putProperty(propertyConfig.getKey(), propertyConfig.getValue());
+              }
+
+              _installViewInstance(viewDefinition, viewInstanceDefinition);
+              instanceDefinitions.add(viewInstanceDefinition);
             }
           } catch (Exception e) {
             LOG.error("Caught exception loading view from " + fileEntry.getAbsolutePath(), e);
           }
         }
       }
+      try {
+
+        instanceDefinitions.addAll(persistViews());
+      } catch (ClassNotFoundException e) {
+        LOG.error("Caught exception persisting views.", e);
+      }
     }
     return instanceDefinitions;
   }
 
   /**
-   * Install a view instance described by the given instance configuration
-   * for the view defined by the given view definition.
+   * Install a view instance for the view with the given view name.
    *
-   * @param viewDefinition  the view definition
-   * @param instanceConfig  the instance configuration
-   *
-   * @return the new view instance definition
-   *
-   * @throws ClassNotFoundException if the view classes in the given configuration can not be found
+   * @param instanceEntity  the view instance entity
    */
-  public static ViewInstanceDefinition installViewInstance(ViewDefinition viewDefinition,
-                                                            InstanceConfig instanceConfig)
-      throws ClassNotFoundException {
+  public void installViewInstance(ViewInstanceEntity instanceEntity){
+    String viewName       = instanceEntity.getViewName();
+    ViewEntity viewEntity = getDefinition(viewName);
 
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    if (viewEntity != null) {
+      String instanceName = instanceEntity.getName();
 
-    List<PropertyConfig> propertyConfigs = instanceConfig.getProperties();
-
-    for (PropertyConfig propertyConfig : propertyConfigs) {
-      viewInstanceDefinition.addProperty(propertyConfig.getKey(), propertyConfig.getValue());
-    }
-
-    ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition);
-
-    ViewExternalSubResourceService externalSubResourceService =
-        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
-
-    viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
-
-    Collection<ViewSubResourceDefinition> resourceDefinitions = viewDefinition.getResourceDefinitions().values();
-    for (ViewSubResourceDefinition resourceDefinition : resourceDefinitions) {
-
-      Resource.Type  type           = resourceDefinition.getType();
-      ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
-
-      ViewResourceHandler viewResourceService =
-          new ViewSubResourceService(type, viewDefinition.getName(), instanceConfig.getName());
-
-      ClassLoader cl = viewDefinition.getClassLoader();
-
-      Object service = getService(resourceConfig.getServiceClass(cl), viewResourceService, viewInstanceContext);
-
-      if (resourceConfig.isExternal()) {
-        externalSubResourceService.addResourceService(resourceConfig.getName(), service);
-      } else {
-        viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(),service);
-        viewInstanceDefinition.addResourceProvider(type,
-            getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
+      if (getInstanceDefinition(viewName, instanceName) == null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Creating view instance " + viewName + "/" + instanceName);
+        }
+        instanceDAO.create(instanceEntity);
+        try {
+          _installViewInstance(viewEntity, instanceEntity);
+        } catch (ClassNotFoundException e) {
+          LOG.error("Caught exception installing view instance.", e);
+        }
       }
     }
+  }
 
-    viewDefinition.addInstanceDefinition(viewInstanceDefinition);
-    ViewRegistry.getInstance().addInstanceDefinition(viewDefinition, viewInstanceDefinition);
+  /**
+   * Update a view instance for the view with the given view name.
+   *
+   * @param instanceEntity  the view instance entity
+   */
+  public void updateViewInstance(ViewInstanceEntity instanceEntity) {
+    String       viewName   = instanceEntity.getViewName();
+    ViewEntity   viewEntity = getDefinition(viewName);
 
-    return viewInstanceDefinition;
+    if (viewEntity != null) {
+      String instanceName = instanceEntity.getName();
+      ViewInstanceEntity entity = getInstanceDefinition(viewName, instanceName);
+      if (entity != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Updating view instance " + viewName + "/" + instanceName);
+        }
+
+        entity.setProperties(instanceEntity.getProperties());
+        entity.setData(instanceEntity.getData());
+
+        instanceDAO.merge(entity);
+      }
+    }
+  }
+
+  /**
+   * Uninstall a view instance for the view with the given view name.
+   *
+   * @param instanceEntity  the view instance entity
+   */
+  public void uninstallViewInstance(ViewInstanceEntity instanceEntity) {
+
+    String       viewName   = instanceEntity.getViewName();
+    ViewEntity   viewEntity = getDefinition(viewName);
+
+    if (viewEntity != null) {
+      String instanceName = instanceEntity.getName();
+      if (getInstanceDefinition(viewName, instanceName) != null) {
+
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Deleting view instance " + viewName + "/" + instanceName);
+        }
+        instanceDAO.remove(instanceEntity);
+        viewEntity.removeInstanceDefinition(instanceName);
+        removeInstanceDefinition(viewEntity, instanceName);
+      }
+    }
   }
 
   /**
@@ -305,12 +376,12 @@ public class ViewRegistry {
    *
    * @return a web app context
    */
-  public static WebAppContext getWebAppContext(ViewInstanceDefinition viewInstanceDefinition) {
-    ViewDefinition viewDefinition = viewInstanceDefinition.getViewDefinition();
+  public WebAppContext getWebAppContext(ViewInstanceEntity viewInstanceDefinition) {
+    ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
 
-    WebAppContext context = new WebAppContext(viewDefinition.getArchivePath(), viewInstanceDefinition.getContextPath());
+    WebAppContext context = new WebAppContext(viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
     context.setClassLoader(viewDefinition.getClassLoader());
-    context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition));
+    context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, this));
     return context;
   }
 
@@ -327,13 +398,28 @@ public class ViewRegistry {
   }
 
   // install a new view definition
-  private static ViewDefinition installView(ViewConfig viewConfig, Configuration ambariConfig,
+  private ViewEntity installView(ViewConfig viewConfig, Configuration ambariConfig,
                                             ClassLoader cl, String archivePath)
       throws ClassNotFoundException, IntrospectionException {
 
-    List<ResourceConfig> resourceConfigurations = viewConfig.getResources();
+    ViewEntity viewDefinition = new ViewEntity(viewConfig, ambariConfig, cl, archivePath);
 
-    ViewDefinition viewDefinition = new ViewDefinition(viewConfig, ambariConfig, cl, archivePath);
+    List<ParameterConfig> parameterConfigurations = viewConfig.getParameters();
+
+    Collection<ViewParameterEntity> parameters = new HashSet<ViewParameterEntity>();
+    for (ParameterConfig parameterConfiguration : parameterConfigurations) {
+      ViewParameterEntity viewParameterEntity =  new ViewParameterEntity();
+
+      viewParameterEntity.setViewName(viewDefinition.getName());
+      viewParameterEntity.setName(parameterConfiguration.getName());
+      viewParameterEntity.setDescription(parameterConfiguration.getDescription());
+      viewParameterEntity.setRequired(parameterConfiguration.isRequired());
+      viewParameterEntity.setViewEntity(viewDefinition);
+      parameters.add(viewParameterEntity);
+    }
+    viewDefinition.setParameters(parameters);
+
+    List<ResourceConfig> resourceConfigurations = viewConfig.getResources();
 
     Resource.Type externalResourceType = viewDefinition.getExternalResourceType();
 
@@ -344,7 +430,19 @@ public class ViewRegistry {
     ResourceInstanceFactoryImpl.addResourceDefinition(externalResourceType,
         new ViewExternalSubResourceDefinition(externalResourceType));
 
+    Collection<ViewResourceEntity> resources = new HashSet<ViewResourceEntity>();
     for (ResourceConfig resourceConfiguration : resourceConfigurations) {
+      ViewResourceEntity viewResourceEntity = new ViewResourceEntity();
+
+      viewResourceEntity.setViewName(viewDefinition.getName());
+      viewResourceEntity.setName(resourceConfiguration.getName());
+      viewResourceEntity.setPluralName(resourceConfiguration.getPluralName());
+      viewResourceEntity.setIdProperty(resourceConfiguration.getIdProperty());
+      viewResourceEntity.setResource(resourceConfiguration.getResource());
+      viewResourceEntity.setService(resourceConfiguration.getService());
+      viewResourceEntity.setProvider(resourceConfiguration.getProvider());
+      viewResourceEntity.setSubResourceNames(resourceConfiguration.getSubResourceNames());
+      viewResourceEntity.setViewEntity(viewDefinition);
 
       ViewSubResourceDefinition resourceDefinition = new ViewSubResourceDefinition(viewDefinition, resourceConfiguration);
       viewDefinition.addResourceDefinition(resourceDefinition);
@@ -361,11 +459,51 @@ public class ViewRegistry {
         String   idProperty = resourceConfiguration.getIdProperty();
 
         viewDefinition.addResourceProvider(type, new ViewSubResourceProvider(type, clazz, idProperty, viewDefinition));
+
+        resources.add(viewResourceEntity);
+      }
+      viewDefinition.setResources(resources);
+    }
+    addDefinition(viewDefinition);
+    return viewDefinition;
+  }
+
+  // install a view instance definition
+  private void _installViewInstance(ViewEntity viewDefinition,
+                                           ViewInstanceEntity viewInstanceDefinition)
+      throws ClassNotFoundException {
+
+    ViewContext viewInstanceContext = new ViewContextImpl(viewInstanceDefinition, this);
+
+    ViewExternalSubResourceService externalSubResourceService =
+        new ViewExternalSubResourceService(viewDefinition.getExternalResourceType(), viewInstanceDefinition);
+
+    viewInstanceDefinition.addService(ResourceConfig.EXTERNAL_RESOURCE_PLURAL_NAME, externalSubResourceService);
+
+    Collection<ViewSubResourceDefinition> resourceDefinitions = viewDefinition.getResourceDefinitions().values();
+    for (ViewSubResourceDefinition resourceDefinition : resourceDefinitions) {
+
+      Resource.Type  type           = resourceDefinition.getType();
+      ResourceConfig resourceConfig = resourceDefinition.getResourceConfiguration();
+
+      ViewResourceHandler viewResourceService =
+          new ViewSubResourceService(type, viewDefinition.getName(), viewInstanceDefinition.getName());
+
+      ClassLoader cl = viewDefinition.getClassLoader();
+
+      Object service = getService(resourceConfig.getServiceClass(cl), viewResourceService, viewInstanceContext);
+
+      if (resourceConfig.isExternal()) {
+        externalSubResourceService.addResourceService(resourceConfig.getName(), service);
+      } else {
+        viewInstanceDefinition.addService(viewDefinition.getResourceDefinition(type).getPluralName(),service);
+        viewInstanceDefinition.addResourceProvider(type,
+            getProvider(resourceConfig.getProviderClass(cl), viewInstanceContext));
       }
     }
 
-    ViewRegistry.getInstance().addDefinition(viewDefinition);
-    return viewDefinition;
+    viewDefinition.addInstanceDefinition(viewInstanceDefinition);
+    addInstanceDefinition(viewDefinition, viewInstanceDefinition);
   }
 
   // get the given service class from the given class loader; inject a handler and context
@@ -396,5 +534,46 @@ public class ViewRegistry {
       }
     });
     return viewInstanceInjector.getInstance(clazz);
+  }
+
+  // make sure that the views in the ambari db match the registry
+  private Set<ViewInstanceEntity> persistViews() throws ClassNotFoundException {
+
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+    Set<String> persistedViews = new HashSet<String>();
+
+    for (ViewEntity viewEntity : viewDAO.findAll()) {
+      String name = viewEntity.getName();
+      if (!ViewRegistry.getInstance().viewDefinitions.containsKey(name)) {
+
+        System.out.println("removing view " + name);
+        viewDAO.remove(viewEntity);
+      } else {
+        persistedViews.add(name);
+
+        ViewEntity viewDefinition = ViewRegistry.getInstance().viewDefinitions.get(name);
+
+        for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()){
+          if (viewDefinition.getInstanceDefinition(viewInstanceEntity.getName()) == null) {
+            viewInstanceEntity.setViewEntity(viewDefinition);
+            _installViewInstance(viewDefinition, viewInstanceEntity);
+            instanceDefinitions.add(viewInstanceEntity);
+          }
+        }
+      }
+    }
+
+    // persist new views
+    for (ViewEntity definition : viewDefinitions.values() ) {
+      String viewName = definition.getName();
+
+      if (!persistedViews.contains(viewName)) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Creating View " + viewName + ".");
+        }
+        viewDAO.create(definition);
+      }
+    }
+    return instanceDefinitions;
   }
 }

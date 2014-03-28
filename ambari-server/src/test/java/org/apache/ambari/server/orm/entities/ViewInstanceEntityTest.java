@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.view;
+package org.apache.ambari.server.orm.entities;
 
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
@@ -30,43 +30,44 @@ import java.util.Map;
 import static org.easymock.EasyMock.createNiceMock;
 
 /**
- * ViewInstanceDefinition tests.
+ * ViewInstanceEntity tests.
  */
-public class ViewInstanceDefinitionTest {
-  @Test
-  public void testGetViewDefinition() throws Exception {
-    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+public class ViewInstanceEntityTest {
 
-    Assert.assertEquals(viewDefinition, viewInstanceDefinition.getViewDefinition());
+  @Test
+  public void testGetViewEntity() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+
+    Assert.assertEquals(viewDefinition, viewInstanceDefinition.getViewEntity());
   }
 
   @Test
   public void testGetConfiguration() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    ViewInstanceDefinition viewInstanceDefinition = new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
 
     Assert.assertEquals(instanceConfig, viewInstanceDefinition.getConfiguration());
   }
 
   @Test
   public void testGetName() throws Exception {
-    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
     Assert.assertEquals("INSTANCE1", viewInstanceDefinition.getName());
   }
 
   @Test
   public void testAddGetProperty() throws Exception {
-    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
-    viewInstanceDefinition.addProperty("p1", "v1");
-    viewInstanceDefinition.addProperty("p2", "v2");
-    viewInstanceDefinition.addProperty("p3", "v3");
+    viewInstanceDefinition.putProperty("p1", "v1");
+    viewInstanceDefinition.putProperty("p2", "v2");
+    viewInstanceDefinition.putProperty("p3", "v3");
 
-    Map<String, String> properties = viewInstanceDefinition.getProperties();
+    Map<String, String> properties = viewInstanceDefinition.getPropertyMap();
 
     Assert.assertEquals(3, properties.size());
 
@@ -77,7 +78,7 @@ public class ViewInstanceDefinitionTest {
 
   @Test
   public void testAddGetService() throws Exception {
-    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
     Object service = new Object();
 
@@ -93,7 +94,7 @@ public class ViewInstanceDefinitionTest {
 
   @Test
   public void testAddGetResourceProvider() throws Exception {
-    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
     ResourceProvider provider = createNiceMock(ResourceProvider.class);
     Resource.Type type = new Resource.Type("MY_VIEW/myType");
@@ -106,15 +107,15 @@ public class ViewInstanceDefinitionTest {
 
   @Test
   public void testContextPath() throws Exception {
-    ViewInstanceDefinition viewInstanceDefinition = getViewInstanceDefinition();
+    ViewInstanceEntity viewInstanceDefinition = getViewInstanceEntity();
 
-    Assert.assertEquals(ViewInstanceDefinition.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/INSTANCE1",
+    Assert.assertEquals(ViewInstanceEntity.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/INSTANCE1",
         viewInstanceDefinition.getContextPath());
   }
 
-  public static ViewInstanceDefinition getViewInstanceDefinition() throws Exception {
+  public static ViewInstanceEntity getViewInstanceEntity() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
-    ViewDefinition viewDefinition = ViewDefinitionTest.getViewDefinition();
-    return new ViewInstanceDefinition(viewDefinition, instanceConfig);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    return new ViewInstanceEntity(viewDefinition, instanceConfig);
   }
 }

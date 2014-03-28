@@ -61,6 +61,37 @@ public interface ViewContext {
   public Map<String, String> getProperties();
 
   /**
+   * Save an instance data value for the given key.
+   *
+   * @param key    the key
+   * @param value  the value
+   */
+  public void putInstanceData(String key, String value);
+
+  /**
+   * Get the instance data value for the given key.
+   *
+   * @param key  the key
+   *
+   * @return the instance data value
+   */
+  public String getInstanceData(String key);
+
+  /**
+   * Get the instance data values.
+   *
+   * @return the view instance property values
+   */
+  public Map<String, String> getInstanceData();
+
+  /**
+   * Remove the instance data value for the given key.
+   *
+   * @param key  the key
+   */
+  public void removeInstanceData(String key);
+
+  /**
    * Get a property for the given key from the ambari configuration.
    *
    * @param key  the property key

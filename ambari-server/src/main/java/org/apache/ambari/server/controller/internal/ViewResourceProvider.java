@@ -27,7 +27,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.view.ViewDefinition;
+import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 
 import java.util.Collections;
@@ -108,7 +108,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
 
       String viewName = (String) propertyMap.get(VIEW_NAME_PROPERTY_ID);
 
-      for (ViewDefinition viewDefinition : viewRegistry.getDefinitions()){
+      for (ViewEntity viewDefinition : viewRegistry.getDefinitions()){
         if (viewName == null || viewName.equals(viewDefinition.getName())) {
           Resource resource = new ResourceImpl(Resource.Type.View);
 
@@ -117,7 +117,7 @@ public class ViewResourceProvider extends AbstractResourceProvider {
           setResourceProperty(resource, VERSION_PROPERTY_ID, viewDefinition.getVersion(), requestedIds);
           setResourceProperty(resource, PARAMETERS_PROPERTY_ID,
               viewDefinition.getConfiguration().getParameters(), requestedIds);
-          setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewDefinition.getArchivePath(), requestedIds);
+          setResourceProperty(resource, ARCHIVE_PROPERTY_ID, viewDefinition.getArchive(), requestedIds);
 
           resources.add(resource);
         }

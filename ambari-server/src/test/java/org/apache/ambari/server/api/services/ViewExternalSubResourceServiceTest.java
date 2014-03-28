@@ -18,8 +18,8 @@
 package org.apache.ambari.server.api.services;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.view.ViewInstanceDefinition;
-import org.apache.ambari.server.view.ViewInstanceDefinitionTest;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,7 +31,7 @@ public class ViewExternalSubResourceServiceTest {
   public void testAddResourceService() throws Exception {
     Resource.Type type = new Resource.Type("resource");
 
-    ViewInstanceDefinition definition = ViewInstanceDefinitionTest.getViewInstanceDefinition();
+    ViewInstanceEntity definition = ViewInstanceEntityTest.getViewInstanceEntity();
     ViewExternalSubResourceService service = new ViewExternalSubResourceService(type, definition);
 
     Object fooService = new Object();
