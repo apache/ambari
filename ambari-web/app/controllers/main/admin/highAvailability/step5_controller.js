@@ -106,7 +106,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   installHDFSClients: function () {
     var nnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     var jnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    var hostNames = $.extend([], nnHostNames, jnHostNames);
+    var hostNames = nnHostNames.concat(jnHostNames).uniq();
     this.createComponent('HDFS_CLIENT', hostNames);
     App.router.get(this.get('content.controllerName')).saveHdfsClientHosts(hostNames);
     App.clusterStatus.setClusterStatus({
