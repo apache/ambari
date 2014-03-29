@@ -129,7 +129,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     columns.clear();
     columns.add(new DBColumnInfo("schedule_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("batch_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("request_id", Long.class, null, null, true));
     columns.add(new DBColumnInfo("request_type", String.class, 255, null, true));
     columns.add(new DBColumnInfo("request_uri", String.class, 1024, null, true));
     columns.add(new DBColumnInfo("request_body", byte[].class, null, null, true));
