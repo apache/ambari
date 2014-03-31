@@ -580,62 +580,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     } else {
       serviceConfigController.addOverrideProperty(serviceConfigProperty);
     }
-  },
-
-  showOverrideWindow: function (event) {
-    // argument 1
-    var serviceConfigProperty = event.contexts[0];
-    var parentServiceConfigProperty = serviceConfigProperty.get('parentSCP');
-    var alreadyOverriddenHosts = [];
-    parentServiceConfigProperty.get('overrides').forEach(function (override) {
-      if (override != null && override != serviceConfigProperty && override.get('selectedHostOptions') != null) {
-        alreadyOverriddenHosts = alreadyOverriddenHosts.concat(override.get('selectedHostOptions'))
-      }
-    });
-    var selectedHosts = serviceConfigProperty.get('selectedHostOptions');
-    /**
-     * Get all the hosts available for selection. Since data is dependent on
-     * controller, we ask it, instead of doing regular Ember's App.Host.find().
-     * This should be an array of App.Host.
-     */
-    var allHosts = this.get('controller.getAllHosts');
-    var availableHosts = Ember.A([]);
-    allHosts.forEach(function (host) {
-      var hostId = host.get('id');
-      if (alreadyOverriddenHosts.indexOf(hostId) < 0) {
-        availableHosts.pushObject(Ember.Object.create({
-          selected: selectedHosts.indexOf(hostId) > -1,
-          host: host
-        }));
-      }
-    });
-    /**
-     * From the currently selected service we want the service-components.
-     * We only need an array of objects which have the 'componentName' and
-     * 'displayName' properties. Since each controller has its own objects,
-     * we ask for a normalized array back.
-     */
-    var validComponents = this.get('controller.getCurrentServiceComponents');
-    var popupDescription = {
-      header: Em.I18n.t('hosts.selectHostsDialog.title'),
-      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message').format(App.Service.DisplayNames[this.get('service.serviceName')])
-    };
-    hostsUtils.launchHostsSelectionDialog(availableHosts, selectedHosts,
-        false, validComponents, function(newSelectedHosts){
-      if (newSelectedHosts!=null) {
-        serviceConfigProperty.set('selectedHostOptions', newSelectedHosts);
-        serviceConfigProperty.validate();
-      } else {
-        // Dialog cancelled
-        // If property has no hosts already, then remove it from the parent.
-        var hostCount = serviceConfigProperty.get('selectedHostOptions.length');
-        if (hostCount < 1) {
-          var parentSCP = serviceConfigProperty.get('parentSCP');
-          var overrides = parentSCP.get('overrides');
-          overrides.removeObject(serviceConfigProperty);
-        }
-      }
-    }, popupDescription);
   }
 });
 

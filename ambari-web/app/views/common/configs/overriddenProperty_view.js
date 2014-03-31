@@ -24,11 +24,6 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   // we are declaring this from configs.hbs ( we are initializing this from UI )
   categoryConfigs: null, // just declared as viewClass need it
   
-  showOverrideWindow: function (event) {
-    // App.ServiceConfigsByCategoryView in which the current view is nested
-    this.get('parentView').showOverrideWindow(event);
-  },
-
   removeOverride: function (event) {
     // arg 1 SCP means ServiceConfigProperty
     var scpToBeRemoved = event.contexts[0];

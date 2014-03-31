@@ -113,12 +113,19 @@ App.ConfigGroup = Ember.Object.extend({
     if (this.get('isDefault')) return [];
     var unusedHostsMap = {};
     var availableHosts = [];
+    var sharedHosts = [];
+    //if cluster is not installed then get hosts from installerController instead of model
+    if (App.clusterStatus.get('isInstalled')) {
+      sharedHosts = App.Host.find();
+    } else {
+      sharedHosts = App.router.get('installerController.allHosts');
+    }
     // parentConfigGroup.hosts(hosts from default group) - are available hosts, which don't belong to any group
     this.get('parentConfigGroup.hosts').forEach(function (hostName) {
       unusedHostsMap[hostName] = true;
     });
-    App.Host.find().forEach(function (host) {
-      if(unusedHostsMap[host.get('id')]) {
+    sharedHosts.forEach(function (host) {
+      if (unusedHostsMap[host.get('id')]) {
         availableHosts.pushObject(Ember.Object.create({
           selected: false,
           host: host,

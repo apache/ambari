@@ -1642,10 +1642,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return validComponents;
   }.property('content'),
 
-  getAllHosts: function () {
-    return App.router.get('mainHostController.content');
-  }.property('App.router.mainHostController.content'),
-
   doCancel: function () {
     this.loadStep();
   },

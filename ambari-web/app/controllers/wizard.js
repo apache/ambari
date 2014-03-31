@@ -65,6 +65,8 @@ App.WizardController = Em.Controller.extend({
     App.db.set(this.get('dbNamespace'), key, value);
   },
 
+  allHosts: App.Host.find(),
+
   setStepsEnable: function () {
     for (var i = 1; i <= this.totalSteps; i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);

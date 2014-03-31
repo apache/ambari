@@ -173,9 +173,6 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('2');
       controller.loadAllPriorSteps();
-      if (App.Host.find().content.length) {
-        App.Host.find().clear();
-      }
       controller.connectOutlet('wizardStep2', controller.get('content'));
     },
     back: Em.Router.transitionTo('step1'),
@@ -320,9 +317,6 @@ module.exports = Em.Route.extend({
       installerController.saveServiceConfigProperties(wizardStep7Controller);
       if (App.supports.hostOverridesInstaller) {
         installerController.saveServiceConfigGroups(wizardStep7Controller);
-      }
-      if (App.Host.find().content.length) {
-        App.Host.find().clear();
       }
       router.transitionTo('step8');
     }

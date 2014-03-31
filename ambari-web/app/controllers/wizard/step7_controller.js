@@ -125,7 +125,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var serviceName = params.serviceName;
     var service = this.get('stepConfigs').findProperty('serviceName', serviceName);
     // Create default configuration group
-    var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
+    var defaultConfigGroupHosts = this.get('wizardController.allHosts').mapProperty('hostName');
     var selectedConfigGroup;
     var siteToTagMap = {};
     for (var site in data.Clusters.desired_configs) {
@@ -492,7 +492,7 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   loadConfigGroups: function (serviceConfigGroups) {
     var services = this.get('stepConfigs');
-    var hosts = this.get('getAllHosts').mapProperty('hostName');
+    var hosts = this.get('wizardController.allHosts').mapProperty('hostName');
     services.forEach(function (service) {
       if (service.get('serviceName') === 'MISC') return;
       var serviceRawGroups = serviceConfigGroups.filterProperty('service.id', service.serviceName);
@@ -662,67 +662,6 @@ App.WizardStep7Controller = Em.Controller.extend({
       }
     });
     return validComponents;
-  }.property('content'),
-
-
-  getAllHosts: function () {
-    if (App.Host.find().content.length > 0) {
-      return App.Host.find();
-    }
-    var hosts = this.get('content.hosts');
-    var masterComponents = this.get('content.masterComponentHosts');
-    var slaveComponents = this.get('content.slaveComponentHosts');
-    masterComponents.forEach(function (component) {
-      App.HostComponent.createRecord({
-        id: component.component + '_' + component.hostName,
-        componentName: component.component,
-        host_id: component.hostName
-      });
-      if (!hosts[component.hostName].hostComponents) {
-        hosts[component.hostName].hostComponents = [];
-      }
-      hosts[component.hostName].hostComponents.push(component.component + '_' + component.hostName);
-    });
-    slaveComponents.forEach(function (component) {
-      component.hosts.forEach(function (host) {
-        App.HostComponent.createRecord({
-          id: component.componentName + '_' + host.hostName,
-          componentName: component.componentName,
-          host_id: host.hostName
-        });
-        if (!hosts[host.hostName].hostComponents) {
-          hosts[host.hostName].hostComponents = [];
-        }
-        hosts[host.hostName].hostComponents.push(component.componentName + '_' + host.hostName);
-      });
-    });
-
-    for (var hostName in hosts) {
-      var host = hosts[hostName];
-      var disksOverallCapacity = 0;
-      var diskFree = 0;
-      host.disk_info.forEach(function(disk) {
-        disksOverallCapacity += parseFloat(disk.size);
-        diskFree += parseFloat(disk.available);
-      });
-      App.store.load(App.Host,
-        {
-          id: host.name,
-          ip: host.ip,
-          os_type: host.os_type,
-          os_arch: host.os_arch,
-          host_name: host.name,
-          public_host_name: host.name,
-          cpu: host.cpu,
-          memory: host.memory,
-          disk_info: host.disk_info,
-          disk_total: disksOverallCapacity / (1024 * 1024),
-          disk_free: diskFree / (1024 * 1024),
-          host_components: host.hostComponents
-        }
-      )
-    }
-    return App.Host.find();
-  }.property('content.hosts')
+  }.property('content')
 
 });
