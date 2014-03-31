@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 from storm import storm
-from service import service
+from supervisord_service import supervisord_service, supervisord_check_status
 
 
 class Nimbus(Script):
@@ -40,18 +40,16 @@ class Nimbus(Script):
     env.set_params(params)
     self.configure(env)
 
-    service("nimbus", action="start")
+    supervisord_service("nimbus", action="start")
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    service("nimbus", action="stop")
+    supervisord_service("nimbus", action="stop")
 
   def status(self, env):
-    import status_params
-    env.set_params(status_params)
-    check_process_status(status_params.pid_nimbus)
+    supervisord_check_status("nimbus")
 
 if __name__ == "__main__":
   Nimbus().execute()

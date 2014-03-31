@@ -18,40 +18,15 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
-from storm import storm
-from service import service
 
+def supervisord_service(component_name, action):
+  Execute(format("supervisorctl {action} storm-{component_name}"),
+    wait_for_finish=False
+  )
 
-class Nimbus(Script):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
-
-  def configure(self, env):
-    import params
-    env.set_params(params)
-
-    storm()
-
-  def start(self, env):
-    import params
-    env.set_params(params)
-    self.configure(env)
-
-    service("nimbus", action="start")
-
-  def stop(self, env):
-    import params
-    env.set_params(params)
-
-    service("nimbus", action="stop")
-
-  def status(self, env):
-    import status_params
-    env.set_params(status_params)
-    check_process_status(status_params.pid_nimbus)
-
-if __name__ == "__main__":
-  Nimbus().execute()
+def supervisord_check_status(component_name):
+  try:
+    Execute(format("supervisorctl status storm-{component_name} | grep RUNNING"))
+  except Fail:
+    raise ComponentIsNotRunning() 

@@ -22,9 +22,10 @@ import sys
 from resource_management import *
 from storm import storm
 from service import service
+from supervisord_service import supervisord_service, supervisord_check_status
 
 
-class Nimbus(Script):
+class Supervisor(Script):
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -32,7 +33,6 @@ class Nimbus(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-
     storm()
 
   def start(self, env):
@@ -40,18 +40,18 @@ class Nimbus(Script):
     env.set_params(params)
     self.configure(env)
 
-    service("nimbus", action="start")
+    supervisord_service("supervisor", action="start")
+    service("logviewer", action="start")
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    service("nimbus", action="stop")
+    supervisord_service("supervisor", action="stop")
+    service("logviewer", action="stop")
 
   def status(self, env):
-    import status_params
-    env.set_params(status_params)
-    check_process_status(status_params.pid_nimbus)
+    supervisord_check_status("supervisor")
 
 if __name__ == "__main__":
-  Nimbus().execute()
+  Supervisor().execute()
