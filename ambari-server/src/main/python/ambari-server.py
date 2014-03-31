@@ -741,7 +741,7 @@ def adjust_directory_permissions(ambari_user):
   print_info_msg("Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir))
   cmd = RECURSIVE_RM_CMD.format(bootstrap_dir)
   run_os_command(cmd)
-  os.mkdir(bootstrap_dir)
+  os.makedirs(bootstrap_dir)
   # Add master key and credential store if exists
   keyLocation = get_master_key_location(properties)
   masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
@@ -831,8 +831,8 @@ def check_ambari_user():
       write_property(NR_USER_PROPERTY, user)
 
     adjust_directory_permissions(user)
-  except OSError:
-    print_error_msg("Failed: %s" % OSError.message)
+  except OSError as e:
+    print_error_msg("Failed: %s" % e.strerror)
     return 4
   except Exception as e:
     print_error_msg("Unexpected error %s" % e.message)
