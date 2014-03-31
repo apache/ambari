@@ -372,7 +372,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     App.showConfirmationPopup(function(){
-      batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName'), self.get('content.hostName')));
+      batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')));
     });
   },
   /**

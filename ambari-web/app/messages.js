@@ -1948,7 +1948,7 @@ Em.I18n.translations = {
   'rollingrestart.context.allClientsOnSelectedHost':'Restart all clients on {0}',
   'rollingrestart.context.allWithStaleConfigsOnSelectedHost':'Restart components with Stale Configs on {0}',
   'rollingrestart.context.allOnSelectedHost':'Restart all components on {0}',
-  'rollingrestart.context.selectedComponentOnSelectedHost':'Restart {0} on {1}',
+  'rollingrestart.context.selectedComponentOnSelectedHost':'Restart {0}',
   'rollingrestart.context.default':'Restart components',
 
   'rolling.command.context': 'Rolling set {0} to state "{1}" - batch {2} of {3}',
