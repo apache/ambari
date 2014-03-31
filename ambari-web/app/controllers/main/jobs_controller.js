@@ -114,6 +114,7 @@ App.MainJobsController = Em.Controller.extend({
     this.get('filterObject').set('nextFromId', '');
     this.get('filterObject').set('backFromId', '');
     this.get('filterObject').set('fromTs', '');
+    this.loadJobs();
   },
 
   updateJobs: function (controllerName, funcName) {
