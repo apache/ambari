@@ -195,7 +195,7 @@ App.Router = Em.Router.extend({
       App.usersMapper.map({"items": [data]});
       this.setUser(App.User.find(params.loginName));
       this.transitionTo(this.getSection());
-      controller.postLogin(true);
+      controller.postLogin(true,true);
     }
     else {
       App.ajax.send({
@@ -215,7 +215,12 @@ App.Router = Em.Router.extend({
     var controller = this.get('loginController');
     console.log("login error: " + error);
     this.setAuthenticated(false);
-    controller.postLogin(false);
+    if (request.status == 403) {
+      controller.postLogin(true, false);
+    } else {
+      controller.postLogin(false, false);
+    }
+
   },
 
   login2SuccessCallback: function (clusterResp, opt, params) {
@@ -226,7 +231,7 @@ App.Router = Em.Router.extend({
       App.usersMapper.map({"items": [params.loginData]});
       this.setUser(App.User.find(params.loginName));
       this.transitionTo(this.getSection());
-      controller.postLogin(true);
+      controller.postLogin(true,true);
     }
     else {
       controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));

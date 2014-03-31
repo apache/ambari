@@ -259,7 +259,8 @@ Em.I18n.translations = {
   'login.header':'Sign in',
   'login.username':'Username',
   'login.loginButton':'Sign in',
-  'login.error':'Invalid username/password combination.',
+  'login.error.bad.credentials':'Unable to sign in. Invalid username/password combination.',
+  'login.error.bad.connection':'Unable to connect to Ambari Server. Confirm Ambari Server is running and you can reach Ambari Server from this machine.',
 
   'graphs.noData.title': 'No Data',
   'graphs.noData.message': 'There was no data available. Possible reasons include inaccessible Ganglia service.',

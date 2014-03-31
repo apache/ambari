@@ -35,10 +35,13 @@ App.LoginController = Em.Object.extend({
     App.get('router').login();
   },
 
-  postLogin: function (isAuthenticated) {
-    if (!isAuthenticated) {
+  postLogin: function (isConnected, isAuthenticated) {
+    if (!isConnected) {
+      console.log('Failed to connect to Ambari Server');
+      this.set('errorMessage', Em.I18n.t('login.error.bad.connection'));
+    } else if (!isAuthenticated) {
       console.log('Failed to login as: ' + this.get('loginName'));
-      this.set('errorMessage', Em.I18n.t('login.error'));
+      this.set('errorMessage', Em.I18n.t('login.error.bad.credentials'));
     }
   }
 
