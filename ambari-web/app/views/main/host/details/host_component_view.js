@@ -84,6 +84,32 @@ App.HostComponentView = Em.View.extend({
     return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
 
   }.property('workStatus'),
+  /**
+   * CSS-icon-class for host component status
+   * @type {String}
+   */
+  statusIconClass: function () {
+    switch (this.get('statusClass')) {
+      case 'health-status-started':
+      case 'health-status-starting':
+        return App.healthIconClassGreen;
+        break;
+      case 'health-status-installed':
+      case 'health-status-stopping':
+        return App.healthIconClassRed;
+        break;
+      case 'health-status-unknown':
+        return App.healthIconClassYellow;
+        break;
+      case 'health-status-DEAD-ORANGE':
+        return App.healthIconClassOrange;
+        break;
+      default:
+        return "";
+        break;
+    }
+  }.property('statusClass'),
+
 
   /**
    * CSS-class for disabling drop-down menu with list of host component actions

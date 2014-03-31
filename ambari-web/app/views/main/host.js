@@ -444,7 +444,7 @@ App.MainHostView = App.TableView.extend({
       this.get('categories').setEach('isActive', false);
       var selected = this.get('categories').findProperty('healthStatusValue', this.get('value'));
       selected.set('isActive', true);
-      this.set('class', selected.get('class') || this.get('value'));
+      this.set('class', selected.get('class') + ' ' + this.get('value'));
     }.observes('value'),
 
     showClearFilter: function(){

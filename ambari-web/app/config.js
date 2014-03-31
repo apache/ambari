@@ -42,6 +42,10 @@ App.singleNodeAlias = document.location.hostname;
 App.minDiskSpace = 2.0; // minimum disk space required for '/' for each host before install, unit GB
 App.minDiskSpaceUsrLib = 1.0; // minimum disk space for '/usr/lib' for each host before install, unit GB
 App.mirroringDatasetNamePrefix = 'ambari-mirroring-'; // special prefix to be added for each Falcon feed name created with Ambari
+App.healthIconClassGreen = 'icon-ok-sign'; // bootstrap icon class for healthy/started service/host/host-component
+App.healthIconClassRed = 'icon-warning-sign'; // bootstrap icon class for master down/stopped service/host/host-component
+App.healthIconClassOrange = 'icon-minus-sign'; // bootstrap icon class for slave down/decommissioned host/host-component
+App.healthIconClassYellow = 'icon-question-sign'; // bootstrap icon class for heartbeat lost service/host/host-component
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;

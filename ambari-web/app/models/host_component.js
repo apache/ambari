@@ -170,6 +170,25 @@ App.HostComponent = DS.Model.extend({
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';
   }.property('workStatus','isActive'),
 
+  statusIconClass: function () {
+    switch (this.get('statusClass')) {
+      case 'STARTED':
+      case 'STARTING':
+        return App.healthIconClassGreen;
+        break;
+      case 'INSTALLED':
+      case 'STOPPING':
+        return App.healthIconClassRed;
+        break;
+      case 'UNKNOWN':
+        return App.healthIconClassYellow;
+        break;
+      default:
+        return "";
+        break;
+    }
+  }.property('statusClass'),
+
   componentTextStatus: function () {
     return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
   }.property('workStatus','isDecommissioning')

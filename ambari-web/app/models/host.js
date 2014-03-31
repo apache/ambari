@@ -213,6 +213,26 @@ App.Host = DS.Model.extend({
     return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
   }.property('healthStatus'),
 
+  healthIconClass: function () {
+    switch (this.get('healthClass')) {
+      case 'health-status-LIVE':
+        return App.healthIconClassGreen;
+        break;
+      case 'health-status-DEAD-RED':
+        return App.healthIconClassRed;
+        break;
+      case 'health-status-DEAD-YELLOW':
+        return App.healthIconClassYellow;
+        break;
+      case 'health-status-DEAD-ORANGE':
+        return App.healthIconClassOrange;
+        break;
+      default:
+        return "";
+        break;
+    }
+  }.property('healthClass'),
+
   /**
    * Tooltip for host indicator
    * Contains affected host components names (based on <code>healthClass</code>)

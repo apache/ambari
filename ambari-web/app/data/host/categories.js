@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+var App = require('app');
 module.exports = [
   {
     value: Em.I18n.t('common.all'),
@@ -27,25 +27,28 @@ module.exports = [
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.green'),
     isHealthStatus: true,
+    class: App.healthIconClassGreen,
     healthStatusValue: 'health-status-LIVE',
     observes: 'view.content.@each.healthClass'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.red'),
     isHealthStatus: true,
+    class: App.healthIconClassRed,
     healthStatusValue: 'health-status-DEAD-RED',
     observes: 'view.content.@each.healthClass'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.orange'),
     isHealthStatus: true,
+    class: App.healthIconClassOrange,
     healthStatusValue: 'health-status-DEAD-ORANGE',
     observes: 'view.content.@each.healthClass'
   },
   {
     value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'),
     isHealthStatus: true,
-    class: 'icon-question-sign',
+    class: App.healthIconClassYellow,
     healthStatusValue: 'health-status-DEAD-YELLOW',
     observes: 'view.content.@each.healthClass'
   },

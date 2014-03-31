@@ -18,7 +18,7 @@
 
 <div id="host-details">
   <div class="status-info">
-    <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass"}} {{bindAttr data-original-title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
+    <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass view.content.healthIconClass"}} {{bindAttr data-original-title="view.content.healthToolTip" }}></span><span class='host-title'>{{unbound view.content.publicHostName}}</span>
     {{#if view.content.criticalAlertsCount}}
       <span class="label label-important alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{view.content.criticalAlertsCount}}</span>
     {{else}}

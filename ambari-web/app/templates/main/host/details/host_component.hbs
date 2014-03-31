@@ -24,7 +24,7 @@
       </a>
     {{/if}}
   {{else}}
-    <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
+    <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
   {{/if}}
   {{#if component.displayNameAdvanced}}
     {{component.displayNameAdvanced}}

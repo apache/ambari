@@ -236,6 +236,16 @@ h1 {
 .show {
   visibility: visible;
 }
+/************************************************************************
+* Health status(service/host/host component health)icon colors
+***********************************************************************/
+@health-status-red: red;
+@health-status-green: #5AB400;
+@health-status-yellow: #FFD13D;
+@health-status-orange: #FF8E00;
+/************************************************************************
+* Health status(service/host/host component health)icon colors ends
+***********************************************************************/
 
 /***************
  * Ambari wide icon colors
@@ -1721,29 +1731,28 @@ width:100%;
   }
 
   .tab-marker-position {
-    background-position: 6px 5px;
-    background-repeat: no-repeat;
     list-style: none;
-    float: left;
     min-height: 20px;
     min-width: 20px;
-    margin-left: 0;
+    margin-left: 6px;
+    float: none;
+    display: inline;
   }
   .health-status-LIVE, .health-status-STARTING {
     .tab-marker-position;
-    background-image: @status-live-marker;
+    color: @health-status-green;
   }
   .health-status-DEAD-RED, .health-status-STOPPING {
     .tab-marker-position;
-    background-image: @status-dead-red-marker;
+    color: @health-status-red;
   }
   .health-status-DEAD-ORANGE {
     .tab-marker-position;
-    background-image: @status-dead-orange-marker;
+    color: @health-status-orange;
   }
   .health-status-DEAD-YELLOW {
     .tab-marker-position;
-    background-image: @status-dead-yellow-marker;
+    color: @health-status-yellow;
   }
   dt {
     text-align: left;
@@ -1836,18 +1845,20 @@ width:100%;
     height: 20px;
     width: 20px;
     margin-left: 0;
+    display: inline !important;
+    float: none !important;
   }
   .STARTING, .STARTED {
     .tab-marker-position;
-    background-image: @status-live-marker;
+    color: @health-status-green;
   }
   .STOPPING, .INSTALLED {
     .tab-marker-position;
-    background-image: @status-dead-red-marker;
+    color: @health-status-red;
   }
   .UNKNOWN {
     .tab-marker-position;
-    background-image: @status-dead-yellow-marker;
+    color: @health-status-yellow;
   }
 
   .summary-view-host{
@@ -2174,28 +2185,24 @@ width:100%;
 .services-menu {
   .nav-list {
     .tab-marker-position {
-      background-position: 6px 5px;
-      background-repeat: no-repeat;
       list-style: none;
-      float: left;
       height: 20px;
       width: 20px;
-      margin-left: 0; // padding-left: 30px;
-    // padding-right: 30px;
-    // background-position: 12px 9px;
-    // background-repeat: no-repeat;
+      margin-left: 6px;
+      display: inline;
+      float: none;
     }
     .health-status-LIVE, .health-status-STARTING {
       .tab-marker-position;
-      background-image: @status-live-marker;
+      color: @health-status-green;
     }
     .health-status-DEAD-RED, .health-status-STOPPING {
       .tab-marker-position;
-      background-image: @status-dead-red-marker;
+      color: @health-status-red;
     }
     .health-status-DEAD-YELLOW {
       .tab-marker-position;
-      background-image: @status-dead-yellow-marker;
+      color: @health-status-yellow;
     }
     li {
       line-height: 24px;
@@ -2814,10 +2821,6 @@ table.graphs {
     float: left;
     padding-right: 10px;
   }
-  .icon-question-sign {
-    color:#FFD13D;
-  }
-
 
   #hosts-table {
     margin-top: 10px;
@@ -2927,35 +2930,38 @@ table.graphs {
     background-repeat: no-repeat;
     height: 20px;
     width: 13px;
-    display: block;
-    float: left;
-    margin-right:4px;
+    display: inline !important;
+    float: none !important;
   }
-  .health-status-HEALTHY{
-    background-image: @status-live-marker;
-    .status-dot-position;
-  }
+  .health-status-HEALTHY,
   .health-status-LIVE {
-    background-image: @status-live-marker;
     .status-dot-position;
+    color: @health-status-green;
+    margin-right: 1px;
+    margin-left: 1px;
   }
   .health-status-DEAD-RED {
-    background-image: @status-dead-red-marker;
     .status-dot-position;
+    color: @health-status-red;
   }
   .health-status-DEAD-ORANGE {
-    background-image: @status-dead-orange-marker;
     .status-dot-position;
+    color: @health-status-orange;
+    margin-right: 1px;
+    margin-left: 1px;
   }
   .health-status-DEAD-YELLOW {
-    background-image: @status-dead-yellow-marker;
     .status-dot-position;
-    &.icon-question-sign {
-      background-image: none !important;
-      display: inline !important;
-      float: none !important;
-    }
+    color: @health-status-yellow;
+    margin-right: 1px;
+    margin-left: 1px;
   }
+  .icon-exclamation-sign,
+  .icon-refresh {
+    margin-right: 1px;
+    margin-left: 1px;
+  }
+
   .passive-state {
     color: #000;
   }
@@ -2993,10 +2999,6 @@ table.graphs {
       font-size: 0.9em;
       margin-left: 0;
       color: #b4b4b4;
-      .health-status {
-        margin-left: -1px;
-        margin-right: 3px;
-      }
       a {
         text-decoration: none;
       }
@@ -3390,6 +3392,8 @@ table.graphs {
     display: inline-block;
     height: 13px;
     width: 13px;
+    display: inline !important;
+    float: none !important;
   }
 
   .components-health.icon-arrow-up{
@@ -3397,28 +3401,28 @@ table.graphs {
   }
 
   .health-status-started, .health-status-starting {
-    background-image: @status-live-marker;
     .marker;
+    color: @health-status-green;
   }
 
   .health-status-installed, .health-status-stopping {
-    background-image: @status-dead-red-marker;
     .marker;
+    color: @health-status-red;
   }
 
   .health-status-unknown {
-    background-image: @status-dead-yellow-marker;
     .marker;
+    color: @health-status-yellow;
   }
 
   .health-status-LIVE {
-    background-image: @status-live-marker;
     .marker;
+    color: @health-status-green;
   }
 
   .health-status-DEAD-RED {
-    background-image: @status-dead-red-marker;
     .marker;
+    color: @health-status-red;
   }
 
   .health-status-color-blue {
@@ -3430,13 +3434,13 @@ table.graphs {
   }
 
   .health-status-DEAD-ORANGE {
-    background-image: @status-dead-orange-marker;
     .marker;
+    color: @health-status-orange;
   }
 
   .health-status-DEAD-YELLOW {
-    background-image: @status-dead-yellow-marker;
     .marker;
+    color: @health-status-yellow;
   }
 
   .back {
@@ -4231,14 +4235,16 @@ ul.filter {
     background-repeat: no-repeat;
     height: 20px;
     width: 13px;
+    display: inline;
+    float: none;
   }
   .health-status-LIVE {
-    background-image: @status-live-marker;
     .status-dot-position;
+    color: @health-status-green;
   }
   .health-status-DEAD-RED {
-    background-image: @status-dead-red-marker;
     .status-dot-position;
+    color: @health-status-red;
   }
   .dataset-selected {
     background-color: #E6F1F6;

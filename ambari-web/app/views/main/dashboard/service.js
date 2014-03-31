@@ -22,7 +22,7 @@ var uiEffects = require('utils/ui_effects');
 require('models/alert');
 
 App.MainDashboardServiceHealthView = Em.View.extend({
-  classNameBindings: ["healthStatus"],
+  classNameBindings: ["healthStatus", "healthStatusClass"],
   //template: Em.Handlebars.compile(""),
   blink: false,
   tagName: 'span',
@@ -90,6 +90,26 @@ App.MainDashboardServiceHealthView = Em.View.extend({
 
     return 'health-status-' + status;
   }.property('service.healthStatus','service.passiveState','service.isClientsOnly'),
+
+  healthStatusClass: function () {
+    switch (this.get('healthStatus')) {
+      case 'health-status-LIVE':
+        return App.healthIconClassGreen;
+        break;
+      case 'health-status-DEAD-RED':
+        return App.healthIconClassRed;
+        break;
+      case 'health-status-DEAD-YELLOW':
+        return App.healthIconClassYellow;
+        break;
+      case 'health-status-DEAD-ORANGE':
+        return App.healthIconClassOrange;
+        break;
+      default:
+        return "";
+        break;
+    }
+  }.property('healthStatus'),
 
   didInsertElement: function () {
     this.updateToolTip();
