@@ -359,6 +359,8 @@ App.MainJobsController = Em.Controller.extend({
       if (this.get('lastJobID') !== lastReceivedID) {
         this.set('lastJobID', lastReceivedID);
         this.set('hasNewJobs', true);
+      }else{
+        this.set('hasNewJobs', false);
       }
     }
   },
