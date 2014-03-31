@@ -21,6 +21,8 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
 
   isEdit: false,
 
+  datasetIdToEdit: null,
+
   // Fields values from Edit DataSet form
   formFields: Ember.Object.create({
     datasetName: null,
@@ -84,7 +86,8 @@ App.MainMirroringEditDataSetController = Ember.Controller.extend({
     this.set('isEdit', false);
   },
 
-  showEditPopup: function () {
+  showEditPopup: function (dataset) {
+    this.set('datasetIdToEdit', dataset.get('id'));
     this.showPopup(Em.I18n.t('mirroring.dataset.editDataset'));
     this.set('isEdit', true);
   },

@@ -73,10 +73,9 @@ App.MainMirroringEditDataSetView = Em.View.extend({
 
   fillForm: function () {
     var isEdit = this.get('controller.isEdit');
-    var selectedDataset = App.router.get('mainMirroringController.selectedDataset');
-    if (this.get('isLoaded') && selectedDataset && isEdit) {
+    if (this.get('isLoaded')  && isEdit) {
       var controller = this.get('controller');
-      var dataset = App.Dataset.find().findProperty('name', selectedDataset.get('id'));
+      var dataset = App.Dataset.find().findProperty('id', controller.get('datasetIdToEdit'));
       var scheduleStartDate = new Date(dataset.get('scheduleStartDate'));
       var scheduleEndDate = new Date(dataset.get('scheduleEndDate'));
       var formFields = controller.get('formFields');

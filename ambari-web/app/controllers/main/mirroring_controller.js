@@ -195,11 +195,8 @@ App.MainMirroringController = Em.ArrayController.extend({
     this.set('datasetCount', this.get('datasetCount') - 1);
     if (this.get('datasetCount') < 1) {
       App.dataSetMapper.map(this.get('datasetsData'));
-      var sortedDatasets = App.Dataset.find().toArray().sortProperty('name');
       this.set('isDatasetsLoaded', true);
-      var selectedDataset = this.get('selectedDataset');
-      if (!selectedDataset) {
-        this.set('selectedDataset', sortedDatasets[0]);
+      if (App.router.get('currentState.name') === 'index' && App.router.get('currentState.parentState.name') === 'mirroring') {
         App.router.send('gotoShowJobs');
       }
     }
@@ -349,13 +346,6 @@ App.MainMirroringController = Em.ArrayController.extend({
     this.set('isDatasetLoadingError', true);
     console.error('Failed to load cluster definition.');
   },
-
-  onDataLoad: function () {
-    // Open default dataset job route if mirroring route is opened
-    if (this.get('isLoaded') && App.router.get('currentState.parentState.name') === 'mirroring') {
-      App.router.send('gotoShowJobs');
-    }
-  }.observes('isLoaded'),
 
   manageClusters: function () {
     var self = this;
