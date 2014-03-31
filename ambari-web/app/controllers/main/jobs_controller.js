@@ -93,6 +93,7 @@ App.MainJobsController = Em.Controller.extend({
   hasNewJobs: false,
   loaded : false,
   loading : false,
+  resetPagination: false,
   loadJobsTimeout: null,
   loadTimeout: null,
   jobsUpdateInterval: 6000,
@@ -114,6 +115,7 @@ App.MainJobsController = Em.Controller.extend({
     this.get('filterObject').set('nextFromId', '');
     this.get('filterObject').set('backFromId', '');
     this.get('filterObject').set('fromTs', '');
+    this.set('resetPagination', true);
     this.loadJobs();
   },
 
@@ -393,14 +395,9 @@ App.MainJobsController = Em.Controller.extend({
       App.HttpClient.get(hiveQueriesUrl, App.hiveJobsMapper, {
         complete : function(data, jqXHR, textStatus) {
           self.set('loading', false);
-          if(self.get('loaded') == false){
-            var back_link_IDs = self.get('navIDs.backIDs.[]');
-            if(!back_link_IDs.contains(App.HiveJob.find().objectAt(0).get('id'))) {
-              back_link_IDs.push(App.HiveJob.find().objectAt(0).get('id'));
-              self.set('navIDs.backIDs.[]', back_link_IDs);
-            }
-            self.set('filterObject.backFromId', App.HiveJob.find().objectAt(0).get('id'));
-            self.get('filterObject').set('fromTs', App.get('currentServerTime'));
+          if(self.get('loaded') == false || self.get('resetPagination') == true){
+            self.initializePagination();
+            self.set('resetPagination', false);
           }
           self.set('loaded', true);
         }
@@ -413,6 +410,15 @@ App.MainJobsController = Em.Controller.extend({
         self.loadJobs();
       }, 300);
     }
+  },
+
+  initializePagination: function() {
+    var back_link_IDs = this.get('navIDs.backIDs.[]');
+    if(!back_link_IDs.contains(App.HiveJob.find().objectAt(0).get('id'))) {
+      back_link_IDs.push(App.HiveJob.find().objectAt(0).get('id'));
+    }
+    this.set('filterObject.backFromId', App.HiveJob.find().objectAt(0).get('id'));
+    this.get('filterObject').set('fromTs', App.get('currentServerTime'));
   },
 
   navigateNext: function() {
