@@ -915,14 +915,6 @@ module.exports =
     {
       "id": "site property",
       "serviceName": "STORM",
-      "category": "Supervisor",
-      "displayName": "supervisor.enable",
-      "name": "supervisor.enable",
-      "displayType": "checkbox"
-    },
-    {
-      "id": "site property",
-      "serviceName": "STORM",
       "category": "DRPCServer",
       "displayName": "drpc.port",
       "name": "drpc.port",

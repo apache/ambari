@@ -530,18 +530,6 @@
       }
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.8/stackServices/STORM/configurations/supervisor.enable",
-      "StackConfigurations" : {
-        "property_description" : "",
-        "property_name" : "supervisor.enable",
-        "property_value" : "true",
-        "service_name" : "STORM",
-        "stack_name" : "HDP",
-        "stack_version" : "2.0.8",
-        "type" : "storm-site.xml"
-      }
-    },
-    {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.8/stackServices/STORM/configurations/supervisor.heartbeat.frequency.secs",
       "StackConfigurations" : {
         "property_description" : "How frequently the supervisor heartbeats to the cluster state (for nimbus)",

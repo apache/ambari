@@ -604,7 +604,6 @@
         "storm.zookeeper.servers" : "['localhost']",
         "storm.zookeeper.session.timeout" : "20000",
         "supervisor.childopts" : "-Xmx256m",
-        "supervisor.enable" : "true",
         "supervisor.heartbeat.frequency.secs" : "5",
         "supervisor.monitor.frequency.secs" : "3",
         "supervisor.slots.ports" : "[6700, 6701, 6702, 6703]",
