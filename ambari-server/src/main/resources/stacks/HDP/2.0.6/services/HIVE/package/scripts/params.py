@@ -74,7 +74,7 @@ hive_pid = status_params.hive_pid
 hive_database_name = config['configurations']['global']['hive_database_name']
 
 #Starting hiveserver2
-start_hiveserver2_script = 'startHiveserver2.sh'
+start_hiveserver2_script = 'startHiveserver2.sh.j2'
 
 hadoop_home = '/usr'
 
@@ -171,6 +171,9 @@ tez_user = config['configurations']['global']['tez_user']
 
 hive_exec_jar_path = '/usr/lib/hive/lib/hive-exec.jar'
 hive_exec_hdfs_path = default('/configurations/hive-site/hive.jar.directory', '/apps/hive/install')
+
+# Hive security
+hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
