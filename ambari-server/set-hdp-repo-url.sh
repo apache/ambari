@@ -30,6 +30,7 @@ then
   C6URL="$1"
   C5URL="${C6URL/centos6/centos5}"
   S11URL="${C6URL/centos6/suse11}"
+  U12URL="${C6URL/centos6/ubuntu12}"
 
   if [ "$#" != 2 ]
   then
@@ -49,4 +50,7 @@ then
 
   echo "Setting suse11 stack url to '$S11URL'"
   sed  "s;REPLACE_WITH_SUSE11_URL;$S11URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
+
+  echo "Setting ubuntu12 stack url to '$U12URL'"
+  sed  "s;REPLACE_WITH_UBUNTU12_URL;$U12URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
 fi

@@ -72,4 +72,11 @@
       <reponame>HDP</reponame>
     </repo>
   </os>
+  <os type="ubuntu12">
+    <repo>
+      <baseurl>REPLACE_WITH_UBUNTU12_URL</baseurl>
+      <repoid>HDP-2.1</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+  </os>
 </reposinfo>
