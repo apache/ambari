@@ -2442,272 +2442,272 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
-# BUG-15593 - Commented out intermittent failure
-#  @patch.object(ambari_server, 'is_server_runing')
-#  @patch("os.chown")
-#  @patch("pwd.getpwnam")
-#  @patch.object(ambari_server, 'get_master_key_location')
-#  @patch.object(ambari_server, 'save_master_key')
-#  @patch('os.chmod', autospec=True)
-#  @patch.object(ambari_server, 'get_validated_string_input')
-#  @patch("os.environ")
-#  @patch.object(ambari_server, "get_ambari_properties")
-#  @patch("os.path.exists")
-#  @patch("__builtin__.open")
-#  @patch("subprocess.Popen")
-#  @patch.object(ambari_server, "print_info_msg")
-#  @patch.object(ambari_server, "search_file")
-#  @patch.object(ambari_server, "find_jdk")
-#  @patch.object(ambari_server, "print_error_msg")
-#  @patch.object(ambari_server, "check_postgre_up")
-#  @patch.object(ambari_server, "parse_properties_file")
-#  @patch.object(ambari_server, "read_ambari_user")
-#  @patch.object(ambari_server, "is_root")
-#  @patch.object(ambari_server, "find_jdbc_driver")
-#  @patch("getpass.getuser")
-#  @patch("os.chdir")
-#  @patch.object(ResourceFilesKeeper, "perform_housekeeping")
-#  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock,
-#                 find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
-#                 parse_properties_file_mock, check_postgre_up_mock,
-#                 print_error_msg_mock, find_jdk_mock, search_file_mock,
-#                 print_info_msg_mock, popenMock, openMock, pexistsMock,
-#                 get_ambari_properties_mock, os_environ_mock,
-#                 get_validated_string_input_method, os_chmod_method,
-#                 save_master_key_method, get_master_key_location_method,
-#                 getpwnam_mock, os_chown_mock, is_server_running_mock):
-#    args = MagicMock()
-#
-#    f = MagicMock()
-#    f.readline.return_value = 42
-#    openMock.return_value = f
-#
-#    p = get_ambari_properties_mock.return_value
-#    p.get_property.return_value = 'False'
-#    search_file_mock.return_value = None
-#    is_server_running_mock.return_value = (True, 123)
-#    pw = MagicMock()
-#    pw.setattr('pw_uid', 0)
-#    pw.setattr('pw_gid', 0)
-#    getpwnam_mock.return_value = pw
-#    os_chown_mock.return_value = None
-#    # Checking "server is running"
-#    pexistsMock.return_value = True
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with 'Server is running'")
-#    except FatalException:
-#      # Expected
-#      pass
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    pexistsMock.return_value = False
-#
-#    # Checking situation when ambari user is not set up
-#    read_ambari_user_mock.return_value = None
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with 'Can not detect a system user for Ambari'")
-#    except FatalException as e:
-#      # Expected
-#      self.assertTrue('Unable to detect a system user for Ambari Server.' in e.reason)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Checking start from non-root when current user is not the same as a
-#    # custom user
-#    read_ambari_user_mock.return_value = "dummy-user"
-#    getuser_mock.return_value = "non_custom_user"
-#    is_root_mock.return_value = False
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with 'Can not start ambari-server as user...'")
-#    except FatalException as e:
-#      # Expected
-#      self.assertTrue('Unable to start Ambari Server as user' in e.reason)
-#      self.assertFalse(parse_properties_file_mock.called)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Checking "jdk not found"
-#    is_root_mock.return_value = True
-#    find_jdk_mock.return_value = None
-#    is_server_running_mock.return_value = (False, 0)
-#
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with 'No JDK found'")
-#    except FatalException as e:
-#      # Expected
-#      self.assertTrue('No JDK found' in e.reason)
-#
-#    find_jdk_mock.return_value = "somewhere"
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    ## Testing workflow under root
-#    is_root_mock.return_value = True
-#
-#    # Remote DB
-#    args.persistence_type = "remote"
-#    args.dbms = "oracle"
-#
-#    # Case when jdbc driver is not used
-#    find_jdbc_driver_mock.return_value = -1
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with exception")
-#    except FatalException as e:
-#      self.assertTrue('Before starting Ambari Server' in e.reason)
-#
-#    find_jdbc_driver_mock.reset_mock()
-#    find_jdbc_driver_mock.return_value = 0
-#    try:
-#      ambari_server.start(args)
-#    except FatalException as e:
-#      # Ignored
-#      pass
-#
-#    # Test exception handling on resource files housekeeping
-#    perform_housekeeping_mock.reset_mock()
-#    perform_housekeeping_mock.side_effect = KeeperException("some_reason")
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with exception")
-#    except FatalException as e:
-#      self.assertTrue('some_reason' in e.reason)
-#    self.assertTrue(perform_housekeeping_mock.called)
-#    perform_housekeeping_mock.side_effect = lambda *v, **kv : None
-#    perform_housekeeping_mock.reset_mock()
-#
-#    self.assertFalse('Unable to start PostgreSQL server' in e.reason)
-#    self.assertFalse(check_postgre_up_mock.called)
-#
-#    check_postgre_up_mock.reset_mock()
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Local DB
-#    args.persistence_type = "local"
-#
-#    # case: postgres failed to start
-#    check_postgre_up_mock.return_value = 1
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Should fail with 'Unable to start PostgreSQL server'")
-#    except FatalException as e:
-#      # Expected
-#      self.assertTrue('Unable to start PostgreSQL server' in e.reason)
-#      self.assertTrue(check_postgre_up_mock.called)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    check_postgre_up_mock.return_value = 0
-#
-#    # Case: custom user is "root"
-#    read_ambari_user_mock.return_value = "root"
-#    ambari_server.start(args)
-#    self.assertTrue(popenMock.called)
-#    popen_arg = popenMock.call_args[0][0]
-#    self.assertTrue(popen_arg[0] == "/bin/sh")
-#    self.assertTrue(perform_housekeeping_mock.called)
-#    perform_housekeeping_mock.reset_mock()
-#    popenMock.reset_mock()
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Case: custom user is  not "root"
-#    read_ambari_user_mock.return_value = "not-root-user"
-#    ambari_server.start(args)
-#    self.assertTrue(chdir_mock.called)
-#    self.assertTrue(popenMock.called)
-#    popen_arg = popenMock.call_args[0][0]
-#    self.assertTrue(popen_arg[0] == "/bin/su")
-#    self.assertTrue(perform_housekeeping_mock.called)
-#    check_postgre_up_mock.reset_mock()
-#
-#    popenMock.reset_mock()
-#    parse_properties_file_mock.reset_mock()
-#
-#    ## Testing workflow under non-root
-#    is_root_mock.return_value = False
-#    read_ambari_user_mock.return_value = "not-root-user"
-#    getuser_mock.return_value = read_ambari_user_mock.return_value
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Local DB
-#    args.persistence_type = "local"
-#
-#    ambari_server.start(args)
-#
-#    self.assertFalse(check_postgre_up_mock.called)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Remote DB
-#    args.persistence_type = "remote"
-#
-#    ambari_server.start(args)
-#
-#    self.assertFalse(check_postgre_up_mock.called)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Checking call
-#    ambari_server.start(args)
-#    self.assertTrue(popenMock.called)
-#    popen_arg = popenMock.call_args[0][0]
-#    self.assertTrue(popen_arg[0] == "/bin/sh")
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Test start under wrong user
-#    read_ambari_user_mock.return_value = "not-root-user"
-#    getuser_mock.return_value = "non_custom_user"
-#    try:
-#      ambari_server.start(args)
-#      self.fail("Can not start ambari-server as user non_custom_user.")
-#    except FatalException as e:
-#      # Expected
-#      self.assertTrue('Unable to start Ambari Server as user' in e.reason)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Check environ master key is set
-#    popenMock.reset_mock()
-#    os_environ_mock.copy.return_value = {"a": "b",
-#                                         ambari_server.SECURITY_KEY_ENV_VAR_NAME: "masterkey"}
-#    args.persistence_type = "local"
-#    read_ambari_user_mock.return_value = "root"
-#    is_root_mock.return_value = True
-#
-#    ambari_server.start(args)
-#
-#    self.assertFalse(get_validated_string_input_method.called)
-#    self.assertFalse(save_master_key_method.called)
-#    popen_arg = popenMock.call_args[1]['env']
-#    self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
-#
-#    parse_properties_file_mock.reset_mock()
-#
-#    # Check environ master key is not set
-#    popenMock.reset_mock()
-#    os_environ_mock.reset_mock()
-#    p.get_property.return_value = 'True'
-#    os_environ_mock.copy.return_value = {"a": "b"}
-#    args.persistence_type = "local"
-#    read_ambari_user_mock.return_value = "root"
-#    is_root_mock.return_value = True
-#    get_validated_string_input_method.return_value = "masterkey"
-#    os_chmod_method.return_value = None
-#
-#    ambari_server.start(args)
-#
-#    self.assertTrue(get_validated_string_input_method.called)
-#    self.assertTrue(save_master_key_method.called)
-#    popen_arg = popenMock.call_args[1]['env']
-#    self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
+  @patch.object(ambari_server.utils, 'locate_file')
+  @patch.object(ambari_server, 'is_server_runing')
+  @patch("os.chown")
+  @patch("pwd.getpwnam")
+  @patch.object(ambari_server, 'get_master_key_location')
+  @patch.object(ambari_server, 'save_master_key')
+  @patch('os.chmod', autospec=True)
+  @patch.object(ambari_server, 'get_validated_string_input')
+  @patch("os.environ")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch("os.path.exists")
+  @patch("__builtin__.open")
+  @patch("subprocess.Popen")
+  @patch.object(ambari_server, "print_info_msg")
+  @patch.object(ambari_server, "search_file")
+  @patch.object(ambari_server, "find_jdk")
+  @patch.object(ambari_server, "print_error_msg")
+  @patch.object(ambari_server, "check_postgre_up")
+  @patch.object(ambari_server, "parse_properties_file")
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "is_root")
+  @patch.object(ambari_server, "find_jdbc_driver")
+  @patch("getpass.getuser")
+  @patch("os.chdir")
+  @patch.object(ResourceFilesKeeper, "perform_housekeeping")
+  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock,
+                  find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
+                  parse_properties_file_mock, check_postgre_up_mock,
+                  print_error_msg_mock, find_jdk_mock, search_file_mock,
+                  print_info_msg_mock, popenMock, openMock, pexistsMock,
+                  get_ambari_properties_mock, os_environ_mock,
+                  get_validated_string_input_method, os_chmod_method,
+                  save_master_key_method, get_master_key_location_method,
+                  getpwnam_mock, os_chown_mock, is_server_running_mock, locate_file_mock):
+     args = MagicMock()
+     locate_file_mock.side_effect = lambda *args: '/bin/su' if args[0] == 'su' else '/bin/sh'
+     f = MagicMock()
+     f.readline.return_value = 42
+     openMock.return_value = f
+
+     p = get_ambari_properties_mock.return_value
+     p.get_property.return_value = 'False'
+     search_file_mock.return_value = None
+     is_server_running_mock.return_value = (True, 123)
+     pw = MagicMock()
+     pw.setattr('pw_uid', 0)
+     pw.setattr('pw_gid', 0)
+     getpwnam_mock.return_value = pw
+     os_chown_mock.return_value = None
+     # Checking "server is running"
+     pexistsMock.return_value = True
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with 'Server is running'")
+     except FatalException:
+       # Expected
+       pass
+
+     parse_properties_file_mock.reset_mock()
+
+     pexistsMock.return_value = False
+
+     # Checking situation when ambari user is not set up
+     read_ambari_user_mock.return_value = None
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with 'Can not detect a system user for Ambari'")
+     except FatalException as e:
+       # Expected
+       self.assertTrue('Unable to detect a system user for Ambari Server.' in e.reason)
+
+     parse_properties_file_mock.reset_mock()
+
+     # Checking start from non-root when current user is not the same as a
+     # custom user
+     read_ambari_user_mock.return_value = "dummy-user"
+     getuser_mock.return_value = "non_custom_user"
+     is_root_mock.return_value = False
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with 'Can not start ambari-server as user...'")
+     except FatalException as e:
+       # Expected
+       self.assertTrue('Unable to start Ambari Server as user' in e.reason)
+       self.assertFalse(parse_properties_file_mock.called)
+
+     parse_properties_file_mock.reset_mock()
+
+     # Checking "jdk not found"
+     is_root_mock.return_value = True
+     find_jdk_mock.return_value = None
+     is_server_running_mock.return_value = (False, 0)
+
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with 'No JDK found'")
+     except FatalException as e:
+       # Expected
+       self.assertTrue('No JDK found' in e.reason)
+
+     find_jdk_mock.return_value = "somewhere"
+
+     parse_properties_file_mock.reset_mock()
+
+     ## Testing workflow under root
+     is_root_mock.return_value = True
+
+     # Remote DB
+     args.persistence_type = "remote"
+     args.dbms = "oracle"
+
+     # Case when jdbc driver is not used
+     find_jdbc_driver_mock.return_value = -1
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with exception")
+     except FatalException as e:
+       self.assertTrue('Before starting Ambari Server' in e.reason)
+
+     find_jdbc_driver_mock.reset_mock()
+     find_jdbc_driver_mock.return_value = 0
+     try:
+       ambari_server.start(args)
+     except FatalException as e:
+       # Ignored
+       pass
+
+     # Test exception handling on resource files housekeeping
+     perform_housekeeping_mock.reset_mock()
+     perform_housekeeping_mock.side_effect = KeeperException("some_reason")
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with exception")
+     except FatalException as e:
+       self.assertTrue('some_reason' in e.reason)
+     self.assertTrue(perform_housekeeping_mock.called)
+     perform_housekeeping_mock.side_effect = lambda *v, **kv : None
+     perform_housekeeping_mock.reset_mock()
+
+     self.assertFalse('Unable to start PostgreSQL server' in e.reason)
+     self.assertFalse(check_postgre_up_mock.called)
+
+     check_postgre_up_mock.reset_mock()
+     parse_properties_file_mock.reset_mock()
+
+     # Local DB
+     args.persistence_type = "local"
+
+     # case: postgres failed to start
+     check_postgre_up_mock.return_value = 1
+     try:
+       ambari_server.start(args)
+       self.fail("Should fail with 'Unable to start PostgreSQL server'")
+     except FatalException as e:
+       # Expected
+       self.assertTrue('Unable to start PostgreSQL server' in e.reason)
+       self.assertTrue(check_postgre_up_mock.called)
+
+     parse_properties_file_mock.reset_mock()
+
+     check_postgre_up_mock.return_value = 0
+
+     # Case: custom user is "root"
+     read_ambari_user_mock.return_value = "root"
+     ambari_server.start(args)
+     self.assertTrue(popenMock.called)
+     popen_arg = popenMock.call_args[0][0]
+     self.assertTrue(popen_arg[0] == "/bin/sh")
+     self.assertTrue(perform_housekeeping_mock.called)
+     perform_housekeeping_mock.reset_mock()
+     popenMock.reset_mock()
+
+     parse_properties_file_mock.reset_mock()
+
+     # Case: custom user is  not "root"
+     read_ambari_user_mock.return_value = "not-root-user"
+     ambari_server.start(args)
+     self.assertTrue(chdir_mock.called)
+     self.assertTrue(popenMock.called)
+     popen_arg = popenMock.call_args[0][0]
+     self.assertTrue(popen_arg[0] == "/bin/su")
+     self.assertTrue(perform_housekeeping_mock.called)
+     check_postgre_up_mock.reset_mock()
+
+     popenMock.reset_mock()
+     parse_properties_file_mock.reset_mock()
+
+     ## Testing workflow under non-root
+     is_root_mock.return_value = False
+     read_ambari_user_mock.return_value = "not-root-user"
+     getuser_mock.return_value = read_ambari_user_mock.return_value
+
+     parse_properties_file_mock.reset_mock()
+
+     # Local DB
+     args.persistence_type = "local"
+
+     ambari_server.start(args)
+
+     self.assertFalse(check_postgre_up_mock.called)
+
+     parse_properties_file_mock.reset_mock()
+
+     # Remote DB
+     args.persistence_type = "remote"
+
+     ambari_server.start(args)
+
+     self.assertFalse(check_postgre_up_mock.called)
+
+     parse_properties_file_mock.reset_mock()
+
+     # Checking call
+     ambari_server.start(args)
+     self.assertTrue(popenMock.called)
+     popen_arg = popenMock.call_args[0][0]
+     self.assertTrue(popen_arg[0] == "/bin/sh")
+
+     parse_properties_file_mock.reset_mock()
+
+     # Test start under wrong user
+     read_ambari_user_mock.return_value = "not-root-user"
+     getuser_mock.return_value = "non_custom_user"
+     try:
+       ambari_server.start(args)
+       self.fail("Can not start ambari-server as user non_custom_user.")
+     except FatalException as e:
+       # Expected
+       self.assertTrue('Unable to start Ambari Server as user' in e.reason)
+
+     parse_properties_file_mock.reset_mock()
+
+     # Check environ master key is set
+     popenMock.reset_mock()
+     os_environ_mock.copy.return_value = {"a": "b",
+                                          ambari_server.SECURITY_KEY_ENV_VAR_NAME: "masterkey"}
+     args.persistence_type = "local"
+     read_ambari_user_mock.return_value = "root"
+     is_root_mock.return_value = True
+
+     ambari_server.start(args)
+
+     self.assertFalse(get_validated_string_input_method.called)
+     self.assertFalse(save_master_key_method.called)
+     popen_arg = popenMock.call_args[1]['env']
+     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
+
+     parse_properties_file_mock.reset_mock()
+
+     # Check environ master key is not set
+     popenMock.reset_mock()
+     os_environ_mock.reset_mock()
+     p.get_property.return_value = 'True'
+     os_environ_mock.copy.return_value = {"a": "b"}
+     args.persistence_type = "local"
+     read_ambari_user_mock.return_value = "root"
+     is_root_mock.return_value = True
+     get_validated_string_input_method.return_value = "masterkey"
+     os_chmod_method.return_value = None
+
+     ambari_server.start(args)
+
+     self.assertTrue(get_validated_string_input_method.called)
+     self.assertTrue(save_master_key_method.called)
+     popen_arg = popenMock.call_args[1]['env']
+     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
 
 
   @patch.object(ambari_server, 'is_server_runing')
