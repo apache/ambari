@@ -116,6 +116,7 @@ namenode_host = default("/clusterHostInfo/namenode_host", None)
 _snamenode_host = default("/clusterHostInfo/snamenode_host", None)
 _jtnode_host = default("/clusterHostInfo/jtnode_host", None)
 _slave_hosts = default("/clusterHostInfo/slave_hosts", None)
+_tt_hosts = default("/clusterHostInfo/mapred_tt_hosts", [])
 _journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", None)
 _zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", None)
 _rm_host = default("/clusterHostInfo/rm_host", None)
@@ -131,7 +132,7 @@ _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
 _oozie_server = default("/clusterHostInfo/oozie_server",None)
 _webhcat_server_host = default("/clusterHostInfo/webhcat_server_host",None)
 # can differ on HDP2
-_mapred_tt_hosts = _slave_hosts
+_mapred_tt_hosts = _tt_hosts
 #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
