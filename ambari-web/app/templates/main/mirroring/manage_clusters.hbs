@@ -16,7 +16,10 @@
 * limitations under the License.
 }}
 <div class="mirroring-manage-clusters">
-  <div class="row-fluid">
+  {{#unless controller.isLoaded}}
+    <div class="spinner spinner-centered"></div>
+  {{/unless}}
+  <div {{bindAttr class=":row-fluid controller.isLoaded::content-loading"}}>
     <div class="span4">
       {{view view.clusterSelect}}
       <div class="btn-toolbar pull-right">

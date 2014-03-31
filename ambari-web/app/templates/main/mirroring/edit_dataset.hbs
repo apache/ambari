@@ -15,7 +15,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="row-fluid">
+{{#unless view.isLoaded}}
+  <div class="spinner spinner-centered"></div>
+{{/unless}}
+<div {{bindAttr class=":row-fluid view.isLoaded::content-loading"}}>
   <form class="form-horizontal">
     <div class="add-data-set">
       <table>
@@ -129,8 +132,3 @@
     </div>
   </form>
 </div>
-{{#if isPopupForEdit}}
-  <div class="pull-right dataset-delete">
-    <a {{action deleteDatasetClick target="controller"}} class="btn btn-danger">{{t common.delete}}</a>
-  </div>
-{{/if}}
