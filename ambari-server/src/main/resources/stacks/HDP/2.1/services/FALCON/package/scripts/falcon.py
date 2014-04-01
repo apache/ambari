@@ -64,20 +64,18 @@ def falcon(type, action = None):
                 owner=params.falcon_user,
                 recursive=True
       )
-      Directory(params.falcon_data_dir,
-                owner=params.falcon_user,
-                recursive=True
-      )
+      if params.falcon_embeddedmq_enabled == True:
+        Directory(params.falcon_embeddedmq_data,
+                  owner=params.falcon_user,
+                  recursive=True
+        )
+
     if action == 'start':
-      Execute(format('env JAVA_HOME={java_home} FALCON_LOG_DIR={falcon_log_dir} '
-                     'FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR={falcon_data_dir} '
-                     '{falcon_home}/bin/falcon-start -port {falcon_port}'),
+      Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
               user=params.falcon_user
       )
     if action == 'stop':
-      Execute(format('env JAVA_HOME={java_home} FALCON_LOG_DIR={falcon_log_dir} '
-                     'FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR={falcon_data_dir} '
-                     '{falcon_home}/bin/falcon-stop'),
+      Execute(format('{falcon_home}/bin/falcon-stop'),
               user=params.falcon_user
       )
       File(params.server_pid_file,

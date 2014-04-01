@@ -30,7 +30,7 @@ class TestFalconServer(RMFTestCase):
                        config_file="default.json"
     )
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-start -port 15000',
+    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
                               user = 'falcon',
                               )
     self.assertNoMoreResources()
@@ -41,7 +41,7 @@ class TestFalconServer(RMFTestCase):
                        command="stop",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon FALCON_PID_DIR=/var/run/falcon FALCON_DATA_DIR=/hadoop/falcon/activemq /usr/lib/falcon/bin/falcon-stop',
+    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-stop',
                               user = 'falcon',
                               )
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
@@ -105,7 +105,7 @@ class TestFalconServer(RMFTestCase):
                               owner = 'falcon',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/hadoop/falcon/activemq',
+    self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
                               owner = 'falcon',
                               recursive = True,
                               )

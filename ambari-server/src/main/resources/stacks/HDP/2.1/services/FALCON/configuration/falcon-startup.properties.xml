@@ -19,11 +19,7 @@
  */
 -->
 <configuration>
-  <property>
-    <name>*.domain</name>
-    <value>${falcon.app.type}</value>
-    <description></description>
-  </property>
+  <!--advanced properties-->
   <property>
     <name>*.workflow.engine.impl</name>
     <value>org.apache.falcon.workflow.engine.OozieWorkflowEngine</value>
@@ -71,24 +67,11 @@
     <description></description>
   </property>
   <property>
-    <name>prism.application.services</name>
-    <value>org.apache.falcon.entity.store.ConfigurationStore</value>
-    <description></description>
-  </property>
-  <property>
     <name>*.configstore.listeners</name>
     <value>org.apache.falcon.entity.v0.EntityGraph,\
       org.apache.falcon.entity.ColoClusterRelation,\
       org.apache.falcon.group.FeedGroupMap,\
       org.apache.falcon.service.SharedLibraryHostingService
-    </value>
-    <description></description>
-  </property>
-  <property>
-    <name>prism.configstore.listeners</name>
-    <value>org.apache.falcon.entity.v0.EntityGraph,\
-      org.apache.falcon.entity.ColoClusterRelation,\
-      org.apache.falcon.group.FeedGroupMap
     </value>
     <description></description>
   </property>
@@ -102,22 +85,23 @@
     <value>activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms</value>
     <description></description>
   </property>
+  <!--common properties-->
+  <property>
+    <name>*.domain</name>
+    <value>${falcon.app.type}</value>
+    <description></description>
+  </property>
   <property>
     <name>*.config.store.uri</name>
-    <value>file://${falcon.home}/store</value>
+    <value>file:///hadoop/falcon/store</value>
     <description>Location to store user entity configurations</description>
   </property>
   <property>
   </property>
   <property>
     <name>*.system.lib.location</name>
-    <value>${falcon.home}/server/webapp/falcon/WEB-INF/lib</value>
+    <value>${falcon.home}/server/webapp/${falcon.app.type}/WEB-INF/lib</value>
     <description>Location of libraries that is shipped to Hadoop</description>
-  </property>
-  <property>
-    <name>prism.system.lib.location</name>
-    <value>${falcon.home}/server/webapp/prism/WEB-INF/lib</value>
-    <description></description>
   </property>
   <property>
     <name>*.retry.recorder.path</name>

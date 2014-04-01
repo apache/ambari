@@ -29,11 +29,7 @@ class TestFalconServer(RMFTestCase):
                        command="service_check",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'env '
-                                         'JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon '
-                                         'FALCON_PID_DIR=/var/run/falcon '
-                                         'FALCON_DATA_DIR=/hadoop/falcon/activemq '
-                                         '/usr/lib/falcon/bin/falcon admin -version',
+    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
                               logoutput = True,
                               tries = 3,
                               user = 'ambari-qa',
@@ -45,14 +41,10 @@ class TestFalconServer(RMFTestCase):
                        command="service_check",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/spnego.service.keytab HTTP/c6401.ambari.apache.org@EXAMPLE.COM',
+    self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa',
                               user='ambari-qa'
     )
-    self.assertResourceCalled('Execute', 'env '
-                                         'JAVA_HOME=/usr/jdk64/jdk1.7.0_45 FALCON_LOG_DIR=/var/log/falcon '
-                                         'FALCON_PID_DIR=/var/run/falcon '
-                                         'FALCON_DATA_DIR=/hadoop/falcon/activemq '
-                                         '/usr/lib/falcon/bin/falcon admin -version',
+    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
                               logoutput = True,
                               tries = 3,
                               user = 'ambari-qa',

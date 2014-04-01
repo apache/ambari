@@ -44,4 +44,20 @@
     <value>/hadoop/falcon</value>
     <description>Directory where Falcon data, such as activemq data, is stored.</description>
   </property>
+  <!--embeddedmq properties-->
+  <property>
+    <name>falcon.embeddedmq.data</name>
+    <value>/hadoop/falcon/embeddedmq/data</value>
+    <description></description>
+  </property>
+  <property>
+    <name>falcon.embeddedmq</name>
+    <value>true</value>
+    <description></description>
+  </property>
+  <property>
+    <name>falcon.emeddedmq.port</name>
+    <value>61616</value>
+    <description></description>
+  </property>
 </configuration>

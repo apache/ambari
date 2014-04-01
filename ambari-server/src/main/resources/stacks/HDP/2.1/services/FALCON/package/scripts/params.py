@@ -35,14 +35,18 @@ falcon_home = '/usr/lib/falcon'
 falcon_conf_dir = '/etc/falcon/conf'
 falcon_local_dir = config['configurations']['global']['falcon_local_dir']
 falcon_log_dir = config['configurations']['global']['falcon_log_dir']
-falcon_data_dir = format('{falcon_local_dir}/activemq')
 store_uri = config['configurations']['falcon-startup.properties']['*.config.store.uri']
+
+falcon_embeddedmq_data = config['configurations']['global']['falcon.embeddedmq.data']
+falcon_embeddedmq_enabled = config['configurations']['global']['falcon.embeddedmq']
+falcon_emeddedmq_port = config['configurations']['global']['falcon.emeddedmq.port']
+
 falcon_host = config['clusterHostInfo']['falcon_server_hosts'][0]
 falcon_port = config['configurations']['global']['falcon_port']
 falcon_runtime_properties = config['configurations']['falcon-runtime.properties']
 falcon_startup_properties = config['configurations']['falcon-startup.properties']
-http_keytab = falcon_startup_properties['*.falcon.http.authentication.kerberos.keytab']
-http_principal = falcon_startup_properties['*.falcon.http.authentication.kerberos.principal']
+smokeuser_keytab = config['configurations']['global']['smokeuser_keytab']
+
 falcon_webapp_dir = '/var/lib/falcon/webapp'
 flacon_apps_dir = '/apps/falcon'
 #for create_hdfs_directory

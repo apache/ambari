@@ -34,7 +34,7 @@ export JAVA_HOME={{java_home}}
 #export FALCON_PRISM_HEAP=
 
 # any additional opts you want to set for falcon service.
-#export FALCON_SERVER_OPTS=
+export FALCON_SERVER_OPTS="-Dfalcon.embeddedmq={{falcon_embeddedmq_enabled}} -Dfalcon.emeddedmq.port={{falcon_emeddedmq_port}}"
 
 # java heap size we want to set for the falcon server. Default is 1024MB
 #export FALCON_SERVER_HEAP=
@@ -43,13 +43,13 @@ export JAVA_HOME={{java_home}}
 #export FALCON_HOME_DIR=
 
 # Where log files are stored. Defatult is logs directory under the base install location
-#export FALCON_LOG_DIR=
+export FALCON_LOG_DIR={{falcon_log_dir}}
 
 # Where pid files are stored. Defatult is logs directory under the base install location
-#export FALCON_PID_DIR=
+export FALCON_PID_DIR={{falcon_pid_dir}}
 
 # where the falcon active mq data is stored. Defatult is logs/data directory under the base install location
-#export FALCON_DATA_DIR=
+export FALCON_DATA_DIR={{falcon_embeddedmq_data}}
 
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 #export FALCON_EXPANDED_WEBAPP_DIR=
