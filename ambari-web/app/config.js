@@ -70,7 +70,8 @@ App.supports = {
   deleteHost: true,
   autoRollbackHA: false,
   appTimelineServer: true,
-  jobs: true
+  jobs: true,
+  ubuntu: true
 };
 
 if (App.enableExperimental) {

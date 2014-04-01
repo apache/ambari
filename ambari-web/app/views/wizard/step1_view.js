@@ -150,6 +150,7 @@ App.WizardStep1View = Em.View.extend({
   loadRepositories: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     var reposGroup = [[],[],[]];
+    if (App.supports.ubuntu) reposGroup.push([]); // @todo: remove after Ubuntu support confirmation
     var self = this;
     if (selectedStack && selectedStack.operatingSystems) {
       selectedStack.operatingSystems.forEach(function (os) {
@@ -194,6 +195,11 @@ App.WizardStep1View = Em.View.extend({
           case 'suse11':
             cur_repo.set('osType', 'SUSE 11');
             reposGroup[2][1] = cur_repo;
+            break;
+          case 'ubuntu12':
+            cur_repo.set('osType','Ubuntu 12');
+            reposGroup[3][0] = cur_repo;
+            self.setGroupByOs(reposGroup[3], os, 3);
             break;
         }
       });
@@ -344,6 +350,8 @@ App.WizardStep1View = Em.View.extend({
         return ['redhat6', 'centos6', 'oraclelinux6'];
       case 2:
         return ['sles11', 'suse11'];
+      case 3:
+        return ['ubuntu12'];
     }
     return [];
   },
@@ -366,6 +374,8 @@ App.WizardStep1View = Em.View.extend({
       case 'sles11':
       case 'suse11':
         return 2;
+      case 'ubuntu12':
+        return 3;
     }
     return -1;
   }
