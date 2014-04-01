@@ -112,22 +112,26 @@ App.WizardStep9View = App.TableView.extend({
    * filter hosts by category
    */
   filter: function () {
-    var result = [];
-    var selectedCategory = this.get('selectedCategory');
-    if (!selectedCategory || selectedCategory.get('hostStatus') === 'all') {
-      result = this.get('content');
-    } else if (selectedCategory.get('hostStatus') == 'inProgress') {
-      result = this.get('content').filter(function (_host) {
-        return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
-      });
-    } else if (selectedCategory.get('hostStatus') == 'failed') {
-      result = this.get('content').filter(function (_host) {
-        return (_host.get('status') == 'failed' || _host.get('status') == 'heartbeat_lost');
-      });
-    } else {
-      result = this.get('content').filterProperty('status', selectedCategory.get('hostStatus'));
-    }
-    this.set('filteredContent', result);
+    var self = this;
+    Em.run.next(function () {
+      var result = [];
+      var content = self.get('content');
+      var selectedCategory = self.get('selectedCategory');
+      if (!selectedCategory || selectedCategory.get('hostStatus') === 'all') {
+        result = content;
+      } else if (selectedCategory.get('hostStatus') == 'inProgress') {
+        result = content.filter(function (_host) {
+          return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
+        });
+      } else if (selectedCategory.get('hostStatus') == 'failed') {
+        result = content.filter(function (_host) {
+          return (_host.get('status') == 'failed' || _host.get('status') == 'heartbeat_lost');
+        });
+      } else {
+        result = content.filterProperty('status', selectedCategory.get('hostStatus'));
+      }
+      self.set('filteredContent', result);
+    });
   }.observes('selectedCategory'),
   /**
    * Trigger on Category click
