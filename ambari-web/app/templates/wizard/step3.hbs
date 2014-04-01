@@ -30,7 +30,7 @@
         </button>
         {{#unless isRetryDisabled}}
         <a class="btn btn-primary decommission"
-           href="#" {{action retrySelectedHosts target="controller"}}><i
+           href="#" {{action retrySelectedHosts target="view"}}><i
           class="icon-repeat icon-white"></i>
           {{t installer.step3.retryFailed}}
         </a>
@@ -124,7 +124,7 @@
       </div>
       <div id="hosts">
           <div class="page-bar">
-              <div class="selected-hosts-info span6">
+              <div class="selected-hosts-info pull-left">
                 {{#if view.selectedHostsCount}}
                   <a {{action selectedHostsPopup target="controller"}} href="#">
                     {{view.selectedHostsCount}}
@@ -133,6 +133,9 @@
                   -
                   <a {{action unSelectAll target="view"}} href="#">{{t hosts.filters.clearSelection}}</a>
               {{/if}}
+              </div>
+              <div class="items-on-page">
+                  <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
               </div>
               <div class="info">{{view.paginationInfo}}</div>
               <div class="paging_two_button">

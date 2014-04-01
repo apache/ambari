@@ -25,7 +25,7 @@ App.WizardStep6View = App.TableView.extend({
 
   title: '',
 
-  displayLength: "20",
+  displayLength: "25",
 
   content: function () {
     return this.get('controller.hosts');

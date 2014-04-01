@@ -38,11 +38,6 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   hosts: [],
 
-  /*
-   * Indicate whether to show the message(that there are no hosts to display) instead of list of hosts
-   */
-  isAnyHostDisplayed: true,
-
   /**
    * overall progress of <Install,Start and Test> page shown as progress bar on the top of the page
    */
@@ -107,9 +102,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    * This function is called when a click event happens on Next button of <Install, Start and Test> page
    */
   submit: function () {
-    if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
-    }
+    App.router.send('next');
   },
 
   /**
@@ -142,120 +135,12 @@ App.WizardStep9Controller = Em.Controller.extend({
   }.property('content.cluster.status'),
 
   /**
-   * Ember Object with the controllerbinding as this controller. This object also contains
-   * <code>
-   *   hostStatus: {String} A valid status of a host.
-   *               Used to filter hosts in that status.
-   *   hostsCount: {Int} Dynamic count of hosts displayed in the category label
-   *   label : {String} status and hosts in that status displayed which consists as a category on the page
-   *   isActive: {boolean} Gets set when the category is selected/clicked by the user
-   *   itemClass: {computed property} Binds the category link to active class when user clicks on the link
-   * </code>
-   */
-  categoryObject: Em.Object.extend({
-    hostsCount: function () {
-      var category = this;
-      var hosts = this.get('controller.hosts').filter(function (_host) {
-        if (category.get('hostStatus') == 'inProgress') {
-          return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
-        } else if (category.get('hostStatus') == 'failed') {
-          return (_host.get('status') == 'failed' || _host.get('status') == 'heartbeat_lost');
-        } else {
-          return (_host.get('status') == category.get('hostStatus'));
-        }
-      }, this);
-      return hosts.get('length');
-    }.property('controller.hosts.@each.status'),
-    label: function () {
-      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
-    }.property('value', 'hostsCount')
-  }),
-
-  /**
-   * computed property creates the category objects on the load of the page and sets 'All' as the active category
-   * @Returns: All created categories which are binded and iterated in the template
-   */
-  categories: function () {
-    var self = this;
-    self.categoryObject.reopen({
-      controller: self,
-      isActive: function () {
-        return this.get('controller.category') == this;
-      }.property('controller.category'),
-      itemClass: function () {
-        return this.get('isActive') ? 'active' : '';
-      }.property('isActive')
-    });
-
-    var categories = [
-      self.categoryObject.create({value: Em.I18n.t('common.all'), hostStatus: 'all', hostsCount: function () {
-        return this.get('controller.hosts.length');
-      }.property('controller.hosts.length') }),
-      self.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.inProgress'), hostStatus: 'inProgress'}),
-      self.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.warning'), hostStatus: 'warning'}),
-      self.categoryObject.create({value: Em.I18n.t('common.success'), hostStatus: 'success'}),
-      self.categoryObject.create({value: Em.I18n.t('common.fail'), hostStatus: 'failed', last: true })
-    ];
-
-    this.set('category', categories.get('firstObject'));
-    return categories;
-  }.property(),
-
-  /**
-   * Registered as an handlebar action in step-9 template. Invoked whenever click event occurs on a category label
-   * @param event: {categoryObject}
-   */
-  selectCategory: function (event) {
-    this.set('category', event.context);
-  },
-
-  /**
-   * Present clicked/selected {categoryObject} on the page
-   */
-  category: false,
-
-  /**
    * Observer function: Calls {hostStatusUpdates} function once with change in a host status from any registered hosts.
    */
   hostStatusObserver: function () {
-    Ember.run.once(this, 'hostStatusUpdates');
+    Ember.run.once(this, 'updateStatus');
   }.observes('hosts.@each.status'),
 
-
-  /**
-   * Updates the hosts mapping to the category selected and updates entire page status
-   */
-  hostStatusUpdates: function () {
-    this.updateVisibleHosts();
-    this.updateStatus();
-  },
-
-  /**
-   * Observer function: Updates {visibleHosts Array} of this controller whenever category is changed
-   */
-  updateVisibleHosts: function () {
-    var targetStatus = this.get('category.hostStatus');
-    var isAnyHostDisplayed = false;
-    if (targetStatus === 'all') {
-      isAnyHostDisplayed = true;
-      this.get('hosts').setEach('isVisible', true);
-    } else {
-      this.get('hosts').forEach(function (_host) {
-        var isVisible = false;
-        var status = _host.get('status');
-        if (targetStatus == 'inProgress') {
-          isVisible = (status == 'info' || status == 'pending' || status == 'in_progress');
-        } else if (targetStatus === 'failed') {
-          isVisible = (status === 'failed' || status === 'heartbeat_lost');
-        } else {
-          isVisible = (status == targetStatus);
-        }
-        isAnyHostDisplayed = (isAnyHostDisplayed || isVisible);
-        _host.set('isVisible', isVisible);
-      }, this)
-    }
-    this.set('isAnyHostDisplayed', isAnyHostDisplayed);
-  }.observes('category'),
 
   /**
    * A flag that gets set with installation failure.

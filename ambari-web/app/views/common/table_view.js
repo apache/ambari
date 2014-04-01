@@ -255,7 +255,7 @@ App.TableView = Em.View.extend(App.UserPref, {
    * @type {Ember.View}
    */
   rowsPerPageSelectView: Em.Select.extend({
-    content: ['10', '25', '50'],
+    content: ['10', '25', '50', '100'],
     change: function () {
       this.get('parentView').saveDisplayLength();
     }

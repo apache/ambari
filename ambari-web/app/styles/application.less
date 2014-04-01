@@ -456,14 +456,6 @@ h1 {
       margin-bottom: 0;
     }
   }
-  #confirm-hosts, #step6 {
-    .page-bar {
-      padding: 5px;
-      .selected-hosts-info {
-        margin: 0;
-      }
-    }
-  }
   #step4, #step5, #step6 {
     a.selected {
       color: #333;
@@ -498,6 +490,9 @@ h1 {
     }
   }
   #deploy {
+    .pre-scrollable {
+      max-height: 750px;
+    }
     #overallProgress {
     }
     #host-filter {
@@ -524,6 +519,7 @@ h1 {
       }
     }
     #deploy-status-by-host {
+      margin-bottom: 0;
       th.host {
         width: 30%;
       }
@@ -540,7 +536,7 @@ h1 {
         }
       }
       .progress-percentage {
-        margin-left: 10px;
+        margin-left: 5px;
         width: 20% - 10px;
       }
     }

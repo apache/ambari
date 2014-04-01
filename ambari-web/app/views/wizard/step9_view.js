@@ -19,7 +19,7 @@
 var App = require('app');
 var date = require('utils/date');
 
-App.WizardStep9View = Em.View.extend({
+App.WizardStep9View = App.TableView.extend({
 
   templateName: require('templates/wizard/step9'),
   barColor: '',
@@ -29,9 +29,119 @@ App.WizardStep9View = Em.View.extend({
    return (this.get('controller.progress') === '100');
   }.property('controller.progress'),
 
+  displayLength: "25",
+
+  content: function () {
+    return this.get('controller.hosts');
+  }.property('controller.hosts'),
+
+  filteredContent: [],
+
+  selectedCategory: function() {
+    return this.get('categories').findProperty('isActive');
+  }.property('categories.@each.isActive'),
+
+  /**
+   * Ember Object category. This object also contains
+   * <code>
+   *   hostStatus: {String} A valid status of a host.
+   *               Used to filter hosts in that status.
+   *   hostsCount: {Int} Dynamic count of hosts displayed in the category label
+   *   label : {String} status and hosts in that status displayed which consists as a category on the page
+   *   isActive: {boolean} Gets set when the category is selected/clicked by the user
+   *   itemClass: {computed property} Binds the category link to active class when user clicks on the link
+   * </code>
+   */
+  categoryObject: Em.Object.extend({
+    hostsCount: 0,
+    label: function () {
+      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
+    }.property('value', 'hostsCount'),
+    isActive: false,
+    itemClass: function () {
+      return this.get('isActive') ? 'active' : '';
+    }.property('isActive')
+  }),
+  /**
+   * computed property creates the category objects on the load of the page and sets 'All' as the active category
+   * @Returns: All created categories which are binded and iterated in the template
+   */
+  categories: function () {
+    return [
+      this.categoryObject.create({value: Em.I18n.t('common.all'), hostStatus: 'all', isActive: true}),
+      this.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.inProgress'), hostStatus: 'inProgress'}),
+      this.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.warning'), hostStatus: 'warning'}),
+      this.categoryObject.create({value: Em.I18n.t('common.success'), hostStatus: 'success'}),
+      this.categoryObject.create({value: Em.I18n.t('common.fail'), hostStatus: 'failed', last: true })
+    ];
+  }.property(),
+
+  hostStatusObserver: function(){
+    Ember.run.once(this, 'countCategoryHosts');
+    Ember.run.once(this, 'filter');
+  }.observes('content.@each.status'),
+
+  /**
+   * count each category hosts to update label
+   */
+  countCategoryHosts: function () {
+    var counters = {
+      "info": 0,
+      "pending": 0,
+      "in_progress": 0,
+      "heartbeat_lost": 0,
+      "warning": 0,
+      "success": 0,
+      "failed": 0
+    };
+
+    this.get('content').forEach(function (host) {
+      if (counters[host.get('status')] !== undefined) {
+        counters[host.get('status')]++;
+      }
+    }, this);
+    counters["all"] = this.get('content.length');
+    counters["inProgress"] = counters["info"] + counters["pending"] + counters["in_progress"];
+    counters["failed"] += counters["heartbeat_lost"];
+    this.get('categories').forEach(function(category) {
+      category.set('hostsCount', counters[category.get('hostStatus')]);
+    }, this);
+  },
+
+  /**
+   * filter hosts by category
+   */
+  filter: function () {
+    var result = [];
+    var selectedCategory = this.get('selectedCategory');
+    if (!selectedCategory || selectedCategory.get('hostStatus') === 'all') {
+      result = this.get('content');
+    } else if (selectedCategory.get('hostStatus') == 'inProgress') {
+      result = this.get('content').filter(function (_host) {
+        return (_host.get('status') == 'info' || _host.get('status') == 'pending' || _host.get('status') == 'in_progress');
+      });
+    } else if (selectedCategory.get('hostStatus') == 'failed') {
+      result = this.get('content').filter(function (_host) {
+        return (_host.get('status') == 'failed' || _host.get('status') == 'heartbeat_lost');
+      });
+    } else {
+      result = this.get('content').filterProperty('status', selectedCategory.get('hostStatus'));
+    }
+    this.set('filteredContent', result);
+  }.observes('selectedCategory'),
+  /**
+   * Trigger on Category click
+   * @param {Object} event
+   */
+  selectCategory: function (event) {
+    var categoryStatus = event.context.get('hostStatus');
+    this.get('categories').forEach(function (category) {
+      category.set('isActive', (category.get('hostStatus') === categoryStatus));
+    });
+  },
+
   didInsertElement: function () {
     var controller = this.get('controller');
-    this.get('controller.hosts').setEach('status', 'info');
     this.onStatus();
     controller.navigateStep();
   },

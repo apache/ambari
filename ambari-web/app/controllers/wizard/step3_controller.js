@@ -183,7 +183,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retryHosts: function (hosts) {
-    this.selectAllCategory();
     var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.installOptions.sshKey'), 'hosts': hosts.mapProperty('name'), 'user': this.get('content.installOptions.sshUser')});
     this.numPolls = 0;
     if (this.get('content.installOptions.manualInstall') !== true) {
@@ -199,8 +198,6 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retrySelectedHosts: function () {
-    //to display all hosts
-    this.set('category', 'All');
     if (!this.get('isRetryDisabled')) {
       this.set('isRetryDisabled', true);
       var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
@@ -494,16 +491,16 @@ App.WizardStep3Controller = Em.Controller.extend({
     hosts.forEach(function (_host) {
       var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
       if (App.skipBootstrap) {
-        _host.cpu = 2;
-        _host.memory = ((parseInt(2000000))).toFixed(2);
-        _host.disk_info = [{"mountpoint": "/", "type":"ext4"},{"mountpoint": "/grid/0", "type":"ext4"}, {"mountpoint": "/grid/1", "type":"ext4"}, {"mountpoint": "/grid/2", "type":"ext4"}];
+        _host.set('cpu', 2);
+        _host.set('memory', ((parseInt(2000000))).toFixed(2));
+        _host.set('disk_info', [{"mountpoint": "/", "type":"ext4"},{"mountpoint": "/grid/0", "type":"ext4"}, {"mountpoint": "/grid/1", "type":"ext4"}, {"mountpoint": "/grid/2", "type":"ext4"}]);
       } else if (host) {
-        _host.cpu = host.Hosts.cpu_count;
-        _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
-        _host.disk_info = host.Hosts.disk_info;
-        _host.os_type = host.Hosts.os_type;
-        _host.os_arch = host.Hosts.os_arch;
-        _host.ip = host.Hosts.ip;
+        _host.set('cpu', host.Hosts.cpu_count);
+        _host.set('memory', ((parseInt(host.Hosts.total_mem))).toFixed(2));
+        _host.set('disk_info', host.Hosts.disk_info);
+        _host.set('os_type', host.Hosts.os_type);
+        _host.set('os_arch', host.Hosts.os_arch);
+        _host.set('ip', host.Hosts.ip);
 
         var context = self.checkHostOSType(host.Hosts.os_type, host.Hosts.host_name);
         if(context) {
@@ -541,7 +538,6 @@ App.WizardStep3Controller = Em.Controller.extend({
 
     this.set('repoCategoryWarnings', repoWarnings);
     this.set('diskCategoryWarnings', diskWarnings);
-    this.set('bootHosts', hosts);
     this.stopRegistration();
   },
 
@@ -612,14 +608,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     } else {
       return null;
     }
-  },
-
-  selectCategory: function(event, context){
-    this.set('category', event.context);
-  },
-
-  selectAllCategory: function(){
-    this.set('category', this.get('categories').get('firstObject'));
   },
 
   submit: function () {

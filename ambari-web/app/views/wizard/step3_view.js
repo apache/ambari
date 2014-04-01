@@ -37,7 +37,7 @@ App.WizardStep3View = App.TableView.extend({
 
   registeredHostsMessage: '',
 
-  displayLength: "20",
+  displayLength: "25",
 
   didInsertElement: function () {
     this.get('controller').loadStep();
@@ -167,6 +167,16 @@ App.WizardStep3View = App.TableView.extend({
     this.watchSelection();
   },
 
+  /**
+   * Select "All" hosts category
+   * run registration of failed hosts again
+   */
+  retrySelectedHosts: function () {
+    var eventObject = {context: Em.Object.create({hostsBootStatus: 'ALL'})};
+    this.selectCategory(eventObject);
+    this.get('controller').retrySelectedHosts();
+  },
+
   monitorStatuses: function() {
     var hosts = this.get('controller.bootHosts');
     var failedHosts = hosts.filterProperty('bootStatus', 'FAILED').length;
@@ -206,7 +216,7 @@ App.WizardStep3View = App.TableView.extend({
 App.WizardHostView = Em.View.extend({
 
   tagName: 'tr',
-  classNameBindings: ['hostInfo.bootStatus', 'hostInfo.isVisible::hidden'],
+  classNameBindings: ['hostInfo.bootStatus'],
   hostInfo: null,
 
   remove: function () {

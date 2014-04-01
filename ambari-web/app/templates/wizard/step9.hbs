@@ -47,9 +47,9 @@
       <div id="host-filter" class="pull-right">
         <ul class="clearfix">
           <li class="first">{{t common.show}}:</li>
-          {{#each category in controller.categories}}
+          {{#each category in view.categories}}
             <li {{bindAttr class="category.itemClass"}}>
-              <a {{action selectCategory category target="controller"}} href="#">
+              <a {{action selectCategory category target="view"}} href="#">
                 {{category.label}}
               </a>
             </li>
@@ -60,7 +60,7 @@
         </ul>
       </div>
     </div>
-    <div class="pre-scrollable" style="max-height: 750px;">
+    <div class="pre-scrollable">
       <table id="deploy-status-by-host" class="table table-bordered table-striped">
         <thead>
         <tr>
@@ -75,9 +75,9 @@
         </thead>
 
         <tbody>
-        {{#if isAnyHostDisplayed}}
-          {{#each host in hosts}}
-            {{#view App.HostStatusView objBinding="host" controllerBinding="controller" classBinding="host.isVisible::hidden"}}
+        {{#if view.pageContent}}
+          {{#each host in view.pageContent}}
+            {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
               <td>
                 {{host.name}}
               </td>
@@ -105,6 +105,20 @@
         </tbody>
       </table>
     </div>
+      <div id="hosts">
+          <div class="page-bar">
+              <div class="items-on-page">
+                  <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+              </div>
+              <div class="info">{{view.paginationInfo}}</div>
+              <div class="paging_two_button">
+                {{view view.paginationFirst}}
+                {{view view.paginationLeft}}
+                {{view view.paginationRight}}
+                {{view view.paginationLast}}
+              </div>
+          </div>
+      </div>
     <div class="box-footer">
       <hr/>
       <div class="footer-pagination">
@@ -121,7 +135,7 @@
       </p>
     {{/if}}
     <div class="btn-area">
-      <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+      <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
     </div>
   </div>
 
