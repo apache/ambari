@@ -132,6 +132,7 @@
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+            <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
             <exclude>.idea/</exclude>
