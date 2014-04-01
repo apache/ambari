@@ -35,6 +35,33 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+                <value>${project.version}</value>
+                <regex>-SNAPSHOT</regex>
+                <replacement></replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
       </plugin>
@@ -99,7 +126,7 @@
                 <!-- sets Ambari version to make it accessible from code -->
                 <exec dir="${basedir}" executable="sh" failonerror="false">
                   <arg value="${basedir}/set-ambari-version.sh"/>
-                  <arg value="${newVersion}"/>
+                  <arg value="${ambariVersion}"/>
                 </exec>
                 <!-- sets default stack and version to use for install -->
                 <exec dir="${basedir}" executable="sh" failonerror="false">
