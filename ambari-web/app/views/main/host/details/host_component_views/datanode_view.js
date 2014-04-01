@@ -48,7 +48,7 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
    * @returns {Object|null}
    */
   getDNDecommissionStatusSuccessCallback: function (response) {
-    var statusObject = response.metrics.dfs.namenode;
+    var statusObject = Em.get(response, 'metrics.dfs.namenode');
     if ( statusObject != null) {
       this.set('decommissionedStatusObject', statusObject);
       return statusObject;
