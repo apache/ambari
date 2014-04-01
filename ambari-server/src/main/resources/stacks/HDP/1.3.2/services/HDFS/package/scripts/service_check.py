@@ -25,7 +25,7 @@ class HdfsServiceCheck(Script):
     import params
 
     env.set_params(params)
-    unique = get_unique_id_and_date()
+    unique = functions.get_unique_id_and_date()
     dir = '/tmp'
     tmp_file = format("{dir}/{unique}")
 
