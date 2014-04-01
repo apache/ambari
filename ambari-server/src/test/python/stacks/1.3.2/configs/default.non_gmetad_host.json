@@ -1,0 +1,493 @@
+{
+    "roleCommand": "INSTALL", 
+    "clusterName": "cl1", 
+    "hostname": "c6402.ambari.apache.org", 
+    "hostLevelParams": {
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "ambari_db_rca_password": "mapred", 
+        "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
+        "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//ojdbc6.jar", 
+        "repo_info": "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-1.3.4\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0\"}]", 
+        "package_list": "[{\"type\":\"rpm\",\"name\":\"lzo\"},{\"type\":\"rpm\",\"name\":\"hadoop\"},{\"type\":\"rpm\",\"name\":\"hadoop-libhdfs\"},{\"type\":\"rpm\",\"name\":\"hadoop-native\"},{\"type\":\"rpm\",\"name\":\"hadoop-pipes\"},{\"type\":\"rpm\",\"name\":\"hadoop-sbin\"},{\"type\":\"rpm\",\"name\":\"hadoop-lzo\"},{\"type\":\"rpm\",\"name\":\"hadoop-lzo-native\"},{\"type\":\"rpm\",\"name\":\"snappy\"},{\"type\":\"rpm\",\"name\":\"snappy-devel\"},{\"type\":\"rpm\",\"name\":\"ambari-log4j\"}]", 
+        "stack_version": "1.3.4", 
+        "stack_name": "HDP", 
+        "db_name": "ambari", 
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "ambari_db_rca_username": "mapred", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+    }, 
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {}, 
+    "serviceName": "HDFS", 
+    "role": "DATANODE", 
+    "commandParams": {
+        "command_timeout": "600", 
+        "service_package_folder": "HDFS",
+        "script_type": "PYTHON", 
+        "schema_version": "2.0", 
+        "script": "scripts/datanode.py",
+        "excluded_hosts": "host1,host2",
+        "mark_draining_only" : "false",
+        "update_exclude_file_only" : "false"
+    }, 
+    "taskId": 18, 
+    "public_hostname": "c6402.ambari.apache.org", 
+    "configurations": {
+        "mapred-site": {
+            "ambari.mapred.child.java.opts.memory": "768", 
+            "mapred.job.reduce.input.buffer.percent": "0.0", 
+            "mapred.job.map.memory.mb": "1536", 
+            "mapred.output.compression.type": "BLOCK", 
+            "mapred.jobtracker.maxtasks.per.job": "-1", 
+            "mapred.hosts": "/etc/hadoop/conf/mapred.include", 
+            "mapred.map.output.compression.codec": "org.apache.hadoop.io.compress.SnappyCodec", 
+            "mapred.child.root.logger": "INFO,TLA", 
+            "mapred.tasktracker.tasks.sleeptime-before-sigkill": "250", 
+            "io.sort.spill.percent": "0.9", 
+            "mapred.reduce.parallel.copies": "30", 
+            "mapred.userlog.retain.hours": "24", 
+            "mapred.reduce.tasks.speculative.execution": "false", 
+            "io.sort.mb": "200", 
+            "mapreduce.cluster.administrators": " hadoop", 
+            "mapred.jobtracker.blacklist.fault-timeout-window": "180", 
+            "mapred.job.tracker.history.completed.location": "/mapred/history/done", 
+            "mapred.job.shuffle.input.buffer.percent": "0.7", 
+            "io.sort.record.percent": ".2", 
+            "mapred.cluster.max.reduce.memory.mb": "4096", 
+            "mapred.job.reuse.jvm.num.tasks": "1", 
+            "mapreduce.jobhistory.intermediate-done-dir": "/mr-history/tmp", 
+            "mapred.job.tracker.http.address": "c6402.ambari.apache.org:50030", 
+            "mapred.job.tracker.persist.jobstatus.hours": "1", 
+            "mapred.healthChecker.script.path": "/etc/hadoop/conf/health_check", 
+            "mapreduce.jobtracker.staging.root.dir": "/user", 
+            "mapred.job.shuffle.merge.percent": "0.66", 
+            "mapred.cluster.reduce.memory.mb": "2048", 
+            "mapred.job.tracker.persist.jobstatus.dir": "/mapred/jobstatus", 
+            "mapreduce.tasktracker.group": "hadoop", 
+            "mapred.tasktracker.map.tasks.maximum": "4", 
+            "mapred.child.java.opts": "-server -Xmx${ambari.mapred.child.java.opts.memory}m -Djava.net.preferIPv4Stack=true", 
+            "mapred.jobtracker.retirejob.check": "10000", 
+            "mapred.job.tracker": "c6402.ambari.apache.org:50300", 
+            "mapreduce.history.server.embedded": "false", 
+            "io.sort.factor": "100", 
+            "hadoop.job.history.user.location": "none", 
+            "mapreduce.reduce.input.limit": "10737418240", 
+            "mapred.reduce.slowstart.completed.maps": "0.05", 
+            "mapred.cluster.max.map.memory.mb": "6144", 
+            "mapreduce.history.server.http.address": "c6402.ambari.apache.org:51111", 
+            "mapred.jobtracker.taskScheduler": "org.apache.hadoop.mapred.CapacityTaskScheduler", 
+            "mapred.max.tracker.blacklists": "16", 
+            "mapred.local.dir": "/hadoop/mapred,/hadoop/mapred1",
+            "mapred.healthChecker.interval": "135000", 
+            "mapred.jobtracker.restart.recover": "false", 
+            "mapred.jobtracker.blacklist.fault-bucket-width": "15", 
+            "mapred.jobtracker.retirejob.interval": "21600000", 
+            "tasktracker.http.threads": "50", 
+            "mapred.job.tracker.persist.jobstatus.active": "false", 
+            "mapred.system.dir": "/mapred/system", 
+            "mapred.tasktracker.reduce.tasks.maximum": "2", 
+            "mapred.cluster.map.memory.mb": "1536", 
+            "mapred.hosts.exclude": "/etc/hadoop/conf/mapred.exclude", 
+            "mapred.queue.names": "default", 
+            "mapreduce.jobhistory.webapp.address": "c6402.ambari.apache.org:19888", 
+            "mapreduce.fileoutputcommitter.marksuccessfuljobs": "false", 
+            "mapred.job.reduce.memory.mb": "2048", 
+            "mapreduce.jobhistory.done-dir": "/mr-history/done", 
+            "mapred.healthChecker.script.timeout": "60000", 
+            "jetty.connector": "org.mortbay.jetty.nio.SelectChannelConnector", 
+            "mapreduce.jobtracker.split.metainfo.maxsize": "50000000", 
+            "mapred.job.tracker.handler.count": "50", 
+            "mapred.inmem.merge.threshold": "1000", 
+            "mapred.task.tracker.task-controller": "org.apache.hadoop.mapred.DefaultTaskController", 
+            "mapred.jobtracker.completeuserjobs.maximum": "0", 
+            "mapred.task.timeout": "600000", 
+            "mapred.map.tasks.speculative.execution": "false"
+        }, 
+        "oozie-site": {
+            "oozie.service.PurgeService.purge.interval": "3600", 
+            "oozie.service.CallableQueueService.queue.size": "1000", 
+            "oozie.service.SchemaService.wf.ext.schemas": "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd,hive-action-0.3.xsd",
+            "oozie.service.JPAService.jdbc.url": "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true", 
+            "oozie.service.HadoopAccessorService.nameNode.whitelist": " ", 
+            "use.system.libpath.for.mapreduce.and.pig.jobs": "false", 
+            "oozie.service.JPAService.create.db.schema": "false", 
+            "oozie.authentication.kerberos.name.rules": "DEFAULT", 
+            "oozie.service.ActionService.executor.ext.classes": "org.apache.oozie.action.email.EmailActionExecutor,\norg.apache.oozie.action.hadoop.HiveActionExecutor,\norg.apache.oozie.action.hadoop.ShellActionExecutor,\norg.apache.oozie.action.hadoop.SqoopActionExecutor,\norg.apache.oozie.action.hadoop.DistcpActionExecutor", 
+            "oozie.service.AuthorizationService.authorization.enabled": "true", 
+            "oozie.base.url": "http://c6402.ambari.apache.org:11000/oozie", 
+            "oozie.service.JPAService.jdbc.password": "q", 
+            "oozie.service.coord.normal.default.timeout": "120", 
+            "oozie.service.JPAService.pool.max.active.conn": "10", 
+            "oozie.service.PurgeService.older.than": "30", 
+            "oozie.db.schema.name": "oozie", 
+            "oozie.service.HadoopAccessorService.hadoop.configurations": "*=/etc/hadoop/conf", 
+            "oozie.service.HadoopAccessorService.jobTracker.whitelist": " ", 
+            "oozie.service.CallableQueueService.callable.concurrency": "3", 
+            "oozie.service.JPAService.jdbc.username": "oozie", 
+            "oozie.service.CallableQueueService.threads": "10", 
+            "oozie.systemmode": "NORMAL", 
+            "oozie.service.WorkflowAppService.system.libpath": "/user/${user.name}/share/lib", 
+            "oozie.authentication.type": "simple", 
+            "oozie.service.JPAService.jdbc.driver": "org.apache.derby.jdbc.EmbeddedDriver", 
+            "oozie.system.id": "oozie-${user.name}"
+        }, 
+        "webhcat-site": {
+            "templeton.pig.path": "pig.tar.gz/pig/bin/pig", 
+            "templeton.exec.timeout": "60000", 
+            "templeton.override.enabled": "false", 
+            "templeton.jar": "/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar", 
+            "templeton.zookeeper.hosts": "c6401.ambari.apache.org:2181", 
+            "templeton.hive.properties": "hive.metastore.local=false,hive.metastore.uris=thrift://c6402.ambari.apache.org:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse", 
+            "templeton.storage.class": "org.apache.hcatalog.templeton.tool.ZooKeeperStorage", 
+            "templeton.hive.archive": "hdfs:///apps/webhcat/hive.tar.gz", 
+            "templeton.streaming.jar": "hdfs:///apps/webhcat/hadoop-streaming.jar", 
+            "templeton.port": "50111", 
+            "templeton.libjars": "/usr/lib/zookeeper/zookeeper.jar", 
+            "templeton.hadoop": "/usr/bin/hadoop", 
+            "templeton.hive.path": "hive.tar.gz/hive/bin/hive", 
+            "templeton.hadoop.conf.dir": "/etc/hadoop/conf", 
+            "templeton.hcat": "/usr/bin/hcat", 
+            "templeton.pig.archive": "hdfs:///apps/webhcat/pig.tar.gz"
+        }, 
+        "global": {
+            "security_enabled": "false", 
+            "hbase_pid_dir": "/var/run/hbase", 
+            "proxyuser_group": "users", 
+            "zk_user": "zookeeper", 
+            "namenode_formatted_mark_dir": "/var/run/hadoop/hdfs/namenode/formatted/", 
+            "rrdcached_base_dir": "/var/lib/ganglia/rrds", 
+            "syncLimit": "5", 
+            "oozie_pid_dir": "/var/run/oozie", 
+            "hbase_regionserver_heapsize": "1024m", 
+            "dtnode_heapsize": "1024m", 
+            "jtnode_heapsize": "1024m", 
+            "hcat_log_dir": "/var/log/webhcat", 
+            "oozie_hostname": "c6402.ambari.apache.org", 
+            "hive_aux_jars_path": "/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar", 
+            "tickTime": "2000", 
+            "hive_ambari_database": "MySQL", 
+            "rca_enabled": "true", 
+            "namenode_heapsize": "1024m", 
+            "oozie_log_dir": "/var/log/oozie", 
+            "oozie_user": "oozie", 
+            "oozie_data_dir": "/hadoop/oozie/data", 
+            "ganglia_runtime_dir": "/var/run/ganglia/hdp", 
+            "lzo_enabled": "true", 
+            "namenode_opt_maxnewsize": "200m", 
+            "smokeuser": "ambari-qa", 
+            "hdfs_log_dir_prefix": "/var/log/hadoop", 
+            "hive_hostname": "c6402.ambari.apache.org", 
+            "hive_metastore_port": "9083", 
+            "hbase_master_heapsize": "1024m", 
+            "zk_data_dir": "/hadoop/zookeeper", 
+            "hcat_pid_dir": "/etc/run/webhcat", 
+            "oozie_jdbc_driver": "org.apache.derby.jdbc.EmbeddedDriver", 
+            "initLimit": "10", 
+            "hive_database_type": "mysql", 
+            "oozie_database": "New Derby Database", 
+            "zk_pid_dir": "/var/run/zookeeper", 
+            "user_group": "hadoop", 
+            "hive_user": "hive", 
+            "gmond_user": "nobody", 
+            "nagios_web_login": "nagiosadmin", 
+            "nagios_contact": "q@q.q", 
+            "hive_database": "New MySQL Database", 
+            "nagios_web_password": "!`\"' 1",
+            "clientPort": "2181", 
+            "oozie_derby_database": "Derby", 
+            "snappy_enabled": "true", 
+            "ganglia_conf_dir": "/etc/ganglia/hdp", 
+            "hdfs_user": "hdfs", 
+            "hbase_user": "hbase", 
+            "oozie_database_type": "derby", 
+            "webhcat_user": "hcat", 
+            "zk_log_dir": "/var/log/zookeeper", 
+            "jtnode_opt_maxnewsize": "200m", 
+            "mysql_connector_url": "${download_url}/mysql-connector-java-5.1.18.zip", 
+            "gmetad_user": "nobody", 
+            "hive_log_dir": "/var/log/hive", 
+            "jtnode_opt_newsize": "200m", 
+            "namenode_opt_newsize": "200m", 
+            "mapred_user": "mapred", 
+            "nagios_group": "nagios", 
+            "hive_pid_dir": "/var/run/hive", 
+            "hcat_user": "hcat", 
+            "hadoop_heapsize": "1024", 
+            "hadoop_pid_dir_prefix": "/var/run/hadoop", 
+            "nagios_user": "nagios", 
+            "hbase_log_dir": "/var/log/hbase"
+        }, 
+        "hdfs-site": {
+            "dfs.namenode.avoid.write.stale.datanode": "true", 
+            "dfs.access.time.precision": "0", 
+            "ipc.server.max.response.size": "5242880", 
+            "dfs.web.ugi": "gopher,gopher", 
+            "dfs.support.append": "true", 
+            "dfs.cluster.administrators": " hdfs", 
+            "dfs.replication": "3", 
+            "ambari.dfs.datanode.http.port": "50075", 
+            "dfs.block.size": "134217728", 
+            "dfs.data.dir": "/hadoop/hdfs/data", 
+            "dfs.datanode.du.reserved": "1073741824", 
+            "dfs.webhdfs.enabled": "true", 
+            "dfs.namenode.handler.count": "100", 
+            "dfs.datanode.http.address": "0.0.0.0:${ambari.dfs.datanode.http.port}", 
+            "dfs.datanode.socket.write.timeout": "0", 
+            "ipc.server.read.threadpool.size": "5", 
+            "dfs.balance.bandwidthPerSec": "6250000", 
+            "dfs.datanode.address": "0.0.0.0:${ambari.dfs.datanode.port}", 
+            "dfs.blockreport.initialDelay": "120", 
+            "dfs.datanode.failed.volumes.tolerated": "0", 
+            "dfs.permissions.supergroup": "hdfs", 
+            "dfs.https.address": "c6401.ambari.apache.org:50470", 
+            "ambari.dfs.datanode.port": "50010", 
+            "dfs.namenode.avoid.read.stale.datanode": "true", 
+            "dfs.name.dir": "/hadoop/hdfs/namenode", 
+            "dfs.hosts": "/etc/hadoop/conf/dfs.include", 
+            "dfs.namenode.stale.datanode.interval": "30000", 
+            "dfs.heartbeat.interval": "3", 
+            "dfs.secondary.https.port": "50490", 
+            "dfs.permissions": "true", 
+            "dfs.datanode.ipc.address": "0.0.0.0:8010", 
+            "dfs.block.local-path-access.user": "hbase", 
+            "dfs.block.access.token.enable": "true", 
+            "dfs.datanode.data.dir.perm": "750", 
+            "dfs.secondary.http.address": "c6402.ambari.apache.org:50090", 
+            "dfs.http.address": "c6401.ambari.apache.org:50070", 
+            "dfs.https.port": "50070", 
+            "dfs.replication.max": "50", 
+            "dfs.datanode.max.xcievers": "4096", 
+            "dfs.namenode.write.stale.datanode.ratio": "1.0f", 
+            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude", 
+            "dfs.datanode.du.pct": "0.85f", 
+            "dfs.safemode.threshold.pct": "1.0f", 
+            "dfs.umaskmode": "077"
+        }, 
+        "hbase-site": {
+            "hbase.client.keyvalue.maxsize": "10485760", 
+            "hbase.hstore.compactionThreshold": "3", 
+            "hbase.rootdir": "hdfs://c6401.ambari.apache.org:8020/apps/hbase/data", 
+            "hbase.regionserver.handler.count": "60", 
+            "dfs.client.read.shortcircuit": "true", 
+            "hbase.regionserver.global.memstore.lowerLimit": "0.38", 
+            "hbase.hregion.memstore.block.multiplier": "2", 
+            "hbase.hregion.memstore.flush.size": "134217728", 
+            "hbase.superuser": "hbase", 
+            "hbase.zookeeper.property.clientPort": "2181", 
+            "hbase.rpc.engine": "org.apache.hadoop.hbase.ipc.WritableRpcEngine", 
+            "hbase.regionserver.global.memstore.upperLimit": "0.4", 
+            "zookeeper.session.timeout": "60000", 
+            "hbase.tmp.dir": "/hadoop/hbase", 
+            "hbase.hregion.max.filesize": "10737418240", 
+            "hfile.block.cache.size": "0.40", 
+            "hbase.security.authentication": "simple", 
+            "hbase.zookeeper.quorum": "c6401.ambari.apache.org", 
+            "zookeeper.znode.parent": "/hbase-unsecure", 
+            "hbase.hstore.blockingStoreFiles": "10", 
+            "hbase.hregion.majorcompaction": "86400000", 
+            "hbase.security.authorization": "false", 
+            "hbase.cluster.distributed": "true", 
+            "hbase.hregion.memstore.mslab.enabled": "true", 
+            "hbase.client.scanner.caching": "100", 
+            "hbase.zookeeper.useMulti": "true"
+        }, 
+        "core-site": {
+            "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
+            "hadoop.proxyuser.hcat.groups": "users", 
+            "fs.checkpoint.size": "67108864", 
+            "hadoop.proxyuser.oozie.groups": "users", 
+            "fs.default.name": "hdfs://c6401.ambari.apache.org:8020", 
+            "io.file.buffer.size": "131072", 
+            "hadoop.proxyuser.hive.groups": "users", 
+            "webinterface.private.actions": "false", 
+            "hadoop.proxyuser.oozie.hosts": "c6402.ambari.apache.org", 
+            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec,org.apache.hadoop.io.compress.SnappyCodec", 
+            "hadoop.security.authentication": "simple", 
+            "fs.checkpoint.edits.dir": "${fs.checkpoint.dir}", 
+            "fs.checkpoint.dir": "/hadoop/hdfs/namesecondary", 
+            "fs.trash.interval": "360", 
+            "ipc.client.idlethreshold": "8000", 
+            "hadoop.proxyuser.hcat.hosts": "c6402.ambari.apache.org", 
+            "hadoop.proxyuser.hive.hosts": "c6402.ambari.apache.org", 
+            "io.compression.codec.lzo.class": "com.hadoop.compression.lzo.LzoCodec", 
+            "fs.checkpoint.period": "21600", 
+            "ipc.client.connection.maxidletime": "30000", 
+            "ipc.client.connect.max.retries": "50"
+        }, 
+        "hive-site": {
+            "hive.enforce.sorting": "true", 
+            "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
+            "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver", 
+            "hive.optimize.bucketmapjoin.sortedmerge": "true", 
+            "fs.file.impl.disable.cache": "true", 
+            "hive.auto.convert.join.noconditionaltask": "true", 
+            "hive.map.aggr": "true", 
+            "hive.security.authorization.enabled": "false", 
+            "hive.optimize.reducededuplication.min.reducer": "1", 
+            "hive.optimize.bucketmapjoin": "true", 
+            "hive.metastore.uris": "thrift://c6402.ambari.apache.org:9083", 
+            "hive.mapjoin.bucket.cache.size": "10000", 
+            "hive.auto.convert.join.noconditionaltask.size": "1000000000", 
+            "javax.jdo.option.ConnectionUserName": "hive", 
+            "hive.metastore.cache.pinobjtypes": "Table,Database,Type,FieldSchema,Order", 
+            "hive.metastore.warehouse.dir": "/apps/hive/warehouse", 
+            "hive.metastore.client.socket.timeout": "60", 
+            "hive.semantic.analyzer.factory.impl": "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory", 
+            "hive.auto.convert.join": "true", 
+            "hive.enforce.bucketing": "true", 
+            "hive.mapred.reduce.tasks.speculative.execution": "false", 
+            "javax.jdo.option.ConnectionURL": "jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true", 
+            "hive.auto.convert.sortmerge.join": "true", 
+            "fs.hdfs.impl.disable.cache": "true", 
+            "hive.security.authorization.manager": "org.apache.hcatalog.security.HdfsAuthorizationProvider", 
+            "ambari.hive.db.schema.name": "hive", 
+            "hive.metastore.execute.setugi": "true", 
+            "hive.auto.convert.sortmerge.join.noconditionaltask": "true", 
+            "hive.server2.enable.doAs": "true", 
+            "hive.optimize.mapjoin.mapreduce": "true"
+        },
+        "hdfs-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "mapreduce-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "hbase-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "hive-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "hive-exec-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "zookeeper-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "pig-log4j": {
+            "content": "log4jproperties\nline2"
+        },
+        "oozie-log4j": {
+            "content": "log4jproperties\nline2"
+        }
+    }, 
+    "configurationTags": {
+        "mapred-site": {
+            "tag": "version1"
+        }, 
+        "oozie-site": {
+            "tag": "version1"
+        }, 
+        "webhcat-site": {
+            "tag": "version1"
+        }, 
+        "global": {
+            "tag": "version1"
+        }, 
+        "hdfs-site": {
+            "tag": "version1"
+        }, 
+        "hbase-site": {
+            "tag": "version1"
+        }, 
+        "core-site": {
+            "tag": "version1"
+        }, 
+        "hive-site": {
+            "tag": "version1"
+        },
+        "hdfs-log4j": {
+            "tag": "version1"
+        },
+        "yarn-log4j": {
+            "tag": "version1"
+        },
+        "hbase-log4j": {
+            "tag": "version1"
+        },
+        "hive-log4j": {
+            "tag": "version1"
+        },
+        "hive-exec-log4j": {
+            "tag": "version1"
+        },
+        "zookeeper-log4j": {
+            "tag": "version1"
+        },
+        "oozie-log4j": {
+            "tag": "version1"
+        },
+        "pig-log4j": {
+            "tag": "version1"
+        }
+    }, 
+    "commandId": "1-1", 
+    "clusterHostInfo": {
+        "snamenode_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "ganglia_monitor_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "nagios_server_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hive_metastore_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "all_ping_ports": [
+            "8670", 
+            "8670"
+        ], 
+        "mapred_tt_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "all_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "hbase_rs_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "slave_hosts": [
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "namenode_host": [
+            "c6401.ambari.apache.org"
+        ], 
+        "ganglia_server_host": [
+            "c6401.ambari.apache.org"
+        ], 
+        "hbase_master_hosts": [
+            "c6401.ambari.apache.org"
+        ], 
+        "hive_mysql_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "oozie_server": [
+            "c6402.ambari.apache.org"
+        ], 
+        "webhcat_server_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "jtnode_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "zookeeper_hosts": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hs_host": [
+            "c6402.ambari.apache.org"
+        ], 
+        "hive_server_host": [
+            "c6402.ambari.apache.org"
+        ]
+    }
+}

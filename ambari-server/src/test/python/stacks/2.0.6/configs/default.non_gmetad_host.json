@@ -589,7 +589,7 @@
             "c6402.ambari.apache.org"
         ], 
         "ganglia_server_host": [
-            "c6401.ambari.apache.org"
+            "c6402.ambari.apache.org"
         ], 
         "hive_server_host": [
             "c6402.ambari.apache.org"

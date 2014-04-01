@@ -29,7 +29,7 @@ class TestGangliaServer(RMFTestCase):
     self.executeScript("1.3.2/services/GANGLIA/package/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="configure",
-                       config_file="default.json"
+                       config_file="default.json",
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
@@ -38,7 +38,7 @@ class TestGangliaServer(RMFTestCase):
     self.executeScript("1.3.2/services/GANGLIA/package/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="start",
-                       config_file="default.json"
+                       config_file="default.json",
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
@@ -52,7 +52,7 @@ class TestGangliaServer(RMFTestCase):
     self.executeScript("1.3.2/services/GANGLIA/package/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="stop",
-                       config_file="default.json"
+                       config_file="default.json",
     )
     self.assertResourceCalled('Execute', 'service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -66,376 +66,132 @@ class TestGangliaServer(RMFTestCase):
     self.executeScript("1.3.2/services/GANGLIA/package/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="install",
-                       config_file="default.json"
+                       config_file="default.json",
     )
-    self.assertResourceCalled('Group', 'hadoop',)
-
-    self.assertResourceCalled('Group', 'nobody',)
-
-    self.assertResourceCalled('Group', 'nobody',)
-
-    self.assertResourceCalled('User', 'nobody',
-                          groups = [u'nobody'],)
-
-    self.assertResourceCalled('User', 'nobody',
-                          groups = [u'nobody'],)
-
-    self.assertResourceCalled('Directory', '/usr/libexec/hdp/ganglia',
-                          owner = 'root',
-                          group = 'root',
-                          recursive = True,)
-
-    self.assertResourceCalled('File', '/etc/init.d/hdp-gmetad',
-                          content = StaticFile('gmetad.init'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/etc/init.d/hdp-gmond',
-                          content = StaticFile('gmond.init'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/checkGmond.sh',
-                          content = StaticFile('checkGmond.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/checkRrdcached.sh',
-                          content = StaticFile('checkRrdcached.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/gmetadLib.sh',
-                          content = StaticFile('gmetadLib.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/gmondLib.sh',
-                          content = StaticFile('gmondLib.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/rrdcachedLib.sh',
-                          content = StaticFile('rrdcachedLib.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/setupGanglia.sh',
-                          content = StaticFile('setupGanglia.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startGmetad.sh',
-                          content = StaticFile('startGmetad.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startGmond.sh',
-                          content = StaticFile('startGmond.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startRrdcached.sh',
-                          content = StaticFile('startRrdcached.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopGmetad.sh',
-                          content = StaticFile('stopGmetad.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopGmond.sh',
-                          content = StaticFile('stopGmond.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopRrdcached.sh',
-                          content = StaticFile('stopRrdcached.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/teardownGanglia.sh',
-                          content = StaticFile('teardownGanglia.sh'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaClusters.conf',
-                          owner = 'root',
-                          template_tag = None,
-                          group = 'root',
-                          mode = 0755,)
-
-    self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaEnv.sh',
-                          owner = 'root',
-                          template_tag = None,
-                          group = 'root',
-                          mode = 0755,)
-
-    self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaLib.sh',
-                          owner = 'root',
-                          template_tag = None,
-                          group = 'root',
-                          mode = 0755,)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPNameNode -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPJobTracker -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHBaseMaster -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHistoryServer -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPDataNode -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPTaskTracker -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHBaseRegionServer -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -t -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSlaves -m -o root -g hadoop',
-                          path = ['/usr/libexec/hdp/ganglia',
-                                  '/usr/sbin',
-                                  '/sbin:/usr/local/bin',
-                                  '/bin',
-                                  '/usr/bin'],)
-
-    self.assertResourceCalled('Directory', '/var/lib/ganglia/dwoo',
-                          owner = 'nobody',
-                          recursive = True,
-                          mode = 0777,)
-
-    self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
-                          recursive = True,)
-
-    self.assertResourceCalled('File', '/srv/www/cgi-bin/rrd.py',
-                          content = StaticFile('rrd.py'),
-                          mode = 0755,)
-
-    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
-                              action = ['delete'],
-                              )
-    self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
-                              owner = 'nobody',
-                              group = 'nobody',
-                              recursive = True,
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('File', '/etc/ganglia/gmetad.conf',
-                          owner = 'root',
-                          group = 'hadoop',)
-
-    self.assertResourceCalled('Execute', 'chkconfig gmetad off',
-                          path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],)
-    self.assertNoMoreResources()
+    self.test_configure_default()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Group', 'hadoop',
-                              )
-    self.assertResourceCalled('Group', 'nobody',
-                              )
-    self.assertResourceCalled('Group', 'nobody',
-                              )
+    self.assertResourceCalled('Group', 'hadoop')
+    self.assertResourceCalled('Group', 'nobody')
+    self.assertResourceCalled('Group', 'nobody')
     self.assertResourceCalled('User', 'nobody',
-                              groups = [u'nobody'],
-                              )
+        groups = [u'nobody'],
+    )
     self.assertResourceCalled('User', 'nobody',
-                              groups = [u'nobody'],
-                              )
+        groups = [u'nobody'],
+    )
     self.assertResourceCalled('Directory', '/usr/libexec/hdp/ganglia',
-                              owner = 'root',
-                              group = 'root',
-                              recursive = True,
-                              )
+        owner = 'root',
+        group = 'root',
+        recursive = True,
+    )
     self.assertResourceCalled('File', '/etc/init.d/hdp-gmetad',
-                              content = StaticFile('gmetad.init'),
-                              mode = 0755,
-                              )
+        content = StaticFile('gmetad.init'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/etc/init.d/hdp-gmond',
-                              content = StaticFile('gmond.init'),
-                              mode = 0755,
-                              )
+        content = StaticFile('gmond.init'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/checkGmond.sh',
-                              content = StaticFile('checkGmond.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('checkGmond.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/checkRrdcached.sh',
-                              content = StaticFile('checkRrdcached.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('checkRrdcached.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/gmetadLib.sh',
-                              content = StaticFile('gmetadLib.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('gmetadLib.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/gmondLib.sh',
-                              content = StaticFile('gmondLib.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('gmondLib.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/rrdcachedLib.sh',
-                              content = StaticFile('rrdcachedLib.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('rrdcachedLib.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/setupGanglia.sh',
-                              content = StaticFile('setupGanglia.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('setupGanglia.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startGmetad.sh',
-                              content = StaticFile('startGmetad.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('startGmetad.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startGmond.sh',
-                              content = StaticFile('startGmond.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('startGmond.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/startRrdcached.sh',
-                              content = StaticFile('startRrdcached.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('startRrdcached.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopGmetad.sh',
-                              content = StaticFile('stopGmetad.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('stopGmetad.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopGmond.sh',
-                              content = StaticFile('stopGmond.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('stopGmond.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/stopRrdcached.sh',
-                              content = StaticFile('stopRrdcached.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('stopRrdcached.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/usr/libexec/hdp/ganglia/teardownGanglia.sh',
-                              content = StaticFile('teardownGanglia.sh'),
-                              mode = 0755,
-                              )
+        content = StaticFile('teardownGanglia.sh'),
+        mode = 0755,
+    )
     self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaClusters.conf',
-                              owner = 'root',
-                              template_tag = None,
-                              group = 'root',
-                              mode = 0755,
-                              )
+        owner = 'root',
+        template_tag = None,
+        group = 'root',
+        mode = 0755,
+    )
     self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaEnv.sh',
-                              owner = 'root',
-                              template_tag = None,
-                              group = 'root',
-                              mode = 0755,
-                              )
+        owner = 'root',
+        template_tag = None,
+        group = 'root',
+        mode = 0755,
+    )
     self.assertResourceCalled('TemplateConfig', '/usr/libexec/hdp/ganglia/gangliaLib.sh',
-                              owner = 'root',
-                              template_tag = None,
-                              group = 'root',
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPNameNode -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPJobTracker -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHBaseMaster -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHistoryServer -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPDataNode -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPTaskTracker -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPHBaseRegionServer -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
+        owner = 'root',
+        template_tag = None,
+        group = 'root',
+        mode = 0755,
+    )
     self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -t -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSlaves -m -o root -g hadoop',
-                              path = ['/usr/libexec/hdp/ganglia',
-                                      '/usr/sbin',
-                                      '/sbin:/usr/local/bin',
-                                      '/bin',
-                                      '/usr/bin'],
-                              )
+        path = ['/usr/libexec/hdp/ganglia',
+           '/usr/sbin',
+           '/sbin:/usr/local/bin',
+           '/bin',
+           '/usr/bin'],
+    )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/dwoo',
-                              owner = 'nobody',
-                              recursive = True,
-                              mode = 0777,
-                              )
+        owner = 'nobody',
+        recursive = True,
+        mode = 0777,
+    )
     self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
-                              recursive = True,
-                              )
+        recursive = True,
+    )
     self.assertResourceCalled('File', '/srv/www/cgi-bin/rrd.py',
-                              content = StaticFile('rrd.py'),
-                              mode = 0755,
-                              )
+        content = StaticFile('rrd.py'),
+        mode = 0755,
+    )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
-                              action = ['delete'],
-                              )
+        action = ['delete'],
+    )
     self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
-                              owner = 'nobody',
-                              group = 'nobody',
-                              recursive = True,
-                              mode = 0755,
-                              )
+        owner = 'nobody',
+        group = 'nobody',
+        recursive = True,
+        mode = 0755,
+    )
     self.assertResourceCalled('File', '/etc/ganglia/gmetad.conf',
-                              owner = 'root',
-                              group = 'hadoop',
-                              )
+        owner = 'root',
+        group = 'hadoop',
+    )

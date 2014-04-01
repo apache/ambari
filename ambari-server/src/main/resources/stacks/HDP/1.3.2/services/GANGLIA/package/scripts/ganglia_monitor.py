@@ -73,6 +73,33 @@ class GangliaMonitor(Script):
 
     ganglia.config()
 
+    self.generate_slave_configs()
+
+    Directory(path.join(params.ganglia_dir, "conf.d"),
+              owner="root",
+              group=params.user_group
+    )
+
+    File(path.join(params.ganglia_dir, "conf.d/modgstatus.conf"),
+         owner="root",
+         group=params.user_group
+    )
+    File(path.join(params.ganglia_dir, "conf.d/multicpu.conf"),
+         owner="root",
+         group=params.user_group
+    )
+    File(path.join(params.ganglia_dir, "gmond.conf"),
+         owner="root",
+         group=params.user_group
+    )
+
+    if params.is_ganglia_server_host:
+      self.generate_master_configs()
+
+
+  def generate_slave_configs(self):
+    import params
+
     if params.is_namenode_master:
       generate_daemon("gmond",
                       name = "HDPNameNode",
@@ -128,32 +155,79 @@ class GangliaMonitor(Script):
                       role = "monitor",
                       owner = "root",
                       group = params.user_group)
- 
-                      
+
     if params.pure_slave:
       generate_daemon("gmond",
+                      name = "HDPSlaves",
+                      role = "monitor",
+                      owner = "root",
+                      group = params.user_group)
+
+
+  def generate_master_configs(self):
+    import params
+
+    if params.has_namenodes:
+      generate_daemon("gmond",
+                      name = "HDPNameNode",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_jobtracker:
+      generate_daemon("gmond",
+                      name = "HDPJobTracker",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_hbase_masters:
+      generate_daemon("gmond",
+                      name = "HDPHBaseMaster",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_historyserver:
+      generate_daemon("gmond",
+                      name = "HDPHistoryServer",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_slaves:
+      generate_daemon("gmond",
+                      name = "HDPDataNode",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_tasktracker:
+      generate_daemon("gmond",
+                      name = "HDPTaskTracker",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_hbase_rs:
+      generate_daemon("gmond",
+                      name = "HDPHBaseRegionServer",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    if params.has_flume:
+      generate_daemon("gmond",
+                      name = "HDPFlumeServer",
+                      role = "server",
+                      owner = "root",
+                      group = params.user_group)
+
+    generate_daemon("gmond",
                     name = "HDPSlaves",
-                    role = "monitor",
+                    role = "server",
                     owner = "root",
-                    group = params.user_group)                  
-
-    Directory(path.join(params.ganglia_dir, "conf.d"),
-              owner="root",
-              group=params.user_group
-    )
-
-    File(path.join(params.ganglia_dir, "conf.d/modgstatus.conf"),
-         owner="root",
-         group=params.user_group
-    )
-    File(path.join(params.ganglia_dir, "conf.d/multicpu.conf"),
-         owner="root",
-         group=params.user_group
-    )
-    File(path.join(params.ganglia_dir, "gmond.conf"),
-         owner="root",
-         group=params.user_group
-    )
+                    group = params.user_group)
 
 
   def chkconfigOff(self):

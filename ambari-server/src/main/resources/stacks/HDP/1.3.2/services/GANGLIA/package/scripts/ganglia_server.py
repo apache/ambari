@@ -58,75 +58,12 @@ class GangliaServer(Script):
 
     ganglia.groups_and_users()
     ganglia.config()
-
-    if params.has_namenodes:
-      generate_daemon("gmond",
-                      name = "HDPNameNode",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_jobtracker:
-      generate_daemon("gmond",
-                      name = "HDPJobTracker",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_hbase_masters:
-      generate_daemon("gmond",
-                      name = "HDPHBaseMaster",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_historyserver:
-      generate_daemon("gmond",
-                      name = "HDPHistoryServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_slaves:
-      generate_daemon("gmond",
-                      name = "HDPDataNode",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_tasktracker:
-      generate_daemon("gmond",
-                      name = "HDPTaskTracker",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_hbase_rs:
-      generate_daemon("gmond",
-                      name = "HDPHBaseRegionServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_flume:
-      generate_daemon("gmond",
-                      name = "HDPFlumeServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
   
-    if params.ganglia_server_host == params.hostname:
-      generate_daemon("gmetad",
-                      name = "gmetad",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-                      
-      generate_daemon("gmond",
-          name = "HDPSlaves",
-          role = "server",
-          owner = "root",
-          group = params.user_group)
+    generate_daemon("gmetad",
+                    name = "gmetad",
+                    role = "server",
+                    owner = "root",
+                    group = params.user_group)
 
     change_permission()
     server_files()

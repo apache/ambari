@@ -31,7 +31,6 @@ class TestStormRestApi(RMFTestCase):
                        command = "configure",
                        config_file="default.json"
     )
-    self.printResources()
     self.assert_configure_default()
     self.assertNoMoreResources()
 

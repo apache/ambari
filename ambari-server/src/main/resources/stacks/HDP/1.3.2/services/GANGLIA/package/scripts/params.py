@@ -56,6 +56,7 @@ is_slave = hostname in slave_hosts
 is_tasktracker = hostname in tt_hosts
 is_hbase_rs = hostname in hbase_rs_hosts
 is_flume = hostname in flume_hosts
+is_ganglia_server_host = (hostname == ganglia_server_host)
 
 has_namenodes = not len(namenode_host) == 0
 has_jobtracker = not len(jtnode_host) == 0

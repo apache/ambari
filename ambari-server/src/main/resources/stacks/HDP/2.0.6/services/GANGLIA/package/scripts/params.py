@@ -66,6 +66,7 @@ is_tasktracker = hostname in tt_hosts
 is_nodemanager = hostname in nm_hosts
 is_hbase_rs = hostname in hbase_rs_hosts
 is_flume = hostname in flume_hosts
+is_ganglia_server_host = (hostname == ganglia_server_host)
 is_jn_host = hostname in jn_hosts
 is_nimbus_host = hostname in nimbus_server_hosts
 is_supervisor_host = hostname in supervisor_server_hosts

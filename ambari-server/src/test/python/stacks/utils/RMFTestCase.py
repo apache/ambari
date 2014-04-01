@@ -117,11 +117,17 @@ class RMFTestCase(TestCase):
     
     return val
 
-  def printResources(self):
-    for resource in RMFTestCase.env.resource_list:
-      print "'{0}', {1},".format(resource.__class__.__name__, self._ppformat(resource.name))
-      for k,v in resource.arguments.iteritems():
+  def reindent(self, s, numSpaces):
+    return "\n".join((numSpaces * " ") + i for i in s.splitlines())
 
+  def printResources(self, intendation=4):
+    print
+    for resource in RMFTestCase.env.resource_list:
+      s = "'{0}', {1},".format(
+        resource.__class__.__name__, self._ppformat(resource.name))
+      has_arguments = False
+      for k,v in resource.arguments.iteritems():
+        has_arguments = True
         # correctly output octal mode numbers
         if k == 'mode' and isinstance( v, int ):
           val = oct(v)
@@ -129,9 +135,26 @@ class RMFTestCase(TestCase):
           val = "UnknownConfigurationMock()"
         else:
           val = self._ppformat(v)
-          
-        print "  {0} = {1},".format(k, val)
-      print
+        # If value is multiline, format it
+        if "\n" in val:
+          lines = val.splitlines()
+          firstLine = lines[0]
+          nextlines = "\n".join(lines [1:])
+          nextlines = self.reindent(nextlines, 2)
+          val = "\n".join([firstLine, nextlines])
+        param_str="{0} = {1},".format(k, val)
+        s+="\n" + self.reindent(param_str, intendation)
+      # Decide whether we want bracket to be at next line
+      if has_arguments:
+        before_bracket = "\n"
+      else:
+        before_bracket = ""
+      # Add assertion
+      s = "self.assertResourceCalled({0}{1})".format(s, before_bracket)
+      # Intendation
+      s = self.reindent(s, intendation)
+      print s
+    print(self.reindent("self.assertNoMoreResources()", intendation))
   
   def assertResourceCalled(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"): 
