@@ -46,60 +46,62 @@
           </div>
         {{/if}}
       </div>
-      <table class="table table-bordered">
+      <table class="table table-bordered dataset-thead">
         <thead>
-        <tr>
           {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
-          <th class="first"></th>
-          {{view view.parentView.nameSort}}
-          {{view view.parentView.statusSort}}
+            <th class="first"></th>
+            {{view view.parentView.nameSort}}
+            {{view view.parentView.statusSort}}
           {{/view}}
-        </tr>
         <tr class="filter-row">
           <th class="first"></th>
           <th>{{view view.nameFilterView}}</th>
           <th>{{view view.statusFilterView}}</th>
         </tr>
         </thead>
-        <tbody>
-        {{#if controller.isDatasetLoadingError}}
-          <td class="first"></td>
-          <td colspan="2">
-            {{t mirroring.dataset.dataset.loading.error}}
-          </td>
-        {{else}}
-          {{#if controller.isLoaded}}
-            {{#if view.pageContent}}
-              {{#each dataset in view.pageContent}}
-              {{#view view.DatasetView contentBinding="dataset"}}
-              <td class="first">
-                <span {{bindAttr class="dataset.healthClass"}}></span>
-              </td>
-              <td class="name">
-                <a title="{{unbound dataset.name}}" href="javascript:void(null)">{{unbound dataset.name}}</a>
-              </td>
-              <td><span {{bindAttr class="dataset.isRunning:text-info dataset.isSuspended:text-warning"}}>{{dataset.statusFormatted}}</span></td>
-              {{/view}}
-              {{/each}}
+      </table>
+      <div class="scrollable-table">
+        <table class="table">
+          <tbody>
+          {{#if controller.isDatasetLoadingError}}
+            <td class="first"></td>
+            <td colspan="2">
+              {{t mirroring.dataset.dataset.loading.error}}
+            </td>
+          {{else}}
+            {{#if controller.isLoaded}}
+              {{#if view.pageContent}}
+                {{#each dataset in view.pageContent}}
+                {{#view view.DatasetView contentBinding="dataset"}}
+                <td class="first">
+                  <span {{bindAttr class="dataset.healthClass dataset.healthIconClass"}}></span>
+                </td>
+                <td class="name">
+                  <a title="{{unbound dataset.name}}" href="javascript:void(null)">{{unbound dataset.name}}</a>
+                </td>
+                <td><span {{bindAttr class="dataset.isRunning:text-info dataset.isSuspended:text-warning"}}>{{dataset.statusFormatted}}</span></td>
+                {{/view}}
+                {{/each}}
+              {{else}}
+                <tr>
+                  <td class="first"></td>
+                  <td colspan="2">
+                    {{t mirroring.table.noDatasets}}
+                  </td>
+                </tr>
+              {{/if}}
             {{else}}
               <tr>
                 <td class="first"></td>
                 <td colspan="2">
-                  {{t mirroring.table.noDatasets}}
+                  <div class="spinner"></div>
                 </td>
               </tr>
             {{/if}}
-          {{else}}
-            <tr>
-              <td class="first"></td>
-              <td colspan="2">
-                <div class="spinner"></div>
-              </td>
-            </tr>
           {{/if}}
-        {{/if}}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="span8 jobs-container">
       {{view App.MainDatasetJobsView controllerBinding="App.router.mainDatasetJobsController"}}

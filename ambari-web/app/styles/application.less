@@ -4320,6 +4320,26 @@ ul.filter {
       color: orange;
     }
   }
+  .dataset-thead {
+    margin-bottom: 0;
+    border-radius: 4px 4px 0 0;
+    tr:last-child {
+      th {
+        border-radius: 0;
+      }
+    }
+  }
+  .scrollable-table {
+    max-height: 370px;
+    overflow-y: auto;
+    border-bottom: 1px solid #dddddd;
+    border-left: 1px solid #dddddd;
+    border-right: 1px solid #dddddd;
+    border-radius: 0 0 4px 4px;
+    .table {
+      margin : 0;
+    }
+  }
 }
 
 .mirroring-manage-clusters {

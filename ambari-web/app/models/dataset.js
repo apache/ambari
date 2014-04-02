@@ -72,7 +72,21 @@ App.Dataset = DS.Model.extend({
     jobs = jobs.filterProperty('status', 'FAILED').concat(jobs.filterProperty('status', 'SUCCESSFUL'));
     jobs = jobs.sortProperty('endDate');
     return jobs.length && jobs[0].get('status') === 'FAILED' ? 'health-status-DEAD-RED' : 'health-status-LIVE';
-  }.property('datasetJobs', 'datasetJobs.@each.status')
+  }.property('datasetJobs', 'datasetJobs.@each.status'),
+
+  healthIconClass: function () {
+    switch (this.get('healthClass')) {
+      case 'health-status-LIVE':
+        return App.healthIconClassGreen;
+        break;
+      case 'health-status-DEAD-RED':
+        return App.healthIconClassRed;
+        break;
+      default:
+        return "";
+        break;
+    }
+  }.property('healthClass')
 });
 
 App.Dataset.FIXTURES = [];

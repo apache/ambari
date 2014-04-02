@@ -31,6 +31,10 @@ App.MainDatasetsView = App.TableView.extend({
     this.filter();
   },
 
+  endIndex: function () {
+    return this.get('filteredContent.length');
+  }.property('filteredContent.length'),
+
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
     column: '1',

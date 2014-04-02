@@ -85,15 +85,13 @@
 <div class="dataset-instances">
   <table class="table table-bordered table-striped">
     <thead>
-    <tr>
       {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
-      <th class="first"></th>
-      {{view view.parentView.idSort}}
-      {{view view.parentView.startSort}}
-      {{view view.parentView.endSort}}
-      {{view view.parentView.statusSort}}
+        <th class="first"></th>
+        {{view view.parentView.idSort}}
+        {{view view.parentView.startSort}}
+        {{view view.parentView.endSort}}
+        {{view view.parentView.statusSort}}
       {{/view}}
-    </tr>
     <tr class="filter-row">
       <th class="first"></th>
       <th>{{view view.idFilterView}}</th>
