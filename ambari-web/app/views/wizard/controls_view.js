@@ -46,6 +46,10 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
     }
   },
 
+  willDestroyElement: function() {
+    this.$().popover('destroy');
+  },
+
   readOnly: function () {
     return !this.get('serviceConfig.isEditable');
   }.property('serviceConfig.isEditable')
