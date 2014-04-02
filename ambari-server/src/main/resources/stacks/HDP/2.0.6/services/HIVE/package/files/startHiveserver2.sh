@@ -18,11 +18,5 @@
 # under the License.
 #
 #
-
-# HiveServer 2 -hiveconf options
-if [ {{hive_authorization_enabled}} == True ]; then
-  export HIVE_SERVER2_OPTS=" -hiveconf hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator "
-fi
-
-HIVE_CONF_DIR=$4 /usr/lib/hive/bin/hiveserver2 $HIVE_SERVER2_OPTS > $1 2> $2 &
+HIVE_CONF_DIR=$4 /usr/lib/hive/bin/hiveserver2 -hiveconf hive.metastore.uris=' ' > $1 2> $2 &
 echo $!|cat>$3

@@ -81,7 +81,7 @@ def hive(name=None):
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
          mode=0755,
-         content=Template(format('{start_hiveserver2_script}'))
+         content=StaticFile('startHiveserver2.sh')
     )
 
   if name != "client":
