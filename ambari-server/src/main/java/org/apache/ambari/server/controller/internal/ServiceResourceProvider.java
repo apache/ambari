@@ -1116,11 +1116,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               }
             }
 
-            if ( nonStartedState == null ||     // all started
-                hBaseMasterActiveCount > 0) {   // at least one active hbase_master
+            // should have state INSTALLED when there is no active HBASE_MASTER
+            if (hBaseMasterActiveCount > 0) {
               return State.STARTED;
             }
-            return nonStartedState;
+            return nonStartedState == null ? State.INSTALLED : nonStartedState;
           }
         } catch (AmbariException e) {
           LOG.error("Can't determine service state.", e);

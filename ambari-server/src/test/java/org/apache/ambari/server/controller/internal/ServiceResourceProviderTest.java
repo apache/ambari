@@ -928,9 +928,9 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "HBASE_MASTER", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "HBASE_MASTER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -960,8 +960,95 @@ public class ServiceResourceProviderTest {
 
     ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
 
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    State state = serviceState.getState(managementController, "C1", "HBASE");
     Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testHBaseServiceState_INSTALLED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host100",  "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "HBASE");
+    Assert.assertEquals(State.INSTALLED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testHBaseServiceState_INSTALLED_NO_MASTER() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "HBASE");
+    Assert.assertEquals(State.INSTALLED, state);
 
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
