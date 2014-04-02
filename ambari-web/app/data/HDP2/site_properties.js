@@ -1205,25 +1205,8 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "prism.application.services",
-      "displayName": "prism.application.services",
-      "category": "FalconStartupSite",
-      "serviceName": "FALCON",
-      "filename": "falcon-startup.properties.xml"
-    },
-    {
-      "id": "site property",
       "name": "*.configstore.listeners",
       "displayName": "*.configstore.listeners",
-      "displayType": "multiLine",
-      "category": "FalconStartupSite",
-      "serviceName": "FALCON",
-      "filename": "falcon-startup.properties.xml"
-    },
-    {
-      "id": "site property",
-      "name": "prism.configstore.listeners",
-      "displayName": "prism.configstore.listeners",
       "displayType": "multiLine",
       "category": "FalconStartupSite",
       "serviceName": "FALCON",
@@ -1257,14 +1240,6 @@ module.exports =
       "id": "site property",
       "name": "*.system.lib.location",
       "displayName": "*.system.lib.location",
-      "category": "FalconStartupSite",
-      "serviceName": "FALCON",
-      "filename": "falcon-startup.properties.xml"
-    },
-    {
-      "id": "site property",
-      "name": "prism.system.lib.location",
-      "displayName": "prism.system.lib.location",
       "category": "FalconStartupSite",
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
