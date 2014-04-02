@@ -32,7 +32,7 @@
                 <plugin>
                     <groupId>org.apache.rat</groupId>
                     <artifactId>apache-rat-plugin</artifactId>
-                    <version>0.8</version>
+                    <version>0.10</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -63,6 +63,14 @@
                         <exclude>**/*.cs</exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                  <execution>
+                    <phase>test</phase>
+                    <goals>
+                      <goal>check</goal>
+                    </goals>
+                  </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

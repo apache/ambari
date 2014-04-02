@@ -147,6 +147,14 @@
             <exclude>src/test/resources/users_for_dn_with_space.ldif</exclude>
           </excludes>
         </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <!--Static -->
