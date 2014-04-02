@@ -1768,7 +1768,7 @@
       },
       "metrics/dfs/namenode/FilesCreated": {
         "metric": "dfs.namenode.FilesCreated",
-        "pointInTime": false,
+        "pointInTime": true,
         "temporal": true
       },
       "metrics/rpcdetailed/rename_avg_time": {
@@ -12878,7 +12878,7 @@
       },
       "metrics/dfs/namenode/FilesCreated": {
         "metric": "dfs.namenode.FilesCreated",
-        "pointInTime": false,
+        "pointInTime": true,
         "temporal": true
       },
       "metrics/rpcdetailed/rename_avg_time": {
