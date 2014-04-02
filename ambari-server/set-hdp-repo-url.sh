@@ -28,19 +28,20 @@ then
 
   VERSION=2.1
   C6URL="$1"
+  LATEST_URL="$2"
   C5URL="${C6URL/centos6/centos5}"
   S11URL="${C6URL/centos6/suse11}"
   U12URL="${C6URL/centos6/ubuntu12}"
 
-  if [ "$#" != 2 ]
+  if [ "$#" != 3 ]
   then
     HDPREPO=target/classes/stacks/HDP/${VERSION}/repos
   else
-    HDPREPO=$2/var/lib/ambari-server/resources/stacks/HDP/${VERSION}/repos
+    HDPREPO=$3/var/lib/ambari-server/resources/stacks/HDP/${VERSION}/repos
   fi
 
   echo "Processing '${HDPREPO}/repoinfo.xml' and '${HDPLOCALREPO}/repoinfo.xml'"
-  echo "$2"
+  echo "$3"
 
   echo "Setting centos5 stack url to '$C5URL'"
   sed "s;REPLACE_WITH_CENTOS5_URL;$C5URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
@@ -53,4 +54,7 @@ then
 
   echo "Setting ubuntu12 stack url to '$U12URL'"
   sed  "s;REPLACE_WITH_UBUNTU12_URL;$U12URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
+
+  echo "Replacing latest lookup url to '$LATEST_URL'"
+  sed "s;\(<latest>\)\([^>]*\)\(<\/latest>\);\1$LATEST_URL\3;" ${HDPREPO}/repoinfo.xml > ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
 fi

@@ -21,12 +21,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,8 +100,23 @@ public class LatestRepoCallable implements Callable<Void> {
             
             @SuppressWarnings("unchecked")
             Map<String, String> osMap = (Map<String, String>) valueMap.get("latest");
-            if (osMap.containsKey(ri.getOsType())) {
-              ri.setLatestBaseUrl(osMap.get(ri.getOsType()));
+            
+            String baseUrl = resolveOsUrl(ri.getOsType(), osMap);
+            if (null != baseUrl) {
+              // !!! in the case where <name>.repo is defined with the base url, strip that off.
+              // Agents do the reverse action (take the base url, and append <name>.repo)
+              String repoFileName = stack.getName().toLowerCase() + ".repo";
+              int idx = baseUrl.toLowerCase().indexOf(repoFileName); 
+              
+              if (-1 != idx && baseUrl.toLowerCase().endsWith(repoFileName)) {
+                baseUrl = baseUrl.substring(0, idx);
+              }
+              
+              if ('/' == baseUrl.charAt(baseUrl.length()-1)) {
+                baseUrl = baseUrl.substring(0, baseUrl.length()-1);
+              }
+              
+              ri.setLatestBaseUrl(baseUrl);
             }
           }
         }
@@ -108,5 +125,51 @@ public class LatestRepoCallable implements Callable<Void> {
     
     return null;
   }
+  
+  /**
+   * Resolves a base url given that certain OS types can be used interchangeably.
+   * @param os the target os to find
+   * @param osMap the map of os-to-baseurl 
+   * @return the url for an os.
+   */
+  private String resolveOsUrl(String os, Map<String, String> osMap) {
+    
+    // !!! look for the OS directly
+    if (osMap.containsKey(os))
+      return osMap.get(os);
+    
+    // !!! os not found, find and return the first compatible one
+    String[] possibleTypes = OsFamily.findTypes(os);
+    
+    for (String type : possibleTypes) {
+      if (osMap.containsKey(type))
+        return osMap.get(type);
+    }
+    
+    return null;
+  }
 
+  private enum OsFamily {
+    REDHAT5("centos5", "redhat5", "oraclelinux5"),
+    REDHAT6("centos6", "redhat6", "oraclelinux6"),
+    SUSE11("suse11", "sles11"),
+    UBUNTU12("ubuntu12");
+    
+    private String[] osTypes;
+    private OsFamily(String... oses) {
+      osTypes = oses;
+    }
+    
+    private static String[] findTypes(String os) {
+      for (OsFamily f : values()) {
+        for (String t : f.osTypes) {
+          if (t.equals(os)) {
+            return f.osTypes;
+          }
+        }
+      }
+      return new String[0];
+    }
+  }
+  
 }

@@ -16,6 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
+  <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os type="centos6">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>

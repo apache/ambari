@@ -30,6 +30,7 @@
     <deb.dependency.list>openssl, postgresql (&gt;= 8.1), ${deb.python.ver}</deb.dependency.list>
     <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
+    <hdpLatestUrl>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
     <common_functions.install.dir>/usr/lib/python2.6/site-packages/common_functions</common_functions.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
   </properties>
@@ -928,6 +929,7 @@
                       failonerror="true">
                       <arg value="${basedir}/set-hdp-repo-url.sh" />
                       <arg value="${hdpUrlForCentos6}" />
+                      <arg value="${hdpLatestUrl}" />
                     </exec>
                   </target>
                 </configuration>
@@ -944,6 +946,7 @@
                       failonerror="true">
                       <arg value="${basedir}/set-hdp-repo-url.sh" />
                       <arg value="${hdpUrlForCentos6}" />
+                      <arg value="${hdpLatestUrl}" />
                       <arg
                         value="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}" />
                     </exec>

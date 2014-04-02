@@ -1291,9 +1291,29 @@ public class AmbariMetaInfoTest {
   public void testLatestRepo() throws Exception {
     
     for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "centos6")) {
-      Assert.assertEquals("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118",
+      Assert.assertEquals(
+          "Expected the base url to be set properly",
+          "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118",
+          ri.getLatestBaseUrl());
+      Assert.assertEquals(
+          "Expected the default URL to be the same as in the xml file",
+          "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
+          ri.getDefaultBaseUrl());
+    }
+    
+    for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "suse11")) {
+      Assert.assertEquals(
+          "Expected hdp.json to be stripped from the url",
+          "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/BUILDS/2.1.1.0-118",
           ri.getLatestBaseUrl());
     }
+
+    for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "sles11")) {
+      Assert.assertEquals("http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/BUILDS/2.1.1.0-118",
+          ri.getLatestBaseUrl());
+    }
+    
+    
   }
 
 }
