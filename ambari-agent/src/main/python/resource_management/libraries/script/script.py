@@ -20,6 +20,7 @@ limitations under the License.
 
 __all__ = ["Script"]
 
+import os
 import sys
 import json
 import logging
@@ -29,6 +30,14 @@ from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.repo_installer import RepoInstaller
+
+USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT>
+
+<COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
+<JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
+<BASEDIR> path to service metadata dir. Ex: /var/lib/ambari-agent/cache/stacks/HDP/2.0.6/services/HDFS
+<STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
+"""
 
 class Script(object):
   """
@@ -73,9 +82,11 @@ class Script(object):
     logger.addHandler(cherr)
     logger.addHandler(chout)
     # parse arguments
-    if len(sys.argv) < 5:
-      logger.error("Script expects at least 4 arguments")
-      sys.exit(1)
+    if len(sys.argv) < 5: 
+     logger.error("Script expects at least 4 arguments")
+     print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
+     sys.exit(1)
+      
     command_name = str.lower(sys.argv[1])
     # parse command parameters
     command_data_file = sys.argv[2]
