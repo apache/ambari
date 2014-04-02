@@ -1331,6 +1331,48 @@ module.exports =
       "serviceName": "FALCON",
       "category": "Advanced"
     },
+    {
+      "id": "puppet var",
+      "name": "falcon.embeddedmq",
+      "displayName": "falcon.embeddedmq",
+      "description": "Whether embeddedmq is enabled or not.",
+      "defaultValue": "true",
+      "displayType": "string",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "isReconfigurable": false,
+      "serviceName": "FALCON",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon.embeddedmq.data",
+      "displayName": "falcon.embeddedmq.data",
+      "description": "Directory in which embeddedmq data is stored.",
+      "defaultValue": "/hadoop/falcon/embeddedmq/data",
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "isReconfigurable": false,
+      "serviceName": "FALCON",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "falcon.emeddedmq.port",
+      "displayName": "falcon.emeddedmq.port",
+      "description": "Port that embeddedmq will listen on.",
+      "defaultValue": "61616",
+      "displayType": "string",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequiredByAgent": true,
+      "isReconfigurable": false,
+      "serviceName": "FALCON",
+      "category": "Advanced"
+    },
   /**********************************************STORM***************************************/
     {
       "id": "puppet var",
