@@ -118,6 +118,7 @@ App.MainJobsController = Em.Controller.extend({
     this.get('filterObject').set('nextFromId', '');
     this.get('filterObject').set('backFromId', '');
     this.get('filterObject').set('fromTs', '');
+    this.set('hasNewJobs', false);
     this.set('resetPagination', true);
     this.loadJobs();
   },
@@ -361,13 +362,9 @@ App.MainJobsController = Em.Controller.extend({
     var lastReceivedID = data.entities[0].entity;
     if(this.get('lastJobID') == '') {
       this.set('lastJobID', lastReceivedID);
-    } else {
-      if (this.get('lastJobID') !== lastReceivedID) {
-        this.set('lastJobID', lastReceivedID);
-        this.set('hasNewJobs', true);
-      }else{
-        this.set('hasNewJobs', false);
-      }
+    } else if (this.get('lastJobID') !== lastReceivedID) {
+      this.set('lastJobID', lastReceivedID);
+      this.set('hasNewJobs', true);
     }
   },
 
