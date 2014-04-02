@@ -47,6 +47,7 @@ App.MainJobsController = Em.Controller.extend({
   }.observes('content.length', 'content.@each.id', 'content.@each.startTime', 'content.@each.endTime', 'sortProperties', 'sortAscending'),
   
   contentAndSortUpdater: function() {
+    this.set('sortingDone', false);
     var content = this.get('content');
     var sortedContent = content.toArray();
     var sortProperty = this.get('sortProperty');
@@ -83,6 +84,7 @@ App.MainJobsController = Em.Controller.extend({
       }
     }
     sortedContent.length = 0;
+    this.set('sortingDone', true);
   },
 
   navIDs: {
@@ -101,6 +103,7 @@ App.MainJobsController = Em.Controller.extend({
   sortingColumn: null,
   sortProperty: 'id',
   sortAscending: true,
+  sortingDone: true,
 
   sortingColumnObserver: function () {
     if(this.get('sortingColumn')){
