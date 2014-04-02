@@ -253,9 +253,39 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
+      "displayName": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
+      "displayType": "integer",
+      "category": "AppTimelineServer",
+      "desription": "Length of time to wait between deletion cycles of leveldb timeline store in milliseconds.",
+      "value": 300000,
+      "serviceName": "YARN"
+    },
+    {
+      "id": "site property",
       "name": "yarn.timeline-service.store-class",
       "displayName": "yarn.timeline-service.store-class",
       "category": "AppTimelineServer",
+      "serviceName": "YARN"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.timeline-service.ttl-enable",
+      "displayName": "yarn.timeline-service.ttl-enable",
+      "displayType": "checkbox",
+      "category": "AppTimelineServer",
+      "desription": "Enable age off of timeline store data.",
+      "value": true,
+      "serviceName": "YARN"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.timeline-service.ttl-ms",
+      "displayName": "yarn.timeline-service.ttl-ms",
+      "displayType": "integer",
+      "category": "AppTimelineServer",
+      "desription": "Time to live for timeline store data in milliseconds.",
+      "value": 2678400000,
       "serviceName": "YARN"
     },
     {
