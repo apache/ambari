@@ -229,7 +229,8 @@ class FileCache():
         if not os.path.isdir(concrete_dir):
           os.makedirs(concrete_dir)
         logger.debug("Unpacking file {0} to {1}".format(name, concrete_dir))
-        zfile.extract(name, target_directory)
+        if filename!='':
+          zfile.extract(name, target_directory)
     except Exception, err:
       raise CachingException("Can not unpack zip file to "
                              "directory {0} : {1}".format(

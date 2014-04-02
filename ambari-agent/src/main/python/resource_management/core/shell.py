@@ -20,9 +20,9 @@ Ambari Agent
 
 """
 
-__all__ = ["checked_call", "call"]
+__all__ = ["checked_call", "call", "quote_bash_args"]
 
-import pipes
+import string
 import subprocess
 import threading
 from multiprocessing import Queue
@@ -52,7 +52,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
   """
   # convert to string and escape
   if isinstance(command, (list, tuple)):
-    command = ' '.join(pipes.quote(x) for x in command)
+    command = ' '.join(quote_bash_args(x) for x in command)
 
   if user:
     command = ["su", "-", user, "-c", command]
@@ -98,3 +98,12 @@ def on_timeout(proc, q):
       proc.terminate()
     except:
       pass
+
+def quote_bash_args(command):
+  if not command:
+    return "''"
+  valid = set(string.ascii_letters + string.digits + '@%_-+=:,./')
+  for char in command:
+    if char not in valid:
+      return "'" + command.replace("'", "'\"'\"'") + "'"
+  return command

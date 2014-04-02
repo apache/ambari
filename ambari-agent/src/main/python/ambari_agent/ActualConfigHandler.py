@@ -21,7 +21,6 @@ limitations under the License.
 import json
 import logging
 import os
-import LiveStatus
 
 logger = logging.getLogger()
 
@@ -49,7 +48,8 @@ class ActualConfigHandler:
     self.write_file(filename, tags)
 
   def write_client_components(self, serviceName, tags):
-    for comp in LiveStatus.LiveStatus.CLIENT_COMPONENTS:
+    from LiveStatus import LiveStatus
+    for comp in LiveStatus.CLIENT_COMPONENTS:
       if comp['serviceName'] == serviceName:
         componentName = comp['componentName']
         if componentName in self.configTags and \
