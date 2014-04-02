@@ -40,6 +40,7 @@ App.MainAdminController = Em.Controller.extend({
       .filter(function(componentName) {
         return dependencies.components.contains(componentName);
       });
-    return (dependencies.services.length == serviceNames.length && componentNames.length == 0);
+    var isAppTimelineServerAvailable = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER');
+    return (dependencies.services.length == serviceNames.length && componentNames.length == 0 && isAppTimelineServerAvailable);
   }.property()
 });
