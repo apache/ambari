@@ -162,6 +162,7 @@ public class SchemaUpgradeHelper {
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
       catalogBinder.addBinding().to(UpgradeCatalog150.class);
+      catalogBinder.addBinding().to(UpgradeCatalog151.class);
     }
   }
 
