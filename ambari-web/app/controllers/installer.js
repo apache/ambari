@@ -319,9 +319,14 @@ App.InstallerController = App.WizardController.extend({
   checkServerClientVersion: function () {
     var dfd = $.Deferred();
     var self = this;
-    self.getServerVersion().done(function () {
+    if (App.get('version')) {
+      self.getServerVersion().done(function () {
+        dfd.resolve();
+      });
+    } else {
+      this.set('isServerClientVersionMismatch', false);
       dfd.resolve();
-    });
+    }
     return dfd.promise();
   },
   getServerVersion: function(){
