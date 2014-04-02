@@ -17,6 +17,13 @@
  */
 
 var App = require('app');
+var fillEmptyValues = function(self, obj) {
+  $.each(self.config, function(field, value) {
+    if (obj[value].length == 0) {
+      obj[value].push({x: 0, y: 0});
+    };
+  });
+};
 
 App.jobsMapper = App.QuickDataMapper.create({
   model:App.Job,
@@ -72,6 +79,7 @@ App.jobTimeLineMapper = App.QuickDataMapper.create({
       d.reverse();
       job.set(field, d);
     });
+    fillEmptyValues(this, job);
   },
 
   coordinatesModify: function(data) {
@@ -110,6 +118,7 @@ App.taskTimeLineMapper = App.QuickDataMapper.create({
     $.each(parseResult, function (field, value) {
       job.set(field, value);
     });
+    fillEmptyValues(this, job);
   }
 });
 
