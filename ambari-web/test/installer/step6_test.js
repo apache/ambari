@@ -47,7 +47,7 @@ describe('App.WizardStep6Controller', function () {
     ]
   });
 
-  var HOSTS = [ 'host0', 'host1', 'host2', 'host3' ];
+  var HOSTS = Em.A([ 'host0', 'host1', 'host2', 'host3' ]);
 
   var h = {};
   var m = [];
@@ -110,21 +110,9 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-  describe('#hasMasterComponents', function() {
-    HOSTS.forEach(function(host) {
-      it('Host ' + host + ' is master', function() {
-        expect(controller.hasMasterComponents(host)).to.equal(true);
-      });
-    });
-    var notMasterHost = 'NotMasterHost';
-    it('Host ' + notMasterHost + ' is not master', function() {
-      expect(controller.hasMasterComponents(notMasterHost)).to.equal(false);
-    });
-  });
-
   describe('#setAllNodes', function() {
 
-    var test_config = [
+    var test_config = Em.A([
       {
         title: 'DataNode',
         name: 'DATANODE',
@@ -145,7 +133,7 @@ describe('App.WizardStep6Controller', function () {
         name: 'TASKTRACKER',
         state: true
       }
-    ];
+    ]);
 
     test_config.forEach(function(test) {
       it((test.state?'Select':'Deselect') + ' all ' + test.title, function() {
