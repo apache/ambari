@@ -135,6 +135,8 @@
                 <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService.Oozie" />
                 <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService.Pig" />
                 <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService.Sqoop" />
+                <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService.MapReduce2" />
+                <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService.Yarn" />
                 <DiscoveryRelationship TypeID="$Reference/SC$Microsoft.SystemCenter.HealthServiceShouldManageEntity" />
                 <DiscoveryRelationship TypeID="$Reference/Self$Ambari.SCOM.ClusterSoftwareProjectionContainsClusterService" />
               </DiscoveryTypes>

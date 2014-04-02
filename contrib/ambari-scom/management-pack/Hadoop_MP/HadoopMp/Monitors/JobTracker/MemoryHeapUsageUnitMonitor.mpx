@@ -61,7 +61,7 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.JobTrackerMemoryHeapUsed">
-          <Name>Memory Heap Usage</Name>
+          <Name>JobTracker Memory Heap Usage</Name>
           <Description>Gives warning/critical alert if percentage of used job-tracker memory heap is more than lower/upper threshold.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.JobTrackerMemoryHeapUsed" SubElementID="Healthy">

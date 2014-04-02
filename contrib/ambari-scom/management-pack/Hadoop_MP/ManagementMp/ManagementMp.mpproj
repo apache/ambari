@@ -22,10 +22,10 @@
     <RootNamespace>Ambari.SCOM.Management</RootNamespace>
     <Name>Ambari SCOM Management</Name>
     <ManagementPackName>Ambari.SCOM.Management</ManagementPackName>
-    <Version>1.0.0.1</Version>
+    <Version>2.0.0.0</Version>
     <MpFrameworkVersion>v7.0</MpFrameworkVersion>
     <MpFrameworkProfile>OM</MpFrameworkProfile>
-    <ProductVersion>1.0.0.1</ProductVersion>
+    <ProductVersion>2.0.0.0</ProductVersion>
     <SccProjectName>SAK</SccProjectName>
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
@@ -42,7 +42,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>false</DebugSymbols>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\bin\Release\</OutputPath>
     <DelaySigning>False</DelaySigning>
     <Company>MyCompany</Company>
     <Copyright>Copyright (c) MyCompany. All rights reserved.</Copyright>

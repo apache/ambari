@@ -18,7 +18,7 @@
 try {
     $JSONUtil = (Add-Type -Language JScript -MemberDefinition "static function parseJSON(json){return eval('('+json+')');}" -Name "JSONUtil" -PassThru)[1]
 } catch {
-    LogMessage "JSON" 1 "Failed to create JSON parser: $_"
+    LogMessage "JSON" 1 "Failed to create JSON parser: $_" 1901
 }
 
 function ParseJsonString([string] $jsonString) {

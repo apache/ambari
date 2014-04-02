@@ -56,8 +56,8 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.TempletonServerComponentHealthState">
-          <Name>Templeton/WebHCat Server Service State</Name>
-          <Description>Gives critical alert if a Templeton Server service is unavailable.</Description>
+          <Name>WebHCat Server Service State</Name>
+          <Description>Gives critical alert if a WebHCat Server service is unavailable.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.TempletonServerComponentHealthState" SubElementID="Healthy">
           <Name>Running</Name>
@@ -67,8 +67,8 @@
         </DisplayString>
 
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.TempletonServerComponentHealthState.AlertMessage">
-          <Name>Templeton Server service is not running.</Name>
-          <Description>Templeton Server hosted on "{0}" in cluster "{1}" is not running.</Description>
+          <Name>WebHCat Server service is not running.</Name>
+          <Description>WebHCat Server hosted on "{0}" in cluster "{1}" is not running.</Description>
         </DisplayString>
       </DisplayStrings>
 
@@ -77,7 +77,7 @@
           <MamlContent>
             <section xmlns="http://schemas.microsoft.com/maml/2004/10">
               <title>Summary</title>
-              <para>Gives critical alert if a Templeton Server service is unavailable.</para>
+              <para>Gives critical alert if a WebHCat Server service is unavailable.</para>
             </section>
             <section xmlns="http://schemas.microsoft.com/maml/2004/10">
               <title>Causes</title>

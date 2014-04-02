@@ -61,7 +61,7 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.NameNodeMemoryHeapUsed">
-          <Name>Memory Heap Usage</Name>
+          <Name>NameNode Memory Heap Usage</Name>
           <Description>Gives warning/critical alert if percentage of used NameNode memory heap is more than lower/upper threshold.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.UnitMonitor.NameNodeMemoryHeapUsed" SubElementID="Healthy">

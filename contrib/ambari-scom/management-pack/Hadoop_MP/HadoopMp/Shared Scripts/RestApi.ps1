@@ -23,10 +23,15 @@ $UserAgent = $("{0} (PowerShell {1}; .NET CLR {2}; {3})" -f "SCOM MP",
 function InvokeRestAPI($uri, [string]$username, [string]$password) {
 	# TODO: Remove prior to release!
     [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+
     $request = [System.Net.HttpWebRequest]::Create($uri)
     $request.Method = 'GET'
     $request.UserAgent = $UserAgent
-    $request.Timeout = 30000
+	$request.ServicePoint.ConnectionLimit = 100
+    $request.ServicePoint.ConnectionLeaseTimeout = 0
+    $request.ServicePoint.MaxIdleTime = 1
+    $request.Timeout = 90000
+
     
     $credentials = [Convert]::ToBase64String([Text.Encoding]::Default.GetBytes($username + ':' + $password));
     $request.Headers.Add('Authorization', "Basic $credentials")

@@ -26,7 +26,7 @@ function Main {
 
     Add-MetricChildrenItems $propertyBag '' $response.metrics
 
-    if ('namenode', 'jobtracker' -contains $response.HostRoles.component_name) {
+    if ('namenode', 'jobtracker', 'resourcemanager' -contains $response.HostRoles.component_name) {
         if ($response.metrics['jvm'] -ne $null) {
             $memoryUsed = $response.metrics['jvm']['memHeapUsedM']
             $memoryCommitted = $response.metrics['jvm']['memHeapCommittedM']

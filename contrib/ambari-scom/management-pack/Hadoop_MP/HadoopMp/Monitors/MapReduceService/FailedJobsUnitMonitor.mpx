@@ -25,7 +25,7 @@
                    Remotable="true" Priority="Normal" Accessibility="Public" Enabled="true" ConfirmDelivery="true">
         <Category>PerformanceHealth</Category>
         <AlertSettings AlertMessage="Ambari.SCOM.UnitMonitor.MapReduceFailedJobs.AlertMessage">
-          <AlertOnState>Error</AlertOnState>
+          <AlertOnState>Warning</AlertOnState>
           <AutoResolve>true</AutoResolve>
           <AlertPriority>Normal</AlertPriority>
           <AlertSeverity>MatchMonitorHealth</AlertSeverity>

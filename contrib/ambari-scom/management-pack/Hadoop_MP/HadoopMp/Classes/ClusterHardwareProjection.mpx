@@ -49,7 +49,7 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.ClusterHardwareProjection">
-          <Name>Cluster Hardware Projection</Name>
+          <Name>Hadoop Cluster Hardware Projection</Name>
           <Description>This class represents Hadoop Cluster Hardware monitoring projection, based on cluster nodes.</Description>
         </DisplayString>
 

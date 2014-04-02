@@ -31,18 +31,6 @@
     </EntityTypes>
   </TypeDefinitions>
 
-  <!--<Categories>
-    <Category ID="Ambari.SCOM.AmbariAccessorRole.16x16Image.Category" Target="Ambari.SCOM.AmbariAccessorRole.16x16Image" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
-    <Category ID="Ambari.SCOM.AmbariAccessorRole.80x80Image.Category" Target="Ambari.SCOM.AmbariAccessorRole.80x80Image" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
-  </Categories>
-
-  <Presentation>
-    <ImageReferences>
-      <ImageReference ElementID="Ambari.SCOM.AmbariAccessorRole" ImageID="Ambari.SCOM.AmbariAccessorRole.16x16Image" />
-      <ImageReference ElementID="Ambari.SCOM.AmbariAccessorRole" ImageID="Ambari.SCOM.AmbariAccessorRole.80x80Image" />
-    </ImageReferences>
-  </Presentation>-->
-
   <LanguagePacks>
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
@@ -50,14 +38,11 @@
           <Name>Hadoop Ambari Accessor Role</Name>
           <Description>This class defines Hadoop Ambari Accessor Computer Role.</Description>
         </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ComputerHostsAmbariWatcherNode">
+          <Name>Computer Hosts Ambari WatcherNode relation</Name>
+          <Description>Computer Hosts Ambari WatcherNode relation</Description>
+        </DisplayString>
       </DisplayStrings>
     </LanguagePack>
   </LanguagePacks>
-
-  <!--
-  <Resources>
-    <Image ID="Ambari.SCOM.AmbariAccessorRole.16x16Image" Accessibility="Public" FileName="AmbariAccessorRole-16.png" />
-    <Image ID="Ambari.SCOM.AmbariAccessorRole.80x80Image" Accessibility="Public" FileName="AmbariAccessorRole-80.png" />
-  </Resources>
-  -->
 </ManagementPackFragment>

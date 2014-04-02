@@ -35,6 +35,8 @@ function FormatClusterServiceName($serviceName) {
         'oozie' { 'Oozie' }
         'pig' { 'Pig' }
         'sqoop' { 'Sqoop' }
+        'mapreduce2' { 'MapReduce 2' }
+        'yarn' { 'YARN' }
         default { $serviceName }
     }
 }
@@ -54,6 +56,11 @@ function FormatHostComponentName($componentName) {
         'oozie_server' { 'Oozie Server' }
         'pig' { 'Pig' }
         'sqoop' { 'Sqoop' }
+        'historyserver' { 'History Server' }
+        'mapreduce2_client' { 'MapReduce 2 Client' }
+        'nodemanager' { 'Node Manager' }
+        'resourcemanager' { 'Resource Manager' }
+        'yarn_client' { 'YARN Client' }
         default { $componentName }
     }
 }

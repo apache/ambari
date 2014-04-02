@@ -52,12 +52,34 @@
                   $IncludeFileContent/Shared Scripts/MonitoringHelpers.ps1$
 
                   if (!$Username) { return }
-                  
+
                   $ScriptApi = New-Object -ComObject "MOM.ScriptAPI"
+
                   try {
-                    Main
+                  Main
+                  } catch [System.Net.WebException] {
+                  if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::Forbidden)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1902
+                  }
+                  elseif ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1903
+                  }
+                  elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ConnConnectFailure)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1903
+                  }
+                  elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::Timeout)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1904
+                  }
+                  else
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1901
+                  }
                   } catch {
-                    LogMessage '$Config/WorkflowName$' 1 $_
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1901
                   }
                 </ScriptBody>
                 <Parameters>$Config/Parameters$</Parameters>

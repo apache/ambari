@@ -44,12 +44,12 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.Rollup.ClusterServiceToSoftwareProjectionAvailability">
-          <Name>Services Health</Name>
+          <Name>Service Health</Name>
           <Description>Rolls up all Cluster Services availability monitors to the Hadoop Cluster Services Group.</Description>
         </DisplayString>
         
         <DisplayString ElementID="Ambari.SCOM.Rollup.ClusterServiceToSoftwareProjectionPerformance">
-          <Name>Services Performance</Name>
+          <Name>Service Performance</Name>
           <Description>Rolls up all Cluster Services performance monitors to the Hadoop Cluster Services Group.</Description>
         </DisplayString>
       </DisplayStrings>

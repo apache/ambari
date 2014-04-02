@@ -44,13 +44,13 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.Rollup.TempletonServerComponentToTempletonServiceAvailability">
-          <Name>Templeton Server Component Health</Name>
-          <Description>Rolls up Templeton Server Component availability monitors to the Hadoop Templeton Service.</Description>
+          <Name>WebHCat Server Component Health</Name>
+          <Description>Rolls up WebHCat Server Component availability monitors to the Hadoop WebHCat Service.</Description>
         </DisplayString>
 
         <DisplayString ElementID="Ambari.SCOM.Rollup.TempletonServerComponentToTempletonServicePerformance">
-          <Name>Templeton Server Component Performance</Name>
-          <Description>Rolls up Templeton Server Component performance monitors to the Hadoop Templeton Service.</Description>
+          <Name>WebHCat Server Component Performance</Name>
+          <Description>Rolls up WebHCat Server Component performance monitors to the Hadoop WebHCat Service.</Description>
         </DisplayString>
       </DisplayStrings>
 
@@ -59,11 +59,11 @@
           <MamlContent>
             <section xmlns="http://schemas.microsoft.com/maml/2004/10">
               <title>Summary</title>
-              <para>This monitor is the rollup of availability monitoring for Templeton Server Host Component. If the state is unknown - monitoring has not been initialized yet.</para>
+              <para>This monitor is the rollup of availability monitoring for WebHCat Server Host Component. If the state is unknown - monitoring has not been initialized yet.</para>
             </section>
             <section xmlns="http://schemas.microsoft.com/maml/2004/10">
               <title>Causes</title>
-              <para>An unhealthy state for this monitor indicates some problem with availability of Templeton Server Host Component. View all current alerts for Templeton Cluster Service using this link:</para>
+              <para>An unhealthy state for this monitor indicates some problem with availability of WebHCat Server Host Component. View all current alerts for WebHCat Cluster Service using this link:</para>
               <para>
                 <navigationLink>
                   <linkText>View Alerts</linkText>
@@ -82,11 +82,11 @@
           <MamlContent>
             <section xmlns="http://schemas.microsoft.com/maml/2004/10">
               <title>Summary</title>
-              <para>This monitor is the rollup of performance monitoring for Templeton Server Host Component. If the state is unknown - monitoring has not been initialized yet.</para>
+              <para>This monitor is the rollup of performance monitoring for WebHCat Server Host Component. If the state is unknown - monitoring has not been initialized yet.</para>
             </section>
             <section xmlns="http://schemas.microsoft.com/maml/2004/10">
               <title>Causes</title>
-              <para>An unhealthy state for this monitor indicates some problem with performance of Templeton Server Host Component. View all current alerts for Templeton Cluster Service using this link:</para>
+              <para>An unhealthy state for this monitor indicates some problem with performance of Templeton Server Host Component. View all current alerts for WebHCat Cluster Service using this link:</para>
               <para>
                 <navigationLink>
                   <linkText>View Alerts</linkText>

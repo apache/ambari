@@ -17,7 +17,7 @@
 ## under the License.-->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <DeploymentNextVersion>1.0.0.56</DeploymentNextVersion>
+    <DeploymentNextVersion>1.0.0.183</DeploymentNextVersion>
     <DeploymentAutoIncrementVersion>False</DeploymentAutoIncrementVersion>
     <DeploymentStartAction>None</DeploymentStartAction>
     <DeploymentWebConsoleUrl />

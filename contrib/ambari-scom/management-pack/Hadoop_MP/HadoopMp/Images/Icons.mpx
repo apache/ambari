@@ -62,6 +62,20 @@
     <Category ID="Ambari.SCOM.Resources.Images.TempletonServiceDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.TempletonServiceDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
     <Category ID="Ambari.SCOM.Resources.Images.TempletonServer16IconCategory" Target="Ambari.SCOM.Resources.Images.TempletonServer16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
     <Category ID="Ambari.SCOM.Resources.Images.TempletonServerDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.TempletonServerDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.Mapreduce2Service16IconCategory" Target="Ambari.SCOM.Resources.Images.Mapreduce2Service16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.Mapreduce2ServiceDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.Mapreduce2ServiceDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.Mapreduce2Client16IconCategory" Target="Ambari.SCOM.Resources.Images.Mapreduce2Client16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.Mapreduce2ClientDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.Mapreduce2ClientDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.NodeManager16IconCategory" Target="Ambari.SCOM.Resources.Images.NodeManager16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.NodeManagerDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.NodeManagerDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ResourceManager16IconCategory" Target="Ambari.SCOM.Resources.Images.ResourceManager16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.ResourceManagerDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.ResourceManagerDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.Yarn16IconCategory" Target="Ambari.SCOM.Resources.Images.YarnService16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.YarnDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.YarnServiceDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.YarnClient16IconCategory" Target="Ambari.SCOM.Resources.Images.YarnClient16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.YarnClientDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.YarnClientDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
+    <Category ID="Ambari.SCOM.Resources.Images.HistoryServer16IconCategory" Target="Ambari.SCOM.Resources.Images.HistoryServer16Icon" Value="System!System.Internal.ManagementPack.Images.u16x16Icon" />
+    <Category ID="Ambari.SCOM.Resources.Images.HistoryServerDiagramIconCategory" Target="Ambari.SCOM.Resources.Images.HistoryServerDiagramIcon" Value="System!System.Internal.ManagementPack.Images.DiagramIcon" />
   </Categories>
 
   <Resources>
@@ -111,6 +125,20 @@
     <Image ID="Ambari.SCOM.Resources.Images.TempletonServiceDiagramIcon" FileName="TempletonService.png" Accessibility="Public" />
     <Image ID="Ambari.SCOM.Resources.Images.TempletonServer16Icon" FileName="TrmpletonServer_.png" Accessibility="Public" />
     <Image ID="Ambari.SCOM.Resources.Images.TempletonServerDiagramIcon" FileName="TrmpletonServer.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.Mapreduce2Service16Icon" FileName="Mapreduce2_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.Mapreduce2ServiceDiagramIcon" FileName="Mapreduce2.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.Mapreduce2Client16Icon" FileName="Mapreduce2Client_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.Mapreduce2ClientDiagramIcon" FileName="Mapreduce2Client.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.NodeManager16Icon" FileName="NodeManager_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.NodeManagerDiagramIcon" FileName="NodeManager.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ResourceManager16Icon" FileName="ResourceManager_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.ResourceManagerDiagramIcon" FileName="ResourceManager.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.YarnService16Icon" FileName="Yarn_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.YarnServiceDiagramIcon" FileName="Yarn.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.YarnClient16Icon" FileName="YarnClient_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.YarnClientDiagramIcon" FileName="YarnClient.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.HistoryServer16Icon" FileName="HistoryServer_.png" Accessibility="Public" />
+    <Image ID="Ambari.SCOM.Resources.Images.HistoryServerDiagramIcon" FileName="HistoryServer.png" Accessibility="Public" />
   </Resources>
   
 </ManagementPackFragment>

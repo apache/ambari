@@ -40,6 +40,10 @@ function Main() {
         $componentEntity.AddProperty('$MPElement[Name="Ambari.SCOM.HostComponent"]/ClusterName$', $ClusterName)
         $componentEntity.AddProperty('$MPElement[Name="Ambari.SCOM.HostComponent"]/ComponentName$', $componentName)
         $componentEntity.AddProperty('$MPElement[Name="System!System.Entity"]/DisplayName$', (FormatHostComponentName $componentName))
+		if ($componentClassId -eq '$MPElement[Name="Ambari.SCOM.HostComponent.NodeManager"]$') 
+		{ 
+	        $componentEntity.AddProperty('$MPElement[Name="Ambari.SCOM.HostComponent.NodeManager"]/ParentHostName$', $HostName)
+		}
         $discoveryData.AddInstance($componentEntity)
 
         $parentServiceName = GetParentServiceName $componentName
@@ -65,6 +69,7 @@ function GetComponentClassId($componentName) {
         'secondary_namenode' { '$MPElement[Name="Ambari.SCOM.HostComponent.SecondaryNameNode"]$' }
         'jobtracker' { '$MPElement[Name="Ambari.SCOM.HostComponent.JobTracker"]$' }
         'tasktracker' { '$MPElement[Name="Ambari.SCOM.HostComponent.TaskTracker"]$' }
+        'datanode' { '$MPElement[Name="Ambari.SCOM.HostComponent.DataNode"]$' }
         'hive_server' { '$MPElement[Name="Ambari.SCOM.HostComponent.HiveServer"]$' }
         'hive_metastore' { '$MPElement[Name="Ambari.SCOM.HostComponent.HiveMetastore"]$' }
         'hive_client' { '$MPElement[Name="Ambari.SCOM.HostComponent.HiveClient"]$' }
@@ -72,6 +77,11 @@ function GetComponentClassId($componentName) {
         'oozie_server' { '$MPElement[Name="Ambari.SCOM.HostComponent.OozieServer"]$' }
         'pig' { '$MPElement[Name="Ambari.SCOM.HostComponent.Pig"]$' }
         'sqoop' { '$MPElement[Name="Ambari.SCOM.HostComponent.Sqoop"]$' }
+        'historyserver' { '$MPElement[Name="Ambari.SCOM.HostComponent.HistoryServer"]$' }
+        'mapreduce2_client' { '$MPElement[Name="Ambari.SCOM.HostComponent.MapReduce2Client"]$' }
+        'nodemanager' { '$MPElement[Name="Ambari.SCOM.HostComponent.NodeManager"]$' }
+        'resourcemanager' { '$MPElement[Name="Ambari.SCOM.HostComponent.ResourceManager"]$' }
+        'yarn_client' { '$MPElement[Name="Ambari.SCOM.HostComponent.YarnClient"]$' }
         default { $null }
     }
 }
@@ -86,6 +96,8 @@ function GetParentServiceName($componentName) {
         'oozie_server' { 'OOZIE' }
         'pig' { 'PIG' }
         'sqoop' { 'SQOOP' }
+        { 'historyserver', 'mapreduce2_client' -contains $_ } { 'MAPREDUCE2' }
+        { 'nodemanager', 'resourcemanager', 'yarn_client' -contains $_ } { 'YARN' }
         default { $null }
     }
 }
@@ -99,6 +111,8 @@ function CreateParentService($discoveryData, $serviceName) {
         'oozie' { '$MPElement[Name="Ambari.SCOM.ClusterService.Oozie"]$' }
         'pig' { '$MPElement[Name="Ambari.SCOM.ClusterService.Pig"]$' }
         'sqoop' { '$MPElement[Name="Ambari.SCOM.ClusterService.Sqoop"]$' }
+        'mapreduce2' { '$MPElement[Name="Ambari.SCOM.ClusterService.MapReduce2"]$' }
+        'yarn' { '$MPElement[Name="Ambari.SCOM.ClusterService.Yarn"]$' }
     }
 
     $serviceDisplayName = FormatClusterServiceName $serviceName
@@ -129,6 +143,9 @@ function GetParentServiceRelationshipId($componentName) {
         'hive_metastore' { '$MPElement[Name="Ambari.SCOM.HiveServiceContainsHiveMetastoreComponent"]$' }
         {'templeton', 'webhcat_server' -contains $_ } { '$MPElement[Name="Ambari.SCOM.TempletonServiceContainsTempletonServerComponent"]$' }
         'oozie_server' { '$MPElement[Name="Ambari.SCOM.OozieServiceContainsOozieServerComponent"]$' }
+		'historyserver' { '$MPElement[Name="Ambari.SCOM.MapReduce2ServiceContainsHistoryServerComponent"]$' }
+		'nodemanager' { '$MPElement[Name="Ambari.SCOM.YarnServiceContainsNodeManagerComponent"]$' }
+		'resourcemanager' { '$MPElement[Name="Ambari.SCOM.YarnServiceContainsResourceManagerComponent"]$' }
         default { '$MPElement[Name="Ambari.SCOM.ClusterServiceContainsHostComponent"]$' }
     }
 }

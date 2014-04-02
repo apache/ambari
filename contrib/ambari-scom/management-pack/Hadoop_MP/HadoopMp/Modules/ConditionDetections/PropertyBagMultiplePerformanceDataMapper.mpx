@@ -93,7 +93,11 @@
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
         <DisplayString ElementID="Ambari.SCOM.Module.PropertyBagMultiplePerformanceDataMapper">
-          <Name>Hadoop Property Bag Performance Data Mapper</Name>
+          <Name>Hadoop Property Bag Multiple Performance Data Mapper</Name>
+          <Description>Converts property bag to Linked Performance Data.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.Module.PropertyBagMultiplePerformanceDataMapperInternal">
+          <Name>Hadoop Internal Property Bag Multiple Performance Data Mapper</Name>
           <Description>Converts property bag to Linked Performance Data.</Description>
         </DisplayString>
       </DisplayStrings>

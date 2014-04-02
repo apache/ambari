@@ -20,6 +20,7 @@
     <Folders>
       <Folder ID="Ambari.SCOM.Presentation.ViewFolder.Hdfs" ParentFolder="HDLibrary!Ambari.SCOM.ViewFolder.Root" Accessibility="Public" />
       <Folder ID="Ambari.SCOM.Presentation.ViewFolder.MapReduce" ParentFolder="HDLibrary!Ambari.SCOM.ViewFolder.Root" Accessibility="Public" />
+      <Folder ID="Ambari.SCOM.Presentation.ViewFolder.MapReduce2" ParentFolder="HDLibrary!Ambari.SCOM.ViewFolder.Root" Accessibility="Public" />
     </Folders>
   </Presentation>
 
@@ -31,6 +32,9 @@
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.Presentation.ViewFolder.MapReduce">
           <Name>MapReduce</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.Presentation.ViewFolder.MapReduce2">
+          <Name>MapReduce 2</Name>
         </DisplayString>
       </DisplayStrings>
     </LanguagePack>

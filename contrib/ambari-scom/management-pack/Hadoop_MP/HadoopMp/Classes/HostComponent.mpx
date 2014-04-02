@@ -35,6 +35,7 @@
         <ClassType ID="Ambari.SCOM.HostComponent.NameNode" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.SecondaryNameNode" Accessibility="Public" Base="Ambari.SCOM.ActiveHostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.JobTracker" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.DataNode" Accessibility="Public" Base="Ambari.SCOM.BasicPerformanceHostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.TaskTracker" Accessibility="Public" Base="Ambari.SCOM.BasicPerformanceHostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.HiveServer" Accessibility="Public" Base="Ambari.SCOM.ActiveHostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.HiveMetastore" Accessibility="Public" Base="Ambari.SCOM.ActiveHostComponent" Hosted="true" Abstract="false" Singleton="false" />
@@ -43,6 +44,13 @@
         <ClassType ID="Ambari.SCOM.HostComponent.OozieServer" Accessibility="Public" Base="Ambari.SCOM.ActiveHostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.Pig" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.HostComponent.Sqoop" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.HistoryServer" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.MapReduce2Client" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.NodeManager" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false">
+          <Property ID="ParentHostName" Type="string" Key="false" />
+        </ClassType>
+        <ClassType ID="Ambari.SCOM.HostComponent.ResourceManager" Accessibility="Public" Base="Ambari.SCOM.HeadNodeComponent" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.HostComponent.YarnClient" Accessibility="Public" Base="Ambari.SCOM.HostComponent" Hosted="true" Abstract="false" Singleton="false" />
       </ClassTypes>
 
       <RelationshipTypes>
@@ -56,6 +64,8 @@
 
   <Presentation>
     <ImageReferences>
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.DataNode" ImageID="Ambari.SCOM.Resources.Images.DataNode16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.DataNode" ImageID="Ambari.SCOM.Resources.Images.DataNodeDiagramIcon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.NameNode" ImageID="Ambari.SCOM.Resources.Images.NameNode16Icon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.NameNode" ImageID="Ambari.SCOM.Resources.Images.NameNodeDiagramIcon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.SecondaryNameNode" ImageID="Ambari.SCOM.Resources.Images.SecNameNode16Icon" />
@@ -78,6 +88,16 @@
       <ImageReference ElementID="Ambari.SCOM.HostComponent.Pig" ImageID="Ambari.SCOM.Resources.Images.PigDiagramIcon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.Sqoop" ImageID="Ambari.SCOM.Resources.Images.Scoop16Icon" />
       <ImageReference ElementID="Ambari.SCOM.HostComponent.Sqoop" ImageID="Ambari.SCOM.Resources.Images.ScoopDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.HistoryServer" ImageID="Ambari.SCOM.Resources.Images.HistoryServer16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.HistoryServer" ImageID="Ambari.SCOM.Resources.Images.HistoryServerDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.MapReduce2Client" ImageID="Ambari.SCOM.Resources.Images.Mapreduce2Client16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.MapReduce2Client" ImageID="Ambari.SCOM.Resources.Images.Mapreduce2ClientDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.NodeManager" ImageID="Ambari.SCOM.Resources.Images.NodeManager16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.NodeManager" ImageID="Ambari.SCOM.Resources.Images.NodeManagerDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ResourceManager" ImageID="Ambari.SCOM.Resources.Images.ResourceManager16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.ResourceManager" ImageID="Ambari.SCOM.Resources.Images.ResourceManagerDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.YarnClient" ImageID="Ambari.SCOM.Resources.Images.YarnClient16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.HostComponent.YarnClient" ImageID="Ambari.SCOM.Resources.Images.YarnClientDiagramIcon" />
     </ImageReferences>
   </Presentation>
 
@@ -108,7 +128,10 @@
           <Name>Hadoop Head Node Component</Name>
           <Description>This is a base class for Hadoop Host Components hosted on Head Node.</Description>
         </DisplayString>
-
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.DataNode">
+          <Name>Hadoop DataNode Service</Name>
+          <Description>This class represents Hadoop DataNode Service running on the Host.</Description>
+        </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.HostComponent.NameNode">
           <Name>Hadoop NameNode Service</Name>
           <Description>This class represents Hadoop NameNode Service running on the Host.</Description>
@@ -126,8 +149,8 @@
           <Description>This class represents Hadoop TaskTracker Service running on the Host.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.HostComponent.TempletonServer">
-          <Name>Hadoop Templeton Service</Name>
-          <Description>This class represents Hadoop Templeton Server Service running on the Host.</Description>
+          <Name>Hadoop WebHCat Server Service</Name>
+          <Description>This class represents Hadoop WebHCat Server Service running on the Host.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.HostComponent.HiveServer">
           <Name>Hadoop Hive Server Service</Name>
@@ -152,6 +175,33 @@
         <DisplayString ElementID="Ambari.SCOM.HostComponent.Sqoop">
           <Name>Hadoop Sqoop Component</Name>
           <Description>This class represents Hadoop Sqoop Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.HistoryServer">
+          <Name>Hadoop History Server Service</Name>
+          <Description>This class represents Hadoop History Server Service running on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.MapReduce2Client">
+          <Name>Hadoop MapReduce 2 Client Component</Name>
+          <Description>This class represents Hadoop MapReduce 2 Client Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.NodeManager">
+          <Name>Hadoop Node Manager Service</Name>
+          <Description>This class represents Hadoop Node Manager Service running on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.NodeManager" SubElementID="ParentHostName">
+          <Name>Host Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.ResourceManager">
+          <Name>Hadoop Resource Manager Service</Name>
+          <Description>This class represents Hadoop Resource Manager Service running on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostComponent.YarnClient">
+          <Name>YARN Client Component</Name>
+          <Description>This class represents Hadoop YARN Client Component on the Host.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HostHostsHostComponent">
+          <Name>Host hosts HostComponent relation</Name>
+          <Description>Host hosts HostComponent relation</Description>
         </DisplayString>
       </DisplayStrings>
     </LanguagePack>

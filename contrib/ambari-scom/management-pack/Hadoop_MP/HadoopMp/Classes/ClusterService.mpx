@@ -35,6 +35,8 @@
         <ClassType ID="Ambari.SCOM.ClusterService.Oozie" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.Pig" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.Sqoop" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.MapReduce2" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Yarn" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
       </ClassTypes>
 
       <RelationshipTypes>
@@ -77,6 +79,18 @@
           <Source ID="Service" Type="Ambari.SCOM.ClusterService.Oozie" />
           <Target ID="Component" Type="Ambari.SCOM.HostComponent.OozieServer" />
         </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.MapReduce2ServiceContainsHistoryServerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.MapReduce2" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.HistoryServer" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.YarnServiceContainsNodeManagerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Yarn" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.NodeManager" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.YarnServiceContainsResourceManagerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Yarn" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.ResourceManager" />
+        </RelationshipType>
       </RelationshipTypes>
     </EntityTypes>
   </TypeDefinitions>
@@ -97,6 +111,10 @@
       <ImageReference ElementID="Ambari.SCOM.ClusterService.Pig" ImageID="Ambari.SCOM.Resources.Images.PigServiceDiagramIcon" />
       <ImageReference ElementID="Ambari.SCOM.ClusterService.Sqoop" ImageID="Ambari.SCOM.Resources.Images.ScoopService16Icon" />
       <ImageReference ElementID="Ambari.SCOM.ClusterService.Sqoop" ImageID="Ambari.SCOM.Resources.Images.ScoopServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.MapReduce2" ImageID="Ambari.SCOM.Resources.Images.Mapreduce2Service16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.MapReduce2" ImageID="Ambari.SCOM.Resources.Images.Mapreduce2ServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Yarn" ImageID="Ambari.SCOM.Resources.Images.YarnService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Yarn" ImageID="Ambari.SCOM.Resources.Images.YarnServiceDiagramIcon" />
     </ImageReferences>
   </Presentation>
 
@@ -117,7 +135,6 @@
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Private" SubElementID="ServiceName">
           <Name>Service Name</Name>
         </DisplayString>
-
         <DisplayString ElementID="Ambari.SCOM.ClusterService">
           <Name>Hadoop Cluster Service</Name>
           <Description>Base class for all Hadoop Cluster Services.</Description>
@@ -125,14 +142,12 @@
         <DisplayString ElementID="Ambari.SCOM.ClusterService" SubElementID="ClusterName">
           <Name>Cluster Name</Name>
         </DisplayString>
-
         <DisplayString ElementID="Ambari.SCOM.PrivateClusterServiceHostsClusterService">
           <Name>Hadoop Cluster Service (Private) Hosts Hadoop Cluster Service</Name>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterServiceContainsHostComponent">
           <Name>Hadoop Cluster Service Contains Hadoop Host Component</Name>
         </DisplayString>
-
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Hdfs">
           <Name>Hadoop HDFS Cluster Service</Name>
           <Description>This class represents Hadoop HDFS Service.</Description>
@@ -141,27 +156,34 @@
           <Name>Hadoop MapReduce Cluster Service</Name>
           <Description>This class represents Hadoop MapReduce Service.</Description>
         </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.MapReduce2">
+          <Name>Hadoop MapReduce 2 Cluster Service</Name>
+          <Description>This class represents Hadoop MapReduce 2 Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Yarn">
+          <Name>Hadoop YARN Cluster Service</Name>
+          <Description>This class represents Hadoop YARN Service.</Description>
+        </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Hive">
-          <Name>Hadoop Hive Cluster Services</Name>
+          <Name>Hadoop Hive Cluster Service</Name>
           <Description>This class represents Hadoop Hive Service.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Templeton">
-          <Name>Hadoop Templeton Cluster Services</Name>
-          <Description>This class represents Hadoop Templeton Service.</Description>
+          <Name>Hadoop WebHCat Cluster Service</Name>
+          <Description>This class represents Hadoop WebHCat Service.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Oozie">
-          <Name>Hadoop Oozie Cluster Services</Name>
+          <Name>Hadoop Oozie Cluster Service</Name>
           <Description>This class represents Hadoop Oozie Service.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Pig">
-          <Name>Hadoop Pig Cluster Services</Name>
+          <Name>Hadoop Pig Cluster Service</Name>
           <Description>This class represents Hadoop Pig Service.</Description>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterService.Sqoop">
           <Name>Hadoop Sqoop Cluster Service</Name>
           <Description>This class represents Hadoop Sqoop Service.</Description>
         </DisplayString>
-
         <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsNameNodeComponent">
           <Name>Hadoop HDFS Cluster Service Contains NameNode Host Component</Name>
         </DisplayString>
@@ -178,10 +200,19 @@
           <Name>Hadoop Hive Cluster Service Contains Hive Metastore Host Component</Name>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.TempletonServiceContainsTempletonServerComponent">
-          <Name>Hadoop Templeton Cluster Service Contains Templeton Server Host Component</Name>
+          <Name>Hadoop WebHCat Cluster Service Contains WebHCat Server Host Component</Name>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.OozieServiceContainsOozieServerComponent">
           <Name>Hadoop Oozie Cluster Service Contains Oozie Server Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.MapReduce2ServiceContainsHistoryServerComponent">
+          <Name>Hadoop MapReduce 2 Service Contains History Server Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.YarnServiceContainsNodeManagerComponent">
+          <Name>Hadoop YARN Service Contains Node Manager Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.YarnServiceContainsResourceManagerComponent">
+          <Name>Hadoop YARN Service Contains Resource Manager Host Component</Name>
         </DisplayString>
       </DisplayStrings>
     </LanguagePack>

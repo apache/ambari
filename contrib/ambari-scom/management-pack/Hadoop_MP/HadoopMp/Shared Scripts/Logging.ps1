@@ -15,8 +15,8 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
-function LogMessage($workflowName, $severity, [string] $message) {
+function LogMessage($workflowName, $severity, [string] $message, $eventID) {
     $header = "Ambari SCOM MP. $workflowName"
     if (-not $ScriptApi) { $ScriptApi = New-Object -ComObject "MOM.ScriptAPI" }
-    $ScriptApi.LogScriptEvent($header, 901, $severity, $message)
+    $ScriptApi.LogScriptEvent($header, $eventID, $severity, $message)
 }

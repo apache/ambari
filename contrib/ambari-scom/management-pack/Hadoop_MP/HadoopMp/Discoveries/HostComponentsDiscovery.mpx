@@ -29,6 +29,7 @@
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.NameNode" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.SecondaryNameNode" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.JobTracker" />
+          <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.DataNode" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.TaskTracker" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.HiveServer" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.HiveMetastore" />
@@ -37,6 +38,11 @@
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.OozieServer" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.Pig" />
           <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.Sqoop" />
+          <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.HistoryServer" />
+          <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.MapReduce2Client" />
+          <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.NodeManager" />
+          <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.ResourceManager" />
+          <DiscoveryClass TypeID="Ambari.SCOM.HostComponent.YarnClient" />
           <DiscoveryRelationship TypeID="Ambari.SCOM.HostHostsHostComponent" />
           <DiscoveryRelationship TypeID="Ambari.SCOM.ClusterServiceContainsHostComponent" />
           <DiscoveryRelationship TypeID="Ambari.SCOM.HdfsServiceContainsNameNodeComponent" />
@@ -45,6 +51,9 @@
           <DiscoveryRelationship TypeID="Ambari.SCOM.HiveServiceContainsHiveMetastoreComponent" />
           <DiscoveryRelationship TypeID="Ambari.SCOM.TempletonServiceContainsTempletonServerComponent" />
           <DiscoveryRelationship TypeID="Ambari.SCOM.OozieServiceContainsOozieServerComponent" />
+          <DiscoveryRelationship TypeID="Ambari.SCOM.MapReduce2ServiceContainsHistoryServerComponent" />
+          <DiscoveryRelationship TypeID="Ambari.SCOM.YarnServiceContainsNodeManagerComponent" />
+          <DiscoveryRelationship TypeID="Ambari.SCOM.YarnServiceContainsResourceManagerComponent" />
         </DiscoveryTypes>
         <DataSource ID="DS" TypeID="Ambari.SCOM.Module.HostComponentsDiscoveryDataSource">
           <IntervalSeconds>14400</IntervalSeconds>
@@ -59,7 +68,6 @@
       </Discovery>
     </Discoveries>
   </Monitoring>
-
   <LanguagePacks>
     <LanguagePack ID="ENU" IsDefault="true">
       <DisplayStrings>
@@ -68,6 +76,16 @@
           <Description>This workflow discovers all types of Hadoop Host Components running on specific host.</Description>
         </DisplayString>
       </DisplayStrings>
+      <KnowledgeArticles>
+        <KnowledgeArticle ElementID="Ambari.SCOM.Discovery.HostComponents" Visible="true">
+          <MamlContent>
+            <section xmlns="http://schemas.microsoft.com/maml/2004/10">
+              <title>Summary</title>
+              <para>This workflow discovers all types of Hadoop Host Components running on specific host.</para>
+            </section>
+          </MamlContent>
+        </KnowledgeArticle>
+      </KnowledgeArticles>
     </LanguagePack>
   </LanguagePacks>
 </ManagementPackFragment>

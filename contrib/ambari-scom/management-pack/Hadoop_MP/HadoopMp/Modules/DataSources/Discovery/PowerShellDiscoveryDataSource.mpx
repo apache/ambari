@@ -46,16 +46,38 @@
                   $IncludeFileContent/Shared Scripts/DiscoveryHelpers.ps1$
 
                   $ScriptApi = New-Object -ComObject "MOM.ScriptAPI"
-                  
+
                   try {
-                    if (!$Username) {
-                      CreateEmptyDiscoveryData
-                      return
-                    }
-                    Main
+                  if (!$Username) {
+                  CreateEmptyDiscoveryData
+                  return
+                  }
+                  Main
+                  } catch [System.Net.WebException] {
+                  if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::Forbidden)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1902
+                  }
+                  elseif ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1903
+                  }
+                  elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ConnConnectFailure)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1903
+                  }
+                  elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::Timeout)
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1904
+                  }
+                  else
+                  {
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1901
+                  }
+                  CreateEmptyDiscoveryData
                   } catch {
-                    LogMessage '$Config/WorkflowName$' 1 $_
-                    CreateEmptyDiscoveryData
+                  LogMessage '$Config/WorkflowName$' 1 $_ 1901
+                  CreateEmptyDiscoveryData
                   }
                 </ScriptBody>
                 <Parameters>$Config/Parameters$</Parameters>

@@ -1,5 +1,6 @@
-﻿Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 ## Licensed to the Apache Software Foundation (ASF) under one
 ## or more contributor license agreements.  See the NOTICE file
 ## distributed with this work for additional information
@@ -105,26 +106,29 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|x86.Build.0 = Debug|Any CPU
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Release|x86.ActiveCfg = Release|Any CPU
-		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Release|x86.Build.0 = Release|Any CPU
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|Any CPU.Build.0 = Debug|x86
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|x86.ActiveCfg = Debug|x86
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Debug|x86.Build.0 = Debug|x86
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Release|Any CPU.ActiveCfg = Release|x86
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Release|x86.ActiveCfg = Release|x86
+		{63B476B6-EFCD-468F-80D9-94E2CFF1B5DB}.Release|x86.Build.0 = Release|x86
 		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Release|x86.ActiveCfg = Release|Any CPU
+		{B77E5EA7-3FE4-49C9-88AC-3AB871A26F9B}.Release|x86.Build.0 = Release|Any CPU
 		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Release|x86.ActiveCfg = Release|Any CPU
+		{D4C615D1-9274-41D9-B14E-BC88AE7FCDCE}.Release|x86.Build.0 = Release|Any CPU
 		{8AB1E36E-7FF4-4BAF-9BD0-1491492DFDA0}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{8AB1E36E-7FF4-4BAF-9BD0-1491492DFDA0}.Debug|Any CPU.Build.0 = Debug|x86
 		{8AB1E36E-7FF4-4BAF-9BD0-1491492DFDA0}.Debug|x86.ActiveCfg = Debug|x86
 		{8AB1E36E-7FF4-4BAF-9BD0-1491492DFDA0}.Debug|x86.Build.0 = Debug|x86
 		{8AB1E36E-7FF4-4BAF-9BD0-1491492DFDA0}.Release|Any CPU.ActiveCfg = Release|x86
@@ -136,13 +140,16 @@ Global
 		{AEAA0FB0-D274-491A-BEB5-5354584F1400}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEAA0FB0-D274-491A-BEB5-5354584F1400}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AEAA0FB0-D274-491A-BEB5-5354584F1400}.Release|x86.ActiveCfg = Release|Any CPU
+		{AEAA0FB0-D274-491A-BEB5-5354584F1400}.Release|x86.Build.0 = Release|Any CPU
 		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Release|x86.ActiveCfg = Release|Any CPU
+		{729E6DB2-31F7-4EB1-9146-A2F2263585EE}.Release|x86.Build.0 = Release|Any CPU
 		{1BAB40E2-B43F-469A-8583-CC196A792A38}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{1BAB40E2-B43F-469A-8583-CC196A792A38}.Debug|Any CPU.Build.0 = Debug|x86
 		{1BAB40E2-B43F-469A-8583-CC196A792A38}.Debug|x86.ActiveCfg = Debug|x86
 		{1BAB40E2-B43F-469A-8583-CC196A792A38}.Debug|x86.Build.0 = Debug|x86
 		{1BAB40E2-B43F-469A-8583-CC196A792A38}.Release|Any CPU.ActiveCfg = Release|x86

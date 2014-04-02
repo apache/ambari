@@ -15,13 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Forms;
+using Microsoft.EnterpriseManagement.Administration;
+using Microsoft.EnterpriseManagement.Configuration;
 using Microsoft.EnterpriseManagement.Internal.UI.Authoring.Pages.Azure;
 using Microsoft.EnterpriseManagement.Mom.Internal.UI;
+using Microsoft.EnterpriseManagement.Mom.Internal.UI.Common;
+using Microsoft.EnterpriseManagement.Mom.Internal.UI.Controls;
 
 namespace Ambari.SCOM.ScomPages.DiscoveryTemplate {
     class MultipleAgentChooserDialog : AgentSimpleChooserDialog{
-		public MultipleAgentChooserDialog(IContainer parentContainer) : base(new AgentPickerControl(), parentContainer) {
+        public MultipleAgentChooserDialog(IContainer parentContainer)
+            : base(new SCOMServerPickerControl(), parentContainer)
+        {
             InitializeComponent();
         }
 
@@ -34,4 +44,33 @@ namespace Ambari.SCOM.ScomPages.DiscoveryTemplate {
 			mainChooserControl.MultiSelect = true;
 		}
 	}
+
+
+    class SCOMServerPickerControl : IAsyncChooserControlSearch
+    {
+        private AgentPickerControl innerControl = new AgentPickerControl();
+
+
+        public ReadOnlyCollection<IChooserControlItem> Search(CancelFlagWrapper cancelFlag)
+        {
+            if (cancelFlag.Cancel)
+                return (ReadOnlyCollection<IChooserControlItem>)null;
+
+            var templist = innerControl.Search(cancelFlag);
+            var res = new List<IChooserControlItem>();
+            foreach (var ci in templist)
+            {
+                if (ci.Item is ManagementServer)
+                {
+                    res.Add(ci);
+                }
+            }
+            return new ReadOnlyCollection<IChooserControlItem>(res);
+        }
+
+        public Control SearchControl
+        {
+            get { return innerControl; }
+        }
+    }
 }
