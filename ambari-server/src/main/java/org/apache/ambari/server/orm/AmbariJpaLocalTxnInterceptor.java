@@ -24,22 +24,23 @@ import com.google.inject.persist.UnitOfWork;
 import com.google.inject.persist.jpa.AmbariJpaPersistService;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.eclipse.persistence.exceptions.EclipseLinkException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 
 public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariJpaLocalTxnInterceptor.class);
   @Inject
   private final AmbariJpaPersistService emProvider = null;
-
   @Inject
   private final UnitOfWork unitOfWork = null;
-
-  @Transactional
-  private static class Internal {}
-
   // Tracks if the unit of work was begun implicitly by this transaction.
   private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<Boolean>();
 
@@ -67,10 +68,12 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       result = methodInvocation.proceed();
 
     } catch (Exception e) {
-      //commit transaction only if rollback didnt occur
+      //commit transaction only if rollback didn't occur
       if (rollbackIfNecessary(transactional, e, txn)) {
         txn.commit();
       }
+
+      detailedLogForPersistenceError(e);
 
       //propagate whatever exception is thrown anyway
       throw e;
@@ -86,9 +89,12 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
     //  interferes with the advised method's throwing semantics)
     try {
       txn.commit();
+    } catch (Exception e) {
+      detailedLogForPersistenceError(e);
+      throw e;
     } finally {
       //close the em if necessary
-      if (null != didWeStartWork.get() ) {
+      if (null != didWeStartWork.get()) {
         didWeStartWork.remove();
         unitOfWork.end();
       }
@@ -96,6 +102,32 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
 
     //or return result
     return result;
+  }
+
+  private void detailedLogForPersistenceError(Exception e) {
+    if (e instanceof PersistenceException) {
+      PersistenceException rbe = (PersistenceException) e;
+      Throwable cause = rbe.getCause();
+
+      if (cause != null && cause instanceof EclipseLinkException) {
+        EclipseLinkException de = (EclipseLinkException) cause;
+        LOG.error("[DETAILED ERROR] Rollback reason: ", cause);
+        Throwable internal = de.getInternalException();
+
+        int exIndent = 1;
+        if (internal != null && internal instanceof SQLException) {
+          SQLException exception = (SQLException) internal;
+
+          while (exception != null) {
+            LOG.error("[DETAILED ERROR] Internal exception ("
+                + exIndent
+                + ") : ", exception); // Log the exception
+            exception = exception.getNextException();
+            exIndent++;
+          }
+        }
+      }
+    }
   }
 
   // TODO Cache this method's results.
@@ -121,8 +153,8 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
    * Returns True if rollback DID NOT HAPPEN (i.e. if commit should continue).
    *
    * @param transactional The metadata annotaiton of the method
-   * @param e The exception to test for rollback
-   * @param txn A JPA Transaction to issue rollbacks on
+   * @param e             The exception to test for rollback
+   * @param txn           A JPA Transaction to issue rollbacks on
    */
   private boolean rollbackIfNecessary(Transactional transactional, Exception e,
                                       EntityTransaction txn) {
@@ -156,5 +188,9 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
     }
 
     return commit;
+  }
+
+  @Transactional
+  private static class Internal {
   }
 }
