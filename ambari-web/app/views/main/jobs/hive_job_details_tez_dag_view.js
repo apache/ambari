@@ -295,7 +295,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   createOperationPlanObj: function (vertexName, op) {
     var operatorPlanObj = [];
     var text = this.get('content.tezDag.vertices').findProperty('name', vertexName).get('operationPlan');
-    text = text.replace(/:"/g,'"');
+    text = text.replace(/:"/g,'"').replace(/([:,])(?=\S)/g,'$1 ');
     var jsonText =  $.parseJSON(text);
     var jsonText = op.findIn(jsonText);
     for (var key in jsonText) {
@@ -314,7 +314,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
   /**
    * Determines layout and creates Tez graph. In the process it populates the
    * visual model into 'dagVisualModel' field.
-   * 
+   *
    * Terminology: 'vertices' and 'edges' are Tez terms. 'nodes' and 'links' are
    * visual (d3) terms.
    */
@@ -729,8 +729,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         });
       };
     });
-    $('.svg-tooltip').tooltip({
-      placement : 'left'
+    App.tooltip($('.svg-tooltip'), {
+      placement : 'left',
+      template: '<div class="tooltip jobs-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
     });
 
     if (App.supports.debugJobsDag) {
