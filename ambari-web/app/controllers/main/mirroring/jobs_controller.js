@@ -96,8 +96,10 @@ App.MainDatasetJobsController = Em.Controller.extend({
   },
 
   onDeleteSuccess: function() {
-    this.get('content').deleteRecord();
+    var dataset = this.get('content');
+    dataset.deleteRecord();
     App.store.commit();
+    dataset.get('stateManager').transitionTo('loading');
     this.set('content', null);
     App.router.get('mainMirroringController').set('selectedDataset', null);
     App.router.send('gotoShowJobs');
