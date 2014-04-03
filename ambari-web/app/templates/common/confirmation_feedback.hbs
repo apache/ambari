@@ -18,3 +18,10 @@
 <div>
   {{view.parentView.statusMessage}}
 </div>
+{{#if view.parentView.additionalWarningMsg}}
+  <br />
+  <div class='alert'>
+    {{view.parentView.additionalWarningMsg}}
+  </div>
+{{/if}}
+

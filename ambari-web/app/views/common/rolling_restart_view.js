@@ -33,6 +33,19 @@ App.RollingRestartView = Em.View.extend({
   hostComponentName : null,
 
   /**
+   * Service name for components that should be restarted
+   * @type {String}
+   */
+  serviceName : null,
+
+  /**
+   * If service is in Maintenance Mode
+   * @type {bool}
+   */
+  isServiceInMM: false,
+
+
+  /**
    * Restart only components with <code>staleConfigs</code>
    * @type {bool}
    */
@@ -164,6 +177,17 @@ App.RollingRestartView = Em.View.extend({
     }
     return hostComponents;
   }.property('nonMaintainanceHostComponents', 'staleConfigsOnly'),
+
+  /**
+   * @type {String}
+   */
+  suggestTurnOnMaintenanceMsg : function() {
+    if (!this.get('isServiceInMM')) {
+      return Em.I18n.t('rollingrestart.dialog.msg.serviceNotInMM').format(this.get('serviceName'));
+    } else {
+      return null;
+    }
+  }.property('isServiceInMM'),
 
   /**
    * @type {String}

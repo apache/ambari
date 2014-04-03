@@ -394,7 +394,7 @@ App.MainHostController = Em.ArrayController.extend({
     });
 
     if (components.length) {
-      batchUtils.showRollingRestartPopup(components.objectAt(0).get('componentName'), false, components);
+      batchUtils.showRollingRestartPopup(components.objectAt(0).get('componentName'), service.get('displayName'), service.get('passiveState') === "ON", false, components);
     }
     else {
       App.ModalPopup.show({

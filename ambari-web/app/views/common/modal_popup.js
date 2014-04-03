@@ -145,10 +145,13 @@ App.showConfirmationPopup = function (primary, body, secondary) {
  * and in case of failure provide ability to retry to launch an operation.
  *
  * @param {Function} primary - "OK" button click handler
+ * @param {Object} bodyMessage - confirmMsg:{String},
+                                 confirmButton:{String},
+                                 additionalWarningMsg:{String},
  * @param {Function} secondary - "Cancel" button click handler
  * @return {*}
  */
-App.showConfirmationFeedBackPopup = function (primary, secondary) {
+App.showConfirmationFeedBackPopup = function (primary, bodyMessage, secondary) {
   if (!primary) {
     return false;
   }
@@ -158,6 +161,9 @@ App.showConfirmationFeedBackPopup = function (primary, secondary) {
       templateName: require('templates/common/confirmation_feedback')
     }),
     query: Em.Object.create({status: "INIT"}),
+    primary: function () {
+      return bodyMessage? bodyMessage.confirmButton : Em.I18n.t('ok');
+    }.property('bodyMessage'),
     onPrimary: function () {
       this.set('query.status', "INIT");
       this.set('disablePrimary', true);
@@ -165,7 +171,12 @@ App.showConfirmationFeedBackPopup = function (primary, secondary) {
       this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.sending'));
       primary(this.get('query'));
     },
-    statusMessage: Em.I18n.t('question.sure'),
+    statusMessage: function () {
+      return bodyMessage? bodyMessage.confirmMsg : Em.I18n.t('question.sure');
+    }.property('bodyMessage'),
+    additionalWarningMsg: function () {
+      return bodyMessage? bodyMessage.additionalWarningMsg : null;
+    }.property('bodyMessage'),
     watchStatus: function() {
       if (this.get('query.status') === "SUCCESS") {
         this.hide();

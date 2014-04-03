@@ -91,10 +91,18 @@ App.MainServiceItemController = Em.Controller.extend({
       return;
     }
     var self = this;
+    var serviceDisplayName = this.get('content.displayName');
+    var isMaintenanceOFF = this.get('content.passiveState') === 'OFF';
+    var bodyMessage = Em.Object.create({
+      confirmMsg: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmMsg').format(serviceDisplayName) : Em.I18n.t('question.sure'),
+      confirmButton: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('ok'),
+      additionalWarningMsg:  isMaintenanceOFF && serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null
+    });
+
     App.showConfirmationFeedBackPopup(function(query) {
       self.set('isPending', true);
       self.startStopPopupPrimary(serviceHealth, query);
-    });
+    }, bodyMessage);
   },
 
   startStopPopupPrimary: function (serviceHealth, query) {
@@ -187,9 +195,15 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   restartAllHostComponents : function(serviceName) {
+    var serviceDisplayName = this.get('content.displayName');
+    var bodyMessage = Em.Object.create({
+      confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
+      confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
+      additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
+     });
     App.showConfirmationFeedBackPopup(function(query) {
       batchUtils.restartAllServiceHostComponents(serviceName, false, query);
-    });
+    }, bodyMessage);
   },
 
   turnOnOffPassive: function(label) {
@@ -204,7 +218,7 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   rollingRestart: function(hostComponentName) {
-    batchUtils.launchHostComponentRollingRestart(hostComponentName, false, this.get('content.passiveState') === "ON");
+    batchUtils.launchHostComponentRollingRestart(hostComponentName, this.get('content.displayName'), this.get('content.passiveState') === "ON", false, this.get('content.passiveState') === "ON");
   },
 
   turnOnOffPassiveRequest: function(state,message) {

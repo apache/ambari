@@ -1648,14 +1648,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   restartAllStaleConfigComponents: function() {
     var self = this;
-    App.showConfirmationPopup(function () {
-      var selectedService = self.get('content.id');
-      batchUtils.restartAllServiceHostComponents(selectedService, true);
+    var serviceDisplayName = this.get('content.displayName');
+    var bodyMessage = Em.Object.create({
+      confirmMsg: Em.I18n.t('services.service.restartAll.confirmMsg').format(serviceDisplayName),
+      confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
+      additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
     });
+    App.showConfirmationFeedBackPopup(function(query) {
+      var selectedService = self.get('content.id');
+      batchUtils.restartAllServiceHostComponents(selectedService, true, query);
+    }, bodyMessage);
   },
 
   rollingRestartStaleConfigSlaveComponents: function(componentName) {
-    batchUtils.launchHostComponentRollingRestart(componentName.context, true);
+    batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('content.displayName'), this.get('content.passiveState') === "ON", true);
   },
 
   showHostsShouldBeRestarted: function() {

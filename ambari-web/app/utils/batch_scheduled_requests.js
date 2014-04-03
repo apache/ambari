@@ -230,9 +230,9 @@ module.exports = {
    *           Pre-select host-components which have stale
    *          configurations
    */
-  launchHostComponentRollingRestart: function(hostComponentName, staleConfigsOnly, skipMaintenance) {
+  launchHostComponentRollingRestart: function(hostComponentName, serviceName, isMaintenanceModeOn, staleConfigsOnly, skipMaintenance) {
     if (App.get('components.rollinRestartAllowed').contains(hostComponentName)) {
-      this.showRollingRestartPopup(hostComponentName, staleConfigsOnly, null, skipMaintenance);
+      this.showRollingRestartPopup(hostComponentName, serviceName, isMaintenanceModeOn, staleConfigsOnly, null, skipMaintenance);
     }
     else {
       this.showWarningRollingRestartPopup(hostComponentName);
@@ -246,7 +246,7 @@ module.exports = {
    * @param {App.hostComponent[]} hostComponents list of hostComponents that should be restarted (optional).
    * Using this parameter will reset hostComponentName
    */
-  showRollingRestartPopup: function(hostComponentName, staleConfigsOnly, hostComponents, skipMaintenance) {
+  showRollingRestartPopup: function(hostComponentName, serviceName, isMaintenanceModeOn, staleConfigsOnly, hostComponents, skipMaintenance) {
     hostComponents = hostComponents || [];
     var componentDisplayName = App.format.role(hostComponentName);
     if (!componentDisplayName) {
@@ -257,6 +257,8 @@ module.exports = {
       staleConfigsOnly : staleConfigsOnly,
       hostComponentName : hostComponentName,
       skipMaintenance: skipMaintenance,
+      serviceName: serviceName,
+      isServiceInMM: isMaintenanceModeOn,
       didInsertElement : function() {
         this.set('parentView.innerView', this);
         this.initialize();
@@ -270,6 +272,8 @@ module.exports = {
     App.ModalPopup.show({
       header : title,
       hostComponentName : hostComponentName,
+      serviceName: serviceName,
+      isServiceInMM: isMaintenanceModeOn,
       staleConfigsOnly : staleConfigsOnly,
       skipMaintenance: skipMaintenance,
       innerView : null,
