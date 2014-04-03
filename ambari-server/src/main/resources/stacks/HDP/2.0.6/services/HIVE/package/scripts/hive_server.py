@@ -21,7 +21,6 @@ limitations under the License.
 from resource_management import *
 from hive import hive
 from hive_service import hive_service
-from install_jars import install_hive_exec_jar
 from install_jars import install_tez_jars
 
 class HiveServer(Script):
@@ -41,8 +40,7 @@ class HiveServer(Script):
     self.configure(env) # FOR SECURITY
     
     install_tez_jars() # Put tez jars in hdfs
-    install_hive_exec_jar() # Put hive exec jar in hdfs
-    
+
     hive_service( 'hiveserver2',
                   action = 'start'
     )

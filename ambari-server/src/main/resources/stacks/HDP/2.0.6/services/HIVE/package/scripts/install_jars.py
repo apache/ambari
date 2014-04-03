@@ -19,60 +19,8 @@ limitations under the License.
 """
 
 from resource_management import *
-
 import os
 import fnmatch
-
-def install_hive_exec_jar():
-  import params
-  
-  hdfs_path_prefix = 'hdfs://'
-  if params.tez_lib_uris:
-    hdfs_path = params.hive_exec_hdfs_path
-
-    if hdfs_path.strip().find(hdfs_path_prefix, 0) != -1:
-      hdfs_path = hdfs_path.replace(hdfs_path_prefix, '')
-    pass
-
-    params.HdfsDirectory(hdfs_path,
-                         action="create",
-                         owner=params.hive_user,
-                         mode=0755
-    )
-
-    if params.security_enabled:
-      kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user};")
-    else:
-      kinit_if_needed = ""
-
-    if kinit_if_needed:
-      Execute(kinit_if_needed,
-              user=params.tez_user,
-              path='/bin'
-      )
-
-    hive_exec_jar_path = find_hive_exec_jar_path(params.hive_lib)
-    if hive_exec_jar_path is None:
-      hive_exec_jar_path = params.hive_exec_jar_path
-    pass
-
-    CopyFromLocal(hive_exec_jar_path,
-                  mode=0755,
-                  owner=params.hive_user,
-                  dest_dir=hdfs_path,
-                  kinnit_if_needed=kinit_if_needed,
-                  hdfs_user=params.hdfs_user
-    )
-  pass
-
-def find_hive_exec_jar_path(hive_lib_dir):
-  if os.path.exists(hive_lib_dir) and os.path.isdir(hive_lib_dir):
-    for file in os.listdir(hive_lib_dir):
-      file_path = os.path.join(hive_lib_dir, file)
-      if fnmatch.fnmatch(file, 'hive-exec*.jar') and not os.path.islink(file_path):
-        return file_path
-    pass
-  pass
 
 def install_tez_jars():
   import params

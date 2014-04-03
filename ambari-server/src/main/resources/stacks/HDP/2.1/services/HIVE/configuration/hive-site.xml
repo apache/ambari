@@ -382,15 +382,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.jar.directory</name>
-    <value>hdfs:///apps/hive/install</value>
-    <description>
-      This is the location hive in Tez mode will look for to find a site wide
-      installed hive instance.
-    </description>
-  </property>
-
-  <property>
     <name>hive.server2.tez.default.queues</name>
     <value></value>
     <description></description>

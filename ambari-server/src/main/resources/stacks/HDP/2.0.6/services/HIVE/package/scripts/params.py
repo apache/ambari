@@ -169,9 +169,6 @@ tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
 tez_user = config['configurations']['global']['tez_user']
 
-hive_exec_jar_path = '/usr/lib/hive/lib/hive-exec.jar'
-hive_exec_hdfs_path = default('/configurations/hive-site/hive.jar.directory', '/apps/hive/install')
-
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
