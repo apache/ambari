@@ -171,7 +171,7 @@ App.MainJobsView = App.TableView.extend({
    * @returns {String}
    */
   filteredJobs: function () {
-    return Em.I18n.t('jobs.filtered.jobs').format(this.get('controller.content.length'), this.get('controller.totalOfJobs'));
+    return Em.I18n.t('jobs.filtered.jobs').format(this.get('controller.content.length'), this.get('controller.filterObject.jobsLimit'));
   }.property('controller.content.length', 'controller.totalOfJobs'),
 
   pageContentObserver: function () {

@@ -414,10 +414,10 @@ App.MainJobsController = Em.Controller.extend({
 
   initializePagination: function() {
     var back_link_IDs = this.get('navIDs.backIDs.[]');
-    if(!back_link_IDs.contains(App.HiveJob.find().objectAt(0).get('id'))) {
-      back_link_IDs.push(App.HiveJob.find().objectAt(0).get('id'));
+    if(!back_link_IDs.contains(this.get('lastJobID'))) {
+      back_link_IDs.push(this.get('lastJobID'));
     }
-    this.set('filterObject.backFromId', App.HiveJob.find().objectAt(0).get('id'));
+    this.set('filterObject.backFromId', this.get('lastJobID'));
     this.get('filterObject').set('fromTs', App.get('currentServerTime'));
   },
 
