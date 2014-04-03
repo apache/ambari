@@ -246,11 +246,23 @@ public interface DBAccessor {
    * @param refTableName
    * @param columnName
    * @param refColumnName
-   * @return
+   * @return true if described relation exists
    * @throws SQLException
    */
   public boolean tableHasForeignKey(String tableName, String refTableName,
              String columnName, String refColumnName) throws SQLException;
+
+  /**
+   * Verify if table already has a FK constraint.
+   * @param tableName
+   * @param referenceTableName
+   * @param keyColumns
+   * @param referenceColumns
+   * @return true if described relation exists
+   * @throws SQLException
+   */
+  boolean tableHasForeignKey(String tableName, String referenceTableName, String[] keyColumns,
+                             String[] referenceColumns) throws SQLException;
 
   /**
    * Get a new DB session

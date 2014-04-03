@@ -28,7 +28,6 @@ import org.eclipse.persistence.logging.SessionLogEntry;
 import org.eclipse.persistence.platform.database.*;
 import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.DatabaseSession;
-import org.eclipse.persistence.sessions.Login;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +38,9 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -122,6 +121,10 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   private String convertObjectName(String objectName) throws SQLException {
+    //tolerate null names for proper usage in filters
+    if (objectName == null) {
+      return null;
+    }
     DatabaseMetaData metaData = getDatabaseMetaData();
     if (metaData.storesLowerCaseIdentifiers()) {
       return objectName.toLowerCase();
@@ -210,7 +213,12 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public boolean tableHasForeignKey(String tableName, String refTableName,
               String columnName, String refColumnName) throws SQLException {
-    boolean result = false;
+    return tableHasForeignKey(tableName, refTableName, new String[]{columnName}, new String[]{refColumnName});
+  }
+
+  @Override
+  public boolean tableHasForeignKey(String tableName, String referenceTableName, String[] keyColumns,
+                                    String[] referenceColumns) throws SQLException {
     DatabaseMetaData metaData = getDatabaseMetaData();
     String schemaFilter = null;
     if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
@@ -218,23 +226,56 @@ public class DBAccessorImpl implements DBAccessor {
       schemaFilter = configuration.getDatabaseUser();
     }
 
-    ResultSet rs = metaData.getCrossReference(null, schemaFilter, convertObjectName(tableName),
-      null, schemaFilter, convertObjectName(refTableName));
+    //NB: reference table contains pk columns while key table contains fk columns
+
+    ResultSet rs = metaData.getCrossReference(null, convertObjectName(schemaFilter), convertObjectName(referenceTableName),
+      null, convertObjectName(schemaFilter), convertObjectName(tableName));
+
+    List<String> pkColumns = new ArrayList<String>(referenceColumns.length);
+    for (String referenceColumn : referenceColumns) {
+      pkColumns.add(convertObjectName(referenceColumn));
+    }
+    List<String> fkColumns = new ArrayList<String>(keyColumns.length);
+    for (String keyColumn : keyColumns) {
+      fkColumns.add(convertObjectName(keyColumn));
+    }
 
     if (rs != null) {
       try {
         while (rs.next()) {
-          String refColumn = rs.getString("FKCOLUMN_NAME");
-          if (refColumn != null && refColumn.equalsIgnoreCase(refColumnName)) {
-            result = true;
+
+          String pkColumn = rs.getString("PKCOLUMN_NAME");
+          String fkColumn = rs.getString("FKCOLUMN_NAME");
+
+          int pkIndex = pkColumns.indexOf(pkColumn);
+          int fkIndex = fkColumns.indexOf(fkColumn);
+          if (pkIndex != -1 && fkIndex != -1) {
+            if (pkIndex != fkIndex) {
+              LOG.warn("Columns for FK constraint should be provided in exact order");
+            } else {
+              pkColumns.remove(pkIndex);
+              fkColumns.remove(fkIndex);
+            }
+
+
+          } else {
+            LOG.debug("pkCol={}, fkCol={} not found in provided column names, skipping", pkColumn, fkColumn); //TODO debug
           }
+
+
         }
+        if (pkColumns.isEmpty() && fkColumns.isEmpty()) {
+          return true;
+        }
+
       } finally {
         rs.close();
       }
     }
 
-    return result;
+
+    return false;
+
   }
 
   @Override
@@ -250,48 +291,33 @@ public class DBAccessorImpl implements DBAccessor {
                               String keyColumn, String referenceTableName,
                               String referenceColumn, boolean ignoreFailure) throws SQLException {
 
-    if (!tableHasForeignKey(tableName, referenceTableName, keyColumn, referenceColumn)) {
-
-      String query = dbmsHelper.getAddForeignKeyStatement(tableName, constraintName,
-        Collections.singletonList(keyColumn),
-        referenceTableName,
-        Collections.singletonList(referenceColumn)
-      );
-
-      try {
-        executeQuery(query);
-      } catch (SQLException e) {
-        LOG.warn("Add FK constraint failed" +
-          ", constraintName = " + constraintName +
-          ", tableName = " + tableName + ", errorCode = " + e.getErrorCode() +
-          ", message = " + e.getMessage());
-        LOG.debug("Exception on add FK constraint.", e);
-        if (!ignoreFailure) {
-          throw e;
-        }
-      }
-    }
+    addFKConstraint(tableName, constraintName, new String[]{keyColumn}, referenceTableName,
+      new String[]{referenceColumn}, ignoreFailure);
   }
 
   @Override
   public void addFKConstraint(String tableName, String constraintName,
                               String[] keyColumns, String referenceTableName,
                               String[] referenceColumns, boolean ignoreFailure) throws SQLException {
-    String query = dbmsHelper.getAddForeignKeyStatement(tableName, constraintName,
-        Arrays.asList(keyColumns),
-        referenceTableName,
-        Arrays.asList(referenceColumns)
-    );
+    if (!tableHasForeignKey(tableName, referenceTableName, keyColumns, referenceColumns)) {
+      String query = dbmsHelper.getAddForeignKeyStatement(tableName, constraintName,
+          Arrays.asList(keyColumns),
+          referenceTableName,
+          Arrays.asList(referenceColumns)
+      );
 
-    try {
-      executeQuery(query);
-    } catch (SQLException e) {
-      LOG.warn("Add FK constraint failed" +
-              ", constraintName = " + constraintName +
-              ", tableName = " + tableName, e);
-      if (!ignoreFailure) {
-        throw e;
+      try {
+        executeQuery(query);
+      } catch (SQLException e) {
+        LOG.warn("Add FK constraint failed" +
+                ", constraintName = " + constraintName +
+                ", tableName = " + tableName, e);
+        if (!ignoreFailure) {
+          throw e;
+        }
       }
+    } else {
+      LOG.info("Foreign Key constraint {} already exists, skipping", constraintName);
     }
   }
 
