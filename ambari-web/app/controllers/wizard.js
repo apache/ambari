@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+require('models/host');
 
 App.WizardController = Em.Controller.extend({
 

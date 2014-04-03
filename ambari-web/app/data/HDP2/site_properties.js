@@ -258,7 +258,7 @@ module.exports =
       "displayType": "integer",
       "category": "AppTimelineServer",
       "desription": "Length of time to wait between deletion cycles of leveldb timeline store in milliseconds.",
-      "value": 300000,
+      //"value": 300000,
       "serviceName": "YARN"
     },
     {
@@ -275,7 +275,7 @@ module.exports =
       "displayType": "checkbox",
       "category": "AppTimelineServer",
       "desription": "Enable age off of timeline store data.",
-      "value": true,
+      //"value": true,
       "serviceName": "YARN"
     },
     {
@@ -285,7 +285,7 @@ module.exports =
       "displayType": "integer",
       "category": "AppTimelineServer",
       "desription": "Time to live for timeline store data in milliseconds.",
-      "value": 2678400000,
+      //"value": 2678400000,
       "serviceName": "YARN"
     },
     {
