@@ -86,6 +86,9 @@ App.WizardStep6View = App.TableView.extend({
     disabledBinding: 'checkbox.isInstalled',
 
     click: function () {
+      if ($.browser.mozilla) {
+        this.toggleProperty('checkbox.checked');
+      }
       this.get('controller').checkCallback(this.get('checkbox.component'));
     }
   })
