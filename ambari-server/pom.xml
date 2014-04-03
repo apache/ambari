@@ -135,6 +135,7 @@
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
+            <exclude>**/*.pydevproject</exclude>
 
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>

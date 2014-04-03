@@ -114,6 +114,42 @@
           </packages>
         </osSpecific>
         <osSpecific>
+          <osType>redhat6</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>mysql-server</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>redhat5</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>mysql-server</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>oraclelinux6</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>mysql-server</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osType>oraclelinux5</osType>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>mysql-server</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
           <osType>centos5</osType>
           <packages>
             <package>
