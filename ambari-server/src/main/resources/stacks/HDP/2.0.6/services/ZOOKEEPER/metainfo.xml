@@ -21,7 +21,7 @@
     <service>
       <name>ZOOKEEPER</name>
       <comment>Centralized service which provides highly reliable distributed coordination</comment>
-      <version>3.4.5.2.1.1</version>
+      <version>3.4.5.2.0</version>
       <components>
 
         <component>

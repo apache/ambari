@@ -21,7 +21,7 @@
     <service>
       <name>WEBHCAT</name>
       <comment>This is comment for WEBHCAT service</comment>
-      <version>0.12.0.2.1.1</version>
+      <version>0.12.0.2.0</version>
       <components>
         <component>
           <name>WEBHCAT_SERVER</name>

@@ -21,7 +21,7 @@
     <service>
       <name>PIG</name>
       <comment>Scripting platform for analyzing large datasets</comment>
-      <version>0.12.0.2.1.1</version>
+      <version>0.12.0.2.0</version>
       <components>
         <component>
           <name>PIG</name>

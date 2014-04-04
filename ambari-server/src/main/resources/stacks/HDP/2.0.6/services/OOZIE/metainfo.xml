@@ -22,7 +22,7 @@
       <name>OOZIE</name>
       <comment>System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the &lt;a target="_blank" href="http://www.sencha.com/products/extjs/license/"&gt;ExtJS&lt;/a&gt; Library.
       </comment>
-      <version>4.0.0.2.1.1</version>
+      <version>4.0.0.2.0</version>
       <components>
         <component>
           <name>OOZIE_SERVER</name>
