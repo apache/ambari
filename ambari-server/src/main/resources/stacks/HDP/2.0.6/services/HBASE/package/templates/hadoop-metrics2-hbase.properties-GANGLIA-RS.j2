@@ -51,21 +51,21 @@ hbase.extendedperiod = 3600
 # hbase.class=org.apache.hadoop.metrics.ganglia.GangliaContext
 hbase.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
 hbase.period=10
-hbase.servers={{ganglia_server_host}}:8656
+hbase.servers={{ganglia_server_host}}:8660
 
 # Configuration of the "jvm" context for ganglia
 # Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
 # jvm.class=org.apache.hadoop.metrics.ganglia.GangliaContext
 jvm.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
 jvm.period=10
-jvm.servers={{ganglia_server_host}}:8656
+jvm.servers={{ganglia_server_host}}:8660
 
 # Configuration of the "rpc" context for ganglia
 # Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
 # rpc.class=org.apache.hadoop.metrics.ganglia.GangliaContext
 rpc.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
 rpc.period=10
-rpc.servers={{ganglia_server_host}}:8656
+rpc.servers={{ganglia_server_host}}:8660
 
 #Ganglia following hadoop example
 hbase.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31
@@ -77,4 +77,4 @@ hbase.sink.ganglia.period=10
 .sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both
 .sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40
 
-hbase.sink.ganglia.servers={{ganglia_server_host}}:8656
+hbase.sink.ganglia.servers={{ganglia_server_host}}:8660

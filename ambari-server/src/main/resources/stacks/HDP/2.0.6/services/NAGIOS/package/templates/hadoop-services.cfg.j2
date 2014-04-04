@@ -204,8 +204,9 @@ define service {
 {% endif %}
 
 {% if hostgroup_defs['resourcemanager'] %}
+{% for hostname in hostgroup_defs['resourcemanager'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for ResourceManager
         servicegroups           GANGLIA
@@ -214,11 +215,13 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
 {% endif %}
 
 {% if hostgroup_defs['historyserver2'] %}
+{% for hostname in hostgroup_defs['historyserver2'] %}
 define service {
-        hostgroup_name          ganglia-server
+        host_name	        {{ hostname }}
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Monitor process for HistoryServer
         servicegroups           GANGLIA
@@ -227,6 +230,7 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+{% endfor %}
 {% endif %}
 
 {% endif %}
