@@ -21,6 +21,79 @@ require('views/common/chart/pie');
 require('views/common/configs/services_config');
 
 
+describe('App.ServiceConfigView', function () {
+  var controller = App.WizardStep7Controller.create({
+    selectedServiceObserver: function(){},
+    switchConfigGroupConfigs: function(){}
+  });
+  var view = App.ServiceConfigView.create({
+    controller: controller
+  });
+  var testCases = [
+    {
+      title: 'selectedConfigGroup is null',
+      result: {
+        'category1': false,
+        'category2': true,
+        'category3': false
+      },
+      selectedConfigGroup: null,
+      selectedService: {
+        serviceName: 'TEST',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'category1', canAddProperty: false}),
+          App.ServiceConfigCategory.create({ name: 'category2', siteFileName: 'xml', canAddProperty: true}),
+          App.ServiceConfigCategory.create({ name: 'category3', siteFileName: 'xml', canAddProperty: false})
+        ]
+      }
+    },
+    {
+      title: 'selectedConfigGroup is default group',
+      result: {
+        'category1': true,
+        'category2': true,
+        'category3': false
+      },
+      selectedConfigGroup: {isDefault: true},
+      selectedService: {
+        serviceName: 'TEST',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'category1', canAddProperty: true}),
+          App.ServiceConfigCategory.create({ name: 'category2', siteFileName: 'xml', canAddProperty: true}),
+          App.ServiceConfigCategory.create({ name: 'category3', siteFileName: 'xml', canAddProperty: false})
+        ]
+      }
+    },
+    {
+      title: 'selectedConfigGroup is not default group',
+      result: {
+        'category1': false,
+        'category2': false
+      },
+      selectedConfigGroup: {},
+      selectedService: {
+        serviceName: 'TEST',
+        configCategories: [
+          App.ServiceConfigCategory.create({ name: 'category1', siteFileName: 'xml', canAddProperty: true}),
+          App.ServiceConfigCategory.create({ name: 'category2', siteFileName: 'xml', canAddProperty: false})
+        ]
+      }
+    }
+  ];
+  describe('#checkCanEdit', function () {
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        controller.set('selectedService', test.selectedService);
+        controller.set('selectedConfigGroup', test.selectedConfigGroup);
+        view.checkCanEdit();
+        controller.get('selectedService.configCategories').forEach(function (category) {
+          expect(category.get('canAddProperty')).to.equal(test.result[category.get('name')]);
+        });
+      });
+    });
+  });
+});
+
 describe('App.ServiceConfigsByCategoryView', function () {
 
   var view = App.ServiceConfigsByCategoryView.create({
@@ -101,6 +174,86 @@ describe('App.ServiceConfigsByCategoryView', function () {
         expect(view.sortByIndex(_test.configs).mapProperty('resultId')).to.deep.equal(result);
       })
     })
+  });
 
+  describe('#updateReadOnlyFlags', function () {
+    it('if canEdit is true then isEditable flag of configs shouldn\'t be changed', function () {
+      view.set('canEdit', true);
+      view.set('serviceConfigs', [
+        Em.Object.create({
+          name: 'config1',
+          isEditable: true
+        }),
+        Em.Object.create({
+          name: 'config2',
+          isEditable: false
+        })
+      ]);
+      view.updateReadOnlyFlags();
+      expect(view.get('serviceConfigs').findProperty('name', 'config1').get('isEditable')).to.equal(true);
+      expect(view.get('serviceConfigs').findProperty('name', 'config2').get('isEditable')).to.equal(false);
+    });
+    it('if canEdit is false then configs shouldn\'t be editable', function () {
+      view.set('canEdit', false);
+      view.set('serviceConfigs', [
+        Em.Object.create({
+          name: 'config1',
+          isEditable: true
+        }),
+        Em.Object.create({
+          name: 'config2',
+          isEditable: false
+        })
+      ]);
+      view.updateReadOnlyFlags();
+      expect(view.get('serviceConfigs').findProperty('name', 'config1').get('isEditable')).to.equal(false);
+      expect(view.get('serviceConfigs').findProperty('name', 'config2').get('isEditable')).to.equal(false);
+    });
+    it('if canEdit is false then config overrides shouldn\'t be editable', function () {
+      view.set('canEdit', false);
+      view.set('serviceConfigs', [
+        Em.Object.create({
+          name: 'config',
+          isEditable: true,
+          overrides: [
+            Em.Object.create({
+              name: 'override1',
+              isEditable: true
+            }),
+            Em.Object.create({
+              name: 'override2',
+              isEditable: false
+            })
+          ]
+        })
+      ]);
+      view.updateReadOnlyFlags();
+      var overrides = view.get('serviceConfigs').findProperty('name', 'config').get('overrides');
+      expect(overrides.findProperty('name', 'override1').get('isEditable')).to.equal(false);
+      expect(overrides.findProperty('name', 'override2').get('isEditable')).to.equal(false);
+    });
+    it('if canEdit is true then isEditable flag of overrides shouldn\'t be changed', function () {
+      view.set('canEdit', true);
+      view.set('serviceConfigs', [
+        Em.Object.create({
+          name: 'config',
+          isEditable: true,
+          overrides: [
+            Em.Object.create({
+              name: 'override1',
+              isEditable: true
+            }),
+            Em.Object.create({
+              name: 'override2',
+              isEditable: false
+            })
+          ]
+        })
+      ]);
+      view.updateReadOnlyFlags();
+      var overrides = view.get('serviceConfigs').findProperty('name', 'config').get('overrides');
+      expect(overrides.findProperty('name', 'override1').get('isEditable')).to.equal(true);
+      expect(overrides.findProperty('name', 'override2').get('isEditable')).to.equal(false);
+    })
   })
 });

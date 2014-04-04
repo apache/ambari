@@ -57,7 +57,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
     var rack = this.get('rack');
     var widthPercent = 100;
     var hostCount = rack.get('hosts.length');
-    if (hostCount < 11) {
+    if (hostCount && hostCount < 11) {
       widthPercent = (100 / hostCount) - 0.5;
     } else {
       widthPercent = 10; // max out at 10%

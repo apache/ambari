@@ -66,15 +66,15 @@ App.ServiceConfigView = Em.View.extend({
    * Check if we should show Custom Property category
    */
   checkCanEdit: function () {
-    var controller = App.get('router.'+this.get('controller.name'));
-    if(!this.get('controller.selectedService.configCategories')){
+    var controller = this.get('controller');
+    if (!controller.get('selectedService.configCategories')) {
       return;
     }
     var canAddProperty = true;
-    if(controller.get('selectedConfigGroup') && !controller.get('selectedConfigGroup').isDefault){
-     canAddProperty = false;
+    if (controller.get('selectedConfigGroup') && !controller.get('selectedConfigGroup').isDefault) {
+      canAddProperty = false;
     }
-    this.get('controller.selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
+    controller.get('selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
       if (config.get('canAddProperty') !== false) {
         config.set('canAddProperty', canAddProperty);
       }

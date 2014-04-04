@@ -85,7 +85,7 @@ App.RollingRestartView = Em.View.extend({
    */
   initialize : function() {
     if (this.get('batchSize') == -1 && this.get('interBatchWaitTimeSeconds') == -1 && this.get('tolerateSize') == -1) {
-      var restartCount = this.get('restartHostComponents');
+      var restartCount = this.get('restartHostComponents.length');
       var batchSize = 1;
       if (restartCount > 10) {
         batchSize = Math.ceil(restartCount / 10);
