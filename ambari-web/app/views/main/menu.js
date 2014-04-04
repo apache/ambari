@@ -47,6 +47,10 @@ App.MainMenuView = Em.CollectionView.extend({
     if (App.get('isAdmin')) {
       result.push({ label:Em.I18n.t('menu.item.admin'), routing:'admin'});
     }
+
+    if (App.supports.views) {
+      result.push({ label:Em.I18n.t('menu.item.views'), routing:'views'});
+    }
     return result;
   }.property(),
     /**

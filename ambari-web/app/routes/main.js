@@ -62,6 +62,14 @@ module.exports = Em.Route.extend({
     redirectsTo: 'dashboard'
   }),
 
+
+  views: Ember.Route.extend({
+    route: '/views',
+    connectOutlets: function (router, context) {
+      router.get('mainController').connectOutlet('mainViews');
+    }
+
+  }),
   test: Em.Route.extend({
     route: '/test',
     connectOutlets: function (router, context) {

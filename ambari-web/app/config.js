@@ -75,7 +75,8 @@ App.supports = {
   autoRollbackHA: false,
   appTimelineServer: true,
   jobs: true,
-  ubuntu: true
+  ubuntu: true,
+  views: false
 };
 
 if (App.enableExperimental) {

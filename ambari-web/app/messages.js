@@ -1973,6 +1973,7 @@ Em.I18n.translations = {
   'menu.item.mirroring':'Mirroring',
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
+  'menu.item.views':'Views',
 
   'jobs.nothingToShow': 'No jobs to display',
   'jobs.loadingTasks': 'Loading...',
