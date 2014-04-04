@@ -1833,7 +1833,7 @@ Em.I18n.translations = {
   'jobs.type':'Jobs Type',
   'jobs.type.hive':'Hive',
   'jobs.show.up.to':'Show up to',
-  'jobs.filtered.jobs':'{0} of {1} jobs showing',
+  'jobs.filtered.jobs':'{0} jobs showing',
   'jobs.filtered.clear':'clear filters',
   'jobs.column.id':'Id',
   'jobs.column.user':'User',
