@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,8 +19,19 @@ limitations under the License.
 '''
 
 import os
+import sys
 import platform
 
+
+def linux_distribution():
+  PYTHON_VER = sys.version_info[0] * 10 + sys.version_info[1]
+
+  if PYTHON_VER < 26:
+    linux_distribution = platform.dist()
+  else:
+    linux_distribution = platform.linux_distribution()
+
+  return linux_distribution
 
 class OSCheck:
 
@@ -36,7 +47,7 @@ class OSCheck:
     """
     # Read content from /etc/*-release file
     # Full release name
-    dist = platform.linux_distribution()
+    dist = linux_distribution()
     operatingSystem = dist[0].lower()
 
     # special cases
@@ -81,7 +92,7 @@ class OSCheck:
     """
     # Read content from /etc/*-release file
     # Full release name
-    dist = platform.linux_distribution()
+    dist = linux_distribution()
     dist = dist[1]
 
     if dist:
@@ -105,7 +116,7 @@ class OSCheck:
 
     In case cannot detect raises exception.
     """
-    dist = platform.linux_distribution()
+    dist = linux_distribution()
     dist = dist[2].lower()
 
     if dist:
