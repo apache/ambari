@@ -225,7 +225,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         // Since concurrent thread access is expected we err on the side of
         // performance with a ConcurrentHashMap and maybe get default/existing
         // ports for a few calls.
-        if (!currVersion.equals(oldVersion)) {
+        if (!currVersion.equals(oldVersion) ||
+          !clusterJmxPorts.containsKey(componentName)) {
+
           serviceConfigVersions.put(service, currVersion);
           
           Map<String, String> portMap = getDesiredConfigMap(clusterName,
