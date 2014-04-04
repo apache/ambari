@@ -103,6 +103,7 @@ public class NagiosPropertyProviderTest {
         streamProvider,
         "ServiceInfo/cluster_name",
         "ServiceInfo/service_name");
+    npp.forceReset();
     
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", "c1");
@@ -130,6 +131,7 @@ public class NagiosPropertyProviderTest {
         streamProvider,
         "ServiceInfo/cluster_name",
         "ServiceInfo/service_name");
+    npp.forceReset();
 
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", null);
@@ -146,13 +148,25 @@ public class NagiosPropertyProviderTest {
   
   @Test
   public void testNoNagiosServerCompoonent() throws Exception {
-    
+
+    Cluster cluster = clusters.getCluster("c1");
+    reset(cluster);
+
+    Service nagiosService = createMock(Service.class);
+    expect(cluster.getService("NAGIOS")).andReturn(nagiosService);
+
+    ServiceComponent nagiosServiceComponent = createMock(ServiceComponent.class);
+    expect(nagiosService.getServiceComponent("NAGIOS_SERVER")).andThrow(new AmbariException("No Component"));
+
+    replay(cluster, nagiosService);
+
     TestStreamProvider streamProvider = new TestStreamProvider("nagios_alerts.txt");
 
     NagiosPropertyProvider npp = new NagiosPropertyProvider(Resource.Type.Service,
         streamProvider,
         "ServiceInfo/cluster_name",
         "ServiceInfo/service_name");
+    npp.forceReset();
     
     Resource resource = new ResourceImpl(Resource.Type.Service);
     resource.setProperty("ServiceInfo/cluster_name", "c1");
