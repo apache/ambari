@@ -26,11 +26,13 @@ import imp
 import sys
 import pprint
 from mock.mock import MagicMock, patch
-from resource_management.core.environment import Environment
-from resource_management.libraries.script.config_dictionary import ConfigDictionary
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 import platform
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from resource_management.core.environment import Environment
+  from resource_management.libraries.script.config_dictionary import ConfigDictionary
+  from resource_management.libraries.script.script import Script
+  from resource_management.libraries.script.config_dictionary import UnknownConfiguration
+
 
 PATH_TO_STACKS = os.path.normpath("main/resources/stacks/HDP")
 PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
@@ -90,6 +92,7 @@ class RMFTestCase(TestCase):
             with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
               with patch.object(platform, 'linux_distribution', return_value=os_type):
                 method(RMFTestCase.env)
+    sys.path.remove(scriptsdir)
   
   def getConfig(self):
     return self.config_dict
