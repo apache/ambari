@@ -19,31 +19,18 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-import datetime
+import datetime, sys
 import  resource_management.libraries.functions
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
 class TestServiceCheck(RMFTestCase):
 
-  def test_service_check_default(self):
+  @patch("sys.exit")
+  def test_service_check_default(self, sys_exit_mock):
 
     self.executeScript("2.0.6/services/HIVE/package/scripts/service_check.py",
                         classname="HiveServiceCheck",
                         command="service_check",
                         config_file="default.json"
-    )
-    self.assertResourceCalled('File', '/tmp/hiveserver2Smoke.sh',
-                        content = StaticFile('hiveserver2Smoke.sh'),
-                        mode = 0755,
-    )
-    self.assertResourceCalled('File', '/tmp/hiveserver2.sql',
-                        content = StaticFile('hiveserver2.sql'),
-    )
-    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hiveserver2Smoke.sh jdbc:hive2://c6402.ambari.apache.org:10000 /tmp/hiveserver2.sql",
-                        logoutput = True,
-                        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                        tries = 3,
-                        user = 'ambari-qa',
-                        try_sleep = 5,
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
@@ -73,26 +60,13 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def test_service_check_secured(self):
+  @patch("sys.exit")
+  def test_service_check_secured(self, sys_exit_mock):
 
     self.executeScript("2.0.6/services/HIVE/package/scripts/service_check.py",
                         classname="HiveServiceCheck",
                         command="service_check",
                         config_file="secured.json"
-    )
-    self.assertResourceCalled('File', '/tmp/hiveserver2Smoke.sh',
-                        content = StaticFile('hiveserver2Smoke.sh'),
-                        mode = 0755,
-    )
-    self.assertResourceCalled('File', '/tmp/hiveserver2.sql',
-                        content = StaticFile('hiveserver2.sql'),
-    )
-    self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hiveserver2Smoke.sh jdbc:hive2://c6402.ambari.apache.org:10000/\\;principal=/etc/security/keytabs/hive.service.keytab /tmp/hiveserver2.sql",
-                        logoutput = True,
-                        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                        tries = 3,
-                        user = 'ambari-qa',
-                        try_sleep = 5,
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
