@@ -100,131 +100,18 @@ class GangliaMonitor(Script):
   def generate_slave_configs(self):
     import params
 
-    if params.is_namenode_master:
-      generate_daemon("gmond",
-                      name = "HDPNameNode",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_jtnode_master:
-      generate_daemon("gmond",
-                      name = "HDPJobTracker",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_hsnode_master:
-      generate_daemon("gmond",
-                      name = "HDPHistoryServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_hbase_master:
-      generate_daemon("gmond",
-                      name = "HDPHBaseMaster",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_slave:
-      generate_daemon("gmond",
-                      name = "HDPDataNode",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_tasktracker:
-      generate_daemon("gmond",
-                      name = "HDPTaskTracker",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_hbase_rs:
-      generate_daemon("gmond",
-                      name = "HDPHBaseRegionServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.is_flume:
-      generate_daemon("gmond",
-                      name = "HDPFlumeServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.pure_slave:
-      generate_daemon("gmond",
-                      name = "HDPSlaves",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+    generate_daemon("gmond",
+                    name = "HostMetrics",
+                    role = "monitor",
+                    owner = "root",
+                    group = params.user_group)
 
 
   def generate_master_configs(self):
     import params
 
-    if params.has_namenodes:
-      generate_daemon("gmond",
-                      name = "HDPNameNode",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_jobtracker:
-      generate_daemon("gmond",
-                      name = "HDPJobTracker",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_hbase_masters:
-      generate_daemon("gmond",
-                      name = "HDPHBaseMaster",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_historyserver:
-      generate_daemon("gmond",
-                      name = "HDPHistoryServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_slaves:
-      generate_daemon("gmond",
-                      name = "HDPDataNode",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_tasktracker:
-      generate_daemon("gmond",
-                      name = "HDPTaskTracker",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_hbase_rs:
-      generate_daemon("gmond",
-                      name = "HDPHBaseRegionServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
-    if params.has_flume:
-      generate_daemon("gmond",
-                      name = "HDPFlumeServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
-
     generate_daemon("gmond",
-                    name = "HDPSlaves",
+                    name = "HostMetrics",
                     role = "server",
                     owner = "root",
                     group = params.user_group)

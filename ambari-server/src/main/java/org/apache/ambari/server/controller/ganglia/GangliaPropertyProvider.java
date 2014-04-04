@@ -59,16 +59,16 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
   
   static {
     GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           Arrays.asList("HDPNameNode"));
-    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           Arrays.asList("HDPDataNode", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           Arrays.asList("HDPDataNode", "HostMetrics"));
     GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER",         Arrays.asList("HDPJobTracker"));
-    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER",        Arrays.asList("HDPTaskTracker", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER",        Arrays.asList("HDPTaskTracker", "HostMetrics"));
     GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER",    Arrays.asList("HDPResourceManager"));
-    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER",        Arrays.asList("HDPNodeManager", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER",        Arrays.asList("HDPNodeManager", "HostMetrics"));
     GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER",      Arrays.asList("HDPHistoryServer"));
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER",       Arrays.asList("HDPHBaseMaster"));
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", Arrays.asList("HDPHBaseRegionServer", "HDPSlaves"));
-    GANGLIA_CLUSTER_NAME_MAP.put("FLUME_SERVER",       Arrays.asList("HDPFlumeServer", "HDPSlaves"));
-    GANGLIA_CLUSTER_NAME_MAP.put("JOURNALNODE",        Arrays.asList("HDPJournalNode", "HDPSlaves"));
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", Arrays.asList("HDPHBaseRegionServer", "HostMetrics"));
+    GANGLIA_CLUSTER_NAME_MAP.put("FLUME_SERVER",       Arrays.asList("HDPFlumeServer", "HostMetrics"));
+    GANGLIA_CLUSTER_NAME_MAP.put("JOURNALNODE",        Arrays.asList("HDPJournalNode", "HostMetrics"));
     GANGLIA_CLUSTER_NAME_MAP.put("NIMBUS",             Arrays.asList("HDPNimbus"));
     GANGLIA_CLUSTER_NAME_MAP.put("SUPERVISOR",         Arrays.asList("HDPSupervisor"));
   }

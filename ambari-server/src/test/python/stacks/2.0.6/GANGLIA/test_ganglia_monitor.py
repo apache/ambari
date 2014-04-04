@@ -176,28 +176,7 @@ class TestGangliaMonitor(RMFTestCase):
         group = 'root',
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPNameNode -o root -g hadoop',
-        path = ['/usr/libexec/hdp/ganglia',
-           '/usr/sbin',
-           '/sbin:/usr/local/bin',
-           '/bin',
-           '/usr/bin'],
-    )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPNimbus -o root -g hadoop',
-        path = ['/usr/libexec/hdp/ganglia',
-           '/usr/sbin',
-           '/sbin:/usr/local/bin',
-           '/bin',
-           '/usr/bin'],
-    )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSupervisor -o root -g hadoop',
-        path = ['/usr/libexec/hdp/ganglia',
-           '/usr/sbin',
-           '/sbin:/usr/local/bin',
-           '/bin',
-           '/usr/bin'],
-    )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSlaves -o root -g hadoop',
+    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HostMetrics -o root -g hadoop',
         path = ['/usr/libexec/hdp/ganglia',
            '/usr/sbin',
            '/sbin:/usr/local/bin',
@@ -286,7 +265,7 @@ class TestGangliaMonitor(RMFTestCase):
            '/bin',
            '/usr/bin'],
     )
-    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HDPSlaves -m -o root -g hadoop',
+    self.assertResourceCalled('Execute', '/usr/libexec/hdp/ganglia/setupGanglia.sh -c HostMetrics -m -o root -g hadoop',
         path = ['/usr/libexec/hdp/ganglia',
            '/usr/sbin',
            '/sbin:/usr/local/bin',

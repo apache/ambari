@@ -39,7 +39,7 @@ public class GangliaHostPropertyProvider extends GangliaPropertyProvider{
 
   static {
     GANGLIA_CLUSTER_NAMES.add("HDPNameNode");
-    GANGLIA_CLUSTER_NAMES.add("HDPSlaves");
+    GANGLIA_CLUSTER_NAMES.add("HostMetrics");
     GANGLIA_CLUSTER_NAMES.add("HDPJobTracker");
     GANGLIA_CLUSTER_NAMES.add("HDPResourceManager");
     GANGLIA_CLUSTER_NAMES.add("HDPHBaseMaster");

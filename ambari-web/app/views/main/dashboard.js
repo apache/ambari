@@ -526,7 +526,7 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
   },
 
   gangliaUrl: function () {
-    return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
+    return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HostMetrics&tab=m&vn=";
   }.property('App.router.clusterController.gangliaUrl'),
 
   showAlertsPopup: function (event) {
