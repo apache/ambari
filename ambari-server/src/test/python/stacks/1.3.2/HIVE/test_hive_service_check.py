@@ -19,9 +19,10 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-import datetime
+import datetime, socket
 import  resource_management.libraries.functions
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
+@patch("socket.socket", new = MagicMock())
 class TestServiceCheck(RMFTestCase):
 
   @patch("sys.exit")
