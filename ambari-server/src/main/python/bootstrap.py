@@ -37,6 +37,7 @@ MAX_PARALLEL_BOOTSTRAPS = 20
 # How many seconds to wait between polling parallel bootstraps
 POLL_INTERVAL_SEC = 1
 DEBUG=False
+PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages "
 
 
 class HostLog:
@@ -135,7 +136,7 @@ class SSH:
 class Bootstrap(threading.Thread):
   """ Bootstrap the agent on a separate host"""
   TEMP_FOLDER = "/tmp"
-  OS_CHECK_SCRIPT_FILENAME = "os_check.py"
+  OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   AMBARI_REPO_FILENAME = "ambari.repo"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
   PASSWORD_FILENAME = "host_pass"
@@ -328,7 +329,7 @@ class Bootstrap(threading.Thread):
     self.host_log.write("Running OS type check...")
     command = "chmod a+x %s && %s %s" % \
               (self.getOsCheckScriptRemoteLocation(),
-               self.getOsCheckScriptRemoteLocation(),  params.cluster_os_type)
+               PYTHON_ENV + self.getOsCheckScriptRemoteLocation(), params.cluster_os_type)
 
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)

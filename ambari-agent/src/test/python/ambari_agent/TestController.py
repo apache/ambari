@@ -22,14 +22,19 @@ limitations under the License.
 import StringIO
 import ssl
 import unittest, threading
-from ambari_agent import Controller, ActionQueue
-from ambari_agent import hostname
 import sys
-from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
 from mock.mock import patch, MagicMock, call, Mock
 import logging
+import platform
 from threading import Event
 
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent import Controller, ActionQueue
+  from ambari_agent import hostname
+  from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
+  from common_functions import OSCheck
+
+@patch.object(platform, "linux_distribution", new = ('Suse','11','Final'))
 class TestController(unittest.TestCase):
 
   logger = logging.getLogger()
@@ -130,9 +135,13 @@ class TestController(unittest.TestCase):
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(Controller, "ActionQueue")
-  def test_run(self, ActionQueue_mock, installMock, buildMock):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_run(self, get_os_version_mock, get_os_type_mock, ActionQueue_mock, installMock, buildMock):
     aq = MagicMock()
     ActionQueue_mock.return_value = aq
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
 
     buildMock.return_value = "opener"
     registerAndHeartbeat  = MagicMock("registerAndHeartbeat")
@@ -164,10 +173,14 @@ class TestController(unittest.TestCase):
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(ActionQueue.ActionQueue, "run")
-  def test_repeatRegistration(self,
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_repeatRegistration(self, get_os_version_mock, get_os_type_mock,
                               run_mock, installMock, buildMock):
 
     registerAndHeartbeat = MagicMock(name="registerAndHeartbeat")
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
 
     self.controller.registerAndHeartbeat = registerAndHeartbeat
     self.controller.run()

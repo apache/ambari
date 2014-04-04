@@ -19,11 +19,14 @@ limitations under the License.
 '''
 import tempfile
 from unittest import TestCase
-from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_agent.ActualConfigHandler import ActualConfigHandler
 import os
 import logging
 from mock.mock import patch
+
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent.AmbariConfig import AmbariConfig
+  from ambari_agent.ActualConfigHandler import ActualConfigHandler
+
 
 class TestActualConfigHandler(TestCase):
 

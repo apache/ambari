@@ -244,16 +244,16 @@
                 </source>
               </sources>
             </mapping>
-              <mapping>
-                  <directory>${common_functions.install.dir}</directory>
-                  <sources>
-                      <source>
-                          <location>
-                              ${project.basedir}/../ambari-common/src/main/python/common_functions
-                          </location>
-                      </source>
-                  </sources>
-              </mapping>
+            <mapping>
+              <directory>${common_functions.install.dir}</directory>
+              <sources>
+                <source>
+                  <location>
+                    ${project.basedir}/../ambari-common/src/main/python/common_functions
+                  </location>
+                </source>
+              </sources>
+            </mapping>
               <mapping>
               <directory>/usr/sbin</directory>
               <filemode>755</filemode>
@@ -417,7 +417,7 @@
                   <location>src/main/python/setupAgent.py</location>
                 </source>
                 <source>
-                  <location>${project.basedir}/../ambari-common/src/main/python/common_functions/os_check.py</location>
+                  <location>src/main/python/os_check_type.py</location>
                 </source>
               </sources>
             </mapping>
@@ -760,11 +760,11 @@
             </mapper>
           </data>
           <data>
-            <src>${project.basedir}/../ambari-common/src/main/python/common_functions/os_check.py</src>
+            <src>src/main/python/os_check_type.py</src>
             <type>file</type>
             <mapper>
               <type>perm</type>
-              <prefix>/usr/lib/python2.6/site-packages/common_functions</prefix>
+              <prefix>/usr/lib/python2.6/site-packages/ambari_server</prefix>
               <user>root</user>
               <group>root</group>
               <filemode>755</filemode>
@@ -797,6 +797,19 @@
               <filemode>755</filemode>
             </mapper>
           </data>
+            <data>
+              <src>
+                ${project.basedir}/../ambari-common/src/main/python/common_functions
+              </src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${common_functions.install.dir}</prefix>
+                <filemode>755</filemode>
+                <user>root</user>
+                <group>root</group>
+              </mapper>
+            </data>
           </dataSet>
         </configuration>
       </plugin>

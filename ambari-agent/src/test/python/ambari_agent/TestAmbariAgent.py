@@ -23,8 +23,9 @@ import subprocess
 import os
 import sys
 from mock.mock import MagicMock, patch, ANY
-from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
-from ambari_agent import AmbariAgent
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
+  from ambari_agent import AmbariAgent
 
 
 class TestAmbariAgent(unittest.TestCase):

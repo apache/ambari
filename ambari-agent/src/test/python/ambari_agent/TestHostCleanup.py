@@ -28,6 +28,7 @@ import tempfile
 import os.path
 import optparse
 import logging
+from common_functions import OSCheck
 
 PACKAGE_SECTION = "packages"
 PACKAGE_KEY = "pkg_list"
@@ -174,7 +175,7 @@ class TestHostCleanup(TestCase):
   @patch.object(HostCleanup.HostCleanup, 'get_additional_dirs')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
-  @patch.object(HostCleanup.HostCleanup, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   @patch.object(HostCleanup.HostCleanup, 'do_kill_processes')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_files_silent')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_dir_silent')
@@ -220,7 +221,7 @@ class TestHostCleanup(TestCase):
   @patch.object(HostCleanup.HostCleanup, 'get_user_ids')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
-  @patch.object(HostCleanup.HostCleanup, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   @patch.object(HostCleanup.HostCleanup, 'do_kill_processes')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_files_silent')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_dir_silent')
@@ -260,7 +261,7 @@ class TestHostCleanup(TestCase):
     sys.stdout = sys.__stdout__
 
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
-  @patch.object(HostCleanup.HostCleanup, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   @patch.object(HostCleanup.HostCleanup, 'do_kill_processes')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_files_silent')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_dir_silent')
@@ -340,7 +341,7 @@ class TestHostCleanup(TestCase):
 
 
   @patch.object(HostCleanup.HostCleanup, 'run_os_command')
-  @patch.object(HostCleanup.HostCleanup, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   def test_do_earse_packages(self, get_os_type_method, run_os_command_method):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -373,7 +374,7 @@ class TestHostCleanup(TestCase):
     sys.stdout = sys.__stdout__
 
   @patch.object(HostCleanup.HostCleanup, 'get_files_in_dir')
-  @patch.object(HostCleanup.HostCleanup, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   def test_find_repo_files_for_repos(self, get_os_type_method,
                                     get_files_in_dir_method):
     out = StringIO.StringIO()

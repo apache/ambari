@@ -111,11 +111,11 @@ class Facter():
 
   # Returns the full name of the OS
   def getOperatingSystem(self):
-    return OSCheck().get_os_type()
+    return OSCheck.get_os_type()
 
   # Returns the OS version
   def getOperatingSystemRelease(self):
-    return OSCheck().get_os_version()
+    return OSCheck.get_os_version()
 
   # Returns the OS TimeZone
   def getTimeZone(self):
@@ -151,7 +151,7 @@ class Facter():
   # Returns the operating system family
 
   def getOsFamily(self):
-    return OSCheck().get_os_family()
+    return OSCheck.get_os_family()
 
   def isSeLinux(self):
 

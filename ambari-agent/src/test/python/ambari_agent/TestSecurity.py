@@ -19,22 +19,23 @@ limitations under the License.
 '''
 import StringIO
 import sys, subprocess
-
-from ambari_agent import NetUtil
-from ambari_agent.security import CertificateManager
 from mock.mock import MagicMock, patch, ANY
 import mock.mock
 import unittest
-from ambari_agent import ProcessHelper, main
 import logging
 import signal
-from ambari_agent.AmbariConfig import AmbariConfig
 import ConfigParser
 import ssl
 import os
 import tempfile
-from ambari_agent.Controller import Controller
-from ambari_agent import security
+
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent import NetUtil
+  from ambari_agent.security import CertificateManager
+  from ambari_agent import ProcessHelper, main
+  from ambari_agent.AmbariConfig import AmbariConfig
+  from ambari_agent.Controller import Controller
+  from ambari_agent import security
 
 aa = mock.mock.mock_open()
 class TestSecurity(unittest.TestCase):

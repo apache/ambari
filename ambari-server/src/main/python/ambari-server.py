@@ -51,7 +51,8 @@ SERVER_START_DEBUG = False
 
 # OS info
 OS_VERSION = OSCheck().get_os_major_version()
-OS = OSCheck().get_os_type()
+OS_TYPE = OSCheck.get_os_type()
+OS_FAMILY = OSCheck.get_os_family()
 
 # action commands
 SETUP_ACTION = "setup"
@@ -242,11 +243,11 @@ CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
                         '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
 
 PG_ERROR_BLOCKED = "is being accessed by other users"
-PG_STATUS_RUNNING = utils.get_postgre_running_status(OS)
+PG_STATUS_RUNNING = utils.get_postgre_running_status(OS_TYPE)
 PG_DEFAULT_PASSWORD = "bigdata"
 SERVICE_CMD = "/usr/bin/env service"
 PG_SERVICE_NAME = "postgresql"
-PG_HBA_DIR = utils.get_postgre_hba_dir(OS)
+PG_HBA_DIR = utils.get_postgre_hba_dir(OS_TYPE)
 
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
 if os.path.isfile("/usr/bin/postgresql-setup"):
@@ -493,11 +494,11 @@ class OpenSuseFirewallChecks(FirewallChecks):
 
 
 def get_firewall_object():
-  if OS == utils.OS_UBUNTU:
+  if OS_TYPE == utils.OS_UBUNTU:
     return UbuntuFirewallChecks()
-  elif OS == utils.OS_FEDORA and int(OS_VERSION) >= 18:
+  elif OS_TYPE == utils.OS_FEDORA and int(OS_VERSION) >= 18:
     return Fedora18FirewallChecks()
-  elif OS == utils.OS_OPENSUSE:
+  elif OS_TYPE == utils.OS_OPENSUSE:
     return OpenSuseFirewallChecks()
   else:
     return FirewallChecks()
@@ -1056,7 +1057,7 @@ def check_postgre_up():
     return 0
   else:
     # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
-    if OS != utils.OS_UBUNTU:
+    if OS_TYPE != utils.OS_UBUNTU:
       print "Running initdb: This may take upto a minute."
       retcode, out, err = run_os_command(PG_INITDB_CMD)
       if retcode == 0:
@@ -1068,7 +1069,7 @@ def check_postgre_up():
                                  stdin=subprocess.PIPE,
                                  stderr=subprocess.PIPE
                                  )
-      if OS == utils.OS_SUSE:
+      if OS_TYPE == utils.OS_SUSE:
         time.sleep(20)
         result = process.poll()
         print_info_msg("Result of postgres start cmd: " + str(result))
@@ -1985,9 +1986,7 @@ def configure_os_settings():
     print_error_msg("Non-Linux systems are not supported")
     return -1
 
-  os_name = OSCheck().get_os_family()
-  os_version = OS_VERSION
-  master_os_type = os_name + os_version
+  master_os_type = OS_FAMILY + OS_VERSION
   write_property(OS_TYPE_PROPERTY, master_os_type)
   return 0
 

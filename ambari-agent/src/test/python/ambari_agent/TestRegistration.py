@@ -23,19 +23,23 @@ import os
 import tempfile
 from mock.mock import patch
 from mock.mock import MagicMock
-from ambari_agent.Register import Register
-from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_agent.HostInfo import HostInfo
+
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent.Register import Register
+  from ambari_agent.AmbariConfig import AmbariConfig
+  from ambari_agent.HostInfo import HostInfo
+  from common_functions import OSCheck
 
 class TestRegistration(TestCase):
-
-  @patch.object(HostInfo, 'get_os_type')
-  def test_registration_build(self, get_os_type_method):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_registration_build(self, get_os_version_mock, get_os_type_mock):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
     config.set('agent', 'current_ping_port', '33777')
-    get_os_type_method.return_value = 'redhat'
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
     ver_file = os.path.join(tmpdir, "version")
     with open(ver_file, "w") as text_file:
       text_file.write("1.3.0")

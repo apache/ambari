@@ -20,18 +20,21 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-from ambari_agent.Heartbeat import Heartbeat
-from ambari_agent.ActionQueue import ActionQueue
-from ambari_agent.LiveStatus import LiveStatus
-from ambari_agent import AmbariConfig
 import socket
 import os
 import time
 from mock.mock import patch, MagicMock, call
-from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
-from ambari_agent.HostInfo import HostInfo
 import StringIO
 import sys
+
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent.Heartbeat import Heartbeat
+  from ambari_agent.ActionQueue import ActionQueue
+  from ambari_agent.LiveStatus import LiveStatus
+  from ambari_agent import AmbariConfig
+  from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
+  from ambari_agent.HostInfo import HostInfo
+
 
 class TestHeartbeat(TestCase):
 

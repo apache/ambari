@@ -317,7 +317,7 @@ class TestBootstrap(TestCase):
                                None, "8440")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     ocs = bootstrap_obj.getOsCheckScript()
-    self.assertEquals(ocs, "scriptDir/os_check.py")
+    self.assertEquals(ocs, "scriptDir/os_check_type.py")
 
 
   @patch.object(Bootstrap, "getRemoteName")
@@ -326,7 +326,7 @@ class TestBootstrap(TestCase):
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440")
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    v = "/tmp/os_check1374259902.py"
+    v = "/tmp/os_check_type1374259902.py"
     getRemoteName_mock.return_value = v
     ocs = bootstrap_obj.getOsCheckScriptRemoteLocation()
     self.assertEquals(ocs, v)
@@ -459,7 +459,7 @@ class TestBootstrap(TestCase):
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command, "chmod a+x OsCheckScriptRemoteLocation &&"
-                              " OsCheckScriptRemoteLocation centos6")
+                              " env PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages OsCheckScriptRemoteLocation centos6")
 
 
   @patch.object(SSH, "__init__")

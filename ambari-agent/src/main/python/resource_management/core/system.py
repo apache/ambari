@@ -68,7 +68,7 @@ class System(object):
     
     In case cannot detect --> Fail
     """
-    return OSCheck().get_os_version()
+    return OSCheck.get_os_version()
   
   @lazy_property
   def os_release_name(self):
@@ -76,7 +76,7 @@ class System(object):
     For Ubuntu 12.04:
     precise
     """
-    return OSCheck().get_os_release_name()
+    return OSCheck.get_os_release_name()
                        
   @lazy_property
   def os_type(self):
@@ -88,7 +88,7 @@ class System(object):
     
     In case cannot detect raises exception.
     """
-    return OSCheck().get_os_type()
+    return OSCheck.get_os_type()
     
   @lazy_property
   def os_family(self):
@@ -98,7 +98,7 @@ class System(object):
     
     In case cannot detect raises exception
     """
-    return OSCheck().get_os_family()
+    return OSCheck.get_os_family()
 
   @lazy_property
   def ec2(self):

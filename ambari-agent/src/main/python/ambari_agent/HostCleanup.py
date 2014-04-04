@@ -286,7 +286,7 @@ class HostCleanup:
 
   def find_repo_files_for_repos(self, repoNames):
     repoFiles = []
-    osType = self.get_os_type()
+    osType = OSCheck.get_os_family()
     repoNameList = []
     for repoName in repoNames:
       if len(repoName.strip()) > 0:
@@ -321,7 +321,7 @@ class HostCleanup:
       packageStr = ' '.join(packageList)
       logger.debug("Erasing packages: " + packageStr)
     if packageStr is not None and packageStr:
-      os_name = self.get_os_type()
+      os_name = OSCheck.get_os_family()
       command = ''
       if os_name == 'suse':
         command = PACKAGE_ERASE_CMD_SUSE.format(packageStr)
@@ -410,10 +410,6 @@ class HostCleanup:
 
   def is_current_user_root(self):
     return os.getuid() == 0
-
-  def get_os_type(self):
-    return OSCheck().get_os_family()
-
 
   # Run command as sudoer by default, if root no issues
   def run_os_command(self, cmd, runWithSudo=True):

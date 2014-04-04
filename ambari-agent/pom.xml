@@ -538,6 +538,19 @@
                 <filemode>755</filemode>
               </mapper>
             </data>
+            <data>
+              <src>
+                ${project.basedir}/../ambari-common/src/main/python/common_functions
+              </src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>${common_functions.install.dir}</prefix>
+                <filemode>755</filemode>
+                <user>root</user>
+                <group>root</group>
+              </mapper>
+            </data>
           </dataSet>
         </configuration>
       </plugin>

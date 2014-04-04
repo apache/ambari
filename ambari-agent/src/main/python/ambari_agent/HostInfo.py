@@ -48,7 +48,7 @@ class HostInfo:
 
   # List of live services checked for on the host, takes a map of plan strings
   DEFAULT_LIVE_SERVICES = [
-    {"redhat":"ntpd", "suse":"ntp", "ubuntu":"ntp"}
+    {"redhat":"ntpd", "suse":"ntp", "debian":"ntp"}
   ]
 
   # Set of default users (need to be replaced with the configured user names)
@@ -103,13 +103,13 @@ class HostInfo:
   TIMEOUT_SECONDS = 60
   RESULT_UNAVAILABLE = "unable_to_determine"
 
-  OS_NAME = OSCheck().get_os_family()
-  OS_UBUNTU = 'ubuntu'
+  OS_FAMILY = OSCheck.get_os_family()
+  OS_UBUNTU_DEBIAN = 'debian'
   # service cmd
   SERVICE_CMD = "/sbin/service"
   FIREWALL_SERVICE_NAME = "iptables"
   # on ubuntu iptables service is called ufw
-  if OS_NAME == OS_UBUNTU:
+  if OS_FAMILY == OS_UBUNTU_DEBIAN:
     SERVICE_CMD = "/usr/sbin/service"
     FIREWALL_SERVICE_NAME = "ufw"
 
@@ -163,11 +163,8 @@ class HostInfo:
         result['target'] = realConf
         etcResults.append(result)
 
-  def get_os_type(self):
-    return OSCheck().get_os_family()
-
   def checkLiveServices(self, services, result):
-    osType = self.get_os_type()
+    osType = OSCheck.get_os_family()
     for service in services:
       svcCheckResult = {}
       if isinstance(service, dict):
@@ -313,7 +310,7 @@ class HostInfo:
     dict['umask'] = str(self.getUMask())
 
     # detailed host check is not available for Suse
-    isSuse =  'suse' == self.get_os_type()
+    isSuse =  'suse' == OSCheck.get_os_family()
 
     dict['iptablesIsRunning'] = self.checkIptables()
 

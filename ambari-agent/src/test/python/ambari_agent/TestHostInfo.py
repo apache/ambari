@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+
 from unittest import TestCase
 import logging
 import unittest
@@ -25,12 +26,15 @@ import subprocess
 from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
-from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
-from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
-from ambari_agent.HostInfo import HostInfo
-from ambari_agent.Hardware import Hardware
-from ambari_agent.AmbariConfig import AmbariConfig
-from resource_management.core.system import System
+
+with patch("platform.linux_distribution", return_value = ('redhat','11','Final')):
+  from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
+  from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
+  from ambari_agent.HostInfo import HostInfo
+  from ambari_agent.Hardware import Hardware
+  from ambari_agent.AmbariConfig import AmbariConfig
+  from resource_management.core.system import System
+  from common_functions import OSCheck
 
 @patch.object(System, "os_family", new = 'redhat')
 class TestHostInfo(TestCase):
@@ -232,7 +236,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(newlist[1]['status'], "Invalid home directory")
 
 
-  @patch.object(HostInfo, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
   @patch.object(PackagesAnalyzer, 'allAvailablePackages')
@@ -272,7 +276,7 @@ class TestHostInfo(TestCase):
     self.assertTrue('agentTimeStampAtReporting' in dict['hostHealth'])
 
 
-  @patch.object(HostInfo, 'get_os_type')
+  @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
   @patch.object(PackagesAnalyzer, 'allAvailablePackages')
@@ -441,7 +445,7 @@ class TestHostInfo(TestCase):
     self.assertEquals(result, {})
 
 
-  @patch.object(HostInfo, "get_os_type")
+  @patch.object(OSCheck, "get_os_type")
   @patch("subprocess.Popen")
   def test_checkLiveServices(self, subproc_popen, get_os_type_method):
     hostInfo = HostInfo()

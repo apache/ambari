@@ -19,14 +19,23 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from ambari_agent import hostname
-from ambari_agent.Hardware import Hardware
 from mock.mock import patch
-from ambari_agent.Facter import Facter
 import unittest
+import platform
 
+with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_agent import hostname
+  from ambari_agent.Hardware import Hardware
+  from ambari_agent.Facter import Facter
+  from common_functions import OSCheck
+
+@patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
 class TestHardware(TestCase):
-  def test_build(self):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_build(self, get_os_version_mock, get_os_type_mock):
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
     hardware = Hardware()
     result = hardware.get()
     osdisks = hardware.osdisks()
@@ -79,9 +88,13 @@ class TestHardware(TestCase):
 
   @patch.object(hostname,"hostname")
   @patch.object(Facter, "getFqdn")
-  def test_fqdnDomainHostname(self, facter_getFqdn_mock, hostname_mock):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_fqdnDomainHostname(self, get_os_version_mock, get_os_type_mock, facter_getFqdn_mock, hostname_mock):
     facter_getFqdn_mock.return_value = "ambari.apache.org"
     hostname_mock.return_value = 'ambari'
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
     self.assertEquals(result['hostname'], "ambari")
@@ -89,9 +102,13 @@ class TestHardware(TestCase):
     self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
 
   @patch.object(Facter, "setDataUpTimeOutput")
-  def test_uptimeSecondsHoursDays(self, facter_setDataUpTimeOutput_mock):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_uptimeSecondsHoursDays(self, get_os_version_mock, get_os_type_mock, facter_setDataUpTimeOutput_mock):
     # 3 days + 1 hour + 13 sec
     facter_setDataUpTimeOutput_mock.return_value = "262813.00 123.45"
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
     self.assertEquals(result['uptime_seconds'], '262813')
@@ -99,7 +116,9 @@ class TestHardware(TestCase):
     self.assertEquals(result['uptime_days'], '3')
 
   @patch.object(Facter, "setMemInfoOutput")
-  def test_facterMemInfoOutput(self, facter_setMemInfoOutput_mock):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_facterMemInfoOutput(self, get_os_version_mock, get_os_type_mock, facter_setMemInfoOutput_mock):
 
     facter_setMemInfoOutput_mock.return_value = '''
 MemTotal:        1832392 kB
@@ -112,6 +131,8 @@ SwapTotal:       2139592 kB
 SwapFree:        1598676 kB
     '''
 
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
     self.assertEquals(result['memorysize'], 1832392)
@@ -121,7 +142,9 @@ SwapFree:        1598676 kB
     self.assertEquals(result['swapfree'], '1.52 GB')
 
   @patch.object(Facter, "setDataIfConfigOutput")
-  def test_facterDataIfConfigOutput(self, facter_setDataIfConfigOutput_mock):
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  def test_facterDataIfConfigOutput(self, get_os_version_mock, get_os_type_mock, facter_setDataIfConfigOutput_mock):
 
     facter_setDataIfConfigOutput_mock.return_value = '''
 eth0      Link encap:Ethernet  HWaddr 08:00:27:C9:39:9E
@@ -152,6 +175,8 @@ lo        Link encap:Local Loopback
           RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
     '''
 
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
     self.assertEquals(result['ipaddress'], '10.0.2.15')
