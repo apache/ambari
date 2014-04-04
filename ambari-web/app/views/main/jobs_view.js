@@ -175,11 +175,6 @@ App.MainJobsView = App.TableView.extend({
   }.property('controller.content.length', 'controller.totalOfJobs'),
 
   pageContentObserver: function () {
-    if (!$.browser.mozilla) {
-      $('.job-link').on('mouseleave', function() {
-        $('.tooltip').remove();
-      });
-    };
     if (!this.get('controller.loading')) {
       if ($('.tooltip').length) {
         Ember.run.later(this, function() {
