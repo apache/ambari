@@ -168,7 +168,7 @@ limitations under the License.
 
   <property>
     <name>hive.optimize.bucketmapjoin.sortedmerge</name>
-    <value>true</value>
+    <value>false</value>
     <description> If the tables being joined are sorted and bucketized on the join columns, and they have the same number
       of buckets, a sort-merge join can be performed by setting this parameter as true.
     </description>
