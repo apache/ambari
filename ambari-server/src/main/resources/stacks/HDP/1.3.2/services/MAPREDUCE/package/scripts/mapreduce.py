@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management import *
 import sys
+import os
 
 
 def mapreduce(name=None):
@@ -55,11 +56,25 @@ def mapreduce(name=None):
     )
     params.HdfsDirectory(None, action="create")
 
-  Directory([params.mapred_pid_dir,params.mapred_log_dir],
+  Directory(params.mapred_pid_dir,
             owner=params.mapred_user,
             group=params.user_group,
             recursive=True
   )
+
+  mapred_log_dir = os.path.join(params.mapred_log_dir_prefix, params.mapred_user)
+  Directory(mapred_log_dir,
+            recursive=True,
+            owner=params.mapred_user,
+            group=params.user_group
+  )
+
+  if name == 'jobtracker':
+    File(os.path.join(mapred_log_dir, 'hadoop-mapreduce.jobsummary.log'),
+         owner=params.mapred_user,
+         group=params.user_group,
+         mode=0664
+    )
 
   Directory(params.mapred_local_dir.split(','),
             owner=params.mapred_user,

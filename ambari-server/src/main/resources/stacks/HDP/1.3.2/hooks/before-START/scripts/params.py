@@ -134,15 +134,11 @@ dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
 mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-mapred_log_dir_prefix = default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
+mapred_log_dir_prefix = default("mapred_log_dir_prefix",hdfs_log_dir_prefix)
 
 #taskcontroller.cfg
 
 mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
-
-#log4j.properties
-
-yarn_log_dir_prefix = default("yarn_log_dir_prefix","/var/log/hadoop-yarn")
 
 dfs_hosts = default('/configurations/hdfs-site/dfs.hosts', None)
 
