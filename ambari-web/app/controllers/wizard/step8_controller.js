@@ -843,21 +843,20 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) return;
     var self = this;
 
-    this.get('content.stacks').forEach(function (stack) {
-      stack.operatingSystems.forEach(function (os) {
-        if (os.baseUrl !== os.originalBaseUrl) {
-          console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
-          self.addRequestToAjaxQueue({
-            type: 'PUT',
-            url: App.apiPrefix + App.get('stack2VersionURL') + "/operatingSystems/" + os.osType + "/repositories/" + stack.name,
-            data: JSON.stringify({
-              "Repositories": {
-                "base_url": os.baseUrl
-              }
-            })
-          });
-        }
-      });
+    var stack = this.get('content.stacks').findProperty('isSelected', true);
+    stack.operatingSystems.forEach(function (os) {
+      if (os.baseUrl !== os.originalBaseUrl) {
+        console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
+        self.addRequestToAjaxQueue({
+          type: 'PUT',
+          url: App.apiPrefix + App.get('stack2VersionURL') + "/operatingSystems/" + os.osType + "/repositories/" + stack.name,
+          data: JSON.stringify({
+            "Repositories": {
+              "base_url": os.baseUrl
+            }
+          })
+        });
+      }
     });
   },
 
