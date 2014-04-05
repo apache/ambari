@@ -612,6 +612,7 @@ Em.I18n.translations = {
   'installer.step9.host.status.nothingToInstall':'Install complete (Waiting to start)',
   'installer.step9.hosts.status.label.inProgress':'In Progress',
   'installer.step9.hosts.status.label.warning':'Warning',
+  'installer.step9.hosts.filteredHostsInfo': '{0} of {1} hosts showing',
   'installer.step9.hostLog.popup.header':'Tasks. executed on ',
   'installer.step9.hostLog.popup.categories.all':'All',
   'installer.step9.hostLog.popup.categories.pending':'Queued / Pending',
@@ -1829,6 +1830,7 @@ Em.I18n.translations = {
   'tableView.filters.clearFilters': 'Clear filters',
   'tableView.filters.paginationInfo': '{0} - {1} of {2}',
   'tableView.filters.clearAllFilters': 'clear filters',
+  'tableView.filters.showAll': 'Show All',
 
   'jobs.type':'Jobs Type',
   'jobs.type.hive':'Hive',

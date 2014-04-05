@@ -439,26 +439,56 @@ h1 {
         }
       }
     }
+    .box-header {
+      padding: 0px 4px 0px 10px;
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #e5e5e5));
+      background: -ms-linear-gradient(top, #ffffff, #e5e5e5);
+      background: -moz-linear-gradient(center top, #ffffff 0%, #e5e5e5 100%);
+      .btn-primary {
+        margin-top: 3px;
+      }
+    }
+
     #host-filter {
-      margin-top: 3px;
+      margin-top: 1px;
       ul {
         margin: 3px;
         font-size: 12px;
+        li.filter-status.active a {
+          text-decoration: none;
+          color: #FFFFFF;
+        }
+        li.filter-status.active,
+        li.filter-status.active:hover {
+          background-color: #666666;
+          -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+          -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+        }
+        li.filter-status:hover {
+          background-color: #d8d8d8;
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+        }
+        li.divider {
+          color: #666666;
+          padding: 4px 2px;
+        }
         li {
           list-style: none;
           display: block;
           float: left;
-          padding: 0 2px;
+          padding: 4px 4px;
           a {
             text-decoration: underline;
           }
         }
         li.first {
           font-weight: bold;
-        }
-        li.active a {
-          text-decoration: none;
-          color: #000000;
         }
       }
     }
@@ -505,16 +535,52 @@ h1 {
     }
     #overallProgress {
     }
+    .box-header {
+      padding: 0px 4px 0px 10px;
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #e5e5e5));
+      background: -ms-linear-gradient(top, #ffffff, #e5e5e5);
+      background: -moz-linear-gradient(center top, #ffffff 0%, #e5e5e5 100%);
+      .btn-primary {
+        margin-top: 3px;
+      }
+    }
+    table {
+      margin-bottom: 0px;
+    }
     #host-filter {
-      margin-top: 3px;
+      margin-top: 1px;
       ul {
         margin: 3px;
         font-size: 12px;
+        li.filter-status.active a {
+          text-decoration: none;
+          color: #FFFFFF;
+        }
+        li.filter-status.active,
+        li.filter-status.active:hover {
+          background-color: #666666;
+          -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+          -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+        }
+        li.filter-status:hover {
+          background-color: #d8d8d8;
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+        }
+        li.divider {
+          color: #666666;
+          padding: 4px 2px;
+        }
         li {
           list-style: none;
           display: block;
           float: left;
-          padding: 0 2px;
+          padding: 4px 4px;
           a {
             text-decoration: underline;
           }
@@ -522,12 +588,9 @@ h1 {
         li.first {
           font-weight: bold;
         }
-        li.active a {
-          text-decoration: none;
-          color: #000000;
-        }
       }
     }
+
     #deploy-status-by-host {
       margin-bottom: 0;
       th.host {

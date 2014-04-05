@@ -131,8 +131,24 @@ App.WizardStep9View = App.TableView.extend({
         result = content.filterProperty('status', selectedCategory.get('hostStatus'));
       }
       self.set('filteredContent', result);
+      self.set('filteredHostsInfo', Em.I18n.t('installer.step9.hosts.filteredHostsInfo').format(result.get('length'), content.get('length')));
     });
   }.observes('selectedCategory'),
+
+  /**
+   * filter hosts info shown up on bottom of the box. Set by filter function, when 'seletedCategory' changed
+   */
+  filteredHostsInfo: '',
+
+  /**
+   * On click handler for 'show all' link
+   */
+  showAllHosts: function () {
+    this.get('categories').forEach(function (category) {
+      category.set('isActive', (category.get('hostStatus') === 'all'));
+    });
+  },
+
   /**
    * Trigger on Category click
    * @param {Object} event

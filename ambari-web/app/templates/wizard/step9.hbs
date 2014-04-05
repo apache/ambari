@@ -48,13 +48,13 @@
         <ul class="clearfix">
           <li class="first">{{t common.show}}:</li>
           {{#each category in view.categories}}
-            <li {{bindAttr class="category.itemClass"}}>
+            <li {{bindAttr class=":filter-status category.itemClass"}}>
               <a {{action selectCategory category target="view"}} href="#">
                 {{category.label}}
               </a>
             </li>
             {{#unless category.last}}
-              <li>|</li>
+              <li class="divider">|</li>
             {{/unless}}
           {{/each}}
         </ul>
@@ -101,29 +101,28 @@
             <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
           </tr>
         {{/if}}
-
         </tbody>
       </table>
     </div>
       <div id="hosts">
-          <div class="page-bar">
-              <div class="items-on-page">
-                  <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-              </div>
-              <div class="info">{{view.paginationInfo}}</div>
-              <div class="paging_two_button">
-                {{view view.paginationFirst}}
-                {{view view.paginationLeft}}
-                {{view view.paginationRight}}
-                {{view view.paginationLast}}
-              </div>
+        <div class="page-bar">
+          <div class="selected-hosts-info pull-left">
+            {{view.filteredHostsInfo}}
+            -
+            <a {{action showAllHosts target="view"}} href="#">{{t tableView.filters.showAll}}</a>
           </div>
+          <div class="items-on-page">
+              <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+          </div>
+          <div class="info">{{view.paginationInfo}}</div>
+          <div class="paging_two_button">
+            {{view view.paginationFirst}}
+            {{view view.paginationLeft}}
+            {{view view.paginationRight}}
+            {{view view.paginationLast}}
+          </div>
+        </div>
       </div>
-    <div class="box-footer">
-      <hr/>
-      <div class="footer-pagination">
-      </div>
-    </div>
   </div>
 
   <div>

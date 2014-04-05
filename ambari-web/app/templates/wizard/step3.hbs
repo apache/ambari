@@ -40,13 +40,13 @@
           <ul class="clearfix">
             <li class="first">{{t common.show}}:</li>
             {{#each category in view.categories}}
-              <li {{bindAttr class="category.itemClass"}}>
+              <li {{bindAttr class=":filter-status category.itemClass"}}>
                 <a {{action selectCategory category target="view"}} href="#">
                   {{category.label}}
                 </a>
               </li>
               {{#unless category.last}}
-                <li>|</li>
+                <li class="divider">|</li>
               {{/unless}}
             {{/each}}
           </ul>
