@@ -37,7 +37,7 @@ MAX_PARALLEL_BOOTSTRAPS = 20
 # How many seconds to wait between polling parallel bootstraps
 POLL_INTERVAL_SEC = 1
 DEBUG=False
-PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages "
+PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:/tmp "
 
 
 class HostLog:
@@ -75,6 +75,7 @@ class SCP:
 
   def run(self):
     scpcommand = ["scp",
+                  "-r",
                   "-o", "ConnectTimeout=60",
                   "-o", "BatchMode=yes",
                   "-o", "StrictHostKeyChecking=no",
@@ -140,6 +141,7 @@ class Bootstrap(threading.Thread):
   AMBARI_REPO_FILENAME = "ambari.repo"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
   PASSWORD_FILENAME = "host_pass"
+  COMMON_FUNCTIONS="/usr/lib/python2.6/site-packages/common_functions"
 
   def __init__(self, host, shared_state):
     threading.Thread.__init__(self)
@@ -201,6 +203,9 @@ class Bootstrap(threading.Thread):
 
   def getOsCheckScriptRemoteLocation(self):
     return self.getRemoteName(self.OS_CHECK_SCRIPT_FILENAME)
+  
+  def getCommonFunctionsRemoteLocation(self):
+    return self.TEMP_FOLDER;
 
   def getUtime(self):
     return int(time.time())
@@ -220,6 +225,19 @@ class Bootstrap(threading.Thread):
     params = self.shared_state
     self.host_log.write("==========================\n")
     self.host_log.write("Copying OS type check script...")
+    scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
+              target, params.bootdir, self.host_log)
+    result = scp.run()
+    self.host_log.write("\n")
+    return result
+  
+  def copyCommonFunctions(self):
+    # Copying the os check script file
+    fileToCopy = self.COMMON_FUNCTIONS
+    target = self.getCommonFunctionsRemoteLocation()
+    params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying common functions script...")
     scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     result = scp.run()
@@ -327,6 +345,7 @@ class Bootstrap(threading.Thread):
     params = self.shared_state
     self.host_log.write("==========================\n")
     self.host_log.write("Running OS type check...")
+    
     command = "chmod a+x %s && %s %s" % \
               (self.getOsCheckScriptRemoteLocation(),
                PYTHON_ENV + self.getOsCheckScriptRemoteLocation(), params.cluster_os_type)
@@ -436,7 +455,8 @@ class Bootstrap(threading.Thread):
     """ Copy files and run commands on remote host """
     self.status["start_time"] = time.time()
     # Population of action queue
-    action_queue = [self.copyOsCheckScript,
+    action_queue = [self.copyCommonFunctions,
+                    self.copyOsCheckScript,
                     self.runOsCheckScript,
                     self.checkSudoPackage
     ]

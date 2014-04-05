@@ -238,7 +238,7 @@ class TestBootstrap(TestCase):
     self.assertTrue(log_sample in log['text'])
     self.assertTrue(error_sample in log['text'])
     command_str = str(popenMock.call_args[0][0])
-    self.assertEquals(command_str, "['scp', '-o', 'ConnectTimeout=60', '-o', "
+    self.assertEquals(command_str, "['scp', '-r', '-o', 'ConnectTimeout=60', '-o', "
         "'BatchMode=yes', '-o', 'StrictHostKeyChecking=no', '-i', 'sshkey_file',"
         " 'src/file', 'root@dummy-host:dst/file']")
     self.assertEqual(retcode["exitstatus"], 0)
@@ -458,8 +458,9 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.runOsCheckScript()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
-    self.assertEqual(command, "chmod a+x OsCheckScriptRemoteLocation &&"
-                              " env PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages OsCheckScriptRemoteLocation centos6")
+    self.assertEqual(command,
+                     "chmod a+x OsCheckScriptRemoteLocation && "
+                     "env PYTHONPATH=$PYTHONPATH:/tmp OsCheckScriptRemoteLocation centos6")
 
 
   @patch.object(SSH, "__init__")
@@ -657,7 +658,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = False
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 5) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 6) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
@@ -668,7 +669,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = True
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 8) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 9) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
