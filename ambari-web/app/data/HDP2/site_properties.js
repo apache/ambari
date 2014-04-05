@@ -462,6 +462,86 @@ module.exports =
       "category": "Hive Metastore",
       "index": 4
     },
+  /**********************************************tez-site*****************************************/
+    {
+      "id": "site property",
+      "name": "tez.am.resource.memory.mb",
+      "displayName": "tez.am.resource.memory.mb",
+      "displayType": "int",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.am.java.opts",
+      "displayName": "tez.am.java.opts",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.am.grouping.split-waves",
+      "displayName": "tez.am.grouping.split-waves",
+      "displayType": "float",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.am.grouping.min-size",
+      "displayName": "tez.am.grouping.min-size",
+      "displayType": "int",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.am.grouping.max-size",
+      "displayName": "tez.am.grouping.max-size",
+      "displayType": "int",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.am.log.level",
+      "displayName": "tez.am.log.level",
+      "displayType": "string",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.runtime.intermediate-input.compress.codec",
+      "displayName": "tez.runtime.intermediate-input.compress.codec",
+      "displayType": "string",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.runtime.intermediate-input.is-compressed",
+      "displayName": "tez.runtime.intermediate-input.is-compressed",
+      "displayType": "checkbox",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.runtime.intermediate-output.compress.codec",
+      "displayName": "tez.runtime.intermediate-output.compress.codec",
+      "displayType": "string",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
+    {
+      "id": "site property",
+      "name": "tez.runtime.intermediate-output.should-compress",
+      "displayName": "tez.runtime.intermediate-output.should-compress",
+      "displayType": "checkbox",
+      "category": "General",
+      "serviceName": "TEZ"
+    },
 
   /**********************************************hbase-site***************************************/
     {
