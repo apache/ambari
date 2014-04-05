@@ -18,5 +18,5 @@
 yarn.nodemanager.local-dirs=<%=scope.function_hdp_default(["yarn-site/yarn.nodemanager.local-dirs","/hadoop/yarn"])%>
 yarn.nodemanager.log-dirs=<%=scope.function_hdp_default(["yarn-site/yarn.nodemanager.log-dirs","/var/log/hadoop/yarn"])%>
 yarn.nodemanager.linux-container-executor.group=<%=scope.function_hdp_default(["yarn-site/yarn.nodemanager.linux-container-executor.group","hadoop"])%>
-banned.users = hfds,yarn,mapred,bin
+banned.users = hdfs,yarn,mapred,bin
 min.user.id=1000
