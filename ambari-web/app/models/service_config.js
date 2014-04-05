@@ -457,6 +457,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zk_data_dir':
       case 'oozie_data_dir':
       case 'hbase.tmp.dir':
+      case 'storm.local.dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
     }
@@ -495,17 +496,18 @@ App.ServiceConfigProperty = Ember.Object.extend({
     });
     var temp = '';
     var setOfHostNames = [];
+    var components = [];
     switch (this.get('name')) {
       case 'dfs.namenode.name.dir':
       case 'dfs.name.dir':
-        var components = masterComponentHostsInDB.filterProperty('component', 'NAMENODE');
+        components = masterComponentHostsInDB.filterProperty('component', 'NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
       case 'fs.checkpoint.dir':
       case 'dfs.namenode.checkpoint.dir':
-        var components = masterComponentHostsInDB.filterProperty('component', 'SECONDARY_NAMENODE');
+        components = masterComponentHostsInDB.filterProperty('component', 'SECONDARY_NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
@@ -531,21 +533,31 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }, this);
         break;
       case 'zk_data_dir':
-        var components = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER');
+        components = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
       case 'oozie_data_dir':
-        var components = masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER');
+        components = masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
       case 'hbase.tmp.dir':
-        var temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
+        }, this);
+        break;
+      case 'storm.local.dir':
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR');
+        temp.hosts.forEach(function (host) {
+          setOfHostNames.push(host.hostName);
+        }, this);
+        components = masterComponentHostsInDB.filterProperty('component', 'NIMBUS');
+        components.forEach(function (component) {
+          setOfHostNames.push(component.hostName);
         }, this);
         break;
     }

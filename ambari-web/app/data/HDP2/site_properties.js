@@ -624,6 +624,8 @@ module.exports =
       "id": "site property",
       "name": "storm.local.dir",
       "displayName": "storm.local.dir",
+      "defaultDirectory": "/hadoop/storm",
+      "displayType": "directory",
       "serviceName": "STORM",
       "category": "General"
     },
