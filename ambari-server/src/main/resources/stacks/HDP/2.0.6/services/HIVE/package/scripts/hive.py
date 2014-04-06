@@ -160,6 +160,13 @@ def jdbc_connector():
             not_if=format("test -f {target}"),
             creates=params.target,
             path=["/bin", "/usr/bin/"])
+  elif params.hive_jdbc_driver == "org.postgresql.Driver":
+    cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")
+
+    Execute(cmd,
+            not_if=format("test -f {target}"),
+            creates=params.target,
+            path=["/bin", "usr/bin/"])
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
     cmd = format(

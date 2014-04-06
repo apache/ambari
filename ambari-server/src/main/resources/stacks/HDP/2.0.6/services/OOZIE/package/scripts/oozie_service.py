@@ -29,7 +29,9 @@ def oozie_service(action = 'start'): # 'start' or 'stop'
   if action == 'start':
     start_cmd = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-start.sh")
     
-    if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
+    if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or \
+       params.jdbc_driver_name == "org.postgresql.Driver" or \
+       params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
       db_connection_check_command = format("{java_home}/bin/java -cp {check_db_connection_jar}:{jdbc_driver_jar} org.apache.ambari.server.DBConnectionVerification {oozie_jdbc_connection_url} {oozie_metastore_user_name} {oozie_metastore_user_passwd!p} {jdbc_driver_name}")
     else:
       db_connection_check_command = None

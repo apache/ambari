@@ -37,6 +37,8 @@ hive_lib = '/usr/lib/hive/lib/'
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 if hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = "mysql-connector-java.jar"
+elif hive_jdbc_driver == "org.postgresql.Driver":
+  jdbc_jar_name = "postgresql-jdbc.jar"
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
   jdbc_jar_name = "ojdbc6.jar"
 

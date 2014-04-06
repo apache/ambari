@@ -44,7 +44,9 @@ def hive_service(
             not_if=no_op_test
     )
 
-    if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
+    if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
+       params.hive_jdbc_driver == "org.postgresql.Driver" or \
+       params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
       db_connection_check_command = format(
         "{java64_home}/bin/java -cp {check_db_connection_jar}:/usr/share/java/{jdbc_jar_name} org.apache.ambari.server.DBConnectionVerification {hive_jdbc_connection_url} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
       Execute(db_connection_check_command,

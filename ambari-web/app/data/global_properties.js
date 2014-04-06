@@ -554,6 +554,22 @@ module.exports =
       "category": "Hive Metastore",
       "index": 1
     },
+    // for existing Postgresql
+    {
+      "id": "puppet var",
+      "name": "hive_existing_postgresql_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "Postgresql",
+      "description": "Using an existing Postgresql database for Hive Metastore",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": false,
+      "isReconfigurable": false,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore",
+      "index": 1
+    },
     // for existing Oracle
     {
       "id": "puppet var",
@@ -600,6 +616,10 @@ module.exports =
           displayName: 'Existing MySQL Database',
           foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host']
         },
+        {
+          displayName: 'Existing Postgresql Database',
+          foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host'],
+          },
         {
           displayName: 'Existing Oracle Database',
           foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
@@ -663,6 +683,22 @@ module.exports =
       "category": "Hive Metastore",
       "index": 3
     },
+    {
+        "id": "puppet var",
+        "name": "hive_existing_postgresql_host",
+        "displayName": "Database Host",
+        "description": "Specify the host on which the existing database is hosted",
+        "defaultValue": "",
+        "isReconfigurable": false,
+        "displayType": "host",
+        "isOverridable": false,
+        "isRequiredByAgent": false,
+        "isVisible": false,
+        "isObserved": true,
+        "serviceName": "HIVE",
+        "category": "Hive Metastore",
+        "index": 3
+      },
     {
       "id": "puppet var",
       "name": "hive_ambari_host",
@@ -799,6 +835,22 @@ module.exports =
       "category": "Oozie Server",
       "index": 0
     },
+    // for existing Postgresql
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_postgresql_database",
+      "displayName": "Database Type",
+      "value": "",
+      "defaultValue": "Postgresql",
+      "description": "Using an existing Postgresql database for Oozie Metastore",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": false,
+      "isReconfigurable": false,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 1
+    },
     // for existing Oracle
     {
       "id": "puppet var",
@@ -864,6 +916,10 @@ module.exports =
           foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
           hidden: !App.supports.hiveOozieExtraDatabases
         },
+                {
+          displayName: 'Existing Postgresql Database',
+          foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host'],
+          },
         {
           displayName: 'Existing Oracle Database',
           foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host'],
@@ -897,6 +953,22 @@ module.exports =
     {
       "id": "puppet var",
       "name": "oozie_existing_mysql_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "host",
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "isObserved": true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_postgres_host",
       "displayName": "Database Host",
       "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",

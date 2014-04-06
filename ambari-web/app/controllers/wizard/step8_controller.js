@@ -217,6 +217,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
       } else if (hiveDb.value === 'Existing MySQL Database'){
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
         hiveDbType.value = 'mysql';
@@ -224,13 +226,26 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-      } else { //existing oracle database
+        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
+      }  else if (hiveDb.value === 'Existing Postgresql Database'){
+          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_postgresql_host').value;
+          hiveDbType.value = 'postgresql';
+          globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
+          globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
+          globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
+          globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
+          globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
+          globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
+        } else { //existing oracle database
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
         hiveDbType.value = 'oracle';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
+        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
       }
       globals.push(hiveDbType);
     }
@@ -248,7 +263,9 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-      } else if (oozieDb.value === 'Existing MySQL Database') {
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
+      }  else if (oozieDb.value === 'Existing MySQL Database') {
         globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
         oozieDbType.value = 'mysql';
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
@@ -256,7 +273,18 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } else { // existing oracle database
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
+      } else if (oozieDb.value === 'Existing Postgresql Database'){
+          globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_postgresql_host').value;
+          oozieDbType.value = 'postgresql';
+          globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+          globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+          globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
+          globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+          globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
+          globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
+        } else { // existing oracle database
         globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
         oozieDbType.value = 'oracle';
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
@@ -264,6 +292,8 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
       }
       globals.push(oozieDbType);
     }
@@ -598,7 +628,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     } else if(hiveDb.value === 'Existing MySQL Database'){
       var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
-    } else { // existing oracle database
+    } else if(hiveDb.value === 'Existing Postgresql Database'){
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_postgresql_database');
+      dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+     } else { // existing oracle database
       var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_oracle_database');
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
     }
@@ -646,7 +679,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     } */else if(oozieDb.value === 'Existing MySQL Database'){
       var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
-    } else { // existing oracle database
+    } else if(oozieDb.value === 'Existing Postgresql Database'){
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
+      dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+    }  else { // existing oracle database
       var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     }
