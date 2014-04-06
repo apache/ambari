@@ -77,7 +77,7 @@ hive_pid = status_params.hive_pid
 hive_database_name = config['configurations']['global']['hive_database_name']
 
 #Starting hiveserver2
-start_hiveserver2_script = 'startHiveserver2.sh'
+start_hiveserver2_script = 'startHiveserver2.sh.j2'
 
 hadoop_home = '/usr'
 
@@ -171,6 +171,9 @@ tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
 tez_user = config['configurations']['global']['tez_user']
+
+# Hive security
+hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call

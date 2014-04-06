@@ -108,7 +108,7 @@ limitations under the License.
 
   <property>
     <name>hive.security.authorization.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>enable or disable the hive client authorization</description>
   </property>
 
@@ -133,7 +133,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.enable.doAs</name>
-    <value>true</value>
+    <value>false</value>
     <description>Impersonate the connected user. By default HiveServer2 performs the query processing as the user who
       submitted the query. But if the parameter is set to false, the query will run as the user that the hiveserver2
       process runs as.
@@ -471,5 +471,10 @@ limitations under the License.
     <description>Number of aborted transactions involving a particular table or partition before major compaction is initiated.</description>
   </property>
 
+  <property>
+    <name>hive.users.in.admin.role</name>
+    <value></value>
+    <description>If user is specified as value of this config, that user has superuser privileges in DB</description>
+  </property>
 
 </configuration>

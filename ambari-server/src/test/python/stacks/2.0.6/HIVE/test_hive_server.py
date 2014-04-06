@@ -259,7 +259,7 @@ class TestHiveServer(RMFTestCase):
       not_if = '[ -f DBConnectionVerification.jar]',
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
-      content = StaticFile('startHiveserver2.sh'),
+      content = Template('startHiveserver2.sh.j2'),
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
@@ -352,7 +352,7 @@ class TestHiveServer(RMFTestCase):
       not_if = '[ -f DBConnectionVerification.jar]',
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
-      content = StaticFile('startHiveserver2.sh'),
+      content = Template('startHiveserver2.sh.j2'),
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
