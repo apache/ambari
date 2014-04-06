@@ -22,32 +22,32 @@
 
 <configuration>
   <property>
-    <name>mapred.reduce.parallel.copies</name>
+    <name>mapreduce.reduce.shuffle.parallelcopies</name>
     <value>30</value>
     <description></description>
   </property>
 
   <property>
-    <name>mapred.job.shuffle.input.buffer.percent</name>
+    <name>mapreduce.reduce.shuffle.input.buffer.percent</name>
     <value>0.6</value>
     <description></description>
   </property>
 
   <property>
-    <name>mapred.job.reduce.input.buffer.percent</name>
+    <name>mapreduce.reduce.input.buffer.percent</name>
     <value>0.2</value>
     <description></description>
   </property>
 
   <property>
-    <name>mapred.map.child.java.opts</name>
+    <name>mapreduce.map.java.opts</name>
     <value>-server -Xmx1536m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC</value>
     <description></description>
   </property>
     
 
   <property>
-    <name>mapred.reduce.child.java.opts</name>
+    <name>mapreduce.reduce.java.opts</name>
     <value>-server -Xmx1536m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC</value>
     <description></description>
   </property>
