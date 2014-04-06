@@ -21,7 +21,7 @@
     <service>
       <name>HDFS</name>
       <comment>Apache Hadoop Distributed File System</comment>
-      <version>2.1.0.2.1</version>
+      <version>2.4.0.2.1</version>
     </service>
   </services>
 </metainfo>
