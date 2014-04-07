@@ -60,19 +60,12 @@ CREATE TABLE blueprint (blueprint_name VARCHAR(255) NOT NULL, stack_name VARCHAR
 CREATE TABLE hostgroup (blueprint_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, cardinality VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name, name));
 CREATE TABLE hostgroup_component (blueprint_name VARCHAR(255) NOT NULL, hostgroup_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name, hostgroup_name, name));
 CREATE TABLE blueprint_configuration (blueprint_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, config_data VARCHAR(32000) NOT NULL , PRIMARY KEY(blueprint_name, type_name));
-
-CREATE TABLE ambari.viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), version VARCHAR(255), archive VARCHAR(255), PRIMARY KEY(view_name));
-CREATE TABLE ambari.viewinstancedata (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
-CREATE TABLE ambari.viewinstance (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(view_name, name));
-CREATE TABLE ambari.viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
-CREATE TABLE ambari.viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255), required CHAR(1), PRIMARY KEY(view_name, name));
-CREATE TABLE ambari.viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), resource VARCHAR(255), PRIMARY KEY(view_name, name));
-GRANT ALL PRIVILEGES ON TABLE ambari.view TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.viewinstancedata TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.viewinstance TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.viewinstanceproperty TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.viewparameter TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.viewresource TO :username;
+CREATE TABLE viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), version VARCHAR(255), archive VARCHAR(255), PRIMARY KEY(view_name));
+CREATE TABLE viewinstancedata (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
+CREATE TABLE viewinstance (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(view_name, name));
+CREATE TABLE viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
+CREATE TABLE viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255), required CHAR(1), PRIMARY KEY(view_name, name));
+CREATE TABLE viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), resource VARCHAR(255), PRIMARY KEY(view_name, name));
 
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
 ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
