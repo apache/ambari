@@ -513,6 +513,12 @@
         },
         "oozie-log4j": {
             "content": "log4jproperties\nline2"
+        },
+        "flume-conf": {
+          "content": "a1.sources = r1\n a1.sinks = k1\n a1.channels = c1\n # Describe/configure the source\n a1.sources.r1.type = netcat\n a1.sources.r1.bind = localhost\n a1.sources.r1.port = 44444\n \n # Describe the sink\n a1.sinks.k1.type = logger\n \n # Use a channel which buffers events in memory\n a1.channels.c1.type = memory\n a1.channels.c1.capacity = 1000\n a1.channels.c1.transactionCapacity = 100\n \n # Bind the source and sink to the channel\n a1.sources.r1.channels = c1\n a1.sinks.k1.channel = c1\n"
+        },
+        "flume-log4j": {
+          "content": "log4jproperties\nline2"
         }
     },
     "configurationTags": {

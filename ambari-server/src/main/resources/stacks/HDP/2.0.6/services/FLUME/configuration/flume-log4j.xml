@@ -21,4 +21,10 @@
 -->
 
 <configuration>
+  <property>
+    <name>content</name>
+    <value>
+# Flume log4j config
+    </value>
+  </property>
 </configuration>

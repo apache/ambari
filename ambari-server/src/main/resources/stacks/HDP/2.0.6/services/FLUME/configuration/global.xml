@@ -21,4 +21,14 @@
 -->
 
 <configuration>
+  <property>
+    <name>flume_conf_dir</name>
+    <value>/etc/flume/conf</value>
+    <description>Location to save configuration files</description>
+  </property>
+  <property>
+    <name>flume_log_dir</name>
+    <value>/var/log/flume</value>
+    <description>Location to save log files</description>
+  </property>
 </configuration>

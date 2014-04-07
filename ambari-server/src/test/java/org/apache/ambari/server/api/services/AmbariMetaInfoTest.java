@@ -662,22 +662,6 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void testFlume134Dependencies() throws Exception {
-    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "FLUME");
-    List<ComponentInfo> componentList = service.getComponents();
-    Assert.assertEquals(1, componentList.size());
-    ComponentInfo component = componentList.get(0);
-    Assert.assertEquals("FLUME_SERVER", component.getName());
-    // dependencies
-    List<DependencyInfo> dependencyList = component.getDependencies();
-    Assert.assertEquals(0, dependencyList.size());
-    // component auto deploy
-    Assert.assertNull(component.getAutoDeploy());
-    // cardinality
-    Assert.assertEquals("1", component.getCardinality());
-  }
-
-  @Test
   public void testGanglia134Dependencies() throws Exception {
     ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "GANGLIA");
     List<ComponentInfo> componentList = service.getComponents();

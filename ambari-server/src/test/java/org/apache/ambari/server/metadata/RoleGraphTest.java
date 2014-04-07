@@ -138,7 +138,7 @@ public class RoleGraphTest {
     RoleGraphNode pig_start = new RoleGraphNode(Role.PIG, RoleCommand.START);
     RoleGraphNode sqoop_start = new RoleGraphNode(Role.SQOOP, RoleCommand.START);
     RoleGraphNode webhcat_srv_start = new RoleGraphNode(Role.WEBHCAT_SERVER, RoleCommand.START);
-    RoleGraphNode flume_start = new RoleGraphNode(Role.FLUME_SERVER, RoleCommand.START);
+    RoleGraphNode flume_start = new RoleGraphNode(Role.FLUME_HANDLER, RoleCommand.START);
     RoleGraphNode zkfc_start = new RoleGraphNode(Role.ZKFC, RoleCommand.START);
     
     Assert.assertEquals(0, rco.order(nn_start, jn_start));

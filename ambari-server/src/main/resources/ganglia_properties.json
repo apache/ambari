@@ -10752,7 +10752,7 @@
         "temporal":true
       }
     },
-    "FLUME_SERVER":{
+    "FLUME_HANDLER":{
       "metrics/boottime":{
         "metric":"boottime",
         "pointInTime":true,
@@ -19845,7 +19845,7 @@
         "temporal":true
       }
     },
-    "FLUME_SERVER":{
+    "FLUME_HANDLER":{
       "metrics/boottime":{
         "metric":"boottime",
         "pointInTime":true,

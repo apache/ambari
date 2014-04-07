@@ -97,13 +97,13 @@ public class AbstractPropertyProviderTest {
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
 
     Map<String, PropertyInfo> flumeMetrics = provider.getComponentMetrics().get(
-      "FLUME_SERVER");
+      "FLUME_HANDLER");
 
     int metricsBefore = flumeMetrics.size();
     String specificMetric = "metrics/flume/arg1/CHANNEL/arg2/ChannelCapacity";
     String specificPropertyInfoId = "arg1.CHANNEL.arg2.ChannelCapacity";
     Map<String, PropertyInfo> componentMetricMap =
-      provider.getComponentMetrics().get("FLUME_SERVER");
+      provider.getComponentMetrics().get("FLUME_HANDLER");
 
     Assert.assertNull(flumeMetrics.get(specificMetric));
 

@@ -418,7 +418,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -431,7 +431,7 @@ public class GangliaPropertyProviderTest {
     
     metricsRegexes.add(FLUME_CHANNEL_CAPACITY_PROPERTY);
 
-    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_SERVER");
+    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
     
     URIBuilder expectedUri = new URIBuilder();
     
@@ -476,7 +476,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -494,7 +494,7 @@ public class GangliaPropertyProviderTest {
     metricsRegexes.add("metrics/flume");
     metricsRegexes.add("metrics/cpu/cpu_wio");
     
-    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_SERVER");
+    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
     
     URIBuilder expectedUri = new URIBuilder();
 
@@ -538,7 +538,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     Request  request = PropertyHelper.getReadRequest(Collections.<String>emptySet(), temporalInfoMap);
@@ -573,7 +573,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -586,7 +586,7 @@ public class GangliaPropertyProviderTest {
     
     metricsRegexes.add("metrics/flume");
     
-    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_SERVER");
+    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
     
     URIBuilder expectedUri = new URIBuilder();
 
@@ -631,7 +631,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -644,7 +644,7 @@ public class GangliaPropertyProviderTest {
     
     metricsRegexes.add("metrics/flume/");
     
-    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_SERVER");
+    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
     
     URIBuilder expectedUri = new URIBuilder();
 
@@ -689,7 +689,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -703,7 +703,7 @@ public class GangliaPropertyProviderTest {
     metricsRegexes.add("metrics/flume/$1/CHANNEL/$2/");
     metricsRegexes.add(FLUME_CHANNEL_CAPACITY_PROPERTY);
 
-    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_SERVER");
+    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
     
     URIBuilder expectedUri = new URIBuilder();
 
@@ -748,7 +748,7 @@ public class GangliaPropertyProviderTest {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_SERVER");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
     // only ask for one property
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
@@ -762,7 +762,7 @@ public class GangliaPropertyProviderTest {
     metricsRegexes.add("metrics/flume/$1/CHANNEL/$2");
     metricsRegexes.add(FLUME_CHANNEL_CAPACITY_PROPERTY);
 
-    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_SERVER");
+    String metricsList = getMetricsRegexes(metricsRegexes, gangliaPropertyIds, "FLUME_HANDLER");
     
     URIBuilder expectedUri = new URIBuilder();
 

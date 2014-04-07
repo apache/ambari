@@ -78,6 +78,7 @@ public class ActionMetadata {
     serviceActions.put("webhcat"    , Arrays.asList(Role.WEBHCAT_SERVICE_CHECK.toString()));
     serviceActions.put("storm"      , Arrays.asList(Role.STORM_SERVICE_CHECK.toString()));
     serviceActions.put("falcon"     , Arrays.asList(Role.FALCON_SERVICE_CHECK.toString()));
+    serviceActions.put("flume"      , Arrays.asList(Role.FLUME_SERVICE_CHECK.toString()));
   }
 
   private void fillServiceCheckActions() {
@@ -100,9 +101,11 @@ public class ActionMetadata {
     serviceCheckActions.put("webhcat",
         Role.WEBHCAT_SERVICE_CHECK.toString());
     serviceCheckActions.put("storm",
-            Role.STORM_SERVICE_CHECK.toString());
+        Role.STORM_SERVICE_CHECK.toString());
     serviceCheckActions.put("falcon",
-            Role.FALCON_SERVICE_CHECK.toString());
+        Role.FALCON_SERVICE_CHECK.toString());
+    serviceCheckActions.put("flume",
+        Role.FLUME_SERVICE_CHECK.toString());
   }
 
   public List<String> getActions(String serviceName) {

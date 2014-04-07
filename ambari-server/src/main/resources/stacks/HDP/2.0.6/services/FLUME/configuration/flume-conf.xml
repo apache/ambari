@@ -21,4 +21,11 @@
 -->
 
 <configuration>
+  <property>
+    <name>content</name>
+    <description>Describe all the Flume agent configurations</description>
+    <value>
+# Flume agent config
+    </value>
+  </property>
 </configuration>
