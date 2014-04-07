@@ -62,6 +62,7 @@ public class JMXHostProviderTest {
   private static final String NAMENODE_PORT_V2 = "dfs.namenode.http-address";
   private static final String DATANODE_PORT = "dfs.datanode.http.address";
   private static final String RESOURCEMANAGER_PORT = "yarn.resourcemanager.webapp.address";
+  private static final String NODEMANAGER_PORT = "yarn.nodemanager.webapp.address";
 
   @Before
   public void setup() throws Exception {
@@ -245,6 +246,7 @@ public class JMXHostProviderTest {
 
     Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "8088");
+    yarnConfigs.put(NODEMANAGER_PORT, "8042");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs);
@@ -344,6 +346,7 @@ public class JMXHostProviderTest {
 
     Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "localhost:50030");
+    yarnConfigs.put(NODEMANAGER_PORT, "localhost:11111");
     ConfigurationRequest cr2 = new ConfigurationRequest("c1",
       "yarn-site", "versionN+1", yarnConfigs);
 
@@ -351,6 +354,7 @@ public class JMXHostProviderTest {
     crReq.setDesiredConfig(cr2);
     controller.updateClusters(Collections.singleton(crReq), null);
     Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER"));
+    Assert.assertEquals("11111", providerModule.getPort("c1", "NODEMANAGER"));
 
     //Unrelated ports
     Assert.assertEquals("70070", providerModule.getPort("c1", "NAMENODE"));

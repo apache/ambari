@@ -115,6 +115,7 @@ public interface Service {
     PIG,
     HCATALOG,
     FLUME,
-    YARN
+    YARN,
+    MAPREDUCE2
   }
 }

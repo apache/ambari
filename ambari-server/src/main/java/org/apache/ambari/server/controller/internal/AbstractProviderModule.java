@@ -81,6 +81,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     serviceConfigTypes.put(Service.Type.MAPREDUCE, "mapred-site");
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
     serviceConfigTypes.put(Service.Type.YARN, "yarn-site");
+    serviceConfigTypes.put(Service.Type.MAPREDUCE2, "mapred-site");
  
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
@@ -88,6 +89,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     componentServiceMap.put("TASKTRACKER", Service.Type.MAPREDUCE);
     componentServiceMap.put("HBASE_MASTER", Service.Type.HBASE);
     componentServiceMap.put("RESOURCEMANAGER", Service.Type.YARN);
+    componentServiceMap.put("NODEMANAGER", Service.Type.YARN);
+    componentServiceMap.put("HISTORYSERVER", Service.Type.MAPREDUCE2);
 
     Map<String, String[]> initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NAMENODE", new String[] {"dfs.http.address", "dfs.namenode.http-address"});
@@ -105,8 +108,13 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[] {"yarn.resourcemanager.webapp.address"});
+    initPropMap.put("NODEMANAGER", new String[] {"yarn.nodemanager.webapp.address"});
     serviceDesiredProperties.put(Service.Type.YARN, initPropMap);
-    
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("HISTORYSERVER", new String[] {"mapreduce.jobhistory.webapp.address"});
+    serviceDesiredProperties.put(Service.Type.MAPREDUCE2, initPropMap);
+
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NAMENODE", new String[] {"hadoop.ssl.enabled"});
     jmxDesiredProperties.put("NAMENODE", initPropMap);
