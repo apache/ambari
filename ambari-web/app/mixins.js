@@ -19,5 +19,6 @@
 
 // load all mixins here
 
+require('mixins/common/localStorage');
 require('mixins/common/userPref');
 require('mixins/main/host/details/host_components/decommissionable');

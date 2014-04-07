@@ -19,20 +19,41 @@
 var App = require('app');
 var filters = require('views/common/filter_view');
 
-App.MainDashboardView = Em.View.extend(App.UserPref, {
+App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
+
+  name: 'mainDashboardView',
+
   templateName:require('templates/main/dashboard'),
+
   didInsertElement:function () {
-    this.services();
+    this.loadServices();
     this.setWidgetsDataModel();
     this.setInitPrefObject();
     this.setOnLoadVisibleWidgets();
     this.set('isDataLoaded',true);
-    Ember.run.next(this, 'makeSortable');
+    Em.run.next(this, 'makeSortable');
   },
+
+  /**
+   * List of services
+   * @type {Ember.Enumerable}
+   */
   content:[],
+
+  /**
+   * @type {bool}
+   */
   isDataLoaded: false,
+
+  /**
+   * Is Classic Dashboard style used
+   * @type {bool}
+   */
   isClassicDashboard: false,
 
+  /**
+   * Make widgets' list sortable on New Dashboard style
+   */
   makeSortable: function () {
     var self = this;
     $( "#sortable" ).sortable({
@@ -44,7 +65,7 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
           // update persist then translate to real
           var widgetsArray = $('div[viewid]'); // get all in DOM
           self.getUserPref(self.get('persistKey'));
-          var oldValue = self.get('currentPrefObject');
+          var oldValue = self.get('currentPrefObject') || self.getDBProperty(self.get('persistKey'));
           var newValue = Em.Object.create({
             dashboardVersion: oldValue.dashboardVersion,
             visible: [],
@@ -58,12 +79,16 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
             newValue.visible.push(id);
           }
           self.postUserPref(self.get('persistKey'), newValue);
+          self.setDBProperty(self.get('persistKey'), newValue);
           //self.translateToReal(newValue);
         }
       }
     }).disableSelection();
   },
 
+  /**
+   * Set Service model values
+   */
   setWidgetsDataModel: function () {
     var services = App.Service.find();
     var self = this;
@@ -88,6 +113,9 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     }, this);
   },
 
+  /**
+   * Load widget statuses to <code>initPrefObject</code>
+   */
   setInitPrefObject: function() {
     //in case of some service not installed
     var visibleFull = [
@@ -137,14 +165,33 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
   },
 
   hdfs_model: null,
+
   mapreduce_model: null,
+
   mapreduce2_model: null,
+
   yarn_model: null,
+
   hbase_model: null,
+
   storm_model: null,
+
+  /**
+   * List of visible widgets
+   * @type {Ember.Enumerable}
+   */
   visibleWidgets: [],
+
+  /**
+   * List of hidden widgets
+   * @type {Ember.Enumerable}
+   */
   hiddenWidgets: [], // widget child view will push object in this array if deleted
 
+  /**
+   * Submenu view for New Dashboard style
+   * @type {Ember.View}
+   */
   plusButtonFilterView: filters.createComponentView({
     /**
      * Base methods was implemented in <code>filters.componentFieldView</code>
@@ -174,7 +221,7 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
         } else {
           //save in persist
           parent.getUserPref(parent.get('persistKey'));
-          var oldValue = parent.get('currentPrefObject');
+          var oldValue = parent.get('currentPrefObject') || parent.getDbProperty(parent.get('persistKey'));
           var newValue = Em.Object.create({
             dashboardVersion: oldValue.dashboardVersion,
             visible: oldValue.visible,
@@ -188,8 +235,8 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
           hiddenWidgets.forEach(function(item){
             newValue.hidden.push([item.id, item.displayName]);
           }, this);
-
           parent.postUserPref(parent.get('persistKey'), newValue);
+          parent.setDBProperty(parent.get('persistKey'), newValue);
           parent.translateToReal(newValue);
         }
       }
@@ -197,7 +244,7 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
   }),
 
   /**
-   * translate from Json value got from persist to real widgets view
+   * Translate from Json value got from persist to real widgets view
    */
   translateToReal: function (value) {
     var version = value.dashboardVersion;
@@ -234,51 +281,72 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     }
   },
 
+  /**
+   * Set visibility-status for widgets
+   */
   setOnLoadVisibleWidgets: function () {
     if (App.testMode) {
       this.translateToReal(this.get('initPrefObject'));
     } else {
       // called when first load/refresh/jump back page
       this.getUserPref(this.get('persistKey'));
-      var currentPrefObject = this.get('currentPrefObject');
+      var currentPrefObject = this.get('currentPrefObject') || this.getDBProperty(this.get('persistKey'));
       if (currentPrefObject) { // fit for no dashboard version
         if (!currentPrefObject.dashboardVersion) {
           currentPrefObject.dashboardVersion = 'new';
           this.postUserPref(this.get('persistKey'), currentPrefObject);
+          this.setDBProperty(this.get('persistKey'), currentPrefObject);
         }
         this.set('currentPrefObject', this.checkServicesChange(currentPrefObject));
         this.translateToReal(this.get('currentPrefObject'));
-      } else {
+      }
+      else {
         // post persist then translate init object
-        if(App.get('isAdmin')) {
-          this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
-        }
+        this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
+        this.setDBProperty(this.get('persistKey'), this.get('initPrefObject'));
         this.translateToReal(this.get('initPrefObject'));
       }
     }
   },
-  removeWidget: function (value, itemToRemove) {
-    value.visible = value.visible.without(itemToRemove);
+
+  /**
+   * Remove widget from visible and hidden lists
+   * @param {Object} value
+   * @param {Object} widget
+   * @returns {*}
+   */
+  removeWidget: function (value, widget) {
+    value.visible = value.visible.without(widget);
     for (var j = 0; j <= value.hidden.length -1; j++) {
-      if (value.hidden[j][0] == itemToRemove) {
+      if (value.hidden[j][0] == widget) {
         value.hidden.splice(j, 1);
       }
     }
     return value;
   },
-  containsWidget: function (value, item) {
-    var flag = value.visible.contains (item);
+
+  /**
+   * Check if widget is in visible or hidden list
+   * @param {Object} value
+   * @param {Object} widget
+   * @returns {bool}
+   */
+  containsWidget: function (value, widget) {
+    var flag = value.visible.contains (widget);
     for (var j = 0; j <= value.hidden.length -1; j++) {
-      if ( !flag && value.hidden[j][0] == item) {
+      if ( !flag && value.hidden[j][0] == widget) {
         flag = true;
         break;
       }
     }
     return flag;
   },
+
   /**
    * check if stack has upgraded from HDP 1.0 to 2.0 OR add/delete services.
    * Update the value on server if true.
+   * @param {Object} currentPrefObject
+   * @return {Object}
    */
   checkServicesChange: function (currentPrefObject) {
     var toDelete = $.extend(true, {}, currentPrefObject);
@@ -357,40 +425,52 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     return value;
   },
 
+  /**
+   * Get view for widget by widget's id
+   * @param {string} id
+   * @returns {Ember.View}
+   */
   widgetsMapper: function (id) {
-    switch(id){
-      case '1': return App.NameNodeHeapPieChartView;
-      case '2': return App.NameNodeCapacityPieChartView;
-      case '3': return App.NameNodeCpuPieChartView;
-      case '4': return App.DataNodeUpView;
-      case '5': return App.NameNodeRpcView;
-      case '6': return App.JobTrackerHeapPieChartView;
-      case '7': return App.JobTrackerCpuPieChartView;
-      case '8': return App.TaskTrackerUpView;
-      case '9': return App.JobTrackerRpcView;
-      case '10': return App.MapReduceSlotsView;
-      case '11': return App.ChartClusterMetricsMemoryWidgetView;
-      case '12': return App.ChartClusterMetricsNetworkWidgetView;
-      case '13': return App.ChartClusterMetricsCPUWidgetView;
-      case '14': return App.ChartClusterMetricsLoadWidgetView;
-      case '15': return App.NameNodeUptimeView;
-      case '16': return App.JobTrackerUptimeView;
-      case '17': return App.HDFSLinksView;
-      case '18': return App.MapReduceLinksView;
-      case '19': return App.HBaseLinksView;
-      case '20': return App.HBaseMasterHeapPieChartView;
-      case '21': return App.HBaseAverageLoadView;
-      case '22': return App.HBaseRegionsInTransitionView;
-      case '23': return App.HBaseMasterUptimeView;
-      case '24': return App.ResourceManagerHeapPieChartView;
-      case '25': return App.ResourceManagerUptimeView;
-      case '26': return App.NodeManagersLiveView;
-      case '27': return App.YARNMemoryPieChartView;
-      case '28': return App.SuperVisorUpView;
-    }
+    return Em.get({
+     '1': App.NameNodeHeapPieChartView,
+     '2': App.NameNodeCapacityPieChartView,
+     '3': App.NameNodeCpuPieChartView,
+     '4': App.DataNodeUpView,
+     '5': App.NameNodeRpcView,
+     '6': App.JobTrackerHeapPieChartView,
+     '7': App.JobTrackerCpuPieChartView,
+     '8': App.TaskTrackerUpView,
+     '9': App.JobTrackerRpcView,
+     '10': App.MapReduceSlotsView,
+     '11': App.ChartClusterMetricsMemoryWidgetView,
+     '12': App.ChartClusterMetricsNetworkWidgetView,
+     '13': App.ChartClusterMetricsCPUWidgetView,
+     '14': App.ChartClusterMetricsLoadWidgetView,
+     '15': App.NameNodeUptimeView,
+     '16': App.JobTrackerUptimeView,
+     '17': App.HDFSLinksView,
+     '18': App.MapReduceLinksView,
+     '19': App.HBaseLinksView,
+     '20': App.HBaseMasterHeapPieChartView,
+     '21': App.HBaseAverageLoadView,
+     '22': App.HBaseRegionsInTransitionView,
+     '23': App.HBaseMasterUptimeView,
+     '24': App.ResourceManagerHeapPieChartView,
+     '25': App.ResourceManagerUptimeView,
+     '26': App.NodeManagersLiveView,
+     '27': App.YARNMemoryPieChartView,
+     '28': App.SuperVisorUpView
+    }, id);
   },
 
+  /**
+   * @type {Object|null}
+   */
   currentPrefObject: null,
+
+  /**
+   * @type {Ember.Object}
+   */
   initPrefObject: Em.Object.create({
     dashboardVersion: 'new',
     visible: [],
@@ -399,10 +479,14 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
       24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95]} // id:[thresh1, thresh2]
   }),
+
+  /**
+   * Key-name to store data in Local Storage and Persist
+   * @type {string}
+   */
   persistKey: function () {
-    var loginName = App.router.get('loginName');
-    return 'user-pref-' + loginName + '-dashboard';
-  }.property(''),
+    return 'user-pref-' + App.router.get('loginName') + '-dashboard';
+  }.property(),
 
   makeRequestAsync: false,
 
@@ -413,51 +497,65 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     }
   },
 
-  getUserPrefErrorCallback: function (request, ajaxOptions, error) {
+  getUserPrefErrorCallback: function (request) {
     // this user is first time login
     if (request.status == 404) {
       console.log('Persist did NOT find the key');
-      return null;
     }
   },
 
-  resetAllWidgets: function(){
+  /**
+   * Reset widgets visibility-status
+   */
+  resetAllWidgets: function() {
     var self = this;
     App.showConfirmationPopup(function() {
-      if(!App.testMode){
+      if(!App.testMode) {
         self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
+        self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
       }
       self.translateToReal(self.get('initPrefObject'));
     });
   },
 
+  /**
+   * Use Classic Dashboard style
+   */
   switchToClassic: function () {
-    if(!App.testMode){
-      this.getUserPref(this.get('persistKey'));
-      var oldValue = this.get('currentPrefObject');
-      oldValue.dashboardVersion = 'classic';
-      this.postUserPref(this.get('persistKey'), oldValue);
-    }else{
-      var oldValue = this.get('initPrefObject');
-      oldValue.dashboardVersion = 'classic';
-    }
-    this.translateToReal(oldValue);
+    this.switchTo('classic');
   },
 
+  /**
+   * Use New Dashboard style
+   */
   switchToNew: function () {
-    if(!App.testMode){
-      this.getUserPref(this.get('persistKey'));
-      var oldValue = this.get('currentPrefObject');
-      oldValue.dashboardVersion = 'new';
-      this.postUserPref(this.get('persistKey'), oldValue);
-      this.didInsertElement();
-    }else{
-      var oldValue = this.get('initPrefObject');
-      oldValue.dashboardVersion = 'new';
+    this.switchTo('new');
+  },
+
+  /**
+   * Switch Dashboard to New or Classic style
+   * @param {string} type
+   */
+  switchTo: function(type) {
+    var oldValue;
+    if(App.testMode) {
+      oldValue = this.get('initPrefObject');
+      oldValue.dashboardVersion = type;
       this.translateToReal(oldValue);
     }
+    else {
+      this.getUserPref(this.get('persistKey'));
+      oldValue = this.get('currentPrefObject') || this.getDBProperty(this.get('persistKey'));
+      oldValue.dashboardVersion = type;
+      this.postUserPref(this.get('persistKey'), oldValue);
+      this.setDBProperty(this.get('persistKey'), oldValue);
+      this.didInsertElement();
+    }
   },
 
+  /**
+   * Update list of services in the <code>content</code>
+   */
   updateServices: function(){
     var services = App.Service.find();
     services.forEach(function (item) {
@@ -478,10 +576,13 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     }, this);
   }.observes('App.router.updateController.isUpdate'),
 
-  services: function () {
+  /**
+   * Load Services data to <code>content</code>
+   */
+  loadServices: function () {
     var services = App.Service.find();
     if (this.get('content').length > 0) {
-      return false
+      return;
     }
     services.forEach(function (item) {
       var vName;
@@ -525,6 +626,9 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     }, this);
   },
 
+  /**
+   * @type {string}
+   */
   gangliaUrl: function () {
     return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
   }.property('App.router.clusterController.gangliaUrl'),
@@ -577,4 +681,5 @@ App.MainDashboardView = Em.View.extend(App.UserPref, {
     });
     event.stopPropagation();
   }
+
 });

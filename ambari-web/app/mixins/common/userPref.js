@@ -21,10 +21,13 @@ var App = require('app');
 /**
  * Small mixin for processing user preferences
  * Provide methods to save/load some values in <code>persist</code> storage
+ * Save available only for admin users!
  * When using this mixin you should redeclare methods:
  * <ul>
  *   <li>getUserPrefSuccessCallback</li>
  *   <li>getUserPrefErrorCallback</li>
+ *   <li>postuserPrefSuccessCallback</li>
+ *   <li>postuserPrefErrorCallback</li>
  * </ul>
  * @type {Em.Mixin}
  */
@@ -37,6 +40,12 @@ App.UserPref = Em.Mixin.create({
   makeRequestAsync: true,
 
   /**
+   * Additional to request data
+   * @type {object}
+   */
+  additionalData: {},
+
+  /**
    * Get persist value from server with persistKey
    * @param {String} key
    */
@@ -46,7 +55,8 @@ App.UserPref = Em.Mixin.create({
       sender: this,
       data: {
         key: key,
-        async: this.get('makeRequestAsync')
+        async: this.get('makeRequestAsync'),
+        data: this.get('additionalData')
       },
       success: 'getUserPrefSuccessCallback',
       error: 'getUserPrefErrorCallback'
@@ -72,10 +82,12 @@ App.UserPref = Em.Mixin.create({
 
   /**
    * Post persist key/value to server, value is object
+   * Only for admin users!
    * @param {String} key
    * @param {Object} value
    */
   postUserPref: function (key, value) {
+    if(!App.get('isAdmin')) return;
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
     App.ajax.send({
@@ -85,9 +97,28 @@ App.UserPref = Em.Mixin.create({
       'data': {
         'async': this.get('makeRequestAsync'),
         'keyValuePair': keyValuePair
-      }
+      },
+      'success': 'postUserPrefSuccessCallback',
+      'error': 'postUserPrefErrorCallback'
     });
   },
+
+  /**
+   * Should be redeclared in objects that use this mixin
+   * @param {*} response
+   * @param {Object} request
+   * @param {Object} data
+   * @returns {*}
+   */
+  postUserPrefSuccessCallback: function (response, request, data) {},
+
+  /**
+   * Should be redeclared in objects that use this mixin
+   * @param {Object} request
+   * @param {Object} ajaxOptions
+   * @param {String} error
+   */
+  postUserPrefErrorCallback: function(request, ajaxOptions, error) {},
 
   /**
    * Little log before post request
