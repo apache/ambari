@@ -67,7 +67,7 @@ class TestHiveMetastore(RMFTestCase):
                               owner='hive',
                               content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server',
+    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
                               user = 'hive'
     )
@@ -133,7 +133,7 @@ class TestHiveMetastore(RMFTestCase):
                               owner='hive',
                               content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server',
+    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
                               user = 'hive'
     )
