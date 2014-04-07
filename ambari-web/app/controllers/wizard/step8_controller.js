@@ -874,6 +874,10 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Updates local repositories for the Ambari server.
+   * Base URL validation is disabled, since the checks had already run in the Select Stacks page
+   * already (unless the user specifically asked to skip).
+   * TODO: This function should be deleted once we modify App.InstallerController to make
+   * sure that base URLs are saved even when "Skip validation" is checked.
    */
   setLocalRepositories: function () {
     if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) return;
@@ -888,7 +892,8 @@ App.WizardStep8Controller = Em.Controller.extend({
           url: App.apiPrefix + App.get('stack2VersionURL') + "/operatingSystems/" + os.osType + "/repositories/" + stack.name,
           data: JSON.stringify({
             "Repositories": {
-              "base_url": os.baseUrl
+              "base_url": os.baseUrl,
+              "verify_base_url": false
             }
           })
         });
