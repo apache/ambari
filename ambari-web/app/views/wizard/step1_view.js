@@ -222,7 +222,7 @@ App.WizardStep1View = Em.View.extend({
     group.set('empty-error', !os.baseUrl);
     group.set('invalid-error', os.validation == 'icon-exclamation-sign');
     group.set('validation', os.validation);
-    group.set('undo', os.baseUrl != os.defaultBaseUrl);
+    group.set('undo', os.baseUrl != os.latestBaseUrl);
     group.set('clearAll', os.baseUrl);
     group.set('errorTitle', os.errorTitle);
     group.set('errorContent', os.errorContent);
@@ -247,7 +247,7 @@ App.WizardStep1View = Em.View.extend({
           os.selected = false;
           targetGroup.set('baseUrl', os.latestBaseUrl);
           targetGroup.set('latestBaseUrl', os.latestBaseUrl);
-          targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('defaultBaseUrl'));
+          targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('latestBaseUrl'));
           targetGroup.set('invalid-error', false);
           targetGroup.set('validation', null);
           targetGroup.set('clearAll', false);
@@ -327,7 +327,7 @@ App.WizardStep1View = Em.View.extend({
         if (os.baseUrl != targetGroup.get('baseUrl')) {
           os.baseUrl = targetGroup.get('baseUrl');
           os.validation = null;
-          targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('defaultBaseUrl'));
+          targetGroup.set('undo', targetGroup.get('baseUrl') != targetGroup.get('latestBaseUrl'));
           targetGroup.set('invalid-error', false);
           targetGroup.set('validation', null);
           targetGroup.set('clearAll', os.baseUrl);
