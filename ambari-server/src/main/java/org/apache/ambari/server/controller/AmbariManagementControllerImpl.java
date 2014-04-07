@@ -199,7 +199,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       "/resources/";
   
   final private static int REPO_URL_CONNECT_TIMEOUT = 3000;
-  final private static int REPO_URL_READ_TIMEOUT = 500;
+  final private static int REPO_URL_READ_TIMEOUT = 2000;
 
   final private String jdkResourceUrl;
   final private String javaHome;
@@ -2560,7 +2560,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               IOUtils.readLines(usp.readFrom(spec));
               bFound = true;
             } catch (IOException ioe) {
-              // failed, but try other suffixes
+              LOG.error("IOException loading the base URL", ioe);
             }
           }
             
