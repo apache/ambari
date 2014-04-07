@@ -397,6 +397,14 @@ module.exports = new Ember.Set([
     isMaster: true,
     isClient: false,
     description: 'Master component for STORM'
+  },
+  {
+    service_name: 'FLUME',
+    component_name: 'FLUME_HANDLER',
+    display_name: 'Flume Agent',
+    isMaster: false,
+    isClient: false,
+    description: 'Slave component for Flume'
   }
 ]);
 

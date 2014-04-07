@@ -165,6 +165,17 @@
         "comments" : "Apache Hadoop Stream processing framework",
         "service_version" : "0.9.0.1"
       }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/FLUME",
+      "StackServices" : {
+        "user_name" : "root",
+        "stack_version" : "2.0.1",
+        "service_name" : "FLUME",
+        "stack_name" : "HDP",
+        "comments" : "Efficiently collects, aggregates, and moves large amounts of log data",
+        "service_version" : "1.4.0"
+      }
     }
   ]
 }

@@ -499,10 +499,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   },
 
   loadServicesFromServer: function () {
-    var services = this.getDBProperty('service');
     var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);
-    this.setDBProperty('service',apiService);
+    this.setDBProperty('service', apiService);
   },
   /**
    * Load config groups from local DB

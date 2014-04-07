@@ -76,7 +76,8 @@ App.supports = {
   appTimelineServer: true,
   jobs: true,
   ubuntu: true,
-  views: false
+  views: false,
+  flume: false
 };
 
 if (App.enableExperimental) {

@@ -244,6 +244,12 @@ App.WizardStep6Controller = Em.Controller.extend({
           label: self.getComponentDisplayName('SUPERVISOR')
         }));
       }
+      if (this.isServiceSelected('FLUME')) {
+        headers.pushObject(Em.Object.create({
+          name: 'FLUME_HANDLER',
+          label: self.getComponentDisplayName('FLUME_HANDLER')
+        }));
+      }
       headers.pushObject(Ember.Object.create({
         name: 'CLIENT',
         label: self.getComponentDisplayName('CLIENT')

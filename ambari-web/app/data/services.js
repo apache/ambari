@@ -175,3 +175,15 @@ module.exports = [
     description: Em.I18n.t('services.storm.description')
   }
 ];
+
+if (App.supports.flume) {
+  var flume = {
+    serviceName: 'FLUME',
+    displayName: 'Flume',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    isHidden: false
+  };
+  module.exports.push(flume);
+}
