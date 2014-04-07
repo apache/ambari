@@ -1756,6 +1756,14 @@ var urls = {
     'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/TEZ_VERTEX_ID/{tezDagVertexId}?fields=otherinfo',
     'mock': '/data/jobs/tezDagVertex.json',
     'apiPrefix': ''
+  },
+  'views.info': {
+    'real': '/views',
+    'mock':''
+  },
+  'views.instances': {
+    'real': '/views/{viewName}',
+    'mock':''
   }
 };
 /**

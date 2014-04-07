@@ -117,7 +117,7 @@ require('controllers/main/mirroring/edit_dataset_controller');
 require('controllers/main/mirroring/datasets_controller');
 require('controllers/main/mirroring/jobs_controller');
 require('controllers/main/mirroring/manage_clusters_controller');
-require('controllers/main/views');
+require('controllers/main/views_controller');
 require('controllers/wizard/slave_component_groups_controller');
 require('controllers/wizard/step0_controller');
 require('controllers/wizard/step1_controller');

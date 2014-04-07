@@ -236,7 +236,7 @@ require('views/main/mirroring/datasets_view');
 require('views/main/mirroring/jobs_view');
 require('views/main/mirroring/manage_clusters_view');
 
-require('views/main/views');
+require('views/main/views_view');
 
 require('views/installer');
 require('views/wizard/controls_view');

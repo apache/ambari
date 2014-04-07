@@ -29,16 +29,6 @@ App.MainViewsView = Em.View.extend({
   seamless: "seamless",
 
   src: function() {
-    return window.location.origin + this.get('views')[1].link;
-  }.property("views"),
-
-  views: [{
-      name: "filebrowser",
-      link: "/views/FILE_BROWSER/FILEBROWSER_1/#/?path=/"
-    },
-    {
-      name: "pig",
-      link: "/views/PIG/PIG_1/"
-  }]
-
+    return window.location.origin + this.get('controller.selectedView.href');
+  }.property('controller.selectedView')
 });

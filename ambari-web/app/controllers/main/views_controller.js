@@ -19,5 +19,14 @@
 var App = require('app');
 
 App.MainViewsController = Em.Controller.extend({
-  name:'mainViewsController'
+  name:'mainViewsController',
+
+  selectedView: null,
+
+  setView: function(event) {
+    if(event.context){
+      this.set('selectedView', event.context);
+      App.router.transitionTo('views');
+    }
+  }
 })

@@ -15,17 +15,25 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<a href="#/main/{{unbound view.content.routing}}">
-  {{unbound view.content.label}}
-  {{#if view.alertsCount}}
-    <span class="label label-important alerts-count">
-      {{view.alertsCount}}
-    </span>
-  {{/if}}
-  <!--{{#if view.hostDetailsOperationsCount}}-->
-    <!--<span class="label operations-count" {{action "showBackgroundOperationsPopup" target="App.router.mainHostDetailsController"}}>-->
-      <!--{{view.hostDetailsOperationsCount}}-->
-    <!--</span>-->
-  <!--{{/if}}-->
-</a>
+{{#if view.content.isView}}
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{view.content.label}}<b class="caret pull-right"></b></a>
+    <ul class="dropdown-menu pull-right">
+      {{#each v in view.content.views}}
+          <li><a href="#" class="align-right" {{action "setView" v target="App.router.mainViewsController"}}>{{v.label}}</a></li>
+      {{/each}}
+    </ul>
+{{else}}
+    <a href="#/main/{{unbound view.content.routing}}">
+      {{unbound view.content.label}}
+      {{#if view.alertsCount}}
+          <span class="label label-important alerts-count">
+            {{view.alertsCount}}
+          </span>
+      {{/if}}
+        <!--{{#if view.hostDetailsOperationsCount}}-->
+        <!--<span class="label operations-count" {{action "showBackgroundOperationsPopup" target="App.router.mainHostDetailsController"}}>-->
+        <!--{{view.hostDetailsOperationsCount}}-->
+        <!--</span>-->
+        <!--{{/if}}-->
+    </a>
+{{/if}}

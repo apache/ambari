@@ -24,6 +24,7 @@ App.ClusterController = Em.Controller.extend({
   isLoaded:false,
   ambariProperties: null,
   ambariVersion: null,
+  ambariViews: [],
   clusterDataLoadedPercent: 'width:0', // 0 to 1
   /**
    * Whether we need to update statuses automatically or not
@@ -279,6 +280,7 @@ App.ClusterController = Em.Controller.extend({
   loadClusterData:function () {
     var self = this;
     this.loadAmbariProperties();
+    this.loadAmbariViews();
     if (!this.get('clusterName')) {
       return;
     }
@@ -380,6 +382,40 @@ App.ClusterController = Em.Controller.extend({
     App.HttpClient.get(url, App.hostsMapper, {
       complete: callback
     }, callback)
+  },
+
+  loadAmbariViews: function() {
+    App.ajax.send({
+      name: 'views.info',
+      sender: this,
+      success: 'loadAmbariViewsSuccess'
+    });
+  },
+
+  loadAmbariViewsSuccess: function(data) {
+    this.set('ambariViews',[]);
+    data.items.forEach(function(item){
+      App.ajax.send({
+        name: 'views.instances',
+        data: {
+          viewName: item.ViewInfo.view_name
+        },
+        sender: this,
+        success: 'loadViewInstancesSuccess'
+      });
+    }, this)
+  },
+
+  loadViewInstancesSuccess: function(data) {
+    data.instances.forEach(function(instance){
+      var view = Em.Object.create({
+        label: data.ViewInfo.label,
+        viewName: instance.ViewInstanceInfo.view_name,
+        instanceName: instance.ViewInstanceInfo.instance_name,
+        href: "/views/" + instance.ViewInstanceInfo.view_name + "/" + instance.ViewInstanceInfo.instance_name
+      });
+      this.get('ambariViews').push(view);
+    }, this);
   },
 
   loadAmbariProperties: function() {
