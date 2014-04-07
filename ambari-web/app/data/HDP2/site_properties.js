@@ -1640,7 +1640,19 @@ module.exports =
       "filename": "core-site.xml",
       "serviceName": "GLUSTERFS",
       "category": "General"
-    }
+    },
 
+  /********************************************* flume.conf *****************************/
+    {
+      "id": "site property",
+      "serviceName": "FLUME",
+      "showLabel": false,
+      "isRequired": false,
+      "category": "AdvancedFlumeConf",
+      "displayName": "content",
+      "name": "content",
+      "displayType": "custom",
+      "filename": "flume.conf"
+    }
   ]
 };

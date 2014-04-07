@@ -1168,7 +1168,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       PIG: {site: [], log4j: ['pig']},
       FALCON: {site: [{filename:'falcon-startup.properties',isXmlFile: false},{filename:'falcon-runtime.properties',isXmlFile: false}], log4j: []},
       TEZ: {site: [{filename:'tez-site',isXmlFile: true}], log4j: []},
-      ZOOKEEPER: {site: [], log4j: ['zookeeper']}
+      ZOOKEEPER: {site: [], log4j: ['zookeeper']},
+      FLUME: {site: [], log4j: []}
     };
 
     if (App.supports.capacitySchedulerUi) {
@@ -1193,6 +1194,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
       this.get('serviceConfigTags').pushObject(this.createZooCfgObj());
+    }
+    if (selectedServices.someProperty('serviceName', 'FLUME')) {
+      this.get('serviceConfigTags').pushObject(this.createFlumeConfObj());
     }
   },
 
@@ -1420,6 +1424,19 @@ App.WizardStep8Controller = Em.Controller.extend({
       csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
     }, this);
     return {type: 'zoo.cfg', tag: 'version1', properties: csProperties};
+  },
+
+  /**
+   * Create flume.conf Object
+   * @returns {{type: string, tag: string, properties: {}}}
+   */
+  createFlumeConfObj: function () {
+    var configs = this.get('configs').filterProperty('filename', 'flume.conf');
+    var csProperties = {};
+    configs.forEach(function (_configProperty) {
+      csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+    }, this);
+    return {type: 'flume.conf', tag: 'version1', properties: csProperties};
   },
 
   /**

@@ -280,6 +280,15 @@ module.exports = [
     configs: []
   },
   {
+    serviceName: 'FLUME',
+    displayName: 'Flume',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'AdvancedFlumeConf', displayName : 'flume.conf', siteFileName: 'flume.conf', canAddProperty: false})
+    ],
+    sites: ['flume.conf'],
+    configs: []
+  },
+  {
     serviceName: 'MISC',
     displayName: 'Misc',
     configsValidator: App.userConfigsValidator,
