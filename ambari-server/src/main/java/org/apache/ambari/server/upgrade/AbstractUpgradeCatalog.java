@@ -177,7 +177,15 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     this.executeDDLUpdates();
   }
 
+  @Override
+  public void upgradeData() throws AmbariException, SQLException {
+    executeDMLUpdates();
+    updateMetaInfoVersion(getTargetVersion());
+  }
+
   protected abstract void executeDDLUpdates() throws AmbariException, SQLException;
+
+  protected abstract void executeDMLUpdates() throws AmbariException, SQLException;
 
   @Override
   public String toString() {

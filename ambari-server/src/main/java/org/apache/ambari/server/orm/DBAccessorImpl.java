@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.helpers.ScriptRunner;
 import org.apache.ambari.server.orm.helpers.dbms.*;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.persistence.internal.helper.DBPlatformHelper;
 import org.eclipse.persistence.internal.sessions.DatabaseSessionImpl;
 import org.eclipse.persistence.logging.AbstractSessionLog;
@@ -208,6 +209,32 @@ public class DBAccessorImpl implements DBAccessor {
     }
 
     return result;
+  }
+
+  @Override
+  public boolean tableHasForeignKey(String tableName, String fkName) throws SQLException {
+    DatabaseMetaData metaData = getDatabaseMetaData();
+    String schemaFilter = null;
+    if (getDbType().equals(Configuration.ORACLE_DB_NAME)) {
+      // Optimization to not query everything
+      schemaFilter = configuration.getDatabaseUser();
+    }
+
+    ResultSet rs = metaData.getImportedKeys(null, convertObjectName(schemaFilter), convertObjectName(tableName));
+
+    if (rs != null) {
+      try {
+        while (rs.next()) {
+          if (StringUtils.equalsIgnoreCase(fkName, rs.getString("FK_NAME"))) {
+            return true;
+          }
+        }
+      } finally {
+        rs.close();
+      }
+    }
+
+    return false;
   }
 
   @Override
@@ -477,9 +504,13 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public void dropConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
-    String query = dbmsHelper.getDropConstraintStatement(tableName, constraintName);
+    if (tableHasForeignKey(tableName, constraintName)
+      //TODO check for unique constraints via getIndexInfo only, figure out if name of index and constraint differs
+      ) {
+      String query = dbmsHelper.getDropConstraintStatement(tableName, constraintName);
 
-    executeQuery(query, ignoreFailure);
+      executeQuery(query, ignoreFailure);
+    }
   }
 
   @Override

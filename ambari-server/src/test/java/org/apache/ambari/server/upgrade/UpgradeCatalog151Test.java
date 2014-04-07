@@ -22,6 +22,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,6 +38,8 @@ import static org.easymock.EasyMock.verify;
  * UpgradeCatalog151 tests.
  */
 public class UpgradeCatalog151Test {
+
+
   @Test
   public void testExecuteDDLUpdates() throws Exception {
 
@@ -68,7 +71,7 @@ public class UpgradeCatalog151Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
-    UpgradeCatalog   upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    UpgradeCatalog151 upgradeCatalog = (UpgradeCatalog151) getUpgradeCatalog(dbAccessor);
 
     upgradeCatalog.executeDMLUpdates();
   }
