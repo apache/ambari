@@ -101,7 +101,7 @@ public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("subResource_names", String.class, 255, null, true));
     columns.add(new DBAccessor.DBColumnInfo("provider", String.class, 255, null, true));
     columns.add(new DBAccessor.DBColumnInfo("service", String.class, 255, null, true));
-    columns.add(new DBAccessor.DBColumnInfo("resource", String.class, 255, null, true));
+    columns.add(new DBAccessor.DBColumnInfo("\"resource\"", String.class, 255, null, true)); //TODO incorrect name for oracle
 
     dbAccessor.createTable("viewresource", columns, "view_name", "name");
 

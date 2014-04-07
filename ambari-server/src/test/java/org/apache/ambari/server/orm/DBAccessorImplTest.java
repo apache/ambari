@@ -173,7 +173,6 @@ public class DBAccessorImplTest {
   }
 
 
-  @Ignore // Not working with derby db driver
   @Test
   public void testTableHasFKConstraint() throws Exception {
     String tableName = getFreeTableName();

@@ -71,6 +71,13 @@ public class UpgradeTest {
 
   @Test
   public void testUpgrade() throws Exception {
+    //not all tests close database properly, ensure it is empty
+    try {
+      dropDatabase();
+    } catch (SQLException ignored) {
+      // it is ok if database not found
+    }
+
     String targetVersion = getLastVersion();
     List<String> failedVersions = new ArrayList<String>();
 
@@ -144,6 +151,8 @@ public class UpgradeTest {
     injector.getInstance(ServiceDesiredStateDAO.class).findAll();
     injector.getInstance(StageDAO.class).findAll();
     injector.getInstance(UserDAO.class).findAll();
+    injector.getInstance(ViewDAO.class).findAll();
+    injector.getInstance(ViewInstanceDAO.class).findAll();
 
 
     //TODO extend checks if needed

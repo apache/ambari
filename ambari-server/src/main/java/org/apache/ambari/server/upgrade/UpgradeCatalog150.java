@@ -554,11 +554,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       }
     });
 
-    // ========================================================================
-    // Finally update schema version
-    updateMetaInfoVersion(getTargetVersion());
-
-         // Move decommissioned datanode data to new table
+    // Move decommissioned datanode data to new table
     executeInTransaction(new Runnable() {
       @Override
       public void run() {

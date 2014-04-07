@@ -33,11 +33,11 @@ public interface UpgradeCatalog {
   public void upgradeSchema() throws AmbariException, SQLException;
 
   /**
-   * Start persistence service and perform updates as necessary
+   * perform data updates as necessary, requires started persist service
    * @throws AmbariException
    * @throws SQLException
    */
-  public void executeDMLUpdates() throws AmbariException, SQLException;
+  public void upgradeData() throws AmbariException, SQLException;
 
   /**
    * Return the version that will be upgraded to

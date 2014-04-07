@@ -193,7 +193,7 @@ public class SchemaUpgradeHelper {
     if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
         try {
-          upgradeCatalog.executeDMLUpdates();
+          upgradeCatalog.upgradeData();
         } catch (AmbariException e) {
           LOG.error("Upgrade failed. ", e);
           throw e;

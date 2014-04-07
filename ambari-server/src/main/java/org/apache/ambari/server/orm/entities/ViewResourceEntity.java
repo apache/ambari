@@ -87,7 +87,7 @@ public class ViewResourceEntity {
   /**
    * The resource class name.
    */
-  @Column
+  @Column(name = "\"resource\"")
   @Basic
   private String resource;
 
