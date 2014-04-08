@@ -312,7 +312,7 @@ App.MainJobsController = Em.Controller.extend({
      * @return {String}
      */
     createJobsFiltersLink: function() {
-      var link = "?fields=events,primaryfilters,otherinfo";
+      var link = "?fields=events,primaryfilters,otherinfo&secondaryFilter=tez:true";
       var numberOfAppliedFilters = 0;
 
       if(this.get("id") !== "") {
