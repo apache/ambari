@@ -143,14 +143,6 @@
   </property>
 
   <property>
-    <name>dfs.https.port</name>
-    <value>50070</value>
-    <description>
-      This property is used by HftpFileSystem.
-    </description>
-  </property>
-
-  <property>
     <name>dfs.datanode.address</name>
     <value>0.0.0.0:50010</value>
     <description>
