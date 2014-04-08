@@ -19,36 +19,15 @@ var App = require('app');
 
 App.FlumeService = App.Service.extend({
   version: DS.attr('string'),
-  nodes: DS.hasMany('App.FlumeNode'),
-  channelsCount: function () {
-    var nodes = this.get('nodes');
-    var count = 0;
-    nodes.forEach(function (node) {
-      count += node.get('channelsCount');
-    });
-    return count;
-  }.property('nodes.@each.channelsCount'),
-
-  sourcesCount: function () {
-    var nodes = this.get('nodes');
-    var count = 0;
-    nodes.forEach(function (node) {
-      count += node.get('sourcesCount');
-    });
-    return count;
-  }.property('nodes.@each.sourcesCount'),
-
-  sinksCount: function () {
-    var nodes = this.get('nodes');
-    var count = 0;
-    nodes.forEach(function (node) {
-      count += node.get('sinksCount');
-    });
-    return count;
-  }.property('nodes.@each.sinksCount')
+  agents: DS.hasMany('App.FlumeAgent')
 });
 
-App.FlumeNode = DS.Model.extend({
+App.FlumeAgent = DS.Model.extend({
+  name: DS.attr('string'),
+  /**
+   * Status of agent. One of 'STARTED', 'INSTALLED', 'UNKNOWN'.
+   */
+  status: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
 
   /**
@@ -66,7 +45,7 @@ App.FlumeNode = DS.Model.extend({
    */
   sinks: DS.attr('string'),
 
-  channelsCount: function () {
+  channelsCount: function() {
     var channels = this.get('channels');
     if (!channels) {
       return 0;
@@ -75,7 +54,7 @@ App.FlumeNode = DS.Model.extend({
     }
   }.property('channels'),
 
-  sourcesCount: function () {
+  sourcesCount: function() {
     var sources = this.get('sources');
     if (!sources) {
       return 0;
@@ -84,7 +63,7 @@ App.FlumeNode = DS.Model.extend({
     }
   }.property('sources'),
 
-  sinksCount: function () {
+  sinksCount: function() {
     var sinks = this.get('sinks');
     if (!sinks) {
       return 0;
@@ -94,5 +73,24 @@ App.FlumeNode = DS.Model.extend({
   }.property('sinks')
 });
 
-App.FlumeService.FIXTURES = [];
-App.FlumeNode.FIXTURES = [];
+App.FlumeService.FIXTURES = [ {
+  version: '1.4.0',
+  agents: [ 0, 1 ]
+} ];
+App.FlumeAgent.FIXTURES = [ {
+  id: 0,
+  name: 'a1_dev01',
+  status: 'INSTALLED',
+  host: 'dev01',
+  channels: 'c1,c2',
+  sources: 'so1,so2,so3,so4',
+  sinks: 'si1,si2'
+}, {
+  id: 1,
+  name: 'a2_dev01',
+  status: 'STARTED',
+  host: 'dev01',
+  channels: 'c2',
+  sources: 'so1,so2,so3,so4',
+  sinks: 'si1,si2,si3,si4'
+} ];
