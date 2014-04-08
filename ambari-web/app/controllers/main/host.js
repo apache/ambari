@@ -343,7 +343,7 @@ App.MainHostController = Em.ArrayController.extend({
         //For decommession
         if (svcName == "HBASE") {
           // HBASE service, decommission RegionServer in batch requests
-          App.router.get('mainHostDetailsController').doDecommissionRegionServer(hostNames, svcName, masterName, slaveName);
+          App.router.get('mainHostDetailsController').warnBeforeDecommission(hostNames, svcName, masterName, slaveName);
         } else {
           var parameters = {
             "slave_type": slaveName

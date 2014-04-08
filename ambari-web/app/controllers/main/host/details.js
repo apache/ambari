@@ -697,7 +697,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
       // HBASE service, decommission RegionServer
       if (svcName === "HBASE") {
-        self.doDecommissionRegionServer(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
+        self.warnBeforeDecommission(hostName, svcName, "HBASE_MASTER", "HBASE_REGIONSERVER");
       }
 
       // load data (if we need to show this background operations popup) from persist
@@ -767,7 +767,37 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Recomends user to put component in MM before decommision (for HBASE only)
+   * @method warnBeforeDecommission
+   * @param {string[]} hostNames - list of host when run from bulk operations or current host
+   * @param {string} serviceName - serviceName
+   * @param {string} componentName - master compoent name
+   * @param {string} slaveType - slave component name
+   */
+  warnBeforeDecommission: function(hostNames, serviceName, componentName, slaveType) {
+    if (this.get('content.hostComponents').findProperty('componentName', componentName).get('passiveState') == "OFF") {
+      App.ModalPopup.show({
+        header: Em.I18n.t('common.warning'),
+        message: function(){
+          return Em.I18n.t('hostPopup.reccomendation.beforeDecommission').format(App.format.components[componentName]);
+        }.property(),
+        bodyClass: Ember.View.extend({
+          template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
+        }),
+        secondary: false
+      });
+    } else {
+      this.doDecommissionRegionServer(hostNames, serviceName, componentName, slaveType);
+    }
+  },
+
+  /**
    * Performs Decommission (for RegionServer)
+   * @method doDecommissionRegionServer
+   * @param {string[]} hostNames - list of host when run from bulk operations or current host
+   * @param {string} serviceName - serviceName
+   * @param {string} componentName - master compoent name
+   * @param {string} slaveType - slave component name
    */
   doDecommissionRegionServer: function(hostNames, serviceName, componentName, slaveType){
 
