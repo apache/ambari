@@ -44,6 +44,9 @@ App.MainJobsController = Em.Controller.extend({
 
   contentAndSortObserver : function() {
     Ember.run.once(this, 'contentAndSortUpdater');
+    if(App.HiveJob.find().findProperty('id', this.get('lastJobID'))) {
+      this.set('hasNewJobs', false);
+    }
   }.observes('content.length', 'content.@each.id', 'content.@each.startTime', 'content.@each.endTime', 'sortProperties', 'sortAscending'),
   
   contentAndSortUpdater: function() {
@@ -364,7 +367,9 @@ App.MainJobsController = Em.Controller.extend({
       this.set('lastJobID', lastReceivedID);
     } else if (this.get('lastJobID') !== lastReceivedID) {
       this.set('lastJobID', lastReceivedID);
-      this.set('hasNewJobs', true);
+      if(!App.HiveJob.find().findProperty('id', lastReceivedID)) {
+        this.set('hasNewJobs', true);
+      }
     }
   },
 
@@ -418,7 +423,7 @@ App.MainJobsController = Em.Controller.extend({
       back_link_IDs.push(this.get('lastJobID'));
     }
     this.set('filterObject.backFromId', this.get('lastJobID'));
-    this.get('filterObject').set('fromTs', App.get('currentServerTime'));
+    this.get('filterObject').set('fromTs', App.dateTime());
   },
 
   navigateNext: function() {
