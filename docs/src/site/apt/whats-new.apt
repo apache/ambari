@@ -16,11 +16,25 @@
 
 What's New with Ambari?
 
- * The current Ambari 1.4.4 features:
+ * The latest release Ambari 1.5.0 added the following features:
 
-   * Configuration updates and fixes.
+   * Maintenance Mode
 
-   * Fixes for upgrade scripts.
+   * Rolling Restarts
+
+   * Bulk Host Operations
+
+   * Service and Component Restarts
+
+   * Decommission TaskTrackers, NodeManagers, RegionServers
+
+   * Add Services to Existing Cluster
+
+   * Customize ZooKeeper Configs
+
+   * Refresh Client Configs
+
+   * Default JDK 7
 
 Getting Ambari Source
 
@@ -35,7 +49,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.4+bits} how to install a Hadoop cluster using Ambari 1.4.4}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.5.0} how to install a Hadoop cluster using Ambari 1.5.0}}.
 
 Stay Tuned
 

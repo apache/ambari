@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>1.4.4</version>
+    <version>1.5.0</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -425,6 +425,18 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>sposetti</id>
+            <name>Jeff Sposetti</name>
+            <email>sposetti@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks

@@ -103,7 +103,8 @@
     </menu>
 
     <menu name="Releases">
-        <item name="1.4.4" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.4.4"/>
+        <item name="1.5.0" href="http://www.apache.org/dyn/closer.cgi/ambari/ambari-1.5.0"/>
+        <item name="1.4.4" href="http://archive.apache.org/dist/ambari/ambari-1.4.4/"/>
         <item name="1.4.3" href="http://archive.apache.org/dist/ambari/ambari-1.4.3/"/>
         <item name="1.4.2" href="http://archive.apache.org/dist/ambari/ambari-1.4.2/"/>
         <item name="1.4.1" href="http://archive.apache.org/dist/incubator/ambari/ambari-1.4.1/"/>
@@ -117,6 +118,7 @@
     </menu>
 
     <menu name="Documentation">
+        <item name="Install Guide for 1.5.0" href="https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.5.0"/>
         <item name="Install Guide for 1.4.4" href="https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.4+bits"/>
         <item name="Install Guide for 1.4.3" href="https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.3+bits"/>
         <item name="Install Guide for 1.4.2" href="https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.2+bits"/>

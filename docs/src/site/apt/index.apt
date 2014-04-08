@@ -18,18 +18,6 @@ Introduction
   The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters.
   Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs.
 
-  The set of Hadoop components that are currently supported by Ambari includes:
-
-  {{{http://hadoop.apache.org/docs/hdfs} HDFS}},
-  {{{http://hadoop.apache.org/docs/mapreduce} MapReduce}},
-  {{{http://hive.apache.org} Hive}},
-  {{{http://incubator.apache.org/hcatalog} HCatalog}},
-  {{{http://hbase.apache.org} HBase}},
-  {{{http://zookeeper.apache.org} ZooKeeper}},
-  {{{http://incubator.apache.org/oozie/} Oozie}},
-  {{{http://pig.apache.org} Pig}},
-  {{{http://sqoop.apache.org} Sqoop}}
-
   []
 
   Ambari enables System Administrators to:
@@ -64,7 +52,7 @@ Introduction
 
 Getting Started with Ambari
 
-  Follow the {{{https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.4+bits} installation guide for Ambari 1.4.4}}.
+  Follow the {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.5.0} installation guide for Ambari 1.5.0}}.
 
   Note: Ambari currently supports the 64-bit version of the following Operating Systems:
 
@@ -75,6 +63,8 @@ Getting Started with Ambari
   * OEL (Oracle Enterprise Linux) 5 and 6
 
   * SLES (SuSE Linux Enterprise Server) 11
+
+  * Ubuntu 12 support is coming soon
 
 Get Involved
 
