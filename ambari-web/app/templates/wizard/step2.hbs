@@ -36,7 +36,7 @@
       <div class="controls">
         {{view Ember.TextArea class="span6" valueBinding="content.installOptions.hostNames" rows="5" placeholder="host names"}}
         {{#if hostsError}}
-        <p class="help-inline">{{hostsError}}</p>
+          <p class="help-inline">{{hostsError}}</p>
         {{/if}}
       </div>
     </div>
@@ -49,36 +49,38 @@
       <label class="radio">
         {{view view.providingSSHKeyRadioButton}}
         {{t installer.step2.useSsh.provide}}
-          <a href="javascript:void(null)"
-             rel="popover"
-            {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
-            {{t installer.step2.useSsh.tooltip.title}}</a>
+        <a href="javascript:void(null)"
+           rel="popover"
+          {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
+          {{t installer.step2.useSsh.tooltip.title}}</a>
         {{t installer.step2.useSsh.provide_id_rsa}}
       </label>
+
       <div class="ssh-key-input">
         {{#if view.isFileApi}}
           {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
         {{/if}}
         <div {{bindAttr class="sshKeyError:error :controls :control-group"}}>
-            {{view Ember.TextArea class="span6" rows="3" id="sshKey"
-            placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
-            {{#if sshKeyError}}
-                <span class="help-inline">{{sshKeyError}}</span>
-            {{/if}}
+          {{view Ember.TextArea class="span6" rows="3" id="sshKey"
+          placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
+          {{#if sshKeyError}}
+            <span class="help-inline">{{sshKeyError}}</span>
+          {{/if}}
         </div>
         <div>
-            <label class="ssh-user pull-left">
-              {{t installer.step2.sshUser}}
-                <a href="javascript:void(null)"
-                   rel="popover"
-                  {{translateAttr title="installer.step2.sshUser.link" data-content="installer.step2.sshUser.toolTip"}}>
-                  {{t installer.step2.sshUser.link}}</a>
-              {{t installer.step2.sshUser.account}}
-            </label>
+          <label class="ssh-user pull-left">
+            {{t installer.step2.sshUser}}
+            <a href="javascript:void(null)"
+               rel="popover"
+              {{translateAttr title="installer.step2.sshUser.link" data-content="installer.step2.sshUser.toolTip"}}>
+              {{t installer.step2.sshUser.link}}</a>
+            {{t installer.step2.sshUser.account}}
+          </label>
+
           <div {{bindAttr class="sshUserError:error :control-group"}}>
             {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh"}}
             {{#if sshUserError}}
-                <span class="help-inline">{{sshUserError}}</span>
+              <span class="help-inline">{{sshUserError}}</span>
             {{/if}}
           </div>
         </div>
@@ -87,10 +89,10 @@
       <label class="radio">
         {{view view.manualRegistrationRadioButton}}
         {{t installer.step2.manualInstall.perform}}
-          <a href="javascript:void(null)"
-             rel="popover"
-            {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
-            {{t installer.step2.manualInstall.tooltip.title}}</a>
+        <a href="javascript:void(null)"
+           rel="popover"
+          {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
+          {{t installer.step2.manualInstall.tooltip.title}}</a>
         {{t installer.step2.manualInstall.perform_on_hosts}}
       </label>
 
@@ -99,23 +101,23 @@
 
   <div class="advancedOptions">
     {{#unless App.supports.localRepositories}}
-    <h5>{{t installer.step2.advancedOptions.header}}</h5>
-    <label {{bindAttr class=":checkbox"}}>
-      {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
+      <h5>{{t installer.step2.advancedOptions.header}}</h5>
+      <label {{bindAttr class=":checkbox"}}>
+        {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
 
-      {{t installer.step2.localRepo.label_use}}
+        {{t installer.step2.localRepo.label_use}}
 
-      <a href="javascript:void(null)"
-         rel="popover"
-        {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
-        {{t installer.step2.localRepo.tooltip.title}}</a>
-      {{t installer.step2.localRepo.label_instead}}
-    </label>
+        <a href="javascript:void(null)"
+           rel="popover"
+          {{translateAttr title="installer.step2.localRepo.tooltip.title" data-content="installer.step2.localRepo.tooltip.content"}}>
+          {{t installer.step2.localRepo.tooltip.title}}</a>
+        {{t installer.step2.localRepo.label_instead}}
+      </label>
     {{/unless}}
   </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-    <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
+      <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
     {{/unless}}
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action evaluateStep target="controller"}}>
       {{t installer.step2.registerAndConfirm}} &rarr;</a>

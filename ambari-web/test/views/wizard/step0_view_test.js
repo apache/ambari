@@ -17,9 +17,27 @@
  */
 
 var App = require('app');
+require('views/wizard/step0_view');
 
-App.WizardStep1Controller = Em.Controller.extend({
+var view, controller = Em.Object.create({
+  clusterNameError: ''
+});
 
-  name: 'wizardStep1Controller'
+describe('App.WizardStep0View', function () {
+
+  beforeEach(function() {
+    view = App.WizardStep0View.create({'controller': controller});
+  });
+
+  describe('#onError', function() {
+    it('should be true if clusterNameError appears', function() {
+      controller.set('clusterNameError', 'ERROR');
+      expect(view.get('onError')).to.equal(true);
+    });
+    it('should be false if clusterNameError doesn\'t appears', function() {
+      controller.set('clusterNameError', '');
+      expect(view.get('onError')).to.equal(false);
+    });
+  });
 
 });

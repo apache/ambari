@@ -20,7 +20,7 @@ var App = require('app');
 
 /**
  * Fast save/load value to Local Storage
- * Object that impements it should have property <code>name</code> defined
+ * Object that implements it should have property <code>name</code> defined
  * @type {Ember.Mixin}
  */
 App.LocalStorage = Em.Mixin.create({

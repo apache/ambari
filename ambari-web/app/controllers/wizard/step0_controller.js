@@ -19,19 +19,20 @@
 var App = require('app');
 
 App.WizardStep0Controller = Em.Controller.extend({
+
   name: 'wizardStep0Controller',
 
-  hasSubmitted : false,
+  /**
+   * Is step submitted
+   * @type {bool}
+   */
+  hasSubmitted: false,
 
-  loadStep: function () {
-    this.set('hasSubmitted',false);
-    this.set('clusterNameError', '');
-  },
   /**
    * validate cluster name
-   * set clusterNameError if validation fails
+   * set <code>clusterNameError</code> if validation fails
    */
-  invalidClusterName : function(){
+  invalidClusterName: function () {
     var clusterName = this.get('content.cluster.name');
     if (clusterName == '' && this.get('hasSubmitted')) {
       this.set('clusterNameError', Em.I18n.t('installer.step0.clusterName.error.required'));
@@ -50,12 +51,18 @@ App.WizardStep0Controller = Em.Controller.extend({
 
   /**
    * calculates by <code>invalidClusterName</code> property
+   * todo: mix this and previous variables in one
    */
-  //todo: mix this and previous variables in one
   clusterNameError: '',
+
+  loadStep: function () {
+    this.set('hasSubmitted', false);
+    this.set('clusterNameError', '');
+  },
 
   /**
    * Onclick handler for <code>next</code> button
+   * @method submit
    */
   submit: function () {
     this.set('hasSubmitted', true);

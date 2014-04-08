@@ -21,30 +21,49 @@ var App = require('app');
 
 App.WizardStep0View = Em.View.extend({
 
-  tagName: "form", //todo: why form?
-  attributeBindings: ['autocomplete'],
-  autocomplete: 'off',
-  templateName: require('templates/wizard/step0'),
+  tagName: "form",
 
-  //todo: create property for placeholder(go to template)
+  attributeBindings: ['autocomplete'],
+
+  /**
+   * Disable autocomplete for form's fields
+   */
+  autocomplete: 'off',
+
+  templateName: require('templates/wizard/step0'),
 
   didInsertElement: function () {
     App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
     this.get('controller').loadStep();
   },
 
-  //todo: rename it to class or write comments
+  /**
+   * Is some error with provided cluster name
+   * @type {bool}
+   */
   onError: function () {
-    return this.get('controller.clusterNameError') !== '';
+    return !Em.isEmpty(this.get('controller.clusterNameError'));
   }.property('controller.clusterNameError')
 
 });
 
+/**
+ * Field for cluster name
+ * @type {Ember.TextField}
+ */
 App.WizardStep0ViewClusterNameInput = Em.TextField.extend({
+
+  /**
+   * Submit form if "Enter" pressed
+   * @method keyPress
+   * @param {object} event
+   * @returns {bool}
+   */
   keyPress: function(event) {
     if (event.keyCode == 13) {
       this.get('parentView.controller').submit();
       return false;
     }
+    return true;
   }
 });

@@ -27,19 +27,19 @@
 </form>
 
 {{#if App.supports.localRepositories}}
-<div class="accordion" id="advancedRepoAccordion">
-  <div class="accordion-group">
-    <div class="accordion-heading" {{action "onToggleBlock" target="view"}}>
-      <i {{bindAttr class=":pull-left :accordion-toggle view.isRLCollapsed:icon-caret-right:icon-caret-down"}}></i>
-      <a class="accordion-toggle">
-        {{t installer.step1.advancedRepo.title}}
-        {{#if view.isSubmitDisabled}}
-          <span class="badge badge-important">{{view.totalErrorCnt}}</span>
-        {{/if}}
-      </a>
+  <div class="accordion" id="advancedRepoAccordion">
+    <div class="accordion-group">
+      <div class="accordion-heading" {{action "onToggleBlock" target="view"}}>
+        <i {{bindAttr class=":pull-left :accordion-toggle view.isRLCollapsed:icon-caret-right:icon-caret-down"}}></i>
+        <a class="accordion-toggle">
+          {{t installer.step1.advancedRepo.title}}
+          {{#if view.isSubmitDisabled}}
+            <span class="badge badge-important">{{view.totalErrorCnt}}</span>
+          {{/if}}
+        </a>
 
-    </div>
-      <div  class="accordion-body collapse in">
+      </div>
+      <div class="accordion-body collapse in">
         <div class="accordion-inner">
           <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
           <div class="alert alert-warning">{{t installer.step1.advancedRepo.importantMassage}}</div>
@@ -56,48 +56,49 @@
             </thead>
             <tbody>
               {{#each repoGroup in view.allRepositoriesGroup}}
-                <tr>
-                  <td class="group-checkbox">{{view Ember.Checkbox checkedBinding="repoGroup.checked"}}</td>
-                  <td class="os-td">
-                    <table {{bindAttr class="repoGroup.checked::disabled-label"}}>
-                      <tbody>
+              <tr>
+                <td class="group-checkbox">{{view Ember.Checkbox checkedBinding="repoGroup.checked"}}</td>
+                <td class="os-td">
+                  <table {{bindAttr class="repoGroup.checked::disabled-label"}}>
+                    <tbody>
                       {{#each repo in repoGroup}}
-                        <tr>
-                          <td  {{bindAttr class=":os repo.empty-error:label-error repo.invalid-error:label-error "}}>{{repo.osType}}</td>
-                        </tr>
+                      <tr>
+                        <td  {{bindAttr class=":os repo.empty-error:label-error repo.invalid-error:label-error "}}>{{repo.osType}}</td>
+                      </tr>
                       {{/each}}
-                      </tbody>
-                    </table>
-                  </td>
-                  <td class="validation-results">
-                    {{#if repoGroup.validation}}
-                      {{view view.popoverView repoGroupBinding="repoGroup"}}
-                    {{/if}}
-                  </td>
-                  <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
-                    {{view Ember.TextField valueBinding="repoGroup.baseUrl"}}
-                  </td>
-                  <td class="clearAll-icon">
-                    {{#if repoGroup.clearAll}}
-                      <a {{action "clearGroupLocalRepository" repoGroup target="view" }}>
-                        <i class="icon-remove-sign"></i>
-                      </a>
-                    {{/if}}
-                  </td>
-                  <td class="action-results">
-                    {{#if repoGroup.undo}}
-                      <a {{action "undoGroupLocalRepository" repoGroup target="view" }}>
-                        <i class="icon-undo"></i>{{t common.undo}}
-                      </a>
-                    {{/if}}
-                  </td>
-                </tr>
+                    </tbody>
+                  </table>
+                </td>
+                <td class="validation-results">
+                  {{#if repoGroup.validation}}
+                    {{view view.popoverView repoGroupBinding="repoGroup"}}
+                  {{/if}}
+                </td>
+                <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
+                  {{view Ember.TextField valueBinding="repoGroup.baseUrl"}}
+                </td>
+                <td class="clearAll-icon">
+                  {{#if repoGroup.clearAll}}
+                    <a {{action "clearGroupLocalRepository" repoGroup target="view" }}>
+                      <i class="icon-remove-sign"></i>
+                    </a>
+                  {{/if}}
+                </td>
+                <td class="action-results">
+                  {{#if repoGroup.undo}}
+                    <a {{action "undoGroupLocalRepository" repoGroup target="view" }}>
+                      <i class="icon-undo"></i>{{t common.undo}}
+                    </a>
+                  {{/if}}
+                </td>
+              </tr>
               {{/each}}
             </tbody>
           </table>
           <div id="skip-validation">
             <label>{{view Ember.Checkbox checkedBinding="view.skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
-              <i class="icon-question-sign" rel="skip-validation-tooltip" data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
+              <i class="icon-question-sign" rel="skip-validation-tooltip"
+                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
           </div>
           {{#if view.emptyRepoExist}}
             <div class="alert">{{t installer.step1.attentionNeeded}}</div>
@@ -110,13 +111,13 @@
           {{/if}}
         </div>
       </div>
+    </div>
   </div>
-</div>
 {{/if}}
 
 <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
 {{#if view.isSubmitDisabled}}
-   <a class="btn btn-success pull-right" disabled="disabled">{{t common.next}} &rarr;</a>
+  <a class="btn btn-success pull-right" disabled="disabled">{{t common.next}} &rarr;</a>
 {{else}}
-   <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
 {{/if}}

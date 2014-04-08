@@ -17,9 +17,25 @@
  */
 
 var App = require('app');
+require('views/wizard/step2_view');
 
-App.WizardStep1Controller = Em.Controller.extend({
+var view, controller = Em.Object.create({
+  clusterNameError: ''
+});
 
-  name: 'wizardStep1Controller'
+describe('App.WizardStep0View', function () {
+
+  beforeEach(function() {
+    view = App.WizardStep2View.create({'controller': controller});
+  });
+
+  describe('#sshKeyState', function() {
+    it('should be equal to controller.content.installOptions.manualInstall', function() {
+      controller.set('content', {installOptions: {manualInstall: false}});
+      expect(view.get('sshKeyState')).to.equal(false);
+      controller.toggleProperty('content.installOptions.manualInstall');
+      expect(view.get('sshKeyState')).to.equal(true);
+    });
+  });
 
 });

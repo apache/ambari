@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -26,19 +26,102 @@ App.WizardStep1View = Em.View.extend({
    * @type {Em.Object[]}
    */
   stacks: function () {
-    var stacks = [];
-    this.get('controller.content.stacks').forEach(function (stack) {
-      stacks.pushObject(Em.Object.create({
+    return this.get('controller.content.stacks').map(function (stack) {
+      return Em.Object.create({
         name: stack.get('name').replace('-', ' '),
         isSelected: stack.get('isSelected')
-      }));
+      });
     });
-    return stacks;
   }.property('controller.content.stacks.@each.isSelected'),
 
   /**
+   * List of all repo-groups
+   * @type {Object[][]}
+   */
+  allRepositoriesGroup: [
+    [],
+    [],
+    []
+  ],
+
+  /**
+   * Verify if some repo has empty base-url
+   * @type {bool}
+   */
+  emptyRepoExist: function () {
+    return this.get('allRepositoriesGroup').someProperty('empty-error', true);
+  }.property('allRepositoriesGroup.@each.empty-error'),
+
+  /**
+   * Disable submit button flag
+   * @type {bool}
+   */
+  isSubmitDisabled: function () {
+    return this.get('emptyRepoExist') || this.get('allRepoUnchecked') || this.get('invalidUrlExist');
+  }.property('emptyRepoExist', 'allRepoUnchecked', 'invalidUrlExist'),
+
+  /**
+   * Verify if some invalid repo-urls exist
+   * @type {bool}
+   */
+  invalidUrlExist: function () {
+    var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
+    var invalidExist = this.get('allRepositoriesGroup').someProperty('validation', 'icon-exclamation-sign');
+    return (selectedStack.get('invalidCnt') > 0) && invalidExist;
+  }.property('controller.content.stacks.@each.invalidCnt', 'allRepositoriesGroup.@each.validation'),
+
+  /**
+   * If all repo links are unchecked
+   * @type {bool}
+   */
+  allRepoUnchecked: function () {
+    return !this.get('allRepositoriesGroup').someProperty('checked', true);
+  }.property('allRepositoriesGroup.@each.checked'),
+
+  /**
+   * Overall errors count
+   * @type {number}
+   */
+  totalErrorCnt: function () {
+    var emptyCnt = this.get('allRepositoriesGroup').filterProperty('empty-error', true).length;
+    var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length;
+    if (this.get('allRepoUnchecked')) {
+      return 1;
+    } else if (emptyCnt || invalidCnt) {
+      return emptyCnt + invalidCnt;
+    } else {
+      return 0;
+    }
+  }.property('allRepositoriesGroup.@each.empty-error', 'allRepoUnchecked', 'allRepositoriesGroup.@each.validation'),
+
+  /**
+   * Is Repositories Accordion collapsed
+   * @type {bool}
+   */
+  isRLCollapsed: true,
+
+  /**
+   * Checked flags for each repo-checkbox
+   * @type {bool[]}
+   */
+  allGroupsCheckbox: [true, true, true],
+
+  /**
+   * Skip repo-validation
+   * @type {bool}
+   */
+  skipValidationChecked: false,
+
+  didInsertElement: function () {
+    if (this.get('isRLCollapsed')) {
+      this.$('.accordion-body').hide();
+    }
+    $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
+  },
+
+  /**
    * Checkbox for each stack
-   * @type {Em.Checkbox}
+   * @type {Ember.Checkbox}
    */
   stackRadioButton: Em.Checkbox.extend({
     tagName: 'input',
@@ -55,83 +138,6 @@ App.WizardStep1View = Em.View.extend({
   }),
 
   /**
-   * List of all repo-groups
-   * @type {Object[][]}
-   */
-  allRepositoriesGroup: [[],[],[]],
-
-  /**
-   * Verify if some repo has empty base-url
-   * @type {bool}
-   */
-  emptyRepoExist: function () {
-    return (this.get('allRepositoriesGroup').filterProperty('empty-error', true).length != 0);
-  }.property('allRepositoriesGroup.@each.empty-error'),
-
-  /**
-   * Disable submit button flag
-   * @type {bool}
-   */
-  isSubmitDisabled: function() {
-    return this.get('emptyRepoExist') || this.get('allRepoUnchecked') || this.get('invalidUrlExist') ;
-  }.property('emptyRepoExist', 'allRepoUnchecked', 'invalidUrlExist'),
-
-  /**
-   * Verify if some invalid repo-urls exist
-   * @type {bool}
-   */
-  invalidUrlExist: function () {
-    var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    var invalidExist = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length != 0;
-    return (selectedStack.get('invalidCnt') > 0) && invalidExist;
-  }.property('controller.content.stacks.@each.invalidCnt', 'allRepositoriesGroup.@each.validation'),
-
-  /**
-   * If all repo links are unchecked
-   * @type {bool}
-   */
-  allRepoUnchecked: function () {
-    return (!this.get('allRepositoriesGroup').filterProperty('checked', true).length);
-  }.property('allRepositoriesGroup.@each.checked'),
-
-  /**
-   * Overall errors count
-   * @type {number}
-   */
-  totalErrorCnt: function () {
-    var emptyCnt = this.get('allRepositoriesGroup').filterProperty('empty-error', true).length;
-    var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length;
-    if (this.get('allRepoUnchecked')) {
-      return 1;
-    } else if ( emptyCnt || invalidCnt) {
-      return emptyCnt + invalidCnt;
-    } else {
-      return 0;
-    }
-  }.property('allRepositoriesGroup.@each.empty-error', 'allRepoUnchecked', 'allRepositoriesGroup.@each.validation'),
-
-  /**
-   * Onclick handler for Config Group Header. Used to show/hide block
-   */
-  onToggleBlock: function () {
-    this.$('.accordion-body').toggle('blind', 500);
-    this.set('isRLCollapsed', !this.get('isRLCollapsed'));
-  },
-
-  /**
-   * Is Repositories Accordion collapsed
-   * @type {bool}
-   */
-  isRLCollapsed: true,
-
-  didInsertElement: function () {
-    if (this.get('isRLCollapsed')) {
-      this.$('.accordion-body').hide();
-    }
-    $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
-  },
-
-  /**
    * Popover for repo-url error indicator
    * @type {Em.View}
    */
@@ -139,25 +145,39 @@ App.WizardStep1View = Em.View.extend({
     tagName: 'i',
     classNameBindings: ['repoGroup.validation'],
     attributeBindings: ['repoGroup.errorTitle:title', 'repoGroup.errorContent:data-content'],
-    didInsertElement: function() {
+    didInsertElement: function () {
       App.popover($(this.get('element')), {'trigger': 'hover'});
     }
   }),
 
   /**
+   * Onclick handler for Config Group Header. Used to show/hide block
+   * @method onToggleBlock
+   */
+  onToggleBlock: function () {
+    this.$('.accordion-body').toggle('blind', 500);
+    this.set('isRLCollapsed', !this.get('isRLCollapsed'));
+  },
+
+  /**
    * Format repo-group values and set it to <code>allRepositoriesGroup</code>
+   * @method loadRepositories
    */
   loadRepositories: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    var reposGroup = [[],[],[]];
-    if (App.supports.ubuntu) reposGroup.push([]); // @todo: remove after Ubuntu support confirmation
+    var reposGroup = [
+      [],
+      [],
+      []
+    ];
+    if (App.get('supports.ubuntu')) reposGroup.push([]); // @todo: remove after Ubuntu support confirmation
     var self = this;
     if (selectedStack && selectedStack.operatingSystems) {
       selectedStack.operatingSystems.forEach(function (os) {
         var cur_repo = Em.Object.create({
           baseUrl: os.baseUrl
         });
-        switch(os.osType) {
+        switch (os.osType) {
           case 'redhat5':
             cur_repo.set('osType', 'Red Hat 5');
             reposGroup[0][0] = cur_repo;
@@ -197,9 +217,11 @@ App.WizardStep1View = Em.View.extend({
             reposGroup[2][1] = cur_repo;
             break;
           case 'ubuntu12':
-            cur_repo.set('osType','Ubuntu 12');
-            reposGroup[3][0] = cur_repo;
-            self.setGroupByOs(reposGroup[3], os, 3);
+            if (App.get('supports.ubuntu')) {
+              cur_repo.set('osType', 'Ubuntu 12');
+              reposGroup[3][0] = cur_repo;
+              self.setGroupByOs(reposGroup[3], os, 3);
+            }
             break;
         }
       });
@@ -209,7 +231,8 @@ App.WizardStep1View = Em.View.extend({
 
   /**
    * Set group parameters according to operation system
-   * @param {Em.Object} group
+   * @method setGroupByOs
+   * @param {Ember.Object} group
    * @param {Object} os
    * @param {number} groupNumber
    */
@@ -231,6 +254,7 @@ App.WizardStep1View = Em.View.extend({
 
   /**
    * Onclick handler for checkbox of each repo group
+   * @method updateByCheckbox
    */
   updateByCheckbox: function () {
     //upload to content
@@ -251,7 +275,7 @@ App.WizardStep1View = Em.View.extend({
           targetGroup.set('invalid-error', false);
           targetGroup.set('validation', null);
           targetGroup.set('clearAll', false);
-          targetGroup.set('empty-error',!targetGroup.get('baseUrl'));
+          targetGroup.set('empty-error', !targetGroup.get('baseUrl'));
           self.get('allGroupsCheckbox')[groupNumber] = false;
           self.set('allGroupsCheckbox', self.get('allGroupsCheckbox'));
         } else {
@@ -262,7 +286,7 @@ App.WizardStep1View = Em.View.extend({
             targetGroup.set('invalid-error', false);
           }
           targetGroup.set('clearAll', targetGroup.get('baseUrl'));
-          targetGroup.set('empty-error',!targetGroup.get('baseUrl'));
+          targetGroup.set('empty-error', !targetGroup.get('baseUrl'));
           self.get('allGroupsCheckbox')[groupNumber] = true;
         }
       });
@@ -270,43 +294,35 @@ App.WizardStep1View = Em.View.extend({
   }.observes('allRepositoriesGroup.@each.checked', 'skipValidationChecked'),
 
   /**
-   * Checked flags for each repo-checkbox
-   * @type {bool[]}
-   */
-  allGroupsCheckbox: [true, true, true],
-
-  /**
-   * Skip repo-validation
-   * @type {bool}
-   */
-  skipValidationChecked: false,
-
-  /**
    * Onclick handler for undo action of each repo group
+   * @method undoGroupLocalRepository
+   * @param {object} event
    */
   undoGroupLocalRepository: function (event) {
-    var group = event.context;
-    var osTypes = this.groupToOsType(group.get('group-number'));
-    var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    osTypes.forEach( function (os) {
-      var cos = selectedStack.operatingSystems.findProperty('osType', os );
-      cos.baseUrl = cos.latestBaseUrl;
-      cos.validation = null;
-    });
-    this.loadRepositories();
+    this.doActionForGroupLocalRepository(event, 'latestBaseUrl');
   },
 
   /**
    * Handler for clear icon click
+   * @method clearGroupLocalRepository
    * @param {object} event
    */
   clearGroupLocalRepository: function (event) {
-    var group = event.context;
-    var osTypes = this.groupToOsType(group.get('group-number'));
+    this.doActionForGroupLocalRepository(event, '');
+  },
+
+  /**
+   * Common handler for repo groups actions
+   * @method doActionForGroupLocalRepository
+   * @param {object} event
+   * @param {string} newBaseUrlField
+   */
+  doActionForGroupLocalRepository: function (event, newBaseUrlField) {
+    var osTypes = this.groupToOsType(event.context.get('group-number'));
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    osTypes.forEach( function (os) {
-      var cos = selectedStack.operatingSystems.findProperty('osType', os );
-      cos.baseUrl = '';
+    osTypes.forEach(function (os) {
+      var cos = selectedStack.operatingSystems.findProperty('osType', os);
+      cos.baseUrl = Em.isEmpty(newBaseUrlField) ? '' : Em.get(cos, newBaseUrlField);
       cos.validation = null;
     });
     this.loadRepositories();
@@ -314,9 +330,9 @@ App.WizardStep1View = Em.View.extend({
 
   /**
    * Handler when editing any repo group BaseUrl
-   * @param {object} event
+   * @method editGroupLocalRepository
    */
-  editGroupLocalRepository: function (event) {
+  editGroupLocalRepository: function () {
     //upload to content
     var groups = this.get('allRepositoriesGroup');
     var self = this;
@@ -331,7 +347,7 @@ App.WizardStep1View = Em.View.extend({
           targetGroup.set('invalid-error', false);
           targetGroup.set('validation', null);
           targetGroup.set('clearAll', os.baseUrl);
-          targetGroup.set('empty-error',!targetGroup.get('baseUrl'));
+          targetGroup.set('empty-error', !targetGroup.get('baseUrl'));
         }
       });
     }
@@ -339,44 +355,37 @@ App.WizardStep1View = Em.View.extend({
 
   /**
    * Get list of OS for provided group number
+   * @method groupToOsType
    * @param {number} groupNumber
    * @returns {Array}
    */
   groupToOsType: function (groupNumber) {
-    switch (groupNumber) {
-      case 0:
-        return ['redhat5', 'centos5', 'oraclelinux5'];
-      case 1:
-        return ['redhat6', 'centos6', 'oraclelinux6'];
-      case 2:
-        return ['sles11', 'suse11'];
-      case 3:
-        return ['ubuntu12'];
-    }
-    return [];
+    return Em.getWithDefault({
+      '0': ['redhat5', 'centos5', 'oraclelinux5'],
+      '1': ['redhat6', 'centos6', 'oraclelinux6'],
+      '2': ['sles11', 'suse11'],
+      '3': ['ubuntu12']
+    }, groupNumber.toString(), []);
   },
 
   /**
    * Get group number for provided OS
-   * @param  {string} osType
+   * @method osTypeToGroup
+   * @param {string} osType
    * @returns {number}
    */
   osTypeToGroup: function (osType) {
-    switch(osType) {
-      case 'redhat5':
-      case 'centos5':
-      case 'oraclelinux5':
-        return 0;
-      case 'redhat6':
-      case 'centos6':
-      case 'oraclelinux6':
-        return 1;
-      case 'sles11':
-      case 'suse11':
-        return 2;
-      case 'ubuntu12':
-        return 3;
-    }
-    return -1;
+    return Em.getWithDefault({
+      'redhat5': 0,
+      'centos5': 0,
+      'oraclelinux5': 0,
+      'redhat6': 1,
+      'centos6': 1,
+      'oraclelinux6': 1,
+      'sles11': 2,
+      'suse11': 2,
+      'ubuntu12': 3
+    }, osType, -1);
   }
+
 });
