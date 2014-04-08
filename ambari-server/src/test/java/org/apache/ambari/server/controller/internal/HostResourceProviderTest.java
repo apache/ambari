@@ -48,6 +48,12 @@ import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import java.net.InetAddress;
+import static org.powermock.api.easymock.PowerMock.*;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -75,6 +81,8 @@ import static org.junit.Assert.fail;
 /**
  * HostResourceProvider tests.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AmbariManagementControllerImpl.class)
 public class HostResourceProviderTest {
   @Test
   public void testCreateResources() throws Exception {
@@ -956,6 +964,10 @@ public class HostResourceProviderTest {
     expect(host.convertToResponse()).andReturn(response);
     response.setClusterName("cluster1");
 
+    final InetAddress mock = createMock(InetAddress.class);
+    mockStatic(InetAddress.class);
+    expect(InetAddress.getLocalHost()).andReturn(mock);
+    replayAll();
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host, response);
 
@@ -997,6 +1009,10 @@ public class HostResourceProviderTest {
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
     expect(clusters.getHost("host1")).andThrow(new HostNotFoundException("host1"));
 
+    final InetAddress mock = createMock(InetAddress.class);
+    mockStatic(InetAddress.class);
+    expect(InetAddress.getLocalHost()).andReturn(mock);
+    replayAll();
     // replay mocks
     replay(maintHelper, injector, clusters, cluster);
 
@@ -1044,6 +1060,10 @@ public class HostResourceProviderTest {
     // because cluster is not in set will result in HostNotFoundException
     expect(clusters.getClustersForHost("host1")).andReturn(Collections.<Cluster>emptySet());
 
+    final InetAddress mock = createMock(InetAddress.class);
+    mockStatic(InetAddress.class);
+    expect(InetAddress.getLocalHost()).andReturn(mock);
+    replayAll();
     // replay mocks
     replay(maintHelper, injector, clusters, cluster, host);
 
