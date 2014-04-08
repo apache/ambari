@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
@@ -346,6 +347,21 @@ public class ViewRegistry {
   }
 
   /**
+   * Remove the data entry keyed by the given key from the given instance entity.
+   *
+   * @param instanceEntity  the instance entity
+   * @param key             the data key
+   */
+  public void removeInstanceData(ViewInstanceEntity instanceEntity, String key) {
+    ViewInstanceDataEntity dataEntity = instanceEntity.getInstanceData(key);
+    if (dataEntity != null) {
+      instanceDAO.removeData(dataEntity);
+    }
+    instanceEntity.removeInstanceData(key);
+    instanceDAO.merge(instanceEntity);
+  }
+
+  /**
    * Uninstall a view instance for the view with the given view name.
    *
    * @param instanceEntity  the view instance entity
@@ -554,10 +570,15 @@ public class ViewRegistry {
         ViewEntity viewDefinition = ViewRegistry.getInstance().viewDefinitions.get(name);
 
         for (ViewInstanceEntity viewInstanceEntity : viewEntity.getInstances()){
-          if (viewDefinition.getInstanceDefinition(viewInstanceEntity.getName()) == null) {
+          ViewInstanceEntity instanceEntity = viewDefinition.getInstanceDefinition(viewInstanceEntity.getName());
+          if (instanceEntity == null) {
             viewInstanceEntity.setViewEntity(viewDefinition);
             _installViewInstance(viewDefinition, viewInstanceEntity);
             instanceDefinitions.add(viewInstanceEntity);
+          } else {
+            // apply overrides to the in-memory view instance entities
+            instanceEntity.setData(viewInstanceEntity.getData());
+            instanceEntity.setProperties(viewInstanceEntity.getProperties());
           }
         }
       }

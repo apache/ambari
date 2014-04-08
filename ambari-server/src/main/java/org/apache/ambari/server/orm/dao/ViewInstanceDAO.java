@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityPK;
 
@@ -109,5 +110,26 @@ public class ViewInstanceDAO {
   @Transactional
   public void remove(ViewInstanceEntity ViewInstanceEntity) {
     entityManagerProvider.get().remove(merge(ViewInstanceEntity));
+  }
+
+  /**
+   * Merge the state of the given entity data into the current persistence context.
+   *
+   * @param viewInstanceDataEntity  entity to merge
+   * @return the merged entity
+   */
+  @Transactional
+  public ViewInstanceDataEntity mergeData(ViewInstanceDataEntity viewInstanceDataEntity) {
+    return entityManagerProvider.get().merge(viewInstanceDataEntity);
+  }
+
+  /**
+   * Remove the entity instance data.
+   *
+   * @param viewInstanceDataEntity  entity to remove
+   */
+  @Transactional
+  public void removeData(ViewInstanceDataEntity viewInstanceDataEntity) {
+    entityManagerProvider.get().remove(mergeData(viewInstanceDataEntity));
   }
 }

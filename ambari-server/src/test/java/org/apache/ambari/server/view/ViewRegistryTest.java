@@ -21,8 +21,11 @@ package org.apache.ambari.server.view;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityTest;
+import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
@@ -38,6 +41,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * ViewRegistry tests.
@@ -116,6 +122,32 @@ public class ViewRegistryTest {
     Assert.assertEquals(1, viewInstanceDefinitions.size());
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
+  }
+
+  @Test
+  public void testRemoveInstanceData() throws Exception {
+
+    ViewDAO viewDAO = createNiceMock(ViewDAO.class);
+    ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    ViewRegistry.init(viewDAO, viewInstanceDAO);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
+
+    viewInstanceEntity.putInstanceData("foo", "value");
+
+    ViewInstanceDataEntity dataEntity = viewInstanceEntity.getInstanceData("foo");
+
+    viewInstanceDAO.removeData(dataEntity);
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
+    replay(viewDAO, viewInstanceDAO);
+
+    registry.removeInstanceData(viewInstanceEntity, "foo");
+
+    Assert.assertNull(viewInstanceEntity.getInstanceData("foo"));
+    verify(viewDAO, viewInstanceDAO);
   }
 
   @Before

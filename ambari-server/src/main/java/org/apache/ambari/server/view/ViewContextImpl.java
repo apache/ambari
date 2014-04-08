@@ -106,8 +106,7 @@ public class ViewContextImpl implements ViewContext {
 
   @Override
   public void removeInstanceData(String key) {
-    viewInstanceEntity.removeInstanceData(key);
-    viewRegistry.updateViewInstance(viewInstanceEntity);
+    viewRegistry.removeInstanceData(viewInstanceEntity, key);
   }
 
   @Override
