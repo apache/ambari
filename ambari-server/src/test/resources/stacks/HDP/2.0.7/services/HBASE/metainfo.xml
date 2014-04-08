@@ -75,7 +75,7 @@
       repo info can be added here as well-->
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType> <!-- Specifics, common for all OSs-->
+          <osFamily>any</osFamily> <!-- Specifics, common for all OSs-->
           <packages>
             <package>
               <type>rpm</type>
@@ -84,7 +84,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>centos6</osType>
+          <osFamily>centos6</osFamily>
           <repo>
             <baseurl>http://something.com/centos6/2.x/updates/1</baseurl>
             <repoid>Custom-repo-1</repoid>

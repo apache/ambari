@@ -24,7 +24,7 @@
       <version>0.13.0.2.1</version>
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any</osFamily>
           <packages>
             <package>
               <type>rpm</type>

@@ -16,20 +16,6 @@
    limitations under the License.
 -->
 <reposinfo>
-  <os type="centos6">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.5.0</baseurl>
-      <repoid>HDP-2.0.5</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="centos5">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.5.0</baseurl>
-      <repoid>HDP-2.0.5</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
   <os type="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.5.0</baseurl>
@@ -45,13 +31,6 @@
     </repo>
   </os>
   <os type="suse11">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.5.0</baseurl>
-      <repoid>HDP-2.0.5</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="sles11">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.5.0</baseurl>
       <repoid>HDP-2.0.5</repoid>

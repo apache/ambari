@@ -29,7 +29,7 @@ import com.google.gson.annotations.SerializedName;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ServiceOsSpecific {
 
-  private String osType;
+  private String osFamily;
   private Repo repo;
 
 
@@ -38,8 +38,8 @@ public class ServiceOsSpecific {
   private List<Package> packages = new ArrayList<Package>();
 
 
-  public String getOsType() {
-    return osType;
+  public String getOsFamily() {
+    return osFamily;
   }
 
 

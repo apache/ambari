@@ -87,7 +87,10 @@ public class StackDefinedPropertyProviderTest {
     
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    host.setOsType("centos5");
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    host.setHostAttributes(hostAttributes);
     host.persist();
     
     clusters.mapHostToCluster("h1", "c1");

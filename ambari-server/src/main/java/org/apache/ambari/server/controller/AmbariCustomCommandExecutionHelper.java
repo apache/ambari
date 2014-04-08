@@ -735,14 +735,14 @@ public class AmbariCustomCommandExecutionHelper {
     Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
         stackId.getStackName(), stackId.getStackVersion());
     String repoInfo = "";
-    if (!repos.containsKey(host.getOsType())) {
+    if (!repos.containsKey(host.getOsFamily())) {
       // FIXME should this be an error?
       LOG.warn("Could not retrieve repo information for host"
           + ", hostname=" + host.getHostName()
           + ", clusterName=" + cluster.getClusterName()
           + ", stackInfo=" + stackId.getStackId());
     } else {
-      repoInfo = gson.toJson(repos.get(host.getOsType()));
+      repoInfo = gson.toJson(repos.get(host.getOsFamily()));
     }
 
     return repoInfo;

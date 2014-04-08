@@ -184,39 +184,19 @@ App.WizardStep1View = Em.View.extend({
             // set group 0 properties by redhat5 (any of the three is ok)
             self.setGroupByOs(reposGroup[0], os, 0);
             break;
-          case 'centos5':
-            cur_repo.set('osType', 'CentOS 5');
-            reposGroup[0][1] = cur_repo;
-            break;
-          case 'oraclelinux5':
-            cur_repo.set('osType', 'Oracle Linux 5');
-            reposGroup[0][2] = cur_repo;
-            break;
           case 'redhat6':
             cur_repo.set('osType', 'Red Hat 6');
             reposGroup[1][0] = cur_repo;
             // set group 1 properties by redhat6 (any of the three is ok)
             self.setGroupByOs(reposGroup[1], os, 1);
             break;
-          case 'centos6':
-            cur_repo.set('osType', 'CentOS 6');
-            reposGroup[1][1] = cur_repo;
-            break;
-          case 'oraclelinux6':
-            cur_repo.set('osType', 'Oracle Linux 6');
-            reposGroup[1][2] = cur_repo;
-            break;
-          case 'sles11':
+          case 'suse11':
             cur_repo.set('osType', 'SLES 11');
             reposGroup[2][0] = cur_repo;
-            // set group 2 properties by sles11 (any of the twe is ok)
+            // set group 2 properties by suse11 (any of the twe is ok)
             self.setGroupByOs(reposGroup[2], os, 2);
             break;
-          case 'suse11':
-            cur_repo.set('osType', 'SUSE 11');
-            reposGroup[2][1] = cur_repo;
-            break;
-          case 'ubuntu12':
+          case 'debian12':
             if (App.get('supports.ubuntu')) {
               cur_repo.set('osType', 'Ubuntu 12');
               reposGroup[3][0] = cur_repo;
@@ -361,10 +341,10 @@ App.WizardStep1View = Em.View.extend({
    */
   groupToOsType: function (groupNumber) {
     return Em.getWithDefault({
-      '0': ['redhat5', 'centos5', 'oraclelinux5'],
-      '1': ['redhat6', 'centos6', 'oraclelinux6'],
-      '2': ['sles11', 'suse11'],
-      '3': ['ubuntu12']
+      '0': ['redhat5'],
+      '1': ['redhat6'],
+      '2': ['suse11'],
+      '3': ['debian12']
     }, groupNumber.toString(), []);
   },
 
@@ -377,14 +357,9 @@ App.WizardStep1View = Em.View.extend({
   osTypeToGroup: function (osType) {
     return Em.getWithDefault({
       'redhat5': 0,
-      'centos5': 0,
-      'oraclelinux5': 0,
       'redhat6': 1,
-      'centos6': 1,
-      'oraclelinux6': 1,
-      'sles11': 2,
       'suse11': 2,
-      'ubuntu12': 3
+      'debian12': 3
     }, osType, -1);
   }
 

@@ -319,7 +319,8 @@ public class ClustersImpl implements Clusters {
     if (repos == null || repos.isEmpty()) {
       return false;
     }
-    return repos.containsKey(h.getOsType());
+    
+    return repos.containsKey(h.getOsFamily());
   }
 
   @Override
@@ -363,7 +364,7 @@ public class ClustersImpl implements Clusters {
                     + ", clusterName=" + clusterName
                     + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
                     + ", hostname=" + hostname
-                    + ", hostOsType=" + host.getOsType();
+                    + ", hostOsFamily=" + host.getOsFamily();
                 LOG.warn(message);
                 throw new AmbariException(message);
               }
@@ -451,7 +452,7 @@ public class ClustersImpl implements Clusters {
             + ", clusterName=" + clusterName
             + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
             + ", hostname=" + hostname
-            + ", hostOsType=" + host.getOsType();
+            + ", hostOsFamily=" + host.getOsFamily();
         LOG.warn(message);
         throw new AmbariException(message);
       }

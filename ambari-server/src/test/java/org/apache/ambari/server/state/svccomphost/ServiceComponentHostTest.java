@@ -95,12 +95,20 @@ public class ServiceComponentHostTest {
     injector.injectMembers(this);
     clusters.addCluster("C1");
     clusters.addHost("h1");
-    clusters.getHost("h1").setOsType("centos5");
+    setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     clusters.getHost("h1").persist();
     clusters.getCluster("C1").setDesiredStackVersion(
         new StackId("HDP-0.1"));
     metaInfo.init();
     clusters.mapHostToCluster("h1","C1");
+  }
+  
+  private void setOsFamily(Host host, String osFamily, String osVersion) {
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", osFamily);
+    hostAttributes.put("os_release_version", osVersion);
+    
+    host.setHostAttributes(hostAttributes);
   }
 
   @After
@@ -628,7 +636,7 @@ public class ServiceComponentHostTest {
     
     clusters.addCluster(clusterName);
     clusters.addHost(hostName);
-    clusters.getHost(hostName).setOsType("centos5");
+    setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
     clusters.getCluster(clusterName).setDesiredStackVersion(
         new StackId(stackVersion));
@@ -830,7 +838,7 @@ public class ServiceComponentHostTest {
     
     clusters.addCluster(clusterName);
     clusters.addHost(hostName);
-    clusters.getHost(hostName).setOsType("centos5");
+    setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
     clusters.getCluster(clusterName).setDesiredStackVersion(
         new StackId(stackVersion));

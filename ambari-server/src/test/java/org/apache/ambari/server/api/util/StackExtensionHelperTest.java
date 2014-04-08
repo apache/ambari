@@ -118,7 +118,7 @@ public class StackExtensionHelperTest {
         Map<String,ServiceOsSpecific> specifics = serviceInfo.getOsSpecifics();
         assertTrue(specifics.size() == 2);
         ServiceOsSpecific anyOs = specifics.get(AmbariMetaInfo.ANY_OS);
-        assertEquals(AmbariMetaInfo.ANY_OS, anyOs.getOsType());
+        assertEquals(AmbariMetaInfo.ANY_OS, anyOs.getOsFamily());
         assertEquals("rpm", anyOs.getPackages().get(0).getType());
         assertEquals("wget", anyOs.getPackages().get(0).getName());
 
@@ -129,7 +129,7 @@ public class StackExtensionHelperTest {
                 secondComponent.getCommandScript().getTimeout());
 
         ServiceOsSpecific c6Os = specifics.get("centos6");
-        assertEquals("centos6", c6Os.getOsType());
+        assertEquals("centos6", c6Os.getOsFamily());
         assertEquals("rpm", c6Os.getPackages().get(0).getType());
         assertEquals("hbase", c6Os.getPackages().get(0).getName());
         assertEquals("http://something.com/centos6/2.x/updates/1",

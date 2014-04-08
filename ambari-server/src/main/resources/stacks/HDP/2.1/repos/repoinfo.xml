@@ -17,20 +17,6 @@
 -->
 <reposinfo>
   <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
-  <os type="centos6">
-    <repo>
-      <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="centos5">
-    <repo>
-      <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
   <os type="redhat6">
     <repo>
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
@@ -45,20 +31,6 @@
       <reponame>HDP</reponame>
     </repo>
   </os>
-  <os type="oraclelinux6">
-    <repo>
-      <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="oraclelinux5">
-    <repo>
-      <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
   <os type="suse11">
     <repo>
       <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>
@@ -66,14 +38,7 @@
       <reponame>HDP</reponame>
     </repo>
   </os>
-  <os type="sles11">
-    <repo>
-      <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os type="ubuntu12">
+  <os type="debian12">
     <repo>
       <baseurl>REPLACE_WITH_UBUNTU12_URL</baseurl>
       <repoid>HDP-2.1</repoid>

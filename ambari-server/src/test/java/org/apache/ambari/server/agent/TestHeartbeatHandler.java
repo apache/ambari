@@ -511,6 +511,7 @@ public class TestHeartbeatHandler {
     HostInfo hi = new HostInfo();
     hi.setHostName(DummyHostname1);
     hi.setOS(DummyOsType);
+    
     reg.setHostname(DummyHostname1);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(""); // Invalid agent version
@@ -1680,6 +1681,13 @@ public class TestHeartbeatHandler {
       throws AmbariException {
     clusters.addHost(DummyHostname1);
     clusters.getHost(DummyHostname1).setOsType(DummyOsType);
+    
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    clusters.getHost(DummyHostname1).setHostAttributes(hostAttributes);
+
+    
     clusters.getHost(DummyHostname1).persist();
     clusters.addCluster(DummyCluster);
 

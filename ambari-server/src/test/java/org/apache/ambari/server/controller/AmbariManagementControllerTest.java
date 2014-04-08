@@ -210,6 +210,22 @@ public class AmbariManagementControllerTest {
     injector.getInstance(PersistService.class).stop();
     actionDB = null;
   }
+  
+  private void setOsFamily(Host host, String osFamily, String osVersion) {
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", osFamily);
+    hostAttributes.put("os_release_version", osVersion);
+    
+    host.setHostAttributes(hostAttributes);
+  }
+  
+  private void addHost(String hostname, String clusterName) throws AmbariException {
+    clusters.addHost(hostname);
+    setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
+    clusters.getHost(hostname).setState(HostState.HEALTHY);
+    clusters.getHost(hostname).persist();
+    clusters.mapHostToCluster(hostname, clusterName);
+  }
 
   private void createCluster(String clusterName) throws AmbariException {
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
@@ -452,8 +468,8 @@ public class AmbariManagementControllerTest {
 
     clusters.addHost("h1");
     clusters.addHost("h2");
-    clusters.getHost("h1").setOsType("redhat6");
-    clusters.getHost("h2").setOsType("redhat6");
+    setOsFamily(clusters.getHost("h1"), "redhat", "6.3");
+    setOsFamily(clusters.getHost("h2"), "redhat", "6.3");
     clusters.getHost("h1").persist();
     clusters.getHost("h2").persist();
 
@@ -941,18 +957,7 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h2").setOsType("centos6");
 
     try {
       createServiceComponentHost(clusterName, serviceName, componentName1,
@@ -963,8 +968,8 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     try {
       createServiceComponentHost(clusterName, serviceName, componentName1,
@@ -1047,15 +1052,9 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName, componentName2,
         State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -1236,19 +1235,19 @@ public class AmbariManagementControllerTest {
     Host h1 = clusters.getHost("h1");
     h1.setIPv4("ipv41");
     h1.setIPv6("ipv61");
-    h1.setOsType("centos6");
+    setOsFamily(h1, "redhat", "6.3");
     h1.persist();
     clusters.addHost("h2");
     Host h2 = clusters.getHost("h2");
     h2.setIPv4("ipv42");
     h2.setIPv6("ipv62");
-    h2.setOsType("centos6");
+    setOsFamily(h2, "redhat", "6.3");
     h2.persist();
     clusters.addHost("h3");
     Host h3 = clusters.getHost("h3");
     h3.setIPv4("ipv43");
     h3.setIPv6("ipv63");
-    h3.setOsType("centos6");
+    setOsFamily(h3, "redhat", "6.3");
     h3.persist();
 
     try {
@@ -1364,8 +1363,8 @@ public class AmbariManagementControllerTest {
 
     clusters.addHost("h1");
     clusters.addHost("h2");
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h2").setOsType("centos5");
+    setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
+    setOsFamily(clusters.getHost("h2"), "redhat", "5.9");
     clusters.getHost("h1").persist();
     clusters.getHost("h2").persist();
 
@@ -1398,9 +1397,9 @@ public class AmbariManagementControllerTest {
     clusters.addHost("h3");
     clusters.addCluster("c1");
     clusters.getCluster("c1").setDesiredStackVersion(new StackId("HDP-0.1"));
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h3").setOsType("centos5");
+    setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
+    setOsFamily(clusters.getHost("h2"), "redhat", "5.9");
+    setOsFamily(clusters.getHost("h3"), "redhat", "5.9");
     clusters.getHost("h1").persist();
     clusters.getHost("h2").persist();
     clusters.getHost("h3").persist();
@@ -1426,8 +1425,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, clusters.getClustersForHost("h2").size());
     Assert.assertEquals(0, clusters.getClustersForHost("h3").size());
 
-    Assert.assertEquals(2, clusters.getHost("h2").getHostAttributes().size());
-    Assert.assertEquals(2, clusters.getHost("h3").getHostAttributes().size());
+    Assert.assertEquals(4, clusters.getHost("h2").getHostAttributes().size());
+    Assert.assertEquals(4, clusters.getHost("h3").getHostAttributes().size());
     Assert.assertEquals("val1",
         clusters.getHost("h2").getHostAttributes().get("attr1"));
     Assert.assertEquals("val2",
@@ -2308,18 +2307,10 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -2455,10 +2446,7 @@ public class AmbariManagementControllerTest {
     controller.createCluster(r);
     Cluster c1 = clusters.getCluster(clusterName);
     for (String host : hosts) {
-      clusters.addHost(host);
-      clusters.getHost(host).setOsType(osType);
-      clusters.getHost(host).persist();
-      clusters.mapHostToCluster(host, clusterName);
+      addHost(host, clusterName);
     }
     return c1;
   }
@@ -2635,7 +2623,7 @@ public class AmbariManagementControllerTest {
         }},
         "centos5");
     clusters.addHost("h4");
-    clusters.getHost("h4").setOsType("centos5");
+    setOsFamily(clusters.getHost("h4"), "redhat", "5.9");
     clusters.getHost("h4").persist();
 
     Map<String, String> attrs = new HashMap<String, String>();
@@ -2656,17 +2644,17 @@ public class AmbariManagementControllerTest {
       foundHosts.add(resp.getHostname());
       if (resp.getHostname().equals("h1")) {
         Assert.assertEquals("c1", resp.getClusterName());
-        Assert.assertEquals(0, resp.getHostAttributes().size());
+        Assert.assertEquals(2, resp.getHostAttributes().size());
       } else if (resp.getHostname().equals("h2")) {
         Assert.assertEquals("c1", resp.getClusterName());
-        Assert.assertEquals(0, resp.getHostAttributes().size());
+        Assert.assertEquals(2, resp.getHostAttributes().size());
       } else if (resp.getHostname().equals("h3")) {
         Assert.assertEquals("c2", resp.getClusterName());
-        Assert.assertEquals(1, resp.getHostAttributes().size());
+        Assert.assertEquals(3, resp.getHostAttributes().size());
       } else if (resp.getHostname().equals("h4")) {
         //todo: why wouldn't this be null?
         Assert.assertEquals("", resp.getClusterName());
-        Assert.assertEquals(2, resp.getHostAttributes().size());
+        Assert.assertEquals(4, resp.getHostAttributes().size());
       } else {
         fail("Found invalid host");
       }
@@ -2680,7 +2668,7 @@ public class AmbariManagementControllerTest {
     HostResponse resp = resps.iterator().next();
     Assert.assertEquals("h1", resp.getHostname());
     Assert.assertEquals("c1", resp.getClusterName());
-    Assert.assertEquals(0, resp.getHostAttributes().size());
+    Assert.assertEquals(2, resp.getHostAttributes().size());
 
   }
 
@@ -2840,17 +2828,9 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName4,
         State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3084,17 +3064,9 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName3,
         State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3282,17 +3254,9 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName3,
         State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     Set<ServiceComponentHostRequest> set1 =
@@ -3458,17 +3422,9 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName2,
         State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3615,15 +3571,9 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName1,
         State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -4572,18 +4522,10 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
@@ -4654,16 +4596,10 @@ public class AmbariManagementControllerTest {
             State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     // null service should work
@@ -4860,16 +4796,10 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     // null service should work
@@ -5010,16 +4940,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     // null service should work
@@ -5184,22 +5108,10 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
     String host3 = "h3";
-    clusters.addHost(host1);
-    clusters.addHost(host2);
-    clusters.addHost(host3);
-    clusters.getHost("h1").setOsType("centos6");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-    clusters.getHost("h3").setOsType("centos6");
-    clusters.getHost("h3").setState(HostState.HEALTHY);
-    clusters.getHost("h3").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
-    clusters.mapHostToCluster(host3, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
+    addHost(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName1, componentName1,
       host1, null);
@@ -5352,18 +5264,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -5444,18 +5348,10 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -5548,24 +5444,12 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     String host3 = "h3";
-    clusters.addHost(host3);
-    clusters.getHost("h3").setOsType("centos6");
-    clusters.getHost("h3").setState(HostState.HEALTHY);
-    clusters.getHost("h3").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
-    clusters.mapHostToCluster(host3, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
+    addHost(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -5698,24 +5582,12 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     String host3 = "h3";
-    clusters.addHost(host3);
-    clusters.getHost("h3").setOsType("centos6");
-    clusters.getHost("h3").setState(HostState.HEALTHY);
-    clusters.getHost("h3").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
-    clusters.mapHostToCluster(host3, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
+    addHost(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -5815,24 +5687,12 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     String host3 = "h3";
-    clusters.addHost(host3);
-    clusters.getHost("h3").setOsType("centos6");
-    clusters.getHost("h3").setState(HostState.HEALTHY);
-    clusters.getHost("h3").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
-    clusters.mapHostToCluster(host3, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
+    addHost(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -5892,24 +5752,12 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     String host3 = "h3";
-    clusters.addHost(host3);
-    clusters.getHost("h3").setOsType("centos6");
-    clusters.getHost("h3").setState(HostState.HEALTHY);
-    clusters.getHost("h3").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
-    clusters.mapHostToCluster(host3, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
+    addHost(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -5962,18 +5810,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos6");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName,
       host1, null);
@@ -6030,16 +5870,8 @@ public class AmbariManagementControllerTest {
 
     String host1 = "h1";
     String host2 = "h2";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -6106,18 +5938,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -6495,18 +6319,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     // null service should work
@@ -6578,18 +6394,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
 
     // null service should work
@@ -6659,18 +6467,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
-
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -6729,24 +6529,12 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     String host3 = "h3";
-    clusters.addHost(host3);
-    clusters.getHost("h3").setOsType("centos6");
-    clusters.getHost("h3").setState(HostState.HEALTHY);
-    clusters.getHost("h3").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
-    clusters.mapHostToCluster(host3, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
+    addHost(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName1, componentName1,
       host1, null);
@@ -6903,18 +6691,10 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -7018,18 +6798,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     // null service should work
     createServiceComponentHost(clusterName, null, componentName1,
@@ -7328,18 +7100,8 @@ public class AmbariManagementControllerTest {
     createService(clusterName, serviceName, State.INIT);
     createServiceComponent(clusterName, serviceName, componentName, null);
 
-    clusters.addHost(host1);
-    clusters.getHost(host1).persist();
-    clusters.addHost(host2);
-    clusters.getHost(host2).persist();
-
-    clusters.getHost(host1).setOsType("centos5");
-    clusters.getHost(host2).setOsType("centos6");
-    clusters.getHost(host1).setState(HostState.HEALTHY);
-    clusters.getHost(host2).setState(HostState.HEALTHY);
-
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, null, componentName,
         host1, null);
@@ -7515,17 +7277,8 @@ public class AmbariManagementControllerTest {
     createService(clusterName, pigServiceName, State.INIT);
     createServiceComponent(clusterName, pigServiceName, pigComponentName, null);
 
-    clusters.addHost(host1);
-    clusters.getHost(host1).setState(HostState.HEALTHY);
-    clusters.getHost(host1).persist();
-    clusters.addHost(host2);
-    clusters.getHost(host2).setState(HostState.HEALTHY);
-    clusters.getHost(host2).persist();
-
-    clusters.getHost(host1).setOsType("centos5");
-    clusters.getHost(host2).setOsType("centos6");
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, null, pigComponentName,
         host1, null);
@@ -7800,16 +7553,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -7939,7 +7686,7 @@ public class AmbariManagementControllerTest {
     clusters.addCluster(clusterName);
     clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-0.1"));
     clusters.addHost(hostName1);
-    clusters.getHost("h1").setOsType("centos5");
+    setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     clusters.getHost(hostName1).persist();
 
     clusters.mapHostsToCluster(new HashSet<String>(){
@@ -8071,16 +7818,10 @@ public class AmbariManagementControllerTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
-    clusters.getHost("h2").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -8164,10 +7905,7 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName2, State.INIT);
     createServiceComponent(clusterName, serviceName1, componentName3, State.INIT);
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
-    clusters.mapHostToCluster(host1, clusterName);
+    addHost(host1, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =  new HashSet<ServiceComponentHostRequest>();
     ServiceComponentHostRequest r1 = new ServiceComponentHostRequest(clusterName, serviceName1,
@@ -8366,12 +8104,8 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, mapred, componentName6, State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
+    addHost(host1, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
@@ -8446,18 +8180,15 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
 
     String host2 = "h2";
     clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos6");
+    setOsFamily(clusters.getHost("h2"), "redhat", "6.3");
     clusters.getHost("h2").persist();
 
     String host3 = "h3";
 
-    clusters.mapHostToCluster(host1, clusterName);
+    addHost(host1, clusterName);
 
     createServiceComponentHost(clusterName, null, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
@@ -8628,11 +8359,8 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").persist();
 
-    clusters.mapHostToCluster(host1, clusterName);
+    addHost(host1, clusterName);
 
     createServiceComponentHost(clusterName, null, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
@@ -8759,13 +8487,13 @@ public class AmbariManagementControllerTest {
         clusters.addHost("host2");
         clusters.addHost("host3");
         Host host = clusters.getHost("host1");
-        host.setOsType("centos6");
+        setOsFamily(host, "redhat", "6.3");
         host.persist();
         host = clusters.getHost("host2");
-        host.setOsType("centos6");
+        setOsFamily(host, "redhat", "6.3");
         host.persist();
         host = clusters.getHost("host3");
-        host.setOsType("centos6");
+        setOsFamily(host, "redhat", "6.3");
         host.persist();
 
         ClusterRequest clusterRequest = new ClusterRequest(null, "c1", "HDP-1.2.0", null);
@@ -8832,12 +8560,12 @@ public class AmbariManagementControllerTest {
 
       clusters.addHost(HOST1);
       Host host = clusters.getHost(HOST1);
-      host.setOsType("centos6");
+      setOsFamily(host, "redhat", "6.3");
       host.persist();
 
       clusters.addHost(HOST2);
       host = clusters.getHost(HOST2);
-      host.setOsType("centos6");
+      setOsFamily(host, "redhat", "6.3");
       host.persist();
 
       AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
@@ -8938,13 +8666,13 @@ public class AmbariManagementControllerTest {
       clusters.addHost("host2");
       clusters.addHost("host3");
       Host host = clusters.getHost("host1");
-      host.setOsType("centos5");
+      setOsFamily(host, "redhat", "5.9");
       host.persist();
       host = clusters.getHost("host2");
-      host.setOsType("centos5");
+      setOsFamily(host, "redhat", "5.9");
       host.persist();
       host = clusters.getHost("host3");
-      host.setOsType("centos5");
+      setOsFamily(host, "redhat", "5.9");
       host.persist();
 
       ClusterRequest clusterRequest = new ClusterRequest(null, "c1", "HDP-1.2.0", null);
@@ -9260,7 +8988,7 @@ public class AmbariManagementControllerTest {
 
       clusters.addHost(HOST1);
       Host host = clusters.getHost(HOST1);
-      host.setOsType(OS_TYPE);
+      setOsFamily(host, "redhat", "5.9");
       host.persist();
 
       ClusterRequest clusterRequest = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
@@ -9642,18 +9370,10 @@ public class AmbariManagementControllerTest {
         State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
@@ -9881,18 +9601,10 @@ public class AmbariManagementControllerTest {
     
 
     String host1 = "h1";
-    clusters.addHost(host1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost("h1").setState(HostState.HEALTHY);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
-    clusters.addHost(host2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
     
-    clusters.mapHostToCluster(host1, clusterName);
-    clusters.mapHostToCluster(host2, clusterName);
+    addHost(host1, clusterName);
+    addHost(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName1, componentName1_1, host1, null);
     createServiceComponentHost(clusterName, serviceName1, componentName1_2, host1, null);

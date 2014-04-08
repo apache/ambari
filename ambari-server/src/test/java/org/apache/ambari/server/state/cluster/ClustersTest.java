@@ -85,6 +85,14 @@ public class ClustersTest {
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
   }
+  
+  private void setOsFamily(Host host, String osFamily, String osVersion) {
+	    Map<String, String> hostAttributes = new HashMap<String, String>();
+	    hostAttributes.put("os_family", osFamily);
+	    hostAttributes.put("os_release_version", osVersion);
+	    
+	    host.setHostAttributes(hostAttributes);
+  }
 
   @Test
   public void testGetInvalidCluster() throws AmbariException {
@@ -219,9 +227,9 @@ public class ClustersTest {
     clusters.addHost(h2);
     clusters.addHost(h3);
     Assert.assertNotNull(clusters.getHost(h1));
-    clusters.getHost(h1).setOsType("redhat6");
-    clusters.getHost(h2).setOsType("centos5");
-    clusters.getHost(h3).setOsType("centos6");
+    setOsFamily(clusters.getHost(h1), "redhat", "6.4");
+    setOsFamily(clusters.getHost(h2), "redhat", "5.9");
+    setOsFamily(clusters.getHost(h3), "redhat", "6.4");
     clusters.getHost(h1).persist();
     clusters.getHost(h2).persist();
     clusters.getHost(h3).persist();
@@ -281,9 +289,9 @@ public class ClustersTest {
     clusters.addHost(h1);
     clusters.addHost(h2);
     clusters.addHost(h3);
-    clusters.getHost(h1).setOsType("redhat6");
-    clusters.getHost(h2).setOsType("centos5");
-    clusters.getHost(h3).setOsType("centos6");
+    setOsFamily(clusters.getHost(h1), "redhat", "6.4");
+    setOsFamily(clusters.getHost(h2), "redhat", "5.9");
+    setOsFamily(clusters.getHost(h3), "redhat", "6.4");
     clusters.getHost(h1).persist();
     clusters.getHost(h2).persist();
     clusters.getHost(h3).persist();
@@ -328,9 +336,9 @@ public class ClustersTest {
     clusters.addHost(h2);
 
     Host host1 = clusters.getHost(h1);
-    host1.setOsType("centos5");
     Host host2 = clusters.getHost(h2);
-    host2.setOsType("centos5");
+    setOsFamily(clusters.getHost(h1), "centos", "5.9");
+    setOsFamily(clusters.getHost(h2), "centos", "5.9");
     host1.persist();
     host2.persist();
 

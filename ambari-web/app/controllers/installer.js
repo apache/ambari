@@ -280,7 +280,7 @@ App.InstallerController = App.WizardController.extend({
               if(repo.Repositories.repo_name == version.Versions.stack_name) {
                 var defaultBaseUrl = repo.Repositories.default_base_url || repo.Repositories.base_url;
                 var latestBaseUrl = repo.Repositories.latest_base_url || defaultBaseUrl;
-                if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'ubuntu12') return; // @todo: remove after Ubuntu support confirmation
+                if (!App.supports.ubuntu && os.OperatingSystems.os_type == 'debian12') return; // @todo: remove after Ubuntu support confirmation
                 oses.push({
                   osType: os.OperatingSystems.os_type,
                   baseUrl: latestBaseUrl,

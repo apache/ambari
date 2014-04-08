@@ -50,7 +50,7 @@
       </components>
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -83,7 +83,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse11</osType>
+          <osFamily>suse11</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -96,29 +96,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>sles11</osType>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>apache2</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>apache2-mod_php5</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osType>centos5</osType>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>httpd</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osType>centos6</osType>
+          <osFamily>redhat5,redhat6</osFamily>
           <packages>
             <package>
               <type>rpm</type>

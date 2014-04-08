@@ -80,7 +80,7 @@ public class AmbariMetaInfoTest {
   private static final int REPOS_CNT = 3;
   private static final int STACKS_NAMES_CNT = 1;
   private static final int PROPERTIES_CNT = 63;
-  private static final int OS_CNT = 3;
+  private static final int OS_CNT = 4;
 
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
@@ -234,6 +234,7 @@ public class AmbariMetaInfoTest {
     Set<String> centos5Cnt = new HashSet<String>();
     Set<String> centos6Cnt = new HashSet<String>();
     Set<String> redhat6cnt = new HashSet<String>();
+    Set<String> redhat5cnt = new HashSet<String>();
 
     for (List<RepositoryInfo> vals : repos.values()) {
       for (RepositoryInfo repo : vals) {
@@ -244,8 +245,10 @@ public class AmbariMetaInfoTest {
           centos6Cnt.add(repo.getRepoId());
         } else if (repo.getOsType().equals("redhat6")) {
           redhat6cnt.add(repo.getRepoId());
+        } else if (repo.getOsType().equals("redhat5")) {
+          redhat5cnt.add(repo.getRepoId());
         } else {
-          fail("Found invalid os" + repo.getOsType());
+          fail("Found invalid os " + repo.getOsType());
         }
 
         if (repo.getRepoId().equals("epel")) {
@@ -260,6 +263,7 @@ public class AmbariMetaInfoTest {
 
     assertEquals(3, centos5Cnt.size());
     assertEquals(3, redhat6cnt.size());
+    assertEquals(3, redhat5cnt.size());
     assertEquals(3, centos6Cnt.size());
   }
   

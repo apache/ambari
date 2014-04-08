@@ -95,7 +95,12 @@ public class ClusterTest {
     Host host = clusters.getHost("h1");
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
-    host.setOsType("centos5");
+    
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "5.9");
+    host.setHostAttributes(hostAttributes);
+    
     host.persist();
     c1.setDesiredStackVersion(new StackId("HDP-0.1"));
     clusters.mapHostToCluster("h1", "c1");

@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
-  <os type="centos6">
+  <os type="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos6</baseurl>
       <repoid>HDP-1.1.1.16</repoid>

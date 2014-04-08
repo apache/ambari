@@ -64,7 +64,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -81,7 +81,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>centos6</osType>
+          <osFamily>centos6</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -90,7 +90,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>centos5</osType>
+          <osFamily>centos5</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -99,7 +99,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>redhat6</osType>
+          <osFamily>redhat6</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -108,7 +108,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>redhat5</osType>
+          <osFamily>redhat5</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -117,7 +117,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>oraclelinux6</osType>
+          <osFamily>oraclelinux6</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -126,7 +126,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>oraclelinux5</osType>
+          <osFamily>oraclelinux5</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -135,7 +135,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse11</osType>
+          <osFamily>suse11</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -144,7 +144,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>sles11</osType>
+          <osFamily>sles11</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -183,7 +183,7 @@
       </components>
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any</osFamily>
           <packages>
             <package>
               <type>rpm</type>

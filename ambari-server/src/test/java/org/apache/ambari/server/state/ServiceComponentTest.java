@@ -169,7 +169,13 @@ public class ServiceComponentTest {
     Host h = clusters.getHost(hostname);
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
-    h.setOsType("centos6");
+    
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+	hostAttributes.put("os_family", "redhat");
+	hostAttributes.put("os_release_version", "6.3");
+	h.setHostAttributes(hostAttributes);
+
+    
     h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }

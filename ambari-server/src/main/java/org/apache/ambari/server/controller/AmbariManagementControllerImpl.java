@@ -1183,7 +1183,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String serviceName = scHost.getServiceName();
     String componentName = event.getServiceComponentName();
     String hostname = scHost.getHostName();
-    String osType = clusters.getHost(hostname).getOsType();
+    String osFamily = clusters.getHost(hostname).getOsFamily();
     StackId stackId = cluster.getDesiredStackVersion();
     ServiceInfo serviceInfo = ambariMetaInfo.getServiceInfo(stackId.getStackName(),
       stackId.getStackVersion(), serviceName);
@@ -1277,8 +1277,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
     }
     ServiceOsSpecific hostOs = null;
-    if (serviceInfo.getOsSpecifics().containsKey(osType)) {
-      hostOs = serviceInfo.getOsSpecifics().get(osType);
+    if (serviceInfo.getOsSpecifics().containsKey(osFamily)) {
+      hostOs = serviceInfo.getOsSpecifics().get(osFamily);
       // Choose repo that is relevant for host
       ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
       if (serviceRepo != null) {

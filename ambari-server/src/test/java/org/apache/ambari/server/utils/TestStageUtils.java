@@ -182,7 +182,12 @@ public class TestStageUtils {
     
     for (String host: hostList) {
       fsm.addHost(host);
-      fsm.getHost(host).setOsType("centos5");
+      
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "5.9");
+      fsm.getHost(host).setHostAttributes(hostAttributes);
+      
       fsm.getHost(host).setCurrentPingPort(pingPorts.get(index));
       fsm.getHost(host).persist();
       fsm.mapHostToCluster(host, "c1");

@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -40,6 +41,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -89,16 +91,24 @@ public class TestHeartbeatMonitor {
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
   }
+  
+  private void setOsFamily(Host host, String osFamily, String osVersion) {
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", osFamily);
+    hostAttributes.put("os_release_version", osVersion);
+    
+    host.setHostAttributes(hostAttributes);
+  }
 
   @Test
   public void testStateCommandsGeneration() throws AmbariException, InterruptedException,
           InvalidStateTransitionException {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
-    clusters.getHost(hostname1).setOsType("centos6");
+    setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
     clusters.getHost(hostname1).persist();
     clusters.addHost(hostname2);
-    clusters.getHost(hostname2).setOsType("centos6");
+    setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
     clusters.getHost(hostname2).persist();
     clusters.addCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -172,10 +182,10 @@ public class TestHeartbeatMonitor {
   public void testStatusCommandForAnyComponents() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
-    clusters.getHost(hostname1).setOsType("centos6");
+    setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
     clusters.getHost(hostname1).persist();
     clusters.addHost(hostname2);
-    clusters.getHost(hostname2).setOsType("centos6");
+    setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
     clusters.getHost(hostname2).persist();
     clusters.addCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -270,7 +280,7 @@ public class TestHeartbeatMonitor {
           InvalidStateTransitionException {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
-    clusters.getHost(hostname1).setOsType("centos5");
+    setOsFamily(clusters.getHost(hostname1), "redhat", "5.9");
     clusters.getHost(hostname1).persist();
     clusters.addCluster(clusterName);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -373,7 +383,7 @@ public class TestHeartbeatMonitor {
           InvalidStateTransitionException {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
-    clusters.getHost(hostname1).setOsType("centos5");
+    setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
     clusters.getHost(hostname1).persist();
     
     clusters.addCluster(clusterName);

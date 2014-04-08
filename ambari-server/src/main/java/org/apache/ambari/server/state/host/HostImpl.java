@@ -87,6 +87,7 @@ public class HostImpl implements Host {
   private static final String SWAPSIZE = "swap_size";
   private static final String SWAPFREE = "swap_free";
   private static final String TIMEZONE = "timezone";
+  private static final String OS_RELEASE_VERSION = "os_release_version";
 
   
   private final Gson gson;
@@ -455,6 +456,10 @@ public class HostImpl implements Host {
       if (hostInfo.getTimeZone() != null) {
         attrs.put(TIMEZONE, hostInfo.getTimeZone());
       }
+      if (hostInfo.getOSRelease() != null) {
+        attrs.put(OS_RELEASE_VERSION, hostInfo.getOSRelease());
+      }
+      
       setHostAttributes(attrs);
 
       saveIfPersisted();
@@ -802,6 +807,12 @@ public class HostImpl implements Host {
     } finally {
       writeLock.unlock();
     }
+  }
+  
+  @Override
+  public String getOsFamily() {
+	  String majorVersion = this.getHostAttributes().get(OS_RELEASE_VERSION).split("\\.")[0];
+	  return this.getHostAttributes().get(OSFAMILY) + majorVersion;
   }
 
   @Override

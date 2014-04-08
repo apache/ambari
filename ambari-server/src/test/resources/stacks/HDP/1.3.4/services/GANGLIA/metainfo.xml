@@ -50,7 +50,7 @@
       </components>
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -83,7 +83,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse</osType>
+          <osFamily>suse</osFamily>
           <package>
             <type>rpm</type>
             <name>apache2</name>
@@ -94,7 +94,7 @@
           </package>
         </osSpecific>
         <osSpecific>
-          <osType>centos6</osType>
+          <osFamily>centos6</osFamily>
           <package>
             <type>rpm</type>
             <name>httpd</name>

@@ -36,7 +36,7 @@
       </components>
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -73,28 +73,28 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osType>suse</osType>
+          <osFamily>suse</osFamily>
           <package>
             <type>rpm</type>
             <name>php5-json</name>
           </package>
         </osSpecific>
         <osSpecific>
-          <osType>centos5</osType>
+          <osFamily>centos5</osFamily>
           <package>
             <type>rpm</type>
             <name>php-pecl-json.x86_64</name>
           </package>
         </osSpecific>
         <osSpecific>
-          <osType>redhat5</osType>
+          <osFamily>redhat5</osFamily>
           <package>
             <type>rpm</type>
             <name>php-pecl-json.x86_64</name>
           </package>
         </osSpecific>
         <osSpecific>
-          <osType>oraclelinux5</osType>
+          <osFamily>oraclelinux5</osFamily>
           <package>
             <type>rpm</type>
             <name>php-pecl-json.x86_64</name>
