@@ -137,7 +137,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
   }.property('containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
 
   mapMemory: function () {
-    return Math.floor(this.get('ramPerContainer') / 2);
+    return Math.floor(this.get('ramPerContainer'));
   }.property('ramPerContainer'),
 
   reduceMemory: function () {
