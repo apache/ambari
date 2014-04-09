@@ -54,27 +54,24 @@ class TestShell(unittest.TestCase):
   def test_kill_process_with_children(self):
     if _platform == "linux" or _platform == "linux2": # Test is Linux-specific
       gracefull_kill_delay_old = shell.gracefull_kill_delay
-      try:
-        shell.gracefull_kill_delay = 0.1
-        sleep_cmd = "sleep 314159265"
-        test_cmd = """ (({0}) | ({0} | {0})) """.format(sleep_cmd)
-        # Starting process tree (multiple process groups)
-        test_process = subprocess.Popen(test_cmd, shell=True)
-        time.sleep(0.3) # Delay to allow subprocess to start
-        # Check if processes are running
-        ps_cmd = """ps aux | grep "{0}" | grep -v grep """.format(sleep_cmd)
-        ps_process = subprocess.Popen(ps_cmd, stdout=subprocess.PIPE, shell=True)
-        (out, err) = ps_process.communicate()
-        self.assertTrue(sleep_cmd in out)
-        # Kill test process
-        shell.kill_process_with_children(test_process.pid)
-        test_process.communicate()
-        # Now test process should not be running
-        ps_process = subprocess.Popen(ps_cmd, stdout=subprocess.PIPE, shell=True)
-        (out, err) = ps_process.communicate()
-        self.assertFalse(sleep_cmd in out)
-      except IOError as e:
-        pass
+      shell.gracefull_kill_delay = 0.1
+      sleep_cmd = "sleep 314159265"
+      test_cmd = """ (({0}) & ({0} & {0})) """.format(sleep_cmd)
+      # Starting process tree (multiple process groups)
+      test_process = subprocess.Popen(test_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+      time.sleep(0.3) # Delay to allow subprocess to start
+      # Check if processes are running
+      ps_cmd = """ps aux """
+      ps_process = subprocess.Popen(ps_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+      (out, err) = ps_process.communicate()
+      self.assertTrue(sleep_cmd in out)
+      # Kill test process
+      shell.kill_process_with_children(test_process.pid)
+      test_process.communicate()
+      # Now test process should not be running
+      ps_process = subprocess.Popen(ps_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+      (out, err) = ps_process.communicate()
+      self.assertFalse(sleep_cmd in out)
       shell.gracefull_kill_delay = gracefull_kill_delay_old
     else:
       # Do not run under other systems
