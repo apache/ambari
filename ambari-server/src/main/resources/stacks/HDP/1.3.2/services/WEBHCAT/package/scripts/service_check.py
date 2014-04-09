@@ -23,12 +23,12 @@ from resource_management import *
 
 class WebHCatServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     File('/tmp/templetonSmoke.sh',
          content= StaticFile('templetonSmoke.sh'),
-         mode=0755
+         mode=0o755
     )
 
     cmd = format("sh /tmp/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"

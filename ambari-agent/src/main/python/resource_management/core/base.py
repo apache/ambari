@@ -90,9 +90,7 @@ class ResourceMetaclass(type):
         setattr(mcs, key, Accessor(key))
   
   
-class Resource(object):
-  __metaclass__ = ResourceMetaclass
-
+class Resource(object, metaclass=ResourceMetaclass):
   action = ForcedListArgument(default="nothing")
   ignore_failures = BooleanArgument(default=False)
   not_if = ResourceArgument() # pass command e.g. not_if = ('ls','/root/jdk')
@@ -133,7 +131,7 @@ class Resource(object):
     self.provider = provider or getattr(self, 'provider', None)
 
     self.arguments = {}
-    for key, value in kwargs.items():
+    for key, value in list(kwargs.items()):
       try:
         arg = self._arguments[key]
       except KeyError:
@@ -141,7 +139,7 @@ class Resource(object):
       else:
         try:
           self.arguments[key] = arg.validate(value)
-        except InvalidArgument, exc:
+        except InvalidArgument as exc:
           raise InvalidArgument("%s %s" % (self, exc))
     
     if not self.env.test_mode:
@@ -154,7 +152,7 @@ class Resource(object):
     return "%s['%s']" % (self.__class__.__name__, self.name)
 
   def __unicode__(self):
-    return u"%s['%s']" % (self.__class__.__name__, self.name)
+    return "%s['%s']" % (self.__class__.__name__, self.name)
 
   def __getstate__(self):
     return dict(

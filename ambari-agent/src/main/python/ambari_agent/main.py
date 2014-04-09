@@ -26,16 +26,16 @@ import sys
 import traceback
 import os
 import time
-import ConfigParser
-import ProcessHelper
-from Controller import Controller
-import AmbariConfig
-from security import CertificateManager
-from NetUtil import NetUtil
-from PingPortListener import PingPortListener
-import security
-import hostname
-from DataCleaner import DataCleaner
+import configparser
+from . import ProcessHelper
+from .Controller import Controller
+from . import AmbariConfig
+from .security import CertificateManager
+from .NetUtil import NetUtil
+from .PingPortListener import PingPortListener
+from . import security
+from . import hostname
+from .DataCleaner import DataCleaner
 
 logger = logging.getLogger()
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -96,7 +96,7 @@ def update_log_level(config):
         logging.basicConfig(format=formatstr, level=logging.INFO, filename=logfile)
         logger.setLevel(logging.INFO)
         logger.debug("Newloglevel=logging.INFO")
-  except Exception, err:
+  except Exception as err:
     logger.info("Default loglevel=DEBUG")
 
 
@@ -115,7 +115,7 @@ def resolve_ambari_config():
     else:
       raise Exception("No config found, use default")
 
-  except Exception, err:
+  except Exception as err:
     logger.warn(err)
   return config
 
@@ -136,7 +136,7 @@ def perform_prestart_checks(expected_hostname):
       sys.exit(1)
   # Check if there is another instance running
   if os.path.isfile(ProcessHelper.pidfile):
-    print("%s already exists, exiting" % ProcessHelper.pidfile)
+    print(("%s already exists, exiting" % ProcessHelper.pidfile))
     sys.exit(1)
   # check if ambari prefix exists
   elif not os.path.isdir(config.get("agent", "prefix")):
@@ -168,7 +168,7 @@ def stop_agent():
     if os.path.exists(ProcessHelper.pidfile):
       raise Exception("PID file still exists.")
     os._exit(0)
-  except Exception, err:
+  except Exception as err:
     if pid == -1:
       print ("Agent process is not running")
     else:
@@ -189,7 +189,7 @@ def main():
   setup_logging(options.verbose)
 
   default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
-  config = ConfigParser.RawConfigParser(default_cfg)
+  config = configparser.RawConfigParser(default_cfg)
   bind_signal_handlers()
 
   if (len(sys.argv) >1) and sys.argv[1]=='stop':
@@ -214,7 +214,7 @@ def main():
   update_log_level(config)
 
   server_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'url_port')
-  print("Connecting to the server at " + server_url + "...")
+  print(("Connecting to the server at " + server_url + "..."))
   logger.info('Connecting to the server at: ' + server_url)
 
   # Wait until server is reachable

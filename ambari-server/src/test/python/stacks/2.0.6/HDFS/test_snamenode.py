@@ -155,7 +155,7 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               recursive = True,
                               )
 
@@ -163,6 +163,6 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0755,
+                              mode = 0o755,
                               recursive = True,
                               )

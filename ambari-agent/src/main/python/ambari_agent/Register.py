@@ -21,9 +21,9 @@ limitations under the License.
 import os
 import time
 import subprocess
-from Hardware import Hardware
-import hostname
-from HostInfo import HostInfo
+from .Hardware import Hardware
+from . import hostname
+from .HostInfo import HostInfo
 
 
 firstContact = True

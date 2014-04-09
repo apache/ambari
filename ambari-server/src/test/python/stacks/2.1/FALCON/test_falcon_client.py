@@ -45,14 +45,14 @@ class TestFalconClient(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
                               content = Template('client.properties.j2'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
-                              mode = 0644,
+                              mode = 0o644,
                               properties = self.getConfig()['configurations']['falcon-runtime.properties'],
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
-                              mode = 0644,
+                              mode = 0o644,
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
                               )
     self.assertNoMoreResources()

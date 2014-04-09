@@ -126,7 +126,7 @@ msg_ids = {'Host::Ping':'host_down',
 
 # Determine the severity of the TVI alert based on the Nagios alert state.
 def determine_severity(state, service):
-    if severities.has_key(state):
+    if state in severities:
         severity = severities[state]
     else: severity = 'Warning'
 
@@ -142,7 +142,7 @@ def determine_severity(state, service):
 # Determine the msg id for the TVI alert from based on the service which generates the Nagios alert.
 # The msg id is used to correlate a log msg to a TVI rule.
 def determine_msg_id(service, severity):
-    if msg_ids.has_key(service):
+    if service in msg_ids:
         msg_id = msg_ids[service]
         if severity == 'OK':
             msg_id = '{0}_ok'.format(msg_id)

@@ -24,12 +24,12 @@ tests_failed = 0
 def test_log_tvi_msg(msg):
     global tests_passed, tests_failed
     if msg == expected_log_msg:
-        print 'Test Passed'
+        print('Test Passed')
         tests_passed += 1
     else:
-        print '*** TEST FAILED ***'
-        print 'Expected MSG: {0}'.format(expected_log_msg)
-        print 'Actual MSG  : {0}'.format(msg)
+        print('*** TEST FAILED ***')
+        print(('Expected MSG: {0}'.format(expected_log_msg)))
+        print(('Actual MSG  : {0}'.format(msg)))
         tests_failed += 1
 
 sys_logger.log_tvi_msg = test_log_tvi_msg
@@ -42,10 +42,10 @@ def test(tvi_rule, expected_msg, arg1, arg2, arg3, arg4, arg5):
 
 def summary():
     total_tests = tests_passed + tests_failed
-    print '\nTests Run: {0}'.format(total_tests)
-    print 'Passed: {0}, Failed: {1}'.format(tests_passed, tests_failed)
+    print(('\nTests Run: {0}'.format(total_tests)))
+    print(('Passed: {0}, Failed: {1}'.format(tests_passed, tests_failed)))
     if not tests_failed:
-        print 'SUCCESS! All tests pass.'
+        print('SUCCESS! All tests pass.')
 
 
 # Hadoop_Host_Down

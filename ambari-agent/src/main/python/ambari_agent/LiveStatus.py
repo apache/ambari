@@ -20,10 +20,10 @@ limitations under the License.
 
 import json
 import logging
-from StatusCheck import StatusCheck
-import AmbariConfig
-from StackVersionsFileHandler import StackVersionsFileHandler
-from ActualConfigHandler import ActualConfigHandler
+from .StatusCheck import StatusCheck
+from . import AmbariConfig
+from .StackVersionsFileHandler import StackVersionsFileHandler
+from .ActualConfigHandler import ActualConfigHandler
 
 logger = logging.getLogger()
 
@@ -205,7 +205,7 @@ class LiveStatus:
 def main(argv=None):
   for service in SERVICES:
     livestatus = LiveStatus('', service)
-    print json.dumps(livestatus.build())
+    print((json.dumps(livestatus.build())))
 
 if __name__ == '__main__':
   main()

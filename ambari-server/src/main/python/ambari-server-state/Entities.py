@@ -129,7 +129,7 @@ class Info(ConvertToXml):
 
   def __str__(self):
     result = "<info>"
-    for key in self.keys.keys():
+    for key in list(self.keys.keys()):
       result += "<" + key + ">"
       result += self.keys.get(key)
       result += "</" + key + ">"

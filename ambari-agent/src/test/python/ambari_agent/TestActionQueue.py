@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from Queue import Queue
+from queue import Queue
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
@@ -25,7 +25,7 @@ from ambari_agent.PuppetExecutor import PuppetExecutor
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
 import os, errno, time, pprint, tempfile, threading
-import StringIO
+import io
 import sys
 from threading import Thread
 
@@ -40,7 +40,7 @@ from ambari_agent.ActualConfigHandler import ActualConfigHandler
 class TestActionQueue(TestCase):
 
   def setUp(self):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # save original open() method for later use
     self.original_open = open
@@ -51,12 +51,12 @@ class TestActionQueue(TestCase):
 
   datanode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'INSTALL',
+    'role': 'DATANODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 3,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v1' }}
   }
@@ -82,42 +82,42 @@ class TestActionQueue(TestCase):
 
   namenode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'NAMENODE',
-    'roleCommand': u'INSTALL',
+    'role': 'NAMENODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 4,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     }
 
   snamenode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'SECONDARY_NAMENODE',
-    'roleCommand': u'INSTALL',
+    'role': 'SECONDARY_NAMENODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 5,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     }
 
   nagios_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'NAGIOS',
-    'roleCommand': u'INSTALL',
+    'role': 'NAGIOS',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 6,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     }
 
   hbase_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'HBASE',
-    'roleCommand': u'INSTALL',
+    'role': 'HBASE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 7,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     }
 
   status_command = {
@@ -130,12 +130,12 @@ class TestActionQueue(TestCase):
 
   datanode_restart_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'DATANODE',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
     'hostLevelParams':{'custom_command': 'RESTART'}
@@ -271,10 +271,10 @@ class TestActionQueue(TestCase):
                 'stderr': 'Read from {0}/errors-3.txt'.format(tempdir),
                 'stdout': 'Read from {0}/output-3.txt'.format(tempdir),
                 'structuredOut' : '',
-                'clusterName': u'cc',
-                'roleCommand': u'INSTALL',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'clusterName': 'cc',
+                'roleCommand': 'INSTALL',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
                 'exitCode': 777}
@@ -290,11 +290,11 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
                 'stdout': 'out',
-                'clusterName': u'cc',
+                'clusterName': 'cc',
                 'configurationTags': {'global': {'tag': 'v1'}},
-                'roleCommand': u'INSTALL',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'INSTALL',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
                 'structuredOut' : '',
@@ -329,10 +329,10 @@ class TestActionQueue(TestCase):
     expected = {'status': 'FAILED',
                 'stderr': 'stderr',
                 'stdout': 'out',
-                'clusterName': u'cc',
-                'roleCommand': u'INSTALL',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'clusterName': 'cc',
+                'roleCommand': 'INSTALL',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
                 'structuredOut' : '',
@@ -404,12 +404,12 @@ class TestActionQueue(TestCase):
     actionQueue.execute_command(self.datanode_restart_command)
     report = actionQueue.result()
     expected = {'actionId': '1-1',
-                'clusterName': u'cc',
+                'clusterName': 'cc',
                 'configurationTags': {'global' : { 'tag': 'v123' }},
                 'exitCode': 0,
-                'role': u'DATANODE',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
+                'role': 'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
                 'status': 'COMPLETED',
                 'stderr': 'stderr',
                 'stdout': 'out',

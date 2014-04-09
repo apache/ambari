@@ -36,7 +36,7 @@ AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
 def execOsCommand(osCommand):
   osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE)
-  log = osStat.communicate(0)
+  log = osStat.communicate(0).decode()
   ret = {"exitstatus": osStat.returncode, "log": log}
   return ret
 
@@ -77,12 +77,12 @@ def runAgent(passPhrase, expected_hostname):
       log = ret['log']
     except Exception:
       log = "Log not found"
-    print log
+    print(log)
     if not 0 == ret['exitstatus']:
       return ret['exitstatus']
 
     return agent_retcode
-  except (Exception), e:
+  except (Exception) as e:
     return 1
 
 
@@ -168,7 +168,7 @@ def main(argv=None):
     server_port = onlyargs[4]
   try:
     server_port = int(server_port)
-  except (Exception), e:
+  except (Exception) as e:
     server_port = 8080
 
   checkServerReachability(hostname, server_port)

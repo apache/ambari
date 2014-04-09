@@ -24,8 +24,8 @@ try:
 except ImportError:
   from mock.mock import MagicMock
   pycurl = MagicMock() 
-import cStringIO
-import StringIO
+import io
+import io
 import pdb
 try:
   import json
@@ -98,7 +98,7 @@ class HttpClient(object):
         payload = None
 
 
-    buf = cStringIO.StringIO()
+    buf = io.StringIO()
     self.c.setopt(pycurl.WRITEFUNCTION, buf.write)
     self.c.setopt(pycurl.SSL_VERIFYPEER, 0)
     
@@ -123,7 +123,7 @@ class HttpClient(object):
       LOG.debug( data)
       data = self._to_bytestring(data)
       LOG.debug( data)
-      content = StringIO.StringIO(data)
+      content = io.StringIO(data)
       LOG.debug( content)
       content_length = len(data)
       LOG.debug( "content_length........."+str(content_length))
@@ -138,12 +138,12 @@ class HttpClient(object):
     self.c.setopt(self.c.URL, url)
     headers = self._get_headers(headers)
     self.c.setopt(pycurl.HTTPHEADER,
-                        ["%s: %s" % pair for pair in sorted(headers.iteritems())])
+                        ["%s: %s" % pair for pair in sorted(headers.items())])
 
     LOG.debug ("invoke : pycurl.EFFECTIVE_URL = "+self.c.getinfo(pycurl.EFFECTIVE_URL))
     try:
         self.c.perform()
-    except Exception, ex:
+    except Exception as ex:
         LOG.debug (sys.stderr, str(ex))
         raise ex
     contents_type= self.c.getinfo(pycurl.CONTENT_TYPE)
@@ -158,7 +158,7 @@ class HttpClient(object):
   def _to_bytestring(self ,s):
 #    if not isinstance(s, basestring):
 #      raise TypeError("value should be a str or unicode")
-    if isinstance(s, unicode):
+    if isinstance(s, str):
       return s.encode('utf-8')
     return s
 

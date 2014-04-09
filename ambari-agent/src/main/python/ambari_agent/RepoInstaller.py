@@ -23,9 +23,9 @@ import os
 import json
 from pprint import pformat
 import ast
-from shell import shellRunner
-from manifestGenerator import writeImports
-import AmbariConfig
+from .shell import shellRunner
+from .manifestGenerator import writeImports
+from . import AmbariConfig
 
 
 PUPPET_EXT=".pp"
@@ -44,12 +44,12 @@ class RepoInstaller:
   def prepareReposInfo(self):
     params = {}
     self.repoInfoList = []
-    if self.parsedJson.has_key('hostLevelParams'):
+    if 'hostLevelParams' in self.parsedJson:
       params = self.parsedJson['hostLevelParams']
-    if params.has_key('repo_info'):
+    if 'repo_info' in params:
       self.repoInfoList = params['repo_info']
     logger.info("Repo List Info " + pformat(self.repoInfoList))
-    if (isinstance(self.repoInfoList, basestring)):
+    if (isinstance(self.repoInfoList, str)):
       if (self.repoInfoList is not None and (len(self.repoInfoList) > 0)):
         self.repoInfoList = ast.literal_eval(self.repoInfoList)
       else:
@@ -66,13 +66,13 @@ class RepoInstaller:
       baseUrl = ''
       mirrorList = ''
       
-      if repo.has_key('baseUrl'):
+      if 'baseUrl' in repo:
         baseUrl = repo['baseUrl']
         baseUrl = baseUrl.decode('unicode-escape').encode('utf-8')
         # Hack to take care of $ signs in the repo url
         baseUrl = baseUrl.replace('$', '\$')
 
-      if repo.has_key('mirrorsList'):
+      if 'mirrorsList' in repo:
         mirrorList = repo['mirrorsList']
         mirrorList = mirrorList.decode('unicode-escape').encode('utf-8')
         # Hack to take care of $ signs in the repo url

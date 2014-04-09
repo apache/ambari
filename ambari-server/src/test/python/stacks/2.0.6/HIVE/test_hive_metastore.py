@@ -40,14 +40,14 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -82,14 +82,14 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -106,14 +106,14 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -153,14 +153,14 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -169,24 +169,24 @@ class TestHiveMetastore(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
       content = StaticFile('startMetastore.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
@@ -217,14 +217,14 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -233,24 +233,24 @@ class TestHiveMetastore(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
       content = StaticFile('startMetastore.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',

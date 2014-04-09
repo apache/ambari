@@ -36,7 +36,7 @@ class TestHookBeforeInstall(RMFTestCase):
                           groups=['users'], )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                           content=StaticFile('changeToSecureUid.sh'),
-                          mode=0555, )
+                          mode=0o555, )
     self.assertResourceCalled('Execute',
                           '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa 2>/dev/null',
                           not_if='test $(id -u ambari-qa) -gt 1000', )
@@ -45,7 +45,7 @@ class TestHookBeforeInstall(RMFTestCase):
                           groups=['hadoop'], )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
                           content=StaticFile('changeToSecureUid.sh'),
-                          mode=0555, )
+                          mode=0o555, )
     self.assertResourceCalled('Execute',
                           '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase 2>/dev/null',
                           not_if='test $(id -u hbase) -gt 1000', )

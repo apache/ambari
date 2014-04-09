@@ -16,8 +16,8 @@
 # limitations under the License.
 
 
-import httplib
-import urllib2
+import http.client
+import urllib.request, urllib.error, urllib.parse
 import socket
 import ssl
 import os
@@ -26,7 +26,7 @@ import subprocess
 import json
 import pprint
 import traceback
-import hostname
+from . import hostname
 
 logger = logging.getLogger()
 
@@ -35,10 +35,10 @@ GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(ho
         -out %(keysdir)s/%(hostname)s.csr"
 
 
-class VerifiedHTTPSConnection(httplib.HTTPSConnection):
+class VerifiedHTTPSConnection(http.client.HTTPSConnection):
   """ Connecting using ssl wrapped sockets """
   def __init__(self, host, port=None, config=None):
-    httplib.HTTPSConnection.__init__(self, host, port=port)
+    http.client.HTTPSConnection.__init__(self, host, port=port)
     self.config=config
     self.two_way_ssl_required=False
 
@@ -189,7 +189,7 @@ class CertificateManager():
   def loadSrvrCrt(self):
     get_ca_url = self.server_url + '/cert/ca/'
     logger.info("Downloading server cert from " + get_ca_url)
-    stream = urllib2.urlopen(get_ca_url)
+    stream = urllib.request.urlopen(get_ca_url)
     response = stream.read()
     stream.close()
     srvr_crt_f = open(self.getSrvrCrtName(), 'w+')
@@ -204,8 +204,8 @@ class CertificateManager():
     register_data = {'csr'       : agent_crt_req_content,
                     'passphrase' : passphrase}
     data = json.dumps(register_data)
-    req = urllib2.Request(sign_crt_req_url, data, {'Content-Type': 'application/json'})
-    f = urllib2.urlopen(req)
+    req = urllib.request.Request(sign_crt_req_url, data, {'Content-Type': 'application/json'})
+    f = urllib.request.urlopen(req)
     response = f.read()
     f.close()
     data = json.loads(response)

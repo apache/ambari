@@ -120,7 +120,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0711,
+                              mode = 0o711,
                               owner = 'hbase',
                               action = ['create_delayed'],
                               )
@@ -144,7 +144,7 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
-      mode=0775,
+      mode=0o775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -185,7 +185,7 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'
@@ -207,7 +207,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0711,
+                              mode = 0o711,
                               owner = 'hbase',
                               action = ['create_delayed'],
                               )
@@ -231,7 +231,7 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
-      mode=0775,
+      mode=0o775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -276,7 +276,7 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'

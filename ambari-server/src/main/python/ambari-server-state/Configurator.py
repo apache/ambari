@@ -133,24 +133,24 @@ class Configurator:
   def chooseConfInitType(self):
     "Type of how to get paths to configuration files"
     "Configuration types are base on Configuration.CONFIG_INIT_TYPE tuple"
-    return int(raw_input("\tInput configuration type:\n" +
+    return int(eval(input("\tInput configuration type:\n" +
                          "0)Current path contains all required configuration files.\n" +
                          "1)Enter path for each conf file manually.\n" +
                          "Choose:"
-    )
+    ))
     ).numerator
 
 
   def initPaths(self):
     "Input alternative file paths for resources"
     if self.configurationType != 0:
-      for service in self.servicesPath.keys():
-        path = raw_input("Please enter path for " + service + "(if there is no such service type \"no\") :")
+      for service in list(self.servicesPath.keys()):
+        path = eval(input("Please enter path for " + service + "(if there is no such service type \"no\") :"))
         if len(path) > 0 and not path == "no":
           self.servicesPath[service] = path
         elif path == "no":
           self.servicesPath.__delitem__(service)
-          print(self.servicesPath)
+          print((self.servicesPath))
         else:
           raise ValueError(
             "Path to the configuration file can't be empty.") #Catch it layter and start input mode automatically
@@ -158,7 +158,7 @@ class Configurator:
 
   def isFilesExist(self):
     "Checking for resources file existing"
-    for service in self.servicesPath.keys():
+    for service in list(self.servicesPath.keys()):
       path = self.servicesPath[service]
       isExit = exists(path)
       errorMessage = "File " + path + " doesn't exist! ("+ service+ " service)"
@@ -173,7 +173,7 @@ class Configurator:
     resultFile.write( str(self.configurations) )
     resultFile.flush()
     resultFile.close()
-    print("\t\t Result configuration file( "+self.RESULT_FILE_PATH+") was generate successfully.")
+    print(("\t\t Result configuration file( "+self.RESULT_FILE_PATH+") was generate successfully."))
 
 
 

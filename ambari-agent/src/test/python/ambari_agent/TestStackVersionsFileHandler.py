@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-import StringIO
+import io
 import socket
 import os, sys
 from mock.mock import patch
@@ -42,11 +42,11 @@ class TestStackVersionsFileHandler(TestCase):
   def test_read_stack_version(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
     result = stackVersionsFileHandler.read_stack_version("NAGIOS_SERVER")
-    self.assertEquals(result, '{"stackName":"HDP","stackVersion":"1.2.1"}')
+    self.assertEqual(result, '{"stackName":"HDP","stackVersion":"1.2.1"}')
     result = stackVersionsFileHandler.read_stack_version("GANGLIA_SERVER")
-    self.assertEquals(result, '{"stackName":"HDP","stackVersion":"1.2.2"}')
+    self.assertEqual(result, '{"stackName":"HDP","stackVersion":"1.2.2"}')
     result = stackVersionsFileHandler.read_stack_version("NOTEXISTING")
-    self.assertEquals(result, stackVersionsFileHandler.DEFAULT_VER)
+    self.assertEqual(result, stackVersionsFileHandler.DEFAULT_VER)
     self.assertTrue(touch_method.called)
 
 
@@ -54,10 +54,10 @@ class TestStackVersionsFileHandler(TestCase):
   def test_read_all_stack_versions(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
     result = stackVersionsFileHandler.read_all_stack_versions()
-    self.assertEquals(len(result.keys()), 4)
-    self.assertEquals(result["NAGIOS_SERVER"],
+    self.assertEqual(len(list(result.keys())), 4)
+    self.assertEqual(result["NAGIOS_SERVER"],
           '{"stackName":"HDP","stackVersion":"1.2.1"}')
-    self.assertEquals(result["HCATALOG"],
+    self.assertEqual(result["HCATALOG"],
           '{"stackName":"HDP","stackVersion":"1.2.2"}')
     self.assertTrue(touch_method.called)
 
@@ -103,7 +103,7 @@ class TestStackVersionsFileHandler(TestCase):
     os.remove(expectedBackupFile)
     # Checking content of created file
     content = stackVersionsFileHandler.read_all_stack_versions()
-    self.assertEquals(len(content), 1)
+    self.assertEqual(len(content), 1)
     self.assertEqual(content['NAGIOS_SERVER'], '"stackVersion":"1.3.0"')
     self.assertTrue(os.path.isfile(tmpfile))
     os.remove(tmpfile)

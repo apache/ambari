@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
-import status_params
+from . import status_params
 
 # server configurations
 config = Script.get_config()
@@ -143,7 +143,7 @@ daemon_name = status_params.daemon_name
 #hdfs directories
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 hive_hdfs_user_dir = format("/user/{hive_user}")
-hive_hdfs_user_mode = 0700
+hive_hdfs_user_mode = 0o700
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"

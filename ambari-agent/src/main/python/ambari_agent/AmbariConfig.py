@@ -18,10 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ConfigParser
-import StringIO
+import configparser
+import io
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 content = """
 
 [server]
@@ -63,7 +63,7 @@ rpms=glusterfs,openssl,wget,net-snmp,ntpd,ruby,ganglia,nagios,glusterfs
 log_lines_count=300
 
 """
-s = StringIO.StringIO(content)
+s = io.StringIO(content)
 config.readfp(s)
 
 imports = [
@@ -258,7 +258,7 @@ def setConfig(customConfig):
 
 
 def main():
-  print config
+  print(config)
 
 if __name__ == "__main__":
   main()

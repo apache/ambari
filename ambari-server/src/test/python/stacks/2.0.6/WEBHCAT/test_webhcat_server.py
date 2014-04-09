@@ -105,7 +105,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -115,7 +115,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -131,13 +131,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
@@ -156,21 +156,21 @@ class TestWebHCatServer(RMFTestCase):
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                               owner='hcat',
-                              mode=0755,
+                              mode=0o755,
                               dest_dir='/apps/webhcat',
                               kinnit_if_needed='',
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
                               owner='hcat',
-                              mode=0755,
+                              mode=0o755,
                               dest_dir='/apps/webhcat',
                               kinnit_if_needed='',
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
                               owner='hcat',
-                              mode=0755,
+                              mode=0o755,
                               dest_dir='/apps/webhcat',
                               kinnit_if_needed='',
                               hdfs_user='hdfs'
@@ -183,7 +183,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -193,7 +193,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -209,13 +209,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
@@ -238,21 +238,21 @@ class TestWebHCatServer(RMFTestCase):
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
                               owner='hcat',
-                              mode=0755,
+                              mode=0o755,
                               dest_dir='/apps/webhcat',
                               kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
                               owner='hcat',
-                              mode=0755,
+                              mode=0o755,
                               dest_dir='/apps/webhcat',
                               kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
                               hdfs_user='hdfs'
     )
     self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
                               owner='hcat',
-                              mode=0755,
+                              mode=0o755,
                               dest_dir='/apps/webhcat',
                               kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
                               hdfs_user='hdfs'

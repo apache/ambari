@@ -104,7 +104,7 @@ def _start_all_services(root_resource, cluster_name , run_smoke_test=False):
      cpath = "%s&%s" % (cpath, "params/run_smoke_test=true&params/reconfigure_client=false")
   data = {"RequestInfo": {"context" :"Start All Services"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}
   resp = root_resource.put(path=cpath , payload=data)
-  if isinstance(resp, dict) and resp.has_key("Requests"):
+  if isinstance(resp, dict) and "Requests" in resp:
       resp = resp["Requests"]      
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 

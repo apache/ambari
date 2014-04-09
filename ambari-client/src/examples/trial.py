@@ -24,7 +24,7 @@ from ambari_client.ambari_api import  AmbariClient
 def main():
 
     path = os.getcwd() ;
-    print path
+    print(path)
     sys.path.append(path)
     
     logging.basicConfig(filename="ambari_api.log", level=logging.DEBUG , filemode="w")
@@ -33,9 +33,9 @@ def main():
      
      
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1)
-    print client.version
-    print client.host_url
-    print"\n"
+    print((client.version))
+    print((client.host_url))
+    print("\n")
     
 #    s = client.get_config("1.3.0", "HDFS")
 #    print s
@@ -47,9 +47,9 @@ def main():
 #    print mycluster
 #
     mycluster = client.get_cluster('test46')
-    print mycluster
-    print mycluster.to_json_dict()
-    print"\n"
+    print(mycluster)
+    print((mycluster.to_json_dict()))
+    print("\n")
 #    
 #    services_list = ["HDFS", "MAPREDUCE", "NAGIOS", "GANGLIA"]
 #    s2 = mycluster.create_services(services_list)
@@ -122,10 +122,10 @@ def main():
 #    print s4
 
     zk = mycluster.get_service("ZOOKEEPER")
-    print zk
+    print(zk)
     
     s = zk.stop()
-    print s
+    print(s)
     
     
     ######################################

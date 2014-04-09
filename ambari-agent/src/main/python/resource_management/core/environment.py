@@ -69,14 +69,14 @@ class Environment(object):
   def backup_file(self, path):
     if self.config.backup:
       if not os.path.exists(self.config.backup.path):
-        os.makedirs(self.config.backup.path, 0700)
+        os.makedirs(self.config.backup.path, 0o700)
       new_name = self.config.backup.prefix + path.replace('/', '-')
       backup_path = os.path.join(self.config.backup.path, new_name)
       Logger.info("backing up %s to %s" % (path, backup_path))
       shutil.copy(path, backup_path)
 
   def update_config(self, attributes, overwrite=True):
-    for key, value in attributes.items():
+    for key, value in list(attributes.items()):
       attr = self.config
       path = key.split('.')
       for pth in path[:-1]:
@@ -95,7 +95,7 @@ class Environment(object):
     else:
       variables = dict((var, getattr(arg, var)) for var in dir(arg))
     
-    for variable, value in variables.iteritems():
+    for variable, value in list(variables.items()):
       # don't include system variables, methods, classes, modules
       if not variable.startswith("__") and \
           not hasattr(value, '__call__')and \
@@ -118,7 +118,7 @@ class Environment(object):
     if hasattr(cond, '__call__'):
       return cond()
 
-    if isinstance(cond, basestring):
+    if isinstance(cond, str):
       ret, out = shell.call(cond)
       return ret == 0
 

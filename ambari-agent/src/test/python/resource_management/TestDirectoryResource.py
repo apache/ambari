@@ -44,19 +44,19 @@ class TestFileResource(TestCase):
     isdir_mock.return_value = True
     _coerce_uid_mock.return_value = 66
     _coerce_gid_mock.return_value = 77
-    os_stat_mock.return_value = type("", (), dict(st_mode=0755, st_uid=0, st_gid=0))()
+    os_stat_mock.return_value = type("", (), dict(st_mode=0o755, st_uid=0, st_gid=0))()
     
     with Environment('/') as env:
       Directory('/a/b/c/d',
            action='create',
-           mode=0777,
+           mode=0o777,
            owner="hdfs",
            group="hadoop",
            recursive=True
       )
       
-    os_makedirs_mock.assert_called_with('/a/b/c/d', 0777)
-    os_chmod_mock.assert_called_with('/a/b/c/d', 0777)
+    os_makedirs_mock.assert_called_with('/a/b/c/d', 0o777)
+    os_chmod_mock.assert_called_with('/a/b/c/d', 0o777)
     os_chown_mock.assert_any_call('/a/b/c/d', 66, -1)
     os_chown_mock.assert_any_call('/a/b/c/d', -1, 77)
   
@@ -78,18 +78,18 @@ class TestFileResource(TestCase):
     isdir_mock.return_value = True
     _coerce_uid_mock.return_value = 66
     _coerce_gid_mock.return_value = 77
-    os_stat_mock.return_value = type("", (), dict(st_mode=0755, st_uid=0, st_gid=0))()
+    os_stat_mock.return_value = type("", (), dict(st_mode=0o755, st_uid=0, st_gid=0))()
     
     with Environment('/') as env:
       Directory('/a/b/c/d',
            action='create',
-           mode=0777,
+           mode=0o777,
            owner="hdfs",
            group="hadoop"
       )
       
-    mkdir_mock.assert_called_with('/a/b/c/d', 0777)
-    os_chmod_mock.assert_called_with('/a/b/c/d', 0777)
+    mkdir_mock.assert_called_with('/a/b/c/d', 0o777)
+    os_chmod_mock.assert_called_with('/a/b/c/d', 0o777)
     os_chown_mock.assert_any_call('/a/b/c/d', 66, -1)
     os_chown_mock.assert_any_call('/a/b/c/d', -1, 77)
     
@@ -107,7 +107,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         Directory('/a/b/c/d',
              action='create',
-             mode=0777,
+             mode=0o777,
              owner="hdfs",
              group="hadoop"
         )
@@ -126,7 +126,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         Directory('/a/b/c/d',
              action='create',
-             mode=0777,
+             mode=0o777,
              owner="hdfs",
              group="hadoop"
         )

@@ -82,7 +82,7 @@ def change_permission():
   import params
 
   Directory('/var/lib/ganglia/dwoo',
-            mode=0777,
+            mode=0o777,
             owner=params.gmetad_user,
             recursive=True
   )
@@ -98,7 +98,7 @@ def server_files():
   rrd_py_file_path = path.join(rrd_py_path, "rrd.py")
   File(rrd_py_file_path,
        content=StaticFile("rrd.py"),
-       mode=0755
+       mode=0o755
   )
   rrd_file_owner = params.gmetad_user
 
@@ -116,7 +116,7 @@ def server_files():
     Directory(params.rrdcached_base_dir,
               owner=rrd_file_owner,
               group=rrd_file_owner,
-              mode=0755,
+              mode=0o755,
               recursive=True
     )
 

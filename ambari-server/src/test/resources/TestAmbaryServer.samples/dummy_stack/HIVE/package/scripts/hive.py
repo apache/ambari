@@ -23,15 +23,15 @@ import sys
 
 
 def hive(name=None):
-  import params
+  from . import params
 
   if name == 'metastore' or name == 'hiveserver2':
     hive_config_dir = params.hive_server_conf_dir
-    config_file_mode = 0600
+    config_file_mode = 0o600
     jdbc_connector()
   else:
     hive_config_dir = params.hive_conf_dir
-    config_file_mode = 0644
+    config_file_mode = 0o644
 
   Directory(hive_config_dir,
             owner=params.hive_user,
@@ -55,13 +55,13 @@ def hive(name=None):
 
   if name == 'metastore':
     File(params.start_metastore_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startMetastore.sh')
     )
 
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startHiveserver2.sh')
     )
 
@@ -83,17 +83,17 @@ def hive(name=None):
 
 
 def crt_directory(name):
-  import params
+  from . import params
 
   Directory(name,
             recursive=True,
             owner=params.hive_user,
             group=params.user_group,
-            mode=0755)
+            mode=0o755)
 
 
 def crt_file(name):
-  import params
+  from . import params
 
   File(name,
        owner=params.hive_user,
@@ -102,7 +102,7 @@ def crt_file(name):
 
 
 def jdbc_connector():
-  import params
+  from . import params
 
   if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
     cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")

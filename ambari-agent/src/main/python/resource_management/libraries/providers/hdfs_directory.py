@@ -44,14 +44,14 @@ class HdfsDirectoryProvider(Provider):
     # grouping directories by mode/owner/group to modify them in one 'chXXX' call
     if dir_mode:
       chmod_key = (dir_mode,recursive_chmod_str)
-      if chmod_map.has_key(chmod_key):
+      if chmod_key in chmod_map:
         chmod_map[chmod_key].append(dir_name)
       else:
         chmod_map[chmod_key] = [dir_name]
 
     if dir_owner:
       owner_key = (dir_owner,dir_group,recursive_chown_str)
-      if chown_map.has_key(owner_key):
+      if owner_key in chown_map:
         chown_map[owner_key].append(dir_name)
       else:
         chown_map[owner_key] = [dir_name]
@@ -72,13 +72,13 @@ class HdfsDirectoryProvider(Provider):
     chmod_commands = []
     chown_commands = []
 
-    for chmod_key, chmod_dirs in chmod_map.items():
+    for chmod_key, chmod_dirs in list(chmod_map.items()):
       mode = chmod_key[0]
       recursive = chmod_key[1]
       chmod_dirs_str = ' '.join(chmod_dirs)
       chmod_commands.append(format("hadoop fs -chmod {recursive} {mode} {chmod_dirs_str}"))
 
-    for chown_key, chown_dirs in chown_map.items():
+    for chown_key, chown_dirs in list(chown_map.items()):
       owner = chown_key[0]
       group = chown_key[1]
       recursive = chown_key[2]

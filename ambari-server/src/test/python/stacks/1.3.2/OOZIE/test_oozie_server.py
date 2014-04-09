@@ -34,14 +34,14 @@ class TestOozieServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0775,
+                              mode = 0o775,
                               owner = 'oozie',
                               action = ['create'],
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
       owner = 'oozie',
       group = 'hadoop',
-      mode = 0664,
+      mode = 0o664,
       conf_dir = '/etc/oozie/conf',
       configurations = self.getConfig()['configurations']['oozie-site'],
     )
@@ -55,7 +55,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
@@ -85,32 +85,32 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/oozie',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/oozie',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
       not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
@@ -176,14 +176,14 @@ class TestOozieServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0775,
+                              mode = 0o775,
                               owner = 'oozie',
                               action = ['create'],
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
       owner = 'oozie',
       group = 'hadoop',
-      mode = 0664,
+      mode = 0o664,
       conf_dir = '/etc/oozie/conf',
       configurations = self.getConfig()['configurations']['oozie-site'],
     )
@@ -197,7 +197,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
@@ -227,32 +227,32 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/oozie',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/oozie',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
       owner = 'oozie',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
       not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
@@ -311,14 +311,14 @@ class TestOozieServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0775,
+                              mode = 0o775,
                               owner = 'oozie',
                               action = ['create'],
                               )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
                               group = 'hadoop',
-                              mode = 0664,
+                              mode = 0o664,
                               conf_dir = '/etc/oozie/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
                               )
@@ -332,7 +332,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
@@ -362,32 +362,32 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
@@ -410,14 +410,14 @@ class TestOozieServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0775,
+                              mode = 0o775,
                               owner = 'oozie',
                               action = ['create'],
                               )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
                               group = 'hadoop',
-                              mode = 0664,
+                              mode = 0o664,
                               conf_dir = '/etc/oozie/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
                               )
@@ -431,7 +431,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
                               owner = 'oozie',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
@@ -461,32 +461,32 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',

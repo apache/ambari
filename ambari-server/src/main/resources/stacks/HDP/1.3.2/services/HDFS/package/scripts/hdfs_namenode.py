@@ -61,7 +61,7 @@ def create_name_dirs(directories):
 
   dirs = directories.split(",")
   Directory(dirs,
-            mode=0755,
+            mode=0o755,
             owner=params.hdfs_user,
             group=params.user_group,
             recursive=True
@@ -73,7 +73,7 @@ def create_hdfs_directories():
   params.HdfsDirectory("/tmp",
                        action="create_delayed",
                        owner=params.hdfs_user,
-                       mode=0777
+                       mode=0o777
   )
   params.HdfsDirectory(params.smoke_hdfs_user_dir,
                        action="create_delayed",
@@ -97,7 +97,7 @@ def format_namenode(force=None):
     else:
       File('/tmp/checkForFormat.sh',
            content=StaticFile("checkForFormat.sh"),
-           mode=0755)
+           mode=0o755)
       Execute(format(
         "sh /tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
         "{dfs_name_dir}"),

@@ -31,14 +31,14 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -55,14 +55,14 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -70,7 +70,7 @@ class TestHiveServer(RMFTestCase):
 
     self.assertResourceCalled('HdfsDirectory', '/apps/tez/',
                               action = ['create_delayed'],
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'tez',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
@@ -81,7 +81,7 @@ class TestHiveServer(RMFTestCase):
 
     self.assertResourceCalled('HdfsDirectory', '/apps/tez/lib/',
                               action = ['create_delayed'],
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'tez',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
@@ -99,7 +99,7 @@ class TestHiveServer(RMFTestCase):
                               )
 
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/tez*.jar',
-                              mode=0755,
+                              mode=0o755,
                               owner='tez',
                               dest_dir='/apps/tez/',
                               kinnit_if_needed='',
@@ -107,7 +107,7 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
-                              mode=0755,
+                              mode=0o755,
                               owner='tez',
                               dest_dir='/apps/tez/lib/',
                               kinnit_if_needed='',
@@ -145,14 +145,14 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -169,14 +169,14 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -209,7 +209,7 @@ class TestHiveServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'hive',
                               action = ['create_delayed'],
                               )
@@ -219,7 +219,7 @@ class TestHiveServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0700,
+                              mode = 0o700,
                               owner = 'hive',
                               action = ['create_delayed'],
                               )
@@ -244,14 +244,14 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -260,24 +260,24 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
       content = Template('startHiveserver2.sh.j2'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
@@ -301,7 +301,7 @@ class TestHiveServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'hive',
                               action = ['create_delayed'],
                               )
@@ -311,7 +311,7 @@ class TestHiveServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0700,
+                              mode = 0o700,
                               owner = 'hive',
                               action = ['create_delayed'],
                               )
@@ -337,14 +337,14 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0600,
+      mode = 0o600,
       conf_dir = '/etc/hive/conf.server',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -353,24 +353,24 @@ class TestHiveServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
       content = Template('startHiveserver2.sh.j2'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0755,
+      mode = 0o755,
       recursive = True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',

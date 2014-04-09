@@ -18,9 +18,9 @@ limitations under the License.
 
 """
 
-from functions import calc_xmn_from_xms
+from .functions import calc_xmn_from_xms
 from resource_management import *
-import status_params
+from . import status_params
 
 # server configurations
 config = Script.get_config()

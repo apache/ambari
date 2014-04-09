@@ -23,7 +23,7 @@ Ambari Agent
 from resource_management import *
 
 def zookeeper_service(action='start'):
-  import params
+  from . import params
 
   cmd = format("env ZOOCFGDIR={config_dir} ZOOCFG=zoo.cfg {zk_bin}/zkServer.sh")
 

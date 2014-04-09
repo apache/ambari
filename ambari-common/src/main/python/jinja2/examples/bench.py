@@ -248,7 +248,7 @@ else:
 """, searchList=[dict(context)])
 
     def test_cheetah():
-        unicode(cheetah_template)
+        str(cheetah_template)
 
 try:
     import tenjin

@@ -86,8 +86,8 @@ class SCP:
     scpstat = subprocess.Popen(scpcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = scpstat.communicate()
-    errorMsg = log[1]
-    log = log[0] + "\n" + log[1]
+    errorMsg = log[1].decode()
+    log = log[0].decode() + "\n" + log[1].decode()
     self.host_log.write("==========================")
     self.host_log.write(log)
     self.host_log.write("scp " + self.inputFile)
@@ -122,10 +122,10 @@ class SSH:
     sshstat = subprocess.Popen(sshcommand, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     log = sshstat.communicate()
-    errorMsg = log[1]
+    errorMsg = log[1].decode()
     if self.errorMessage and sshstat.returncode != 0:
       errorMsg = self.errorMessage + "\n" + errorMsg
-    log = log[0] + "\n" + errorMsg
+    log = log[0].decode() + "\n" + errorMsg
     self.host_log.write("==========================")
     self.host_log.write(log)
     self.host_log.write("SSH command execution finished")
@@ -159,7 +159,7 @@ class Bootstrap(threading.Thread):
   def getRemoteName(self, filename):
     full_name = os.path.join(self.TEMP_FOLDER, filename)
     remote_files = self.shared_state.remote_files
-    if not remote_files.has_key(full_name):
+    if full_name not in remote_files:
       remote_files[full_name] = self.generateRandomFileName(full_name)
     return remote_files[full_name]
 
@@ -447,7 +447,7 @@ class Bootstrap(threading.Thread):
         last_retcode["exitstatus"] = retcode
       else:
         last_retcode = retcode
-    except Exception, e:
+    except Exception as e:
       self.host_log.write("Traceback: " + traceback.format_exc())
     return last_retcode
 

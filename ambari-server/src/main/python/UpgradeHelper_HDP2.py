@@ -620,7 +620,7 @@ def backup_file(filePath):
     try:
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
       os.remove(filePath)
-    except (Exception), e:
+    except (Exception) as e:
       logger.warn('Could not backup file "%s": %s' % (filePath, str(e)))
   return 0
 
@@ -685,7 +685,7 @@ def get_YN_input(prompt, default):
 
 
 def get_choice_string_input(prompt, default, firstChoice, secondChoice):
-  choice = raw_input(prompt).lower()
+  choice = input(prompt).lower()
   if choice in firstChoice:
     return True
   elif choice in secondChoice:
@@ -693,7 +693,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
   elif choice is "": # Just enter pressed
     return default
   else:
-    print "input not recognized, please try again: "
+    print("input not recognized, please try again: ")
     return get_choice_string_input(prompt, default, firstChoice, secondChoice)
 
 
@@ -709,7 +709,7 @@ def delete_mr(options):
   PUT_IN_DISABLED = """{"HostRoles": {"state": "DISABLED"}}"""
   hostmapping = read_mapping()
 
-  for key, value in hostmapping.items():
+  for key, value in list(hostmapping.items()):
     if (key in NON_CLIENTS) and (len(value) > 0):
       for host in value:
         response = curl(options.printonly, '-u',
@@ -752,7 +752,7 @@ def add_services(options):
     "MAPREDUCE2_CLIENT": "MAPREDUCE_CLIENT"}
   hostmapping = read_mapping()
 
-  for service in service_comp.keys():
+  for service in list(service_comp.keys()):
     response = curl(options.printonly, '-u',
                     AUTH_FORMAT.format(options.user, options.password),
                     '-H', 'X-Requested-By: ambari',
@@ -863,7 +863,7 @@ def modify_configs(options, config_type):
   jt_host = hostmapping["JOBTRACKER"][0]
 
   if (config_type is None) or (config_type == YARN_SITE_TAG):
-    for key in YARN_SITE.keys():
+    for key in list(YARN_SITE.keys()):
       if REPLACE_JH_HOST_NAME_TAG in YARN_SITE[key]:
         YARN_SITE[key] = YARN_SITE[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
       if REPLACE_RM_HOST_NAME_TAG in YARN_SITE[key]:
@@ -884,7 +884,7 @@ def modify_configs(options, config_type):
   mapred_site_latest = rename_all_properties(get_config(options, MAPRED_SITE_TAG), PROPERTY_MAPPING)
 
   for property in properties_to_move:
-    if property in core_site_latest.keys():
+    if property in list(core_site_latest.keys()):
       hdfs_site_latest[property] = core_site_latest[property]
       del core_site_latest[property]
     pass
@@ -892,7 +892,7 @@ def modify_configs(options, config_type):
   # Update mapred-site config
   mapred_updated = MAPRED_SITE.copy()
   if (config_type is None) or (config_type == MAPRED_SITE_TAG):
-    for key in mapred_updated.keys():
+    for key in list(mapred_updated.keys()):
       if REPLACE_JH_HOST_NAME_TAG in mapred_updated[key]:
         mapred_updated[key] = mapred_updated[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
         pass
@@ -927,8 +927,8 @@ def modify_configs(options, config_type):
 
 
 def rename_all_properties(properties, name_mapping):
-  for key, val in name_mapping.items():
-    if (key in properties.keys()) and (val not in properties.keys()):
+  for key, val in list(name_mapping.items()):
+    if (key in list(properties.keys())) and (val not in list(properties.keys())):
       properties[val] = properties[key]
       del properties[key]
     pass
@@ -945,7 +945,7 @@ def update_config_using_existing_properties(options, type, properties_template,
                                             site_properties):
   keys_processed = []
   keys_to_delete = []
-  for key in properties_template.keys():
+  for key in list(properties_template.keys()):
     keys_processed.append(key)
     if properties_template[key] == DELETE_OLD_TAG:
       keys_to_delete.append(key)
@@ -956,7 +956,7 @@ def update_config_using_existing_properties(options, type, properties_template,
         name_to_lookup = properties_template[key][len(REPLACE_WITH_TAG):]
         keys_processed.append(name_to_lookup)
       value = ""
-      if name_to_lookup in site_properties.keys():
+      if name_to_lookup in list(site_properties.keys()):
         value = site_properties[name_to_lookup]
         pass
       else:
@@ -966,7 +966,7 @@ def update_config_using_existing_properties(options, type, properties_template,
     pass
   pass
 
-  for key in site_properties.keys():
+  for key in list(site_properties.keys()):
     if key not in keys_processed:
       properties_template[key] = site_properties[key]
       pass
@@ -982,7 +982,7 @@ def update_config_using_existing_properties(options, type, properties_template,
 def backup_configs(options, type=None):
   types_to_save = {"global": True, "mapred-site": True, "hdfs-site": True, "core-site": True,
                    "webhcat-site": False, "hive-site": False, "hbase-site": False, "oozie-site": False}
-  for type in types_to_save.keys():
+  for type in list(types_to_save.keys()):
     backup_single_config_type(options, type, types_to_save[type])
     pass
   pass
@@ -1055,6 +1055,8 @@ def curl(print_only, *args):
     stderr=subprocess.PIPE,
     stdout=subprocess.PIPE)
   out, err = osStat.communicate()
+  out = out.decode()
+  err = err.decode()
   if 0 != osStat.returncode:
     error = "curl call failed. out: " + out + " err: " + err
     logger.error(error)
@@ -1092,13 +1094,13 @@ def main():
     options.warnings.append("Ambari admin user's password name must be provided (e.g. admin)")
 
   if len(options.warnings) != 0:
-    print parser.print_help()
+    print((parser.print_help()))
     for warning in options.warnings:
-      print "  " + warning
+      print(("  " + warning))
     parser.error("Invalid or missing options")
 
   if len(args) == 0:
-    print parser.print_help()
+    print((parser.print_help()))
     parser.error("No action entered")
 
   action = args[0]
@@ -1145,7 +1147,7 @@ def main():
     sys.exit(e.code)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print((options.exit_message))
 
 
 if __name__ == "__main__":

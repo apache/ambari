@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 
 import os
 import re
@@ -106,7 +106,7 @@ class MountProvider(Provider):
 
   def get_mounted(self):
     p = Popen("mount", stdout=PIPE, stderr=STDOUT, shell=True)
-    out = p.communicate()[0]
+    out = p.communicate()[0].decode()
     if p.wait() != 0:
       raise Fail("[%s] Getting list of mounts (calling mount) failed" % self)
 

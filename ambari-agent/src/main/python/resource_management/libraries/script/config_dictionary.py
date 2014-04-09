@@ -28,7 +28,7 @@ class ConfigDictionary(dict):
     """
     Recursively turn dict to ConfigDictionary
     """
-    for k, v in dictionary.iteritems():
+    for k, v in list(dictionary.items()):
       if isinstance(v, dict):
         dictionary[k] = ConfigDictionary(v)
         

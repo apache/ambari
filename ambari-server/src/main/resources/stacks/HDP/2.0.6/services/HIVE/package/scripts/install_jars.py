@@ -23,7 +23,7 @@ import os
 import fnmatch
 
 def install_tez_jars():
-  import params
+  from . import params
   
   destination_hdfs_dirs = get_tez_hdfs_dir_paths(params.tez_lib_uris)
 
@@ -33,7 +33,7 @@ def install_tez_jars():
       params.HdfsDirectory(hdfs_dir,
                           action="create_delayed",
                           owner=params.tez_user,
-                          mode=0755
+                          mode=0o755
       )
     pass
     params.HdfsDirectory(None, action="create")
@@ -65,7 +65,7 @@ def install_tez_jars():
 
     if app_dir_path:
       CopyFromLocal(params.tez_local_api_jars,
-                    mode=0755,
+                    mode=0o755,
                     owner=params.tez_user,
                     dest_dir=app_dir_path,
                     kinnit_if_needed=kinit_if_needed,
@@ -75,7 +75,7 @@ def install_tez_jars():
 
     if lib_dir_path:
       CopyFromLocal(params.tez_local_lib_jars,
-                    mode=0755,
+                    mode=0o755,
                     owner=params.tez_user,
                     dest_dir=lib_dir_path,
                     kinnit_if_needed=kinit_if_needed,

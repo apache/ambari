@@ -27,7 +27,7 @@ import sys
 import threading
 import time
 import traceback
-import AmbariConfig
+from . import AmbariConfig
 import pprint
 
 try:
@@ -69,7 +69,7 @@ def kill_process_with_children(parent_pid):
 def run_kill_function(kill_function, pid):
   try:
     kill_function(pid, signal.SIGTERM)
-  except Exception, e:
+  except Exception as e:
     logger.warn("Failed to kill PID %d" % (pid))
     logger.warn("Reported error: " + repr(e))
 
@@ -77,7 +77,7 @@ def run_kill_function(kill_function, pid):
 
   try:
     kill_function(pid, signal.SIGKILL)
-  except Exception, e:
+  except Exception as e:
     logger.error("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
     logger.error("Reported error: " + repr(e))
 
@@ -104,6 +104,8 @@ class shellRunner:
     p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE, 
                          stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
+	out = out.decode()
+	err = err.decode()
     code = p.wait()
     logger.debug("Exitcode for %s is %d" % (cmd,code))
     return {'exitCode': code, 'output': out, 'error': err}

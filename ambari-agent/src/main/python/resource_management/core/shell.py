@@ -26,8 +26,8 @@ import string
 import subprocess
 import threading
 from multiprocessing import Queue
-from exceptions import Fail
-from exceptions import ExecuteTimeoutException
+from .exceptions import Fail
+from .exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
 
 def checked_call(command, logoutput=False, 
@@ -71,7 +71,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
     t = threading.Timer( timeout, on_timeout, [proc, q] )
     t.start()
     
-  out = proc.communicate()[0].strip('\n')
+  out = proc.communicate()[0].decode().strip('\n')
   
   if timeout:
     if q.empty():

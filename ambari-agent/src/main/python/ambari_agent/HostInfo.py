@@ -28,9 +28,9 @@ import subprocess
 import threading
 import shlex
 import platform
-from PackagesAnalyzer import PackagesAnalyzer
-from HostCheckReportFileHandler import HostCheckReportFileHandler
-from Hardware import Hardware
+from .PackagesAnalyzer import PackagesAnalyzer
+from .HostCheckReportFileHandler import HostCheckReportFileHandler
+from .Hardware import Hardware
 from common_functions import OSCheck
 
 logger = logging.getLogger()
@@ -182,6 +182,8 @@ class HostInfo:
         osStat = subprocess.Popen(service_check_live, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
         out, err = osStat.communicate()
+		out = out.decode()
+		err = err.decode()
         if 0 != osStat.returncode:
           svcCheckResult['status'] = "Unhealthy"
           svcCheckResult['desc'] = out
@@ -189,7 +191,7 @@ class HostInfo:
             svcCheckResult['desc'] = err
         else:
           svcCheckResult['status'] = "Healthy"
-      except Exception, e:
+      except Exception as e:
         svcCheckResult['status'] = "Unhealthy"
         svcCheckResult['desc'] = repr(e)
       result.append(svcCheckResult)
@@ -212,7 +214,7 @@ class HostInfo:
     diskInfo = {}
     try:
       df = subprocess.Popen(["df", "-kPT", path], stdout=subprocess.PIPE)
-      dfdata = df.communicate()[0]
+      dfdata = df.communicate()[0].decode()
       return Hardware.extractMountInfo(dfdata.splitlines()[-1])
     except:
       pass
@@ -366,7 +368,7 @@ def main(argv=None):
   h = HostInfo()
   struct = {}
   h.register(struct)
-  print struct
+  print(struct)
 
 
 if __name__ == '__main__':

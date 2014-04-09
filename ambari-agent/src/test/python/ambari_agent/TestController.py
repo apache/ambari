@@ -19,7 +19,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import StringIO
+import io
 import ssl
 import unittest, threading
 import sys
@@ -66,7 +66,7 @@ class TestController(unittest.TestCase):
   def test_registerWithServer(self, randintMock, pformatMock, sleepMock,
                               dumpsMock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     register = MagicMock()
@@ -77,7 +77,7 @@ class TestController(unittest.TestCase):
     dumpsMock.return_value = "request"
     self.controller.sendRequest.return_value = '{"log":"Error text", "exitstatus":"1"}'
 
-    self.assertEqual({u'exitstatus': u'1', u'log': u'Error text'}, self.controller.registerWithServer())
+    self.assertEqual({'exitstatus': '1', 'log': 'Error text'}, self.controller.registerWithServer())
 
     self.controller.sendRequest.return_value = '{"responseId":1}'
     self.assertEqual({"responseId":1}, self.controller.registerWithServer())
@@ -303,7 +303,7 @@ class TestController(unittest.TestCase):
   @patch("json.dumps")
   def test_heartbeatWithServer(self, dumpsMock, loadsMock, sleepMock, event_mock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     hearbeat = MagicMock()

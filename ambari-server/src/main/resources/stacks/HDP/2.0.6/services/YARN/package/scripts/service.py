@@ -25,7 +25,7 @@ from resource_management import *
 
 def service(componentName, action='start', serviceName='yarn'):
 
-  import params
+  from . import params
 
   if (serviceName == 'mapreduce' and componentName == 'historyserver'):
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")

@@ -22,14 +22,14 @@ from resource_management import *
 
 
 def hbase_decommission(env):
-  import params
+  from . import params
 
   env.set_params(params)
   kinit_cmd = params.kinit_cmd
 
   File(params.region_drainer,
        content=StaticFile("draining_servers.rb"),
-       mode=0755
+       mode=0o755
   )
 
   if params.hbase_drain_only == True:

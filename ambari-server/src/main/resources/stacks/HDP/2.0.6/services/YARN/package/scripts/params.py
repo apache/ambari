@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 from resource_management import *
-import status_params
+from . import status_params
 
 # server configurations
 config = Script.get_config()

@@ -46,13 +46,13 @@ def mapreduce(name=None):
                          action="create_delayed",
                          owner=params.mapred_user,
                          group=params.user_group,
-                         mode=0777
+                         mode=0o777
     )
     params.HdfsDirectory(params.mapreduce_jobhistory_done_dir,
                          action="create_delayed",
                          owner=params.mapred_user,
                          group=params.user_group,
-                         mode=0777
+                         mode=0o777
     )
     params.HdfsDirectory(None, action="create")
 
@@ -73,12 +73,12 @@ def mapreduce(name=None):
     File(os.path.join(mapred_log_dir, 'hadoop-mapreduce.jobsummary.log'),
          owner=params.mapred_user,
          group=params.user_group,
-         mode=0664
+         mode=0o664
     )
 
   Directory(params.mapred_local_dir.split(','),
             owner=params.mapred_user,
-            mode=0755,
+            mode=0o755,
             recursive=True,
             ignore_failures=True
   )

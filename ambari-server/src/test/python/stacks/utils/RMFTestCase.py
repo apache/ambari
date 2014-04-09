@@ -60,7 +60,7 @@ class RMFTestCase(TestCase):
       raise RuntimeError("Can not read config file: "+ config_file_path)
 
     if config_overrides:
-      for key, value in config_overrides.iteritems():
+      for key, value in list(config_overrides.items()):
         self.config_dict[key] = value
 
     self.config_dict = ConfigDictionary(self.config_dict)
@@ -124,12 +124,12 @@ class RMFTestCase(TestCase):
     return "\n".join((numSpaces * " ") + i for i in s.splitlines())
 
   def printResources(self, intendation=4):
-    print
+    print()
     for resource in RMFTestCase.env.resource_list:
       s = "'{0}', {1},".format(
         resource.__class__.__name__, self._ppformat(resource.name))
       has_arguments = False
-      for k,v in resource.arguments.iteritems():
+      for k,v in list(resource.arguments.items()):
         has_arguments = True
         # correctly output octal mode numbers
         if k == 'mode' and isinstance( v, int ):
@@ -156,24 +156,24 @@ class RMFTestCase(TestCase):
       s = "self.assertResourceCalled({0}{1})".format(s, before_bracket)
       # Intendation
       s = self.reindent(s, intendation)
-      print s
-    print(self.reindent("self.assertNoMoreResources()", intendation))
+      print(s)
+    print((self.reindent("self.assertNoMoreResources()", intendation)))
   
   def assertResourceCalled(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"): 
       resource = RMFTestCase.env.resource_list.pop(0)
-      self.assertEquals(resource_type, resource.__class__.__name__)
-      self.assertEquals(name, resource.name)
-      self.assertEquals(kwargs, resource.arguments)
+      self.assertEqual(resource_type, resource.__class__.__name__)
+      self.assertEqual(name, resource.name)
+      self.assertEqual(kwargs, resource.arguments)
     
   def assertNoMoreResources(self):
-    self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
+    self.assertEqual(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
     
   def assertResourceCalledByIndex(self, index, resource_type, name, **kwargs):
     resource = RMFTestCase.env.resource_list[index]
-    self.assertEquals(resource_type, resource.__class__.__name__)
-    self.assertEquals(name, resource.name)
-    self.assertEquals(kwargs, resource.arguments)
+    self.assertEqual(resource_type, resource.__class__.__name__)
+    self.assertEqual(name, resource.name)
+    self.assertEqual(kwargs, resource.arguments)
     
 # HACK: This is used to check Templates, StaticFile, InlineTemplate in testcases    
 def Template(name, **kwargs):

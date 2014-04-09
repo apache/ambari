@@ -48,7 +48,7 @@ class PigServiceCheck(Script):
   
     File( '/tmp/pigSmoke.sh',
       content = StaticFile("pigSmoke.sh"),
-      mode = 0755
+      mode = 0o755
     )
   
     Execute( "pig /tmp/pigSmoke.sh",

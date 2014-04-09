@@ -42,7 +42,7 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
-      mode=0775,
+      mode=0o775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -79,7 +79,7 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'
@@ -105,7 +105,7 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
-      mode=0775,
+      mode=0o775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -138,7 +138,7 @@ class TestHBaseClient(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'

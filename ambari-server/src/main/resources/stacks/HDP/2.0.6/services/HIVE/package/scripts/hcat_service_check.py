@@ -22,7 +22,7 @@ from resource_management import *
 from resource_management.libraries.functions import get_unique_id_and_date
 
 def hcat_service_check():
-    import params
+    from . import params
     unique = get_unique_id_and_date()
     output_file = format("/apps/hive/warehouse/hcatsmoke{unique}")
     test_cmd = format("fs -test -e {output_file}")
@@ -35,7 +35,7 @@ def hcat_service_check():
 
     File('/tmp/hcatSmoke.sh',
          content=StaticFile("hcatSmoke.sh"),
-         mode=0755
+         mode=0o755
     )
 
     prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")

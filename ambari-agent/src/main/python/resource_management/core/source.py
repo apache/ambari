@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 from resource_management.core.environment import Environment
 from resource_management.core.utils import checked_unite
 
@@ -28,8 +28,8 @@ __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource
 
 import hashlib
 import os
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 
 
 class Source(object):
@@ -147,11 +147,11 @@ class DownloadSource(Source):
       os.makedirs(self.env.config.download_path)
 
   def get_content(self):
-    filepath = os.path.basename(urlparse.urlparse(self.url).path)
+    filepath = os.path.basename(urllib.parse.urlparse(self.url).path)
     content = None
     if not self.cache or not os.path.exists(
       os.path.join(self.env.config.download_path, filepath)):
-      web_file = urllib2.urlopen(self.url)
+      web_file = urllib.request.urlopen(self.url)
       content = web_file.read()
     else:
       update = False
@@ -161,7 +161,7 @@ class DownloadSource(Source):
         m = hashlib.md5(content)
         md5 = m.hexdigest()
         if md5 != self.md5sum:
-          web_file = urllib2.urlopen(self.url)
+          web_file = urllib.request.urlopen(self.url)
           content = web_file.read()
           update = True
       if self.cache and update:

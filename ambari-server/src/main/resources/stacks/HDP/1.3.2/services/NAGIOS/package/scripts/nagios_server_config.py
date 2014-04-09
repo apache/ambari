@@ -43,7 +43,7 @@ def nagios_server_config():
   if System.get_instance().os_family != "suse":
     nagios_server_configfile( 'nagios',
                               config_dir = '/etc/init.d',
-                              mode = 0755, 
+                              mode = 0o755, 
                               owner = 'root', 
                               group = 'root'
     )
@@ -88,5 +88,5 @@ def nagios_server_configfile(
 def nagios_server_check(name):
   File( format("{plugins_dir}/{name}"),
     content = StaticFile(name), 
-    mode = 0755
+    mode = 0o755
   )

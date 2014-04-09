@@ -13,11 +13,12 @@ from mock import (
     MagicMock, Mock, NonCallableMagicMock, patch, _patch,
     DEFAULT, call, _get_target
 )
+import collections
 
 builtin_string = '__builtin__'
 if inPy3k:
     builtin_string = 'builtins'
-    unicode = str
+    str = str
 
 PTModule = sys.modules[__name__]
 MODNAME = '%s.PTModule' % __name__
@@ -1528,7 +1529,7 @@ class PatchTest(unittest2.TestCase):
 
 
     def test_patch_multiple_string_subclasses(self):
-        for base in (str, unicode):
+        for base in (str, str):
             Foo = type('Foo', (base,), {'fish': 'tasty'})
             foo = Foo()
             @patch.multiple(foo, fish='nearly gone')
@@ -1752,7 +1753,7 @@ class PatchTest(unittest2.TestCase):
         p = patch(MODNAME, spec=spec)
         m = p.start()
         try:
-            self.assertTrue(callable(m))
+            self.assertTrue(isinstance(m, collections.Callable))
         finally:
             p.stop()
 
@@ -1762,7 +1763,7 @@ class PatchTest(unittest2.TestCase):
         p = patch(MODNAME, spec=spec)
         m = p.start()
         try:
-            self.assertFalse(callable(m))
+            self.assertFalse(isinstance(m, collections.Callable))
         finally:
             p.stop()
 

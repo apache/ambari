@@ -29,7 +29,7 @@ import os, pprint, json,stat
 class TestHostname(TestCase):
 
   def test_hostname(self):
-    self.assertEquals(hostname.hostname(), socket.getfqdn(), 
+    self.assertEqual(hostname.hostname(), socket.getfqdn(), 
                       "hostname should equal the socket-based hostname")
     pass
 
@@ -47,7 +47,7 @@ class TestHostname(TestCase):
 
       config.set('agent', 'hostname_script', tmpname)
 
-      self.assertEquals(hostname.hostname(), 'test.example.com', "expected hostname 'test.example.com'")
+      self.assertEqual(hostname.hostname(), 'test.example.com', "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)
       config.remove_option('agent', 'hostname_script')
@@ -69,7 +69,7 @@ class TestHostname(TestCase):
 
       config.set('agent', 'public_hostname_script', tmpname)
 
-      self.assertEquals(hostname.public_hostname(), 'test.example.com', 
+      self.assertEqual(hostname.public_hostname(), 'test.example.com', 
                         "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)

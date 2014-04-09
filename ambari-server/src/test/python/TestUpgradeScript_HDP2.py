@@ -22,14 +22,14 @@ from mock.mock import create_autospec
 import sys
 import unittest
 import UpgradeHelper_HDP2
-import StringIO
+import io
 import logging
 
 
 class TestUpgradeHDP2Script(TestCase):
   def setUp(self):
     UpgradeHelper_HDP2.logger = MagicMock()
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -155,10 +155,10 @@ class TestUpgradeHDP2Script(TestCase):
     self.assertTrue(write_mapping_mock.called)
     write_call = write_mapping_mock.call_args
     args, kargs = write_call
-    self.assertTrue('MAPREDUCE_CLIENT' in args[0].keys())
+    self.assertTrue('MAPREDUCE_CLIENT' in list(args[0].keys()))
     self.assertTrue(["host1"] == args[0]['MAPREDUCE_CLIENT'])
-    self.assertTrue('TASKTRACKER' in args[0].keys())
-    self.assertTrue('TASKTRACKER' in args[0].keys())
+    self.assertTrue('TASKTRACKER' in list(args[0].keys()))
+    self.assertTrue('TASKTRACKER' in list(args[0].keys()))
     pass
 
 
@@ -299,7 +299,7 @@ class TestUpgradeHDP2Script(TestCase):
     self.assertTrue(update_config_mock.call_count == 1)
     args, kargs = update_config_mock.call_args_list[0]
     self.assertEqual("hdfs-site", args[1])
-    for key in prop_to_move.keys():
+    for key in list(prop_to_move.keys()):
       self.assertEqual(prop_to_move[key], args[3][key])
     pass
 
@@ -475,13 +475,13 @@ class TestUpgradeHDP2Script(TestCase):
                   "tag" : "version137"
                 }}}}"""]
     properties = UpgradeHelper_HDP2.get_config(options, "core-site")
-    self.assertTrue(len(properties.keys()) == 3)
+    self.assertTrue(len(list(properties.keys())) == 3)
     self.assertTrue(properties["name1"] == "value1")
     self.assertTrue(properties["name2"] == "value2")
     self.assertTrue(properties["name3"] == "value3")
     try:
       UpgradeHelper_HDP2.get_config(options, "hdfs-site")
-    except Exception, e:
+    except Exception as e:
       self.assertTrue('Unable to get the current version for config type hdfs-site' in e.reason)
       pass
     pass
@@ -495,7 +495,7 @@ class TestUpgradeHDP2Script(TestCase):
     }
     site_properties = \
       UpgradeHelper_HDP2.rename_all_properties(site_properties, UpgradeHelper_HDP2.PROPERTY_MAPPING)
-    for key in site_properties.keys():
+    for key in list(site_properties.keys()):
       self.assertEqual(key, site_properties[key])
     self.assertEqual(4, len(site_properties))
     pass
@@ -504,7 +504,7 @@ class TestUpgradeHDP2Script(TestCase):
     def count_tags(template):
       deleted = 0
       replaced = 0
-      for key in template.keys():
+      for key in list(template.keys()):
         value = template[key]
         if value == UpgradeHelper_HDP2.DELETE_OLD_TAG:
           deleted += 1

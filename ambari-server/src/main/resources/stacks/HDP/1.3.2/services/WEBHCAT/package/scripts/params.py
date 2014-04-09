@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 from resource_management import *
-import status_params
+from . import status_params
 
 # server configurations
 config = Script.get_config()
@@ -55,9 +55,9 @@ kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "
 #hdfs directories
 webhcat_apps_dir = "/apps/webhcat"
 hcat_hdfs_user_dir = format("/user/{hcat_user}")
-hcat_hdfs_user_mode = 0755
+hcat_hdfs_user_mode = 0o755
 webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
-webhcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_mode = 0o755
 #for create_hdfs_directory
 hostname = config["hostname"]
 security_param = "true" if security_enabled else "false"

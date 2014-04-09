@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import unittest
-import StringIO
+import io
 import sys
 
 from mock.mock import MagicMock, patch
@@ -30,7 +30,7 @@ class TestMain(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -65,7 +65,7 @@ class TestMain(unittest.TestCase):
 
     try:
       checkWebUI.main()
-    except SystemExit, e:
+    except SystemExit as e:
       self.assertEqual(e.code, 1)
 
     self.assertTrue(http_conn.request.called)

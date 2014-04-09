@@ -77,7 +77,7 @@ class TestResourceFilesKeeper(TestCase):
     abspath_mock.side_effect = lambda s : s
     resource_files_keeper = ResourceFilesKeeper(self.TEST_STACKS_DIR)
     resource_files_keeper.update_directory_archieves()
-    self.assertEquals(pprint.pformat(
+    self.assertEqual(pprint.pformat(
       update_directory_archive_mock.call_args_list),
             "[call('../resources/TestAmbaryServer.samples/"
             "dummy_stack/HIVE/package'),\n "
@@ -97,7 +97,7 @@ class TestResourceFilesKeeper(TestCase):
     glob_mock.return_value = ["stack1", "stack2", "stack3"]
     exists_mock.side_effect = [True, False, True]
     res = resource_files_keeper.list_stacks(self.SOME_PATH)
-    self.assertEquals(pprint.pformat(res), "['stack1', 'stack3']")
+    self.assertEqual(pprint.pformat(res), "['stack1', 'stack3']")
 
     # Test exception handling
     glob_mock.side_effect = self.keeper_exc_side_effect
@@ -106,7 +106,7 @@ class TestResourceFilesKeeper(TestCase):
       self.fail('KeeperException not thrown')
     except KeeperException:
       pass # Expected
-    except Exception, e:
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
 
 
@@ -169,7 +169,7 @@ class TestResourceFilesKeeper(TestCase):
       self.fail('KeeperException not thrown')
     except KeeperException:
       pass # Expected
-    except Exception, e:
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
@@ -197,7 +197,7 @@ class TestResourceFilesKeeper(TestCase):
     resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
     test_dir = os.path.join(self.DUMMY_UNCHANGEABLE_PACKAGE)
     hash_sum = resource_files_keeper.count_hash_sum(test_dir)
-    self.assertEquals(hash_sum, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
+    self.assertEqual(hash_sum, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
 
     # Test exception handling
     with patch("__builtin__.open") as open_mock:
@@ -207,14 +207,14 @@ class TestResourceFilesKeeper(TestCase):
         self.fail('KeeperException not thrown')
       except KeeperException:
         pass # Expected
-      except Exception, e:
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 
   def test_read_hash_sum(self):
     resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_sum, "dummy_hash")
+    self.assertEqual(hash_sum, "dummy_hash")
 
     # Test exception handling
     # If file exists, should rethrow exception
@@ -227,7 +227,7 @@ class TestResourceFilesKeeper(TestCase):
           self.fail('KeeperException not thrown')
         except KeeperException:
           pass # Expected
-        except Exception, e:
+        except Exception as e:
           self.fail('Unexpected exception thrown:' + str(e))
 
     # Test exception handling
@@ -246,13 +246,13 @@ class TestResourceFilesKeeper(TestCase):
     resource_files_keeper.write_hash_sum(
       self.DUMMY_UNCHANGEABLE_PACKAGE, NEW_HASH)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_sum, NEW_HASH)
+    self.assertEqual(hash_sum, NEW_HASH)
 
     # Revert to previous value
     resource_files_keeper.write_hash_sum(
       self.DUMMY_UNCHANGEABLE_PACKAGE, self.DUMMY_HASH)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_sum, self.DUMMY_HASH)
+    self.assertEqual(hash_sum, self.DUMMY_HASH)
 
     # Test exception handling
     with patch("__builtin__.open") as open_mock:
@@ -262,7 +262,7 @@ class TestResourceFilesKeeper(TestCase):
         self.fail('KeeperException not thrown')
       except KeeperException:
         pass # Expected
-      except Exception, e:
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 
@@ -277,7 +277,7 @@ class TestResourceFilesKeeper(TestCase):
     self.assertTrue(40000 < arc_size < 50000)
     # After creating zip, count hash sum of dir (should not change)
     hash_val = resource_files_keeper.count_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_val, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
+    self.assertEqual(hash_val, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
     # Remove arc file
     os.unlink(arc_file)
 
@@ -289,7 +289,7 @@ class TestResourceFilesKeeper(TestCase):
         self.fail('KeeperException not thrown')
       except KeeperException:
         pass # Expected
-      except Exception, e:
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 

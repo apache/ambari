@@ -41,7 +41,7 @@ class TestNamenode(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
                               content = StaticFile('checkForFormat.sh'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', 'sh /tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -82,7 +82,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'hdfs',
                               action = ['create_delayed'],
                               )
@@ -92,7 +92,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_delayed'],
                               )
@@ -146,7 +146,7 @@ class TestNamenode(RMFTestCase):
     self.assert_configure_secured()
     self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
                               content = StaticFile('checkForFormat.sh'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', 'sh /tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -190,7 +190,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'hdfs',
                               action = ['create_delayed'],
                               )
@@ -200,7 +200,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_delayed'],
                               )
@@ -276,7 +276,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'hdfs',
                               action = ['create_delayed'],
                               )
@@ -286,7 +286,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_delayed'],
                               )
@@ -344,7 +344,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'hdfs',
                               action = ['create_delayed'],
                               )
@@ -354,7 +354,7 @@ class TestNamenode(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0770,
+                              mode = 0o770,
                               owner = 'ambari-qa',
                               action = ['create_delayed'],
                               )
@@ -374,7 +374,7 @@ class TestNamenode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )
 
   def assert_configure_secured(self):
@@ -382,5 +382,5 @@ class TestNamenode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               recursive = True,
-                              mode = 0755,
+                              mode = 0o755,
                               )

@@ -23,13 +23,13 @@ import os
 import json, pprint
 import sys
 
-from FileCache import FileCache
-from AgentException import AgentException
-from PythonExecutor import PythonExecutor
-from AmbariConfig import AmbariConfig
-import hostname
-from LiveStatus import LiveStatus
-import manifestGenerator
+from .FileCache import FileCache
+from .AgentException import AgentException
+from .PythonExecutor import PythonExecutor
+from .AmbariConfig import AmbariConfig
+from . import hostname
+from .LiveStatus import LiveStatus
+from . import manifestGenerator
 
 
 logger = logging.getLogger()
@@ -203,7 +203,7 @@ class CustomServiceOrchestrator():
     command['public_hostname'] = public_fqdn
     # Now, dump the json file
     command_type = command['commandType']
-    from ActionQueue import ActionQueue  # To avoid cyclic dependency
+    from .ActionQueue import ActionQueue  # To avoid cyclic dependency
     if command_type == ActionQueue.STATUS_COMMAND:
       # These files are frequently created, thats why we don't
       # store them all, but only the latest one
@@ -216,7 +216,7 @@ class CustomServiceOrchestrator():
     if os.path.isfile(file_path):
       os.unlink(file_path)
     with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,
-                           0600), 'w') as f:
+                           0o600), 'w') as f:
       content = json.dumps(command, sort_keys = False, indent = 4)
       f.write(content)
     return file_path

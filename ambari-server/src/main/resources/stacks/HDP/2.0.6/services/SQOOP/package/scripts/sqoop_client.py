@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 
-from sqoop import sqoop
+from .sqoop import sqoop
 
 
 class SqoopClient(Script):
@@ -30,7 +30,7 @@ class SqoopClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     sqoop(type='client')
 

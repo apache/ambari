@@ -31,7 +31,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
                        content = StaticFile('templetonSmoke.sh'),
-                       mode = 0755,
+                       mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'sh /tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa no_keytab false /usr/bin/kinit',
                        logoutput = True,
@@ -50,7 +50,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
                        content = StaticFile('templetonSmoke.sh'),
-                       mode = 0755,
+                       mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'sh /tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit',
                        logoutput = True,

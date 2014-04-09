@@ -17,8 +17,8 @@
 
 
 import types
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 
 def uri_encoding(url):
@@ -27,7 +27,7 @@ def uri_encoding(url):
     """
     if url is None:
         return url
-    return urllib.quote(get_utf8_str(url), safe="/#%[]=:;$&()+,!?*@'~")
+    return urllib.parse.quote(get_utf8_str(url), safe="/#%[]=:;$&()+,!?*@'~")
 
 
 
@@ -36,14 +36,14 @@ def get_utf8_str(strr, encoding='utf-8'):
     Returns a utf8 ecoded 'str'.
     """
     errors='strict'
-    if not isinstance(strr, basestring):
+    if not isinstance(strr, str):
         try:
             return str(strr)
         except UnicodeEncodeError:
             if isinstance(strr, Exception):
                 return ' '.join([get_utf8_str(arg, encoding) for arg in strr])
-            return unicode(strr).encode(encoding, errors)
-    elif isinstance(strr, unicode):
+            return str(strr).encode(encoding, errors)
+    elif isinstance(strr, str):
         return strr.encode(encoding, errors)
     elif strr and encoding != 'utf-8':
         return strr.decode('utf-8', errors).encode(encoding, errors)

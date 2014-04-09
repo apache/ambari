@@ -14,10 +14,10 @@
 # limitations under the License.
 
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 import time
 import logging
-import httplib
+import http.client
 from ssl import SSLError
 
 logger = logging.getLogger()
@@ -42,7 +42,7 @@ class NetUtil:
     logger.info("Connecting to the following url " + url);
     try:
       parsedurl = urlparse(url)
-      ca_connection = httplib.HTTPSConnection(parsedurl[1])
+      ca_connection = http.client.HTTPSConnection(parsedurl[1])
       ca_connection.request("GET", parsedurl[2])
       response = ca_connection.getresponse()  
       status = response.status    
@@ -58,7 +58,7 @@ class NetUtil:
                    "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details.")
       return False
     
-    except Exception, e:
+    except Exception as e:
       logger.warning("Failed to connect to " + str(url) + " due to " + str(e) + "  ")
       return False
 

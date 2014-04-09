@@ -35,7 +35,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
-                        mode = 0755,
+                        mode = 0o755,
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 sh /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
@@ -71,7 +71,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
                         content = StaticFile('hcatSmoke.sh'),
-                        mode = 0755,
+                        mode = 0o755,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 sh /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,

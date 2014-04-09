@@ -115,7 +115,7 @@ def set_uid(user, user_dirs):
   """
   File("/tmp/changeUid.sh",
        content=StaticFile("changeToSecureUid.sh"),
-       mode=0555)
+       mode=0o555)
   Execute(format("/tmp/changeUid.sh {user} {user_dirs} 2>/dev/null"),
           not_if = format("test $(id -u {user}) -gt 1000"))
 

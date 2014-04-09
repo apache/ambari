@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 
 import grp
 import pwd
@@ -53,7 +53,7 @@ class UserProvider(Provider):
     if self.resource.groups:
       command += ["-G", ",".join(self.resource.groups)]
 
-    for option_name, option_flag in options.items():
+    for option_name, option_flag in list(options.items()):
       option_value = getattr(self.resource, option_name)
       if option_flag and option_value:
         command += [option_flag, str(option_value)]
@@ -91,7 +91,7 @@ class GroupProvider(Provider):
         password="-p",
     )
 
-    for option_name, option_flag in options.items():
+    for option_name, option_flag in list(options.items()):
       option_value = getattr(self.resource, option_name)
       if option_flag and option_value:
         command += [option_flag, str(option_value)]

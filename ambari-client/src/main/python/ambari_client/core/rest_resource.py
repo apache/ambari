@@ -74,7 +74,7 @@ class RestResource(object):
         json_dict = json.loads(resp)
           
       return json_dict
-    except Exception, ex:
+    except Exception as ex:
       LOG.error("Command '%s %s' failed with error %s\n%s" % (http_method, path, code ,resp))
       return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
 

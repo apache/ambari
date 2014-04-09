@@ -39,7 +39,7 @@ class TestGrep(TestCase):
   def test_grep_many_lines(self):
     fragment = self.grep.grep(self.string_bad, "err", 1000, 1000)
     desired = self.string_bad.strip()
-    self.assertEquals(fragment, desired, "Grep grep function should return all lines if there are less lines than n")
+    self.assertEqual(fragment, desired, "Grep grep function should return all lines if there are less lines than n")
 
 
   def test_grep_few_lines(self):
@@ -53,28 +53,28 @@ debug: /Schedule[weekly]: Skipping device resources because running on a host
 debug: /Schedule[puppet]: Skipping device resources because running on a host
 debug: Finishing transaction 70171639726240
 """.strip()
-    self.assertEquals(fragment, desired, "Grep grep function should return only last 3 lines of file")
+    self.assertEqual(fragment, desired, "Grep grep function should return only last 3 lines of file")
 
   def test_grep_no_result(self):
     fragment = self.grep.grep(self.string_good, "Err", 3, 3)
     desired = None
-    self.assertEquals(fragment, desired, 'Grep grep function should return None if result is not found')
+    self.assertEqual(fragment, desired, 'Grep grep function should return None if result is not found')
 
   def test_grep_empty_string(self):
     fragment = self.grep.grep("", "Err", 1000, 1000)
     desired = None
-    self.assertEquals(fragment, desired, 'Grep grep function should return None for empty string')
+    self.assertEqual(fragment, desired, 'Grep grep function should return None for empty string')
 
   def test_grep_all(self):
     fragment = self.grep.grep(self.string_bad, "Err", 35, 9)
     desired = self.string_bad.strip()
-    self.assertEquals(fragment, desired, 'Grep grep function contains bug in index arithmetics')
+    self.assertEqual(fragment, desired, 'Grep grep function contains bug in index arithmetics')
 
 
   def test_tail_many_lines(self):
     fragment = self.grep.tail(self.string_good, 1000)
     desired = self.string_good.strip()
-    self.assertEquals(fragment, desired, "Grep tail function should return all lines if there are less lines than n")
+    self.assertEqual(fragment, desired, "Grep tail function should return all lines if there are less lines than n")
 
   def test_tail_few_lines(self):
     fragment = self.grep.tail(self.string_good, 3)
@@ -83,24 +83,24 @@ debug: Finishing transaction 70060456663980
 debug: Received report to process from ambari-dmi
 debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
 """.strip()
-    self.assertEquals(fragment, desired, "Grep tail function should return only last 3 lines of file")
+    self.assertEqual(fragment, desired, "Grep tail function should return only last 3 lines of file")
 
   def test_tail_no_lines(self):
     fragment = self.grep.tail("", 3)
     desired = ''
-    self.assertEquals(fragment, desired, 'Grep tail function should return "" for empty string')
+    self.assertEqual(fragment, desired, 'Grep tail function should return "" for empty string')
 
   def test_tail_all(self):
     fragment = self.grep.tail("", 47)
     desired = ''
-    self.assertEquals(fragment, desired, 'Grep tail function contains bug in index arithmetics')
+    self.assertEqual(fragment, desired, 'Grep tail function contains bug in index arithmetics')
 
   def test_filterMarkup(self):
     string = """[0;36mnotice: /Stage[main]/Hdp-hadoop/Hdp-hadoop::Package[hadoop]/Hdp::Package[hadoop 64]/Hdp::Package::Process_pkg[hadoop 64]/Package[hadoop-libhdfs]/ensure: created[0m"""
     desired="""notice: /Stage[main]/Hdp-hadoop/Hdp-hadoop::Package[hadoop]/Hdp::Package[hadoop 64]/Hdp::Package::Process_pkg[hadoop 64]/Package[hadoop-libhdfs]/ensure: created"""
     filtered = self.grep.filterMarkup(string)
     #sys.stderr.write(filtered)
-    self.assertEquals(filtered, desired)
+    self.assertEqual(filtered, desired)
 
   def tearDown(self):
     pass
@@ -112,6 +112,6 @@ info: Applying configuration version '1352127563'
 err: /Stage[main]//Exec[command_good]/returns: change from notrun to 0 failed: wget e432423423xample.com/badurl444111 returned 4 instead of one of [0] at /root/puppet-learn/2-bad.pp:5
 notice: Finished catalog run in 0.23 seconds
 """.strip()
-    self.assertEquals(fragment, desired, 'Grep cleanByTemplate function should return string without debug lines.')
+    self.assertEqual(fragment, desired, 'Grep cleanByTemplate function should return string without debug lines.')
 
 

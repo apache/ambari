@@ -19,12 +19,12 @@ limitations under the License.
 """
 
 from resource_management import *
-import functions
+from . import functions
 
 
 class HbaseServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
     
     output_file = "/apps/hbase/data/ambarismoketest"
@@ -34,11 +34,11 @@ class HbaseServiceCheck(Script):
   
     File( '/tmp/hbaseSmokeVerify.sh',
       content = StaticFile("hbaseSmokeVerify.sh"),
-      mode = 0755
+      mode = 0o755
     )
   
     File( hbase_servicecheck_file,
-      mode = 0755,
+      mode = 0o755,
       content = Template('hbase-smoke.sh.j2')
     )
     
@@ -49,7 +49,7 @@ class HbaseServiceCheck(Script):
       File( hbase_grant_premissions_file,
         owner   = params.hbase_user,
         group   = params.user_group,
-        mode    = 0644,
+        mode    = 0o644,
         content = Template('hbase_grant_permissions.j2')
       )
       

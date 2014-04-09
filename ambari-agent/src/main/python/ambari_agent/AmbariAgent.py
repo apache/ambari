@@ -21,7 +21,7 @@ limitations under the License.
 import os
 import sys
 import subprocess
-from Controller import AGENT_AUTO_RESTART_EXIT_CODE
+from .Controller import AGENT_AUTO_RESTART_EXIT_CODE
 
 AGENT_SCRIPT = "/usr/lib/python2.6/site-packages/ambari_agent/main.py"
 AGENT_PID_FILE = "/var/run/ambari-agent/ambari-agent.pid"
@@ -31,7 +31,7 @@ status = AGENT_AUTO_RESTART_EXIT_CODE
 def main():
   global status
 
-  if (os.environ.has_key("PYTHON")):
+  if ("PYTHON" in os.environ):
     PYTHON = os.environ["PYTHON"]
   else:
     print("Key 'PYTHON' is not defined in environment variables")

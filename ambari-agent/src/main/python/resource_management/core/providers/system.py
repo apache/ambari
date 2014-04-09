@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import with_statement
+
 
 import grp
 import os
@@ -60,7 +60,7 @@ def _ensure_metadata(path, user, group, mode=None):
   stat = os.stat(path)
 
   if mode:
-    existing_mode = stat.st_mode & 07777
+    existing_mode = stat.st_mode & 0o7777
     if existing_mode != mode:
       Logger.info("Changing permission for %s from %o to %o" % (
       path, existing_mode, mode))
@@ -130,7 +130,7 @@ class FileProvider(Provider):
     content = self.resource.content
     if content is None:
       return None
-    elif isinstance(content, basestring):
+    elif isinstance(content, str):
       return content
     elif hasattr(content, "__call__"):
       return content()
@@ -143,13 +143,13 @@ class DirectoryProvider(Provider):
     if not os.path.exists(path):
       Logger.info("Creating directory %s" % self.resource)
       if self.resource.recursive:
-        os.makedirs(path, self.resource.mode or 0755)
+        os.makedirs(path, self.resource.mode or 0o755)
       else:
         dirname = os.path.dirname(path)
         if not os.path.isdir(dirname):
           raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
         
-        os.mkdir(path, self.resource.mode or 0755)
+        os.mkdir(path, self.resource.mode or 0o755)
       
     if not os.path.isdir(path):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))

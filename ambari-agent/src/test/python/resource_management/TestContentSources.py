@@ -28,7 +28,7 @@ from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
 from jinja2 import UndefinedError, TemplateNotFound
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import os
 
 
@@ -311,7 +311,7 @@ class TestContentSources(TestCase):
       content = template.get_content()
     self.assertEqual(open_mock.call_count, 1)
 
-    self.assertEqual(u'test template content\n', content)
+    self.assertEqual('test template content\n', content)
     open_mock.assert_called_with('/absolute/path/test.j2', 'rb')
     self.assertEqual(getmtime_mock.call_count, 1)
     getmtime_mock.assert_called_with('/absolute/path/test.j2')
@@ -324,7 +324,7 @@ class TestContentSources(TestCase):
       template = InlineTemplate("{{test_arg1}} template content", [], test_arg1 = "test")
       content = template.get_content()
 
-    self.assertEqual(u'test template content\n', content)
+    self.assertEqual('test template content\n', content)
 
   def test_template_imports(self):
     """
@@ -340,4 +340,4 @@ class TestContentSources(TestCase):
     with Environment("/base") as env:
       template = InlineTemplate("{{test_arg1}} template content {{os.path.join(path[0],path[1])}}", [os], test_arg1 = "test", path = ["/one","two"])
       content = template.get_content()
-    self.assertEqual(u'test template content /one/two\n', content)
+    self.assertEqual('test template content /one/two\n', content)

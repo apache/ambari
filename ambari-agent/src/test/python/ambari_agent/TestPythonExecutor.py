@@ -60,7 +60,7 @@ class TestPythonExecutor(TestCase):
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, True, "Subprocess should be terminated due to timeout")
+    self.assertEqual(subproc_mock.was_terminated, True, "Subprocess should be terminated due to timeout")
 
 
   def test_watchdog_2(self):
@@ -90,8 +90,8 @@ class TestPythonExecutor(TestCase):
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
-    self.assertEquals(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
 
 
   def test_execution_results(self):
@@ -113,7 +113,7 @@ class TestPythonExecutor(TestCase):
     subproc_mock.returncode = 0
     subproc_mock.should_finish_event.set()
     result = executor.run_file("file", ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstroutfile)
-    self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
+    self.assertEqual(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
                                'structuredOut': {'msg': 'Unable to read structured output from ' + tmpstroutfile}})
 
 
@@ -134,8 +134,8 @@ class TestPythonExecutor(TestCase):
     command = executor.python_command("script", ["script_param1"])
     self.assertEqual(3, len(command))
     self.assertTrue("python" in command[0])
-    self.assertEquals("script", command[1])
-    self.assertEquals("script_param1", command[2])
+    self.assertEqual("script", command[1])
+    self.assertEqual("script_param1", command[2])
 
 
   class Subprocess_mockup():

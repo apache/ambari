@@ -84,7 +84,7 @@ class Script(object):
     # parse arguments
     if len(sys.argv) < 5: 
      logger.error("Script expects at least 4 arguments")
-     print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
+     print((USAGE.format(os.path.basename(sys.argv[0])))) # print to stdout
      sys.exit(1)
       
     command_name = str.lower(sys.argv[1])
@@ -155,7 +155,7 @@ class Script(object):
     
     try:
       package_list_str = config['hostLevelParams']['package_list']
-      if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
+      if isinstance(package_list_str,str) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           name = package['name']
@@ -171,7 +171,7 @@ class Script(object):
     """
     Prints error message and exits with non-zero exit code
     """
-    print("Error: " + message)
+    print(("Error: " + message))
     sys.stderr.write("Error: " + message)
     sys.exit(1)
 

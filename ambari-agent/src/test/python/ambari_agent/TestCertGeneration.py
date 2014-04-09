@@ -21,7 +21,7 @@ import os
 import tempfile
 import shutil
 from unittest import TestCase
-import ConfigParser
+import configparser
 import security
 from security import CertificateManager
 from ambari_agent import AmbariConfig
@@ -29,7 +29,7 @@ from ambari_agent import AmbariConfig
 class TestCertGeneration(TestCase):
   def setUp(self):
     self.tmpdir = tempfile.mkdtemp()
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('server')
     config.set('server', 'hostname', 'example.com')
     config.set('server', 'url_port', '777')

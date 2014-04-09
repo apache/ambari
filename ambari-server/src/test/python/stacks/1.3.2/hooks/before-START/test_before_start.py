@@ -74,7 +74,7 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
                               content = Template('taskcontroller.cfg.j2'),
@@ -111,7 +111,7 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
     self.maxDiff = None
     self.assertResourceCalled('File',
                               '/etc/hadoop/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hdfs',
                               content='log4jproperties\nline2log4jproperties\nline2'+rca_properties
@@ -138,7 +138,7 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
       content = StaticFile('task-log4j.properties'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hdfs',
@@ -227,18 +227,18 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
                               content = Template('hdfs.conf.j2'),
                               owner = 'root',
                               group = 'root',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/usr/lib/hadoop/bin/task-controller',
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 06050,
+                              mode = 0o6050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
                               content = Template('taskcontroller.cfg.j2'),
                               owner = 'root',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
                               content = Template('hadoop-env.sh.j2'),
@@ -259,7 +259,7 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
     self.assertResourceCalled('File', '/etc/hadoop/conf/log4j.properties',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0644,
+                              mode = 0o644,
                               content = 'log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
@@ -284,7 +284,7 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/task-log4j.properties',
                               content = StaticFile('task-log4j.properties'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',

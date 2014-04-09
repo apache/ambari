@@ -51,7 +51,7 @@ class Logger:
     """
     Replace passwords with [PROTECTED]
     """
-    for unprotected_string, protected_string in Logger.sensitive_strings.iteritems():
+    for unprotected_string, protected_string in list(Logger.sensitive_strings.items()):
       text = text.replace(unprotected_string, protected_string)
       
     return text
@@ -60,10 +60,10 @@ class Logger:
   def _get_resource_repr(resource):
     MESSAGE_MAX_LEN = 256
     arguments_str = ""
-    for x,y in resource.arguments.iteritems():
+    for x,y in list(resource.arguments.items()):
       
       # strip unicode 'u' sign
-      if isinstance(y, unicode):
+      if isinstance(y, str):
         # don't show long messages
         if len(y) > MESSAGE_MAX_LEN:
           y = '...'

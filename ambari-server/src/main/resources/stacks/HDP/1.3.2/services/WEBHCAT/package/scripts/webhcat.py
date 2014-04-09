@@ -24,7 +24,7 @@ import sys
 
 
 def webhcat():
-  import params
+  from . import params
 
   if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
     params.HdfsDirectory(params.hcat_hdfs_user_dir,
@@ -40,18 +40,18 @@ def webhcat():
   params.HdfsDirectory(params.webhcat_apps_dir,
                        action="create_delayed",
                        owner=params.webhcat_user,
-                       mode=0755
+                       mode=0o755
   )
   params.HdfsDirectory(None, action="create")
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             recursive=True)
 
   Directory(params.templeton_log_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             recursive=True)
 
@@ -85,26 +85,26 @@ def webhcat():
 
   copyFromLocal(path='/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar',
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=format("{webhcat_apps_dir}/hadoop-streaming.jar"),
                 kinnit_if_needed=kinit_if_needed
   )
 
   copyFromLocal(path='/usr/share/HDP-webhcat/pig.tar.gz',
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=format("{webhcat_apps_dir}/pig.tar.gz"),
   )
 
   copyFromLocal(path='/usr/share/HDP-webhcat/hive.tar.gz',
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=format("{webhcat_apps_dir}/hive.tar.gz")
   )
 
 
 def copyFromLocal(path=None, owner=None, group=None, mode=None, dest_dir=None, kinnit_if_needed=""):
-  import params
+  from . import params
 
   copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
   unless_cmd = format("{kinnit_if_needed} hadoop fs -ls {dest_dir} >/dev/null 2>&1")

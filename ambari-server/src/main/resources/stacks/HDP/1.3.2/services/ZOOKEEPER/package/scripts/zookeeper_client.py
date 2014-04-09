@@ -23,7 +23,7 @@ Ambari Agent
 import sys
 from resource_management import *
 
-from zookeeper import zookeeper
+from .zookeeper import zookeeper
 
 class ZookeeperClient(Script):
   def install(self, env):
@@ -31,7 +31,7 @@ class ZookeeperClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     zookeeper(type='client')

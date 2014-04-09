@@ -22,31 +22,31 @@ Ambari Agent
 import sys
 from resource_management import *
 
-from webhcat import webhcat
-from webhcat_service import webhcat_service
+from .webhcat import webhcat
+from .webhcat_service import webhcat_service
 
 class WebHCatServer(Script):
   def install(self, env):
     self.install_packages(env)
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     webhcat()
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     webhcat_service(action = 'start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     webhcat_service(action = 'stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.pid_file)
 
