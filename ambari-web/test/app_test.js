@@ -19,31 +19,12 @@
 var App = require('app');
 
 describe('#App', function() {
-
-  describe('App.components', function() {
-
-    it('slaves and masters should not intersect', function() {
-      var intersected = App.get('components.slaves').filter(function(item){
-        return App.get('components.masters').contains(item);
-      });
-      expect(intersected).to.eql([]);
-    });
-
-    it('decommissionAllowed', function() {
-      expect(App.get('components.decommissionAllowed')).to.eql(["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"]);
-    });
-
-    it('addableToHost', function() {
-      expect(App.get('components.addableToHost')).to.eql(["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR"]);
-    });
-
-  });
-
   describe('Disable/enable components', function() {
-    var testableComponent =  {
-      service_name: 'YARN',
-      component_name: 'APP_TIMELINE_SERVER'
-    };
+
+    var testableComponent =  Ember.Object.create({
+      componentName: 'APP_TIMELINE_SERVER',
+      serviceName: 'YARN'
+    });
     var expectedInfo = {
       componentName: 'APP_TIMELINE_SERVER',
       properties: {
@@ -59,7 +40,6 @@ describe('#App', function() {
     };
     var globalProperties = require('data/HDP2/global_properties');
     var siteProperties = require('data/HDP2/site_properties');
-    var serviceComponents = require('data/service_components');
     var reviewConfigs = require('data/review_configs');
     var disableResult;
 
@@ -71,7 +51,6 @@ describe('#App', function() {
       // copy
       var _globalProperties = $.extend({}, globalProperties);
       var _siteProperties = $.extend({}, siteProperties);
-      var _serviceComponents = $.extend({}, serviceComponents);
       var _reviewConfigs = JSON.parse(JSON.stringify(reviewConfigs));
 
       describe('result validation', function() {
@@ -103,9 +82,6 @@ describe('#App', function() {
 
       describe('effect validation',function() {
 
-        it('should remove component from service_components object', function() {
-          expect(_serviceComponents.findProperty('component_name', testableComponent.component_name)).to.be.undefined;
-        });
 
         it('should remove global properties of component', function() {
           expect(_globalProperties.configProperties.mapProperty('name')).to.not.include.members(expectedInfo.properties.global_properties);
@@ -117,7 +93,7 @@ describe('#App', function() {
 
         it('should remove review config for component', function() {
           var reviewConfig = _reviewConfigs.findProperty('config_name', 'services')
-            .config_value.findProperty('service_name', testableComponent.service_name)
+            .config_value.findProperty('service_name', testableComponent.get('serviceName'))
             .service_components.mapProperty('component_name');
           expect(reviewConfig).to.not.include(expectedInfo.reviewConfigs.component_name);
         });
@@ -126,10 +102,6 @@ describe('#App', function() {
 
     describe('#enableComponent', function() {
       App.enableComponent(disableResult);
-
-      it('should add component to service_components object', function() {
-        expect(serviceComponents.findProperty('component_name', testableComponent.component_name)).to.exist;
-      });
 
       it('should add global properties of component', function() {
         expect(globalProperties.configProperties.mapProperty('name')).to.include.members(expectedInfo.properties.global_properties);
@@ -141,11 +113,10 @@ describe('#App', function() {
 
       it('should add review config for component', function() {
         var reviewConfig = reviewConfigs.findProperty('config_name', 'services')
-          .config_value.findProperty('service_name', testableComponent.service_name)
+          .config_value.findProperty('service_name', testableComponent.get('serviceName'))
           .get('service_components').mapProperty('component_name');
         expect(reviewConfig).to.include(expectedInfo.reviewConfigs.component_name);
       });
     });
   });
-
 });

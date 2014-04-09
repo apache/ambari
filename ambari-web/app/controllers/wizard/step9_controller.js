@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 var App = require('app');
-var serviceComponents = require('data/service_components');
 
 App.WizardStep9Controller = Em.Controller.extend({
   name: 'wizardStep9Controller',
@@ -476,8 +475,8 @@ App.WizardStep9Controller = Em.Controller.extend({
       var OnlyClients = true;
       var tasks = host.get('logTasks');
       tasks.forEach(function (task) {
-        var component = serviceComponents.findProperty('component_name', task.Tasks.role);
-        if (!(component && component.isClient)) {
+        var component = App.StackServiceComponent.find().findProperty('componentName', task.Tasks.role);
+        if (!(component && component.get('isClient'))) {
           OnlyClients = false;
         }
       });

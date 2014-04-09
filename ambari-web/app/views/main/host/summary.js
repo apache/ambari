@@ -238,7 +238,7 @@ App.MainHostSummaryView = Em.View.extend({
       return [];
     }
     var componentServiceMap = App.QuickDataMapper.componentServiceMap();
-    var allClients = App.get('components.clients');
+    var allClients = App.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName');
     var installedServices = this.get('installedServices');
     var installedClients = this.get('clients').mapProperty('componentName');
     return allClients.filter(function(componentName) {

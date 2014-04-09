@@ -24,6 +24,7 @@ require('models/authentication');
 require('models/cluster');
 require('models/cluster_states');
 require('models/hosts');
+require('models/stack_service_component');
 require('models/quick_links');
 require('models/service');
 require('models/service_config');

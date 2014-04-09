@@ -19,9 +19,9 @@
 var App = require('app');
 
 App.ClusterController = Em.Controller.extend({
-  name:'clusterController',
-  cluster:null,
-  isLoaded:false,
+  name: 'clusterController',
+  cluster: null,
+  isLoaded: false,
   ambariProperties: null,
   ambariVersion: null,
   ambariViews: [],
@@ -30,7 +30,7 @@ App.ClusterController = Em.Controller.extend({
    * Whether we need to update statuses automatically or not
    */
   isWorking: false,
-  updateLoadStatus:function (item) {
+  updateLoadStatus: function (item) {
     var loadList = this.get('dataLoadList');
     var loaded = true;
     var numLoaded = 0;
@@ -39,12 +39,12 @@ App.ClusterController = Em.Controller.extend({
     for (var i in loadList) {
       if (loadList.hasOwnProperty(i)) {
         loadListLength++;
-        if(!loadList[i] && loaded){
+        if (!loadList[i] && loaded) {
           loaded = false;
         }
       }
       // calculate the number of true
-      if (loadList.hasOwnProperty(i) && loadList[i]){
+      if (loadList.hasOwnProperty(i) && loadList[i]) {
         numLoaded++;
       }
     }
@@ -55,6 +55,7 @@ App.ClusterController = Em.Controller.extend({
   dataLoadList:Em.Object.create({
     'hosts':false,
     'serviceMetrics':false,
+    'stackComponents':false,
     'services': false,
     'cluster':false,
     'clusterStatus':false,
@@ -66,7 +67,7 @@ App.ClusterController = Em.Controller.extend({
   /**
    * load cluster name
    */
-  loadClusterName:function (reload) {
+  loadClusterName: function (reload) {
     if (this.get('clusterName') && !reload) {
       return;
     }
@@ -78,7 +79,7 @@ App.ClusterController = Em.Controller.extend({
       error: 'loadClusterNameErrorCallback'
     });
 
-    if(!App.get('currentStackVersion')){
+    if (!App.get('currentStackVersion')) {
       App.set('currentStackVersion', App.defaultStackVersion);
     }
   },
@@ -105,7 +106,7 @@ App.ClusterController = Em.Controller.extend({
     return dfd.promise();
   },
 
-  getServerClock: function(){
+  getServerClock: function () {
     return App.ajax.send({
       name: 'ambari.service.load_server_clock',
       sender: this,
@@ -116,7 +117,7 @@ App.ClusterController = Em.Controller.extend({
   getServerClockSuccessCallback: function (data) {
     var clientClock = new Date().getTime();
     var serverClock = (data.RootServiceComponents.server_clock).toString();
-    serverClock = serverClock.length < 13? serverClock+ '000': serverClock;
+    serverClock = serverClock.length < 13 ? serverClock + '000' : serverClock;
     App.set('clockDistance', serverClock - clientClock);
     App.set('currentServerTime', parseInt(serverClock));
     console.log('loading ambari server clock distance');
@@ -125,7 +126,7 @@ App.ClusterController = Em.Controller.extend({
     console.log('Cannot load ambari server clock');
   },
 
-  getUrl:function (testUrl, url) {
+  getUrl: function (testUrl, url) {
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
@@ -160,7 +161,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts','gangliaWebProtocol'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts', 'gangliaWebProtocol'),
 
   /**
    * Provides the URL to use for NAGIOS server. This URL
@@ -169,7 +170,7 @@ App.ClusterController = Em.Controller.extend({
    *
    * If null is returned, it means NAGIOS service is not installed.
    */
-  nagiosUrl:function () {
+  nagiosUrl: function () {
     if (App.testMode) {
       return 'http://nagiosserver/nagios';
     } else {
@@ -194,7 +195,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics', 'dataLoadList.hosts','nagiosWebProtocol'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics', 'dataLoadList.hosts', 'nagiosWebProtocol'),
 
   nagiosWebProtocol: function () {
     var properties = this.get('ambariProperties');
@@ -214,11 +215,11 @@ App.ClusterController = Em.Controller.extend({
     }
   }.property('ambariProperties'),
 
-  isNagiosInstalled:function () {
+  isNagiosInstalled: function () {
     return !!App.Service.find().findProperty('serviceName', 'NAGIOS');
   }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
-  isGangliaInstalled:function () {
+  isGangliaInstalled: function () {
     return !!App.Service.find().findProperty('serviceName', 'GANGLIA');
   }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
@@ -257,8 +258,8 @@ App.ClusterController = Em.Controller.extend({
    * Run <code>loadUpdatedStatus</code> with delay
    * @param delay
    */
-  loadUpdatedStatusDelayed: function(delay){
-    setTimeout(function(){
+  loadUpdatedStatusDelayed: function (delay) {
+    setTimeout(function () {
       App.updater.immediateRun('loadUpdatedStatus');
     }, delay);
   },
@@ -266,8 +267,8 @@ App.ClusterController = Em.Controller.extend({
   /**
    * Start polling, when <code>isWorking</code> become true
    */
-  startPolling: function(){
-    if(!this.get('isWorking')){
+  startPolling: function () {
+    if (!this.get('isWorking')) {
       return false;
     }
     App.updater.run(this, 'loadUpdatedStatus', 'isWorking', App.componentsUpdateInterval); //update will not run it immediately
@@ -277,7 +278,7 @@ App.ClusterController = Em.Controller.extend({
    *
    *  load all data and update load status
    */
-  loadClusterData:function () {
+  loadClusterData: function () {
     var self = this;
     this.loadAmbariProperties();
     this.loadAmbariViews();
@@ -285,7 +286,7 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
 
-    if(this.get('isLoaded')) { // do not load data repeatedly
+    if (this.get('isLoaded')) { // do not load data repeatedly
       App.router.get('mainController').startPolling();
       return;
     }
@@ -294,7 +295,7 @@ App.ClusterController = Em.Controller.extend({
     var racksUrl = "/data/racks/racks.json";
 
     App.HttpClient.get(racksUrl, App.racksMapper, {
-      complete:function (jqXHR, textStatus) {
+      complete: function (jqXHR, textStatus) {
         self.updateLoadStatus('racks');
       }
     }, function (jqXHR, textStatus) {
@@ -302,53 +303,60 @@ App.ClusterController = Em.Controller.extend({
     });
 
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
-      complete:function (jqXHR, textStatus) {
+      complete: function (jqXHR, textStatus) {
         self.updateLoadStatus('cluster');
       }
     }, function (jqXHR, textStatus) {
-        self.updateLoadStatus('cluster');
+      self.updateLoadStatus('cluster');
     });
 
     if (App.testMode) {
       self.updateLoadStatus('clusterStatus');
     } else {
-      App.clusterStatus.updateFromServer(true).complete(function() {
+      App.clusterStatus.updateFromServer(true).complete(function () {
         self.updateLoadStatus('clusterStatus');
       });
     }
-    
+
     App.HttpClient.get(usersUrl, App.usersMapper, {
-      complete:function (jqXHR, textStatus) {
+      complete: function (jqXHR, textStatus) {
         self.updateLoadStatus('users');
       }
     }, function (jqXHR, textStatus) {
-        self.updateLoadStatus('users');
+      self.updateLoadStatus('users');
     });
 
     /**
      * Order of loading:
-     * 1. request for services
-     * 2. put services in cache
-     * 3. request for hosts and host-components (single call)
-     * 4. request for service metrics
-     * 5. load host-components to model
-     * 6. load hosts to model
-     * 7. load services from cache with metrics to model
-     * 8. update stale_configs of host-components (depends on App.supports.hostOverrides)
+     * 1. request for service components supported by stack
+     * 2. load stack components to model
+     * 3. request for services
+     * 4. put services in cache
+     * 5. request for hosts and host-components (single call)
+     * 6. request for service metrics
+     * 7. load host-components to model
+     * 8. load hosts to model
+     * 9. load services from cache with metrics to model
+     * 10. update stale_configs of host-components (depends on App.supports.hostOverrides)
      */
-    App.router.get('updateController').updateServices(function () {
-      self.updateLoadStatus('services');
-      self.loadUpdatedStatus(function () {
-        self.updateLoadStatus('hosts');
-        if (App.supports.hostOverrides) {
-          App.router.get('updateController').updateComponentConfig(function () {
+    this.loadStackServiceComponents(function (data) {
+      require('utils/component').loadStackServiceComponentModel(data);
+      self.updateLoadStatus('stackComponents');
+      App.router.get('updateController').updateServices(function () {
+        self.updateLoadStatus('services');
+        self.loadUpdatedStatus(function () {
+          self.updateLoadStatus('hosts');
+          if (App.supports.hostOverrides) {
+            App.router.get('updateController').updateComponentConfig(function () {
+              self.updateLoadStatus('componentConfigs');
+            });
+          } else {
             self.updateLoadStatus('componentConfigs');
-          });
-        } else {
-          self.updateLoadStatus('componentConfigs');
-        }
-      }, true);
-      App.router.get('updateController').updateServiceMetric(function () {}, true);
+          }
+        }, true);
+        App.router.get('updateController').updateServiceMetric(function () {
+        }, true);
+      });
     });
   },
   /**
@@ -376,8 +384,8 @@ App.ClusterController = Em.Controller.extend({
     }
   },
 
-  requestHosts: function(realUrl, callback){
-    var testHostUrl =  App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
+  requestHosts: function (realUrl, callback) {
+    var testHostUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
     var url = this.getUrl(testHostUrl, realUrl);
     App.HttpClient.get(url, App.hostsMapper, {
       complete: callback
@@ -418,7 +426,27 @@ App.ClusterController = Em.Controller.extend({
     }, this);
   },
 
-  loadAmbariProperties: function() {
+  /**
+   *
+   * @param callback
+   */
+  loadStackServiceComponents: function(callback) {
+    var callbackObj = {
+      loadStackServiceComponentsSuccess: callback
+    };
+    App.ajax.send({
+      name: 'wizard.service_components',
+      data: {
+        stackUrl: App.get('stack2VersionURL'),
+        stackVersion: App.get('currentStackVersionNumber'),
+        async: true
+      },
+      sender: callbackObj,
+      success: 'loadStackServiceComponentsSuccess'
+    });
+  },
+
+  loadAmbariProperties: function () {
     App.ajax.send({
       name: 'ambari.service',
       sender: this,
@@ -428,25 +456,26 @@ App.ClusterController = Em.Controller.extend({
     return this.get('ambariProperties');
   },
 
-  loadAmbariPropertiesSuccess: function(data) {
+  loadAmbariPropertiesSuccess: function (data) {
     console.log('loading ambari properties');
     this.set('ambariProperties', data.RootServiceComponents.properties);
     this.set('ambariVersion', data.RootServiceComponents.component_version);
   },
 
-  loadAmbariPropertiesError: function() {
+  loadAmbariPropertiesError: function () {
     console.warn('can\'t get ambari properties');
   },
 
-  clusterName:function () {
+  clusterName: function () {
     return (this.get('cluster')) ? this.get('cluster').Clusters.cluster_name : null;
   }.property('cluster'),
-  
+
   updateClusterData: function () {
-    var testUrl = App.get('isHadoop2Stack') ? '/data/clusters/HDP2/cluster.json':'/data/clusters/cluster.json';
+    var testUrl = App.get('isHadoop2Stack') ? '/data/clusters/HDP2/cluster.json' : '/data/clusters/cluster.json';
     var clusterUrl = this.getUrl(testUrl, '?fields=Clusters');
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
-      complete:function(){}
+      complete: function () {
+      }
     });
   }
 });

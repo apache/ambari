@@ -181,6 +181,18 @@ App.InstallerController = App.WizardController.extend({
     return hosts;
   }.property('content.hosts'),
 
+  /**
+   * Load service components.
+   */
+  loadServiceComponentsDb: function () {
+    var serviceComponents = this.getDBProperty('serviceComponents');
+    if(serviceComponents && serviceComponents.items && serviceComponents.items.length) {
+      App.stackServiceComponentMapper.map(serviceComponents);
+    } else {
+      console.log("Failed to load Service components");
+    }
+  },
+
   stacks: [],
 
   /**
@@ -429,14 +441,14 @@ App.InstallerController = App.WizardController.extend({
    */
   saveClients: function (stepController) {
     var clients = [];
-    var serviceComponents = require('data/service_components');
+    var serviceComponents = App.StackServiceComponent.find();
 
     stepController.get('content').filterProperty('isSelected', true).forEach(function (_service) {
-      var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
+      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient', true);
       if (client) {
         clients.pushObject({
-          component_name: client.component_name,
-          display_name: client.display_name,
+          component_name: client.get('componentName'),
+          display_name: client.get('displayName'),
           isInstalled: false
         });
       }
@@ -561,6 +573,7 @@ App.InstallerController = App.WizardController.extend({
         this.loadConfirmedHosts();
       case '4':
         this.loadServices();
+        this.loadServiceComponentsDb();
       case '3':
         this.loadConfirmedHosts();
       case '2':

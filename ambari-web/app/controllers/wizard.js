@@ -40,10 +40,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   },
 
   slaveComponents: function () {
-    return require('data/service_components').filter(function (component) {
-      return !(component.isClient || component.isMaster ||
-        ["GANGLIA_MONITOR", "DASHBOARD", "MYSQL_SERVER"].contains(component.component_name));
-    });
+    return App.StackServiceComponent.find().filterProperty('isSlave',true);
   }.property(),
 
   allHosts: App.Host.find(),
@@ -414,6 +411,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     this.setDBProperty('allHostNames', undefined);
     this.setDBProperty('installOptions', undefined);
     this.setDBProperty('allHostNamesPattern', undefined);
+    this.setDBProperty('serviceComponents', undefined);
   },
 
   installOptionsTemplate: {
@@ -439,7 +437,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       sender: this,
       data: {
         stackUrl: App.get('stack2VersionURL'),
-        stackVersion: App.get('currentStackVersionNumber')
+        stackVersion: App.get('currentStackVersionNumber'),
+        async: false
       },
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'
@@ -448,10 +447,24 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   },
 
   loadServiceComponentsSuccessCallback: function (jsonData) {
-    var displayOrderConfig = require('data/services');
+    this.setServices(jsonData);
+    this.setServiceComponents(jsonData);
     console.log("TRACE: getService ajax call  -> In success function for the getServiceComponents call");
     console.log("TRACE: jsonData.services : " + jsonData.items);
+  },
 
+  loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
+    console.log("TRACE: STep5 -> error code status is: " + request.status);
+    console.log('Step8: Error message is: ' + request.responseText);
+  },
+
+  /**
+   *
+   * @param jsonData
+   */
+  setServices: function(jsonData) {
+    var displayOrderConfig = require('data/services');
     // Creating Model
     var Service = Ember.Object.extend({
       serviceName: null,
@@ -488,14 +501,15 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     }
 
     this.set('loadedServiceComponents', data);
-    console.log('TRACE: service components: ' + JSON.stringify(data));
-
   },
 
-  loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
-    console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
-    console.log("TRACE: STep5 -> error code status is: " + request.status);
-    console.log('Step8: Error message is: ' + request.responseText);
+  /**
+   *
+   * @param jsonData
+   */
+  setServiceComponents: function(jsonData) {
+    var serviceComponents = require('utils/component').loadStackServiceComponentModel(jsonData);
+    this.setDBProperty('serviceComponents', serviceComponents);
   },
 
   loadServicesFromServer: function () {

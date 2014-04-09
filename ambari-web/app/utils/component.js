@@ -20,6 +20,8 @@
  * Here will be stored slave functions related to components
  * @type {Object}
  */
+
+var App = require('app');
 module.exports = {
 
   /**
@@ -52,5 +54,31 @@ module.exports = {
     });
 
     return result;
+  },
+
+  /**
+   *
+   * @param data
+   */
+  loadStackServiceComponentModel: function(data) {
+    var serviceComponents = {items: []};
+    data.items.forEach(function(item){
+      item.serviceComponents.forEach(function(_serviceComponent){
+        var stackServiceComponents =  _serviceComponent.StackServiceComponents;
+        var serviceComponent = {
+          component_name: stackServiceComponents.component_name,
+          service_name: stackServiceComponents.service_name,
+          component_category: stackServiceComponents.component_category,
+          is_master: stackServiceComponents.is_master,
+          is_client: stackServiceComponents.is_client,
+          stack_name: stackServiceComponents.stack_name,
+          stack_version: stackServiceComponents.stack_version
+        };
+        serviceComponents.items.pushObject(serviceComponent);
+      },this);
+    },this);
+    App.stackServiceComponentMapper.map(serviceComponents);
+    App.handleStackDependedComponents();
+    return serviceComponents;
   }
 };

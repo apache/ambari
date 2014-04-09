@@ -53,7 +53,6 @@ App.WizardStep6Controller = Em.Controller.extend({
   isMasters: false,
   isLoaded: false,
 
-  components: require('data/service_components'),
 
   isAddHostWizard: function () {
     return this.get('content.controllerName') === 'addHostController';
@@ -187,7 +186,7 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   getComponentDisplayName: function (componentName) {
-    return this.get('components').findProperty('component_name', componentName).display_name
+    return App.StackServiceComponent.find().findProperty('componentName', componentName).get('displayName')
   },
 
   loadStep: function () {
@@ -252,7 +251,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       }
       headers.pushObject(Ember.Object.create({
         name: 'CLIENT',
-        label: self.getComponentDisplayName('CLIENT')
+        label: App.format.role('CLIENT')
       }));
     }
 

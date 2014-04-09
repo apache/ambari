@@ -79,7 +79,7 @@ require('config');
 module.exports =
 {
   "configProperties": [
-    /**********************************************HDFS***************************************/
+  /**********************************************HDFS***************************************/
     {
       "id": "puppet var",
       "name": "namenode_host",
@@ -397,35 +397,34 @@ module.exports =
       "serviceName": "YARN",
       "category": "Advanced"
     },
-// @todo uncomment after App Timeline service integration
-//    {
-//      "id": "puppet var",
-//      "name": "ats_host",
-//      "displayName": "App Timeline Server",
-//      "description": "Application Timeline Server Host",
-//      "defaultValue": "",
-//      "isOverridable": false,
-//      "displayType": "masterHost",
-//      "isRequiredByAgent": false,
-//      "isVisible": true,
-//      "serviceName": "YARN",
-//      "category": "AppTimelineServer",
-//      "index": 0
-//    },
-//    {
-//      "id": "puppet var",
-//      "name": "apptimelineserver_heapsize",
-//      "displayName": "AppTimelineServer Java heap size",
-//      "description": "AppTimelineServer Java heap size",
-//      "defaultValue": "1024",
-//      "isOverridable": false,
-//      "displayType": "int",
-//      "unit": "MB",
-//      "isVisible": true,
-//      "serviceName": "YARN",
-//      "category": "AppTimelineServer",
-//      "index": 1
-//    }
+    {
+      "id": "puppet var",
+      "name": "ats_host",
+      "displayName": "App Timeline Server",
+      "description": "Application Timeline Server Host",
+      "defaultValue": "",
+      "isOverridable": false,
+      "displayType": "masterHost",
+      "isRequiredByAgent": false,
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "apptimelineserver_heapsize",
+      "displayName": "AppTimelineServer Java heap size",
+      "description": "AppTimelineServer Java heap size",
+      "defaultValue": "1024",
+      "isOverridable": false,
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "AppTimelineServer",
+      "index": 1
+    },
   /**********************************************HBASE***************************************/
     {
       "id": "puppet var",
@@ -513,7 +512,7 @@ module.exports =
       "serviceName": "HBASE",
       "category": "Advanced"
     },
-    /**********************************************GLUSTERFS***************************************/
+  /**********************************************GLUSTERFS***************************************/
     {
       "id": "puppet var",
       "name": "glusterfs_defaultFS_name",
@@ -527,30 +526,30 @@ module.exports =
       "category": "General"
     },
     {
-        "id": "puppet var",
-        "name": "fs_glusterfs_default_name",
-        "displayName": "GlusterFS default fs name",
-        "description": "GlusterFS default filesystem name (glusterfs:///)",
-        "defaultValue": "glusterfs:///",
-        "displayType": "string",
-        "isVisible": true,
-        "domain": "global",
-        "serviceName": "GLUSTERFS",
-        "category": "General"
-      },
-          {
-            "id": "puppet var",
-            "name": "hadoop_heapsize",
-            "displayName": "Hadoop maximum Java heap size",
-            "description": "Maximum Java heap size for daemons such as Balancer (Java option -Xmx)",
-            "defaultValue": "1024",
-            "displayType": "int",
-            "unit": "MB",
-            "isVisible": true,
-            "domain": "global",
-            "serviceName": "GLUSTERFS",
-            "category": "General"
-          },
+      "id": "puppet var",
+      "name": "fs_glusterfs_default_name",
+      "displayName": "GlusterFS default fs name",
+      "description": "GlusterFS default filesystem name (glusterfs:///)",
+      "defaultValue": "glusterfs:///",
+      "displayType": "string",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop_heapsize",
+      "displayName": "Hadoop maximum Java heap size",
+      "description": "Maximum Java heap size for daemons such as Balancer (Java option -Xmx)",
+      "defaultValue": "1024",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "GLUSTERFS",
+      "category": "General"
+    },
 
   /**********************************************HIVE***************************************/
     {
@@ -971,10 +970,10 @@ module.exports =
           foreignKeys: ['oozie_derby_database']
         },
         /*{
-          displayName: 'New MySQL Database',
-          foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
-          hidden: !App.supports.hiveOozieExtraDatabases
-        },*/
+         displayName: 'New MySQL Database',
+         foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
+         hidden: !App.supports.hiveOozieExtraDatabases
+         },*/
         {
           displayName: 'Existing MySQL Database',
           foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
@@ -1542,7 +1541,7 @@ module.exports =
       "isRequiredByAgent": false,
       "serviceName": "MISC",
       "category": "General",
-      "belongsToService":[]
+      "belongsToService": []
     },
     {
       "id": "puppet var",
@@ -1557,7 +1556,7 @@ module.exports =
       "filename": "core-site.xml",
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HIVE","WEBHCAT","OOZIE","FALCON"],
+      "belongsToService": ["HIVE", "WEBHCAT", "OOZIE", "FALCON"],
       "index": 18
     },
     {
@@ -1571,7 +1570,7 @@ module.exports =
       "isVisible": false,
       "serviceName": "MISC",
       "category": "General",
-      "belongsToService":[]
+      "belongsToService": []
     },
     {
       "id": "puppet var",
@@ -1585,7 +1584,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HDFS"],
+      "belongsToService": ["HDFS"],
       "index": 1
     },
     {
@@ -1600,7 +1599,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["MAPREDUCE2"],
+      "belongsToService": ["MAPREDUCE2"],
       "index": 2
     },
     {
@@ -1615,7 +1614,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["YARN"],
+      "belongsToService": ["YARN"],
       "index": 3
     },
     {
@@ -1630,7 +1629,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HBASE"],
+      "belongsToService": ["HBASE"],
       "index": 4
     },
     {
@@ -1645,7 +1644,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HIVE"],
+      "belongsToService": ["HIVE"],
       "index": 5
     },
     {
@@ -1660,7 +1659,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HCATALOG"],
+      "belongsToService": ["HCATALOG"],
       "index": 6
     },
     {
@@ -1675,7 +1674,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["WEBHCAT"],
+      "belongsToService": ["WEBHCAT"],
       "index": 7
     },
     {
@@ -1690,7 +1689,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["OOZIE"],
+      "belongsToService": ["OOZIE"],
       "index": 8
     },
     {
@@ -1703,9 +1702,9 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName":"MISC",
+      "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["FALCON"],
+      "belongsToService": ["FALCON"],
       "index": 10
     },
     {
@@ -1718,9 +1717,9 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName":"MISC",
+      "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["STORM"],
+      "belongsToService": ["STORM"],
       "index": 9
     },
     {
@@ -1735,7 +1734,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["ZOOKEEPER"],
+      "belongsToService": ["ZOOKEEPER"],
       "index": 11
     },
     {
@@ -1750,7 +1749,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["GANGLIA"],
+      "belongsToService": ["GANGLIA"],
       "index": 12
     },
     {
@@ -1763,9 +1762,9 @@ module.exports =
       "displayType": "advanced",
       "isOverridable": false,
       "isVisible": false,
-      "serviceName":"MISC",
+      "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":[]
+      "belongsToService": []
     },
     {
       "id": "puppet var",
@@ -1777,9 +1776,9 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName":"MISC",
+      "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["NAGIOS"],
+      "belongsToService": ["NAGIOS"],
       "index": 14
     },
     {
@@ -1792,9 +1791,9 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName":"MISC",
+      "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["NAGIOS"],
+      "belongsToService": ["NAGIOS"],
       "index": 13
     },
     {
@@ -1809,7 +1808,7 @@ module.exports =
       "isVisible": App.supports.customizeSmokeTestUser,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HDFS"],
+      "belongsToService": ["HDFS"],
       "index": 16
     },
     {
@@ -1822,9 +1821,9 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName":"MISC",
+      "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["TEZ"],
+      "belongsToService": ["TEZ"],
       "index": 15
     },
     {
@@ -1839,7 +1838,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["HDFS"],
+      "belongsToService": ["HDFS"],
       "index": 16
     },
     {
@@ -1854,41 +1853,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "GANGLIA",
       "category": "General",
-      "belongsToService":["GANGLIA"]
+      "belongsToService": ["GANGLIA"]
     }
 
   ]
 };
-// @todo remove after App Timeline service integration
-if (App.supports.appTimelineServer) {
-  module.exports.configProperties.push(
-    {
-      "id": "puppet var",
-      "name": "ats_host",
-      "displayName": "App Timeline Server",
-      "description": "Application Timeline Server Host",
-      "defaultValue": "",
-      "isOverridable": false,
-      "displayType": "masterHost",
-      "isRequiredByAgent": false,
-      "isVisible": true,
-      "serviceName": "YARN",
-      "category": "AppTimelineServer",
-      "index": 0
-    },
-    {
-      "id": "puppet var",
-      "name": "apptimelineserver_heapsize",
-      "displayName": "AppTimelineServer Java heap size",
-      "description": "AppTimelineServer Java heap size",
-      "defaultValue": "1024",
-      "isOverridable": false,
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "serviceName": "YARN",
-      "category": "AppTimelineServer",
-      "index": 1
-    }
-  );
-}

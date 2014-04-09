@@ -91,7 +91,6 @@ module.exports = Em.Application.create({
    *    for example:
    *      properties: { global_properties: [], site_properties: [], etc. }
    *   @property reviewConfigs {Ember.Object} - reference review_configs.js
-   *   @property serviceComponent {Object} - reference service_components.js
    *
    * @type {Array}
    */
@@ -105,45 +104,42 @@ module.exports = Em.Application.create({
   enableComponent: function(component) {
     var propertyFileNames = ['global_properties', 'site_properties'];
     var requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
-    // add component to service_components list
-    require('data/service_components').push(component.get('serviceComponent'));
     // add properties
     propertyFileNames.forEach(function(fileName) {
       require(requirePrefix + fileName).configProperties = require(requirePrefix + fileName).configProperties.concat(component.get('properties.'+fileName));
     });
     var reviewConfigsService = require('data/review_configs')
       .findProperty('config_name', 'services').config_value
-      .findProperty('service_name', component.get('serviceComponent.service_name'));
+      .findProperty('service_name', component.get('serviceName'));
     reviewConfigsService.get('service_components').pushObject(component.get('reviewConfigs'));
   },
   /**
    * Disabling component. Remove related data from lists such as
    * properties, review configs, service components.
    *
-   * @param component {Object} - component info reference service_components.js
+   * @param component {Object} - stack service component
    *
    * @return {Ember.Object} - item of <code>stackDependedComponents</code> property
    */
   disableComponent: function(component) {
     var componentCopy, propertyFileNames;
+    var service_configs = require('data/service_configs');
     propertyFileNames = ['global_properties', 'site_properties'];
     componentCopy = Em.Object.create({
-      componentName: component.component_name,
+      componentName: component.get('componentName'),
+      serviceName: component.get('serviceName'),
       properties: {},
       reviewConfigs: {},
-      configCategory: {},
-      serviceComponent: {}
+      configCategory: {}
     });
-    componentCopy.set('serviceComponent', require('data/service_components').findProperty('component_name', component.component_name));
-    // remove component from service_components list
-    require('data/service_components').removeObject(componentCopy.get('serviceComponent'));
+
     var serviceConfigsCategoryName, requirePrefix, serviceConfig;
     // get service category name related to component
-    serviceConfig = require('data/service_configs').findProperty('serviceName', component.service_name);
+    serviceConfig = service_configs.findProperty('serviceName', component.get('serviceName'));
     serviceConfig.configCategories = serviceConfig.configCategories.filter(function(configCategory) {
       if (configCategory.get('hostComponentNames')) {
         serviceConfigsCategoryName = configCategory.get('name');
-        if (configCategory.get('hostComponentNames').contains(component.component_name)) {
+        if (configCategory.get('hostComponentNames').contains(component.get('componentName'))) {
           componentCopy.set('configCategory', configCategory);
         }
       }
@@ -170,9 +166,9 @@ module.exports = Em.Application.create({
     // remove component from review configs
     var reviewConfigsService = require('data/review_configs')
       .findProperty('config_name', 'services').config_value
-      .findProperty('service_name', component.service_name);
+      .findProperty('service_name', component.get('serviceName'));
     reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
-      if (serviceComponent.get('component_name') != component.component_name) {
+      if (serviceComponent.get('component_name') != component.get('componentName')) {
         return true;
       } else {
         componentCopy.set('reviewConfigs', serviceComponent);
@@ -188,51 +184,59 @@ module.exports = Em.Application.create({
   handleStackDependedComponents: function() {
     // need for unit testing and test mode
     if (this.get('handleStackDependencyTest') || this.testMode) return;
-    var stackVersion, stackDependedComponents;
-    stackVersion = this.get('currentStackVersionNumber');
-    stackDependedComponents = [];
+    var stackDependedComponents = [];
+    var service_configs = require('data/service_configs');
+    var stackServiceComponents = this.StackServiceComponent.find();
+    if (!stackServiceComponents.mapProperty('componentName').length) {
+       return;
+    }
     // disable components
-    require('data/service_components').filterProperty('stackVersions').forEach(function(component) {
-      if (!component.stackVersions.contains(stackVersion))
-        stackDependedComponents.push(this.disableComponent(component));
-    }, this);
+    service_configs.forEach(function(service){
+      service.configCategories.forEach(function(serviceConfigCategory){
+        var categoryComponents = serviceConfigCategory.get('hostComponentNames');
+        if (categoryComponents && categoryComponents.length) {
+          categoryComponents.forEach(function(categoryComponent) {
+            var stackComponent = stackServiceComponents.findProperty('componentName',categoryComponent);
+            if(!stackComponent && !this.get('stackDependedComponents').mapProperty('componentName').contains['categoryComponent'] ) {
+              var _stackComponent = Ember.Object.create({
+                componentName: categoryComponent,
+                serviceName:service.serviceName
+              });
+              stackDependedComponents.push(this.disableComponent(_stackComponent));
+            }
+          },this);
+        }
+      },this);
+    },this);
     // enable components
     if (this.get('stackDependedComponents').length > 0) {
       this.get('stackDependedComponents').forEach(function(component) {
-        if (component.get('serviceComponent').stackVersions.contains(this.get('currentStackVersionNumber'))) {
+        if (stackServiceComponents.findProperty('componentName',component.get('componentName'))) {
           this.enableComponent(component);
           stackDependedComponents = this.get('stackDependedComponents').removeObject(component);
         }
       }, this);
     }
     this.set('stackDependedComponents', this.get('stackDependedComponents').concat(stackDependedComponents));
-  }.observes('currentStackVersionNumber'),
+  },
 
   /**
    * List of components with allowed action for them
    * @type {Em.Object}
    */
-  components: Ember.Object.create({
-    reassignable: ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'],
-    restartable: function() {
-      return this.get('masters').concat(this.get('slaves'));
-    }.property('masters'),
-    deletable: ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER'],
-    rollinRestartAllowed: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "SUPERVISOR"],
-    decommissionAllowed: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"],
-    addableToHost: ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR"],
-    slaves: function() {
-      return require('data/service_components').filter(function(component){
-        return !component.isClient && !component.isMaster;
-      }).mapProperty('component_name').uniq().without("DASHBOARD").without("MYSQL_SERVER");
-    }.property().cacheable(),
-
-    masters: function() {
-      return require('data/service_components').filterProperty('isMaster', true)
-        .mapProperty('component_name').concat(['MYSQL_SERVER']).uniq();
-    }.property().cacheable(),
-    clients: function() {
-      return require('data/service_components').filterProperty('isClient', true).mapProperty('component_name').uniq();
-    }.property().cacheable()
-  })
+  components: function() {
+    var self = this;
+    return Ember.Object.create({
+      allComponents:self.StackServiceComponent.find().mapProperty('componentName'),
+      reassignable: self.StackServiceComponent.find().filterProperty('isReassignable',true).mapProperty('componentName'),
+      restartable: self.StackServiceComponent.find().filterProperty('isRestartable',true).mapProperty('componentName'),
+      deletable: self.StackServiceComponent.find().filterProperty('isDeletable',true).mapProperty('componentName'),
+      rollinRestartAllowed: self.StackServiceComponent.find().filterProperty('isRollinRestartAllowed',true).mapProperty('componentName'),
+      decommissionAllowed: self.StackServiceComponent.find().filterProperty('isDecommissionAllowed',true).mapProperty('componentName'),
+      addableToHost: self.StackServiceComponent.find().filterProperty('isAddableToHost',true).mapProperty('componentName'),
+      slaves: self.StackServiceComponent.find().filterProperty('isSlave',true).mapProperty('componentName'),
+      masters: self.StackServiceComponent.find().filterProperty('isMaster',true).mapProperty('componentName'),
+      clients: self.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName')
+    })
+  }.property()
 });

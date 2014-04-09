@@ -1231,12 +1231,12 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/stackServices?fields=StackServices',
-    'mock': '/data/wizard/stack/hdp/version/{stackVersion}.json',
-    'format': function() {
+    'real': '{stackUrl}/stackServices?fields=StackServices/comments,StackServices/service_version,serviceComponents/*',
+    'mock': '/data/wizard/stacks/HDP-2.1/service_components.json',
+    'format': function(data) {
       return {
         timeout: 10000,
-        async: false
+        async: !!data.async
       };
     }
   },

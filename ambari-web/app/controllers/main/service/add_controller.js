@@ -275,16 +275,16 @@ App.AddServiceController = App.WizardController.extend({
    */
   saveClients: function(stepController){
     var clients = [];
-    var serviceComponents = require('data/service_components');
+    var serviceComponents = App.StackServiceComponent.find();
     var hostComponents = App.HostComponent.find();
 
     stepController.get('content').filterProperty('isSelected',true).forEach(function (_service) {
-      var client = serviceComponents.filterProperty('service_name', _service.serviceName).findProperty('isClient', true);
+      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient', true);
       if (client) {
         clients.pushObject({
-          component_name: client.component_name,
-          display_name: client.display_name,
-          isInstalled: hostComponents.filterProperty('componentName', client.component_name).length > 0
+          component_name: client.get('componentName'),
+          display_name: client.get('displayName'),
+          isInstalled: hostComponents.filterProperty('componentName', client.get('componentName')).length > 0
         });
       }
     }, this);

@@ -23,7 +23,6 @@ require('controllers/wizard/step6_controller');
 describe('App.WizardStep6Controller', function () {
 
   var controller = App.WizardStep6Controller.create();
-
   controller.set('content', {
     hosts: {},
     masterComponentHosts: {},
@@ -45,6 +44,9 @@ describe('App.WizardStep6Controller', function () {
         isSelected: true
       })
     ]
+  });
+  controller.set('getComponentDisplayName',function () {
+    return true;
   });
 
   var HOSTS = Em.A([ 'host0', 'host1', 'host2', 'host3' ]);

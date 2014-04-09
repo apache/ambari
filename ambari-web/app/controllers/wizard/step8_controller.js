@@ -954,11 +954,11 @@ App.WizardStep8Controller = Em.Controller.extend({
    * One request for each service!
    */
   createComponents: function () {
-    var serviceComponents = require('data/service_components');
+    var serviceComponents = App.StackServiceComponent.find();
     this.get('selectedServices').forEach(function (_service) {
       var serviceName = _service.get('serviceName');
-      var componentsData = serviceComponents.filterProperty('service_name', serviceName).map(function (_component) {
-        return { "ServiceComponentInfo": { "component_name": _component.component_name } };
+      var componentsData = serviceComponents.filterProperty('serviceName', serviceName).map(function (_component) {
+        return { "ServiceComponentInfo": { "component_name": _component.get('componentName') } };
       });
 
       // Service must be specified in terms of a query for creating multiple components at the same time.
@@ -969,7 +969,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         data: JSON.stringify({"components": componentsData})
       });
     }, this);
-
   },
 
   /**

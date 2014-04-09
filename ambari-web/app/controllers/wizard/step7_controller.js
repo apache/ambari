@@ -632,7 +632,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     var selectedServiceName = this.get('selectedService.serviceName');
     var masterComponents = this.get('content.masterComponentHosts');
     var slaveComponents = this.get('content.slaveComponentHosts');
-    var scMaps = require('data/service_components');
+    var scMaps = App.StackServiceComponent.find();
     
     var validComponents = Ember.A([]);
     var seenComponents = {};
@@ -651,8 +651,8 @@ App.WizardStep7Controller = Em.Controller.extend({
     slaveComponents.forEach(function(component){
       var cn = component.componentName;
       var cdn = component.displayName;
-      var componentDef = scMaps.findProperty('component_name', cn);
-      if(componentDef!=null && selectedServiceName===componentDef.service_name && !seenComponents[cn]){
+      var componentDef = scMaps.findProperty('componentName', cn);
+      if(!!componentDef && selectedServiceName===componentDef.get('serviceName') && !seenComponents[cn]){
         validComponents.pushObject(Ember.Object.create({
           componentName: cn,
           displayName: cdn,

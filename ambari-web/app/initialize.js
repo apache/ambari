@@ -36,20 +36,8 @@ require('router');
 require('utils/ajax');
 require('utils/updater');
 
-require('mappers/server_data_mapper');
-require('mappers/status_mapper');
-require('mappers/hosts_mapper');
-require('mappers/cluster_mapper');
-require('mappers/jobs_mapper');
-require('mappers/runs_mapper');
-require('mappers/racks_mapper');
-require('mappers/users_mapper');
-require('mappers/service_mapper');
-require('mappers/service_metrics_mapper');
-require('mappers/target_cluster_mapper');
-require('mappers/dataset_mapper');
-require('mappers/component_config_mapper');
-require('mappers/jobs/hive_jobs_mapper');
+require('mappers');
+
 require('mappers/jobs/hive_job_mapper');
 require('utils/http_client');
 require('utils/host_progress_popup');
