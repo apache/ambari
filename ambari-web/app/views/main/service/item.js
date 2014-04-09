@@ -28,9 +28,9 @@ App.MainServiceItemView = Em.View.extend({
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var disabled = this.get('controller.isStopDisabled');
     var serviceName = service.get('serviceName');
+    var disableRefreshConfgis = !service.get('isRestartRequired');
 
     if (service.get('isClientsOnly')) {
-      var disableRefreshConfgis = !service.get('isRestartRequired');
       if (serviceName != 'TEZ') {
         options.push({action: 'runSmokeTest', cssClass: 'icon-thumbs-up-alt', 'label': Em.I18n.t('services.service.actions.run.smoke')});
       }
@@ -43,6 +43,9 @@ App.MainServiceItemView = Em.View.extend({
       if (rrComponentName) {
         var label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(rrComponentName));
         options.push({action:'rollingRestart', cssClass: 'icon-time', context: rrComponentName, 'label': label, disabled: false});
+      }
+      if (serviceName == 'FLUME') {
+        options.push({action: 'refreshConfigs', cssClass: 'icon-refresh', 'label': Em.I18n.t('hosts.host.details.refreshConfigs'), disabled: disableRefreshConfgis});
       }
       // Service Check and Reassign Master actions
       switch (serviceName) {
