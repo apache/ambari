@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,7 +22,7 @@ Ambari Agent
 from resource_management import *
 
 def webhcat_service(action='start'):
-  import params
+  from . import params
 
   cmd = format('env HADOOP_HOME={hadoop_home} {webhcat_bin_dir}/webhcat_server.sh')
 

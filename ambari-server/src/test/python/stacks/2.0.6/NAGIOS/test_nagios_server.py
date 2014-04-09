@@ -69,7 +69,7 @@ class TestNagiosServer(RMFTestCase):
                               owner='nagios',
                               group='nagios',
                               content=Template("nagios.conf.j2"),
-                              mode=0644
+                              mode=0o644
     )
     self.assertResourceCalled('Execute',
                               'service snmpd start; chkconfig snmpd on',
@@ -86,7 +86,7 @@ class TestNagiosServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/nagios',
                               owner='nagios',
                               group='nagios',
-                              mode=0755,
+                              mode=0o755,
                               recursive=True
     )
     self.assertResourceCalled('Directory', '/var/nagios',
@@ -107,12 +107,12 @@ class TestNagiosServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/nagios',
                               owner='nagios',
                               group='nagios',
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('Directory', '/var/log/nagios/archives',
                               owner='nagios',
                               group='nagios',
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('TemplateConfig', '/etc/nagios/nagios.cfg',
                               owner='nagios',
@@ -162,89 +162,89 @@ class TestNagiosServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/lib64/nagios/plugins/check_cpu.pl',
                               content=StaticFile('check_cpu.pl'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_datanode_storage.php',
                               content=StaticFile('check_datanode_storage.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_aggregate.php',
                               content=StaticFile('check_aggregate.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_hdfs_blocks.php',
                               content=StaticFile('check_hdfs_blocks.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_hdfs_capacity.php',
                               content=StaticFile('check_hdfs_capacity.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_rpcq_latency.php',
                               content=StaticFile('check_rpcq_latency.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_webui.sh',
                               content=StaticFile('check_webui.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_name_dir_status.php',
                               content=StaticFile('check_name_dir_status.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_oozie_status.sh',
                               content=StaticFile('check_oozie_status.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_templeton_status.sh',
                               content=StaticFile('check_templeton_status.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_hive_metastore_status.sh',
                               content=StaticFile(
                                 'check_hive_metastore_status.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_hue_status.sh',
                               content=StaticFile('check_hue_status.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_mapred_local_dir_used.sh',
                               content=StaticFile(
                                 'check_mapred_local_dir_used.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_nodemanager_health.sh',
                               content=StaticFile('check_nodemanager_health.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_namenodes_ha.sh',
                               content=StaticFile('check_namenodes_ha.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/check_wrapper.sh',
                               content=StaticFile('check_wrapper.sh'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('File',
                               '/usr/lib64/nagios/plugins/hdp_nagios_init.php',
                               content=StaticFile('hdp_nagios_init.php'),
-                              mode=0755
+                              mode=0o755
     )
     self.assertResourceCalled('Execute',
                               'htpasswd2 -c -b  /etc/nagios/htpasswd.users nagiosadmin \'!`"\'"\'"\' 1\'',
@@ -253,7 +253,7 @@ class TestNagiosServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/nagios/htpasswd.users',
                               owner='nagios',
                               group='nagios',
-                              mode=0640
+                              mode=0o640
     )
     self.assertResourceCalled('Execute', 'usermod -G nagios wwwrun'
     )
@@ -264,5 +264,5 @@ class TestNagiosServer(RMFTestCase):
     self.assertResourceCalled('File', '/var/nagios/ignore.dat',
                               owner='nagios',
                               group='nagios',
-                              mode=0664
+                              mode=0o664
     )

@@ -36,7 +36,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hive/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -58,14 +58,14 @@ class TestHiveClient(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
@@ -88,7 +88,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       conf_dir = '/etc/hive/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
     )
@@ -110,14 +110,14 @@ class TestHiveClient(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-exec-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'
     )
     self.assertResourceCalled('File',
                               '/etc/hive/conf/hive-log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hive',
                               content='log4jproperties\nline2'

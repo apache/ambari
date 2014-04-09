@@ -40,7 +40,7 @@ class TestAmbariAgent(unittest.TestCase):
     facter1.returncode = 77
     facter2.returncode = 55
     os_path_isfile_mock.return_value = True
-    if not (os.environ.has_key("PYTHON")):
+    if not ("PYTHON" in os.environ):
       os.environ['PYTHON'] = "test/python/path"
     sys.argv[0] = "test data"
     AmbariAgent.main()

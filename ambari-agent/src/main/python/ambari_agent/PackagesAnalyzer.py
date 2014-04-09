@@ -21,7 +21,7 @@ limitations under the License.
 import os
 import logging
 import pwd
-import shell
+from . import shell
 import subprocess
 from threading import Thread
 import threading
@@ -52,6 +52,9 @@ class PackagesAnalyzer:
     thread.start()
 
     out, err = osStat.communicate()
+
+	out = out.decode()
+	err = err.decode()
     result = {}
     result['out'] = out
     result['err'] = err

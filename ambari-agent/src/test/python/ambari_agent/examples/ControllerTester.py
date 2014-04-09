@@ -21,16 +21,17 @@ limitations under the License.
 from ambari_agent import Controller
 import pprint, json, os, time, sys
 import tempfile
-from urllib2 import Request, urlopen, URLError
+from urllib.request import Request, urlopen
+from urllib.error import URLError
 from mock.mock import patch, MagicMock, call
 from ambari_agent.AmbariConfig  import AmbariConfig
-import Queue
+import queue
 import logging
 from ambari_agent import PuppetExecutor, PythonExecutor
 
 logger=logging.getLogger()
 
-queue = Queue.Queue()
+queue = queue.Queue()
 
 # Set to True to replace python and puppet calls with mockups
 disable_python_and_puppet = True

@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import AmbariConfig
+from . import AmbariConfig
 import threading
 import os
 import time

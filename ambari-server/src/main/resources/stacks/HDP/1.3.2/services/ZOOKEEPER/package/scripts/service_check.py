@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,11 +24,11 @@ from resource_management import *
 
 class ZookeeperServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     File("/tmp/zkSmoke.sh",
-         mode=0755,
+         mode=0o755,
          content=StaticFile('zkSmoke.sh')
     )
 

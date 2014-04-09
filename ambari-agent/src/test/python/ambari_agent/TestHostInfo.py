@@ -348,32 +348,32 @@ class TestHostInfo(TestCase):
 
     os_path_exists_mock.return_value = False
     result = host.dirType("/home")
-    self.assertEquals(result, 'not_exist')
+    self.assertEqual(result, 'not_exist')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = True
     result = host.dirType("/home")
-    self.assertEquals(result, 'sym_link')
+    self.assertEqual(result, 'sym_link')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = False
     os_path_isdir_mock.return_value = True
     result = host.dirType("/home")
-    self.assertEquals(result, 'directory')
+    self.assertEqual(result, 'directory')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = False
     os_path_isdir_mock.return_value = False
     os_path_isfile_mock.return_value = True
     result = host.dirType("/home")
-    self.assertEquals(result, 'file')
+    self.assertEqual(result, 'file')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = False
     os_path_isdir_mock.return_value = False
     os_path_isfile_mock.return_value = False
     result = host.dirType("/home")
-    self.assertEquals(result, 'unknown')
+    self.assertEqual(result, 'unknown')
 
 
   @patch("os.path.exists")
@@ -384,11 +384,11 @@ class TestHostInfo(TestCase):
     os_path_exists_mock.return_value = True
     glob_glob_mock.return_value = ['pid1','pid2','pid3']
     result = hostInfo.hadoopVarRunCount()
-    self.assertEquals(result, 3)
+    self.assertEqual(result, 3)
 
     os_path_exists_mock.return_value = False
     result = hostInfo.hadoopVarRunCount()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
 
 
   @patch("os.path.exists")
@@ -399,11 +399,11 @@ class TestHostInfo(TestCase):
     os_path_exists_mock.return_value = True
     glob_glob_mock.return_value = ['log1','log2']
     result = hostInfo.hadoopVarLogCount()
-    self.assertEquals(result, 2)
+    self.assertEqual(result, 2)
 
     os_path_exists_mock.return_value = False
     result = hostInfo.hadoopVarLogCount()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
 
 
   @patch("os.listdir", create=True, autospec=True)
@@ -421,10 +421,10 @@ class TestHostInfo(TestCase):
     list = []
     hostInfo.javaProcs(list)
 
-    self.assertEquals(list[0]['command'], '/java/;/hadoop/')
-    self.assertEquals(list[0]['pid'], 1)
+    self.assertEqual(list[0]['command'], '/java/;/hadoop/')
+    self.assertEqual(list[0]['pid'], 1)
     self.assertTrue(list[0]['hadoop'])
-    self.assertEquals(list[0]['user'], 'user')
+    self.assertEqual(list[0]['user'], 'user')
 
 
   @patch("subprocess.Popen")
@@ -432,17 +432,17 @@ class TestHostInfo(TestCase):
   def test_osdiskAvailableSpace(self, extract_mount_info_mock, subproc_popen_mock):
     hostInfo = HostInfo()
     p = MagicMock()
-    p.communicate.return_value = ['some']
+    p.communicate.return_value = ['some'.encode()]
     subproc_popen_mock.return_value = p
     extract_mount_info_mock.return_value = {'info' : 'info'}
     result = hostInfo.osdiskAvailableSpace('')
 
     self.assertTrue(result['info'], 'info')
 
-    p.communicate.return_value = ''
+    p.communicate.return_value = ''.encode()
     result = hostInfo.osdiskAvailableSpace('')
 
-    self.assertEquals(result, {})
+    self.assertEqual(result, {})
 
 
   @patch.object(OSCheck, "get_os_type")
@@ -451,41 +451,41 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfo()
     p = MagicMock()
     p.returncode = 0
-    p.communicate.return_value = ('', 'err')
+    p.communicate.return_value = (''.encode(), 'err'.encode())
     subproc_popen.return_value = p
     result = []
     get_os_type_method.return_value = 'redhat'
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Healthy')
-    self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], '')
-    self.assertEquals(str(subproc_popen.call_args_list),
+    self.assertEqual(result[0]['status'], 'Healthy')
+    self.assertEqual(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['desc'], '')
+    self.assertEqual(str(subproc_popen.call_args_list),
                       "[call(['/sbin/service', 'service1', 'status'], stderr=-1, stdout=-1)]")
 
     p.returncode = 1
-    p.communicate.return_value = ('out', 'err')
+    p.communicate.return_value = ('out'.encode(), 'err'.encode())
     result = []
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Unhealthy')
-    self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], 'out')
+    self.assertEqual(result[0]['status'], 'Unhealthy')
+    self.assertEqual(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['desc'], 'out')
 
-    p.communicate.return_value = ('', 'err')
+    p.communicate.return_value = (''.encode(), 'err'.encode())
     result = []
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Unhealthy')
-    self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], 'err')
+    self.assertEqual(result[0]['status'], 'Unhealthy')
+    self.assertEqual(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['desc'], 'err')
 
-    p.communicate.return_value = ('', 'err', '')
+    p.communicate.return_value = (''.encode(), 'err'.encode(), ''.encode())
     result = []
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Unhealthy')
-    self.assertEquals(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['status'], 'Unhealthy')
+    self.assertEqual(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
 
 
@@ -498,7 +498,7 @@ class TestHostInfo(TestCase):
     os_path_exists_mock.return_value = False
     result = hostInfo.etcAlternativesConf('',[])
 
-    self.assertEquals(result, [])
+    self.assertEqual(result, [])
 
     os_path_exists_mock.return_value = True
     os_listdir_mock.return_value = ['config1']
@@ -507,8 +507,8 @@ class TestHostInfo(TestCase):
     result = []
     hostInfo.etcAlternativesConf('project',result)
 
-    self.assertEquals(result[0]['name'], 'config1')
-    self.assertEquals(result[0]['target'], 'real_path_to_conf')
+    self.assertEqual(result[0]['name'], 'config1')
+    self.assertEqual(result[0]['target'], 'real_path_to_conf')
 
 
   @patch("subprocess.Popen")

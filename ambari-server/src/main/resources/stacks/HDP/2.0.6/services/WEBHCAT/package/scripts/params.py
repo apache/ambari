@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 from resource_management import *
-import status_params
+from . import status_params
 
 # server configurations
 config = Script.get_config()
@@ -59,9 +59,9 @@ security_enabled = ( not is_empty(_authentication) and _authentication == 'kerbe
 kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 hcat_hdfs_user_dir = format("/user/{hcat_user}")
-hcat_hdfs_user_mode = 0755
+hcat_hdfs_user_mode = 0o755
 webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
-webhcat_hdfs_user_mode = 0755
+webhcat_hdfs_user_mode = 0o755
 webhcat_apps_dir = "/apps/webhcat"
 #for create_hdfs_directory
 hostname = config["hostname"]

@@ -43,13 +43,13 @@ class TestShell(unittest.TestCase):
   def test_shellRunner_run(self, getpwnamMock):
     sh = shellRunner()
     result = sh.run(['echo'])
-    self.assertEquals(result['exitCode'], 0)
-    self.assertEquals(result['error'], '')
+    self.assertEqual(result['exitCode'], 0)
+    self.assertEqual(result['error'], '')
 
     getpwnamMock.return_value = [os.getuid(), os.getuid(), os.getuid()]
     result = sh.run(['echo'], 'non_exist_user_name')
-    self.assertEquals(result['exitCode'], 0)
-    self.assertEquals(result['error'], '')
+    self.assertEqual(result['exitCode'], 0)
+    self.assertEqual(result['error'], '')
 
   def test_kill_process_with_children(self):
     if _platform == "linux" or _platform == "linux2": # Test is Linux-specific
@@ -65,6 +65,8 @@ class TestShell(unittest.TestCase):
         ps_cmd = """ps aux | grep "{0}" | grep -v grep """.format(sleep_cmd)
         ps_process = subprocess.Popen(ps_cmd, stdout=subprocess.PIPE, shell=True)
         (out, err) = ps_process.communicate()
+		out = out.decode()
+		err = err.decode()
         self.assertTrue(sleep_cmd in out)
         # Kill test process
         shell.kill_process_with_children(test_process.pid)
@@ -72,6 +74,8 @@ class TestShell(unittest.TestCase):
         # Now test process should not be running
         ps_process = subprocess.Popen(ps_cmd, stdout=subprocess.PIPE, shell=True)
         (out, err) = ps_process.communicate()
+		out = out.decode()
+		err = err.decode()
         self.assertFalse(sleep_cmd in out)
       except IOError as e:
         pass

@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import StringIO
+import io
 import re
 from unittest import TestCase
 import sys
@@ -43,7 +43,7 @@ NonFatalException = ambari_server.NonFatalException
 
 class TestAmbariServer(TestCase):
   def setUp(self):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -71,7 +71,7 @@ class TestAmbariServer(TestCase):
     string_expected = self.get_file_string(self
     .get_samples_dir("configure_pg_hba_ambaridb_users1"))
     string_actual = self.get_file_string(ambari_server.PG_HBA_CONF_FILE)
-    self.assertEquals(string_expected, string_actual)
+    self.assertEqual(string_expected, string_actual)
     pass
 
   @patch('__builtin__.raw_input')
@@ -128,7 +128,7 @@ class TestAmbariServer(TestCase):
 
     result = ambari_server.get_choice_string_input(prompt, default,
                                                    firstChoice, secondChoice)
-    self.assertEquals(result, True)
+    self.assertEqual(result, True)
     raw_input_method.reset_mock()
     # test second input
 
@@ -136,7 +136,7 @@ class TestAmbariServer(TestCase):
 
     result = ambari_server.get_choice_string_input(prompt, default,
                                                    firstChoice, secondChoice)
-    self.assertEquals(result, False)
+    self.assertEqual(result, False)
 
     raw_input_method.reset_mock()
 
@@ -146,7 +146,7 @@ class TestAmbariServer(TestCase):
 
     result = ambari_server.get_choice_string_input(prompt, default,
                                                    firstChoice, secondChoice)
-    self.assertEquals(result, default)
+    self.assertEqual(result, default)
 
     raw_input_method.reset_mock()
 
@@ -160,8 +160,8 @@ class TestAmbariServer(TestCase):
 
     result = ambari_server.get_choice_string_input(prompt, default,
                                                    firstChoice, secondChoice)
-    self.assertEquals(result, True)
-    self.assertEquals(raw_input_method.call_count, 3)
+    self.assertEqual(result, True)
+    self.assertEqual(raw_input_method.call_count, 3)
 
     pass
 
@@ -183,7 +183,7 @@ class TestAmbariServer(TestCase):
     result = ambari_server.get_validated_string_input(prompt, default,
                                                       pattern, description, is_pass)
 
-    self.assertEquals(get_pass_method.return_value, result)
+    self.assertEqual(get_pass_method.return_value, result)
     get_pass_method.assure_called_once(prompt)
     self.assertFalse(raw_input_method.called)
 
@@ -196,14 +196,14 @@ class TestAmbariServer(TestCase):
     result = ambari_server.get_validated_string_input(prompt, default,
                                                       pattern, description, is_pass)
 
-    self.assertEquals(raw_input_method.return_value, result)
+    self.assertEqual(raw_input_method.return_value, result)
     self.assertFalse(get_pass_method.called)
     raw_input_method.assure_called_once(prompt)
 
 
   def test_get_pass_file_path(self):
     result = ambari_server.get_pass_file_path("/etc/ambari/conf_file")
-    self.assertEquals("/etc/ambari/password.dat", result)
+    self.assertEqual("/etc/ambari/password.dat", result)
     pass
 
 
@@ -484,7 +484,7 @@ class TestAmbariServer(TestCase):
     ambari_server.PG_HBA_CONF_FILE_BACKUP = tf2.name
     args = MagicMock()
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     rcode = ambari_server.configure_postgres()
     sys.stdout = sys.__stdout__
@@ -715,11 +715,11 @@ class TestAmbariServer(TestCase):
     # Testing with defined user
     properties_mock.return_value.__getitem__.return_value = "dummy_user"
     user = ambari_server.read_ambari_user()
-    self.assertEquals(user, "dummy_user")
+    self.assertEqual(user, "dummy_user")
     # Testing with undefined user
     properties_mock.return_value.__getitem__.return_value = None
     user = ambari_server.read_ambari_user()
-    self.assertEquals(user, None)
+    self.assertEqual(user, None)
 
 
   @patch("os.path.exists")
@@ -736,7 +736,7 @@ class TestAmbariServer(TestCase):
     get_value_from_properties_mock.return_value = "dummy_bootstrap_dir"
     ambari_server.adjust_directory_permissions("user")
     exists_mock.return_value = False
-    self.assertEquals(run_os_command_mock.call_args_list[0][0][0], "rm -rf dummy_bootstrap_dir")
+    self.assertEqual(run_os_command_mock.call_args_list[0][0][0], "rm -rf dummy_bootstrap_dir")
     self.assertTrue(mkdir_mock.called)
 
     set_file_permissions_mock.reset_mock()
@@ -751,8 +751,8 @@ class TestAmbariServer(TestCase):
     ambari_server.adjust_directory_permissions("user")
     self.assertTrue(len(set_file_permissions_mock.call_args_list) ==
                     len(ambari_server.NR_ADJUST_OWNERSHIP_LIST))
-    self.assertEquals(set_file_permissions_mock.call_args_list[0][0][3], True)
-    self.assertEquals(set_file_permissions_mock.call_args_list[1][0][3], False)
+    self.assertEqual(set_file_permissions_mock.call_args_list[0][0][3], True)
+    self.assertEqual(set_file_permissions_mock.call_args_list[1][0][3], False)
 
     ambari_server.NR_ADJUST_OWNERSHIP_LIST = old_list
 
@@ -847,7 +847,7 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.side_effect = [(0, "", "")]
     result = ambari_server.create_custom_user()
     self.assertFalse(print_warning_msg_mock.called)
-    self.assertEquals(result, (0, user))
+    self.assertEqual(result, (0, user))
 
     print_info_msg_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
@@ -857,7 +857,7 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.side_effect = [(9, "", "")]
     result = ambari_server.create_custom_user()
     self.assertTrue("User dummy-user already exists" in str(print_info_msg_mock.call_args_list[1][0]))
-    self.assertEquals(result, (0, user))
+    self.assertEqual(result, (0, user))
 
     print_info_msg_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
@@ -867,7 +867,7 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.side_effect = [(1, "", "")]
     result = ambari_server.create_custom_user()
     self.assertTrue(print_warning_msg_mock.called)
-    self.assertEquals(result, (1, None))
+    self.assertEqual(result, (1, None))
 
 
   @patch.object(ambari_server, "read_ambari_user")
@@ -1033,7 +1033,7 @@ class TestAmbariServer(TestCase):
 
   def test_dlprogress(self):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     ambari_server.dlprogress("filename", 10, 2, 100)
     sys.stdout = sys.__stdout__
@@ -1141,7 +1141,7 @@ class TestAmbariServer(TestCase):
                                  find_properties_file_mock, open_mock,
                                  get_truststore_type_mock, run_os_command_mock,
                                  get_validated_filepath_input_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     component = "component"
     command = "command"
@@ -1517,10 +1517,10 @@ class TestAmbariServer(TestCase):
                                      " 'keystore_cert_key_file_path')]"
 
     ambari_server.import_cert_and_key("key_dir")
-    self.assertEquals(get_validated_filepath_input_mock.call_count, 2)
+    self.assertEqual(get_validated_filepath_input_mock.call_count, 2)
     self.assertTrue(get_validated_string_input_mock.called)
-    self.assertEquals(os_path_join_mock.call_count, 8)
-    self.assertEquals(set_file_permissions_mock.call_count, 1)
+    self.assertEqual(os_path_join_mock.call_count, 8)
+    self.assertEqual(set_file_permissions_mock.call_count, 1)
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list), \
                      expect_import_file_to_keystore)
     self.assertTrue(generate_random_string_mock.called)
@@ -2269,8 +2269,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertEqual(None, result)
     self.assertTrue(check_ambari_user_mock.called)
-    self.assertEquals(True, store_remote_properties_mock.called)
-    self.assertEquals(False, store_local_properties_mock.called)
+    self.assertEqual(True, store_remote_properties_mock.called)
+    self.assertEqual(False, store_local_properties_mock.called)
 
 
     #Local case
@@ -2283,10 +2283,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException:
       self.fail("Setup should be successful")
     self.assertEqual(None, result)
-    self.assertEquals(True, store_local_properties_mock.called)
-    self.assertEquals(False, store_remote_properties_mock.called)
-    self.assertEquals(True, is_jdbc_user_changed_mock.called)
-    self.assertEquals(False, remove_file_mock.called)
+    self.assertEqual(True, store_local_properties_mock.called)
+    self.assertEqual(False, store_remote_properties_mock.called)
+    self.assertEqual(True, is_jdbc_user_changed_mock.called)
+    self.assertEqual(False, remove_file_mock.called)
 
     #if DB user name was changed
     reset_mocks()
@@ -2298,10 +2298,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException:
       self.fail("Setup should be successful")
     self.assertEqual(None, result)
-    self.assertEquals(True, store_local_properties_mock.called)
-    self.assertEquals(False, store_remote_properties_mock.called)
-    self.assertEquals(True, is_jdbc_user_changed_mock.called)
-    self.assertEquals(True, remove_file_mock.called)
+    self.assertEqual(True, store_local_properties_mock.called)
+    self.assertEqual(False, store_remote_properties_mock.called)
+    self.assertEqual(True, is_jdbc_user_changed_mock.called)
+    self.assertEqual(True, remove_file_mock.called)
 
     #negative case
     reset_mocks()
@@ -2687,7 +2687,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
      self.assertFalse(get_validated_string_input_method.called)
      self.assertFalse(save_master_key_method.called)
      popen_arg = popenMock.call_args[1]['env']
-     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
+     self.assertEqual(os_environ_mock.copy.return_value, popen_arg)
 
      parse_properties_file_mock.reset_mock()
 
@@ -2707,7 +2707,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
      self.assertTrue(get_validated_string_input_method.called)
      self.assertTrue(save_master_key_method.called)
      popen_arg = popenMock.call_args[1]['env']
-     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
+     self.assertEqual(os_environ_mock.copy.return_value, popen_arg)
 
 
   @patch.object(ambari_server, 'is_server_runing')
@@ -2933,7 +2933,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
   def test_print_info_msg(self):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     ambari_server.VERBOSE = True
@@ -2945,7 +2945,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   def test_print_error_msg(self):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     ambari_server.VERBOSE = True
@@ -2957,7 +2957,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   def test_print_warning_msg(self):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     ambari_server.VERBOSE = True
@@ -2980,18 +2980,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     ambari_server.load_default_db_properties(args)
 
-    self.assertEquals(args.dbms, "postgres")
-    self.assertEquals(args.database_host, "localhost")
-    self.assertEquals(args.database_port, "5432")
-    self.assertEquals(args.database_name, "ambari")
-    self.assertEquals(args.database_username, "ambari")
-    self.assertEquals(args.database_password, "bigdata")
+    self.assertEqual(args.dbms, "postgres")
+    self.assertEqual(args.database_host, "localhost")
+    self.assertEqual(args.database_port, "5432")
+    self.assertEqual(args.database_name, "ambari")
+    self.assertEqual(args.database_username, "ambari")
+    self.assertEqual(args.database_password, "bigdata")
 
     args = MagicMock()
     ambari_server.DATABASE_INDEX = 1
     ambari_server.load_default_db_properties(args)
-    self.assertEquals(args.dbms, "oracle")
-    self.assertEquals(args.database_port, "1521")
+    self.assertEqual(args.dbms, "oracle")
+    self.assertEqual(args.database_port, "1521")
 
     failed = False
     args = MagicMock()
@@ -3139,7 +3139,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertTrue(load_default_db_properties_mock.called)
 
-    self.assertEquals(args.dbms, "postgres")
+    self.assertEqual(args.dbms, "postgres")
 
     load_default_db_properties_mock.reset_mock()
     get_validated_string_input_mock.reset_mock()
@@ -3162,7 +3162,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.database_password = "some_password"
 
     retcode, out, err = ambari_server.execute_remote_script(args, script)
-    self.assertEquals(retcode, 0)
+    self.assertEqual(retcode, 0)
     self.assertTrue(get_db_cli_tool_mock.called)
     self.assertTrue(run_in_shell_mock.called)
 
@@ -3172,7 +3172,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_in_shell_mock.called = False
 
     retcode, out, err = ambari_server.execute_remote_script(args, script)
-    self.assertEquals(retcode, -1)
+    self.assertEqual(retcode, -1)
     self.assertTrue(get_db_cli_tool_mock.called)
     self.assertFalse(run_in_shell_mock.called)
 
@@ -3184,7 +3184,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_in_shell_mock.called = False
 
     retcode, out, err = ambari_server.execute_remote_script(args, script)
-    self.assertEquals(retcode, errcode)
+    self.assertEqual(retcode, errcode)
     self.assertTrue(get_db_cli_tool_mock.called)
     self.assertTrue(run_in_shell_mock.called)
 
@@ -3196,7 +3196,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.dbms = "unknown"
 
     retcode, out, err = ambari_server.execute_remote_script(args, script)
-    self.assertEquals(retcode, -2)
+    self.assertEqual(retcode, -2)
     self.assertTrue(get_db_cli_tool_mock.called)
     self.assertFalse(run_in_shell_mock.called)
     pass
@@ -3267,7 +3267,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Command should not fail if *.rpmsave file is missing
     result = ambari_server.update_ambari_properties()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
 
     os.unlink(fn2)
 
@@ -3277,24 +3277,24 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = fn
 
     result = ambari_server.update_ambari_properties()
-    self.assertNotEquals(result, 0)
+    self.assertNotEqual(result, 0)
 
   @patch.object(ambari_server.Properties, '__init__')
   @patch.object(ambari_server, 'search_file')
   def test_update_ambari_properties_negative_case(self, search_file_mock, properties_mock):
     search_file_mock.return_value = None
     #Call tested method
-    self.assertEquals(0, ambari_server.update_ambari_properties())
+    self.assertEqual(0, ambari_server.update_ambari_properties())
     self.assertFalse(properties_mock.called)
 
     search_file_mock.return_value = False
     #Call tested method
-    self.assertEquals(0, ambari_server.update_ambari_properties())
+    self.assertEqual(0, ambari_server.update_ambari_properties())
     self.assertFalse(properties_mock.called)
 
     search_file_mock.return_value = ''
     #Call tested method
-    self.assertEquals(0, ambari_server.update_ambari_properties())
+    self.assertEqual(0, ambari_server.update_ambari_properties())
     self.assertFalse(properties_mock.called)
 
 
@@ -3326,7 +3326,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_properties = ambari_server.Properties()
     ambari_properties.load(open(fn2))
 
-    self.assertTrue(ambari_server.NR_USER_PROPERTY in ambari_properties.keys())
+    self.assertTrue(ambari_server.NR_USER_PROPERTY in list(ambari_properties.keys()))
     value = ambari_properties[ambari_server.NR_USER_PROPERTY]
     self.assertEqual(value, "root")
 
@@ -3499,7 +3499,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def check_jdbc_drivers(self, exit_mock, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
                          find_jdbc_driver_mock, get_ambari_properties_mock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     args = MagicMock()
@@ -3595,11 +3595,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pathExistsMock.return_value = 1
 
     res = ambari_server.remove_file("/someNonExsistantDir/filename")
-    self.assertEquals(res, 1)
+    self.assertEqual(res, 1)
 
     removeMock.side_effect = None
     res = ambari_server.remove_file("/someExsistantDir/filename")
-    self.assertEquals(res, 0)
+    self.assertEqual(res, 0)
 
   @patch("shutil.copyfile")
   def test_copy_file(self, shutilCopyfileMock):
@@ -3634,7 +3634,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_check_jdbc_drivers(self, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
                               find_jdbc_driver_mock, get_ambari_properties_mock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     args = MagicMock()
@@ -3794,7 +3794,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     args = MagicMock()
     ambari_server.parse_properties_file(args)
-    self.assertEquals(args.persistence_type, "local")
+    self.assertEqual(args.persistence_type, "local")
 
     with open(tf1.name, 'w') as fout:
       fout.write("\n")
@@ -3803,7 +3803,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
 
     ambari_server.parse_properties_file(args)
-    self.assertEquals(args.persistence_type, "remote")
+    self.assertEqual(args.persistence_type, "remote")
 
 
   @patch.object(ambari_server, 'decrypt_password_for_alias')
@@ -3814,7 +3814,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                                                                     is_alias_string_method,
                                                                     decrypt_password_for_alias_method):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     configs = {ambari_server.JDBC_USER_NAME_PROPERTY: "fakeuser",
@@ -3833,8 +3833,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertTrue(decrypt_password_for_alias_method.called)
     self.assertTrue(is_alias_string_method.called)
-    self.assertEquals("fakeuser", args.database_username)
-    self.assertEquals("falepasswd", args.database_password)
+    self.assertEqual("fakeuser", args.database_username)
+    self.assertEqual("falepasswd", args.database_password)
 
     sys.stdout = sys.__stdout__
 
@@ -3842,20 +3842,20 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, 'read_password')
   def test_configure_database_password(self, read_password_method):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     read_password_method.return_value = "fakepasswd"
 
     result = ambari_server.configure_database_password(True)
     self.assertTrue(read_password_method.called)
-    self.assertEquals("fakepasswd", result)
+    self.assertEqual("fakepasswd", result)
 
     result = ambari_server.configure_database_password(True)
-    self.assertEquals("fakepasswd", result)
+    self.assertEqual("fakepasswd", result)
 
     result = ambari_server.configure_database_password(True)
-    self.assertEquals("fakepasswd", result)
+    self.assertEqual("fakepasswd", result)
 
     sys.stdout = sys.__stdout__
 
@@ -3901,7 +3901,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(update_properties_method.called)
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(save_passwd_for_alias_method.called)
-    self.assertEquals(3, save_passwd_for_alias_method.call_count)
+    self.assertEqual(3, save_passwd_for_alias_method.call_count)
     self.assertTrue(remove_password_file_method.called)
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
@@ -3914,10 +3914,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(result_expected.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
 
 
   @patch.object(ambari_server, 'save_passwd_for_alias')
@@ -3964,10 +3964,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                          ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
                        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(result_expected.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
 
 
   @patch.object(ambari_server, 'read_master_key')
@@ -4040,10 +4040,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(result_expected.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
 
 
   @patch.object(ambari_server, 'get_is_persisted')
@@ -4108,10 +4108,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
-    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(result_expected.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
 
   @patch('__builtin__.raw_input')
   @patch.object(ambari_server, 'get_is_secure')
@@ -4126,7 +4126,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                                     get_YN_input_method,
                                     get_is_secure_method,
                                     raw_input_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     is_root_method.return_value = True
     search_file_message.return_value = "filepath"
@@ -4154,10 +4154,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "client.security": "ldap"
       }
 
-    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(ldap_properties_map.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     self.assertTrue(get_YN_input_method.called)
     self.assertTrue(8, raw_input_mock.call_count)
 
@@ -4176,10 +4176,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "client.security": "ldap"
       }
 
-    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(ldap_properties_map.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     self.assertTrue(5, raw_input_mock.call_count)
 
     sys.stdout = sys.__stdout__
@@ -4203,7 +4203,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                       configure_ldap_password_method, update_properties_method,
                       get_YN_input_method, save_passwd_for_alias_method,
                       encrypt_password_method, get_is_secure_method):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -4269,10 +4269,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
           ambari_server.LDAP_MGR_PASSWORD_ALIAS)
       }
 
-    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(ldap_properties_map.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
-    self.assertEquals(sorted_x, sorted_y)
+    self.assertEqual(sorted_x, sorted_y)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(configure_ldap_password_method.called)
     self.assertTrue(get_validated_string_input_method.called)
@@ -4334,8 +4334,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
           ambari_server.LDAP_MGR_PASSWORD_ALIAS)
       }
 
-    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+    sorted_x = sorted(iter(list(ldap_properties_map.items())), key=operator.itemgetter(0))
+    sorted_y = sorted(iter(list(update_properties_method.call_args[0][1].items())),
                       key=operator.itemgetter(0))
 
     sys.stdout = sys.__stdout__
@@ -4343,7 +4343,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   @patch.object(ambari_server, 'read_password')
   def test_configure_ldap_password(self, read_password_method):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     read_password_method.return_value = "blah"
 
@@ -4355,7 +4355,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   @patch.object(ambari_server, 'get_validated_string_input')
   def test_read_password(self, get_validated_string_input_method):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     passwordDefault = ""
@@ -4367,21 +4367,21 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     password = ambari_server.read_password(passwordDefault, passwordPattern,
                                            passwordPrompt, passwordDescr)
     self.assertTrue(3, get_validated_string_input_method.call_count)
-    self.assertEquals('aaa', password)
+    self.assertEqual('aaa', password)
 
     get_validated_string_input_method.reset_mock()
     get_validated_string_input_method.side_effect = ['aaa', 'aaa']
     password = ambari_server.read_password(passwordDefault, passwordPattern,
                                            passwordPrompt, passwordDescr)
     self.assertTrue(2, get_validated_string_input_method.call_count)
-    self.assertEquals('aaa', password)
+    self.assertEqual('aaa', password)
 
     get_validated_string_input_method.reset_mock()
     get_validated_string_input_method.side_effect = ['aaa']
     password = ambari_server.read_password('aaa', passwordPattern,
                                            passwordPrompt, passwordDescr)
     self.assertTrue(1, get_validated_string_input_method.call_count)
-    self.assertEquals('aaa', password)
+    self.assertEqual('aaa', password)
 
     sys.stdout = sys.__stdout__
 
@@ -4409,8 +4409,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     properties.store.assert_called_with(f.__enter__.return_value)
     backup_file_in_temp_mock.assert_called_with(conf_file)
-    self.assertEquals(2, properties.removeOldProp.call_count)
-    self.assertEquals(2, properties.process_pair.call_count)
+    self.assertEqual(2, properties.removeOldProp.call_count)
+    self.assertEqual(2, properties.process_pair.call_count)
 
     properties = MagicMock()
     backup_file_in_temp_mock.reset_mock()
@@ -4599,7 +4599,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     properties = ambari_server.get_ambari_properties()
 
-    self.assertTrue(ambari_server.JDBC_DATABASE_PROPERTY in properties.keys())
+    self.assertTrue(ambari_server.JDBC_DATABASE_PROPERTY in list(properties.keys()))
     value = properties[ambari_server.JDBC_DATABASE_PROPERTY]
     self.assertEqual(value, new_db)
 

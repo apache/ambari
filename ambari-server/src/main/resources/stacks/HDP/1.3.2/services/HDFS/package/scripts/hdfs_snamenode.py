@@ -28,7 +28,7 @@ def snamenode(action=None, format=False):
   if action == "configure":
     Directory(params.fs_checkpoint_dir,
               recursive=True,
-              mode=0755,
+              mode=0o755,
               owner=params.hdfs_user,
               group=params.user_group)
   elif action == "start" or action == "stop":

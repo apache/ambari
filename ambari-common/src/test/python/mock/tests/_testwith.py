@@ -2,7 +2,7 @@
 # E-mail: fuzzyman AT voidspace DOT org DOT uk
 # http://www.voidspace.org.uk/python/mock/
 
-from __future__ import with_statement
+
 
 from tests.support import unittest2, is_instance
 

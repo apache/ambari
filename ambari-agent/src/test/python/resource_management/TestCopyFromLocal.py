@@ -36,17 +36,17 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': ' hadoop fs -ls /apps/test/*.files >/dev/null 2>&1', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEqual({'not_if': ' hadoop fs -ls /apps/test/*.files >/dev/null 2>&1', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
-      self.assertEquals('fs -chown user1 /apps/test/*.files', call_arg_list[1][0][0].command)
-      self.assertEquals({'user': 'hdfs', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
+      self.assertEqual('fs -chown user1 /apps/test/*.files', call_arg_list[1][0][0].command)
+      self.assertEqual({'user': 'hdfs', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
 
 
   @patch("resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider")
   def test_run_with_chmod(self, execute_hadoop_mock):
     with Environment() as env:
       CopyFromLocal('/user/testdir/*.files',
-        mode=0655,
+        mode=0o655,
         owner='user1',
         group='hdfs',
         dest_dir='/apps/test/',
@@ -57,9 +57,9 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': ' hadoop fs -ls /apps/test/*.files >/dev/null 2>&1', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEqual({'not_if': ' hadoop fs -ls /apps/test/*.files >/dev/null 2>&1', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
-      self.assertEquals('fs -chown user1:hdfs /apps/test/*.files', call_arg_list[1][0][0].command)
-      self.assertEquals({'user': 'hdfs', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
+      self.assertEqual('fs -chown user1:hdfs /apps/test/*.files', call_arg_list[1][0][0].command)
+      self.assertEqual({'user': 'hdfs', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
 
 

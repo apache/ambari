@@ -106,16 +106,16 @@ def setup_hadoop():
   File(os.path.join(params.limits_conf_dir, 'hdfs.conf'),
        owner='root',
        group='root',
-       mode=0644,
+       mode=0o644,
        content=Template("hdfs.conf.j2")
   )
   if params.security_enabled:
     File(os.path.join(params.hadoop_bin, "task-controller"),
          owner="root",
          group=params.mapred_tt_group,
-         mode=06050
+         mode=0o6050
     )
-    tc_mode = 0644
+    tc_mode = 0o644
     tc_owner = "root"
   else:
     tc_mode = None
@@ -148,14 +148,14 @@ def setup_hadoop():
   log4j_filename = os.path.join(params.hadoop_conf_dir, "log4j.properties")
   if (params.log4j_props != None):
     File(log4j_filename,
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hdfs_user,
          content=params.log4j_props
     )
   elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
     File(log4j_filename,
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hdfs_user,
     )
@@ -225,7 +225,7 @@ def setup_configs():
 
   File(params.task_log4j_properties_location,
        content=StaticFile("task-log4j.properties"),
-       mode=0755
+       mode=0o755
   )
 
   if "capacity-scheduler" in params.config['configurations']:

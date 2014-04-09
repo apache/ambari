@@ -24,14 +24,14 @@ import os
 
 
 def hive(name=None):
-  import params
+  from . import params
 
   if name == 'hiveserver2':
 
     params.HdfsDirectory(params.hive_apps_whs_dir,
                          action="create_delayed",
                          owner=params.hive_user,
-                         mode=0777
+                         mode=0o777
     )
     params.HdfsDirectory(params.hive_hdfs_user_dir,
                          action="create_delayed",
@@ -41,11 +41,11 @@ def hive(name=None):
     params.HdfsDirectory(None, action="create")
   if name == 'metastore' or name == 'hiveserver2':
     hive_config_dir = params.hive_server_conf_dir
-    config_file_mode = 0600
+    config_file_mode = 0o600
     jdbc_connector()
   else:
     hive_config_dir = params.hive_conf_dir
-    config_file_mode = 0644
+    config_file_mode = 0o644
 
   Directory(hive_config_dir,
             owner=params.hive_user,
@@ -75,12 +75,12 @@ def hive(name=None):
 
   if name == 'metastore':
     File(params.start_metastore_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startMetastore.sh')
     )
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
-         mode=0755,
+         mode=0o755,
          content=Template(format('{start_hiveserver2_script}'))
     )
 
@@ -101,14 +101,14 @@ def hive(name=None):
   log4j_exec_filename = 'hive-exec-log4j.properties'
   if (params.log4j_exec_props != None):
     File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_exec_props
     )
   elif (os.path.exists("{params.hive_conf_dir}/{log4j_exec_filename}.template")):
     File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=StaticFile(format("{params.hive_conf_dir}/{log4j_exec_filename}.template"))
@@ -117,14 +117,14 @@ def hive(name=None):
   log4j_filename = 'hive-log4j.properties'
   if (params.log4j_props != None):
     File(format("{params.hive_conf_dir}/{log4j_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_props
     )
   elif (os.path.exists("{params.hive_conf_dir}/{log4j_filename}.template")):
     File(format("{params.hive_conf_dir}/{log4j_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=StaticFile(format("{params.hive_conf_dir}/{log4j_filename}.template"))
@@ -132,17 +132,17 @@ def hive(name=None):
 
 
 def crt_directory(name):
-  import params
+  from . import params
 
   Directory(name,
             recursive=True,
             owner=params.hive_user,
             group=params.user_group,
-            mode=0755)
+            mode=0o755)
 
 
 def crt_file(name):
-  import params
+  from . import params
 
   File(name,
        owner=params.hive_user,
@@ -151,7 +151,7 @@ def crt_file(name):
 
 
 def jdbc_connector():
-  import params
+  from . import params
 
   if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
     cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")

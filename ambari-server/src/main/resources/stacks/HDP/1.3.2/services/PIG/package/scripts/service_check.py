@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -48,7 +48,7 @@ class PigServiceCheck(Script):
   
     File( '/tmp/pigSmoke.sh',
       content = StaticFile("pigSmoke.sh"),
-      mode = 0755
+      mode = 0o755
     )
   
     Execute( "pig /tmp/pigSmoke.sh",

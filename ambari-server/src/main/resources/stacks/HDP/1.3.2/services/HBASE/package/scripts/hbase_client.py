@@ -21,7 +21,7 @@ limitations under the License.
 import sys
 from resource_management import *
 
-from hbase import hbase
+from .hbase import hbase
 
          
 class HbaseClient(Script):
@@ -30,7 +30,7 @@ class HbaseClient(Script):
     self.configure(env)
     
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     
     hbase(name='client')

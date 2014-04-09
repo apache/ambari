@@ -25,18 +25,18 @@ import sys
 import os
 import time
 import threading
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import pprint
 from random import randint
 
-import hostname
-import AmbariConfig
-import ProcessHelper
-from Heartbeat import Heartbeat
-from Register import Register
-from ActionQueue import ActionQueue
-import security
-from NetUtil import NetUtil
+from . import hostname
+from . import AmbariConfig
+from . import ProcessHelper
+from .Heartbeat import Heartbeat
+from .Register import Register
+from .ActionQueue import ActionQueue
+from . import security
+from .NetUtil import NetUtil
 import ssl
 
 
@@ -91,10 +91,10 @@ class Controller(threading.Thread):
         # exitstatus = 0 (OK - Default)
         # exitstatus = 1 (Registration failed because
         #                different version of agent and server)
-        if 'exitstatus' in ret.keys():
+        if 'exitstatus' in list(ret.keys()):
           exitstatus = int(ret['exitstatus'])
         # log - message, which will be printed to agents  log  
-        if 'log' in ret.keys():
+        if 'log' in list(ret.keys()):
           log = ret['log']
         if exitstatus == 1:
           logger.error(log)
@@ -105,7 +105,7 @@ class Controller(threading.Thread):
         print("Registered with the server")
         self.responseId= int(ret['responseId'])
         self.isRegistered = True
-        if 'statusCommands' in ret.keys():
+        if 'statusCommands' in list(ret.keys()):
           logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']) )
           self.addToStatusQueue(ret['statusCommands'])
           pass
@@ -116,7 +116,7 @@ class Controller(threading.Thread):
         self.repeatRegistration=False
         self.isRegistered = False
         return
-      except Exception, err:
+      except Exception as err:
         # try a reconnect only after a certain amount of random time
         delay = randint(0, self.range)
         logger.info("Unable to connect to: " + self.registerUrl, exc_info = True)
@@ -177,10 +177,10 @@ class Controller(threading.Thread):
         
         serverId=int(response['responseId'])
 
-        if 'hasMappedComponents' in response.keys():
+        if 'hasMappedComponents' in list(response.keys()):
           self.hasMappedComponents = response['hasMappedComponents'] != False
 
-        if 'registrationCommand' in response.keys():
+        if 'registrationCommand' in list(response.keys()):
           # check if the registration command is None. If none skip
           if response['registrationCommand'] is not None:
             logger.info("RegistrationCommand received - repeat agent registration")
@@ -194,10 +194,10 @@ class Controller(threading.Thread):
         else:
           self.responseId=serverId
 
-        if 'executionCommands' in response.keys():
+        if 'executionCommands' in list(response.keys()):
           self.addToQueue(response['executionCommands'])
           pass
-        if 'statusCommands' in response.keys():
+        if 'statusCommands' in list(response.keys()):
           self.addToStatusQueue(response['statusCommands'])
           pass
         if "true" == response['restartAgent']:
@@ -219,7 +219,7 @@ class Controller(threading.Thread):
         self.repeatRegistration=False
         self.isRegistered = False
         return
-      except Exception, err:
+      except Exception as err:
         #randomize the heartbeat
         delay = randint(0, self.range)
         time.sleep(delay)
@@ -250,8 +250,8 @@ class Controller(threading.Thread):
     self.register = Register(self.config)
     self.heartbeat = Heartbeat(self.actionQueue, self.config)
 
-    opener = urllib2.build_opener()
-    urllib2.install_opener(opener)
+    opener = urllib.request.build_opener()
+    urllib.request.install_opener(opener)
 
     while True:
       self.repeatRegistration = False
@@ -279,7 +279,7 @@ class Controller(threading.Thread):
   def sendRequest(self, url, data):
     if self.cachedconnect is None: # Lazy initialization
       self.cachedconnect = security.CachedHTTPSConnection(self.config)
-    req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+    req = urllib.request.Request(url, data, {'Content-Type': 'application/json'})
     response = self.cachedconnect.request(req)
     return response
 

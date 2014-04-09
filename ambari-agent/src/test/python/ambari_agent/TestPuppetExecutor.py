@@ -39,10 +39,10 @@ class TestPuppetExecutor(TestCase):
   def test_build(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
     command = puppetexecutor.puppetCommand("site.pp")
-    self.assertEquals("puppet", command[0], "puppet binary wrong")
-    self.assertEquals("apply", command[1], "local apply called")
-    self.assertEquals("--confdir=/tmp", command[2],"conf dir tmp")
-    self.assertEquals("--detailed-exitcodes", command[3], "make sure output \
+    self.assertEqual("puppet", command[0], "puppet binary wrong")
+    self.assertEqual("apply", command[1], "local apply called")
+    self.assertEqual("--confdir=/tmp", command[2],"conf dir tmp")
+    self.assertEqual("--detailed-exitcodes", command[3], "make sure output \
     correct")
     
   @patch.object(shellRunner,'run')
@@ -52,10 +52,10 @@ class TestPuppetExecutor(TestCase):
     command = {'configurations':{'global':{'java64_home':'/usr/jdk/jdk123'}}}
     
     cmdrun_mock.return_value = {'exitCode': 1, 'output': 'Command not found', 'error': ''}
-    self.assertEquals(puppetInstance.isJavaAvailable(command), False)
+    self.assertEqual(puppetInstance.isJavaAvailable(command), False)
     
     cmdrun_mock.return_value = {'exitCode': 0, 'output': 'OK', 'error': ''}
-    self.assertEquals(puppetInstance.isJavaAvailable(command), True)
+    self.assertEqual(puppetInstance.isJavaAvailable(command), True)
 
   @patch.object(manifestGenerator, 'generateManifest')
   @patch.object(PuppetExecutor, 'isJavaAvailable')
@@ -74,7 +74,7 @@ class TestPuppetExecutor(TestCase):
     puppetInstance.reposInstalled = False
     isJavaAvailableMock.return_value = True
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
-    self.assertEquals(res["exitcode"], 0)
+    self.assertEqual(res["exitcode"], 0)
     self.assertTrue(puppetInstance.reposInstalled)
 
     def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile, timeout):
@@ -83,13 +83,13 @@ class TestPuppetExecutor(TestCase):
     puppetInstance.reposInstalled = False
     isJavaAvailableMock.return_value = True
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
-    self.assertEquals(res["exitcode"], 999)
+    self.assertEqual(res["exitcode"], 999)
     self.assertFalse(puppetInstance.reposInstalled)
 
     generateManifestMock.return_value = 'error during manifest generation'
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertTrue(generateManifestMock.called)
-    self.assertEquals(res["exitcode"], 1)
+    self.assertEqual(res["exitcode"], 1)
     generateManifestMock.return_value = ''
 
     def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
@@ -103,14 +103,14 @@ class TestPuppetExecutor(TestCase):
     
     JAVANOTVALID_MSG = "Cannot access JDK! Make sure you have permission to execute {0}/bin/java"
     errMsg = JAVANOTVALID_MSG.format('/usr/jdk/jdk123')
-    self.assertEquals(res["exitcode"], 1)
-    self.assertEquals(res["stderr"], errMsg)
+    self.assertEqual(res["exitcode"], 1)
+    self.assertEqual(res["stderr"], errMsg)
     self.assertFalse(puppetInstance.reposInstalled)
 
     parsedJson['hostLevelParams'] = {'random':{'name1':'value2'}}
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
-    self.assertEquals(res["exitcode"], 1)
-    self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java_home is specified in hostLevelParams")
+    self.assertEqual(res["exitcode"], 1)
+    self.assertEqual(res["stderr"], "Cannot access JDK! Make sure java_home is specified in hostLevelParams")
 
 
   @patch.object(PuppetExecutor, 'isJavaAvailable')
@@ -133,23 +133,23 @@ class TestPuppetExecutor(TestCase):
     #If ambari-agent has been just started and no any commands were executed by
     # PuppetExecutor.runCommand, then no repo files were updated by
     # RepoInstaller.generate_repo_manifests
-    self.assertEquals(0, generateRepoManifestMock.call_count)
+    self.assertEqual(0, generateRepoManifestMock.call_count)
     self.assertFalse(puppetInstance.reposInstalled)
 
     # After executing of the first command, RepoInstaller.generate_repo_manifests
     # generates a .pp file for updating repo files
     puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertTrue(puppetInstance.reposInstalled)
-    self.assertEquals(1, generateRepoManifestMock.call_count)
+    self.assertEqual(1, generateRepoManifestMock.call_count)
     isJavaAvailableMock.assert_called_with("java64_home")
 
     # After executing of the next commands, repo manifest aren't generated again
     puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertTrue(puppetInstance.reposInstalled)
-    self.assertEquals(1, generateRepoManifestMock.call_count)
+    self.assertEqual(1, generateRepoManifestMock.call_count)
     puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertTrue(puppetInstance.reposInstalled)
-    self.assertEquals(1, generateRepoManifestMock.call_count)
+    self.assertEqual(1, generateRepoManifestMock.call_count)
 
   @patch("os.path.exists")
   def test_configure_environ(self, osPathExistsMock):
@@ -157,14 +157,14 @@ class TestPuppetExecutor(TestCase):
     tmpdir = tempfile.gettempdir()
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, config)
     environ = puppetInstance.configureEnviron({})
-    self.assertEquals(environ, {})
+    self.assertEqual(environ, {})
 
     config.set('puppet','ruby_home',"test/ruby_home")
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, config)
     osPathExistsMock.return_value = True
     environ = puppetInstance.configureEnviron({"PATH" : "test_path"})
-    self.assertEquals(environ["PATH"], "test/ruby_home/bin:test_path")
-    self.assertEquals(environ["MY_RUBY_HOME"], "test/ruby_home")
+    self.assertEqual(environ["PATH"], "test/ruby_home/bin:test_path")
+    self.assertEqual(environ["MY_RUBY_HOME"], "test/ruby_home")
 
   def test_condense_bad2(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
@@ -181,9 +181,9 @@ class TestPuppetExecutor(TestCase):
     result_check = True
     for l in d:
       result_check &= grep.filterMarkup(l) in result
-    self.assertEquals(result_check, True, "Failed to condence fail log")
-    self.assertEquals(('warning' in result.lower()), False, "Failed to condence fail log")
-    self.assertEquals(len(result.splitlines(True)), 5, "Failed to condence fail log")
+    self.assertEqual(result_check, True, "Failed to condence fail log")
+    self.assertEqual(('warning' in result.lower()), False, "Failed to condence fail log")
+    self.assertEqual(len(result.splitlines(True)), 5, "Failed to condence fail log")
 
   def test_condense_bad3(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
@@ -199,9 +199,9 @@ class TestPuppetExecutor(TestCase):
     result_check = True
     for l in d:
       result_check &= grep.filterMarkup(l) in result
-    self.assertEquals(result_check, True, "Failed to condence fail log")
-    self.assertEquals(('warning' in result.lower()), False, "Failed to condence fail log")
-    self.assertEquals(len(result.splitlines(True)), 19, "Failed to condence fail log")
+    self.assertEqual(result_check, True, "Failed to condence fail log")
+    self.assertEqual(('warning' in result.lower()), False, "Failed to condence fail log")
+    self.assertEqual(len(result.splitlines(True)), 19, "Failed to condence fail log")
 
   def test_condense_good(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
@@ -213,8 +213,8 @@ class TestPuppetExecutor(TestCase):
     stripped_string = string_good.strip()
     lines = stripped_string.splitlines(True)
     result_check = lines[45].strip() in result and lines[46].strip() in result
-    self.assertEquals(result_check, True, "Failed to condence output log")
-    self.assertEquals(len(result.splitlines(True)), 2, "Failed to condence output log")
+    self.assertEqual(result_check, True, "Failed to condence output log")
+    self.assertEqual(len(result.splitlines(True)), 2, "Failed to condence output log")
 
   @patch("shell.kill_process_with_children")
   def test_watchdog_1(self, kill_process_with_children_mock):
@@ -239,7 +239,7 @@ class TestPuppetExecutor(TestCase):
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, True, "Subprocess should be terminated due to timeout")
+    self.assertEqual(subproc_mock.was_terminated, True, "Subprocess should be terminated due to timeout")
 
 
   def test_watchdog_2(self):
@@ -264,8 +264,8 @@ class TestPuppetExecutor(TestCase):
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
-    self.assertEquals(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
 
 
   class  PuppetExecutor_mock(PuppetExecutor):

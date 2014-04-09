@@ -102,7 +102,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -112,7 +112,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -128,13 +128,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',
@@ -174,7 +174,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -184,7 +184,7 @@ class TestWebHCatServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
+                              mode = 0o755,
                               owner = 'hcat',
                               action = ['create_delayed'],
                               )
@@ -200,13 +200,13 @@ class TestWebHCatServer(RMFTestCase):
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
       owner = 'hcat',

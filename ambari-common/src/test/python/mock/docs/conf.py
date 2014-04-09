@@ -65,8 +65,8 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General substitutions.
-project = u'Mock'
-copyright = u'2007-2012, Michael Foord & the mock team'
+project = 'Mock'
+copyright = '2007-2012, Michael Foord & the mock team'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -187,8 +187,8 @@ latex_font_size = '12pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'Mock.tex', u'Mock Documentation',
-   u'Michael Foord', 'manual'),
+  ('index', 'Mock.tex', 'Mock Documentation',
+   'Michael Foord', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import Queue
+import queue
 
 import logging
 import traceback
@@ -25,12 +25,12 @@ import threading
 import pprint
 import os
 
-from LiveStatus import LiveStatus
-from shell import shellRunner
-import PuppetExecutor
-from ActualConfigHandler import ActualConfigHandler
-from CommandStatusDict import CommandStatusDict
-from CustomServiceOrchestrator import CustomServiceOrchestrator
+from .LiveStatus import LiveStatus
+from .shell import shellRunner
+from . import PuppetExecutor
+from .ActualConfigHandler import ActualConfigHandler
+from .CommandStatusDict import CommandStatusDict
+from .CustomServiceOrchestrator import CustomServiceOrchestrator
 
 
 logger = logging.getLogger()
@@ -67,8 +67,8 @@ class ActionQueue(threading.Thread):
 
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
-    self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = Queue.Queue()
+    self.commandQueue = queue.Queue()
+    self.statusCommandQueue = queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
       self.status_update_callback)
     self.config = config
@@ -112,12 +112,12 @@ class ActionQueue(threading.Thread):
         try:
           command = self.statusCommandQueue.get(False)
           self.process_command(command)
-        except (Queue.Empty):
+        except (queue.Empty):
           pass
       try:
         command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
         self.process_command(command)
-      except (Queue.Empty):
+      except (queue.Empty):
         pass
 
 
@@ -133,7 +133,7 @@ class ActionQueue(threading.Thread):
         self.execute_status_command(command)
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
-    except Exception, err:
+    except Exception as err:
       # Should not happen
       traceback.print_exc()
       logger.warn(err)
@@ -215,16 +215,16 @@ class ActionQueue(threading.Thread):
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config, self.configTags)
-      if command.has_key('configurationTags'):
+      if 'configurationTags' in command:
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
       component = {'serviceName':command['serviceName'],'componentName':command['role']}
-      if command.has_key('roleCommand') and \
+      if 'roleCommand' in command and \
         (command['roleCommand'] == self.ROLE_COMMAND_START or \
         (command['roleCommand'] == self.ROLE_COMMAND_INSTALL \
         and component in LiveStatus.CLIENT_COMPONENTS) or \
         (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and \
-        command['hostLevelParams'].has_key('custom_command') and \
+        'custom_command' in command['hostLevelParams'] and \
         command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
         configHandler.write_actual_component(command['role'], command['configurationTags'])
         configHandler.write_client_components(command['serviceName'], command['configurationTags'])
@@ -241,7 +241,7 @@ class ActionQueue(threading.Thread):
       service = command['serviceName']
       component = command['componentName']
       configurations = command['configurations']
-      if configurations.has_key('global'):
+      if 'global' in configurations:
         globalConfig = configurations['global']
       else:
         globalConfig = {}
@@ -263,7 +263,7 @@ class ActionQueue(threading.Thread):
       logger.debug(pprint.pformat(result))
       if result is not None:
         self.commandStatuses.put_command_status(command, result)
-    except Exception, err:
+    except Exception as err:
       traceback.print_exc()
       logger.warn(err)
     pass

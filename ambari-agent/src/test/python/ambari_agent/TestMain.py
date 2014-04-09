@@ -17,13 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys
 from mock.mock import MagicMock, patch, ANY
 import unittest
 import logging
 import signal
-import ConfigParser
+import configparser
 import os
 import tempfile
 from optparse import OptionParser
@@ -42,7 +42,7 @@ class TestMain(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 

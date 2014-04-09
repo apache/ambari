@@ -36,7 +36,7 @@ def oozie(is_server=False
     configurations = params.config['configurations']['oozie-site'],
     owner = params.oozie_user,
     group = params.user_group,
-    mode = 0664
+    mode = 0o664
   )
   
   Directory( params.conf_dir,
@@ -50,14 +50,14 @@ def oozie(is_server=False
 
   if (params.log4j_props != None):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.oozie_user,
          content=params.log4j_props
     )
   elif (os.path.exists(format("{params.conf_dir}/oozie-log4j.properties"))):
     File(format("{params.conf_dir}/oozie-log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.oozie_user
     )
@@ -117,7 +117,7 @@ def oozie_server_specific(
   oozie_server_directorties = [params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir]            
   Directory( oozie_server_directorties,
     owner = params.oozie_user,
-    mode = 0755,
+    mode = 0o755,
     recursive = True
   )
        

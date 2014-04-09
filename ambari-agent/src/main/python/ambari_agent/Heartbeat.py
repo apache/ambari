@@ -23,11 +23,11 @@ import logging
 import time
 from pprint import pformat
 
-from ActionQueue import ActionQueue
-import AmbariConfig
-import hostname
-from HostInfo import HostInfo
-from Hardware import Hardware
+from .ActionQueue import ActionQueue
+from . import AmbariConfig
+from . import hostname
+from .HostInfo import HostInfo
+from .Hardware import Hardware
 
 
 logger = logging.getLogger()
@@ -93,7 +93,7 @@ class Heartbeat:
 def main(argv=None):
   actionQueue = ActionQueue(AmbariConfig.config)
   heartbeat = Heartbeat(actionQueue)
-  print json.dumps(heartbeat.build('3',3))
+  print((json.dumps(heartbeat.build('3',3))))
 
 if __name__ == '__main__':
   main()

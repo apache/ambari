@@ -22,7 +22,7 @@ import os
 import logging
 import traceback
 import sys
-from shell import getTempFiles
+from .shell import getTempFiles
 
 logger = logging.getLogger()
 

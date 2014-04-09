@@ -21,7 +21,7 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
-import os, sys, StringIO
+import os, sys, io
 from ambari_agent import ActualConfigHandler
 from mock.mock import patch
 import pprint
@@ -32,7 +32,7 @@ class TestLiveStatus(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -48,10 +48,10 @@ class TestLiveStatus(TestCase):
       livestatus = LiveStatus('', component['serviceName'], component['componentName'], {}, config, {})
       livestatus.versionsHandler.versionsFilePath = "ambari_agent" + os.sep + "dummy_files" + os.sep + "dummy_current_stack"
       result = livestatus.build()
-      print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
-      self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')
+      print(("LiveStatus of {0}: {1}".format(component['serviceName'], str(result))))
+      self.assertEqual(len(result) > 0, True, 'Livestatus should not be empty')
       if component['componentName'] == 'GANGLIA_SERVER':
-        self.assertEquals(result['stackVersion'],'{"stackName":"HDP","stackVersion":"1.2.2"}',
+        self.assertEqual(result['stackVersion'],'{"stackName":"HDP","stackVersion":"1.2.2"}',
                       'Livestatus should contain component stack version')
 
     # Test build status for CLIENT component (in LiveStatus.CLIENT_COMPONENTS)
@@ -59,7 +59,7 @@ class TestLiveStatus(TestCase):
     livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})
     result = livestatus.build()
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
-    self.assertTrue(result.has_key('configurationTags'))
+    self.assertTrue('configurationTags' in result)
     # Test build status with forsed_component_status
     ## Alive
     livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})

@@ -194,7 +194,7 @@ class TestJobtracker(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'mapred',
                               group = 'hadoop',
                               action = ['create_delayed'],
@@ -205,7 +205,7 @@ class TestJobtracker(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'mapred',
                               group = 'hadoop',
                               action = ['create_delayed'],
@@ -231,18 +231,18 @@ class TestJobtracker(RMFTestCase):
     self.assertResourceCalled('File', '/var/log/hadoop/mapred/hadoop-mapreduce.jobsummary.log',
       owner = 'mapred',
       group = 'hadoop',
-      mode = 0664
+      mode = 0o664
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred',
       owner = 'mapred',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
       ignore_failures=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred1',
       owner = 'mapred',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
       ignore_failures=True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
@@ -288,7 +288,7 @@ class TestJobtracker(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'mapred',
                               group = 'hadoop',
                               action = ['create_delayed'],
@@ -299,7 +299,7 @@ class TestJobtracker(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'mapred',
                               group = 'hadoop',
                               action = ['create_delayed'],
@@ -325,12 +325,12 @@ class TestJobtracker(RMFTestCase):
     self.assertResourceCalled('File', '/var/log/hadoop/mapred/hadoop-mapreduce.jobsummary.log',
       owner = 'mapred',
       group = 'hadoop',
-      mode = 0664
+      mode = 0o664
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred',
       owner = 'mapred',
       recursive = True,
-      mode = 0755,
+      mode = 0o755,
       ignore_failures=True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',

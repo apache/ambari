@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import os, sys, StringIO
+import os, sys, io
 from ambari_agent.AgentException import AgentException
 
 from unittest import TestCase
@@ -34,7 +34,7 @@ class TestManifestGenerator(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     self.dir = tempfile.mkdtemp()
@@ -52,12 +52,12 @@ class TestManifestGenerator(TestCase):
 
   def testWriteImports(self):
     tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
-    print tmpFileName
+    print(tmpFileName)
     tmpFile = file(tmpFileName, 'r+')
 
     manifestGenerator.writeImports(tmpFile, '../../main/puppet/modules', self.config.getImports())
     tmpFile.seek(0)
-    print tmpFile.read()
+    print((tmpFile.read()))
     tmpFile.close()
 
 
@@ -79,7 +79,7 @@ class TestManifestGenerator(TestCase):
     self.assertTrue(writeTasksMock.called)
     self.assertTrue(decompressClusterHostInfoMock.called)
 
-    print file(tmpFileName).read()
+    print((file(tmpFileName).read()))
 
     def raiseTypeError():
       raise TypeError()
@@ -101,7 +101,7 @@ class TestManifestGenerator(TestCase):
     clusterHostInfo['zookeeper_hosts'] = ["h1.hortonworks.com", "h2.hortonworks.com"]
     manifestGenerator.writeNodes(tmpFile, clusterHostInfo)
     tmpFile.seek(0)
-    print tmpFile.read()
+    print((tmpFile.read()))
     tmpFile.close()
     os.remove(tmpFileName)
 
@@ -110,11 +110,11 @@ class TestManifestGenerator(TestCase):
     tmpFile = file(tmpFileName, 'r+')
 
     clusterHostInfo = self.parsedJson['clusterHostInfo']
-    clusterHostInfo.update({u'ZOOKEEPER':[None]})
+    clusterHostInfo.update({'ZOOKEEPER':[None]})
     clusterHostInfo['zookeeper_hosts'] = ["h1.hortonworks.com", "h2.hortonworks.com"]
     self.assertRaises(TypeError, manifestGenerator.writeNodes, tmpFile, clusterHostInfo)
     tmpFile.seek(0)
-    print tmpFile.read()
+    print((tmpFile.read()))
     tmpFile.close()
     os.remove(tmpFileName)
 
@@ -125,7 +125,7 @@ class TestManifestGenerator(TestCase):
     hostAttributes = {'HostAttr1' : '1', 'HostAttr2' : '2'}
     manifestGenerator.writeHostAttributes(tmpFile, hostAttributes)
     tmpFile.seek(0)
-    print tmpFile.read()
+    print((tmpFile.read()))
     tmpFile.close()
     os.remove(tmpFileName)
 
@@ -140,7 +140,7 @@ class TestManifestGenerator(TestCase):
     clusterHostInfo['zookeeper_hosts'] = ["h1.hortonworks.com", "h2.hortonworks.com"]
     manifestGenerator.writeTasks(tmpFile, roles, self.config, clusterHostInfo, "h1.hortonworks.com")
     tmpFile.seek(0)
-    print tmpFile.read()
+    print((tmpFile.read()))
     tmpFile.close()
     os.remove(tmpFileName)
     
@@ -158,7 +158,7 @@ class TestManifestGenerator(TestCase):
     try:
       rangesList = ["0", "-2"]
       list = manifestGenerator.convertRangeToList(rangesList)
-    except AgentException, err:
+    except AgentException as err:
       #Expected
       exceptionWasTrown = True
       
@@ -168,7 +168,7 @@ class TestManifestGenerator(TestCase):
     try:
       rangesList = ["0", "-"]
       list = manifestGenerator.convertRangeToList(rangesList)
-    except AgentException, err:
+    except AgentException as err:
       #Expected
       exceptionWasTrown = True
     self.assertTrue(exceptionWasTrown)
@@ -177,7 +177,7 @@ class TestManifestGenerator(TestCase):
     try:
       rangesList = ["0", "2-"]
       list = manifestGenerator.convertRangeToList(rangesList)
-    except AgentException, err:
+    except AgentException as err:
       #Expected
       exceptionWasTrown = True
     self.assertTrue(exceptionWasTrown)
@@ -195,7 +195,7 @@ class TestManifestGenerator(TestCase):
     mappedRangedList = ["7:0-"]
     try:
       list = manifestGenerator.convertMappedRangeToList(mappedRangedList)
-    except AgentException, err:
+    except AgentException as err:
       #Expected
       exceptionWasTrown = True
     self.assertTrue(exceptionWasTrown)
@@ -205,7 +205,7 @@ class TestManifestGenerator(TestCase):
     mappedRangedList = ["7:-"]
     try:
       list = manifestGenerator.convertMappedRangeToList(mappedRangedList)
-    except AgentException, err:
+    except AgentException as err:
       #Expected
       exceptionWasTrown = True
     self.assertTrue(exceptionWasTrown)
@@ -214,7 +214,7 @@ class TestManifestGenerator(TestCase):
     mappedRangedList = ["7:-1"]
     try:
       list = manifestGenerator.convertMappedRangeToList(mappedRangedList)
-    except AgentException, err:
+    except AgentException as err:
       #Expected
       exceptionWasTrown = True
     self.assertTrue(exceptionWasTrown)
@@ -234,16 +234,16 @@ class TestManifestGenerator(TestCase):
         
       decompressedInfo = manifestGenerator.decompressClusterHostInfo(clusterHostInfo)
       
-      self.assertTrue(decompressedInfo.has_key("all_hosts"))
+      self.assertTrue("all_hosts" in decompressedInfo)
       
       allHosts = decompressedInfo.pop("all_hosts")
       
-      self.assertEquals(info.get("all_hosts"), decompressedInfo.get("all_hosts"))
+      self.assertEqual(info.get("all_hosts"), decompressedInfo.get("all_hosts"))
       
       pingPorts = decompressedInfo.pop("all_ping_ports")
       
-      self.assertEquals(pingPorts, manifestGenerator.convertMappedRangeToList(info.get("all_ping_ports")))
+      self.assertEqual(pingPorts, manifestGenerator.convertMappedRangeToList(info.get("all_ping_ports")))
       
-      for k,v in decompressedInfo.items():
-        self.assertEquals(v, manifestGenerator.convertRangeToList(info.get(k)))
+      for k,v in list(decompressedInfo.items()):
+        self.assertEqual(v, manifestGenerator.convertRangeToList(info.get(k)))
 

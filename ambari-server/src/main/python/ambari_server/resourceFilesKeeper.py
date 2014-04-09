@@ -108,7 +108,7 @@ class ResourceFilesKeeper():
         if os.path.exists(metainfo_file):
           valid_stacks.append(directory)
       return valid_stacks
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not list stacks: {0}".format(str(err)))
 
 
@@ -150,7 +150,7 @@ class ResourceFilesKeeper():
               break
             sha1.update(data)
       return sha1.hexdigest()
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not calculate directory "
                             "hash: {0}".format(str(err)))
 
@@ -165,7 +165,7 @@ class ResourceFilesKeeper():
       try:
         with open(hash_file) as fh:
           return fh.readline().strip()
-      except Exception, err:
+      except Exception as err:
         raise KeeperException("Can not read file {0} : {1}".format(hash_file,
                                                                    str(err)))
     else:
@@ -181,7 +181,7 @@ class ResourceFilesKeeper():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
                                                                    str(err)))
 
@@ -205,7 +205,7 @@ class ResourceFilesKeeper():
                                         arcname))
             zf.write(absname, arcname)
       zf.close()
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not create zip archive of "
                             "directory {0} : {1}".format(directory, str(err)))
 
@@ -222,7 +222,7 @@ class ResourceFilesKeeper():
     if self.DEBUG:
       sys.stderr.write("{0}\n".format(text))
     if not self.DEBUG and self.verbose:
-      print text
+      print(text)
 
 
 def main(argv=None):

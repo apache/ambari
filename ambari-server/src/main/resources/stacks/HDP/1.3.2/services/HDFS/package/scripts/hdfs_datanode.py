@@ -27,18 +27,18 @@ def datanode(action=None):
   if action == "configure":
     Directory(params.dfs_domain_socket_dir,
               recursive=True,
-              mode=0751,
+              mode=0o751,
               owner=params.hdfs_user,
               group=params.user_group)
     for data_dir in params.dfs_data_dir.split(","):
       Directory(os.path.dirname(data_dir),
                 recursive=True,
-                mode=0755,
+                mode=0o755,
                 ignore_failures=True
       )
       Directory(data_dir,
                 recursive=False,
-                mode=0750,
+                mode=0o750,
                 owner=params.hdfs_user,
                 group=params.user_group,
                 ignore_failures=True

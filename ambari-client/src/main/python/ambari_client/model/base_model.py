@@ -43,7 +43,7 @@ class BaseModel(object):
     #print" ================== base_model\n"
     #print locals()
     self._resource_root = resource_root
-    for k, v in rw_attrs.items():
+    for k, v in list(rw_attrs.items()):
       if k not in self.RW_ATTR:
         raise ValueError("Unknown argument '%s' in %s" % 
                          (k, self.__class__.__name__))

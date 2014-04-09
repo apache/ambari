@@ -59,7 +59,7 @@ def init_file(name):
 
   File("/etc/init.d/hdp-" + name,
        content=StaticFile(name + ".init"),
-       mode=0755
+       mode=0o755
   )
 
 
@@ -68,11 +68,11 @@ def shell_file(name):
 
   File(params.ganglia_shell_cmds_dir + os.sep + name,
        content=StaticFile(name),
-       mode=0755
+       mode=0o755
   )
 
 
-def ganglia_TemplateConfig(name, mode=0755, tag=None):
+def ganglia_TemplateConfig(name, mode=0o755, tag=None):
   import params
 
   TemplateConfig(format("{params.ganglia_shell_cmds_dir}/{name}"),

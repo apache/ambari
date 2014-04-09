@@ -20,8 +20,8 @@ limitations under the License.
 
 import socket
 import subprocess
-import urllib2
-import AmbariConfig
+import urllib.request, urllib.error, urllib.parse
+from . import AmbariConfig
 import logging
 import traceback
 
@@ -34,6 +34,8 @@ def hostname():
     try: 
       osStat = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = osStat.communicate()
+	  out = out.decode()
+	  err = err.decode()
       if (0 == osStat.returncode and 0 != len(out.strip())):
         return out.strip()
       else:
@@ -52,6 +54,8 @@ def public_hostname():
       scriptname = config.get('agent', 'public_hostname_script')
       output = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = output.communicate()
+	  out = out.decode()
+	  err = err.decode()
       if (0 == output.returncode and 0 != len(out.strip())):
         return out.strip()
   except:
@@ -63,16 +67,16 @@ def public_hostname():
     
   # future - do an agent entry for this too
   try:
-    handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
+    handle = urllib.request.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
     str = handle.read()
     handle.close()
     return str
-  except Exception, e:
+  except Exception as e:
     return socket.getfqdn()
 
 def main(argv=None):
-  print hostname()
-  print public_hostname()
+  print((hostname()))
+  print((public_hostname()))
 
 if __name__ == '__main__':
   main()

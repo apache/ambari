@@ -24,7 +24,7 @@ import subprocess
 import pprint
 import threading
 from threading import Thread
-from Grep import Grep
+from .Grep import Grep
 import shell, sys
 
 

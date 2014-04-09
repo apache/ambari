@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-from __future__ import generators
+
 
 __version__ = "0.1.0"
 __author__ = [

@@ -41,7 +41,7 @@ class TestActualConfigHandler(TestCase):
     handler = ActualConfigHandler(config, tags)
     handler.write_actual(tags)
     output = handler.read_actual()
-    self.assertEquals(tags, output)
+    self.assertEqual(tags, output)
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
   def test_read_empty(self):
@@ -55,7 +55,7 @@ class TestActualConfigHandler(TestCase):
     conf_file.close()
     
     output = handler.read_actual()
-    self.assertEquals(None, output)
+    self.assertEqual(None, output)
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
   def test_read_write_component(self):
@@ -71,16 +71,16 @@ class TestActualConfigHandler(TestCase):
     output1 = handler.read_actual_component('FOO')
     output2 = handler.read_actual_component('GOO')
 
-    self.assertEquals(tags1, output1)
-    self.assertEquals(None, output2)
+    self.assertEqual(tags1, output1)
+    self.assertEqual(None, output2)
     
     tags2 = { "global": "version1", "core-site": "version2" }
     handler.write_actual(tags2)
 
     output3 = handler.read_actual()
     output4 = handler.read_actual_component('FOO')
-    self.assertEquals(tags2, output3)
-    self.assertEquals(tags1, output4)
+    self.assertEqual(tags2, output3)
+    self.assertEqual(tags1, output4)
     os.remove(os.path.join(tmpdir, "FOO_" + ActualConfigHandler.CONFIG_NAME))
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
@@ -94,14 +94,14 @@ class TestActualConfigHandler(TestCase):
     handler = ActualConfigHandler(config, {})
     handler.write_actual_component('HDFS_CLIENT', tags1)
     handler.write_actual_component('HBASE_CLIENT', tags1)
-    self.assertEquals(tags1, handler.read_actual_component('HDFS_CLIENT'))
-    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
+    self.assertEqual(tags1, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEqual(tags1, handler.read_actual_component('HBASE_CLIENT'))
     handler.write_actual_component('DATANODE', tags2)
-    self.assertEquals(tags2, handler.read_actual_component('DATANODE'))
-    self.assertEquals(tags1, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEqual(tags2, handler.read_actual_component('DATANODE'))
+    self.assertEqual(tags1, handler.read_actual_component('HDFS_CLIENT'))
     handler.write_client_components('HDFS', tags2)
-    self.assertEquals(tags2, handler.read_actual_component('HDFS_CLIENT'))
-    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
+    self.assertEqual(tags2, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEqual(tags1, handler.read_actual_component('HBASE_CLIENT'))
 
     os.remove(os.path.join(tmpdir, "DATANODE_" + ActualConfigHandler.CONFIG_NAME))
     os.remove(os.path.join(tmpdir, "HBASE_CLIENT_" + ActualConfigHandler.CONFIG_NAME))
@@ -118,11 +118,11 @@ class TestActualConfigHandler(TestCase):
     tags2 = {"global": "version33", "core-site": "version33"}
     configTags = {'HDFS_CLIENT': tags0, 'HBASE_CLIENT': tags1}
     handler = ActualConfigHandler(config, configTags)
-    self.assertEquals(tags0, handler.read_actual_component('HDFS_CLIENT'))
-    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
+    self.assertEqual(tags0, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEqual(tags1, handler.read_actual_component('HBASE_CLIENT'))
     handler.write_client_components('HDFS', tags2)
-    self.assertEquals(tags2, handler.read_actual_component('HDFS_CLIENT'))
-    self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
+    self.assertEqual(tags2, handler.read_actual_component('HDFS_CLIENT'))
+    self.assertEqual(tags1, handler.read_actual_component('HBASE_CLIENT'))
     self.assertTrue(write_file_mock.called)
     self.assertEqual(1, write_file_mock.call_count)
 
@@ -140,10 +140,10 @@ class TestActualConfigHandler(TestCase):
 
     handler.write_actual_component('NAMENODE', tags1)
     self.assertTrue(write_file_mock.called)
-    self.assertEquals(tags1, handler.read_actual_component('NAMENODE'))
+    self.assertEqual(tags1, handler.read_actual_component('NAMENODE'))
     self.assertFalse(read_file_mock.called)
-    self.assertEquals(tags1, handler.read_actual_component('DATANODE'))
+    self.assertEqual(tags1, handler.read_actual_component('DATANODE'))
     self.assertTrue(read_file_mock.called)
-    self.assertEquals(1, read_file_mock.call_count)
-    self.assertEquals(tags1, handler.read_actual_component('DATANODE'))
-    self.assertEquals(1, read_file_mock.call_count)
+    self.assertEqual(1, read_file_mock.call_count)
+    self.assertEqual(tags1, handler.read_actual_component('DATANODE'))
+    self.assertEqual(1, read_file_mock.call_count)

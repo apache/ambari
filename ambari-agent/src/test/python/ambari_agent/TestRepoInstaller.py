@@ -46,17 +46,17 @@ class TestRepoInstaller(TestCase):
     localParsedJson = json.loads('{"hostLevelParams" : {"repo_info" : {"test" : "test"}}}')
     localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
     localRepoInstaller.prepareReposInfo()
-    self.assertEquals(localRepoInstaller.repoInfoList['test'], "test")
+    self.assertEqual(localRepoInstaller.repoInfoList['test'], "test")
 
     localParsedJson = json.loads('{"hostLevelParams" : {"repo_info" : "1"}}')
     localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
     localRepoInstaller.prepareReposInfo()
-    self.assertEquals(localRepoInstaller.repoInfoList, 1)
+    self.assertEqual(localRepoInstaller.repoInfoList, 1)
 
     localParsedJson = json.loads('{"hostLevelParams" : {"repo_info" : ""}}')
     localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
     localRepoInstaller.prepareReposInfo()
-    self.assertEquals(localRepoInstaller.repoInfoList, [])
+    self.assertEqual(localRepoInstaller.repoInfoList, [])
 
 
   def test_generate_files(self):
@@ -73,5 +73,5 @@ class TestRepoInstaller(TestCase):
     result = self.repoInstaller.generate_repo_manifests()
     self.assertTrue(prepareReposInfoMock.called)
     self.assertTrue(generateFilesMock.called)
-    print('generate_repo_manifests result: ' + result.__str__())
+    print(('generate_repo_manifests result: ' + result.__str__()))
     pass

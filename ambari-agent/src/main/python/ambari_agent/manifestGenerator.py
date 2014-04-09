@@ -23,8 +23,8 @@ import os.path
 import logging
 from datetime import datetime
 import pprint
-import AmbariConfig
-import hostname
+from . import AmbariConfig
+from . import hostname
 from ambari_agent import AgentException
 
 HOSTS_LIST_KEY = "all_hosts"
@@ -57,7 +57,7 @@ def convertRangeToList(list):
           raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
             
         
-        resultList.extend(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1))
+        resultList.extend(list(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1)))
       elif len(rangeBounds) == 1:
         resultList.append((int(rangeBounds[0])))
       else:
@@ -72,7 +72,7 @@ def convertMappedRangeToList(list):
   
   for i in list:
     valueToRanges = i.split(":")
-    if len(valueToRanges) <> 2:
+    if len(valueToRanges) != 2:
       raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
     value = valueToRanges[0]
     rangesToken = valueToRanges[1]
@@ -99,7 +99,7 @@ def convertMappedRangeToList(list):
         resultDict[index] = int(value)
        
 
-  resultList = dict(sorted(resultDict.items())).values()
+  resultList = list(dict(sorted(resultDict.items())).values())
       
   return resultList
 
@@ -111,7 +111,7 @@ def decompressClusterHostInfo(clusterHostInfo):
 
   decompressedMap = {}
 
-  for k,v in info.items():
+  for k,v in list(info.items()):
     # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8] 
     indexes = convertRangeToList(v)
     # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
@@ -121,7 +121,7 @@ def decompressClusterHostInfo(clusterHostInfo):
   pingPorts = convertMappedRangeToList(pingPorts)
   
   #Convert all elements to str
-  pingPorts = map(str, pingPorts)
+  pingPorts = list(map(str, pingPorts))
 
   #Add ping ports to result
   decompressedMap[PING_PORTS_KEY] = pingPorts
@@ -172,7 +172,7 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
     #writing manifest
     manifest = open(fileName, 'w')
     #Change mode to make site.pp files readable to owner and group only
-    os.chmod(fileName, 0660)
+    os.chmod(fileName, 0o660)
 
     #Check for Ambari Config and make sure you pick the right imports file
 
@@ -192,7 +192,7 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
     flatConfigurations = {}
 
     if configurations:
-      for configKey in configurations.iterkeys():
+      for configKey in list(configurations.keys()):
         if configKey in nonGlobalConfigurationsKeys:
           nonGlobalConfigurations[configKey] = configurations[configKey]
         else:
@@ -228,10 +228,10 @@ def writeHostnames(outputFile):
 
   #write nodes
 def writeNodes(outputFile, clusterHostInfo):
-  if clusterHostInfo.has_key('zookeeper_hosts'):
+  if 'zookeeper_hosts' in clusterHostInfo:
     clusterHostInfo['zookeeper_hosts'] = sorted(clusterHostInfo['zookeeper_hosts'])
   
-  for node in clusterHostInfo.iterkeys():
+  for node in list(clusterHostInfo.keys()):
     outputFile.write('$' + node + '= [')
     coma = ''
     
@@ -244,7 +244,7 @@ def writeNodes(outputFile, clusterHostInfo):
 #write params
 def writeParams(outputFile, params, modulesdir):
 
-  for paramName in params.iterkeys():
+  for paramName in list(params.keys()):
     if paramName == 'repo_info':     
       continue
       
@@ -256,7 +256,7 @@ def writeParams(outputFile, params, modulesdir):
 
       coma = ''
 
-      for subParam in param.iterkeys():
+      for subParam in list(param.keys()):
         outputFile.write(coma + '"' + subParam + '" => "' + param[subParam] + '"')
         coma = ',\n'
 
@@ -270,7 +270,7 @@ def writeHostAttributes(outputFile, hostAttributes):
   outputFile.write('$hostAttributes={\n')
 
   coma = ''
-  for attribute in hostAttributes.iterkeys():
+  for attribute in list(hostAttributes.keys()):
     outputFile.write(coma + '"' +  attribute + '" => "{' + hostAttributes[attribute] + '"}')
     coma = ',\n'
 
@@ -280,22 +280,22 @@ def writeHostAttributes(outputFile, hostAttributes):
 def writeFlatConfigurations(outputFile, flatConfigs):
   flatDict = {}
   logger.debug("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
-  for flatConfigName in flatConfigs.iterkeys():
-    for flatConfig in flatConfigs[flatConfigName].iterkeys():
+  for flatConfigName in list(flatConfigs.keys()):
+    for flatConfig in list(flatConfigs[flatConfigName].keys()):
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
-  for gconfigKey in flatDict.iterkeys():
+  for gconfigKey in list(flatDict.keys()):
     outputFile.write('$' + gconfigKey + " = '" + escape(flatDict[gconfigKey]) + "'" + os.linesep)
 
 #write xml configurations
 def writeNonGlobalConfigurations(outputFile, xmlConfigs):
   outputFile.write('$configuration =  {\n')
 
-  for configName in xmlConfigs.iterkeys():
+  for configName in list(xmlConfigs.keys()):
     config = xmlConfigs[configName]
     logger.debug("Generating " + configName + ", configurations =>\n" + pprint.pformat(config))
     outputFile.write(configName + '=> {\n')
     coma = ''
-    for configParam in config.iterkeys():
+    for configParam in list(config.keys()):
       outputFile.write(coma + '"' + configParam + '" => \'' + escape(config[configParam]) + '\'')
       coma = ',\n'
 
@@ -355,7 +355,7 @@ def normalizeTaskParams(taskParams):
   result = ''
   coma = ''
   
-  for paramName in taskParams.iterkeys():
+  for paramName in list(taskParams.keys()):
     result = coma + result + paramName + ' => ' + taskParams[paramName]
     coma = ','
     

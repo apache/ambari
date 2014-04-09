@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -143,7 +143,7 @@ class Facter():
   def getMacAddress(self):
     mac = uuid.getnode()
     if uuid.getnode() == mac:
-      mac = ':'.join('%02X' % ((mac >> 8 * i) & 0xff) for i in reversed(xrange(6)))
+      mac = ':'.join('%02X' % ((mac >> 8 * i) & 0xff) for i in reversed(list(range(6))))
     else:
       mac = 'UNKNOWN'
     return mac
@@ -325,11 +325,11 @@ def run_os_command(cmd):
                              stderr=subprocess.PIPE
   )
   (stdoutdata, stderrdata) = process.communicate()
-  return process.returncode, stdoutdata, stderrdata
+  return process.returncode, stdoutdata.decode(), stderrdata.decode()
 
 
 def main(argv=None):
-  print Facter().facterInfo()
+  print((Facter().facterInfo()))
 
 
 if __name__ == '__main__':

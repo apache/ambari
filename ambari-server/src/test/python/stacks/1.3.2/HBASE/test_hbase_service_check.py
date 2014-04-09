@@ -33,11 +33,11 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hbaseSmokeVerify.sh',
       content = StaticFile('hbaseSmokeVerify.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
       content = Template('hbase-smoke.sh.j2'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('Execute', ' hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
       logoutput = True,
@@ -62,17 +62,17 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('File', '/tmp/hbaseSmokeVerify.sh',
       content = StaticFile('hbaseSmokeVerify.sh'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
       content = Template('hbase-smoke.sh.j2'),
-      mode = 0755,
+      mode = 0o755,
     )
     self.assertResourceCalled('File', '/tmp/hbase_grant_permissions.sh',
       content = Template('hbase_grant_permissions.j2'),
       owner = 'hbase',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; hbase shell /tmp/hbase_grant_permissions.sh',
       user = 'hbase',

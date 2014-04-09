@@ -263,7 +263,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_mock = MagicMock()
     
     expected_path = '//clusters/test1/services/?ServiceInfo/service_name=HDFS'
-    expected_request = {'components': [{'ServiceComponentInfo': {'component_name': u'NODEMANAGER'}}, {'ServiceComponentInfo': {'component_name': u'RESOURCEMANAGER'}}, {'ServiceComponentInfo': {'component_name': u'YARN_CLIENT'}}]}
+    expected_request = {'components': [{'ServiceComponentInfo': {'component_name': 'NODEMANAGER'}}, {'ServiceComponentInfo': {'component_name': 'RESOURCEMANAGER'}}, {'ServiceComponentInfo': {'component_name': 'YARN_CLIENT'}}]}
     
     cluster = self.create_cluster(http_client_mock)
     resp = cluster.create_service_components("2.0.5", "HDFS")
@@ -340,11 +340,11 @@ class TestClusterModel(unittest.TestCase):
     
     try:
       cluster.delete_host('deleted_nonexistant_cluster')
-      print http_client_mock.invoke.call_args_list
+      print((http_client_mock.invoke.call_args_list))
       self.fail('Exception should have been thrown!')
-    except BadRequest, ex:
-      self.assertEquals(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
-    except Exception, ex:
+    except BadRequest as ex:
+      self.assertEqual(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
+    except Exception as ex:
       self.fail('Wrong exception thrown!')
     
   def test_start_all_services(self):

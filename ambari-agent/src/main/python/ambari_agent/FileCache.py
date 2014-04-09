@@ -17,13 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 
 import logging
 import os
 import shutil
 import zipfile
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 logger = logging.getLogger()
 
@@ -123,7 +123,7 @@ class FileCache():
           self.write_hash_sum(full_path, remote_hash)
         # Finally consider cache directory up-to-date
         self.uptodate_paths.append(full_path)
-    except CachingException, e:
+    except CachingException as e:
       if self.tolerate_download_failures:
         # ignore
         logger.warn("Error occured during cache update. "
@@ -154,8 +154,8 @@ class FileCache():
     """
     logger.debug("Trying to download {0}".format(url))
     try:
-      memory_buffer = StringIO.StringIO()
-      u = urllib2.urlopen(url, timeout=self.SOCKET_TIMEOUT)
+      memory_buffer = io.StringIO()
+      u = urllib.request.urlopen(url, timeout=self.SOCKET_TIMEOUT)
       logger.debug("Connected with {0} with code {1}".format(u.geturl(),
                                                              u.getcode()))
       buff = u.read(self.BLOCK_SIZE)
@@ -165,7 +165,7 @@ class FileCache():
         if not buff:
           break
       return memory_buffer
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not download file from"
                              " url {0} : {1}".format(url, str(err)))
 
@@ -192,7 +192,7 @@ class FileCache():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not write to file {0} : {1}".format(hash_file,
                                                                  str(err)))
 
@@ -211,7 +211,7 @@ class FileCache():
         shutil.rmtree(directory)
       # create directory itself and any parent directories
       os.makedirs(directory)
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not invalidate cache directory {0}: {1}",
                              directory, str(err))
 
@@ -231,7 +231,7 @@ class FileCache():
         logger.debug("Unpacking file {0} to {1}".format(name, concrete_dir))
         if filename!='':
           zfile.extract(name, target_directory)
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not unpack zip file to "
                              "directory {0} : {1}".format(
                             target_directory, str(err)))

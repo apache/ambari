@@ -115,7 +115,7 @@ class TestStatusCheck(TestCase):
     statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
       self.globalConfig, self.servicesToLinuxUser)
     # logged not more then once
-    self.assert_(TestStatusCheck.timesLogged <= 1, "test_dont_relog_serToPidDict logged more then once")
+    self.assertTrue(TestStatusCheck.timesLogged <= 1, "test_dont_relog_serToPidDict logged more then once")
 
   # Ensure that status checker return True for running process even if multiple
   # pids for a service component exist

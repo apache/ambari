@@ -22,7 +22,7 @@ import datetime
 import os.path
 import logging
 import traceback
-import ConfigParser;
+import configparser;
 
 logger = logging.getLogger()
 
@@ -41,11 +41,11 @@ class HostCheckReportFileHandler:
 
     try:
       logger.info("Host check report at " + self.hostCheckFilePath)
-      config = ConfigParser.RawConfigParser()
+      config = configparser.RawConfigParser()
       config.add_section('metadata')
       config.set('metadata', 'created', str(datetime.datetime.now()))
 
-      if 'existingUsers' in hostInfo.keys():
+      if 'existingUsers' in list(hostInfo.keys()):
         items = []
         items2 = []
         for itemDetail in hostInfo['existingUsers']:
@@ -55,7 +55,7 @@ class HostCheckReportFileHandler:
         config.set('users', 'usr_list', ','.join(items))
         config.set('users', 'usr_homedir_list', ','.join(items2))
 
-      if 'alternatives' in hostInfo.keys():
+      if 'alternatives' in list(hostInfo.keys()):
         items = []
         items2 = []
         for itemDetail in hostInfo['alternatives']:
@@ -65,29 +65,29 @@ class HostCheckReportFileHandler:
         config.set('alternatives', 'symlink_list', ','.join(items))
         config.set('alternatives', 'target_list', ','.join(items2))
 
-      if 'stackFoldersAndFiles' in hostInfo.keys():
+      if 'stackFoldersAndFiles' in list(hostInfo.keys()):
         items = []
         for itemDetail in hostInfo['stackFoldersAndFiles']:
           items.append(itemDetail['name'])
         config.add_section('directories')
         config.set('directories', 'dir_list', ','.join(items))
 
-      if 'hostHealth' in hostInfo.keys():
-        if 'activeJavaProcs' in hostInfo['hostHealth'].keys():
+      if 'hostHealth' in list(hostInfo.keys()):
+        if 'activeJavaProcs' in list(hostInfo['hostHealth'].keys()):
           items = []
           for itemDetail in hostInfo['hostHealth']['activeJavaProcs']:
             items.append(itemDetail['pid'])
           config.add_section('processes')
           config.set('processes', 'proc_list', ','.join(map(str, items)))
 
-      if 'installedPackages' in hostInfo.keys():
+      if 'installedPackages' in list(hostInfo.keys()):
         items = []
         for itemDetail in hostInfo['installedPackages']:
           items.append(itemDetail['name'])
         config.add_section('packages')
         config.set('packages', 'pkg_list', ','.join(map(str, items)))
 
-      if 'existingRepos' in hostInfo.keys():
+      if 'existingRepos' in list(hostInfo.keys()):
         config.add_section('repositories')
         config.set('repositories', 'repo_list', ','.join(hostInfo['existingRepos']))
 
@@ -95,7 +95,7 @@ class HostCheckReportFileHandler:
       self.touchFile()
       with open(self.hostCheckFilePath, 'wb') as configfile:
         config.write(configfile)
-    except Exception, err:
+    except Exception as err:
       logger.error("Can't write host check file at %s :%s " % (self.hostCheckFilePath, err.message))
       traceback.print_exc()
 

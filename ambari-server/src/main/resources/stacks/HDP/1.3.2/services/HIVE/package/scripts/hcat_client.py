@@ -20,7 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management import *
-from hcat import hcat
+from .hcat import hcat
 
 class HCatClient(Script):
   def install(self, env):
@@ -28,7 +28,7 @@ class HCatClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     hcat()
 

@@ -24,7 +24,7 @@ import os
 import tempfile
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 import logging
-import ConfigParser
+import configparser
 
 class TestHostCheckReportFileHandler(TestCase):
 
@@ -33,7 +33,7 @@ class TestHostCheckReportFileHandler(TestCase):
   def test_write_host_check_report_really_empty(self):
     tmpfile = tempfile.mktemp()
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -41,17 +41,17 @@ class TestHostCheckReportFileHandler(TestCase):
     dict = {}
     handler.writeHostCheckFile(dict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     if configValidator.has_section('users'):
       users = configValidator.get('users', 'usr_list')
-      self.assertEquals(users, '')
+      self.assertEqual(users, '')
 
   def test_write_host_check_report_empty(self):
     tmpfile = tempfile.mktemp()
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -67,28 +67,28 @@ class TestHostCheckReportFileHandler(TestCase):
 
     handler.writeHostCheckFile(dict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     users = configValidator.get('users', 'usr_list')
     users = configValidator.get('users', 'usr_homedir_list')
-    self.assertEquals(users, '')
+    self.assertEqual(users, '')
     names = configValidator.get('alternatives', 'symlink_list')
     targets = configValidator.get('alternatives', 'target_list')
-    self.assertEquals(names, '')
-    self.assertEquals(targets, '')
+    self.assertEqual(names, '')
+    self.assertEqual(targets, '')
 
     paths = configValidator.get('directories', 'dir_list')
-    self.assertEquals(paths, '')
+    self.assertEqual(paths, '')
 
     procs = configValidator.get('processes', 'proc_list')
-    self.assertEquals(procs, '')
+    self.assertEqual(procs, '')
 
     pkgs = configValidator.get('packages', 'pkg_list')
-    self.assertEquals(pkgs, '')
+    self.assertEqual(pkgs, '')
 
     repos = configValidator.get('repositories', 'repo_list')
-    self.assertEquals(repos, '')
+    self.assertEqual(repos, '')
 
     time = configValidator.get('metadata', 'created')
     self.assertTrue(time != None)
@@ -96,7 +96,7 @@ class TestHostCheckReportFileHandler(TestCase):
   def test_write_host_check_report(self):
     tmpfile = tempfile.mktemp()
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.add_section('agent')
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
@@ -121,13 +121,13 @@ class TestHostCheckReportFileHandler(TestCase):
     dict['existingRepos'] = ['HDP', 'HDP-epel']
     handler.writeHostCheckFile(dict)
 
-    configValidator = ConfigParser.RawConfigParser()
+    configValidator = configparser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     users = configValidator.get('users', 'usr_list')
     homedirs = configValidator.get('users', 'usr_homedir_list')
-    self.assertEquals(users, 'user1')
-    self.assertEquals(homedirs, '/var/log')
+    self.assertEqual(users, 'user1')
+    self.assertEqual(homedirs, '/var/log')
 
     names = configValidator.get('alternatives', 'symlink_list')
     targets = configValidator.get('alternatives', 'target_list')
@@ -155,7 +155,7 @@ class TestHostCheckReportFileHandler(TestCase):
     items.sort()
     items1Str = ','.join(items1)
     items2Str = ','.join(items)
-    self.assertEquals(items1Str, items2Str)
+    self.assertEqual(items1Str, items2Str)
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

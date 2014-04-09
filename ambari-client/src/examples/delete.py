@@ -24,7 +24,7 @@ from ambari_client.ambari_api import  AmbariClient
 def main():
 
     path = os.getcwd() ;
-    print path
+    print(path)
     sys.path.append(path)
     
     logging.basicConfig(filename="ambari_api.log", level=logging.DEBUG , filemode="w")
@@ -33,26 +33,26 @@ def main():
      
      
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1)
-    print client.version
-    print client.host_url
-    print"\n"
+    print((client.version))
+    print((client.host_url))
+    print("\n")
     
     ###############################
     # cluster delete
     ###############################
-    print dir(client)
+    print((dir(client)))
     
     s1 = client.delete_cluster("test33")
-    print s1
-    print s1.to_json_dict()
+    print(s1)
+    print((s1.to_json_dict()))
     
     s1 = client.delete_host("test33")
-    print s1
-    print s1.to_json_dict()
+    print(s1)
+    print((s1.to_json_dict()))
     
     s1 = client.delete_host("r01wn01")
-    print s1
-    print s1.to_json_dict()
+    print(s1)
+    print((s1.to_json_dict()))
     
 
 

@@ -17,14 +17,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys, subprocess
 from mock.mock import MagicMock, patch, ANY
 import mock.mock
 import unittest
 import logging
 import signal
-import ConfigParser
+import configparser
 import ssl
 import os
 import tempfile
@@ -42,7 +42,7 @@ class TestSecurity(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # Create config
     self.config = AmbariConfig().getConfig()
@@ -161,7 +161,7 @@ class TestSecurity(unittest.TestCase):
       httpsconn_mock.read.side_effect = side_eff
       responce = self.cachedHTTPSConnection.request(dummy_request)
       self.fail("Should raise IOError")
-    except Exception, err:
+    except Exception as err:
       # Expected
       pass
 
@@ -175,7 +175,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentKeyName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.key")
+    self.assertEqual(res, "/dummy-keysdir/dummy.hostname.key")
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -184,7 +184,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentCrtName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.crt")
+    self.assertEqual(res, "/dummy-keysdir/dummy.hostname.crt")
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -193,14 +193,14 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentCrtReqName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.csr")
+    self.assertEqual(res, "/dummy-keysdir/dummy.hostname.csr")
 
 
   def test_getSrvrCrtName(self):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getSrvrCrtName()
-    self.assertEquals(res, "/dummy-keysdir/ca.crt")
+    self.assertEqual(res, "/dummy-keysdir/ca.crt")
 
 
   @patch("os.path.exists")
@@ -321,7 +321,7 @@ class TestSecurity(unittest.TestCase):
     try:
       man.reqSignCrt()
       self.fail("Expected exception here")
-    except Exception, err:
+    except Exception as err:
       # expected
       pass
 

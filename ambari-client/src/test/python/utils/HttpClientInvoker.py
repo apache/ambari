@@ -115,7 +115,7 @@ class HttpClientInvoker():
           mocked_response = open('json/get_service_components.json', 'r').read()
           return mocked_response, mocked_code , mocked_content
         else:
-          print "Unknown get request on url: %s" % url
+          print(("Unknown get request on url: %s" % url))
       elif http_method == "DELETE":
         # ClusterModel
         if url == "//clusters/test1/hosts/deleted_nonexistant_cluster":

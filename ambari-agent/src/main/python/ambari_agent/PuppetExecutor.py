@@ -25,11 +25,11 @@ import pprint
 import threading
 from threading import Thread
 
-from shell import shellRunner
-import manifestGenerator
-from RepoInstaller import RepoInstaller
-from Grep import Grep
-import shell
+from .shell import shellRunner
+from . import manifestGenerator
+from .RepoInstaller import RepoInstaller
+from .Grep import Grep
+from . import shell
 
 JAVANOTVALID_MSG = "Cannot access JDK! Make sure you have permission to execute {0}/bin/java"
 
@@ -126,7 +126,7 @@ class PuppetExecutor:
     result = {}
     taskId = 0
     timeout = command ['commandParams']['command_timeout']
-    if command.has_key("taskId"):
+    if "taskId" in command:
       taskId = command['taskId']
     puppetEnv = os.environ
     #Install repos
@@ -170,7 +170,7 @@ class PuppetExecutor:
     pass
 
     taskId = 0
-    if command.has_key("taskId"):
+    if "taskId" in command:
       taskId = command['taskId']
     siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp")
     errMsg = manifestGenerator.generateManifest(command, siteppFileName,
@@ -186,7 +186,7 @@ class PuppetExecutor:
     """ Run the command and make sure the output gets propagated"""
     puppetcommand = self.puppetCommand(puppetFile)
     rubyLib = ""
-    if os.environ.has_key("RUBYLIB"):
+    if "RUBYLIB" in os.environ:
       rubyLib = os.environ["RUBYLIB"]
       logger.debug("RUBYLIB from Env " + rubyLib)
     if not (self.facterLib() in rubyLib):
@@ -222,7 +222,7 @@ class PuppetExecutor:
     if self.last_puppet_has_been_killed:
       error = str(error) + "\n Puppet has been killed due to timeout"
       returncode = 999
-    if result.has_key("stderr"):
+    if "stderr" in result:
       result["stderr"] = result["stderr"] + os.linesep + str(error)
     else:
       result["stderr"] = str(error)
@@ -230,12 +230,12 @@ class PuppetExecutor:
     logger.debug("Output from puppet :\n" + puppetOutput)
     logger.info("Puppet execution process with pid %s exited with code %s." %
                 (str(puppet.pid), str(returncode)))
-    if result.has_key("exitcode"):
+    if "exitcode" in result:
       result["exitcode"] = max(returncode, result["exitcode"])
     else:
       result["exitcode"] = returncode
     condensed = self.condenseOutput(puppetOutput, error, returncode)
-    if result.has_key("stdout"):
+    if "stdout" in result:
       result["stdout"] = result["stdout"] + os.linesep + str(condensed)
     else:
       result["stdout"] = str(condensed)

@@ -44,7 +44,7 @@ class StackVersionsFileHandler:
         if comp == component:
           return ver
       return self.DEFAULT_VER
-    except Exception, err:
+    except Exception as err:
       logger.error("Can't read versions file: %s " % err.message)
       traceback.print_exc()
       return self.DEFAULT_VER
@@ -59,7 +59,7 @@ class StackVersionsFileHandler:
         if comp != self.DEFAULT_VER:
           result[comp] = ver
       return result
-    except Exception, err:
+    except Exception as err:
       logger.error("Can't read stack versions file: %s " % err.message)
       traceback.print_exc()
       return {}
@@ -78,7 +78,7 @@ class StackVersionsFileHandler:
         for key in values:
           f.write ("%s\t%s\n" % (key, values[key]))
 
-    except Exception, err:
+    except Exception as err:
       logger.error("Can't write new stack version (%s %s) :%s " % (component,
             newVersion, err.message))
       traceback.print_exc()

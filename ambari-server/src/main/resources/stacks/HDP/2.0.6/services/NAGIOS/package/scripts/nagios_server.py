@@ -75,7 +75,7 @@ def remove_conflicting_packages():
   )
 
 def update_ignorable(params):
-  if not params.config.has_key('passiveInfo'):
+  if 'passiveInfo' not in params.config:
     return
   else:
     buf = ""

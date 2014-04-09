@@ -39,15 +39,15 @@ def falcon(type, action = None):
     )
     File(params.falcon_conf_dir + '/client.properties',
          content=Template('client.properties.j2'),
-         mode=0644
+         mode=0o644
     )
     PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
                    properties=params.falcon_runtime_properties,
-                   mode=0644
+                   mode=0o644
     )
     PropertiesFile(params.falcon_conf_dir + '/startup.properties',
                    properties=params.falcon_startup_properties,
-                   mode=0644
+                   mode=0o644
     )
   if type == 'server':
     if action == 'config':
@@ -55,12 +55,12 @@ def falcon(type, action = None):
         params.HdfsDirectory(params.store_uri,
                              action="create_delayed",
                              owner=params.falcon_user,
-                             mode=0755
+                             mode=0o755
         )
       params.HdfsDirectory(params.flacon_apps_dir,
                            action="create_delayed",
                            owner=params.falcon_user,
-                           mode=0777#TODO change to proper mode
+                           mode=0o777#TODO change to proper mode
       )
       params.HdfsDirectory(None, action="create")
       Directory(params.falcon_local_dir,

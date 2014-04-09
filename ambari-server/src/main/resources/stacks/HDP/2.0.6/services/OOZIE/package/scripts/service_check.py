@@ -37,7 +37,7 @@ def oozie_smoke_shell_file(
 
   File( format("/tmp/{file_name}"),
     content = StaticFile(file_name),
-    mode = 0755
+    mode = 0o755
   )
   
   if params.security_enabled:

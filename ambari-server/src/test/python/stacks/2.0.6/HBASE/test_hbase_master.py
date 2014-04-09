@@ -72,7 +72,7 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
@@ -101,7 +101,7 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb remove host1',
                               logoutput = True,
@@ -159,7 +159,7 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/lib/hbase/bin/draining_servers.rb',
                               content = StaticFile('draining_servers.rb'),
-                              mode = 0755,
+                              mode = 0o755,
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf org.jruby.Main /usr/lib/hbase/bin/draining_servers.rb add host1',
                               logoutput = True,
@@ -187,7 +187,7 @@ class TestHBaseMaster(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = "/usr/bin/kinit",
-                              mode = 0711,
+                              mode = 0o711,
                               owner = 'hbase',
                               action = ['create_delayed'],
                               )
@@ -211,7 +211,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
-      mode=0775,
+      mode=0o775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -252,7 +252,7 @@ class TestHBaseMaster(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'
@@ -274,7 +274,7 @@ class TestHBaseMaster(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0711,
+                              mode = 0o711,
                               owner = 'hbase',
                               action = ['create_delayed'],
                               )
@@ -298,7 +298,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hbase/local/jars',
       owner = 'hbase',
       group = 'hadoop',
-      mode=0775,
+      mode=0o775,
       recursive = True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
@@ -343,7 +343,7 @@ class TestHBaseMaster(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'

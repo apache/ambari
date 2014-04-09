@@ -20,12 +20,12 @@ limitations under the License.
 from unittest import TestCase, main
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 
-import StringIO, sys
+import io, sys
 
 class TestSubstituteVars(TestCase):
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
   def test_substitute_vars(self):
@@ -64,7 +64,7 @@ class TestSubstituteVars(TestCase):
       'fail.inf.loop' : '${fail.inf.loop}'
     }
 
-    for key in raw_config.keys():
+    for key in list(raw_config.keys()):
       actual_value = substitute_vars(raw_config[key], raw_config)
       expected_value = expected_config[key]
 

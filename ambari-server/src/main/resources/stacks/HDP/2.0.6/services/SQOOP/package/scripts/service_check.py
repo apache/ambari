@@ -24,7 +24,7 @@ from resource_management import *
 
 class SqoopServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
     if params.security_enabled:
         Execute(format("{kinit_path_local}  -kt {smoke_user_keytab} {smokeuser}"))

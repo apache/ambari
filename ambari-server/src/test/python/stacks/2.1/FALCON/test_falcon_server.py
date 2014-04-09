@@ -76,14 +76,14 @@ class TestFalconServer(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
                               content = Template('client.properties.j2'),
-                              mode = 0644,
+                              mode = 0o644,
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
-                              mode = 0644,
+                              mode = 0o644,
                               properties = self.getConfig()['configurations']['falcon-runtime.properties'],
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
-                              mode = 0644,
+                              mode = 0o644,
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/apps/falcon',
@@ -92,7 +92,7 @@ class TestFalconServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               hdfs_user = 'hdfs',
                               kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
+                              mode = 0o777,
                               owner = 'falcon',
                               action = ['create_delayed'],
                               )

@@ -37,7 +37,7 @@ class NagiosIgnore(Script):
     }
 
     try:
-      if (config.has_key('passiveInfo')):
+      if ('passiveInfo' in config):
         ignores = config['passiveInfo']
       else:
         structured_output_example['result'] = "Key 'passiveInfo' not found, skipping"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -36,7 +36,7 @@ def tez():
             configurations = params.config['configurations']['tez-site'],
             owner = params.tez_user,
             group = params.user_group,
-            mode = 0664
+            mode = 0o664
   )
 
   tez_TemplateConfig( ['tez-env.sh'])

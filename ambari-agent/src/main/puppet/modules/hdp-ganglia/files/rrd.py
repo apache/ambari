@@ -24,7 +24,7 @@ import rrdtool
 import sys
 import time
 import re
-import urlparse
+import urllib.parse
 
 # place this script in /var/www/cgi-bin of the Ganglia collector
 # requires 'yum install rrdtool-python' on the Ganglia collector
@@ -119,7 +119,7 @@ requestMethod = os.environ['REQUEST_METHOD']
 if requestMethod == 'POST':
   postData = sys.stdin.readline()
   queryString = cgi.parse_qs(postData)
-  queryString = dict((k, v[0]) for k, v in queryString.items())
+  queryString = dict((k, v[0]) for k, v in list(queryString.items()))
 elif requestMethod == 'GET':
   queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
 
@@ -194,7 +194,7 @@ for cluster in clusterParts:
           #Regex as metric name
           metricRegex = metric + '\.rrd$'
           p = re.compile(metricRegex)
-          matchedFiles = filter(p.match, files)
+          matchedFiles = list(filter(p.match, files))
           for matchedFile in matchedFiles:
             printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4], os.path.join(path, matchedFile), cf, start, end, resolution, pointInTime)
 

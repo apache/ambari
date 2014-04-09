@@ -58,16 +58,16 @@ class AttributeDictionary(object):
     self._dict.update(*args, **kwargs)
 
   def items(self):
-    return self._dict.items()
+    return list(self._dict.items())
   
   def iteritems(self):
-    return self._dict.iteritems()
+    return iter(list(self._dict.items()))
 
   def values(self):
-    return self._dict.values()
+    return list(self._dict.values())
 
   def keys(self):
-    return self._dict.keys()
+    return list(self._dict.keys())
 
   def pop(self, *args, **kwargs):
     return self._dict.pop(*args, **kwargs)

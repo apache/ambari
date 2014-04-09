@@ -48,7 +48,7 @@ class ActualConfigHandler:
     self.write_file(filename, tags)
 
   def write_client_components(self, serviceName, tags):
-    from LiveStatus import LiveStatus
+    from .LiveStatus import LiveStatus
     for comp in LiveStatus.CLIENT_COMPONENTS:
       if comp['serviceName'] == serviceName:
         componentName = comp['componentName']
@@ -73,7 +73,7 @@ class ActualConfigHandler:
         res = json.load(conf_file)
         if (0 == len(res)):
           res = None
-      except Exception, e:
+      except Exception as e:
         logger.error("Error parsing " + filename + ": " + repr(e))
         res = None
         pass
@@ -86,7 +86,7 @@ class ActualConfigHandler:
     return self.read_file(self.CONFIG_NAME)
 
   def read_actual_component(self, componentName):
-    if componentName not in self.configTags.keys():
+    if componentName not in list(self.configTags.keys()):
       self.configTags[componentName] = \
         self.read_file(componentName + "_" + self.CONFIG_NAME)
     return self.configTags[componentName]

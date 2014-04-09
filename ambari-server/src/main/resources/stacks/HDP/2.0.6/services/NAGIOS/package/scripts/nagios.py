@@ -30,7 +30,7 @@ def nagios():
     owner = params.nagios_user,
     group = params.nagios_group,
     content = Template("nagios.conf.j2"),
-    mode   = 0644
+    mode   = 0o644
   )
 
   # enable snmpd
@@ -48,7 +48,7 @@ def nagios():
   Directory( params.nagios_pid_dir,
     owner = params.nagios_user,
     group = params.nagios_group,
-    mode = 0755,
+    mode = 0o755,
     recursive = True
   )
 
@@ -61,7 +61,7 @@ def nagios():
   Directory( [params.nagios_log_dir, params.nagios_log_archives_dir],
     owner = params.nagios_user,
     group = params.nagios_group,
-    mode = 0755
+    mode = 0o755
   )
 
   nagios_server_config()
@@ -76,7 +76,7 @@ def nagios():
   File(format("{nagios_var_dir}/ignore.dat"),
     owner = params.nagios_user,
     group = params.nagios_group,
-    mode = 0664)
+    mode = 0o664)
   
   
 def set_web_permisssions():
@@ -91,7 +91,7 @@ def set_web_permisssions():
   File( "/etc/nagios/htpasswd.users",
     owner = params.nagios_user,
     group = params.nagios_group,
-    mode  = 0640
+    mode  = 0o640
   )
 
   if System.get_instance().os_family == "suse":

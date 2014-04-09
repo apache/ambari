@@ -42,7 +42,7 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()
@@ -67,7 +67,7 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
       owner = 'hdfs',
       group = 'hadoop',
-      mode = 0644,
+      mode = 0o644,
       content = 'log4jproperties\nline2'
     )
     self.assertNoMoreResources()

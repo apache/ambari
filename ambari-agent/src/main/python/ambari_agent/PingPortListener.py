@@ -20,7 +20,7 @@ limitations under the License.
 
 import sys
 import logging
-import AmbariConfig
+from . import AmbariConfig
 import threading
 import socket
 

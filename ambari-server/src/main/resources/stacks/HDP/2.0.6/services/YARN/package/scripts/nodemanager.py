@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,20 +23,20 @@ Ambari Agent
 import sys
 from resource_management import *
 
-from yarn import yarn
-from service import service
+from .yarn import yarn
+from .service import service
 
 class Nodemanager(Script):
   def install(self, env):
     self.install_packages(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn(name="nodemanager")
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     service('nodemanager',
@@ -44,7 +44,7 @@ class Nodemanager(Script):
     )
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     service('nodemanager',
@@ -52,7 +52,7 @@ class Nodemanager(Script):
     )
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.nodemanager_pid_file)
 

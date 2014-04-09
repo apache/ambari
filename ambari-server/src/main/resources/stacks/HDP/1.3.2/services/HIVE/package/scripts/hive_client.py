@@ -20,7 +20,7 @@ limitations under the License.
 import sys
 from resource_management import *
 
-from hive import hive
+from .hive import hive
 
 class HiveClient(Script):
   def install(self, env):
@@ -28,7 +28,7 @@ class HiveClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     hive(name='client')

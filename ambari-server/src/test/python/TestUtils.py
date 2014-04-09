@@ -54,10 +54,10 @@ class TestUtils(TestCase):
     utils.ENV_PATH = ['/test']
     # File was found in the path
     isfile_mock.return_value = True
-    self.assertEquals('/test/myfile', utils.locate_file('myfile'))
+    self.assertEqual('/test/myfile', utils.locate_file('myfile'))
     # File not found in the path
     isfile_mock.return_value = False
-    self.assertEquals('myfile', utils.locate_file('myfile'))
+    self.assertEqual('myfile', utils.locate_file('myfile'))
     # Testing default vaule
     isfile_mock.return_value = False
-    self.assertEquals('/tmp/myfile', utils.locate_file('myfile', '/tmp'))
+    self.assertEqual('/tmp/myfile', utils.locate_file('myfile', '/tmp'))

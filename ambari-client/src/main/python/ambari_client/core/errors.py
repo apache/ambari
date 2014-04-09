@@ -48,7 +48,7 @@ class ResourceError(Exception):
       return "exception: %s. %s" % (self.response.status, self.get_message()) 
     try:
       return self._fmt % self.__dict__
-    except (NameError, ValueError, KeyError), e:
+    except (NameError, ValueError, KeyError) as e:
       return 'exception %s: %s' \
              % (self.__class__.__name__, str(e))
 

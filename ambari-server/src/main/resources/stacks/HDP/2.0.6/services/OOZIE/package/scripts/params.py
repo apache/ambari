@@ -86,7 +86,7 @@ else:
   log4j_props = None
 
 oozie_hdfs_user_dir = format("/user/{oozie_user}")
-oozie_hdfs_user_mode = 0775
+oozie_hdfs_user_mode = 0o775
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,31 +23,31 @@ Ambari Agent
 import sys
 from resource_management import *
 
-from zookeeper import zookeeper
-from zookeeper_service import zookeeper_service
+from .zookeeper import zookeeper
+from .zookeeper_service import zookeeper_service
 
 class ZookeeperServer(Script):
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     zookeeper(type='server')
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env)
     zookeeper_service(action = 'start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
     zookeeper_service(action = 'stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.zk_pid_file)
 
