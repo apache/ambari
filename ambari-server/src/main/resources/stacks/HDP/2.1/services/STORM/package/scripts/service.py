@@ -32,6 +32,11 @@ def service(
   pid_file = status_params.pid_files[name]
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
+  if name == "logviewer":
+    tries_count = 12
+  else:
+    tries_count = 6
+
   if name == 'ui':
     process_cmd = "^java.+backtype.storm.ui.core$"
   elif name == "rest_api":
@@ -55,7 +60,7 @@ def service(
     Execute(crt_pid_cmd,
             user=params.storm_user,
             logoutput=True,
-            tries=6,
+            tries=tries_count,
             try_sleep=10
     )
 
