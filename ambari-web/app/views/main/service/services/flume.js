@@ -19,7 +19,7 @@ var App = require('app');
 var date = require('utils/date');
 
 App.MainDashboardServiceFlumeView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/flume'),
+  templateName: require('templates/main/service/services/flume'),
   serviceName: 'flume',
   
   summaryHeader: function () {

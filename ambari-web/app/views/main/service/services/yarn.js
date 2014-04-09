@@ -20,7 +20,7 @@ var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/yarn'),
+  templateName: require('templates/main/service/services/yarn'),
   serviceName: 'YARN',
 
   nodeHeap: function () {

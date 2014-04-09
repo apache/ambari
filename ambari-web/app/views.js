@@ -101,18 +101,6 @@ require('views/main/admin/security/add/step3');
 require('views/main/admin/security/add/step4');
 
 require('views/main/dashboard');
-require('views/main/dashboard/service');
-require('views/main/dashboard/service/hdfs');
-require('views/main/dashboard/service/yarn');
-require('views/main/dashboard/service/mapreduce');
-require('views/main/dashboard/service/mapreduce2');
-require('views/main/dashboard/service/hbase');
-require('views/main/dashboard/service/hive');
-require('views/main/dashboard/service/zookeeper');
-require('views/main/dashboard/service/oozie');
-require('views/main/dashboard/service/flume');
-require('views/main/dashboard/service/storm');
-
 require('views/main/dashboard/cluster_metrics/cpu');
 require('views/main/dashboard/cluster_metrics/load');
 require('views/main/dashboard/cluster_metrics/memory');
@@ -155,6 +143,17 @@ require('views/main/dashboard/widgets/supervisor_live');
 
 
 require('views/main/service');
+require('views/main/service/service');
+require('views/main/service/services/hdfs');
+require('views/main/service/services/yarn');
+require('views/main/service/services/mapreduce');
+require('views/main/service/services/mapreduce2');
+require('views/main/service/services/hbase');
+require('views/main/service/services/hive');
+require('views/main/service/services/zookeeper');
+require('views/main/service/services/oozie');
+require('views/main/service/services/flume');
+require('views/main/service/services/storm');
 require('views/main/service/all_services_actions');
 require('views/main/service/menu');
 require('views/main/service/item');

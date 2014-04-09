@@ -20,7 +20,7 @@ var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/hbase'),
+  templateName: require('templates/main/service/services/hbase'),
   serviceName: 'hbase',
   /**
    * All master components

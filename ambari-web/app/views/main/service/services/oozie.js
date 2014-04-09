@@ -18,23 +18,12 @@
 
 var App = require('app');
 
-App.MainDashboardServiceZookeperView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/zookeeper'),
-  serviceName: 'zookeeper',
+App.MainDashboardServiceOozieView = App.MainDashboardServiceView.extend({
+  serviceName: 'oozie',
+  templateName: require('templates/main/service/services/oozie'),
 
-  titleInfo: function(){
-    var components = this.get('service.hostComponents').filterProperty('componentName', 'ZOOKEEPER_SERVER');
-    var running = 0;
-    components.forEach(function(item){
-      if(item.get('workStatus') === App.HostComponentStatus.started){
-        running += 1;
-      }
-    });
-
-    return {
-      pre: this.t('services.zookeeper.prefix').format(running),
-      title: this.t('services.zookeeper.title').format(components.length),
-      component: components.objectAt(0)
-    };
+  webUi: function () {
+    var hostName = App.singleNodeInstall ? App.singleNodeAlias : this.get('service.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.publicHostName');
+    return "http://{0}:11000/oozie".format(hostName);
   }.property('service')
 });

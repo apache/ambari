@@ -18,12 +18,12 @@
 
 var App = require('app');
 
-App.MainDashboardServiceOozieView = App.MainDashboardServiceView.extend({
-  serviceName: 'oozie',
-  templateName: require('templates/main/dashboard/service/oozie'),
+App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
+  templateName: require('templates/main/service/services/hive'),
+  serviceName: 'hive',
 
-  webUi: function () {
-    var hostName = App.singleNodeInstall ? App.singleNodeAlias : this.get('service.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.publicHostName');
-    return "http://{0}:11000/oozie".format(hostName);
+  titleMasters: function(){
+    var masters = this.get('masters');
+    return [masters.findProperty('componentName', 'HIVE_SERVER'), masters.findProperty('componentName', 'HIVE_METASTORE')];
   }.property('service')
 });

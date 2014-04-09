@@ -30,19 +30,19 @@
               {{view view.sumMasterComponentView}}
             {{/if}}
             {{#if view.serviceStatus.hdfs}}
-              {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
+              {{view App.MainDashboardServiceHdfsView serviceBinding="view.service"}}
             {{/if}}
             {{#if view.serviceStatus.mapreduce}}
-              {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
+              {{view App.MainDashboardServiceMapreduceView serviceBinding="view.service"}}
             {{/if}}
             {{#if view.serviceStatus.yarn}}
-              {{view App.MainDashboardServiceYARNView showOnlyRows=true serviceBinding="view.service"}}
+              {{view App.MainDashboardServiceYARNView serviceBinding="view.service"}}
             {{/if}}
             {{#if view.serviceStatus.mapreduce2}}
               {{template "templates/main/service/info/summary/mapreduce2"}}
             {{/if}}
             {{#if view.serviceStatus.hbase}}
-              {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
+              {{view App.MainDashboardServiceHbaseView serviceBinding="view.service"}}
             {{/if}}
             {{#if view.serviceStatus.zookeeper}}
               {{template "templates/main/service/info/summary/zookeeper"}}
@@ -60,13 +60,13 @@
               {{template "templates/main/service/info/summary/hue"}}
             {{/if}}
             {{#if view.serviceStatus.flume}}
-              {{view App.MainDashboardServiceFlumeView showOnlyRows=true serviceBinding="view.service"}}
+              {{view App.MainDashboardServiceFlumeView serviceBinding="view.service"}}
             {{/if}}
             {{#if view.serviceStatus.falcon}}
               {{template "templates/main/service/info/summary/falcon"}}
             {{/if}}
             {{#if view.serviceStatus.storm}}
-              {{view App.MainDashboardServiceStormView showOnlyRows=true serviceBinding="view.service"}}
+              {{view App.MainDashboardServiceStormView serviceBinding="view.service"}}
             {{/if}}
             {{#if view.serviceStatus.tez}}
               {{template "templates/main/service/info/summary/tez"}}

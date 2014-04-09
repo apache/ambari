@@ -1,0 +1,109 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{view view.dashboardMasterComponentView}}
+<!-- Data Nodes -->
+<tr>
+  <td><a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a></td>
+  <td>
+    <span>
+      {{#view view.dataNodesLiveTextView}}
+        {{view.liveComponents}}/{{view.totalComponents}}
+      {{/view}}
+    </span>
+      {{t services.service.summary.DataNodesLive}}
+  </td>
+</tr>
+<!-- JournalNodes -->
+{{#if view.showJournalNodes}}
+  <tr>
+    <td><a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
+    </td>
+    <td>
+      <span>
+        {{#view view.journalNodesLiveTextView}}
+          {{view.liveComponents}}/{{view.totalComponents}}
+        {{/view}}
+      </span>
+        {{t services.service.summary.JournalNodesLive}}
+    </td>
+  </tr>
+{{/if}}
+<!-- NameNode Uptime -->
+<tr>
+  <td>{{t dashboard.services.hdfs.nodes.uptime}}</td>
+  <td>{{view.nodeUptime}}</td>
+</tr>
+<!-- NameNode Heap -->
+<tr>
+  <td>{{t dashboard.services.hdfs.nodes.heap}}</td>
+  <td>{{view.nodeHeap}}</td>
+</tr>
+<!-- Data Node Counts -->
+<tr>
+  <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
+  <td>
+    {{view.dataNodesLive.length}} {{t dashboard.services.hdfs.nodes.live}} /
+    {{view.dataNodesDead.length}} {{t dashboard.services.hdfs.nodes.dead}} /
+    {{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}
+  </td>
+</tr>
+<!-- HDFS Capacity (Disk Usage)-->
+<tr>
+  <td>{{t dashboard.services.hdfs.capacity.dfsUsed}}</td>
+  <td>{{view.dfsUsedDisk}}</td>
+</tr>
+<tr>
+  <td>{{t dashboard.services.hdfs.capacity.nonDfsUsed}}</td>
+  <td>{{view.nonDfsUsedDisk}}</td>
+</tr>
+<tr>
+  <td>{{t dashboard.services.hdfs.capacity.remaining}}</td>
+  <td>{{view.remainingDisk}}</td>
+</tr>
+<!-- Blocks Total -->
+<tr>
+  <td>{{t services.service.summary.blocksTotal}}</td>
+  <td>{{view.dfsTotalBlocks}}</td>
+</tr>
+<!-- Block Errors -->
+<tr>
+  <td>{{t services.service.summary.blockErrors}}</td>
+  <td>
+    {{view.blockErrorsMessage}}
+  </td>
+</tr>
+<!-- Total Files And Directories -->
+<tr>
+  <td>{{t dashboard.services.hdfs.totalFilesAndDirs}}</td>
+  <td>{{view.dfsTotalFiles}}</td>
+</tr>
+<!-- Upgrade Status -->
+<tr>
+  <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
+  <td>
+    {{view.upgradeStatus}}
+  </td>
+</tr>
+<!-- Safe Mode Status -->
+<tr>
+  <td>{{t services.service.summary.safeModeStatus}}</td>
+  <td>
+    {{view.safeModeStatus}}
+  </td>
+</tr>

@@ -20,7 +20,7 @@ var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/mapreduce'),
+  templateName: require('templates/main/service/services/mapreduce'),
   serviceName: 'MAPREDUCE',
   jobTrackerWebUrl: function () {
     return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('service').get('jobTracker').get('publicHostName')) + ":50030";

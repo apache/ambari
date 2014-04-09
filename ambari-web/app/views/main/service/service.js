@@ -34,13 +34,6 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     this.set('data-original-title', this.get('service.toolTipContent'));
   }.observes('service.toolTipContent'),
 
-  /**
-   * When set to true, extending classes should
-   * show only tabular rows as they will be 
-   * embedded into other tables.
-   */
-  showOnlyRows: false,
-
   startBlink: function () {
     this.set('blink', true);
   },

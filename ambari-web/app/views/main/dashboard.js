@@ -26,7 +26,6 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
   templateName:require('templates/main/dashboard'),
 
   didInsertElement:function () {
-    this.loadServices();
     this.setWidgetsDataModel();
     this.setInitPrefObject();
     this.setOnLoadVisibleWidgets();
@@ -44,12 +43,6 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * @type {bool}
    */
   isDataLoaded: false,
-
-  /**
-   * Is Classic Dashboard style used
-   * @type {bool}
-   */
-  isClassicDashboard: false,
 
   /**
    * Make widgets' list sortable on New Dashboard style
@@ -516,114 +509,6 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
       }
       self.translateToReal(self.get('initPrefObject'));
     });
-  },
-
-  /**
-   * Use Classic Dashboard style
-   */
-  switchToClassic: function () {
-    this.switchTo('classic');
-  },
-
-  /**
-   * Use New Dashboard style
-   */
-  switchToNew: function () {
-    this.switchTo('new');
-  },
-
-  /**
-   * Switch Dashboard to New or Classic style
-   * @param {string} type
-   */
-  switchTo: function(type) {
-    var oldValue;
-    if(App.testMode) {
-      oldValue = this.get('initPrefObject');
-      oldValue.dashboardVersion = type;
-      this.translateToReal(oldValue);
-    }
-    else {
-      this.getUserPref(this.get('persistKey'));
-      oldValue = this.get('currentPrefObject') || this.getDBProperty(this.get('persistKey'));
-      oldValue.dashboardVersion = type;
-      this.postUserPref(this.get('persistKey'), oldValue);
-      this.setDBProperty(this.get('persistKey'), oldValue);
-      this.didInsertElement();
-    }
-  },
-
-  /**
-   * Update list of services in the <code>content</code>
-   */
-  updateServices: function(){
-    var services = App.Service.find();
-    services.forEach(function (item) {
-      var view;
-      switch (item.get('serviceName')) {
-        case "HDFS":
-          view = this.get('content').filterProperty('viewName', App.MainDashboardServiceHdfsView);
-          view.objectAt(0).set('model', App.HDFSService.find(item.get('id')));
-          break;
-        case "MAPREDUCE":
-          view = this.get('content').filterProperty('viewName', App.MainDashboardServiceMapreduceView);
-          view.objectAt(0).set('model', App.MapReduceService.find(item.get('id')));
-          break;
-        case "HBASE":
-          view = this.get('content').filterProperty('viewName', App.MainDashboardServiceHbaseView);
-          view.objectAt(0).set('model', App.HBaseService.find(item.get('id')));
-      }
-    }, this);
-  }.observes('App.router.updateController.isUpdate'),
-
-  /**
-   * Load Services data to <code>content</code>
-   */
-  loadServices: function () {
-    var services = App.Service.find();
-    if (this.get('content').length > 0) {
-      return;
-    }
-    services.forEach(function (item) {
-      var vName;
-      var item2;
-      switch (item.get('serviceName')) {
-        case "HDFS":
-          vName = App.MainDashboardServiceHdfsView;
-          item2 = App.HDFSService.find(item.get('id'));
-          break;
-        case "YARN":
-          vName = App.MainDashboardServiceYARNView;
-          item2 = App.YARNService.find(item.get('id'));
-          break;
-        case "MAPREDUCE":
-          vName = App.MainDashboardServiceMapreduceView;
-          item2 = App.MapReduceService.find(item.get('id'));
-          break;
-        case "MAPREDUCE2":
-          vName = App.MainDashboardServiceMapreduce2View;
-          break;
-        case "HBASE":
-          vName = App.MainDashboardServiceHbaseView;
-          item2 = App.HBaseService.find(item.get('id'));
-          break;
-        case "HIVE":
-          vName = App.MainDashboardServiceHiveView;
-          break;
-        case "ZOOKEEPER":
-          vName = App.MainDashboardServiceZookeperView;
-          break;
-        case "OOZIE":
-          vName = App.MainDashboardServiceOozieView;
-          break;
-        default:
-          vName = Em.View;
-      }
-      this.get('content').pushObject(Em.Object.create({
-        viewName: vName,
-        model: item2 || item
-      }))
-    }, this);
   },
 
   /**

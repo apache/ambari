@@ -18,7 +18,7 @@
 var App = require('app');
 
 App.MainDashboardServiceMapreduce2View = App.MainDashboardServiceView.extend({
-    templateName: require('templates/main/dashboard/service/mapreduce2'),
+    templateName: require('templates/main/service/services/mapreduce2'),
     serviceName: 'MAPREDUCE2',
 
     titleInfo: function(){

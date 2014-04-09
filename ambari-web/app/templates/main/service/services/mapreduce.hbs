@@ -1,0 +1,81 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{view view.dashboardMasterComponentView}}
+
+<!-- TaskTrackers -->
+<tr>
+  <td><a href="#" {{action filterHosts view.taskTrackerComponent}}>{{t dashboard.services.mapreduce.taskTrackers}}</a>
+  </td>
+  <td>
+    <span>
+      {{#view view.trackersLiveTextView}}
+        {{view.liveComponents}}/{{view.totalComponents}}
+      {{/view}}
+    </span> {{t services.service.summary.TrackersLive}}
+  </td>
+</tr>
+<!-- Job Tracker Uptime -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.jobTrackerUptime}}</td>
+  <td>{{view.jobTrackerUptime}}</td>
+</tr>
+<!-- TaskTracker Counts -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.taskTrackerCounts}}</td>
+  <td>
+    {{view.service.grayListTrackers.length}} {{t dashboard.services.mapreduce.nodes.blacklist}} /
+    {{view.service.blackListTrackers.length}} {{t dashboard.services.mapreduce.nodes.graylist}} /
+    {{view.service.trackersDecommissioned}} {{t dashboard.services.hdfs.nodes.decom}}
+  </td>
+</tr>
+<!-- JobTracker Heap -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.jobTrackerHeap}}</td>
+  <td>{{view.trackersHeapSummary}}</td>
+</tr>
+<!-- Total slots capacity -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.slotCapacity}}</td>
+  <td>{{view.slotsCapacitySummary}}</td>
+</tr>
+<!-- Jobs -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.jobs}}</td>
+  <td>{{view.jobsSummary}}</td>
+</tr>
+<!-- Map Slots -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.mapSlots}}</td>
+  <td>{{view.mapSlotsSummary}}</td>
+</tr>
+<!-- Reduce Slots -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.reduceSlots}}</td>
+  <td>{{view.reduceSlotsSummary}}</td>
+</tr>
+<!-- Tasks:Maps -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.tasks.maps}}</td>
+  <td>{{view.mapTasksSummary}}</td>
+</tr>
+<!-- Tasks:Reduces -->
+<tr>
+  <td>{{t dashboard.services.mapreduce.tasks.reduces}}</td>
+  <td>{{view.reduceTasksSummary}}</td>
+</tr>

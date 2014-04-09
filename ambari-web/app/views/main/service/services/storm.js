@@ -20,7 +20,7 @@ var App = require('app');
 var date = require('utils/date');
 
 App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/storm'),
+  templateName: require('templates/main/service/services/storm'),
   serviceName: 'storm',
 
   superVisorComponents: function() {

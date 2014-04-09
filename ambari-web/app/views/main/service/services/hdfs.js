@@ -20,7 +20,7 @@ var date = require('utils/date');
 var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
-  templateName: require('templates/main/dashboard/service/hdfs'),
+  templateName: require('templates/main/service/services/hdfs'),
   serviceName: 'HDFS',
   Chart: App.ChartPieView.extend({
     service: null,

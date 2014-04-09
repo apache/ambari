@@ -16,60 +16,6 @@
 * limitations under the License.
 }}
 {{#if view.isDataLoaded}}
-  {{#if view.isClassicDashboard}}
-    <div class="row">
-      <div class="span6">
-        <div class="row">
-          <div class="span6">
-            <div class="box">
-              <div class="box-header">
-                <h4>{{t dashboard.services}}</h4>
-              </div>
-              <dl class="dl-horizontal services">
-                {{#each item in view.content}}
-                  {{view item.viewName serviceBinding="item.model"}}
-                {{/each}}
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="span6">
-        <div class="box">
-          <div class="box-header">
-            <h4>{{t dashboard.clusterMetrics}}</h4>
-              <div class="btn-group">
-                <a class="btn" target="_blank" rel="tooltip" title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
-                <a href="javascript:void(null)" class="btn btn-success switch-button" data-toggle="modal" {{action "switchToNew" target="view"}}>
-                  {{t dashboard.button.switchShort}}
-                  <i class="icon-forward"></i>
-                </a>
-              </div>
-          </div>
-          <div class="graphs-container">
-            <table class="graphs">
-              <tr>
-                <td>
-                  {{view App.ChartClusterMetricsNetwork}}
-                </td>
-                <td>
-                  {{view App.ChartClusterMetricsLoad}}
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  {{view App.ChartClusterMetricsMemory}}
-                </td>
-                <td>
-                  {{view App.ChartClusterMetricsCPU}}
-                </td>
-              </tr>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  {{else}}
     <div class="row-fluid">
       <div class="services-menu well span2" style="padding: 8px 0">
         {{view App.MainServiceMenuView}}
@@ -92,12 +38,6 @@
                       <a href="#" {{action "resetAllWidgets" target="view"}}>
                         <i class="icon-refresh"></i>
                         {{t dashboard.button.reset}}
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" {{action "switchToClassic" target="view"}}>
-                        <i class="icon-backward"></i>
-                        {{t dashboard.button.switch}}
                       </a>
                     </li>
                     <li>
@@ -126,6 +66,5 @@
         </div>
       </div>
     </div>
-  {{/if}}
 {{/if}}
 
