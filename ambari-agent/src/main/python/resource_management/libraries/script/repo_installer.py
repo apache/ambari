@@ -20,6 +20,8 @@ limitations under the License.
 import json
 from resource_management.libraries.resources.repository import Repository
 
+UBUNTU_REPO_COMPONENTS = ["HDP", "main"]
+
 class RepoInstaller():    
   @classmethod
   def install_repos(cls, config):
@@ -56,4 +58,6 @@ class RepoInstaller():
                  action = action,
                  base_url = repo['baseUrl'],
                  mirror_list = repo['mirrorsList'],
-                 repo_file_name = repo['repoName'])
+                 repo_file_name = repo['repoName'],
+                 components = UBUNTU_REPO_COMPONENTS, # ubuntu specific
+      )

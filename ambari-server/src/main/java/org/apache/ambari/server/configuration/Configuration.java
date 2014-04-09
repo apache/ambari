@@ -263,10 +263,14 @@ public class Configuration {
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
       "server.connection.max.idle.millis";
+  
+  private static final String UBUNTU_OS = "debian12";
+  
   /**
    * Default for repo validation suffixes.
    */
   private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
+  private static final String REPO_SUFFIX_UBUNTU = "/dists/HDP/Release.gpg,/dists/HDP/Release";
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -890,8 +894,22 @@ public class Configuration {
    * @return a string array of suffixes used to validate repo URLs.
    */
   public String[] getRepoValidationSuffixes() {
-    String value = properties.getProperty(REPO_SUFFIX_KEY,
-        REPO_SUFFIX_DEFAULT);
+	String osType = getServerOsType();
+	
+	if (osType == null || osType.isEmpty()) {
+	  throw new RuntimeException(Configuration.OS_VERSION_KEY + " is not "
+	      + " set in the ambari.properties file");
+	}
+	
+	String value = null;
+	
+	if(osType.equals(UBUNTU_OS)) {
+	    value = properties.getProperty(REPO_SUFFIX_KEY,
+	        REPO_SUFFIX_UBUNTU);
+	} else {
+	    value = properties.getProperty(REPO_SUFFIX_KEY,
+		        REPO_SUFFIX_DEFAULT);		
+	}
     
     return value.split(",");
   }
