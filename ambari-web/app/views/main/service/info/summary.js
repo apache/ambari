@@ -16,7 +16,7 @@
  */
 
 var App = require('app');
-require('views/main/dashboard/service');
+require('views/main/service/service');
 
 App.AlertItemView = Em.View.extend({
   tagName:"li",
