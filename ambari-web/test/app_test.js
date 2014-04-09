@@ -17,6 +17,9 @@
  */
 
 var App = require('app');
+require('views/common/quick_view_link_view');
+require('models/host_component');
+require('models/stack_service_component');
 
 describe('#App', function() {
 
@@ -118,6 +121,267 @@ describe('#App', function() {
           .get('service_components').mapProperty('component_name');
         expect(reviewConfig).to.include(expectedInfo.reviewConfigs.component_name);
       });
+    });
+  });
+
+  describe('#stackVersionURL', function () {
+
+    App.QuickViewLinks.reopen({
+      loadTags: function () {}
+    });
+
+    var testCases = [
+      {
+        title: 'if currentStackVersion and defaultStackVersion are empty then stackVersionURL should contain prefix',
+        currentStackVersion: '',
+        defaultStackVersion: '',
+        result: '/stacks/HDP/version/'
+      },
+      {
+        title: 'if currentStackVersion is "HDP-1.3.1" then stackVersionURL should be "/stacks/HDP/version/1.3.1"',
+        currentStackVersion: 'HDP-1.3.1',
+        defaultStackVersion: '',
+        result: '/stacks/HDP/version/1.3.1'
+      },
+      {
+        title: 'if defaultStackVersion is "HDP-1.3.1" then stackVersionURL should be "/stacks/HDP/version/1.3.1"',
+        currentStackVersion: '',
+        defaultStackVersion: 'HDP-1.3.1',
+        result: '/stacks/HDP/version/1.3.1'
+      },
+      {
+        title: 'if defaultStackVersion and currentStackVersion are different then stackVersionURL should have currentStackVersion value',
+        currentStackVersion: 'HDP-1.3.2',
+        defaultStackVersion: 'HDP-1.3.1',
+        result: '/stacks/HDP/version/1.3.2'
+      },
+      {
+        title: 'if defaultStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/version/1.3.1"',
+        currentStackVersion: '',
+        defaultStackVersion: 'HDPLocal-1.3.1',
+        result: '/stacks/HDPLocal/version/1.3.1'
+      },
+      {
+        title: 'if currentStackVersion is "HDPLocal-1.3.1" then stackVersionURL should be "/stacks/HDPLocal/version/1.3.1"',
+        currentStackVersion: 'HDPLocal-1.3.1',
+        defaultStackVersion: '',
+        result: '/stacks/HDPLocal/version/1.3.1'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        App.set('currentStackVersion', test.currentStackVersion);
+        App.set('defaultStackVersion', test.defaultStackVersion);
+        expect(App.get('stackVersionURL')).to.equal(test.result);
+        App.set('currentStackVersion', "HDP-1.2.2");
+        App.set('defaultStackVersion', "HDP-1.2.2");
+      });
+    });
+  });
+
+  describe('#stack2VersionURL', function () {
+
+    var testCases = [
+      {
+        title: 'if currentStackVersion and defaultStackVersion are empty then stack2VersionURL should contain prefix',
+        currentStackVersion: '',
+        defaultStackVersion: '',
+        result: '/stacks2/HDP/versions/'
+      },
+      {
+        title: 'if currentStackVersion is "HDP-1.3.1" then stack2VersionURL should be "/stacks2/HDP/versions/1.3.1"',
+        currentStackVersion: 'HDP-1.3.1',
+        defaultStackVersion: '',
+        result: '/stacks2/HDP/versions/1.3.1'
+      },
+      {
+        title: 'if defaultStackVersion is "HDP-1.3.1" then stack2VersionURL should be "/stacks/HDP/versions/1.3.1"',
+        currentStackVersion: '',
+        defaultStackVersion: 'HDP-1.3.1',
+        result: '/stacks2/HDP/versions/1.3.1'
+      },
+      {
+        title: 'if defaultStackVersion and currentStackVersion are different then stack2VersionURL should have currentStackVersion value',
+        currentStackVersion: 'HDP-1.3.2',
+        defaultStackVersion: 'HDP-1.3.1',
+        result: '/stacks2/HDP/versions/1.3.2'
+      },
+      {
+        title: 'if defaultStackVersion is "HDPLocal-1.3.1" then stack2VersionURL should be "/stacks2/HDPLocal/versions/1.3.1"',
+        currentStackVersion: '',
+        defaultStackVersion: 'HDPLocal-1.3.1',
+        result: '/stacks2/HDPLocal/versions/1.3.1'
+      },
+      {
+        title: 'if currentStackVersion is "HDPLocal-1.3.1" then stack2VersionURL should be "/stacks2/HDPLocal/versions/1.3.1"',
+        currentStackVersion: 'HDPLocal-1.3.1',
+        defaultStackVersion: '',
+        result: '/stacks2/HDPLocal/versions/1.3.1'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        App.set('currentStackVersion', test.currentStackVersion);
+        App.set('defaultStackVersion', test.defaultStackVersion);
+        expect(App.get('stack2VersionURL')).to.equal(test.result);
+        App.set('currentStackVersion', "HDP-1.2.2");
+        App.set('defaultStackVersion', "HDP-1.2.2");
+      });
+    });
+  });
+
+  describe('#currentStackVersionNumber', function () {
+
+    var testCases = [
+      {
+        title: 'if currentStackVersion is empty then currentStackVersionNumber should be empty',
+        currentStackVersion: '',
+        result: ''
+      },
+      {
+        title: 'if currentStackVersion is "HDP-1.3.1" then currentStackVersionNumber should be "1.3.1',
+        currentStackVersion: 'HDP-1.3.1',
+        result: '1.3.1'
+      },
+      {
+        title: 'if currentStackVersion is "HDPLocal-1.3.1" then currentStackVersionNumber should be "1.3.1',
+        currentStackVersion: 'HDPLocal-1.3.1',
+        result: '1.3.1'
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        App.set('currentStackVersion', test.currentStackVersion);
+        expect(App.get('currentStackVersionNumber')).to.equal(test.result);
+        App.set('currentStackVersion', "HDP-1.2.2");
+      });
+    });
+  });
+
+  describe('#isHadoop2Stack', function () {
+
+    var testCases = [
+      {
+        title: 'if currentStackVersion is empty then isHadoop2Stack should be false',
+        currentStackVersion: '',
+        result: false
+      },
+      {
+        title: 'if currentStackVersion is "HDP-1.9.9" then isHadoop2Stack should be false',
+        currentStackVersion: 'HDP-1.9.9',
+        result: false
+      },
+      {
+        title: 'if currentStackVersion is "HDP-2.0.0" then isHadoop2Stack should be true',
+        currentStackVersion: 'HDP-2.0.0',
+        result: true
+      },
+      {
+        title: 'if currentStackVersion is "HDP-2.0.1" then isHadoop2Stack should be true',
+        currentStackVersion: 'HDP-2.0.1',
+        result: true
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        App.set('currentStackVersion', test.currentStackVersion);
+        expect(App.get('isHadoop2Stack')).to.equal(test.result);
+        App.set('currentStackVersion', "HDP-1.2.2");
+      });
+    });
+  });
+
+  describe('#isHaEnabled', function () {
+
+    it('if hadoop stack version less than 2 then isHaEnabled should be false', function () {
+      App.set('currentStackVersion', 'HDP-1.3.1');
+      expect(App.get('isHaEnabled')).to.equal(false);
+      App.set('currentStackVersion', "HDP-1.2.2");
+    });
+    it('if hadoop stack version higher than 2 then isHaEnabled should be true', function () {
+      App.set('currentStackVersion', 'HDP-2.0.1');
+      expect(App.get('isHaEnabled')).to.equal(true);
+      App.set('currentStackVersion', "HDP-1.2.2");
+    });
+    it('if cluster has SECONDARY_NAMENODE then isHaEnabled should be false', function () {
+      App.store.load(App.HostComponent, {
+        id: 'SECONDARY_NAMENODE',
+        component_name: 'SECONDARY_NAMENODE'
+      });
+      App.set('currentStackVersion', 'HDP-2.0.1');
+      expect(App.get('isHaEnabled')).to.equal(false);
+      App.set('currentStackVersion', "HDP-1.2.2");
+    });
+  });
+
+  describe('#handleStackDependedComponents()', function () {
+
+    it('if handleStackDependencyTest is true then stackDependedComponents should be unmodified', function () {
+      App.set('testMode', false);
+      App.set('handleStackDependencyTest', true);
+      App.handleStackDependedComponents();
+      expect(App.get('stackDependedComponents')).to.be.empty;
+    });
+
+    it('if testMode is true then stackDependedComponents should be unmodified', function () {
+      App.set('handleStackDependencyTest', false);
+      App.set('testMode', true);
+      App.handleStackDependedComponents();
+      expect(App.get('stackDependedComponents')).to.be.empty;
+    });
+
+    it('if stack contains all components then stackDependedComponents should be empty', function () {
+      App.set('testMode', false);
+      App.set('handleStackDependencyTest', false);
+      App.handleStackDependedComponents();
+      expect(App.get('stackDependedComponents')).to.be.empty;
+    });
+
+    it('if stack is missing component then push it to stackDependedComponents', function () {
+      App.set('testMode', false);
+      App.set('handleStackDependencyTest', false);
+      var dtRecord = App.StackServiceComponent.find('DATANODE');
+      dtRecord.deleteRecord();
+      dtRecord.get('stateManager').transitionTo('loading');
+      App.handleStackDependedComponents();
+      expect(App.get('stackDependedComponents').mapProperty('componentName')).to.eql(["DATANODE"]);
+      App.store.load(App.StackServiceComponent, {
+        id: 'DATANODE',
+        component_name: 'DATANODE',
+        service_name: 'HDFS',
+        component_category: 'SLAVE',
+        is_master: false,
+        is_client: false,
+        stack_name: 'HDP',
+        stack_version: '2.1'
+      });
+    });
+
+    it('remove stack components from stackDependedComponents', function () {
+      App.set('testMode', false);
+      App.set('handleStackDependencyTest', false);
+      App.set('stackDependedComponents', [
+        Em.Object.create({
+          componentName: "DATANODE",
+          serviceName: "HDFS",
+          properties: {},
+          reviewConfigs: {},
+          configCategory: {}
+        }),
+        Em.Object.create({
+          componentName: "categoryComponent",
+          serviceName: "",
+          properties: {},
+          reviewConfigs: {},
+          configCategory: {}
+        })
+      ]);
+      App.handleStackDependedComponents();
+      expect(App.get('stackDependedComponents').mapProperty('componentName')).to.eql(["categoryComponent"]);
     });
   });
 });

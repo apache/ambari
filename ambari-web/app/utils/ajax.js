@@ -1232,7 +1232,7 @@ var urls = {
   },
   'wizard.service_components': {
     'real': '{stackUrl}/stackServices?fields=StackServices/comments,StackServices/service_version,serviceComponents/*',
-    'mock': '/data/wizard/stacks/HDP-2.1/service_components.json',
+    'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function(data) {
       return {
         timeout: 10000,

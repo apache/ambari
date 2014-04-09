@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+require('views/main/dashboard/service');
 
 App.AlertItemView = Em.View.extend({
   tagName:"li",
@@ -417,12 +418,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    * Alerts panel not display for PIG, SQOOP and TEZ Service
    */
   isNoAlertsService: function () {
-    var serviceName = this.get('service.serviceName');
-    if (!serviceName) {
-      return false;
-    }
-    var noAlertsServices = ['PIG', 'SQOOP', 'TEZ'];
-    return noAlertsServices.indexOf(serviceName) > -1;
+    return !!this.get('service.serviceName') && ['PIG', 'SQOOP', 'TEZ'].contains(this.get('service.serviceName'));
   }.property(''),
 
   gangliaUrl:function () {

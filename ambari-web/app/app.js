@@ -80,7 +80,7 @@ module.exports = Em.Application.create({
   isHaEnabled: function() {
     if (!this.get('isHadoop2Stack')) return false;
     return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property('router.clusterController.isLoaded'),
+  }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
 
   /**
    * List of disabled components for the current stack with related info.
@@ -167,57 +167,65 @@ module.exports = Em.Application.create({
     var reviewConfigsService = require('data/review_configs')
       .findProperty('config_name', 'services').config_value
       .findProperty('service_name', component.get('serviceName'));
-    reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
-      if (serviceComponent.get('component_name') != component.get('componentName')) {
-        return true;
-      } else {
-        componentCopy.set('reviewConfigs', serviceComponent);
-        return false;
-      }
-    }));
+    //review_configs might not contain particular service
+    if (reviewConfigsService) {
+      reviewConfigsService.set('service_components', reviewConfigsService.get('service_components').filter(function (serviceComponent) {
+        if (serviceComponent.get('component_name') != component.get('componentName')) {
+          return true;
+        } else {
+          componentCopy.set('reviewConfigs', serviceComponent);
+          return false;
+        }
+      }));
+    }
     return componentCopy;
   },
   /**
-   * Resolve dependency in components. Check forbidden/allowed components and
+   * Resolve dependency in components.
+   * if component with config category from "data/service_configs" doesn't match components from stack
+   * then disable it and push to stackDependedComponents
+   * otherwise enable component and remove it from stackDependedComponents
+   * Check forbidden/allowed components and
    * remove/restore related data.
    */
-  handleStackDependedComponents: function() {
+  handleStackDependedComponents: function () {
     // need for unit testing and test mode
     if (this.get('handleStackDependencyTest') || this.testMode) return;
-    var stackDependedComponents = [];
+    var stackDependedComponents = this.get('stackDependedComponents');
     var service_configs = require('data/service_configs');
     var stackServiceComponents = this.StackServiceComponent.find();
     if (!stackServiceComponents.mapProperty('componentName').length) {
-       return;
+      return;
     }
     // disable components
-    service_configs.forEach(function(service){
-      service.configCategories.forEach(function(serviceConfigCategory){
+    service_configs.forEach(function (service) {
+      service.configCategories.forEach(function (serviceConfigCategory) {
         var categoryComponents = serviceConfigCategory.get('hostComponentNames');
         if (categoryComponents && categoryComponents.length) {
-          categoryComponents.forEach(function(categoryComponent) {
-            var stackComponent = stackServiceComponents.findProperty('componentName',categoryComponent);
-            if(!stackComponent && !this.get('stackDependedComponents').mapProperty('componentName').contains['categoryComponent'] ) {
+          categoryComponents.forEach(function (categoryComponent) {
+            var stackComponent = stackServiceComponents.findProperty('componentName', categoryComponent);
+            if (!stackComponent && !stackDependedComponents.mapProperty('componentName').contains['categoryComponent']) {
               var _stackComponent = Ember.Object.create({
                 componentName: categoryComponent,
-                serviceName:service.serviceName
+                serviceName: service.serviceName
               });
               stackDependedComponents.push(this.disableComponent(_stackComponent));
             }
-          },this);
+          }, this);
         }
-      },this);
-    },this);
+      }, this);
+    }, this);
+
     // enable components
-    if (this.get('stackDependedComponents').length > 0) {
-      this.get('stackDependedComponents').forEach(function(component) {
-        if (stackServiceComponents.findProperty('componentName',component.get('componentName'))) {
+    if (stackDependedComponents.length > 0) {
+      stackDependedComponents.forEach(function (component) {
+        if (stackServiceComponents.someProperty('componentName', component.get('componentName'))) {
           this.enableComponent(component);
-          stackDependedComponents = this.get('stackDependedComponents').removeObject(component);
+          stackDependedComponents.removeObject(component);
         }
       }, this);
     }
-    this.set('stackDependedComponents', this.get('stackDependedComponents').concat(stackDependedComponents));
+    this.set('stackDependedComponents', stackDependedComponents);
   },
 
   /**
