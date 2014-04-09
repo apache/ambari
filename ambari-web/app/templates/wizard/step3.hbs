@@ -58,26 +58,15 @@
           <table class="table table-bordered table-striped">
               <thead>
               <tr>
-                  <th class="span1">
-                      <div class="btn-group">
-                          <a class="btn">
-                            {{view Ember.Checkbox checkedBinding="view.pageChecked"}}
-                          </a><button class="btn dropdown-toggle" data-toggle="dropdown">
-                              <span class="caret"></span>
-                          </button>
-                          <ul class="dropdown-menu">
-                              <li>
-                                  <a {{action selectAll target="view"}}>{{t installer.step3.hostsTable.selectAll}}</a>
-                              </li>
-                          </ul>
-                      </div>
+                  <th class="tinyspan">
+                    {{view Ember.Checkbox checkedBinding="view.pageChecked"}}
                   </th>
                   <th class="span3">{{t common.host}}</th>
                   <!-- retrieved from local storage initially -->
                   <th class="span3">{{t common.progress}}</th>
                   <th class="span2">{{t common.status}}</th>
                   <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
-                  <th class="span3">{{t common.action}}</th>
+                  <th class="span2">{{t common.action}}</th>
                   <!-- trash icon -->
                   <!-- retry icon -->
               </tr>
