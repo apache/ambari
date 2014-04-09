@@ -46,7 +46,9 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Execute', format('env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng agent '
       '--name a1 '
       '--conf /etc/flume/conf/a1 '
-      '--conf-file /etc/flume/conf/a1/flume.conf '),
+      '--conf-file /etc/flume/conf/a1/flume.conf '
+      '-Dflume.monitoring.type=ganglia '
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
       wait_for_finish = False)
 
     self.assertResourceCalled('Execute', 'pgrep -f /etc/flume/conf/a1/flume.conf > /var/run/flume/a1.pid',

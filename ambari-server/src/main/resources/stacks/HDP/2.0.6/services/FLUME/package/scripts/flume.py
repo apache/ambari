@@ -58,8 +58,14 @@ def flume(action = None):
       flume_agent_conf_file = flume_agent_conf_dir + os.sep + "flume.conf"
       flume_agent_pid_file = params.flume_run_dir + os.sep + agent + ".pid"
 
+      # TODO someday make the ganglia ports configurable
+      extra_args = ''
+      if params.ganglia_server_host is not None:
+        extra_args = '-Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts={0}:{1}'
+        extra_args = extra_args.format(params.ganglia_server_host, '8655')
+
       flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
-         flume_agent_conf_file, "")
+         flume_agent_conf_file, extra_args)
 
       Execute(flume_cmd, wait_for_finish=False)
 

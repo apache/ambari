@@ -44,3 +44,7 @@ if (('flume-log4j' in config['configurations']) and ('content' in config['config
 else:
   flume_log4j_content = None
 
+ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
+ganglia_server_host = None
+if 0 != len(ganglia_server_hosts):
+  ganglia_server_host = ganglia_server_hosts[0]
