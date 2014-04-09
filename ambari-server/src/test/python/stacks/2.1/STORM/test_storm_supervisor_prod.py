@@ -53,7 +53,7 @@ class TestStormSupervisor(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.logviewer$" && pgrep -f "^java.+backtype.storm.daemon.logviewer$" > /var/run/storm/logviewer.pid',
       logoutput = True,
-      tries = 6,
+      tries = 12,
       user = 'storm',
       try_sleep = 10,
     )
@@ -109,7 +109,7 @@ class TestStormSupervisor(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'pgrep -f "^java.+backtype.storm.daemon.logviewer$" && pgrep -f "^java.+backtype.storm.daemon.logviewer$" > /var/run/storm/logviewer.pid',
       logoutput = True,
-      tries = 6,
+      tries = 12,
       user = 'storm',
       try_sleep = 10,
     )
