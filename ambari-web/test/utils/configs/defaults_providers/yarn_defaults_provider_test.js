@@ -251,8 +251,8 @@ describe('YARNDefaultsProvider', function() {
         },
         m: 'Without HBase',
         e: {
-          'mapreduce.map.java.opts': '-Xmx1024m',
-          'mapreduce.map.memory.mb': 1280,
+          'mapreduce.map.java.opts': '-Xmx2048m',
+          'mapreduce.map.memory.mb': 2560,
           'mapreduce.reduce.java.opts': '-Xmx2048m',
           'mapreduce.reduce.memory.mb': 2560,
           'yarn.app.mapreduce.am.command-opts': '-Xmx2048m',
@@ -260,7 +260,7 @@ describe('YARNDefaultsProvider', function() {
           'yarn.nodemanager.resource.memory-mb': 20480,
           'yarn.scheduler.maximum-allocation-mb': 20480,
           'yarn.scheduler.minimum-allocation-mb': 2560,
-          'mapreduce.task.io.sort.mb': 512
+          'mapreduce.task.io.sort.mb': 1024
         }
       },
       {
@@ -281,8 +281,8 @@ describe('YARNDefaultsProvider', function() {
         },
         m: 'With HBase',
         e: {
-          'mapreduce.map.java.opts': '-Xmx410m',
-          'mapreduce.map.memory.mb': 512,
+          'mapreduce.map.java.opts': '-Xmx819m',
+          'mapreduce.map.memory.mb': 1024,
           'mapreduce.reduce.java.opts': '-Xmx819m',
           'mapreduce.reduce.memory.mb': 1024,
           'yarn.app.mapreduce.am.command-opts': '-Xmx819m',
@@ -290,25 +290,26 @@ describe('YARNDefaultsProvider', function() {
           'yarn.nodemanager.resource.memory-mb': 8192,
           'yarn.scheduler.maximum-allocation-mb': 8192,
           'yarn.scheduler.minimum-allocation-mb': 1024,
-          'mapreduce.task.io.sort.mb': 205
+          'mapreduce.task.io.sort.mb': 410
         }
       }
     ]);
     tests.forEach(function(test) {
-      it(test.m, function() {
+      yarnDefaultProvider = App.YARNDefaultsProvider.create();
+      describe(test.m, function() {
         yarnDefaultProvider.set('clusterData', null);
         var configs = yarnDefaultProvider.getDefaults(test.localDB);
 
-        for(var config in configs) {
-          if (configs.hasOwnProperty(config)) {
+        Em.keys(configs).forEach(function(config) {
+          it(config, function() {
             if (test.e) {
               expect(configs[config]).to.equal(test.e[config]);
             }
             else {
               expect(configs[config] == 0 || configs[config] == null).to.equal(true);
             }
-          }
-        }
+          });
+        });
       });
     });
   });

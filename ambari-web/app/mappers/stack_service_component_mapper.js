@@ -36,7 +36,7 @@ App.stackServiceComponentMapper = App.QuickDataMapper.create({
     if (json.items) {
       var result = [];
       json.items.forEach(function (item) {
-        result.push(this.parseIt(item, this.config));
+        result.push(this.parseIt(item, this.get('config')));
       }, this);
       App.store.loadMany(model, result);
     }

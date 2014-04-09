@@ -234,7 +234,7 @@ module.exports = Em.Application.create({
       rollinRestartAllowed: self.StackServiceComponent.find().filterProperty('isRollinRestartAllowed',true).mapProperty('componentName'),
       decommissionAllowed: self.StackServiceComponent.find().filterProperty('isDecommissionAllowed',true).mapProperty('componentName'),
       addableToHost: self.StackServiceComponent.find().filterProperty('isAddableToHost',true).mapProperty('componentName'),
-      slaves: self.StackServiceComponent.find().filterProperty('isSlave',true).mapProperty('componentName'),
+      slaves: self.StackServiceComponent.find().filterProperty('isMaster',false).filterProperty('isClient',false).mapProperty('componentName'),
       masters: self.StackServiceComponent.find().filterProperty('isMaster',true).mapProperty('componentName'),
       clients: self.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName')
     })

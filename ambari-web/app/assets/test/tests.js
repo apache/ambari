@@ -16,6 +16,21 @@
  * limitations under the License.
  */
 
+var App = require('app');
+
+require('models/stack_service_component');
+require('mappers/server_data_mapper');
+require('mappers/stack_service_component_mapper');
+
+  var a = require('test/service_components');
+  var r = Em.A([]);
+  a.items.forEach(function(i) {
+    i.serviceComponents.forEach(function(sc) {
+      r.pushObject(sc.StackServiceComponents);
+    });
+  });
+  App.stackServiceComponentMapper.map({items: r});
+
 require('test/app_test');
 require('test/data/HDP2/site_properties_test');
 require('test/controllers/global/background_operations_test');

@@ -58,8 +58,8 @@ describe('HiveDefaultsProvider', function() {
         },
         m: 'Without HBase',
         e: {
-          'mapreduce.map.java.opts': '-Xmx1024m',
-          'mapreduce.map.memory.mb': 1280,
+          'mapreduce.map.java.opts': '-Xmx2048m',
+          'mapreduce.map.memory.mb': 2560,
           'mapreduce.reduce.java.opts': '-Xmx2048m',
           'mapreduce.reduce.memory.mb': 2560,
           'yarn.app.mapreduce.am.command-opts': '-Xmx2048m',
@@ -67,7 +67,7 @@ describe('HiveDefaultsProvider', function() {
           'yarn.nodemanager.resource.memory-mb': 20480,
           'yarn.scheduler.maximum-allocation-mb': 20480,
           'yarn.scheduler.minimum-allocation-mb': 2560,
-          'mapreduce.task.io.sort.mb': 512,
+          'mapreduce.task.io.sort.mb': 1024,
           'hive.tez.container.size': 2560
         }
       },
@@ -89,8 +89,8 @@ describe('HiveDefaultsProvider', function() {
         },
         m: 'With HBase (low memory - pick mapreduce.reduce.memory.mb)',
         e: {
-          'mapreduce.map.java.opts': '-Xmx410m',
-          'mapreduce.map.memory.mb': 512,
+          'mapreduce.map.java.opts': '-Xmx819m',
+          'mapreduce.map.memory.mb': 1024,
           'mapreduce.reduce.java.opts': '-Xmx819m',
           'mapreduce.reduce.memory.mb': 1024,
           'yarn.app.mapreduce.am.command-opts': '-Xmx819m',
@@ -98,7 +98,7 @@ describe('HiveDefaultsProvider', function() {
           'yarn.nodemanager.resource.memory-mb': 8192,
           'yarn.scheduler.maximum-allocation-mb': 8192,
           'yarn.scheduler.minimum-allocation-mb': 1024,
-          'mapreduce.task.io.sort.mb': 205,
+          'mapreduce.task.io.sort.mb': 410,
           'hive.tez.container.size': 1024
         }
       },
@@ -120,8 +120,8 @@ describe('HiveDefaultsProvider', function() {
         },
         m: 'With HBase (high memory - pick mapreduce.map.memory.mb)',
         e: {
-          'mapreduce.map.java.opts': '-Xmx3482m',
-          'mapreduce.map.memory.mb': 4352,
+          'mapreduce.map.java.opts': '-Xmx6963m',
+          'mapreduce.map.memory.mb': 8704,
           'mapreduce.reduce.java.opts': '-Xmx6963m',
           'mapreduce.reduce.memory.mb': 8704,
           'yarn.app.mapreduce.am.command-opts': '-Xmx6963m',
@@ -130,23 +130,25 @@ describe('HiveDefaultsProvider', function() {
           'yarn.scheduler.maximum-allocation-mb': 69632,
           'yarn.scheduler.minimum-allocation-mb': 8704,
           'mapreduce.task.io.sort.mb': 1024,
-          'hive.tez.container.size': 4352
+          'hive.tez.container.size': 8704
         }
       }
     ];
-    var defaultsProvider = App.HiveDefaultsProvider.create();
     tests.forEach(function(test) {
-      it(test.m, function() {
+      describe(test.m, function() {
+        var defaultsProvider = App.HiveDefaultsProvider.create();
         defaultsProvider.set('clusterData', null);
         var configs = defaultsProvider.getDefaults(test.localDB);
-        for(var config in configs) {
-          if (test.e) {
-            expect(configs[config]).to.equal(test.e[config]);
-          }
-          else {
-            expect(configs[config] == 0 || configs[config] == null).to.equal(true);
-          }
-        }
+        Em.keys(configs).forEach(function(config) {
+          it(config, function() {
+            if (test.e) {
+              expect(configs[config]).to.equal(test.e[config]);
+            }
+            else {
+              expect(configs[config] == 0 || configs[config] == null).to.equal(true);
+            }
+          })
+        });
       });
     });
   });

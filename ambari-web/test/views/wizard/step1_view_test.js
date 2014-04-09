@@ -37,14 +37,9 @@ describe('App.WizardStep1View', function () {
 
     var tests = Em.A([
       {os:'redhat5', e: 0},
-      {os: 'centos5', e: 0},
-      {os: 'oraclelinux5', e: 0},
       {os: 'redhat6', e: 1},
-      {os: 'centos6', e: 1},
-      {os: 'oraclelinux6', e: 1},
-      {os: 'sles11', e: 2},
       {os: 'suse11', e: 2},
-      {os: 'ubuntu12', e: 3},
+      {os: 'debian12', e: 3},
       {os: 'bulgen', e: -1}
     ]);
 
@@ -59,10 +54,10 @@ describe('App.WizardStep1View', function () {
   describe('#groupToOsType', function () {
 
     var tests = Em.A([
-      {type: 0, e: ['redhat5', 'centos5', 'oraclelinux5']},
-      {type: 1, e: ['redhat6', 'centos6', 'oraclelinux6']},
-      {type: 2, e: ['sles11', 'suse11']},
-      {type: 3, e: ['ubuntu12']},
+      {type: 0, e: ['redhat5']},
+      {type: 1, e: ['redhat6']},
+      {type: 2, e: ['suse11']},
+      {type: 3, e: ['debian12']},
       {type: -1, e: []}
     ]);
 
@@ -92,7 +87,7 @@ describe('App.WizardStep1View', function () {
     ]);
 
     tests.forEach(function(test) {
-      it(test.allRepositoriesGroup.mapProperty('empty-error'), function() {
+      it(test.allRepositoriesGroup.mapProperty('empty-error').join(', '), function() {
         view.set('allRepositoriesGroup', test.allRepositoriesGroup);
         expect(view.get('emptyRepoExist')).to.equal(test.e);
       });
@@ -118,7 +113,7 @@ describe('App.WizardStep1View', function () {
     ]);
 
     tests.forEach(function(test) {
-      it(test.allRepositoriesGroup.mapProperty('empty-error'), function() {
+      it(test.allRepositoriesGroup.mapProperty('checked').join(', '), function() {
         view.set('allRepositoriesGroup', test.allRepositoriesGroup);
         expect(view.get('allRepoUnchecked')).to.equal(test.e);
       });

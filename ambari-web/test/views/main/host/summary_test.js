@@ -386,6 +386,4 @@ describe('App.MainHostSummaryView', function() {
 
   });
 
-
-
 });

@@ -19,9 +19,10 @@
 var App = require('app');
 
 describe('#App', function() {
+
   describe('Disable/enable components', function() {
 
-    var testableComponent =  Ember.Object.create({
+    var testableComponent =  Em.Object.create({
       componentName: 'APP_TIMELINE_SERVER',
       serviceName: 'YARN'
     });

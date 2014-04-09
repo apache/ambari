@@ -22,6 +22,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
 
   /**
    * List of the configs that should be calculated
+   * @type {Object}
    */
   configsTemplate: {
     'yarn.nodemanager.resource.memory-mb': null,
@@ -38,32 +39,31 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
 
   /**
    * Information about ram, disk count, cpu count and hbase availability
-   * Example:
-   * {
-   *   disk: 12,
-   *   ram: 48,
-   *   cpu: 12,
-   *   hBaseInstalled: false
-   * }
+   * @type {{disk: number, ram: number, cpu: number, hBaseInstalled: bool}}
    */
   clusterData: null,
 
   /**
    * Reserved for system memory
+   * @type {number}
    */
   reservedRam: null,
 
   /**
    * Reserved for HBase memory
+   * @type {number}
    */
   hBaseRam: null,
 
   GB: 1024,
+
   /**
    *  Minimum container size (in RAM).
    *  This value is dependent on the amount of RAM available, as in smaller memory nodes the minimum container size should also be smaller
    *
    *  Value in MB!
+   *
+   *  @type {number}
    */
   recommendedMinimumContainerSize: function () {
     if (!this.clusterDataIsValid()) return null;
@@ -80,6 +80,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
   /**
    * Maximum number of containers allowed per node
    * max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))
+   * @type {number}
    */
   containers: function () {
     if (!this.clusterDataIsValid()) return null;
@@ -109,7 +110,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
    * Amount of RAM per container.
    * Calculated to be max(2GB, RAM - reservedRam - hBaseRam) / containers
    *
-   * @return Memory per container in MB. If greater than 1GB, 
+   * @return {number} Memory per container in MB. If greater than 1GB,
    *          value will be in multiples of 512. 
    */
   ramPerContainer: function () {
@@ -136,20 +137,32 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
     return container_ram > this.get('GB') ? (Math.floor(container_ram / 512) * 512) : container_ram;
   }.property('containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
 
+  /**
+   * Memory for Map
+   * @type {number}
+   */
   mapMemory: function () {
     return Math.floor(this.get('ramPerContainer'));
   }.property('ramPerContainer'),
 
+  /**
+   * Memory for Reduce
+   * @type {number}
+   */
   reduceMemory: function () {
     return this.get('ramPerContainer');
   }.property('ramPerContainer'),
 
+  /**
+   * @type {number}
+   */
   amMemory: function () {
     return Math.max(this.get('mapMemory'), this.get('reduceMemory'));
   }.property('mapMemory', 'reduceMemory'),
 
   /**
    * Reserved for HBase and system memory is based on total available memory
+   * @type {number}
    */
   reservedMemoryRecommendations: function() {
     var table = [
@@ -290,6 +303,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.extend({
 
   /**
    * Verify <code>clusterData</code> - check if all properties are defined
+   * @return {bool}
    */
   clusterDataIsValid: function () {
     if (!this.get('clusterData')) return false;

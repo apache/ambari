@@ -25,65 +25,6 @@ require('controllers/wizard/step9_controller');
 require('utils/helper');
 
 describe('App.InstallerStep9Controller', function () {
-  var data = [
-    {
-      id: 'DATANODE',
-      component_name: 'DATANODE',
-      service_name: 'HDFS',
-      is_client: false,
-      is_master: false,
-      component_category: 'SLAVE'
-    },
-    {
-      id: 'TASKTRACKER',
-      component_name: 'TASKTRACKER',
-      service_name: 'MAPREDUCE',
-      is_client: false,
-      is_master: false,
-      component_category: 'SLAVE'
-    },
-    {
-      id: 'HBASE_REGIONSERVER',
-      component_name: 'HBASE_REGIONSERVER',
-      service_name: 'HBASE',
-      is_client: false,
-      is_master: false,
-      component_category: 'SLAVE'
-    },
-    {
-      id: 'GANGLIA_MONITOR',
-      component_name: 'GANGLIA_MONITOR',
-      service_name: 'GANGLIA',
-      is_client: false,
-      is_master: false,
-      component_category: 'SLAVE'
-    },
-    {
-      id: 'SUPERVISOR',
-      component_name: 'SUPERVISOR',
-      service_name: 'STORM',
-      is_client: false,
-      is_master: false,
-      component_category: 'SLAVE'
-    },
-    {
-      id: 'NAMENODE',
-      component_name: 'NAMENODE',
-      service_name: 'HDFS',
-      is_client: false,
-      is_master: true,
-      component_category: 'MASTER'
-    },
-    {
-      id: 'HDFS_CLIENT',
-      component_name: 'HDFS_CLIENT',
-      service_name: 'HDFS',
-      is_client: true,
-      is_master: false,
-      component_category: 'SLAVE'
-    }
-  ];
-  App.store.loadMany(App.StackServiceComponent,data);
 
   describe('#isSubmitDisabled', function () {
     var tests = Em.A([
