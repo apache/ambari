@@ -126,6 +126,7 @@ class HostInfo:
     self.packages = PackagesAnalyzer()
     self.reportFileHandler = HostCheckReportFileHandler(config)
 
+
   def dirType(self, path):
     if not os.path.exists(path):
       return 'not_exist'
@@ -280,15 +281,16 @@ class HostInfo:
 
 
   def checkIptables(self):
-    iptablesIsRunning = False
+    iptablesIsRunning = True
     try:
-      iptables = subprocess.Popen(self.FIREWALL_STATUS_CMD.split(), stdout=subprocess.PIPE)
-      iptables.communicate()
-      if iptables.returncode == 0:
-        iptablesIsRunning = True
+      iptables = subprocess.Popen(["iptables", "-S"], stdout=subprocess.PIPE)
+      stdout = iptables.communicate()
+      if stdout == ('-P INPUT ACCEPT\n-P FORWARD ACCEPT\n-P OUTPUT ACCEPT\n', None):
+        iptablesIsRunning = False
     except:
       pass
     return iptablesIsRunning
+
 
 
 

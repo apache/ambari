@@ -515,16 +515,15 @@ class TestHostInfo(TestCase):
   def test_checkIptables(self, subproc_popen_mock):
     hostInfo = HostInfo()
     p = MagicMock()
-    p.returncode = 0
+
     subproc_popen_mock.return_value = p
+    
     result = hostInfo.checkIptables()
+    self.assertTrue(result == True)
 
-    self.assertTrue(result)
-
-    p.returncode = 1
     result = hostInfo.checkIptables()
+    self.assertFalse(result == False)
 
-    self.assertFalse(result)
 
 
 if __name__ == "__main__":
