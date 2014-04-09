@@ -1737,7 +1737,7 @@ var urls = {
   },
 
   'jobs.lastID': {
-    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1',
+    'real': '/proxy?url=http://{historyServerHostName}:{ahsWebPort}/ws/v1/timeline/HIVE_QUERY_ID?limit=1&secondaryFilter=tez:true',
     'mock': 'data/jobs/hive-queries.json',
     'apiPrefix': ''
   },
