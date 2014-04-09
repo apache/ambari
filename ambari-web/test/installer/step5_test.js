@@ -148,7 +148,7 @@ describe('App.WizardStep5Controller', function () {
 
     it('should be host name different from localhost if hosts number more than one', function() {
       var hosts = [
-        {host_name: ''},
+        {host_name: location.hostname},
         {host_name: 'host2'}
       ];
       //first host_name is empty string, because of location.hostname = "" in console,
