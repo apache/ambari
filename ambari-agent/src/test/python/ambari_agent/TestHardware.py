@@ -183,6 +183,31 @@ lo        Link encap:Local Loopback
     self.assertEquals(result['netmask'], '255.255.255.0')
     self.assertEquals(result['interfaces'], 'eth0,eth1,lo')
 
+
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_family")
+  @patch.object(OSCheck, "get_os_version")
+  def test_facterDataOperatingsystemIsFamily(self, get_os_version_mock, get_os_family_mock, get_os_type_mock):
+    #Check that getOperatingSystem == os_family (NOT os_type)
+    get_os_type_mock.return_value = "some_type_of_os"
+    get_os_version_mock.return_value = "11"
+
+    get_os_family_mock.return_value = "redhat"
+    result = Facter().facterInfo()
+    self.assertEquals(result['operatingsystem'], 'redhat')
+
+    get_os_family_mock.return_value = "debian"
+    result = Facter().facterInfo()
+    self.assertEquals(result['operatingsystem'], 'debian')
+
+    get_os_family_mock.return_value = "suse"
+    result = Facter().facterInfo()
+    self.assertEquals(result['operatingsystem'], 'suse')
+
+    get_os_family_mock.return_value = "My_new_family"
+    result = Facter().facterInfo()
+    self.assertEquals(result['operatingsystem'], 'My_new_family')
+
 if __name__ == "__main__":
   unittest.main()
 
