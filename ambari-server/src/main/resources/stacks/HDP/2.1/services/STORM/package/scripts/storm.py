@@ -22,6 +22,7 @@ from resource_management import *
 from yaml_config import yaml_config
 import sys
 
+
 def storm():
   import params
 
@@ -32,19 +33,23 @@ def storm():
   )
 
   File(format("{conf_dir}/config.yaml"),
-            content=Template("config.yaml.j2"),
-            owner = params.storm_user,
-            group = params.user_group
+       content=Template("config.yaml.j2"),
+       owner=params.storm_user,
+       group=params.user_group
   )
 
-  yaml_config( "storm.yaml",
-               conf_dir = params.conf_dir,
-               configurations = params.config['configurations']['storm-site'],
-               owner = params.storm_user,
-               group = params.user_group
+  yaml_config("storm.yaml",
+              conf_dir=params.conf_dir,
+              configurations=params.config['configurations']['storm-site'],
+              owner=params.storm_user,
+              group=params.user_group
   )
-  
+
+  TemplateConfig(format("{conf_dir}/storm-env.sh"),
+                 owner=params.storm_user
+  )
+
   if params.security_enabled:
-    TemplateConfig( format("{conf_dir}/storm_jaas.conf"),
-      owner = params.storm_user
+    TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
+                   owner=params.storm_user
     )

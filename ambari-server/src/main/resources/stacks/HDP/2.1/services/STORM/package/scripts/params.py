@@ -38,6 +38,7 @@ rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")
 rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
+java_home = config['hostLevelParams']['java_home']
 
 if 'ganglia_server_host' in config['clusterHostInfo'] and \
     len(config['clusterHostInfo']['ganglia_server_host'])>0:
