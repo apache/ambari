@@ -23,49 +23,49 @@ require('controllers/main/admin/cluster');
 
 describe('App.MainAdminClusterController', function () {
 
-  App.set('currentStackVersion', 'HDP-1.2.2');
-  App.set('defaultStackVersion', 'HDP-1.2.2');
   var data = {
-    "items" : [
+    "items": [
       {
-        "Versions" : {
-          "stack_version" : "1.3.1",
-          "min_upgrade_version" : "1.2.0"
-        }
-      },               
-      {
-        "Versions" : {
-          "stack_version" : "1.3.0",
-          "min_upgrade_version" : "1.2.0"
+        "Versions": {
+          "stack_version": "1.3.1",
+          "min_upgrade_version": "1.2.0"
         }
       },
       {
-        "Versions" : {
-          "stack_version" : "1.2.2",
-          "min_upgrade_version" : "1.2.0"
+        "Versions": {
+          "stack_version": "1.3.0",
+          "min_upgrade_version": "1.2.0"
         }
       },
       {
-        "Versions" : {
-          "stack_version" : "1.2.0",
-          "min_upgrade_version" : "1.2.0"
+        "Versions": {
+          "stack_version": "1.2.2",
+          "min_upgrade_version": "1.2.0"
+        }
+      },
+      {
+        "Versions": {
+          "stack_version": "1.2.0",
+          "min_upgrade_version": "1.2.0"
         }
       }
     ]
   };
 
   describe('#updateUpgradeVersionSuccessCallback()', function () {
-    it('upgrade version of stack should be "HDP-1.3.0"', function(){
+    it('upgrade version of stack should be "HDP-1.3.1"', function () {
+      App.set('currentStackVersion', 'HDP-1.2.2');
       var controller = App.MainAdminClusterController.create({
-        parseServicesInfo:function(){}
+        parseServicesInfo: function () {}
       });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);
       expect(controller.get('upgradeVersion')).to.equal('HDP-1.3.1');
     });
-    it('if min upgrade version less then current then upgrade version equal current', function(){
+    it('if min upgrade version less then current then upgrade version equal current', function () {
+      App.set('currentStackVersion', 'HDP-1.2.2');
       data.items[0].Versions.min_upgrade_version = "1.2.3";
       var controller = App.MainAdminClusterController.create({
-        parseServicesInfo:function(){}
+        parseServicesInfo: function () {}
       });
       controller.updateUpgradeVersionSuccessCallback.call(controller, data);
       expect(controller.get('upgradeVersion')).to.equal('HDP-1.2.2');

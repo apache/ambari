@@ -165,27 +165,13 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   callBackForMostRecent: function (data) {
     var runningServices = 0;
-    var self = this;
     var currentRequestIds = [];
 
     data.items.forEach(function (request) {
-      var rq = self.get("services").findProperty('id', request.Requests.id);
-      var isRunning = (request.Requests.task_count -
-        (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
-         + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
+      var rq = this.get("services").findProperty('id', request.Requests.id);
+      var isRunning = this.isRequestRunning(request);
       var requestParams = this.parseRequestContext(request.Requests.request_context);
-      var inputs = null;
-      if (request.Requests.inputs) {
-        inputs = JSON.parse(request.Requests.inputs);
-      }
-      var oneHost = false;
-      if (inputs && inputs.included_hosts) {
-        var hosts = inputs.included_hosts.split(',');
-        oneHost = (hosts.length < 2);
-      }
-      if(request.Requests.request_schedule && oneHost && /Recommission/.test(requestParams.requestContext)){
-        request.Requests.request_schedule.schedule_id = null;
-      }
+      this.assignScheduleId(request, requestParams);
       currentRequestIds.push(request.Requests.id);
       if (rq) {
         rq.set('progress', Math.ceil(request.Requests.progress_percent));
@@ -210,18 +196,61 @@ App.BackgroundOperationsController = Em.Controller.extend({
           previousTaskStatusMap: {},
           contextCommand: requestParams.contextCommand
         });
-        self.get("services").unshift(rq);
+        this.get("services").unshift(rq);
       }
       runningServices += ~~isRunning;
     }, this);
-    //remove old request if it's absent in API response
-    self.get('services').forEach(function(service, index, services){
-      if(!currentRequestIds.contains(service.id)) {
+    this.removeOldRequests(currentRequestIds);
+    this.set("allOperationsCount", runningServices);
+    this.set('serviceTimestamp', App.dateTime());
+  },
+  /**
+   * remove old requests
+   * as API returns 10 latest request, the requests that absent in response should be removed
+   * @param currentRequestIds
+   */
+  removeOldRequests: function (currentRequestIds) {
+    this.get('services').forEach(function (service, index, services) {
+      if (!currentRequestIds.contains(service.id)) {
         services.splice(index, 1);
       }
     });
-    self.set("allOperationsCount", runningServices);
-    self.set('serviceTimestamp', App.dateTime());
+  },
+  /**
+   * identify whether request is running by task counters
+   * @param request
+   * @return {Boolean}
+   */
+  isRequestRunning: function (request) {
+    return (request.Requests.task_count -
+      (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
+        + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
+  },
+  /**
+   * identify whether there is only one host in request
+   * @param inputs
+   * @return {Boolean}
+   */
+  isOneHost: function (inputs) {
+    if (!inputs) {
+      return false;
+    }
+    inputs = JSON.parse(inputs);
+    if (inputs && inputs.included_hosts) {
+      return inputs.included_hosts.split(',').length < 2;
+    }
+    return false
+  },
+  /**
+   * assign schedule_id of request to null if it's Recommision operation
+   * @param request
+   * @param requestParams
+   */
+  assignScheduleId: function (request, requestParams) {
+    var oneHost = this.isOneHost(request.Requests.inputs);
+    if (request.Requests.request_schedule && oneHost && /Recommission/.test(requestParams.requestContext)) {
+      request.Requests.request_schedule.schedule_id = null;
+    }
   },
 
   /**
@@ -328,4 +357,4 @@ App.BackgroundOperationsController.CommandContexts = {
    * @param {Number} totalBatchCount Parameter {2}. Total number of batches. Example 10.
    */
   ROLLING_RESTART : "_PARSE_.ROLLING-RESTART.{0}.{1}.{2}"
-}
+};

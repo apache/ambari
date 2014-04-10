@@ -158,15 +158,18 @@ App.HostPopup = Em.Object.create({
    * @return {Number} percent of completion
    */
   getProgress: function (tasks) {
+    if (!tasks || tasks.length === 0) return 0;
+
     var completedActions = 0;
     var queuedActions = 0;
     var inProgressActions = 0;
-    tasks.forEach(function(task) {
-      if(['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status)){
+
+    tasks.forEach(function (task) {
+      if (['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status)) {
         completedActions++;
-      } else if(task.Tasks.status === 'QUEUED'){
+      } else if (task.Tasks.status === 'QUEUED') {
         queuedActions++;
-      } else if(task.Tasks.status === 'IN_PROGRESS'){
+      } else if (task.Tasks.status === 'IN_PROGRESS') {
         inProgressActions++;
       }
     });

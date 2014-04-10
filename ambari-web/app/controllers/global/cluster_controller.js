@@ -52,15 +52,15 @@ App.ClusterController = Em.Controller.extend({
     this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded / loadListLength * 100)).toString() + '%');
   },
 
-  dataLoadList:Em.Object.create({
-    'hosts':false,
-    'serviceMetrics':false,
-    'stackComponents':false,
+  dataLoadList: Em.Object.create({
+    'hosts': false,
+    'serviceMetrics': false,
+    'stackComponents': false,
     'services': false,
-    'cluster':false,
-    'clusterStatus':false,
-    'racks':false,
-    'users':false,
+    'cluster': false,
+    'clusterStatus': false,
+    'racks': false,
+    'users': false,
     'componentConfigs': false
   }),
 
@@ -69,7 +69,7 @@ App.ClusterController = Em.Controller.extend({
    */
   loadClusterName: function (reload) {
     if (this.get('clusterName') && !reload) {
-      return;
+      return false;
     }
 
     App.ajax.send({
@@ -175,8 +175,7 @@ App.ClusterController = Em.Controller.extend({
       return 'http://nagiosserver/nagios';
     } else {
       // We want live data here
-      var svcs = App.Service.find();
-      var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
+      var nagiosSvc = App.Service.find("NAGIOS");
       if (nagiosSvc) {
         var svcComponents = nagiosSvc.get('hostComponents');
         if (svcComponents) {
@@ -392,7 +391,7 @@ App.ClusterController = Em.Controller.extend({
     }, callback)
   },
 
-  loadAmbariViews: function() {
+  loadAmbariViews: function () {
     App.ajax.send({
       name: 'views.info',
       sender: this,
@@ -400,9 +399,9 @@ App.ClusterController = Em.Controller.extend({
     });
   },
 
-  loadAmbariViewsSuccess: function(data) {
-    this.set('ambariViews',[]);
-    data.items.forEach(function(item){
+  loadAmbariViewsSuccess: function (data) {
+    this.set('ambariViews', []);
+    data.items.forEach(function (item) {
       App.ajax.send({
         name: 'views.instances',
         data: {
@@ -414,8 +413,8 @@ App.ClusterController = Em.Controller.extend({
     }, this)
   },
 
-  loadViewInstancesSuccess: function(data) {
-    data.instances.forEach(function(instance){
+  loadViewInstancesSuccess: function (data) {
+    data.instances.forEach(function (instance) {
       var view = Em.Object.create({
         label: data.ViewInfo.label,
         viewName: instance.ViewInstanceInfo.view_name,
@@ -430,7 +429,7 @@ App.ClusterController = Em.Controller.extend({
    *
    * @param callback
    */
-  loadStackServiceComponents: function(callback) {
+  loadStackServiceComponents: function (callback) {
     var callbackObj = {
       loadStackServiceComponentsSuccess: callback
     };
