@@ -25,9 +25,9 @@ var date = require('utils/date');
 describe('date', function () {
 
   var correct_tests = Em.A([
-    {t: 1349752195000, e: 'Tue, Oct 09, 2012 06:09', e2: 'Tue Oct 09 2012'},
-    {t: 1367752195000, e: 'Sun, May 05, 2013 14:09', e2: 'Sun May 05 2013'},
-    {t: 1369952195000, e: 'Fri, May 31, 2013 01:16', e2: 'Fri May 31 2013'}
+    {t: 1349752195000, e: 'Tue, Oct 09, 2012 03:09', e2: 'Tue Oct 09 2012'},
+    {t: 1367752195000, e: 'Sun, May 05, 2013 11:09', e2: 'Sun May 05 2013'},
+    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16', e2: 'Thu May 30 2013'}
   ]);
 
   var incorrect_tests = Em.A([
@@ -41,22 +41,28 @@ describe('date', function () {
   ]);
 
   describe('#dateFormat', function() {
-    it('Correct timestamps', function(){
+    describe('Correct timestamps', function(){
       correct_tests.forEach(function(test) {
-        expect(date.dateFormat(test.t)).to.equal(test.e);
+        it(test.t, function() {
+          expect(date.dateFormat(test.t)).to.equal(test.e);
+        });
       });
     });
-    it('Incorrect timestamps', function() {
+    describe('Incorrect timestamps', function() {
       incorrect_tests.forEach(function(test) {
-        expect(date.dateFormat(test.t)).to.equal(test.t);
+        it(test.t, function() {
+          expect(date.dateFormat(test.t)).to.equal(test.t);
+        });
       });
     });
   });
 
   describe('#dateFormatShort', function() {
-    it('Correct timestamps', function(){
+    describe('Correct timestamps', function() {
       correct_tests.forEach(function(test) {
-        expect(date.dateFormatShort(test.t)).to.equal(test.e2);
+        it(test.t, function() {
+          expect(date.dateFormatShort(test.t)).to.equal(test.e2);
+        });
       });
     });
     it('Today timestamp', function() {
@@ -64,9 +70,11 @@ describe('date', function () {
       var then = new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0);
       expect(date.dateFormatShort(then.getTime() + 10*3600*1000)).to.equal('Today 10:00:00');
     });
-    it('Incorrect timestamps', function() {
+    describe('Incorrect timestamps', function() {
       incorrect_tests.forEach(function(test) {
-        expect(date.dateFormatShort(test.t)).to.equal(test.t);
+        it(test.t, function() {
+          expect(date.dateFormatShort(test.t)).to.equal(test.t);
+        });
       });
     });
   });
@@ -89,15 +97,19 @@ describe('date', function () {
       {i: '35000000000', e:'405.09 days'}
     ]);
 
-    it('Correct data', function(){
+    describe('Correct data', function(){
       tests.forEach(function(test) {
-        expect(date.timingFormat(test.i)).to.equal(test.e);
+        it(test.t, function() {
+          expect(date.timingFormat(test.i)).to.equal(test.e);
+        });
       });
     });
 
-    it('Incorrect data', function(){
+    describe('Incorrect data', function(){
       incorrect_tests.forEach(function(test) {
-        expect(date.timingFormat(test.t)).to.equal(null);
+        it(test.t, function() {
+          expect(date.timingFormat(test.t)).to.equal(null);
+        });
       });
     });
 

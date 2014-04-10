@@ -20,53 +20,85 @@ var validator = require('utils/validator');
 var App = require('app');
 
 module.exports = {
-  dateMonths:['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-  dateDays:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-  dateFormatZeroFirst:function (time) {
+
+  /**
+   * List of monthes short names
+   * @type {string[]}
+   */
+  dateMonths: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+
+  /**
+   * List of days short names
+   * @type {string[]}
+   */
+  dateDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+
+  /**
+   * Add leading zero
+   *
+   * @param {string} time
+   * @returns {string}
+   * @method dateFormatZeroFirst
+   */
+  dateFormatZeroFirst: function (time) {
     if (time < 10) return '0' + time;
     return time;
   },
+
   /**
    * Convert timestamp to date-string 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES'
-   * @param timestamp
-   * @return string date
+   *
+   * @param {number} timestamp
+   * @param {bool} showSeconds should seconds be added to result string
+   * @param {bool} showMilliseconds should miliseconds be added to result string (if <code>showSeconds</code> is false, milliseconds wouldn't be added)
+   * @return {*} date
+   * @method dateFormat
    */
-  dateFormat:function (timestamp, showSeconds, showMilliseconds) {
-    if (!validator.isValidInt(timestamp)) return timestamp;
-    var date = new Date(timestamp);
-    var months = this.dateMonths;
-    var days = this.dateDays;
-    var formattedDate = days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + this.dateFormatZeroFirst(date.getDate()) + ', ' + date.getFullYear() + ' ' + this.dateFormatZeroFirst(date.getHours()) + ':' + this.dateFormatZeroFirst(date.getMinutes());
+  dateFormat: function (timestamp, showSeconds, showMilliseconds) {
+    if (!validator.isValidInt(timestamp)) {
+      return timestamp;
+    }
+    var format = 'ddd, MMM DD, YYYY HH:mm';
     if (showSeconds) {
-      formattedDate += ':' + this.dateFormatZeroFirst(date.getSeconds());
+      format += ':ss';
       if (showMilliseconds) {
-        formattedDate += '.' + this.dateFormatZeroFirst(date.getMilliseconds());
-      };
-    };
-    return formattedDate;
+        format += ':SSS';
+      }
+    }
+    return moment((new Date(timestamp)).toISOString().replace('Z', '')).format(format);
   },
+
   /**
    * Convert timestamp to date-string 'DAY_OF_THE_WEEK MONTH DAY YEAR'
-   * @param timestamp
-   * @return {*}
+   *
+   * @param {string} timestamp
+   * @return {string}
+   * @method dateFormatShort
    */
-  dateFormatShort: function(timestamp) {
-    if (!validator.isValidInt(timestamp)) return timestamp;
-
-    var date = new Date(timestamp);
-    var today = new Date();
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today ' + date.toLocaleTimeString();
+  dateFormatShort: function (timestamp) {
+    if (!validator.isValidInt(timestamp)) {
+      return timestamp;
     }
-    return date.toDateString();
+    var format = 'ddd MMM DD YYYY';
+    var date = moment((new Date(timestamp)).toISOString().replace('Z', '')).format(format);
+    var today = moment((new Date()).toISOString().replace('Z', '')).format(format);
+    if (date === today) {
+      return 'Today ' + (new Date(timestamp)).toLocaleTimeString();
+    }
+    return date;
   },
+
   /**
    * Convert starTimestamp to 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES', except for the case: year equals 1969
-   * @param startTimestamp
-   * @return string startTimeSummary
+   *
+   * @param {string} startTimestamp
+   * @return {string} startTimeSummary
+   * @method startTime
    */
   startTime: function (startTimestamp) {
-    if (!validator.isValidInt(startTimestamp)) return '';
+    if (!validator.isValidInt(startTimestamp)) {
+      return '';
+    }
     var startDate = new Date(startTimestamp);
     var months = this.dateMonths;
     var days = this.dateDays;
@@ -75,21 +107,25 @@ module.exports = {
       return 'Not started';
     }
     var startTimeSummary = '';
-    if (new Date(startTimestamp).setHours(0, 0, 0, 0) == new Date().setHours(0, 0, 0, 0) ) { //today
+    if (new Date(startTimestamp).setHours(0, 0, 0, 0) == new Date().setHours(0, 0, 0, 0)) { //today
       startTimeSummary = 'Today ' + this.dateFormatZeroFirst(startDate.getHours()) + ':' + this.dateFormatZeroFirst(startDate.getMinutes());
     } else {
-      startTimeSummary =  days[startDate.getDay()] + ' ' + months[startDate.getMonth()] + ' ' + this.dateFormatZeroFirst(startDate.getDate()) + ' ' + startDate.getFullYear() + ' '
+      startTimeSummary = days[startDate.getDay()] + ' ' + months[startDate.getMonth()] + ' ' +
+        this.dateFormatZeroFirst(startDate.getDate()) + ' ' + startDate.getFullYear() + ' '
         + this.dateFormatZeroFirst(startDate.getHours()) + ':' + this.dateFormatZeroFirst(startDate.getMinutes());
     }
     return startTimeSummary;
   },
+
   /**
    * Provides the duration between the given start and end timestamp. If start time
    * not valid, duration will be ''. If end time is not valid, duration will
    * be till now, showing 'Lasted for xxx secs'.
-   * @param startTimestamp
-   * @param endTimestamp
-   * @return string durationSummary
+   *
+   * @param {string} startTimestamp
+   * @param {string} endTimestamp
+   * @return {string} durationSummary
+   * @method durationSummary
    */
   durationSummary: function (startTimestamp, endTimestamp) {
     // generate duration
@@ -105,8 +141,8 @@ module.exports = {
       return '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
     } else {
       // still running, duration till now
-      var time =  (App.dateTime() - startTimestamp) < 0? 0 : (App.dateTime() - startTimestamp) ;
-      durationSummary = '' + this.timingFormat( time , 1);
+      var time = (App.dateTime() - startTimestamp) < 0 ? 0 : (App.dateTime() - startTimestamp);
+      durationSummary = '' + this.timingFormat(time, 1);
     }
     return durationSummary;
   },
@@ -123,14 +159,20 @@ module.exports = {
    * 999999 ms = 999.99 secs
    * 1000000 ms = 16.66 mins
    * 3500000 secs = 58.33 mins
-   * @param time
-   * @param zeroValid for the case to show 0 when time is 0, not null
-   * @return string formatted date
+   *
+   * @param {number} time
+   * @param {bool} zeroValid for the case to show 0 when time is 0, not null
+   * @return {string|null} formatted date
+   * @method timingFormat
    */
-  timingFormat:function (time, /* optional */ zeroValid) {
-    var intTime  = parseInt(time);
-    if (zeroValid && intTime == 0) return 0 + ' secs';
-    if (!intTime) return null;
+  timingFormat: function (time, /* optional */ zeroValid) {
+    var intTime = parseInt(time);
+    if (zeroValid && intTime == 0) {
+      return 0 + ' secs';
+    }
+    if (!intTime) {
+      return null;
+    }
     var timeStr = intTime.toString();
     var lengthOfNumber = timeStr.length;
     var oneMinMs = 60000;
@@ -153,6 +195,7 @@ module.exports = {
       return time + ' days';
     }
   },
+
   /**
    * Provides the duration between the given start and end time. If start time
    * is not given, duration will be 0. If end time is not given, duration will
@@ -161,8 +204,9 @@ module.exports = {
    * @param {Number} startTime Start time from epoch
    * @param {Number} endTime End time from epoch
    * @return {Number} duration
+   * @method duration
    */
-  duration : function(startTime, endTime) {
+  duration: function (startTime, endTime) {
     var duration = 0;
     if (startTime && startTime > 0) {
       if (!endTime || endTime < 1) {

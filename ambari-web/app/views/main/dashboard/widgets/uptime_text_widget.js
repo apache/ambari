@@ -54,25 +54,8 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
   }.property('data'),
 
   timeConverter: function (timestamp) {
-    var origin = new Date(timestamp);
-    origin = origin.toString();
-    var result = [];
-    var start = origin.indexOf('GMT');
-    if (start == -1) { // ie
-      var arr = origin.split(" ");
-      result.pushObject(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3]);
-      var second = '';
-      for (var i = 4; i < arr.length; i++) {
-        second = second + " " + arr[i];
-      }
-      result.pushObject(second);
-    }
-    else { // other browsers
-      var end = origin.indexOf(" ", start);
-      result.pushObject(origin.slice(0, start-10));
-      result.pushObject(origin.slice(start-9));
-    }
-    return result;
+    var m = moment((new Date(timestamp)).toISOString().replace('Z', ''));
+    return [m.format('ddd MMM DD YYYY'), m.format('HH:mm:ss')];
   },
 
   /**
@@ -84,17 +67,17 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
    * }
    * </code>
    */
-  didInsertElement: function() {
+  didInsertElement: function () {
     this._super();
     this.addObserver('model.' + this.get('modelField'), this, this.calc);
   },
 
-  calc: function() {
+  calc: function () {
     this.set('data', this.calcData());
     this.set('content', this.calcContent());
   },
 
-  uptimeProcessing: function(uptime) {
+  uptimeProcessing: function (uptime) {
     var uptimeString = this.timeConverter(uptime);
     var diff = App.dateTime() - uptime;
     if (diff < 0) {
@@ -137,14 +120,14 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
         return parseFloat(formatted.split(" ")[0]);
       }
     }
-    this.set('hiddenInfo', [this.get('component'),'Not Running']);
+    this.set('hiddenInfo', [this.get('component'), 'Not Running']);
     return null;
   },
 
   calcContent: function () {
     var data = this.get('data');
     if (data) {
-      return data.toFixed(1) + ' '+ this.get('timeUnit');
+      return data.toFixed(1) + ' ' + this.get('timeUnit');
     }
     else {
       return Em.I18n.t('services.service.summary.notAvailable');
