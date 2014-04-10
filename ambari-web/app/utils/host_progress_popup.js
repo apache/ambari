@@ -544,6 +544,7 @@ App.HostPopup = Em.Object.create({
          * Preset values on init
          */
         setOnStart: function () {
+          this.set('serviceCategory', this.get('categories').findProperty('value','all'));
           if (this.get("controller.isBackgroundOperations")) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
             this.updateHostInfo();
