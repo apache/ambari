@@ -3207,14 +3207,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     properties = ["server.jdbc.user.name=ambari-server\n",
                   "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
                   "java.home=/usr/jdk64/jdk1.6.0_31\n",
-                  "server.os_type=redhat6\n",
+                  "server.jdbc.database=ambari\n",
                   "ambari-server.user=ambari\n",
                   "agent.fqdn.service.url=URL\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
     JDK_NAME_PROPERTY = 'jdk.name=jdk-6u31-linux-x64.bin\n'
     JCE_NAME_PROPERTY = 'jce.name=jce_policy-6.zip\n'
-    CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'
+    CHANGED_VALUE_PROPERTY = 'server.jdbc.database=should_not_overwrite_value\n'
 
     get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
 
