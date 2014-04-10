@@ -36,7 +36,7 @@
 <!--
       <osSpecifics>
         <osSpecific>
-          <osType>any</osType>
+          <osFamily>any<osFamily>
           <packages>
             <package>
               <type>rpm</type>
