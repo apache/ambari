@@ -508,6 +508,15 @@ var urls = {
     'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields=host_components/{metricName}',
     'mock': '/data/cluster_metrics/cpu_1hr.json'
   },
+  'service.service_component': {
+    'real': '/clusters/{clusterName}/services/{serviceName}/components/{componentName}',
+    'mock': '',
+    'format': function(data) {
+      return {
+        async: data.async
+      };
+    }
+  },
   'service.metrics.flume.channel_fill_percent': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_SERVER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/channelFillPct.json',

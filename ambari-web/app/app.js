@@ -70,6 +70,10 @@ module.exports = Em.Application.create({
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
   }.property('currentStackVersionNumber'),
+  isHadoop21Stack: function(){
+    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 1 ||
+      stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 0)
+  }.property('currentStackVersionNumber'),
 
   /**
    * If High Availability is enabled

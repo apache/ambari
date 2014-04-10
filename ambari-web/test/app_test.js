@@ -39,6 +39,49 @@ describe('#App', function() {
 
   });
 
+  describe('App.isHadoop21Stack', function() {
+    var tests = [{
+      v:'',
+      e:false
+    }, {
+      v:'HDP',
+      e: false
+    }, {
+      v:'HDP1',
+      e: false
+    }, {
+      v:'HDP-1',
+      e: false
+    }, {
+      v:'HDP-2.0',
+      e: false
+    }, {
+      v:'HDP-2.0.1000',
+      e: false
+    }, {
+      v:'HDP-2.1',
+      e: true
+    }, {
+      v:'HDP-2.1.3434',
+      e: true
+    }, {
+      v:'HDP-2.2',
+      e: true
+    }, {
+      v:'HDP-2.2.1212',
+      e: true
+    }];
+    tests.forEach(function(test){
+      it(test.v, function() {
+        App.QuickViewLinks.prototype.setQuickLinks = function(){};
+        App.set('currentStackVersion', test.v);
+        var calculated = App.get('isHadoop21Stack');
+        var expected = test.e;
+        expect(calculated).to.equal(expected);
+      });
+    });
+  });
+
   describe('Disable/enable components', function() {
     var testableComponent =  {
       service_name: 'YARN',
