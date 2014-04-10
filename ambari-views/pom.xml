@@ -71,7 +71,8 @@
                         <configuration>
                             <name>ambariVersion</name>
                             <value>${project.version}</value>
-                            <regex>-SNAPSHOT</regex>
+                            <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+                            <replacement>$1.$2.$3</replacement>
                             <failIfNoMatch>false</failIfNoMatch>
                         </configuration>
                     </execution>

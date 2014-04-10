@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 Package: [[artifactId]]
-Version: [[version]]
+Version: [[package-version]]-[[package-release]]
 Section: [[deb.section]]
 Priority: [[deb.priority]]
 Architecture: [[deb.architecture]]
