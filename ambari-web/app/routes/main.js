@@ -149,7 +149,6 @@ module.exports = Em.Route.extend({
             router.transitionTo('main.dashboard');
           });
         } else {
-          router.get('mainJobsController').loadJobs();
           router.get('mainJobsController').updateJobs('mainJobsController', 'refreshLoadedJobs');
           router.get('mainController').connectOutlet('mainJobs');
         }
