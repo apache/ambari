@@ -102,6 +102,9 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
         case "STORM":
           self.set('storm_model', item);
           break;
+        case "FLUME":
+          self.set('flume_model', item);
+          break;
       }
     }, this);
   },
@@ -118,7 +121,8 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
       '3', '7', '15', '16', '20',
       '19', '21', '23',
       '24', '25', '26', '27',// all yarn
-      '28' // storm
+      '28', // storm
+      '29' // flume
     ]; // all in order
     var hiddenFull = [['22','Region In Transition']];
     if (this.get('hdfs_model') == null) {
@@ -152,6 +156,12 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
         visibleFull = visibleFull.without(item);
       }, this);
     }
+    if (this.get('flume_model') == null) {
+      var flume = ['29'];
+      flume.forEach(function(item) {
+        visibleFull = visibleFull.without(item);
+      }, this);
+    }
     var obj = this.get('initPrefObject');
     obj.set('visible', visibleFull);
     obj.set('hidden', hiddenFull);
@@ -168,6 +178,8 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
   hbase_model: null,
 
   storm_model: null,
+
+  flume_model: null,
 
   /**
    * List of visible widgets
@@ -389,13 +401,23 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
     if (this.get('storm_model') != null) {
       var storm = ['28'];
       var flag = self.containsWidget(toDelete, storm[0]);
-      var self = this;
       if (flag) {
         storm.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
         toAdd = toAdd.concat(storm);
+      }
+    }
+    if (this.get('flume_model') != null) {
+      var flume = ['29'];
+      var flag = self.containsWidget(toDelete, flume[0]);
+      if (flag) {
+        flume.forEach ( function (item) {
+          toDelete = self.removeWidget(toDelete, item);
+        }, this);
+      } else {
+        toAdd = toAdd.concat(flume);
       }
     }
     var value = currentPrefObject;
@@ -452,7 +474,8 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
      '25': App.ResourceManagerUptimeView,
      '26': App.NodeManagersLiveView,
      '27': App.YARNMemoryPieChartView,
-     '28': App.SuperVisorUpView
+     '28': App.SuperVisorUpView,
+     '29': App.FlumeAgentUpView
     }, id);
   },
 
@@ -470,7 +493,7 @@ App.MainDashboardView = Em.View.extend(App.UserPref, App.LocalStorage, {
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
-      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95]} // id:[thresh1, thresh2]
+      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95], 29: [85, 95]} // id:[thresh1, thresh2]
   }),
 
   /**
