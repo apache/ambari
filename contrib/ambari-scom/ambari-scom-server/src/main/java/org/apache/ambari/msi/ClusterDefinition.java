@@ -315,6 +315,7 @@ public class ClusterDefinition {
         if (hostEntry.getKey().equals(hostName)) {
           Set<String> componentNames = hostEntry.getValue();
           for (String componentName : componentNames) {
+            if (isClientOnlyComponent(componentName)) continue;
             if (stateProvider.getRunningState(hostName, componentName) == StateProvider.State.Unknown) {
               return "UNHEALTHY";
             }

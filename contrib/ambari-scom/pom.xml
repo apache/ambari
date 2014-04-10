@@ -61,6 +61,7 @@
                         <exclude>**/*.rtf</exclude>
                         <exclude>**/*.snk</exclude>
                         <exclude>**/*.cs</exclude>
+                        <exclude>**/*.json</exclude>
                     </excludes>
                 </configuration>
                 <executions>
