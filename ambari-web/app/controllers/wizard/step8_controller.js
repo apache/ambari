@@ -969,6 +969,46 @@ App.WizardStep8Controller = Em.Controller.extend({
         data: JSON.stringify({"components": componentsData})
       });
     }, this);
+
+    if (this.get('content.controllerName') == 'addServiceController' && !App.testMode) {
+      // Add service-components which show up in newer versions but did not
+      // exist in older ones.
+      var self = this;
+      var newServiceComponents = {}
+      if (App.get('isHadoop21Stack')) {
+        newServiceComponents['APP_TIMELINE_SERVER'] = 'YARN';
+      }
+      for (var componentName in newServiceComponents) {
+        var serviceName = newServiceComponents[componentName];
+        // Create only if it doesnt exist
+        var serviceComponentChecker = {
+          success: function(){},
+          error: function(){
+            var componentsData = [{
+              "ServiceComponentInfo": {
+                "component_name": componentName
+              }
+            }];
+            self.addRequestToAjaxQueue({
+              type: 'POST',
+              url: App.apiPrefix + '/clusters/' + self.get('clusterName') + '/services?ServiceInfo/service_name=' + serviceName,
+              data: JSON.stringify({"components": componentsData})
+            });
+          }
+        }
+        App.ajax.send({
+          name: 'service.service_component',
+          sender: serviceComponentChecker,
+          data: {
+            serviceName: serviceName,
+            componentName: componentName,
+            async: false
+          },
+          success: 'success',
+          error: 'error'
+        });
+      }
+    }
   },
 
   /**
