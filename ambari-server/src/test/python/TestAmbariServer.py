@@ -590,7 +590,7 @@ class TestAmbariServer(TestCase):
     result = ambari_server.setup_db(MagicMock())
     self.assertTrue(run_os_command_mock.called)
     self.assertEqual((1, 'error', 'error') , result)
-    self.assertEqual(3, sleep_mock.call_count)
+    self.assertEqual(2, sleep_mock.call_count)
     pass
 
   @patch.object(ambari_server, "configure_database_username_password")

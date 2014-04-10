@@ -969,12 +969,18 @@ def setup_db(args):
   command[-1] = command[-1].format(scriptFile, username, password, dbname)
 
   for i in range(SETUP_DB_CONNECT_ATTEMPTS):
-    print 'Connecting to the database. Attempt %d...' % (i+1)
+    sys.stdout.write('Connecting to local database...')
     retcode, outdata, errdata = run_os_command(command)
     if retcode == 0:
+      print 'done.'
       return retcode, outdata, errdata
-    time.sleep(SETUP_DB_CONNECT_TIMEOUT)
+    timeOutMsg = 'connection timed out'
+    if (i+1) < SETUP_DB_CONNECT_ATTEMPTS:
+      timeOutMsg += '...retrying (%d)' % (i+1)
+      print timeOutMsg
+      time.sleep(SETUP_DB_CONNECT_TIMEOUT)
 
+  print 'unable to connect to database'
   print_error_msg(errdata)
   return retcode, outdata, errdata
 
