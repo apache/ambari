@@ -63,21 +63,24 @@ class TestManifestGenerator(TestCase):
 
     pass
 
+  @patch.object(manifestGenerator, 'writeHostnames')
   @patch.object(manifestGenerator, 'writeImports')
   @patch.object(manifestGenerator, 'writeNodes')
   @patch.object(manifestGenerator, 'writeParams')
   @patch.object(manifestGenerator, 'writeTasks')
   @patch.object(manifestGenerator, 'decompressClusterHostInfo')
-  def testGenerateManifest(self, decompressClusterHostInfoMock, writeTasksMock, writeParamsMock, writeNodesMock, writeImportsMock):
+  def testGenerateManifest(self, decompressClusterHostInfoMock, writeTasksMock,
+                           writeParamsMock, writeNodesMock, writeImportsMock, writeHostnamesMock):
     tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
     self.parsedJson['roleParams'] = 'role param'
     manifestGenerator.generateManifest(self.parsedJson, tmpFileName, '../../main/puppet/modules', self.config.getConfig())
 
-    self.assertTrue(writeParamsMock.called)
-    self.assertTrue(writeNodesMock.called)
-    self.assertTrue(writeImportsMock.called)
-    self.assertTrue(writeTasksMock.called)
     self.assertTrue(decompressClusterHostInfoMock.called)
+    self.assertTrue(writeImportsMock.called)
+    self.assertTrue(writeHostnamesMock.called)
+    self.assertTrue(writeNodesMock.called)
+    self.assertTrue(writeParamsMock.called)
+    self.assertTrue(writeTasksMock.called)
 
     print file(tmpFileName).read()
 

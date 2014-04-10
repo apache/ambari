@@ -113,10 +113,12 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java_home is specified in hostLevelParams")
 
 
+  @patch.object(manifestGenerator, 'generateManifest')
   @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(RepoInstaller, 'generate_repo_manifests')
   @patch.object(PuppetExecutor, 'runPuppetFile')
-  def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock, isJavaAvailableMock):
+  def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock,
+                           isJavaAvailableMock, generateManifestMock):
     tmpdir = tempfile.gettempdir()
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
     jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
@@ -124,6 +126,10 @@ class TestPuppetExecutor(TestCase):
     parsedJson = json.loads(jsonStr)
     parsedJson["taskId"] = 77
     parsedJson['roleCommand'] = "START"
+    def side_effect_generate_manifest(command, siteppFileName,
+                                      modulesdir, config):
+      return None
+    generateManifestMock.side_effect = side_effect_generate_manifest
     def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile, timeout):
       result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect
