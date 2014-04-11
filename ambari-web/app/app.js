@@ -198,6 +198,7 @@ module.exports = Em.Application.create({
     var stackDependedComponents = this.get('stackDependedComponents');
     var service_configs = require('data/service_configs');
     var stackServiceComponents = this.StackServiceComponent.find();
+    var stackServices =  stackServiceComponents.mapProperty('serviceName').uniq();
     if (!stackServiceComponents.mapProperty('componentName').length) {
       return;
     }
@@ -207,13 +208,17 @@ module.exports = Em.Application.create({
         var categoryComponents = serviceConfigCategory.get('hostComponentNames');
         if (categoryComponents && categoryComponents.length) {
           categoryComponents.forEach(function (categoryComponent) {
-            var stackComponent = stackServiceComponents.findProperty('componentName', categoryComponent);
-            if (!stackComponent && !stackDependedComponents.mapProperty('componentName').contains['categoryComponent']) {
-              var _stackComponent = Ember.Object.create({
+            var stackServiceComponent = stackServiceComponents.findProperty('componentName', categoryComponent);
+           // populate App.stackDependedComponents if the service config category for the serviceComponent
+           // exists in the 'data/service_configs.js' and the service to which the component belongs also exists in the
+           // stack but the serviceComponent does not exists in the stack. Also check App.stackDependedComponents doesn't already have the componentName
+            if (!stackServiceComponent && stackServices.contains(service.serviceName) &&
+              !stackDependedComponents.mapProperty('componentName').contains['categoryComponent']) {
+              var _stackServiceComponent = Ember.Object.create({
                 componentName: categoryComponent,
                 serviceName: service.serviceName
               });
-              stackDependedComponents.push(this.disableComponent(_stackComponent));
+              stackDependedComponents.push(this.disableComponent(_stackServiceComponent));
             }
           }, this);
         }
