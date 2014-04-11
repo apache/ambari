@@ -27,6 +27,7 @@ from mock.mock import patch, MagicMock, call, Mock
 import logging
 import platform
 from threading import Event
+import json
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import Controller, ActionQueue
@@ -63,11 +64,16 @@ class TestController(unittest.TestCase):
   @patch("time.sleep")
   @patch("pprint.pformat")
   @patch.object(Controller, "randint")
-  def test_registerWithServer(self, randintMock, pformatMock, sleepMock,
+  @patch.object(Controller, "LiveStatus")
+  def test_registerWithServer(self, LiveStatus_mock, randintMock, pformatMock, sleepMock,
                               dumpsMock):
 
     out = StringIO.StringIO()
     sys.stdout = out
+
+    LiveStatus_mock.SERVICES = ["foo"]
+    LiveStatus_mock.CLIENT_COMPONENTS = ["foo"]
+    LiveStatus_mock.COMPONENTS = ["foo"]
 
     register = MagicMock()
     self.controller.register = register
@@ -78,6 +84,9 @@ class TestController(unittest.TestCase):
     self.controller.sendRequest.return_value = '{"log":"Error text", "exitstatus":"1"}'
 
     self.assertEqual({u'exitstatus': u'1', u'log': u'Error text'}, self.controller.registerWithServer())
+    self.assertEqual(LiveStatus_mock.SERVICES, [])
+    self.assertEqual(LiveStatus_mock.CLIENT_COMPONENTS, [])
+    self.assertEqual(LiveStatus_mock.COMPONENTS, [])
 
     self.controller.sendRequest.return_value = '{"responseId":1}'
     self.assertEqual({"responseId":1}, self.controller.registerWithServer())
@@ -122,14 +131,29 @@ class TestController(unittest.TestCase):
 
 
   @patch("pprint.pformat")
-  def test_addToStatusQueue(self, pformatMock):
-
+  @patch.object(Controller, "LiveStatus")
+  def test_addToStatusQueue(self, LiveStatus_mock, pformatMock):
+    LiveStatus_mock.SERVICES = ["foo"]
+    LiveStatus_mock.CLIENT_COMPONENTS = ["foo"]
+    LiveStatus_mock.COMPONENTS = ["foo"]
+    commands = json.loads('[{"clusterName":"dummy_cluster"}]')
     actionQueue = MagicMock()
     self.controller.actionQueue = actionQueue
+    updateComponents = Mock()
+    self.controller.updateComponents = updateComponents
     self.controller.addToStatusQueue(None)
     self.assertFalse(actionQueue.put_status.called)
-    self.controller.addToStatusQueue("cmd")
+    self.assertFalse(updateComponents.called)
+    self.controller.addToStatusQueue(commands)
     self.assertTrue(actionQueue.put_status.called)
+    self.assertFalse(updateComponents.called)
+    LiveStatus_mock.SERVICES = []
+    LiveStatus_mock.CLIENT_COMPONENTS = []
+    LiveStatus_mock.COMPONENTS = []
+    self.controller.addToStatusQueue(commands)
+    self.assertTrue(updateComponents.called)
+    self.assertTrue(actionQueue.put_status.called)
+
 
 
   @patch("urllib2.build_opener")
@@ -458,6 +482,36 @@ class TestController(unittest.TestCase):
 
     #Conroller thread and the agent stop if the repeatRegistration flag is False
     self.assertFalse(self.controller.repeatRegistration)
+
+  @patch.object(Controller, "LiveStatus")
+  def test_updateComponents(self, LiveStatus_mock):
+    LiveStatus_mock.SERVICES = []
+    LiveStatus_mock.CLIENT_COMPONENTS = []
+    LiveStatus_mock.COMPONENTS = []
+    self.controller.componentsUrl = "foo_url/"
+    sendRequest = Mock()
+    self.controller.sendRequest = sendRequest
+    self.controller.sendRequest.return_value = ('{"clusterName":"dummy_cluster_name",'
+                                                '"stackName":"dummy_stack_name",'
+                                                '"stackVersion":"dummy_stack_version",'
+                                                '"components":{"PIG":{"PIG":"CLIENT"},'
+                                                '"MAPREDUCE":{"MAPREDUCE_CLIENT":"CLIENT",'
+                                                '"JOBTRACKER":"MASTER","TASKTRACKER":"SLAVE"}}}')
+    self.controller.updateComponents("dummy_cluster_name")
+    sendRequest.assert_called_with('foo_url/dummy_cluster_name', None)
+    services_expected = [u'MAPREDUCE', u'PIG']
+    client_components_expected = [
+      {'serviceName':u'MAPREDUCE','componentName':u'MAPREDUCE_CLIENT'},
+      {'serviceName':u'PIG','componentName':u'PIG'}
+    ]
+    components_expected = [
+      {'serviceName':u'MAPREDUCE','componentName':u'TASKTRACKER'},
+      {'serviceName':u'MAPREDUCE','componentName':u'JOBTRACKER'}
+    ]
+    self.assertEquals(LiveStatus_mock.SERVICES, services_expected)
+    self.assertEquals(LiveStatus_mock.CLIENT_COMPONENTS, client_components_expected)
+    self.assertEquals(LiveStatus_mock.COMPONENTS, components_expected)
+
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

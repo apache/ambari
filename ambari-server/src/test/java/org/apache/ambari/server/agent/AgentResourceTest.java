@@ -232,10 +232,22 @@ public class AgentResourceTest extends JerseyTest {
     Assert.assertEquals("directory", agentEnv.getStackFoldersAndFiles()[1].getType());    
   }
 
+  @Test
+  public void agentComponents() {
+    ComponentsResponse response;
+    ClientConfig clientConfig = new DefaultClientConfig();
+    clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+    client = Client.create(clientConfig);
+    WebResource webResource = client.resource("http://localhost:9998/components/dummycluster");
+    response = webResource.get(ComponentsResponse.class);
+    Assert.assertEquals(response.getClusterName(), "dummycluster");
+  }
+
   public class MockModule extends AbstractModule {
 
     RegistrationResponse response = new RegistrationResponse();
     HeartBeatResponse hresponse = new HeartBeatResponse();
+    ComponentsResponse componentsResponse = new ComponentsResponse();
 
     @Override
     protected void configure() {
@@ -244,11 +256,14 @@ public class AgentResourceTest extends JerseyTest {
       handler = mock(HeartBeatHandler.class);
       response.setResponseStatus(RegistrationStatus.OK);
       hresponse.setResponseId(0L);
+      componentsResponse.setClusterName("dummycluster");
       try {
         when(handler.handleRegistration(any(Register.class))).thenReturn(
             response);
         when(handler.handleHeartBeat(any(HeartBeat.class))).thenReturn(
             hresponse);
+        when(handler.handleComponents(any(String.class))).thenReturn(
+            componentsResponse);
       } catch (Exception ex) {
         // The test will fail anyway
       }

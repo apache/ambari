@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +46,9 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
@@ -600,5 +603,48 @@ public class HeartBeatHandler {
         break;
       }
     }
+  }
+
+  /**
+   * Response
+   * @param clusterName
+   * @return
+   * @throws AmbariException
+   */
+  public ComponentsResponse handleComponents(String clusterName)
+      throws AmbariException {
+    ComponentsResponse response = new ComponentsResponse();
+
+    Cluster cluster = this.clusterFsm.getCluster(clusterName);
+    StackId stackId = cluster.getCurrentStackVersion();
+    if (stackId == null) {
+      throw new AmbariException("Cannot provide stack components map. " +
+        "Stack hasn't been selected yet.");
+    }
+    StackInfo stack = this.ambariMetaInfo.getStackInfo(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    response.setClusterName(clusterName);
+    response.setStackName(stackId.getStackName());
+    response.setStackVersion(stackId.getStackVersion());
+    response.setComponents(this.getComponentsMap(stack));
+
+    return response;
+  }
+
+  private Map<String, Map<String, String>> getComponentsMap(StackInfo stack) {
+    Map<String, Map<String, String>> result = new HashMap<String, Map<String, String>>();
+
+    for (ServiceInfo service : stack.getServices()) {
+      Map<String, String> components = new HashMap<String, String>();
+
+      for (ComponentInfo component : service.getComponents()) {
+        components.put(component.getName(), component.getCategory());
+      }
+
+      result.put(service.getName(), components);
+    }
+
+    return result;
   }
 }

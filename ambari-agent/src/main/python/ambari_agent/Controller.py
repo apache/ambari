@@ -31,13 +31,13 @@ from random import randint
 
 import hostname
 import AmbariConfig
-import ProcessHelper
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
 import security
 from NetUtil import NetUtil
 import ssl
+from LiveStatus import LiveStatus
 
 
 logger = logging.getLogger()
@@ -58,6 +58,7 @@ class Controller(threading.Thread):
                          ':' + config.get('server', 'secured_url_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
     self.heartbeatUrl = server_secured_url + '/agent/v1/heartbeat/' + self.hostname
+    self.componentsUrl = server_secured_url + '/agent/v1/components/'
     self.netutil = NetUtil()
     self.responseId = -1
     self.repeatRegistration = False
@@ -77,6 +78,9 @@ class Controller(threading.Thread):
     pass
   
   def registerWithServer(self):
+    LiveStatus.SERVICES = []
+    LiveStatus.CLIENT_COMPONENTS = []
+    LiveStatus.COMPONENTS = []
     id = -1
     ret = {}
 
@@ -142,6 +146,8 @@ class Controller(threading.Thread):
     if not commands:
       logger.debug("No status commands from the server : " + pprint.pformat(commands))
     else:
+      if not LiveStatus.SERVICES:
+        self.updateComponents(commands[0]['clusterName'])
       self.actionQueue.put_status(commands)
     pass
 
@@ -282,6 +288,24 @@ class Controller(threading.Thread):
     req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
     response = self.cachedconnect.request(req)
     return response
+
+  def updateComponents(self, cluster_name):
+    logger.info("Updating components map of cluster " + cluster_name)
+    response = self.sendRequest(self.componentsUrl + cluster_name, None)
+    logger.debug("Response from server = " + response)
+    response = json.loads(response)
+    for service, components in response['components'].items():
+      LiveStatus.SERVICES.append(service)
+      for component, category in components.items():
+        if category == 'CLIENT':
+          LiveStatus.CLIENT_COMPONENTS.append({"serviceName": service, "componentName": component})
+        else:
+          LiveStatus.COMPONENTS.append({"serviceName": service, "componentName": component})
+    logger.info("Components map updated")
+    logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
+    logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
+    logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
+    pass
 
 def main(argv=None):
   # Allow Ctrl-C

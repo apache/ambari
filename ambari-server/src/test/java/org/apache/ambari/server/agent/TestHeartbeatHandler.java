@@ -1642,6 +1642,53 @@ public class TestHeartbeatHandler {
 
   }
 
+  @Test
+  public void testComponents() throws AmbariException,
+      InvalidStateTransitionException {
+    ComponentsResponse expected = new ComponentsResponse();
+    StackId dummyStackId = new StackId(DummyStackId);
+    Map<String, Map<String, String>> dummyComponents = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> dummyCategoryMap = new HashMap<String, String>();
+    dummyCategoryMap.put("PIG", "CLIENT");
+    dummyComponents.put("PIG", dummyCategoryMap);
+
+    dummyCategoryMap = new HashMap<String, String>();
+    dummyCategoryMap.put("MAPREDUCE_CLIENT", "CLIENT");
+    dummyCategoryMap.put("JOBTRACKER", "MASTER");
+    dummyCategoryMap.put("TASKTRACKER", "SLAVE");
+    dummyComponents.put("MAPREDUCE", dummyCategoryMap);
+
+    dummyCategoryMap = new HashMap<String, String>();
+    dummyCategoryMap.put("DATANODE2", "SLAVE");
+    dummyCategoryMap.put("NAMENODE", "MASTER");
+    dummyCategoryMap.put("HDFS_CLIENT", "CLIENT");
+    dummyCategoryMap.put("DATANODE1", "SLAVE");
+    dummyCategoryMap.put("SECONDARY_NAMENODE", "MASTER");
+    dummyCategoryMap.put("DATANODE", "SLAVE");
+    dummyComponents.put("HDFS", dummyCategoryMap);
+
+    expected.setClusterName(DummyCluster);
+    expected.setStackName(dummyStackId.getStackName());
+    expected.setStackVersion(dummyStackId.getStackVersion());
+    expected.setComponents(dummyComponents);
+
+    this.getDummyCluster();
+    HeartBeatHandler handler = getHeartBeatHandler(getMockActionManager(),
+        new ActionQueue());
+
+    ComponentsResponse actual = handler.handleComponents(DummyCluster);
+
+    if (log.isDebugEnabled()) {
+      log.debug(actual.toString());
+    }
+
+    assertEquals(expected.getClusterName(), actual.getClusterName());
+    assertEquals(expected.getStackName(), actual.getStackName());
+    assertEquals(expected.getStackVersion(), actual.getStackVersion());
+    assertEquals(expected.getComponents(), actual.getComponents());
+  }
+
   private ActionManager getMockActionManager() {
     return new ActionManager(0, 0, null, null,
         actionDBAccessor, new HostsMap((String) null), null, unitOfWork,
@@ -1692,7 +1739,9 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
 
     Cluster cluster = clusters.getCluster(DummyCluster);
-    cluster.setDesiredStackVersion(new StackId(DummyStackId));
+    StackId stackId = new StackId(DummyStackId);
+    cluster.setDesiredStackVersion(stackId);
+    cluster.setCurrentStackVersion(stackId);
     return cluster;
   }
 }

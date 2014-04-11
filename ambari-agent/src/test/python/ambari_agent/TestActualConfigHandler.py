@@ -22,6 +22,7 @@ from unittest import TestCase
 import os
 import logging
 from mock.mock import patch
+from ambari_agent.LiveStatus import LiveStatus
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.AmbariConfig import AmbariConfig
@@ -29,6 +30,107 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 
 
 class TestActualConfigHandler(TestCase):
+
+  def setUp(self):
+    LiveStatus.SERVICES = [
+      "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
+      "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
+      "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT",
+      "YARN", "MAPREDUCE2", "FLUME", "TEZ",
+      "FALCON", "STORM"
+    ]
+    LiveStatus.CLIENT_COMPONENTS = [
+      {"serviceName" : "HBASE",
+       "componentName" : "HBASE_CLIENT"},
+      {"serviceName" : "HDFS",
+       "componentName" : "HDFS_CLIENT"},
+      {"serviceName" : "MAPREDUCE",
+       "componentName" : "MAPREDUCE_CLIENT"},
+      {"serviceName" : "ZOOKEEPER",
+       "componentName" : "ZOOKEEPER_CLIENT"},
+      {"serviceName" : "OOZIE",
+       "componentName" : "OOZIE_CLIENT"},
+      {"serviceName" : "HCATALOG",
+       "componentName" : "HCAT"},
+      {"serviceName" : "HIVE",
+       "componentName" : "HIVE_CLIENT"},
+      {"serviceName" : "YARN",
+       "componentName" : "YARN_CLIENT"},
+      {"serviceName" : "MAPREDUCE2",
+       "componentName" : "MAPREDUCE2_CLIENT"},
+      {"serviceName" : "PIG",
+       "componentName" : "PIG"},
+      {"serviceName" : "SQOOP",
+       "componentName" : "SQOOP"},
+      {"serviceName" : "TEZ",
+       "componentName" : "TEZ_CLIENT"},
+      {"serviceName" : "FALCON",
+       "componentName" : "FALCON_CLIENT"}
+    ]
+    LiveStatus.COMPONENTS = [
+      {"serviceName" : "HDFS",
+       "componentName" : "DATANODE"},
+      {"serviceName" : "HDFS",
+       "componentName" : "NAMENODE"},
+      {"serviceName" : "HDFS",
+       "componentName" : "SECONDARY_NAMENODE"},
+      {"serviceName" : "HDFS",
+       "componentName" : "JOURNALNODE"},
+      {"serviceName" : "HDFS",
+       "componentName" : "ZKFC"},
+      {"serviceName" : "MAPREDUCE",
+       "componentName" : "JOBTRACKER"},
+      {"serviceName" : "MAPREDUCE",
+       "componentName" : "TASKTRACKER"},
+      {"serviceName" : "GANGLIA",
+       "componentName" : "GANGLIA_SERVER"},
+      {"serviceName" : "GANGLIA",
+       "componentName" : "GANGLIA_MONITOR"},
+      {"serviceName" : "HBASE",
+       "componentName" : "HBASE_MASTER"},
+      {"serviceName" : "HBASE",
+       "componentName" : "HBASE_REGIONSERVER"},
+      {"serviceName" : "NAGIOS",
+       "componentName" : "NAGIOS_SERVER"},
+      {"serviceName" : "FLUME",
+       "componentName" : "FLUME_SERVER"},
+      {"serviceName" : "ZOOKEEPER",
+       "componentName" : "ZOOKEEPER_SERVER"},
+      {"serviceName" : "OOZIE",
+       "componentName" : "OOZIE_SERVER"},
+      {"serviceName" : "HCATALOG",
+       "componentName" : "HCATALOG_SERVER"},
+      {"serviceName" : "KERBEROS",
+       "componentName" : "KERBEROS_SERVER"},
+      {"serviceName" : "HIVE",
+       "componentName" : "HIVE_SERVER"},
+      {"serviceName" : "HIVE",
+       "componentName" : "HIVE_METASTORE"},
+      {"serviceName" : "HIVE",
+       "componentName" : "MYSQL_SERVER"},
+      {"serviceName" : "WEBHCAT",
+       "componentName" : "WEBHCAT_SERVER"},
+      {"serviceName" : "YARN",
+       "componentName" : "RESOURCEMANAGER"},
+      {"serviceName" : "YARN",
+       "componentName" : "NODEMANAGER"},
+      {"serviceName" : "YARN",
+       "componentName" : "APP_TIMELINE_SERVER"},
+      {"serviceName" : "MAPREDUCE2",
+       "componentName" : "HISTORYSERVER"},
+      {"serviceName" : "FALCON",
+       "componentName" : "FALCON_SERVER"},
+      {"serviceName" : "STORM",
+       "componentName" : "NIMBUS"},
+      {"serviceName" : "STORM",
+       "componentName" : "STORM_REST_API"},
+      {"serviceName" : "STORM",
+       "componentName" : "SUPERVISOR"},
+      {"serviceName" : "STORM",
+       "componentName" : "STORM_UI_SERVER"},
+      {"serviceName" : "STORM",
+       "componentName" : "DRPC_SERVER"}
+    ]
 
   logger = logging.getLogger()
 

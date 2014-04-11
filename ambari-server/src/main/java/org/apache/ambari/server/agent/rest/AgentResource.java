@@ -20,14 +20,17 @@ package org.apache.ambari.server.agent.rest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.ComponentsResponse;
 import org.apache.ambari.server.agent.HeartBeat;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HeartBeatResponse;
@@ -38,6 +41,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
+
 import org.apache.ambari.server.agent.RegistrationStatus;
 
 /**
@@ -126,5 +130,41 @@ public class AgentResource {
       throw new WebApplicationException(500);
     }
     return heartBeatResponse;
+  }
+
+  /**
+   * Retrieves the components category map for stack used on cluster
+   * (Internal API to be used by Ambari agent).
+   *
+   * @response.representation.200.doc This API is invoked by Ambari agent running
+   *  on a cluster to update the components category map of stack used by this cluster
+   * @response.representation.200.mediaType application/json
+   * @response.representation.408.doc Request Timed out
+   * @param clusterName of cluster
+   * @throws Exception
+   */
+  @Path("components/{clusterName}")
+  @GET
+  @Produces({MediaType.APPLICATION_JSON})
+  public ComponentsResponse components(
+      @PathParam("clusterName") String clusterName) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received Components request for cluster " + clusterName);
+    }
+
+    ComponentsResponse componentsResponse;
+
+    try {
+      componentsResponse = hh.handleComponents(clusterName);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Sending components response");
+        LOG.debug("Response details " + componentsResponse);
+      }
+    } catch (Exception e) {
+      LOG.warn("Error in Components", e);
+      throw new WebApplicationException(500);
+    }
+
+    return componentsResponse;
   }
 }

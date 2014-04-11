@@ -112,51 +112,6 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(res["exitcode"], 1)
     self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java_home is specified in hostLevelParams")
 
-
-  @patch.object(manifestGenerator, 'generateManifest')
-  @patch.object(PuppetExecutor, 'isJavaAvailable')
-  @patch.object(RepoInstaller, 'generate_repo_manifests')
-  @patch.object(PuppetExecutor, 'runPuppetFile')
-  def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock,
-                           isJavaAvailableMock, generateManifestMock):
-    tmpdir = tempfile.gettempdir()
-    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
-    jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
-    jsonStr = jsonFile.read()
-    parsedJson = json.loads(jsonStr)
-    parsedJson["taskId"] = 77
-    parsedJson['roleCommand'] = "START"
-    def side_effect_generate_manifest(command, siteppFileName,
-                                      modulesdir, config):
-      return None
-    generateManifestMock.side_effect = side_effect_generate_manifest
-    def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile, timeout):
-      result["exitcode"] = 0
-    runPuppetFileMock.side_effect = side_effect
-    
-    isJavaAvailableMock.return_value = True
-
-    #If ambari-agent has been just started and no any commands were executed by
-    # PuppetExecutor.runCommand, then no repo files were updated by
-    # RepoInstaller.generate_repo_manifests
-    self.assertEquals(0, generateRepoManifestMock.call_count)
-    self.assertFalse(puppetInstance.reposInstalled)
-
-    # After executing of the first command, RepoInstaller.generate_repo_manifests
-    # generates a .pp file for updating repo files
-    puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
-    self.assertTrue(puppetInstance.reposInstalled)
-    self.assertEquals(1, generateRepoManifestMock.call_count)
-    isJavaAvailableMock.assert_called_with("java64_home")
-
-    # After executing of the next commands, repo manifest aren't generated again
-    puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
-    self.assertTrue(puppetInstance.reposInstalled)
-    self.assertEquals(1, generateRepoManifestMock.call_count)
-    puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
-    self.assertTrue(puppetInstance.reposInstalled)
-    self.assertEquals(1, generateRepoManifestMock.call_count)
-
   @patch("os.path.exists")
   def test_configure_environ(self, osPathExistsMock):
     config = AmbariConfig().getConfig()
