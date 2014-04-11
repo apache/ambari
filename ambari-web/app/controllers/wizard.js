@@ -41,7 +41,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
 
   slaveComponents: function () {
     return App.StackServiceComponent.find().filterProperty('isSlave',true);
-  }.property(),
+  }.property('App.router.clusterController.isLoaded'),
 
   allHosts: App.Host.find(),
 
@@ -813,9 +813,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     var uninstalledComponents = [];
 
     components.forEach(function (component) {
-      if (installedServices.contains(component.service_name)) {
-        installedComponentsMap[component.component_name] = [];
-      } else if (selectedServices.contains(component.service_name)) {
+      if (installedServices.contains(component.get('serviceName'))) {
+        installedComponentsMap[component.get('componentName')] = [];
+      } else if (selectedServices.contains(component.get('serviceName'))) {
         uninstalledComponents.push(component);
       }
     }, this);
@@ -849,8 +849,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       var hosts = jQuery.extend(true, [], result.findProperty('componentName', 'DATANODE').hosts);
       hosts.setEach('isInstalled', false);
       result.push({
-        componentName: component.component_name,
-        displayName: App.format.role(component.component_name),
+        componentName: component.get('componentName'),
+        displayName: App.format.role(component.get('componentName')),
         hosts: hosts,
         isInstalled: false
       })
