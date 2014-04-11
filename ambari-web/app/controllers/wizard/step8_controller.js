@@ -939,7 +939,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       // exist in older ones.
       var self = this;
       var newServiceComponents = {}
-      if (App.get('isHadoop21Stack')) {
+      if (App.get('isHadoop21Stack') && App.Service.find().findProperty('serviceName','YARN')) {
         newServiceComponents['APP_TIMELINE_SERVER'] = 'YARN';
       }
       for (var componentName in newServiceComponents) {
