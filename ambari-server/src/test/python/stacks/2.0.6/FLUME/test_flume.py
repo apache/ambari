@@ -29,8 +29,8 @@ class TestFlumeHandler(RMFTestCase):
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
                        command = "configure",
-                       config_file="default.json"
-    )
+                       config_file="default.json")
+
     self.assert_configure_default()
     self.assertNoMoreResources()
 
@@ -38,8 +38,7 @@ class TestFlumeHandler(RMFTestCase):
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
                        command = "start",
-                       config_file="default.json"
-    )
+                       config_file="default.json")
 
     self.assert_configure_default()
 
@@ -51,7 +50,7 @@ class TestFlumeHandler(RMFTestCase):
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
       wait_for_finish = False)
 
-    self.assertResourceCalled('Execute', 'pgrep -f /etc/flume/conf/a1/flume.conf > /var/run/flume/a1.pid',
+    self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/a1/flume.conf > /var/run/flume/a1.pid',
       logoutput = True,
       tries = 5,
       try_sleep = 10)
@@ -65,8 +64,7 @@ class TestFlumeHandler(RMFTestCase):
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
                        command = "stop",
-                       config_file="default.json"
-    )
+                       config_file="default.json")
 
     self.assertTrue(glob_mock.called)
 
@@ -74,6 +72,34 @@ class TestFlumeHandler(RMFTestCase):
       ignore_failures = True)
 
     self.assertResourceCalled('File', '/var/run/flume/a1.pid', action = ['delete'])
+
+    self.assertNoMoreResources()
+
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_status_default(self, structured_out_mock):
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "status",
+                       config_file="default.json")
+    
+    # test that the method was called with empty processes
+    self.assertTrue(structured_out_mock.called)
+    structured_out_mock.assert_called_with({'processes': []})
+
+    self.assertNoMoreResources()
+
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch("glob.glob")
+  def test_status_with_result(self, glob_mock, structured_out_mock):
+    glob_mock.return_value = ['/var/run/flume/a1.pid']
+
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "status",
+                       config_file="default.json")
+    
+    self.assertTrue(structured_out_mock.called)
+    structured_out_mock.assert_called_with({'processes': [{'status': 'NOT_RUNNING', 'name': 'a1.pid'}]})
 
     self.assertNoMoreResources()
 
@@ -94,7 +120,6 @@ class TestFlumeHandler(RMFTestCase):
       '/etc/flume/conf/a1/log4j.properties',
       content = Template('log4j.properties.j2', agent_name = 'a1'),
       mode = 0644)
-
 
 def buildFlumeTopology(content):
   import os

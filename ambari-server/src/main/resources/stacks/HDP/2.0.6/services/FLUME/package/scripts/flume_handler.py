@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from flume import flume
+from flume import flume_status
 
 class FlumeHandler(Script):
   def install(self, env):
@@ -50,7 +51,14 @@ class FlumeHandler(Script):
     flume(action='config')
 
   def status(self, env):
-    pass
+    import params
+
+    env.set_params(params)
+
+    json = {}
+    json['processes'] = flume_status()
+
+    self.put_structured_out(json)
 
 if __name__ == "__main__":
   FlumeHandler().execute()

@@ -307,15 +307,16 @@ class TestCustomServiceOrchestrator(TestCase):
     runCommand_mock.return_value = {
       "exitcode" : 0
     }
+
     status = orchestrator.requestComponentStatus(status_command)
-    self.assertEqual(LiveStatus.LIVE_STATUS, status)
+    self.assertEqual(runCommand_mock.return_value, status)
 
     # Test dead case
     runCommand_mock.return_value = {
       "exitcode" : 1
     }
     status = orchestrator.requestComponentStatus(status_command)
-    self.assertEqual(LiveStatus.DEAD_STATUS, status)
+    self.assertEqual(runCommand_mock.return_value, status)
 
 
   def tearDown(self):

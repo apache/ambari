@@ -448,6 +448,7 @@ class TestActionQueue(TestCase):
 
     # Check execution ov V2 status command
     requestComponentStatus_mock.reset_mock()
+    requestComponentStatus_mock.return_value = {'exitcode': 0}
     determine_command_format_version_mock.return_value = ActionQueue.COMMAND_FORMAT_V2
     actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()

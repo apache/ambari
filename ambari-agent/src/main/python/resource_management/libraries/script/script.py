@@ -58,9 +58,8 @@ class Script(object):
   def put_structured_out(self, sout):
     Script.structuredOut.update(sout)
     try:
-      structuredOut = json.dumps(Script.structuredOut)
       with open(self.stroutfile, 'w') as fp:
-        json.dump(structuredOut, fp)
+        json.dump(Script.structuredOut, fp)
     except IOError:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 

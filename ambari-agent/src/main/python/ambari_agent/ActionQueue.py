@@ -250,16 +250,31 @@ class ActionQueue(threading.Thread):
 
       livestatus = LiveStatus(cluster, service, component,
                               globalConfig, self.config, self.configTags)
+
       component_status = None
+      component_extra = None
       if command_format == self.COMMAND_FORMAT_V2:
         # For custom services, responsibility to determine service status is
         # delegated to python scripts
-        component_status = self.customServiceOrchestrator.requestComponentStatus(command)
+        component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+
+        if component_status_result['exitcode'] == 0:
+          component_status = LiveStatus.LIVE_STATUS
+        else:
+          component_status = LiveStatus.DEAD_STATUS
+
+        if component_status_result.has_key('structuredOut'):
+          component_extra = component_status_result['structuredOut']
 
       result = livestatus.build(forsed_component_status= component_status)
+
+      if component_extra is not None and len(component_extra) != 0:
+        result['extra'] = component_extra
+
       logger.debug("Got live status for component " + component + \
                    " of service " + str(service) + \
                    " of cluster " + str(cluster))
+
       logger.debug(pprint.pformat(result))
       if result is not None:
         self.commandStatuses.put_command_status(command, result)

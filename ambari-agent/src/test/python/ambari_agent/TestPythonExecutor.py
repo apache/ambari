@@ -114,7 +114,7 @@ class TestPythonExecutor(TestCase):
     subproc_mock.should_finish_event.set()
     result = executor.run_file("file", ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstroutfile)
     self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
-                               'structuredOut': {'msg': 'Unable to read structured output from ' + tmpstroutfile}})
+                               'structuredOut': {}})
 
 
   def test_is_successfull(self):

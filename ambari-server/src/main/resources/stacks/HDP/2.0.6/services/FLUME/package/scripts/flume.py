@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+import glob
 import os
 from resource_management import *
 
@@ -25,7 +26,7 @@ def flume(action = None):
 
   flume_agents = {}
   if params.flume_conf_content is not None:
-    flume_agents = buildFlumeTopology(params.flume_conf_content)
+    flume_agents = build_flume_topology(params.flume_conf_content)
 
   if action == 'config':
     Directory(params.flume_conf_dir)
@@ -58,26 +59,25 @@ def flume(action = None):
       flume_agent_conf_file = flume_agent_conf_dir + os.sep + "flume.conf"
       flume_agent_pid_file = params.flume_run_dir + os.sep + agent + ".pid"
 
-      # TODO someday make the ganglia ports configurable
-      extra_args = ''
-      if params.ganglia_server_host is not None:
-        extra_args = '-Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts={0}:{1}'
-        extra_args = extra_args.format(params.ganglia_server_host, '8655')
+      if not is_live(flume_agent_pid_file):
+        # TODO someday make the ganglia ports configurable
+        extra_args = ''
+        if params.ganglia_server_host is not None:
+          extra_args = '-Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts={0}:{1}'
+          extra_args = extra_args.format(params.ganglia_server_host, '8655')
 
-      flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
-         flume_agent_conf_file, extra_args)
+        flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
+           flume_agent_conf_file, extra_args)
 
-      Execute(flume_cmd, wait_for_finish=False)
+        Execute(flume_cmd, wait_for_finish=False)
 
-      # TODO sometimes startup spawns a couple of threads - so only the first line may count
-      pid_cmd = format('pgrep -f {flume_agent_conf_file} > {flume_agent_pid_file}')
+        # sometimes startup spawns a couple of threads - so only the first line may count
+        pid_cmd = format('pgrep -o -f {flume_agent_conf_file} > {flume_agent_pid_file}')
 
-      Execute(pid_cmd, logoutput=True, tries=5, try_sleep=10)
+        Execute(pid_cmd, logoutput=True, tries=5, try_sleep=10)
 
     pass
   elif action == 'stop':
-    import glob
-
     pid_files = glob.glob(params.flume_run_dir + os.sep + "*.pid")
 
     if 0 == len(pid_files):
@@ -96,7 +96,7 @@ def flume(action = None):
 
 # define a map of dictionaries, where the key is agent name
 # and the dictionary is the name/value pair
-def buildFlumeTopology(content):
+def build_flume_topology(content):
   import ConfigParser
   import StringIO
 
@@ -128,4 +128,36 @@ def buildFlumeTopology(content):
       del result[k]
 
   return result
+
+def is_live(pid_file):
+  live = False
+
+  try:
+    check_process_status(pid_file)
+    live = True
+  except ComponentIsNotRunning:
+    pass
+
+  return live
+
+def live_status(pid_file):
+  res = {}
+  res['name'] = pid_file.split(os.sep).pop()
+  res['status'] = 'RUNNING' if is_live(pid_file) else 'NOT_RUNNING'
+
+  return res
+  
+
+def flume_status():
+  import params
+  
+  procs = []
+
+  pid_files = glob.glob(params.flume_run_dir + os.sep + "*.pid")
+
+  if 0 != len(pid_files):
+    for pid_file in pid_files:
+      procs.append(live_status(pid_file))
+
+  return procs
 

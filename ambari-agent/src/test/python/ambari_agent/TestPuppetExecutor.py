@@ -231,8 +231,6 @@ class TestPuppetExecutor(TestCase):
 
   class  PuppetExecutor_mock(PuppetExecutor):
 
-
-
     def __init__(self, puppetModule, puppetInstall, facterInstall, tmpDir, config, subprocess_mockup):
       self.subprocess_mockup = subprocess_mockup
       PuppetExecutor.__init__(self, puppetModule, puppetInstall, facterInstall, tmpDir, config)

@@ -64,6 +64,15 @@ class PythonExecutor:
     else: # Append to files
       tmpout =  open(tmpoutfile, 'a')
       tmperr =  open(tmperrfile, 'a')
+
+    # need to remove this file for the following case:
+    # status call 1 does not write to file; call 2 writes to file;
+    # call 3 does not write to file, so contents are still call 2's result
+    try:
+      os.unlink(tmpstructedoutfile)
+    except OSError:
+      pass # no error
+
     script_params += [tmpstructedoutfile]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
@@ -94,7 +103,7 @@ class PythonExecutor:
         }
         logger.warn(structured_out)
       else:
-        structured_out = '{}'
+        structured_out = {}
 
     if self.python_process_has_been_killed:
       error = str(error) + "\n Python script has been killed due to timeout"

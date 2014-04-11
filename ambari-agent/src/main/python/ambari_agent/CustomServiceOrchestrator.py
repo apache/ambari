@@ -102,9 +102,9 @@ class CustomServiceOrchestrator():
         script_path = self.resolve_script_path(base_dir, script, script_type)
         script_tuple = (script_path, base_dir)
 
-
       tmpstrucoutfile = os.path.join(self.tmp_dir,
                                     "structured-out-{0}.json".format(task_id))
+
       if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
       # We don't support anything else yet
         message = "Unknown script type {0}".format(script_type)
@@ -160,11 +160,7 @@ class CustomServiceOrchestrator():
     res = self.runCommand(command, self.status_commands_stdout,
                           self.status_commands_stderr, self.COMMAND_NAME_STATUS,
                           override_output_files=override_output_files)
-    if res['exitcode'] == 0:
-      return LiveStatus.LIVE_STATUS
-    else:
-      return LiveStatus.DEAD_STATUS
-
+    return res
 
   def resolve_script_path(self, base_dir, script, script_type):
     """
