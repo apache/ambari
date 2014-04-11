@@ -20,6 +20,7 @@ var App = require('app');
 require('views/common/quick_view_link_view');
 require('models/host_component');
 require('models/stack_service_component');
+var modelSetup = require('test/init_model_test');
 
 describe('#App', function() {
 
@@ -362,6 +363,14 @@ describe('#App', function() {
   });
 
   describe('#handleStackDependedComponents()', function () {
+
+    beforeEach(function(){
+      modelSetup.setupStackServiceComponent();
+    });
+
+    afterEach(function(){
+      modelSetup.cleanStackServiceComponent();
+    });
 
     it('if handleStackDependencyTest is true then stackDependedComponents should be unmodified', function () {
       App.set('testMode', false);

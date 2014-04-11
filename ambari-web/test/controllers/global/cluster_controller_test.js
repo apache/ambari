@@ -232,7 +232,7 @@ describe('App.clusterController', function () {
     it('singleNodeInstall = true', function () {
       App.set('singleNodeInstall', true);
       controller.set('gangliaWebProtocol', '');
-      expect(controller.get('gangliaUrl')).to.equal("http://:42080/ganglia");
+      expect(controller.get('gangliaUrl')).to.equal("http://" + location.hostname + ":42080/ganglia");
     });
     it('singleNodeAlias is "alias"', function () {
       App.set('singleNodeAlias', 'alias');

@@ -25,6 +25,7 @@ require('views/main/host/summary');
 
 var mainHostSummaryView;
 var extendedMainHostSummaryView = App.MainHostSummaryView.extend({content: {}, addToolTip: function(){}, installedServices: []});
+var modelSetup = require('test/init_model_test');
 
 describe('App.MainHostSummaryView', function() {
 
@@ -268,6 +269,13 @@ describe('App.MainHostSummaryView', function() {
 
   describe('#installableClientComponents', function() {
 
+    beforeEach(function(){
+      modelSetup.setupStackServiceComponent();
+    });
+    afterEach(function(){
+      modelSetup.cleanStackServiceComponent();
+    });
+
     it('delete host not supported', function() {
       App.set('supports.deleteHost', false);
       expect(mainHostSummaryView.get('installableClientComponents')).to.eql([]);
@@ -327,7 +335,12 @@ describe('App.MainHostSummaryView', function() {
   });
 
   describe('#addableComponents', function() {
-
+    beforeEach(function(){
+      modelSetup.setupStackServiceComponent();
+    });
+    afterEach(function(){
+      modelSetup.cleanStackServiceComponent();
+    });
     var tests = Em.A([
       {
         content: Em.Object.create({

@@ -21,14 +21,21 @@ require('models/stack_service_component');
 require('mappers/server_data_mapper');
 require('mappers/stack_service_component_mapper');
 
-/**
- * initialization of App.StackServiceComponent model
- * @type {*}
- */
-var data = {items: Em.A([])};
-require('test/service_components').items.forEach(function(i) {
-  i.serviceComponents.forEach(function(sc) {
-    data.items.pushObject(sc.StackServiceComponents);
-  });
-});
-App.stackServiceComponentMapper.map(data);
+module.exports = {
+  setupStackServiceComponent: function() {
+    /**
+     * initialization of App.StackServiceComponent model
+     * @type {*}
+     */
+    var data = {items: Em.A([])};
+    require('test/service_components').items.forEach(function(i) {
+      i.serviceComponents.forEach(function(sc) {
+        data.items.pushObject(sc.StackServiceComponents);
+      });
+    });
+    App.stackServiceComponentMapper.map(data);
+  },
+  cleanStackServiceComponent: function(){
+    App.StackServiceComponent.find().set('content',[]);
+  }
+};

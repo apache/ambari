@@ -89,14 +89,12 @@ module.exports = Em.Application.create({
   /**
    * List of disabled components for the current stack with related info.
    * Each element has followed structure:
-   * @type {Em.Object}
+   * @type {Em.Enumerable.<Em.Object>}
    *   @property componentName {String} - name of the component
    *   @property properties {Object} - mapped properties by site files,
    *    for example:
    *      properties: { global_properties: [], site_properties: [], etc. }
    *   @property reviewConfigs {Ember.Object} - reference review_configs.js
-   *
-   * @type {Array}
    */
   stackDependedComponents: [],
 
@@ -191,6 +189,8 @@ module.exports = Em.Application.create({
    * otherwise enable component and remove it from stackDependedComponents
    * Check forbidden/allowed components and
    * remove/restore related data.
+   *
+   * @method handleStackDependedComponents
    */
   handleStackDependedComponents: function () {
     // need for unit testing and test mode

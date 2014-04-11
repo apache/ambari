@@ -35,6 +35,8 @@ module.exports = {
    *    isClient : false
    * }]
    *
+   *  @method getInstalledComponents
+   *  @return {object[]}
    */
   getInstalledComponents : function(){
     var components = App.HostComponent.find();
@@ -57,8 +59,11 @@ module.exports = {
   },
 
   /**
+   * Format and load info about components to StackServiceComponent model.
    *
-   * @param data
+   * @method loadStackServiceComponentModel
+   * @param data {object} response from server
+   * @return {object} formatted info about components
    */
   loadStackServiceComponentModel: function(data) {
     var serviceComponents = {items: []};

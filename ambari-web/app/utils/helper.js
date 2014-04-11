@@ -16,22 +16,52 @@
  * limitations under the License.
  */
 
+/**
+ * Remove spaces at beginning and ending of line.
+ * @example
+ *  var str = "  I'm a string  "
+ *  str.trim() // return "I'm a string"
+ * @method trim
+ * @return {string}
+ */
 String.prototype.trim = function () {
   return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 };
-
+/**
+ * Determines whether string end within another string.
+ *
+ * @method endsWith
+ * @param suffix {string}  substring for search
+ * @return {boolean}
+ */
 String.prototype.endsWith = function(suffix) {
   return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
-
+/**
+ * Determines whether string start within another string.
+ *
+ * @method startsWith
+ * @param prefix {string} substring for search
+ * @return {boolean}
+ */
 String.prototype.startsWith = function (prefix){
   return this.indexOf(prefix) == 0;
 };
-
+/**
+ * Determines whether string founded within another string.
+ *
+ * @method contains
+ * @param substring {string} substring for search
+ * @return {boolean}
+ */
 String.prototype.contains = function(substring) {
   return this.indexOf(substring) != -1;
 };
-
+/**
+ * Capitalize the first letter of string.
+ * @method capitalize
+ * @return {string}
+ */
 String.prototype.capitalize = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
 };
@@ -49,9 +79,10 @@ String.prototype.capitalize = function () {
  *  tofind.findIn(person, 1); // 'yes'
  *  tofind.findIn(person, 2); // null
  *
- *  @param multi  Object
- *  @param index  Occurrence count of this key
- *  @return Value of key at given index
+ *  @method findIn
+ *  @param multi {object}
+ *  @param index {number} Occurrence count of this key
+ *  @return {*} Value of key at given index
  */
 String.prototype.findIn = function(multi, index, _foundValues) {
   if (!index) {
@@ -82,10 +113,14 @@ String.prototype.findIn = function(multi, index, _foundValues) {
   }
   return value;
 };
-
 /**
- * Replace {i} with argument. where i is number of argument to replace with
- * @return {String}
+ * Replace {i} with argument. where i is number of argument to replace with.
+ * @example
+ *  var str = "{0} world{1}";
+ *  str.format("Hello", "!") // return "Hello world!"
+ *
+ * @method format
+ * @return {string}
  */
 String.prototype.format = function () {
   var args = arguments;
@@ -93,7 +128,14 @@ String.prototype.format = function () {
     return typeof args[number] != 'undefined' ? args[number] : match;
   });
 };
-
+/**
+ * Wrap words in string within template.
+ *
+ * @method highlight
+ * @param {string[]} words - words to wrap
+ * @param {string} [highlightTemplate="<b>{0}</b>"] - template for wrapping
+ * @return {string}
+ */
 String.prototype.highlight = function (words, highlightTemplate) {
   var self = this;
   highlightTemplate = highlightTemplate ? highlightTemplate : "<b>{0}</b>";
@@ -107,7 +149,20 @@ String.prototype.highlight = function (words, highlightTemplate) {
 
   return self;
 };
-
+/**
+ * Convert time in milliseconds to object contained days, hours and minutes.
+ * @typedef ConvertedTime
+ *  @type {Object}
+ *  @property {number} d - days
+ *  @property {number} h - hours
+ *  @property {string} m - minutes
+ * @example
+ *  var time = 1000000000;
+ *  time.toDaysHoursMinutes() // {d: 11, h: 13, m: "46.67"}
+ *
+ * @method toDaysHoursMinutes
+ * @return {object}
+ */
 Number.prototype.toDaysHoursMinutes = function () {
   var formatted = {},
     dateDiff = this,
@@ -125,7 +180,6 @@ Number.prototype.toDaysHoursMinutes = function () {
 
   return formatted;
 };
-
 /**
  Sort an array by the key specified in the argument.
  Handle only native js objects as element of array, not the Ember's object.
@@ -152,13 +206,14 @@ Array.prototype.sortPropertyLight = function (path) {
   });
   return this;
 };
-
+/** @namespace Em **/
 Em.CoreObject.reopen({
   t:function (key, attrs) {
     return Em.I18n.t(key, attrs)
   }
 });
 
+/** @namespace Em.Handlebars **/
 Em.Handlebars.registerHelper('log', function (variable) {
   console.log(variable);
 });
@@ -186,12 +241,19 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
 
   return new Em.Handlebars.SafeString(property);
 });
-
+/**
+ * @namespace App
+ */
 App = require('app');
 
 /**
  * Certain variables can have JSON in string
  * format, or in JSON format itself.
+ *
+ * @memberof App
+ * @function parseJson
+ * @param {string|object}
+ * @return {object}
  */
 App.parseJSON = function (value) {
   if (typeof value == "string") {
@@ -203,8 +265,9 @@ App.parseJSON = function (value) {
  * Check for empty <code>Object</code>, built in Em.isEmpty()
  * doesn't support <code>Object</code> type
  *
- * @params obj {Object}
- *
+ * @memberof App
+ * @method isEmptyObject
+ * @param obj {Object}
  * @return {Boolean}
  */
 App.isEmptyObject = function(obj) {
@@ -212,11 +275,16 @@ App.isEmptyObject = function(obj) {
   for (var prop in obj) { if (obj.hasOwnProperty(prop)) {empty = false; break;} }
   return empty;
 }
-
+/**
+ *
+ * @namespace App
+ * @namespace App.format
+ */
 App.format = {
-
   /**
-   * @type Object
+   * @memberof App.format
+   * @type {object}
+   * @property components
    */
   components: {
     'APP_TIMELINE_SERVER': 'App Timeline Server',
@@ -294,7 +362,9 @@ App.format = {
   },
 
   /**
-   * @type Object
+   * @memberof App.format
+   * @property command
+   * @type {object}
    */
   command: {
     'INSTALL': 'Install',
@@ -312,7 +382,11 @@ App.format = {
 
   /**
    * convert role to readable string
-   * @param role
+   *
+   * @memberof App.format
+   * @method role
+   * @param {string} role
+   * return {string}
    */
   role:function (role) {
     return this.components[role] ? this.components[role] : '';
@@ -320,7 +394,11 @@ App.format = {
 
   /**
    * convert command_detail to readable string, show the string for all tasks name
-   * @param command_detail
+   *
+   * @memberof App.format
+   * @method commandDetail
+   * @param {string} command_detail
+   * @return {string}
    */
   commandDetail: function (command_detail) {
     var detailArr = command_detail.split(' ');
@@ -350,13 +428,21 @@ App.format = {
   },
 
   /**
-   * PENDING - Not queued yet for a host
-   * QUEUED - Queued for a host
-   * IN_PROGRESS - Host reported it is working
-   * COMPLETED - Host reported success
-   * FAILED - Failed
-   * TIMEDOUT - Host did not respond in time
-   * ABORTED - Operation was abandoned
+   * Convert uppercase status name to downcase.
+   * <br>
+   * <br>PENDING - Not queued yet for a host
+   * <br>QUEUED - Queued for a host
+   * <br>IN_PROGRESS - Host reported it is working
+   * <br>COMPLETED - Host reported success
+   * <br>FAILED - Failed
+   * <br>TIMEDOUT - Host did not respond in time
+   * <br>ABORTED - Operation was abandoned
+   *
+   * @memberof App.format
+   * @method taskStatus
+   * @param {string} _taskStatus
+   * @return {string}
+   *
    */
   taskStatus:function (_taskStatus) {
     return _taskStatus.toLowerCase();
@@ -366,8 +452,11 @@ App.format = {
 /**
  * wrapper to bootstrap popover
  * fix issue when popover stuck on view routing
- * @param self
- * @param options
+ *
+ * @memberof App
+ * @method popover
+ * @param {DOMElement} self
+ * @param {object} options
  */
 App.popover = function(self, options) {
   self.popover(options);
@@ -379,11 +468,14 @@ App.popover = function(self, options) {
 /**
  * wrapper to bootstrap tooltip
  * fix issue when tooltip stuck on view routing
- * @param self - DOM element
- * @param options
+ * @memberof App
+ * @method tooltip
+ * @param {DOMElement} self
+ * @param {object} options
  */
 App.tooltip = function(self, options) {
   self.tooltip(options);
+  /* istanbul ignore next */
   self.on("remove", function () {
     $(this).trigger('mouseleave');
   });
@@ -392,16 +484,21 @@ App.tooltip = function(self, options) {
 /**
  * wrapper to Date().getTime()
  * fix issue when client clock and server clock not sync
- * @return timeStamp of current server clock
+ *
+ * @memberof App
+ * @method dateTime
+ * @return {Number} timeStamp of current server clock
  */
 App.dateTime = function() {
   return new Date().getTime() + App.clockDistance;
 };
 
-/*
+/**
  * Helper function for bound property helper registration
- * @params name {String} - name of helper
- * @params view {Em.View} - view
+ * @memberof App
+ * @method registerBoundHelper
+ * @param name {String} name of helper
+ * @param view {Em.View} view
  */
 App.registerBoundHelper = function(name, view) {
   Em.Handlebars.registerHelper(name, function(property, options) {

@@ -23,9 +23,15 @@ require('models/stack_service_component');
 require('models/hosts');
 require('controllers/wizard/step9_controller');
 require('utils/helper');
+var modelSetup = require('test/init_model_test');
 
 describe('App.InstallerStep9Controller', function () {
-
+  beforeEach(function(){
+    modelSetup.setupStackServiceComponent()
+  });
+  afterEach(function(){
+    modelSetup.cleanStackServiceComponent();
+  })
   describe('#isSubmitDisabled', function () {
     var tests = Em.A([
       {controllerName: 'addHostController', state: 'STARTED', e: false},
