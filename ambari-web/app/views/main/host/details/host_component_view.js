@@ -84,32 +84,21 @@ App.HostComponentView = Em.View.extend({
     return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
 
   }.property('workStatus'),
+
   /**
    * CSS-icon-class for host component status
    * @type {String}
    */
   statusIconClass: function () {
-    switch (this.get('statusClass')) {
-      case 'health-status-started':
-      case 'health-status-starting':
-        return App.healthIconClassGreen;
-        break;
-      case 'health-status-installed':
-      case 'health-status-stopping':
-        return App.healthIconClassRed;
-        break;
-      case 'health-status-unknown':
-        return App.healthIconClassYellow;
-        break;
-      case 'health-status-DEAD-ORANGE':
-        return App.healthIconClassOrange;
-        break;
-      default:
-        return "";
-        break;
-    }
+    return Em.getWithDefault({
+      'health-status-started': App.healthIconClassGreen,
+      'health-status-starting': App.healthIconClassGreen,
+      'health-status-installed': App.healthIconClassRed,
+      'health-status-stopping': App.healthIconClassRed,
+      'health-status-unknown': App.healthIconClassYellow,
+      'health-status-DEAD-ORANGE': App.healthIconClassOrange
+    }, this.get('statusClass'), '');
   }.property('statusClass'),
-
 
   /**
    * CSS-class for disabling drop-down menu with list of host component actions
@@ -174,11 +163,8 @@ App.HostComponentView = Em.View.extend({
    */
   noActionAvailable: function () {
     var workStatus = this.get('workStatus');
-    if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown, App.HostComponentStatus.disabled].contains(workStatus)) {
-      return "hidden";
-    }else{
-      return "";
-    }
+    return [App.HostComponentStatus.starting, App.HostComponentStatus.stopping,
+      App.HostComponentStatus.unknown, App.HostComponentStatus.disabled].contains(workStatus) ? "hidden" : '';
   }.property('workStatus'),
 
   /**

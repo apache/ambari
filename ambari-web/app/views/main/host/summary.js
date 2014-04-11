@@ -270,7 +270,7 @@ App.MainHostSummaryView = Em.View.extend({
     }
 
     return components;
-  }.property('content.hostComponents.length', 'installableClientComponents'),
+  }.property('content.hostComponents.length', 'installableClientComponents', 'App.components.addableToHost.@each'),
 
   /**
    * Formatted with <code>$.timeago</code> value of host's last heartbeat

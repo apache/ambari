@@ -58,6 +58,7 @@ module.exports = Em.Application.create({
     if (falconService) {
       return falconService.get('hostComponents').findProperty('componentName', 'FALCON_SERVER').get('host.hostName');
     }
+    return '';
   }.property().volatile(),
 
   clusterName: null,
@@ -79,7 +80,7 @@ module.exports = Em.Application.create({
    * If High Availability is enabled
    * Based on <code>clusterStatus.isInstalled</code>, stack version, <code>SNameNode</code> availability
    *
-   * @type {Boolean}
+   * @type {bool}
    */
   isHaEnabled: function() {
     if (!this.get('isHadoop2Stack')) return false;
@@ -242,18 +243,17 @@ module.exports = Em.Application.create({
    * @type {Em.Object}
    */
   components: function() {
-    var self = this;
-    return Ember.Object.create({
-      allComponents:self.StackServiceComponent.find().mapProperty('componentName'),
-      reassignable: self.StackServiceComponent.find().filterProperty('isReassignable',true).mapProperty('componentName'),
-      restartable: self.StackServiceComponent.find().filterProperty('isRestartable',true).mapProperty('componentName'),
-      deletable: self.StackServiceComponent.find().filterProperty('isDeletable',true).mapProperty('componentName'),
-      rollinRestartAllowed: self.StackServiceComponent.find().filterProperty('isRollinRestartAllowed',true).mapProperty('componentName'),
-      decommissionAllowed: self.StackServiceComponent.find().filterProperty('isDecommissionAllowed',true).mapProperty('componentName'),
-      addableToHost: self.StackServiceComponent.find().filterProperty('isAddableToHost',true).mapProperty('componentName'),
-      slaves: self.StackServiceComponent.find().filterProperty('isMaster',false).filterProperty('isClient',false).mapProperty('componentName'),
-      masters: self.StackServiceComponent.find().filterProperty('isMaster',true).mapProperty('componentName'),
-      clients: self.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName')
-    })
-  }.property()
+    return Em.Object.create({
+      allComponents:this.StackServiceComponent.find().mapProperty('componentName'),
+      reassignable: this.StackServiceComponent.find().filterProperty('isReassignable',true).mapProperty('componentName'),
+      restartable: this.StackServiceComponent.find().filterProperty('isRestartable',true).mapProperty('componentName'),
+      deletable: this.StackServiceComponent.find().filterProperty('isDeletable',true).mapProperty('componentName'),
+      rollinRestartAllowed: this.StackServiceComponent.find().filterProperty('isRollinRestartAllowed',true).mapProperty('componentName'),
+      decommissionAllowed: this.StackServiceComponent.find().filterProperty('isDecommissionAllowed',true).mapProperty('componentName'),
+      addableToHost: this.StackServiceComponent.find().filterProperty('isAddableToHost',true).mapProperty('componentName'),
+      slaves: this.StackServiceComponent.find().filterProperty('isMaster',false).filterProperty('isClient',false).mapProperty('componentName'),
+      masters: this.StackServiceComponent.find().filterProperty('isMaster',true).mapProperty('componentName'),
+      clients: this.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName')
+    });
+  }.property('App.router.clusterController.isLoaded')
 });

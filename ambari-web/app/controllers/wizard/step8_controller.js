@@ -20,6 +20,7 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 App.WizardStep8Controller = Em.Controller.extend({
+
   name: 'wizardStep8Controller',
 
   /**
@@ -56,16 +57,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   globals: [],
 
   /**
-   * List of ajax-request to be executed
-   * @type {Array}
-   */
-  ajaxQueue: [],
-
-  /**
    * All configs
    * @type {Array}
    */
-  configMapping: function(){
+  configMapping: function () {
     return App.config.get('configMapping').all(true);
   }.property('App.config.configMapping'),
 
@@ -106,12 +101,19 @@ App.WizardStep8Controller = Em.Controller.extend({
   serviceConfigTags: [],
 
   /**
+   * Ajax-requests queue
+   * @type {App.ajaxQueue}
+   */
+  ajaxRequestsQueue: null,
+
+  /**
    * Is cluster security enabled
    * @type {bool}
    */
-  securityEnabled: function() {
+  securityEnabled: function () {
     return App.router.get('mainAdminSecurityController.securityEnabled');
   }.property('App.router.mainAdminSecurityController.securityEnabled'),
+
   /**
    * During page save time, we set the host overrides to the server.
    * The new host -> site:tag map is stored below. This will be
@@ -155,7 +157,28 @@ App.WizardStep8Controller = Em.Controller.extend({
   }.property('content.services').cacheable(),
 
   /**
+   * Ajax-requests count
+   * @type {number}
+   */
+  ajaxQueueLength: 0,
+
+  /**
+   * Current cluster name
+   * @type {string}
+   */
+  clusterName: function () {
+    return this.get('content.cluster.name');
+  }.property('content.cluster.name'),
+
+  /**
+   * List of existing cluster names
+   * @type {string[]}
+   */
+  clusterNames: [],
+
+  /**
    * Clear current step data
+   * @method clearStep
    */
   clearStep: function () {
     this.get('services').clear();
@@ -164,10 +187,14 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').clear();
     this.get('serviceConfigTags').clear();
     this.set('servicesInstalled', false);
+    this.set('ajaxQueueLength', 0);
+    this.set('ajaxRequestsQueue', App.ajaxQueue.create());
+    this.set('ajaxRequestsQueue.finishedCallback', this.ajaxQueueFinished);
   },
 
   /**
    * Load current step data
+   * @method loadStep
    */
   loadStep: function () {
     console.log("TRACE: Loading step8: Review Page");
@@ -188,10 +215,11 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * replace whitespace character with coma between directories
+   * @method formatProperties
    */
-  formatProperties: function(){
-    this.get('content.serviceConfigProperties').forEach(function(_configProperty){
-        _configProperty.value = App.config.trimProperty(_configProperty,false);
+  formatProperties: function () {
+    this.get('content.serviceConfigProperties').forEach(function (_configProperty) {
+      _configProperty.value = App.config.trimProperty(_configProperty, false);
     });
   },
 
@@ -201,113 +229,126 @@ App.WizardStep8Controller = Em.Controller.extend({
    *   <li>Unused DB properties for Hive</li>
    *   <li>Unused DB properties for Oozie</li>
    * <ul>
+   * @method loadGlobals
    */
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     if (globals.someProperty('name', 'hive_database')) {
-      var hiveDb = globals.findProperty('name', 'hive_database');
-      var hiveDbType = {name: 'hive_database_type', value: 'mysql'};
-
-      if (hiveDb.value === 'New MySQL Database') {
-        if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
-          hiveDbType.value = 'mysql';
-        }
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
-      } else if (hiveDb.value === 'Existing MySQL Database'){
-        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
-        hiveDbType.value = 'mysql';
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
-      }  else if (hiveDb.value === 'Existing Postgresql Database'){
-          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_postgresql_host').value;
-          hiveDbType.value = 'postgresql';
-          globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
-          globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
-          globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
-          globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-          globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
-          globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
-        } else { //existing oracle database
-        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
-        hiveDbType.value = 'oracle';
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
-      }
-      globals.push(hiveDbType);
+      globals = this.removeHiveConfigs(globals);
     }
-
     if (globals.someProperty('name', 'oozie_database')) {
-      var oozieDb = globals.findProperty('name', 'oozie_database');
-      var oozieDbType = {name:'oozie_database_type'};
-
-      if (oozieDb.value === 'New Derby Database') {
-        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
-        oozieDbType.value = 'derby';
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
-      }  else if (oozieDb.value === 'Existing MySQL Database') {
-        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
-        oozieDbType.value = 'mysql';
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
-      } else if (oozieDb.value === 'Existing Postgresql Database'){
-          globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_postgresql_host').value;
-          oozieDbType.value = 'postgresql';
-          globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-          globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-          globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-          globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-          globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-          globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        } else { // existing oracle database
-        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
-        oozieDbType.value = 'oracle';
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
-      }
-      globals.push(oozieDbType);
+      globals = this.removeOozieConfigs(globals);
     }
-
     this.set('globals', globals);
   },
 
   /**
+   * Remove unused Hive configs
+   * @param {Ember.Enumerable} globals
+   * @returns {Ember.Enumerable}
+   * @method removeHiveConfigs
+   */
+  removeHiveConfigs: function (globals) {
+    var hiveDb = globals.findProperty('name', 'hive_database');
+    var hiveDbType = {name: 'hive_database_type', value: 'mysql'};
+
+    var hive_properties = Em.A([]);
+
+    if (hiveDb.value === 'New MySQL Database') {
+      if (globals.someProperty('name', 'hive_ambari_host')) {
+        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
+        hiveDbType.value = 'mysql';
+      }
+      hive_properties = Em.A(['hive_existing_mysql_hos', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
+        'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+    }
+    else {
+      if (hiveDb.value === 'Existing MySQL Database') {
+        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
+        hiveDbType.value = 'mysql';
+        hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
+          'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+      }
+      else {
+        if (hiveDb.value === 'Existing Postgresql Database') {
+          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_postgresql_host').value;
+          hiveDbType.value = 'postgresql';
+          hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
+            'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']);
+        }
+        else { //existing oracle database
+          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
+          hiveDbType.value = 'oracle';
+          hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_mysql_host',
+            'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
+        }
+      }
+    }
+
+    hive_properties.forEach(function (property) {
+      globals = globals.without(globals.findProperty('name', property));
+    });
+
+    globals.pushObject(hiveDbType);
+    return globals;
+  },
+
+  /**
+   * Remove unused Oozie configs
+   * @param {Ember.Enumerable} globals
+   * @returns {Ember.Enumerable}
+   * @method removeOozieConfigs
+   */
+  removeOozieConfigs: function (globals) {
+    var oozieDb = globals.findProperty('name', 'oozie_database');
+    var oozieDbType = {name: 'oozie_database_type'};
+
+    var oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database']);
+
+    if (oozieDb.value === 'New Derby Database') {
+      globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
+      oozieDbType.value = 'derby';
+      oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
+        'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database',
+        'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
+    }
+    else {
+      if (oozieDb.value === 'Existing MySQL Database') {
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
+        oozieDbType.value = 'mysql';
+        oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
+          'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
+      }
+      else {
+        if (oozieDb.value === 'Existing Postgresql Database') {
+          globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_postgresql_host').value;
+          oozieDbType.value = 'postgresql';
+          oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
+            'oozie_existing_oracle_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database']);
+        }
+        else { // existing oracle database
+          globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
+          oozieDbType.value = 'oracle';
+          oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
+            'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
+        }
+      }
+    }
+    oozie_properties.forEach(function (property) {
+      globals = globals.without(globals.findProperty('name', property));
+    });
+    globals.pushObject(oozieDbType);
+    return globals;
+  },
+
+  /**
    * Load all site properties
+   * @method loadConfigs
    */
   loadConfigs: function () {
     //storedConfigs contains custom configs as well
     var serviceConfigProperties = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
-    serviceConfigProperties.forEach(function(_config){
+    serviceConfigProperties.forEach(function (_config) {
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });
     var storedConfigs = serviceConfigProperties.filterProperty('value');
@@ -320,6 +361,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Load UI configs
    * @param {Array} configMapping
    * @return {Array}
+   * @method loadUiSideConfigs
    */
   loadUiSideConfigs: function (configMapping) {
     var uiConfig = [];
@@ -351,9 +393,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Add dynamic properties to configs
    * @param {Array} configs
+   * @method addDynamicProperties
    */
-  addDynamicProperties: function(configs) {
-    var templetonHiveProperty =  this.get('content.serviceConfigProperties').someProperty('name', 'templeton.hive.properties');
+  addDynamicProperties: function (configs) {
+    var templetonHiveProperty = this.get('content.serviceConfigProperties').someProperty('name', 'templeton.hive.properties');
     if (!templetonHiveProperty) {
       configs.pushObject({
         "name": "templeton.hive.properties",
@@ -368,14 +411,17 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Format <code>content.hosts</code> from Object to Array
    * @returns {Array}
+   * @method getRegisteredHosts
    */
   getRegisteredHosts: function () {
     var allHosts = this.get('content.hosts');
     var hosts = [];
     for (var hostName in allHosts) {
-      if (allHosts[hostName].bootStatus == 'REGISTERED') {
-        allHosts[hostName].hostName = allHosts[hostName].name;
-        hosts.pushObject(allHosts[hostName]);
+      if (allHosts.hasOwnProperty(hostName)) {
+        if (allHosts[hostName].bootStatus == 'REGISTERED') {
+          allHosts[hostName].hostName = allHosts[hostName].name;
+          hosts.pushObject(allHosts[hostName]);
+        }
       }
     }
     return hosts;
@@ -394,12 +440,13 @@ App.WizardStep8Controller = Em.Controller.extend({
    *    'value2': [h3]
    *   }
    * }</code>
+   * @method getGlobConfigValueWithOverrides
    */
   getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
-      return { value : expression, overrides: []};      // if site property do not map any global property then return the value
+      return { value: expression, overrides: []};      // if site property do not map any global property then return the value
     }
     var overrideHostToValue = {};
     express.forEach(function (_express) {
@@ -415,14 +462,14 @@ App.WizardStep8Controller = Em.Controller.extend({
           preReplaceValue = value;
           value = this._replaceConfigValues(name, _express, value, globValue);
         }
-        if(globalObj.overrides!=null){
-          globalObj.overrides.forEach(function(override){
+        if (globalObj.overrides != null) {
+          globalObj.overrides.forEach(function (override) {
             var ov = override.value;
             var hostsArray = override.hosts;
-            hostsArray.forEach(function(host){
-              if(!(host in overrideHostToValue)){
+            hostsArray.forEach(function (host) {
+              if (!(host in overrideHostToValue)) {
                 overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
-              }else{
+              } else {
                 overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
               }
             }, this);
@@ -440,20 +487,20 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
 
     var valueWithOverrides = {
-        value: value,
-        overrides: []
+      value: value,
+      overrides: []
     };
     var overrideValueToHostMap = {};
-    if(!jQuery.isEmptyObject(overrideHostToValue)){
-      for(var host in overrideHostToValue){
+    if (!jQuery.isEmptyObject(overrideHostToValue)) {
+      for (var host in overrideHostToValue) {
         var hostVal = overrideHostToValue[host];
-        if(!(hostVal in overrideValueToHostMap)){
+        if (!(hostVal in overrideValueToHostMap)) {
           overrideValueToHostMap[hostVal] = [];
         }
         overrideValueToHostMap[hostVal].push(host);
       }
     }
-    for(var val in overrideValueToHostMap){
+    for (var val in overrideValueToHostMap) {
       valueWithOverrides.overrides.push({
         value: val,
         hosts: overrideValueToHostMap[val]
@@ -470,6 +517,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @param {string} globValue
    * @return {string}
    * @private
+   * @method _replaceConfigValues
    */
   _replaceConfigValues: function (name, express, value, globValue) {
     return value.replace(express, globValue);
@@ -477,6 +525,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Load all info about cluster to <code>clusterInfo</code> variable
+   * @method loadClusterInfo
    */
   loadClusterInfo: function () {
 
@@ -536,9 +585,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * get the repositories info of HDP from server. Used only in addHost controller.
+   * Get the repositories info of HDP from server. Used only in addHost controller.
+   * @method loadRepoInfo
    */
-  loadRepoInfo: function(){
+  loadRepoInfo: function () {
     var nameVersionCombo = App.get('currentStackVersion');
     var stackName = nameVersionCombo.split('-')[0];
     var stackVersion = nameVersionCombo.split('-')[1];
@@ -550,10 +600,15 @@ App.WizardStep8Controller = Em.Controller.extend({
         stackVersion: stackVersion
       },
       success: 'loadRepoInfoSuccessCallback',
-      error: 'loadRepositoriesErrorCallback'
+      error: 'loadRepoInfoErrorCallback'
     });
   },
 
+  /**
+   *
+   * @param {object} data
+   * @method loadRepoInfoSuccessCallback
+   */
   loadRepoInfoSuccessCallback: function (data) {
     var allRepos = [];
     var supportedOs = ['redhat5', 'redhat6', 'sles11'];
@@ -570,7 +625,12 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').set('repoInfo', allRepos);
   },
 
-  loadRepoInfoErrorCallback: function(request) {
+  /**
+   *
+   * @param {object} request
+   * @method loadRepoInfoErrorCallback
+   */
+  loadRepoInfoErrorCallback: function (request) {
     console.log('Error message is: ' + request.responseText);
     var allRepos = [];
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
@@ -579,6 +639,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Load all info about services to <code>services</code> variable
+   * @method loadServices
    */
   loadServices: function () {
     var reviewService = this.rawContent.findProperty('config_name', 'services');
@@ -598,6 +659,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    *
    * @param {Em.Object} component
+   * @method assignComponentHosts
    */
   assignComponentHosts: function (component) {
     var componentValue;
@@ -619,27 +681,36 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Set dispalyed Hive DB value based on DB type
-   * @param dbComponent
+   * @param {Ember.Object} dbComponent
+   * @method loadHiveDbValue
    */
   loadHiveDbValue: function (dbComponent) {
-    var hiveDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_database');
+    var db, hiveDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
-    } else if(hiveDb.value === 'Existing MySQL Database'){
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_mysql_database');
-      dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
-    } else if(hiveDb.value === 'Existing Postgresql Database'){
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_postgresql_database');
-      dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
-     } else { // existing oracle database
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_oracle_database');
-      dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+    }
+    else {
+      if (hiveDb.value === 'Existing MySQL Database') {
+        db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_mysql_database');
+        dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+      }
+      else {
+        if (hiveDb.value === 'Existing Postgresql Database') {
+          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_postgresql_database');
+          dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+        }
+        else { // existing oracle database
+          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_oracle_database');
+          dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
+        }
+      }
     }
   },
 
   /**
    * Set displayed HBase master value
    * @param {Object} hbaseMaster
+   * @method loadHbaseMasterValue
    */
   loadHbaseMasterValue: function (hbaseMaster) {
     var hbaseHostName = this.get('content.masterComponentHosts').filterProperty('component', hbaseMaster.component_name);
@@ -653,6 +724,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Set displayed ZooKeeper Server value
    * @param {Object} serverComponent
+   * @method loadZkServerValue
    */
   loadZkServerValue: function (serverComponent) {
     var zkHostNames = this.get('content.masterComponentHosts').filterProperty('component', serverComponent.component_name).length;
@@ -668,30 +740,36 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Set displayed Oozie DB value based on DB type
    * @param {Object} dbComponent
+   * @method loadOozieDbValue
    */
   loadOozieDbValue: function (dbComponent) {
-    var oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
-    if (oozieDb.value === 'New Derby Database'){
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_derby_database');
-      dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
-    }/* else if (oozieDb.value === 'New MySQL Database') {
-      dbComponent.set('component_value', 'MySQL (New Database)');
-    } */else if(oozieDb.value === 'Existing MySQL Database'){
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
-      dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
-    } else if(oozieDb.value === 'Existing Postgresql Database'){
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
-      dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
-    }  else { // existing oracle database
-      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
+    var db, oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
+    if (oozieDb.value === 'New Derby Database') {
+      db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_derby_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     }
-
+    else {
+      if (oozieDb.value === 'Existing MySQL Database') {
+        db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
+        dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+      }
+      else {
+        if (oozieDb.value === 'Existing Postgresql Database') {
+          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
+          dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+        }
+        else { // existing oracle database
+          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
+          dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
+        }
+      }
+    }
   },
 
   /**
    * Set displayed Nagion Admin value
    * @param {Object} nagiosAdmin
+   * @method loadNagiosAdminValue
    */
   loadNagiosAdminValue: function (nagiosAdmin) {
     var config = this.get('content.serviceConfigProperties');
@@ -699,14 +777,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     var adminEmail = config.findProperty('name', 'nagios_contact');
     nagiosAdmin.set('component_value', adminLoginName.value + ' / (' + adminEmail.value + ')');
   },
+
   /**
    * Onclick handler for <code>next</code> button
+   * @method submit
    */
   submit: function () {
     if (this.get('isSubmitDisabled')) return;
     if ((this.get('content.controllerName') == 'addHostController') && this.get('securityEnabled')) {
       var self = this;
-      App.showConfirmationPopup(function() {
+      App.showConfirmationPopup(function () {
         self.submitProceed();
       }, Em.I18n.t('installer.step8.securityConfirmationPopupBody'));
     }
@@ -714,21 +794,22 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.submitProceed();
     }
   },
+
   /**
    * Update configurations for installed services.
    *
    * @param {Array} configsToUpdate - configs need to update
-   * @return {*}
+   * @method updateConfigurations
    */
   updateConfigurations: function (configsToUpdate) {
     var configurationController = App.router.get('mainServiceInfoConfigsController');
     var serviceNames = configsToUpdate.mapProperty('serviceName').uniq();
-    serviceNames.forEach(function(serviceName) {
+    serviceNames.forEach(function (serviceName) {
       var configs = configsToUpdate.filterProperty('serviceName', serviceName);
       configurationController.setNewTagNames(configs);
       var tagName = configs.objectAt(0).newTagName;
       var siteConfigs = configs.filterProperty('id', 'site property');
-      siteConfigs.mapProperty('filename').uniq().forEach(function(siteName) {
+      siteConfigs.mapProperty('filename').uniq().forEach(function (siteName) {
         var formattedConfigs = configurationController.createSiteObj(siteName.replace(".xml", ""), tagName, configs.filterProperty('filename', siteName));
         configurationController.doPUTClusterConfigurationSite(formattedConfigs);
       });
@@ -737,8 +818,9 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Prepare <code>ajaxQueue</code> and start to execute it
+   * @method submitProceed
    */
-  submitProceed: function() {
+  submitProceed: function () {
     this.set('isSubmitDisabled', true);
     this.set('isBackBtnDisabled', true);
     if (this.get('content.controllerName') == 'addHostController') {
@@ -799,32 +881,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.createSlaveAndClientsHostComponents();
     this.createAdditionalHostComponents();
 
-    this.doNextAjaxCall();
+    this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
+    this.get('ajaxRequestsQueue').start();
   },
-
-  /**
-   * Used in progress bar
-   */
-  ajaxQueueLength: function () {
-    return this.get('ajaxQueue').length;
-  }.property('ajaxQueue.length'),
-
-  /**
-   * Used in progress bar
-   */
-  ajaxQueueLeft: 0,
-
-  clusterName: function () {
-    return this.get('content.cluster.name');
-  }.property('content.cluster.name'),
-
-  clusterNames: [],
 
   /**
    * Get list of existing cluster names
    * @returns {string[]}
    * returns an array of existing cluster names.
    * returns an empty array if there are no existing clusters.
+   * @method getExistingClusterNames
    */
   getExistingClusterNames: function () {
     App.ajax.send({
@@ -840,6 +906,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Save received list to <code>clusterNames</code>
    * @param {Object} data
+   * @method getExistingClusterNamesSuccessCallBack
    */
   getExistingClusterNamesSuccessCallBack: function (data) {
     var clusterNames = data.items.mapProperty('Clusters.cluster_name');
@@ -849,6 +916,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * If error appears, set <code>clusterNames</code> to <code>[]</code>
+   * @method getExistingClusterNamesErrorCallback
    */
   getExistingClusterNamesErrorCallback: function () {
     console.log("Failed to get existing cluster names");
@@ -859,6 +927,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Delete cluster by name
    * One request for one cluster!
    * @param {string[]} clusterNames
+   * @method deleteClusters
    */
   deleteClusters: function (clusterNames) {
     clusterNames.forEach(function (clusterName) {
@@ -870,32 +939,33 @@ App.WizardStep8Controller = Em.Controller.extend({
         }
       });
     }, this);
+
   },
 
   /**
    * Updates local repositories for the Ambari server.
-   * Base URL validation is disabled, since the checks had already run in the Select Stacks page
-   * already (unless the user specifically asked to skip).
-   * TODO: This function should be deleted once we modify App.InstallerController to make
-   * sure that base URLs are saved even when "Skip validation" is checked.
+   * @method setLocalRepositories
    */
   setLocalRepositories: function () {
     if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) return;
     var self = this;
 
-    var stack = this.get('content.stacks').findProperty('isSelected', true);
-    stack.operatingSystems.forEach(function (os) {
+    this.get('content.stacks').findProperty('isSelected', true).operatingSystems.forEach(function (os) {
       if (os.baseUrl !== os.originalBaseUrl) {
         console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
         self.addRequestToAjaxQueue({
-          type: 'PUT',
-          url: App.apiPrefix + App.get('stack2VersionURL') + "/operatingSystems/" + os.osType + "/repositories/" + stack.name,
-          data: JSON.stringify({
-            "Repositories": {
-              "base_url": os.baseUrl,
-              "verify_base_url": false
-            }
-          })
+          name: 'wizard.step8.set_local_repos',
+          data: {
+            osType: os.osType,
+            name: stack.name,
+            stack2VersionURL: App.get('stack2VersionURL'),
+            data: JSON.stringify({
+              "Repositories": {
+                "base_url": os.baseUrl,
+                "verify_base_url": false
+              }
+            })
+          }
         });
       }
     });
@@ -911,14 +981,16 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Create cluster using selected stack version
    * Queued request
+   * @method createCluster
    */
   createCluster: function () {
     if (this.get('content.controllerName') !== 'installerController') return;
     var stackVersion = (this.get('content.installOptions.localRepo')) ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
     this.addRequestToAjaxQueue({
-      type: 'POST',
-      url: App.apiPrefix + '/clusters/' + this.get('clusterName'),
-      data: JSON.stringify({ "Clusters": {"version": stackVersion }})
+      name: 'wizard.step8.create_cluster',
+      data: {
+        data: JSON.stringify({ "Clusters": {"version": stackVersion }})
+      }
     });
 
   },
@@ -927,20 +999,23 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Create selected to install services
    * Queued request
    * Skipped if no services where selected!
+   * @method createSelectedServices
    */
   createSelectedServices: function () {
     var data = this.createSelectedServicesData();
     if (!data.length) return;
     this.addRequestToAjaxQueue({
-      type: 'POST',
-      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services',
-      data: JSON.stringify(data)
+      name: 'wizard.step8.create_selected_services',
+      data: {
+        data: JSON.stringify(data)
+      }
     });
   },
 
   /**
    * Format data for <code>createSelectedServices</code> request
    * @returns {Object[]}
+   * @method createSelectedServicesData
    */
   createSelectedServicesData: function () {
     return this.get('selectedServices').map(function (_service) {
@@ -952,6 +1027,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Create components for selected services
    * Queued requests
    * One request for each service!
+   * @method createComponents
    */
   createComponents: function () {
     var serviceComponents = App.StackServiceComponent.find();
@@ -964,9 +1040,11 @@ App.WizardStep8Controller = Em.Controller.extend({
       // Service must be specified in terms of a query for creating multiple components at the same time.
       // See AMBARI-1018.
       this.addRequestToAjaxQueue({
-        type: 'POST',
-        url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/services?ServiceInfo/service_name=' + serviceName,
-        data: JSON.stringify({"components": componentsData})
+        name: 'wizard.step8.create_components',
+        data: {
+          data: JSON.stringify({"components": componentsData}),
+          serviceName: serviceName
+        }
       });
     }, this);
 
@@ -974,60 +1052,77 @@ App.WizardStep8Controller = Em.Controller.extend({
       // Add service-components which show up in newer versions but did not
       // exist in older ones.
       var self = this;
-      var newServiceComponents = {}
+      var newServiceComponents = {};
       if (App.get('isHadoop21Stack')) {
-        newServiceComponents['APP_TIMELINE_SERVER'] = 'YARN';
+        if (App.YARNService.find().objectAt(0)) {
+          newServiceComponents['APP_TIMELINE_SERVER'] = 'YARN';
+        }
       }
       for (var componentName in newServiceComponents) {
-        var serviceName = newServiceComponents[componentName];
-        // Create only if it doesnt exist
-        var serviceComponentChecker = {
-          success: function(){},
-          error: function(){
-            var componentsData = [{
-              "ServiceComponentInfo": {
-                "component_name": componentName
-              }
-            }];
-            self.addRequestToAjaxQueue({
-              type: 'POST',
-              url: App.apiPrefix + '/clusters/' + self.get('clusterName') + '/services?ServiceInfo/service_name=' + serviceName,
-              data: JSON.stringify({"components": componentsData})
-            });
-          }
+        if (newServiceComponents.hasOwnProperty(componentName)) {
+          var serviceName = newServiceComponents[componentName];
+          // Create only if it doesnt exist
+          App.ajax.send({
+            name: 'service.service_component',
+            sender: self,
+            data: {
+              serviceName: serviceName,
+              componentName: componentName,
+              async: false
+            },
+            error: 'newServiceComponentErrorCallback'
+          });
         }
-        App.ajax.send({
-          name: 'service.service_component',
-          sender: serviceComponentChecker,
-          data: {
-            serviceName: serviceName,
-            componentName: componentName,
-            async: false
-          },
-          success: 'success',
-          error: 'error'
-        });
       }
     }
   },
 
   /**
+   * Error callback for new service component request
+   * So, if component doesn't exist we should create it
+   * @param {object} request
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @param {object} params
+   * @method newServiceComponentErrorCallback
+   */
+  newServiceComponentErrorCallback: function(request, ajaxOptions, error, opt, params) {
+    this.addRequestToAjaxQueue({
+      name: 'wizard.step8.create_components',
+      data: {
+        serviceName: params.serviceName,
+        data: JSON.stringify({
+          "components": [{
+            "ServiceComponentInfo": {
+              "component_name": params.componentName
+            }
+          }]
+        })
+      }
+    });
+  },
+
+  /**
    * Register hosts
    * Queued request
+   * @method registerHostsToCluster
    */
   registerHostsToCluster: function () {
     var data = this.createRegisterHostData();
     if (!data.length) return;
     this.addRequestToAjaxQueue({
-      type: 'POST',
-      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts',
-      data: JSON.stringify(data)
+      name: 'wizard.step8.register_host_to_cluster',
+      data: {
+        data: JSON.stringify(data)
+      }
     });
   },
 
   /**
    * Format request-data for <code>registerHostsToCluster</code>
    * @returns {Object}
+   * @method createRegisterHostData
    */
   createRegisterHostData: function () {
     return this.getRegisteredHosts().filterProperty('isInstalled', false).map(function (host) {
@@ -1038,8 +1133,9 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Register master components
    * @uses registerHostsToComponent
+   * @method createMasterHostComponents
    */
-  createMasterHostComponents: function() {
+  createMasterHostComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
     masterHosts.mapProperty('component').uniq().forEach(function (component) {
       var hostNames = masterHosts.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
@@ -1050,8 +1146,9 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Register slave components and clients
    * @uses registerHostsToComponent
+   * @method createSlaveAndClientsHostComponents
    */
-  createSlaveAndClientsHostComponents: function() {
+  createSlaveAndClientsHostComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
     var slaveHosts = this.get('content.slaveComponentHosts');
     var clients = this.get('content.clients');
@@ -1073,10 +1170,10 @@ App.WizardStep8Controller = Em.Controller.extend({
       MAPREDUCE_CLIENT: Em.A(['HIVE_SERVER', 'OOZIE_SERVER', 'NAGIOS_SERVER', 'WEBHCAT_SERVER']),
       OOZIE_CLIENT: Em.A(['NAGIOS_SERVER']),
       ZOOKEEPER_CLIENT: Em.A(['WEBHCAT_SERVER']),
-      HIVE_CLIENT: Em.A(['WEBHCAT_SERVER','HIVE_SERVER']),
+      HIVE_CLIENT: Em.A(['WEBHCAT_SERVER', 'HIVE_SERVER']),
       HCAT: Em.A(['NAGIOS_SERVER']),
-      YARN_CLIENT: Em.A(['NAGIOS_SERVER','HIVE_SERVER','OOZIE_SERVER','WEBHCAT_SERVER']),
-      TEZ_CLIENT: Em.A(['NAGIOS_SERVER','HIVE_SERVER'])
+      YARN_CLIENT: Em.A(['NAGIOS_SERVER', 'HIVE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER']),
+      TEZ_CLIENT: Em.A(['NAGIOS_SERVER', 'HIVE_SERVER'])
     };
 
     slaveHosts.forEach(function (_slave) {
@@ -1089,7 +1186,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
           var hostNames = _slave.hosts.mapProperty('hostName');
           if (clientsToMasterMap[_client.component_name]) {
-            clientsToMasterMap[_client.component_name].forEach(function(componentName) {
+            clientsToMasterMap[_client.component_name].forEach(function (componentName) {
               masterHosts.filterProperty('component', componentName).filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               });
@@ -1117,8 +1214,9 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Register additional components
    * Based on availability of some services
    * @uses registerHostsToComponent
+   * @method createAdditionalHostComponents
    */
-  createAdditionalHostComponents: function() {
+  createAdditionalHostComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
 
     // add Ganglia Monitor (Slave) to all hosts if Ganglia service is selected
@@ -1136,7 +1234,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
-      if(hiveDb.value == "New MySQL Database") {
+      if (hiveDb.value == "New MySQL Database") {
         this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
       }
     }
@@ -1147,6 +1245,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Queued request
    * @param {String[]} hostNames
    * @param {String} componentName
+   * @method registerHostsToComponent
    */
   registerHostsToComponent: function (hostNames, componentName) {
     if (!hostNames.length) return;
@@ -1174,14 +1273,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     };
 
     this.addRequestToAjaxQueue({
-      type: 'POST',
-      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/hosts',
-      data: JSON.stringify(data)
+      name: 'wizard.step8.register_host_to_component',
+      data: {
+        data: JSON.stringify(data)
+      }
     });
   },
 
   /**
    * Create config objects for cluster and services
+   * @method createConfigurations
    */
   createConfigurations: function () {
     var self = this;
@@ -1189,7 +1290,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var coreSiteObject = this.createCoreSiteObj();
     if (this.get('content.controllerName') == 'installerController') {
       this.get('serviceConfigTags').pushObject(coreSiteObject);
-      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site',false));
+      this.get('serviceConfigTags').pushObject(this.createSiteObj('hdfs-site', false));
       this.get('serviceConfigTags').pushObject(this.createLog4jObj('hdfs'));
     }
     var globalSiteObj = this.createGlobalSiteObj();
@@ -1201,32 +1302,57 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('serviceConfigTags').pushObject(globalSiteObj);
 
     var objMap = {
-      MAPREDUCE: {site: [{filename: 'mapred-site',isXmlFile: true}], log4j: ['mapreduce']},
-      MAPREDUCE2: {site: [{filename:'mapred-site',isXmlFile: true}], log4j: ['mapreduce2']},
-      YARN: {site: [{filename:'yarn-site',isXmlFile: true},{filename:'capacity-scheduler',isXmlFile: true}], log4j: ['yarn']},
-      HBASE: {site: [{filename:'hbase-site',isXmlFile: true}], log4j: ['hbase']},
-      OOZIE: {site: [{filename:'oozie-site',isXmlFile: true}], log4j: ['oozie']},
-      HIVE: {site: [{filename:'hive-site',isXmlFile: true}], log4j: ['hive','hive-exec']},
-      WEBHCAT: {site: [{filename:'webhcat-site',isXmlFile: true}], log4j: []},
-      HUE: {site: [{filename:'hue-site',isXmlFile: true}], log4j: []},
+      MAPREDUCE: {site: [
+        {filename: 'mapred-site', isXmlFile: true}
+      ], log4j: ['mapreduce']},
+      MAPREDUCE2: {site: [
+        {filename: 'mapred-site', isXmlFile: true}
+      ], log4j: ['mapreduce2']},
+      YARN: {site: [
+        {filename: 'yarn-site', isXmlFile: true},
+        {filename: 'capacity-scheduler', isXmlFile: true}
+      ], log4j: ['yarn']},
+      HBASE: {site: [
+        {filename: 'hbase-site', isXmlFile: true}
+      ], log4j: ['hbase']},
+      OOZIE: {site: [
+        {filename: 'oozie-site', isXmlFile: true}
+      ], log4j: ['oozie']},
+      HIVE: {site: [
+        {filename: 'hive-site', isXmlFile: true}
+      ], log4j: ['hive', 'hive-exec']},
+      WEBHCAT: {site: [
+        {filename: 'webhcat-site', isXmlFile: true}
+      ], log4j: []},
+      HUE: {site: [
+        {filename: 'hue-site', isXmlFile: true}
+      ], log4j: []},
       PIG: {site: [], log4j: ['pig']},
-      FALCON: {site: [{filename:'falcon-startup.properties',isXmlFile: false},{filename:'falcon-runtime.properties',isXmlFile: false}], log4j: []},
-      TEZ: {site: [{filename:'tez-site',isXmlFile: true}], log4j: []},
+      FALCON: {site: [
+        {filename: 'falcon-startup.properties', isXmlFile: false},
+        {filename: 'falcon-runtime.properties', isXmlFile: false}
+      ], log4j: []},
+      TEZ: {site: [
+        {filename: 'tez-site', isXmlFile: true}
+      ], log4j: []},
       ZOOKEEPER: {site: [], log4j: ['zookeeper']},
       FLUME: {site: [], log4j: []}
     };
 
     if (App.supports.capacitySchedulerUi) {
-      objMap['MAPREDUCE'].site.pushObjects([{filename:'capacity-scheduler',isXmlFile: true},{filename:'mapred-queue-acls',isXmlFile: true}]);
+      objMap['MAPREDUCE'].site.pushObjects([
+        {filename: 'capacity-scheduler', isXmlFile: true},
+        {filename: 'mapred-queue-acls', isXmlFile: true}
+      ]);
     }
 
-    for(var serviceName in objMap) {
+    for (var serviceName in objMap) {
       if (objMap.hasOwnProperty(serviceName)) {
         if (selectedServices.someProperty('serviceName', serviceName)) {
-          objMap[serviceName].site.forEach(function(site) {
-            self.get('serviceConfigTags').pushObject(self.createSiteObj(site.filename,!site.isXmlFile));
+          objMap[serviceName].site.forEach(function (site) {
+            self.get('serviceConfigTags').pushObject(self.createSiteObj(site.filename, !site.isXmlFile));
           });
-          objMap[serviceName].log4j.forEach(function(log4j) {
+          objMap[serviceName].log4j.forEach(function (log4j) {
             self.get('serviceConfigTags').pushObject(self.createLog4jObj(log4j));
           });
         }
@@ -1248,8 +1374,9 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Send <code>serviceConfigTags</code> to server
    * Queued request
    * One request for each service config tag
+   * @method applyConfigurationsToCluster
    */
-  applyConfigurationsToCluster: function() {
+  applyConfigurationsToCluster: function () {
     var configData = this.get('serviceConfigTags').map(function (_serviceConfig) {
       return JSON.stringify({
         Clusters: {
@@ -1263,14 +1390,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this).toString();
 
     this.addRequestToAjaxQueue({
-      type: 'PUT',
-      url: App.apiPrefix + '/clusters/' + this.get('clusterName'),
-      data: '[' + configData + ']'
+      name: 'wizard.step8.apply_configuration_to_cluster',
+      data: {
+        data: '[' + configData + ']'
+      }
     });
   },
 
   /**
    * Create and update config groups
+   * @method createConfigurationGroups
    */
   createConfigurationGroups: function () {
     var configGroups = this.get('content.configGroups').filterProperty('isDefault', false);
@@ -1329,21 +1458,24 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Create new config groups request
    * Queued request
    * @param {Object[]} sendData
+   * @method applyConfigurationGroups
    */
   applyConfigurationGroups: function (sendData) {
     this.addRequestToAjaxQueue({
-      type: 'POST',
-      url: App.apiPrefix + '/clusters/' + this.get('clusterName') + '/config_groups',
-      data: JSON.stringify(sendData)
+      name: 'wizard.step8.apply_configuration_groups',
+      data: {
+        data: JSON.stringify(sendData)
+      }
     });
   },
 
   /**
    * Update existed config groups
    * @param {Object[]} updateData
+   * @method applyInstalledServicesConfigurationGroup
    */
   applyInstalledServicesConfigurationGroup: function (updateData) {
-    updateData.forEach(function(item) {
+    updateData.forEach(function (item) {
       App.router.get('mainServiceInfoConfigsController').putConfigGroupChanges(item);
     });
   },
@@ -1351,9 +1483,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Delete selected config groups
    * @param {Object[]} groupsToDelete
+   * @method removeInstalledServicesConfigurationGroups
    */
-  removeInstalledServicesConfigurationGroups: function(groupsToDelete) {
-    groupsToDelete.forEach(function(item) {
+  removeInstalledServicesConfigurationGroups: function (groupsToDelete) {
+    groupsToDelete.forEach(function (item) {
       App.config.deleteConfigGroup(Em.Object.create(item));
     });
   },
@@ -1361,21 +1494,22 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Create Global Site object
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createGlobalSiteObj
    */
   createGlobalSiteObj: function () {
     var globalSiteProperties = {};
     var globalSiteObj = this.get('globals');
     var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
-    
+
     // screen out the GLUSTERFS-specific global config entries when they are not required
     if (!isGLUSTERFSSelected) {
-      globalSiteObj = globalSiteObj.filter(function(_config) {
+      globalSiteObj = globalSiteObj.filter(function (_config) {
         return _config.name.indexOf("fs_glusterfs") < 0;
       });
     }
-    
+
     globalSiteObj.forEach(function (_globalSiteObj) {
-      var heapsizeException =  ['hadoop_heapsize','yarn_heapsize','nodemanager_heapsize','resourcemanager_heapsize', 'apptimelineserver_heapsize'];
+      var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize'];
       // do not pass any globals whose name ends with _host or _hosts
       if (_globalSiteObj.isRequiredByAgent !== false) {
         // append "m" to JVM memory options except for hadoop_heapsize
@@ -1394,6 +1528,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Create Core Site object
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createCoreSiteObj
    */
   createCoreSiteObj: function () {
     var coreSiteObj = this.get('configs').filterProperty('filename', 'core-site.xml');
@@ -1409,7 +1544,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
     // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
     if (!isGLUSTERFSSelected) {
-      coreSiteObj = coreSiteObj.filter(function(_config) {
+      coreSiteObj = coreSiteObj.filter(function (_config) {
         return _config.name.indexOf("fs.glusterfs") < 0;
       });
     }
@@ -1431,19 +1566,20 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Create siteObj for custom service with it own configs
    * @param {string} site
-   * @param {Boolean} isNonXmlFile
+   * @param {bool} isNonXmlFile
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createSiteObj
    */
-  createSiteObj: function(site,isNonXmlFile) {
+  createSiteObj: function (site, isNonXmlFile) {
     var properties = {};
     if (!!isNonXmlFile) {
       this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
         properties[_configProperty.name] = _configProperty.value;
-      },this);
+      }, this);
     } else {
       this.get('configs').filterProperty('filename', site + '.xml').forEach(function (_configProperty) {
         properties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-      },this);
+      }, this);
     }
     return {"type": site, "tag": "version1", "properties": properties };
   },
@@ -1452,14 +1588,16 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Create log4j object for custom service with it own configs
    * @param {string} site
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createLog4jObj
    */
   createLog4jObj: function (site) {
-    return this.createSiteObj(site + '-log4j',true);
+    return this.createSiteObj(site + '-log4j', true);
   },
 
   /**
    * Create ZooKeeper Cfg Object
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createZooCfgObj
    */
   createZooCfgObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'zoo.cfg');
@@ -1473,6 +1611,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Create flume.conf Object
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createFlumeConfObj
    */
   createFlumeConfObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'flume.conf');
@@ -1487,6 +1626,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Create site obj for Storm
    * Some config-properties should be modified in custom way
    * @returns {{type: string, tag: string, properties: {}}}
+   * @method createStormSiteObj
    */
   createStormSiteObj: function () {
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
@@ -1497,7 +1637,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         if (_configProperty.name == "storm.zookeeper.servers") {
           stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
         } else {
-          stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g,"");
+          stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "");
         }
       } else {
         stormProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
@@ -1507,7 +1647,8 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * Navigate to next step after all requests are sended
+   * Navigate to next step after all requests are sent
+   * @method ajaxQueueFinished
    */
   ajaxQueueFinished: function () {
     console.log('everything is loaded');
@@ -1515,77 +1656,41 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   /**
-   * Do ajax-call with data in <code>ajaxQueue[0]</code> and shift <code>ajaxQueue</code>
-   */
-  doNextAjaxCall: function () {
-    if (this.get('ajaxBusy')) return;
-
-    var queue = this.get('ajaxQueue');
-    if (!queue.length) {
-      this.ajaxQueueFinished();
-      return;
-    }
-
-    var first = queue[0];
-    this.set('ajaxQueue', queue.slice(1));
-    this.set('ajaxQueueLeft', this.get('ajaxQueue').length);
-    this.set('ajaxBusy', true);
-
-    $.ajax(first);
-  },
-
-  /**
    * We need to do a lot of ajax calls async in special order. To do this,
    * generate array of ajax objects and then send requests step by step. All
-   * ajax objects are stored in <code>ajaxQueue</code>
-   *
-   * Each ajax-request success callback contains call of <code>doNextAjaxCall</code>
+   * ajax objects are stored in <code>ajaxRequestsQueue</code>
    *
    * @param {Object} params object with ajax-request parameters like url, type, data etc
+   * @method addRequestToAjaxQueue
    */
   addRequestToAjaxQueue: function (params) {
     if (App.testMode) return;
 
-    var self = this;
     params = jQuery.extend({
-      async: true,
-      dataType: 'text',
-      statusCode: require('data/statusCodes'),
-      timeout: App.timeout,
-      error: function () {
-        console.log('Step8: In Error ');
-      },
-      success: function () {
-        console.log("TRACE: Step8 -> In success function");
-      }
+      sender: this,
+      error: 'ajaxQueueRequestErrorCallback'
     }, params);
+    params.data['cluster'] = this.get('clusterName');
 
-    var success = params.success;
-    var error = params.error;
+    this.get('ajaxRequestsQueue').addRequest(params);
+  },
 
-    params.success = function () {
-      if (success) {
-        success();
-      }
-
-      self.set('ajaxBusy', false);
-      self.doNextAjaxCall();
-    };
-
-    params.error = function (xhr, status, error) {
-      var responseText = JSON.parse(xhr.responseText);
-      var controller = App.router.get(App.clusterStatus.wizardControllerName);
-      controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
-      self.set('hasErrorOccurred', true);
-      // an error will break the ajax call chain and allow submission again
-      self.set('isSubmitDisabled', false);
-      self.set('isBackBtnDisabled', false);
-      App.router.get(self.get('content.controllerName')).setStepsEnable();
-      self.get('ajaxQueue').clear();
-      self.set('ajaxBusy', false);
-    };
-
-    this.get('ajaxQueue').pushObject(params);
+  /**
+   * Error callback for each queued ajax-request
+   * @param {object} xhr
+   * @param {string} status
+   * @param {string} error
+   * @method ajaxQueueRequestErrorCallback
+   */
+  ajaxQueueRequestErrorCallback: function (xhr, status, error) {
+    var responseText = JSON.parse(xhr.responseText);
+    var controller = App.router.get(App.clusterStatus.wizardControllerName);
+    controller.registerErrPopup(Em.I18n.t('common.error'), responseText.message);
+    this.set('hasErrorOccurred', true);
+    // an error will break the ajax call chain and allow submission again
+    this.set('isSubmitDisabled', false);
+    this.set('isBackBtnDisabled', false);
+    App.router.get(this.get('content.controllerName')).setStepsEnable();
   }
 
 });

@@ -21,7 +21,7 @@ var App = require('app');
 
 require('config');
 require('utils/updater');
-require('utils/ajax');
+require('utils/ajax/ajax');
 
 require('models/host_component');
 
@@ -162,7 +162,7 @@ describe('App.BackgroundOperationsController', function () {
       };
       controller.callBackForMostRecent(data);
       expect(controller.get("allOperationsCount")).to.equal(0);
-      expect(controller.get("services")).to.be.empty;
+      expect(controller.get("services.length")).to.equal(0);
     });
     it('One non-running request', function () {
       var data = {

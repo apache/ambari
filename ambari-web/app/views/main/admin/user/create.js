@@ -19,69 +19,110 @@
 var App = require('app');
 
 App.MainAdminUserCreateView = Em.View.extend({
+
   templateName: require('templates/main/admin/user/create'),
+
+  /**
+   * Form for new user
+   * @type {App.CreateUserForm}
+   */
+  userForm: App.CreateUserForm.create({}),
+
+  /**
+   * @type {number|bool}
+   */
   userId: false,
+
+  /**
+   * @type {bool}
+   */
   isPasswordDirty: false,
 
-  create: function(event){
-    var parent_controller=this.get("controller").controllers.mainAdminUserController;
+  /**
+   * Create new user
+   * @method create
+   */
+  create: function () {
     var form = this.get("userForm");
-    if(form.isValid()) {
+    if (form.isValid()) {
       form.getField("userName").set('value', form.getField("userName").get('value').toLowerCase());
-      if(form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
-        form.getField("roles").set("value","admin,user");
-        form.getField("admin").set("value","true");
-      } else{
-        form.getField("roles").set("value","user");
+      if (form.getField("admin").get('value') === "" || form.getField("admin").get('value') == true) {
+        form.getField("roles").set("value", "admin,user");
+        form.getField("admin").set("value", "true");
       }
-      parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "POST" , {
-        Users: {
-          password: form.getField("password").get('value'),
-          roles: form.getField("roles").get('value')
-        }
-      }, function (success) {
+      else {
+        form.getField("roles").set("value", "user");
+      }
 
-        if (!success) {
-          App.ModalPopup.show({
-            header: Em.I18n.t('admin.users.addButton'),
-            body: Em.I18n.t('admin.users.createError'),
-            primary: Em.I18n.t('ok'),
-            secondary: null,
-            onPrimary: function() {
-              this.hide();
+      App.ajax.send({
+        name: 'admin.user.create',
+        sender: this,
+        data: {
+          user: form.getField("userName").get('value'),
+          form: form,
+          data: {
+            Users: {
+              password: form.getField("password").get('value'),
+              roles: form.getField("roles").get('value')
             }
-          });
-          return;
-        }
-        App.ModalPopup.show({
-          header: Em.I18n.t('admin.users.addButton'),
-          body: Em.I18n.t('admin.users.createSuccess'),
-          primary: Em.I18n.t('ok'),
-          secondary: null,
-          onPrimary: function() {
-            this.hide();
           }
-        });
-        var persists = App.router.get('applicationController').persistKey(form.getField("userName").get('value'));
-        App.router.get('applicationController').postUserPref(persists,true);
-
-        form.save();
-
-        App.router.transitionTo("allUsers");
-      })
+        },
+        success: 'createUserSuccessCallback',
+        error: 'createUserErrorCallback'
+      });
     }
   },
 
-  userForm: App.CreateUserForm.create({}),
+  /**
+   * Success-callback for create user request
+   * @param {object} data
+   * @param {object} opts
+   * @param {object} params
+   * @method createUserSuccessCallback
+   */
+  createUserSuccessCallback: function (data, opts, params) {
+    App.ModalPopup.show({
+      header: Em.I18n.t('admin.users.addButton'),
+      body: Em.I18n.t('admin.users.createSuccess'),
+      secondary: null
+    });
+    var persists = App.router.get('applicationController').persistKey(params.form.getField("userName").get('value'));
+    App.router.get('applicationController').postUserPref(persists, true);
+    params.form.save();
+    App.router.transitionTo("allUsers");
+  },
 
-  keyPress: function(event) {
+  /**
+   * Error callback for create used request
+   * @method createUserErrorCallback
+   */
+  createUserErrorCallback: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('admin.users.addButton'),
+      body: Em.I18n.t('admin.users.createError'),
+      secondary: null
+    });
+  },
+
+  /**
+   * Submit form by Enter-click
+   * @param {object} event
+   * @returns {bool}
+   * @method keyPress
+   */
+  keyPress: function (event) {
     if (event.keyCode === 13) {
       this.create();
       return false;
     }
+    return true;
   },
 
-  passwordValidation: function() {
+  /**
+   * Validate password value
+   * @method passwordValidation
+   */
+  passwordValidation: function () {
     var passwordValue = this.get('userForm').getField('password').get('value');
     if (passwordValue && !this.get('isPasswordDirty')) {
       this.set('isPasswordDirty', true);
@@ -92,7 +133,7 @@ App.MainAdminUserCreateView = Em.View.extend({
     }
   }.observes('userForm.fields.@each.value'),
 
-  didInsertElement: function(){
+  didInsertElement: function () {
     this.get('userForm').propertyDidChange('object');
   }
 });

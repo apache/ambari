@@ -23,7 +23,7 @@ require('models/host_component');
 require('utils/http_client');
 require('models/service');
 require('models/host');
-require('utils/ajax');
+require('utils/ajax/ajax');
 
 describe('App.clusterController', function () {
   var controller = App.ClusterController.create();

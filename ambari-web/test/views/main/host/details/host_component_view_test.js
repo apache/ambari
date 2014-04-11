@@ -381,4 +381,23 @@ describe('App.HostComponentView', function() {
 
   });
 
+  describe('#statusIconClass', function() {
+    var tests = Em.A([
+      {s: 'health-status-started', e: App.healthIconClassGreen},
+      {s: 'health-status-starting', e: App.healthIconClassGreen},
+      {s: 'health-status-installed', e: App.healthIconClassRed},
+      {s: 'health-status-stopping', e: App.healthIconClassRed},
+      {s: 'health-status-unknown', e: App.healthIconClassYellow},
+      {s: 'health-status-DEAD-ORANGE', e: App.healthIconClassOrange},
+      {s: 'other', e: ''}
+    ]);
+
+    tests.forEach(function(test) {
+      it(test.s, function() {
+        hostComponentView.reopen({statusClass: test.s});
+        expect(hostComponentView.get('statusIconClass')).to.equal(test.e);
+      })
+    });
+  });
+
 });

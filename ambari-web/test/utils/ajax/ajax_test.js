@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-require('utils/ajax');
+require('utils/ajax/ajax');
 
 describe('App.ajax', function() {
 
@@ -35,17 +35,17 @@ describe('App.ajax', function() {
 
     it('Without sender', function() {
       expect(App.ajax.send({})).to.equal(null);
-      expect($.ajax.called).to.be.false;
+      expect($.ajax.called).to.equal(false);
     });
 
     it('Invalid config.name', function() {
       expect(App.ajax.send({name:'fake_name', sender: this})).to.equal(null);
-      expect($.ajax.called).to.be.false;
+      expect($.ajax.called).to.equal(false);
     });
 
     it('With proper data', function() {
       App.ajax.send({name: 'router.logoff', sender: this});
-      expect($.ajax.calledOnce).to.be.true;
+      expect($.ajax.calledOnce).to.equal(true);
     });
 
   });

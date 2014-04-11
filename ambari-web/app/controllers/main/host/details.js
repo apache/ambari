@@ -20,81 +20,79 @@ var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainHostDetailsController = Em.Controller.extend({
+
   name: 'mainHostDetailsController',
+
+  /**
+   * Viewed host
+   * @type {App.Host|null}
+   */
   content: null,
+
+  /**
+   * Does user come from hosts page
+   * @type {bool}
+   */
   isFromHosts: false,
 
   /**
    * path to page visited before
+   * @type {string}
    */
   referer: '',
+
   /**
-   * open dashboard page
+   * Open dashboard page
+   * @method routeHome
    */
   routeHome: function () {
     App.router.transitionTo('main.dashboard');
   },
 
   /**
-   * open summary page of the selected service
-   * @param event
+   * Open summary page of the selected service
+   * @param {object} event
+   * @method routeToService
    */
   routeToService: function(event){
     var service = event.context;
     App.router.transitionTo('main.services.service.summary',service);
   },
 
+  /**
+   * List of active (not in passive state) host components
+   * @type {Ember.Enumerable}
+   */
   serviceActiveComponents: function() {
     return this.get('content.hostComponents').filterProperty('service.isInPassive',false);
   }.property('content.hostComponents'),
 
+  /**
+   * List of active host components which aren't clients
+   * @type {Ember.Enumerable}
+   */
   serviceNonClientActiveComponents: function() {
     return this.get('serviceActiveComponents').filterProperty('isClient',false);
   }.property('serviceActiveComponents'),
 
-
   /**
-   * Send specific command to server
-   * @param url
-   * @param _method
-   * @param postData
-   * @param callback
+   * Default error-callback for ajax-requests in current page
+   * @param {object} request
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @param {object} params
+   * @method ajaxErrorCallback
    */
-  sendCommandToServer : function(url, postData, _method, callback){
-    var url =  (App.testMode) ?
-      '/data/wizard/deploy/poll_1.json' : //content is the same as ours
-      App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
-
-    var method = App.testMode ? 'GET' : _method;
-
-    $.ajax({
-      type: method,
-      url: url,
-      data: JSON.stringify(postData),
-      dataType: 'json',
-      timeout: App.timeout,
-      success: function(data){
-        if(data && data.Requests){
-          callback(data.Requests.id);
-        } else{
-          callback(null);
-          console.log('cannot get request id from ', data);
-        }
-      },
-
-      error: function (request, ajaxOptions, error) {
-        //do something
-        console.log('error on change component host status');
-        App.ajax.defaultErrorHandler(request, url, method);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
+  ajaxErrorCallback: function (request, ajaxOptions, error, opt, params) {
+    console.log('error on change component host status');
+    App.ajax.defaultErrorHandler(request, opt.url, opt.method);
   },
 
   /**
    * send command to server to start selected host component
-   * @param event
+   * @param {object} event
+   * @method startComponent
    */
   startComponent: function (event) {
     var self = this;
@@ -108,66 +106,92 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * PUTs a command to server to start a component. If no 
    * specific component is provided, all components are started.
-   * @param component  When <code>null</code> all startable components are started. 
-   * @param context  Context under which this command is beign sent. 
+   * @param {object} component  When <code>null</code> all startable components are started.
+   * @param {string} context  Context under which this command is beign sent.
+   * @method sendStartComponentCommand
    */
-  sendStartComponentCommand: function(components, context) {
-    var url = Em.isArray(components) ?
-        '/hosts/' + this.get('content.hostName') + '/host_components' :
-        '/hosts/' + this.get('content.hostName') + '/host_components/' + components.get('componentName').toUpperCase();
+  sendStartComponentCommand: function(component, context) {
+
     var dataToSend = {
       RequestInfo : {
         "context" : context
       },
       Body:{
-        HostRoles:{
+        HostRoles: {
           state: 'STARTED'
         }
       }
     };
-    if (Em.isArray(components)) {
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")";
-    }
-    this.sendCommandToServer(url, dataToSend, 'PUT',
-      function(requestId){
-
-      if(!requestId){
-        return;
-      }
-
-      console.log('Send request for STARTING successfully');
-
-      if (App.testMode) {
-        if(Em.isArray(components)){
-          var allComponents = this.get('content.hostComponents');
-          allComponents.forEach(function(component){
-            component.set('workStatus', App.HostComponentStatus.stopping);
-            setTimeout(function(){
-              component.set('workStatus', App.HostComponentStatus.stopped);
-            },App.testModeDelayForActions);
-          });
-        } else {
-          components.set('workStatus', App.HostComponentStatus.starting);
-          setTimeout(function(){
-            components.set('workStatus', App.HostComponentStatus.started);
-          },App.testModeDelayForActions);
-        }
-      } else {
-        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-      }
-      // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
-        if (initValue) {
-          App.router.get('backgroundOperationsController').showPopup();
-        }
+    if (Em.isArray(component)) {
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
+      App.ajax.send({
+        name: 'host.host_components.stop',
+        sender: this,
+        data: {
+          data: JSON.stringify(dataToSend),
+          hostName: this.get('content.hostName'),
+          component: component
+        },
+        success: 'stopComponentSuccessCallback',
+        error: 'ajaxErrorCallback'
       });
+    }
+    else {
+      App.ajax.send({
+        name: 'host.host_component.stop',
+        sender: this,
+        data: {
+          data: JSON.stringify(dataToSend),
+          hostName: this.get('content.hostName'),
+          componentName: component.get('componentName').toUpperCase(),
+          component: component
+        },
+        success: 'startComponentSuccessCallback',
+        error: 'ajaxErrorCallback'
+      });
+    }
+  },
 
+  /**
+   * Success callback for start component(s) request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method startComponentSuccessCallback
+   */
+  startComponentSuccessCallback: function(data, opt, params) {
+    console.log('Send request for STARTING successfully');
+
+    if (App.testMode) {
+      if(Em.isArray(params.component)){
+        var allComponents = this.get('content.hostComponents');
+        allComponents.forEach(function(c){
+          c.set('workStatus', App.HostComponentStatus.stopping);
+          setTimeout(function(){
+            c.set('workStatus', App.HostComponentStatus.stopped);
+          },App.testModeDelayForActions);
+        });
+      } else {
+        params.component.set('workStatus', App.HostComponentStatus.starting);
+        setTimeout(function(){
+          params.component.set('workStatus', App.HostComponentStatus.started);
+        },App.testModeDelayForActions);
+      }
+    } else {
+      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+    }
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
 
   /**
-   * send command to server to delete selected host component
-   *
+   * Send command to server to delete selected host component
+   * @param {object} event
+   * @method deleteComponent
    */
   deleteComponent: function (event) {
     var self = this;
@@ -178,7 +202,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
-      bodyClass: Ember.View.extend({
+      bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
       isChecked: false,
@@ -195,10 +219,10 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       }.property(),
       lastComponentError:  Em.View.extend({
-        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
       }),
       restartNagiosMsg: Em.View.extend({
-        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.msg2').format(displayName))
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.msg2').format(displayName))
       }),
       deleteComponentMsg: function() {
         return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
@@ -221,45 +245,85 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * Deletes the given host component, or all host components.
    * 
-   * @param component  When <code>null</code> all host components are deleted.
+   * @param {object|null} component  When <code>null</code> all host components are deleted.
    * @return  <code>null</code> when components get deleted.
    *          <code>{xhr: XhrObj, url: "http://", method: "DELETE"}</code> 
-   *          when components failed to get deleted. 
+   *          when components failed to get deleted.
+   * @method _doDeleteHostComponent
    */
   _doDeleteHostComponent: function(component) {
-    var url = component !== null ? 
-        '/hosts/' + this.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase() : 
-        '/hosts/' + this.get('content.hostName') + '/host_components';
-    url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
-    var deleted = null;
-    $.ajax({
-      type: 'DELETE',
-      url: url,
-      timeout: App.timeout,
-      async: false,
-      success: function (data) {
-        deleted = null;
-      },
-      error: function (xhr, textStatus, errorThrown) {
-        console.log('Error deleting host component');
-        console.log(textStatus);
-        console.log(errorThrown);
-        deleted = {xhr: xhr, url: url, method: 'DELETE'};
-      },
-      statusCode: require('data/statusCodes')
+    if (component === null) {
+      App.ajax.send({
+        name: 'host.host_components.delete',
+        sender: this,
+        data: {
+          hostName:  this.get('content.hostName')
+        },
+        success: '_doDeleteHostComponentSuccessCallback',
+        error: '_doDeleteHostComponentErrorCallback'
       });
-    return deleted;
+    }
+    else {
+      App.ajax.send({
+        name: 'host.host_component.delete',
+        sender: this,
+        data: {
+          componentName: component.get('componentName').toUpperCase(),
+          hostName:  this.get('content.hostName')
+        },
+        success: '_doDeleteHostComponentSuccessCallback',
+        error: '_doDeleteHostComponentErrorCallback'
+      });
+    }
+    return this.get('_deletedHostComponentResult');
   },
 
   /**
-   * send command to server to upgrade selected host component
-   * @param event
+   * Result of delete component(s) request
+   * @type {object}
+   */
+  _deletedHostComponentResult: null,
+
+  /**
+   * Success callback for delete host component request
+   * @method _doDeleteHostComponentSuccessCallback
+   */
+  _doDeleteHostComponentSuccessCallback: function() {
+    this.set('_deletedHostComponentResult', null);
+  },
+
+  /**
+   * Error-callback for delete host component request
+   * @param {object} xhr
+   * @param {string} textStatus
+   * @param {object} errorThrown
+   * @method _doDeleteHostComponentErrorCallback
+   */
+  _doDeleteHostComponentErrorCallback: function(xhr, textStatus, errorThrown) {
+    console.log('Error deleting host component');
+    console.log(textStatus);
+    console.log(errorThrown);
+    this.set('_deletedHostComponentResult', {xhr: xhr, url: url, method: 'DELETE'});
+  },
+
+  /**
+   * Send command to server to upgrade selected host component
+   * @param {object} event
+   * @method upgradeComponent
    */
   upgradeComponent: function (event) {
     var self = this;
     var component = event.context;
     App.showConfirmationPopup(function() {
-      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
+
+      App.ajax.send({
+        name: 'host.host_component.upgrade',
+        sender: self,
+        data: {
+          component: component,
+          hostName: self.get('content.hostName'),
+          componentName: component.get('componentName').toUpperCase(),
+          data: JSON.stringify({
             RequestInfo : {
               "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('displayName')
             },
@@ -269,36 +333,45 @@ App.MainHostDetailsController = Em.Controller.extend({
                 state: 'INSTALLED'
               }
             }
-          }, 'PUT',
-          function(requestId){
-            if(!requestId){
-              return;
-            }
-
-            console.log('Send request for UPGRADE successfully');
-
-            if (App.testMode) {
-              component.set('workStatus', App.HostComponentStatus.starting);
-              setTimeout(function(){
-                component.set('workStatus', App.HostComponentStatus.started);
-              },App.testModeDelayForActions);
-            } else {
-              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-            }
-
-            // load data (if we need to show this background operations popup) from persist
-            App.router.get('applicationController').dataLoading().done(function (initValue) {
-              if (initValue) {
-                App.router.get('backgroundOperationsController').showPopup();
-              }
-            });
-
-          });
+          })
+        },
+        success: 'upgradeComponentSuccessCallback',
+        error: 'ajaxErrorCallback'
+      });
     });
   },
+
   /**
-   * send command to server to stop selected host component
-   * @param event
+   * Success callback for upgrade host component request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method upgradeComponentSuccessCallback
+   */
+  upgradeComponentSuccessCallback: function(data, opt, params) {
+    console.log('Send request for UPGRADE successfully');
+
+    if (App.testMode) {
+      params.component.set('workStatus', App.HostComponentStatus.starting);
+      setTimeout(function(){
+        params.component.set('workStatus', App.HostComponentStatus.started);
+      },App.testModeDelayForActions);
+    } else {
+      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+    }
+
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+
+  /**
+   * Send command to server to stop selected host component
+   * @param {object} event
+   * @method stopComponent
    */
   stopComponent: function (event) {
     var self = this;
@@ -312,62 +385,92 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * PUTs a command to server to stop a component. If no 
    * specific component is provided, all components are stopped.
-   * @param component  When <code>null</code> all components are stopped. 
-   * @param context  Context under which this command is beign sent. 
+   * @param {object} component  When <code>null</code> all components are stopped.
+   * @param {object} context Context under which this command is beign sent.
+   * @method sendStopComponentCommand
    */
-  sendStopComponentCommand: function(components, context){
-    var url = Em.isArray(components) ?
-        '/hosts/' + this.get('content.hostName') + '/host_components' :
-        '/hosts/' + this.get('content.hostName') + '/host_components/' + components.get('componentName').toUpperCase();
+  sendStopComponentCommand: function(component, context) {
     var dataToSend = {
       RequestInfo : {
         "context" : context
       },
       Body:{
-        HostRoles:{
+        HostRoles: {
           state: 'INSTALLED'
         }
       }
     };
-    if (Em.isArray(components)) {
-      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + components.mapProperty('componentName').join(',') + ")";
-    }
-    this.sendCommandToServer( url, dataToSend, 'PUT',
-      function(requestId){
-      if(!requestId){
-        return;
-      }
-
-      console.log('Send request for STOPPING successfully');
-
-      if (App.testMode) {
-        if(Em.isArray(components)){
-          components.forEach(function(component){
-            component.set('workStatus', App.HostComponentStatus.stopping);
-            setTimeout(function(){
-              component.set('workStatus', App.HostComponentStatus.stopped);
-            },App.testModeDelayForActions);
-          });
-        } else {
-          components.set('workStatus', App.HostComponentStatus.stopping);
-          setTimeout(function(){
-            components.set('workStatus', App.HostComponentStatus.stopped);
-          },App.testModeDelayForActions);
-        }
-
-      } else {
-        App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-      }
-
-      // load data (if we need to show this background operations popup) from persist
-      App.router.get('applicationController').dataLoading().done(function (initValue) {
-        if (initValue) {
-          App.router.get('backgroundOperationsController').showPopup();
-        }
+    if (Em.isArray(component)) {
+      dataToSend.RequestInfo.query = "HostRoles/component_name.in(" + component.mapProperty('componentName').join(',') + ")";
+      App.ajax.send({
+        name: 'host.host_components.stop',
+        sender: this,
+        data: {
+          data: JSON.stringify(dataToSend),
+          hostName: this.get('content.hostName'),
+          component: component
+        },
+        success: 'stopComponentSuccessCallback'
       });
+    }
+    else {
+      App.ajax.send({
+        name: 'host.host_component.stop',
+        sender: this,
+        data: {
+          data: JSON.stringify(dataToSend),
+          hostName: this.get('content.hostName'),
+          componentName: component.get('componentName').toUpperCase(),
+          component: component
+        },
+        success: 'stopComponentSuccessCallback',
+        error: 'ajaxErrorCallback'
+      });
+    }
+  },
+
+  /**
+   * Success callback for stop host component request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method stopComponentSuccessCallback
+   */
+  stopComponentSuccessCallback: function(data, opt, params) {
+    console.log('Send request for STOPPING successfully');
+
+    if (App.testMode) {
+      if(Em.isArray(params.component)) {
+        params.component.forEach(function(c){
+          c.set('workStatus', App.HostComponentStatus.stopping);
+          setTimeout(function(){
+            c.set('workStatus', App.HostComponentStatus.stopped);
+          },App.testModeDelayForActions);
+        });
+      }
+      else {
+        params.component.set('workStatus', App.HostComponentStatus.stopping);
+        setTimeout(function() {
+          params.component.set('workStatus', App.HostComponentStatus.stopped);
+        },App.testModeDelayForActions);
+      }
+    }
+    else {
+      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+    }
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
 
+  /**
+   * Send command to server to restart selected components
+   * @param {object} event
+   * @method restartComponent
+   */
   restartComponent: function(event) {
     var self = this;
     var component = event.context;
@@ -375,9 +478,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')));
     });
   },
+
   /**
-   * send command to server to install selected host component
-   * @param event
+   * Send command to server to install selected host component
+   * @param {object} event
+   * @method addComponent
    */
   addComponent: function (event) {
     var self = this;
@@ -411,15 +516,19 @@ App.MainHostDetailsController = Em.Controller.extend({
         App.ModalPopup.show({
           primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
           header: Em.I18n.t('popup.confirmation.commonHeader'),
+
           addComponentMsg: function() {
             return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
           }.property(),
-          bodyClass: Ember.View.extend({
+
+          bodyClass: Em.View.extend({
             templateName: require('templates/main/host/details/addComponentPopup')
           }),
-          restartNagiosMsg : Em.View.extend({
-            template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(dn))
+
+          restartNagiosMsg: Em.View.extend({
+            template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(dn))
           }),
+
           onPrimary: function () {
             this.hide();
             if (component.get('componentName') === 'CLIENTS') {
@@ -431,10 +540,11 @@ App.MainHostDetailsController = Em.Controller.extend({
                   displayName: App.format.role(sc),
                   componentName: sc
                 });
-                self.primary(c, scs.length - index === 1);
+                self.primary(c);
               });
-            } else {
-              self.primary(component, true);
+            }
+            else {
+              self.primary(component);
             }
           }
         });
@@ -442,73 +552,113 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
   },
 
-  primary: function(component, showPopup) {
+  /**
+   * Send request to add host component
+   * @param {App.HostComponent} component
+   * @method primary
+   */
+  primary: function(component) {
     var self = this;
-    var componentName = component.get('componentName').toUpperCase().toString();
+    var componentName = component.get('componentName').toUpperCase();
     var displayName = component.get('displayName');
-
-    self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
-        RequestInfo: {
-          "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-        },
-        Body: {
-          host_components: [
-            {
-              HostRoles: {
-                component_name: componentName
-              }
-            }
-          ]
-        }
-      },
-      'POST',
-      function (requestId) {
-
-        console.log('Send request for ADDING NEW COMPONENT successfully');
-
-        self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
-            RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
-            },
-            Body: {
-              HostRoles: {
-                state: 'INSTALLED'
-              }
-            }
+    App.ajax.send({
+      name: 'host.host_component.add_new_component',
+      sender: self,
+      data: {
+        hostName: self.get('content.hostName'),
+        component: component,
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
           },
-          'PUT',
-          function (requestId) {
-            if (!requestId) {
-              return;
-            }
-
-            console.log('Send request for INSTALLING NEW COMPONENT successfully');
-
-            if (App.testMode) {
-              component.set('workStatus', App.HostComponentStatus.installing);
-              setTimeout(function () {
-                component.set('workStatus', App.HostComponentStatus.stopped);
-              }, App.testModeDelayForActions);
-            } else {
-              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-            }
-
-            // load data (if we need to show this background operations popup) from persist
-            App.router.get('applicationController').dataLoading().done(function (initValue) {
-              if (initValue) {
-                App.router.get('backgroundOperationsController').showPopup();
+          Body: {
+            host_components: [
+              {
+                HostRoles: {
+                  component_name: componentName
+                }
               }
-              if (componentName === 'ZOOKEEPER_SERVER') {
-                self.set('zkRequestId', requestId);
-                self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
-                self.checkZkConfigs();
-              }
-            });
-          });
-      });
+            ]
+          }
+        })
+      },
+      success: 'addNewComponentSuccessCallback',
+      error: 'ajaxErrorCallback'
+    });
   },
+
+  /**
+   * Success callback for add host component request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method addNewComponentSuccessCallback
+   */
+  addNewComponentSuccessCallback: function(data, opt, params) {
+    console.log('Send request for ADDING NEW COMPONENT successfully');
+    App.ajax.send({
+      name: 'host.host_component.install_new_component',
+      sender: this,
+      data: {
+        hostName: this.get('content.hostName'),
+        componentName: params.component.get('componentName'),
+        component: params.component,
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.component.get('displayName')
+          },
+          Body: {
+            HostRoles: {
+              state: 'INSTALLED'
+            }
+          }
+        })
+      },
+      success: 'installNewComponentSuccessCallback',
+      error: 'ajaxErrorCallback'
+    });
+  },
+
+  /**
+   * Success callback for install host component request (sent in <code>addNewComponentSuccessCallback</code>)
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method installNewComponentSuccessCallback
+   */
+  installNewComponentSuccessCallback: function(data, opt, params) {
+    if (!data.Requests || !data.Requests.id) {
+      return;
+    }
+    var self = this;
+    console.log('Send request for INSTALLING NEW COMPONENT successfully');
+
+    if (App.testMode) {
+      params.component.set('workStatus', App.HostComponentStatus.installing);
+      setTimeout(function () {
+        params.component.set('workStatus', App.HostComponentStatus.stopped);
+      }, App.testModeDelayForActions);
+    }
+    else {
+      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+    }
+
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+      if (params.componentName === 'ZOOKEEPER_SERVER') {
+        self.set('zkRequestId', data.Requests.id);
+        self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
+        self.checkZkConfigs();
+      }
+    });
+  },
+
   /**
    * Load tags
+   * @method checkZkConfigs
    */
   checkZkConfigs: function() {
     var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('zkRequestId'));
@@ -517,6 +667,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       this.loadConfigs();
     }
   },
+
+  /**
+   * Load configs
+   * @method loadConfigs
+   */
   loadConfigs: function() {
     this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
     App.ajax.send({
@@ -525,9 +680,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       success: 'loadConfigsSuccessCallback'
     });
   },
+
   /**
-   * Load needed configs
-   * @param data
+   * Success callback for load configs request
+   * @param {object} data
+   * @method adConfigsSuccessCallback
    */
   loadConfigsSuccessCallback: function(data) {
     var urlParams = [];
@@ -555,9 +712,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       success: 'setNewZkConfigs'
     });
   },
+
   /**
    * Set new values for some configs (based on available ZooKeeper Servers)
-   * @param data
+   * @param {object} data
+   * @method setNewZkConfigs
    */
   setNewZkConfigs: function(data) {
     var configs = [];
@@ -599,9 +758,15 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Is deleteHost action id fired
+   * @type {bool}
    */
   fromDeleteHost: false,
 
+  /**
+   * Get list of hostnames where ZK Server is installed
+   * @returns {string[]}
+   * @method getZkServerHosts
+   */
   getZkServerHosts: function() {
     var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
     if (this.get('fromDeleteHost')) {
@@ -612,14 +777,14 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
-   * send command to server to install selected host component
-   * @param event
-   * @param context
+   * Send command to server to install selected host component
+   * @param {Object} event
+   * @method installComponent
    */
-  installComponent: function (event, context) {
+  installComponent: function (event) {
     var self = this;
     var component = event.context;
-    var componentName = component.get('componentName').toUpperCase().toString();
+    var componentName = component.get('componentName').toUpperCase();
     var displayName = component.get('displayName');
 
     App.ModalPopup.show({
@@ -629,56 +794,71 @@ App.MainHostDetailsController = Em.Controller.extend({
         return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
       }.property(),
       restartNagiosMsg : Em.View.extend({
-        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(displayName))
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(displayName))
       }),
-      bodyClass: Ember.View.extend({
+      bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
       onPrimary: function () {
         this.hide();
-        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(), {
-            RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
-            },
-            Body: {
-              HostRoles: {
-                state: 'INSTALLED'
+
+        App.ajax.send({
+          name: 'host.host_component.install',
+          sender: self,
+          data: {
+            hostName: self.get('content.hostName'),
+            componentName: componentName,
+            component: component,
+            data: JSON.stringify({
+              RequestInfo: {
+                "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+              },
+              Body: {
+                HostRoles: {
+                  state: 'INSTALLED'
+                }
               }
-            }
+            })
           },
-          'PUT',
-          function (requestId) {
-            if (!requestId) {
-              return;
-            }
-
-            console.log('Send request for REINSTALL COMPONENT successfully');
-
-            if (App.testMode) {
-              component.set('workStatus', App.HostComponentStatus.installing);
-              setTimeout(function () {
-                component.set('workStatus', App.HostComponentStatus.stopped);
-              }, App.testModeDelayForActions);
-            } else {
-              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-            }
-
-            // load data (if we need to show this background operations popup) from persist
-            App.router.get('applicationController').dataLoading().done(function (initValue) {
-              if (initValue) {
-                App.router.get('backgroundOperationsController').showPopup();
-              }
-            });
-          });
+          success: 'installComponentSuccessCallback',
+          error: 'ajaxErrorCallback'
+        });
       }
     });
   },
 
   /**
-   * send command to server to run decommission on DATANODE, TASKTRACKER, NODEMANAGER, REGIONSERVER
-   * @param component
+   * Success callback for install component request
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method installComponentSuccessCallback
    */
-  decommission: function(component){
+  installComponentSuccessCallback: function(data, opt, params) {
+    console.log('Send request for REINSTALL COMPONENT successfully');
+    if (App.testMode) {
+      params.component.set('workStatus', App.HostComponentStatus.installing);
+      setTimeout(function () {
+        params.component.set('workStatus', App.HostComponentStatus.stopped);
+      }, App.testModeDelayForActions);
+    } else {
+      App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+    }
+
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+
+  /**
+   * Send command to server to run decommission on DATANODE, TASKTRACKER, NODEMANAGER, REGIONSERVER
+   * @param {App.HostComponent} component
+   * @method decommission
+   */
+  decommission: function(component) {
     var self = this;
     App.showConfirmationPopup(function(){
       var svcName = component.get('service.serviceName');
@@ -710,8 +890,9 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
   
   /**
-   * send command to server to run recommission on DATANODE, TASKTRACKER, NODEMANAGER
-   * @param component
+   * Send command to server to run recommission on DATANODE, TASKTRACKER, NODEMANAGER
+   * @param {App.HostComponent} component
+   * @method recommission
    */
   recommission: function(component){
     var self = this;
@@ -746,6 +927,11 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Performs Decommission (for DN, TT and NM)
+   * @param {string} hostName
+   * @param {string} serviceName
+   * @param {string} componentName
+   * @param {string} slaveType
+   * @method doDecommission
    */
   doDecommission: function(hostName, serviceName, componentName, slaveType){
     var contextNameString = 'hosts.host.' + slaveType.toLowerCase() + '.decommission';
@@ -781,7 +967,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         message: function(){
           return Em.I18n.t('hostPopup.reccomendation.beforeDecommission').format(App.format.components[componentName]);
         }.property(),
-        bodyClass: Ember.View.extend({
+        bodyClass: Em.View.extend({
           template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
         }),
         secondary: false
@@ -865,15 +1051,23 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * Error callback for decommission requests
+   * @param {object} request
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @method decommissionErrorCallback
+   */
   decommissionErrorCallback: function (request, ajaxOptions, error) {
     console.log('ERROR: '+ error);
   },
+
   /**
    * Success ajax response for Recommission/Decommission slaves
-   * @param data
-   * @param ajaxOptions
+   * @param {object} data
+   * @method decommissionSuccessCallback
    */
-  decommissionSuccessCallback: function(data, ajaxOptions) {
+  decommissionSuccessCallback: function(data) {
     if(data && (data.Requests || data.resources[0].RequestSchedule) ) {
       if (!App.testMode) {
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
@@ -890,6 +1084,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
   },
 
+  /**
+   * Performs Recommission and Start
+   * @param {string} hostNames
+   * @param {string} serviceName
+   * @param {string} componentName
+   * @param {string} slaveType
+   * @method doRecommissionAndStart
+   */
   doRecommissionAndStart:  function(hostNames, serviceName, componentName, slaveType){
     var contextNameString_1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
     var context_1 = Em.I18n.t(contextNameString_1);
@@ -940,6 +1142,15 @@ App.MainHostDetailsController = Em.Controller.extend({
       error: 'decommissionErrorCallback'
     });
   },
+
+  /**
+   * Performs Recommission and Restart
+   * @param {string} hostNames
+   * @param {string} serviceName
+   * @param {string} componentName
+   * @param {string} slaveType
+   * @method doRecommissionAndStart
+   */
   doRecommissionAndRestart:  function(hostNames, serviceName, componentName, slaveType){
     var contextNameString_1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
     var context_1 = Em.I18n.t(contextNameString_1);
@@ -989,6 +1200,11 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * Handler for host-menu items actions
+   * @param {object} option
+   * @method doAction
+   */
   doAction: function(option) {
     switch (option.context.action) {
       case "deleteHost":
@@ -1011,17 +1227,28 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
   },
 
+  /**
+   * Turn On/Off Passive Mode for host
+   * @param {object} context
+   * @method onOffPassiveModeForHost
+   */
   onOffPassiveModeForHost: function(context) {
     var state = context.active ? 'ON' : 'OFF';
     var self = this;
     var message = context.label + ' for host';
     App.showConfirmationPopup(function() {
-          self.hostPassiveModeRequest(state, message)
+          self.hostPassiveModeRequest(state, message);
         },
         Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off',this.get('content.hostName'))
     );
   },
 
+  /**
+   * Send request to get passive state for host
+   * @param {string} state
+   * @param {string} message
+   * @method hostPassiveModeRequest
+   */
   hostPassiveModeRequest: function(state,message) {
     App.ajax.send({
       name: 'bulk_request.hosts.passive_state',
@@ -1035,6 +1262,13 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * Success callback for receiving host passive state
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @method updateHost
+   */
   updateHost: function(data, opt, params) {
     this.set('content.passiveState', params.passive_state);
     App.router.get('clusterController').loadUpdatedStatus(function(){
@@ -1042,6 +1276,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
  },
 
+  /**
+   * Show confirmation popup for action "start all components"
+   * @method doStartAllComponents
+   */
   doStartAllComponents: function() {
     var self = this;
     var components = this.get('serviceNonClientActiveComponents');
@@ -1052,7 +1290,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       });
     }
   },
-  
+
+  /**
+   * Show confirmation popup for action "stop all components"
+   * @method doStopAllComponents
+   */
   doStopAllComponents: function() {
     var self = this;
     var components = this.get('serviceNonClientActiveComponents');
@@ -1064,6 +1306,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
   },
 
+  /**
+   * Show confirmation popup for action "restart all components"
+   * @method doRestartAllComponents
+   */
   doRestartAllComponents: function() {
     var self = this;
     var components = this.get('serviceActiveComponents');
@@ -1077,6 +1323,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Deletion of hosts not supported for this version
+   * @method validateAndDeleteHost
    */
   validateAndDeleteHost: function () {
     if (!App.supports.deleteHost) {
@@ -1138,7 +1385,13 @@ App.MainHostDetailsController = Em.Controller.extend({
       this._doDeleteHost(unknownComponents, lastComponents);
     }
   },
-  
+
+  /**
+   * Show popup with info about reasons why host can't be deleted
+   * @param {string[]} components
+   * @param {string} type
+   * @method raiseDeleteComponentsError
+   */
   raiseDeleteComponentsError: function (components, type) {
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
@@ -1167,7 +1420,10 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
-   * show confirmation popup to delete host
+   * Show confirmation popup to delete host
+   * @param {string[]} unknownComponents
+   * @param {string[]} lastComponents
+   * @method _doDeleteHost
    */
   _doDeleteHost: function(unknownComponents,lastComponents) {
     var self = this;
@@ -1190,7 +1446,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }.property('isChecked'),
       isChecked: false,
       lastComponentError:  Em.View.extend({
-        template: Ember.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(lastComponents))
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(lastComponents))
       }),
       unknownComponents: function() {
         if (unknownComponents && unknownComponents.length) {
@@ -1248,6 +1504,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     })
   },
 
+  /**
+   * Send command to server to restart all host components with stale configs
+   * @method restartAllStaleConfigComponents
+   */
   restartAllStaleConfigComponents: function() {
     var self = this;
     App.showConfirmationPopup(function () {
@@ -1258,7 +1518,8 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * open Reassign Master Wizard with selected component
-   * @param event
+   * @param {object} event
+   * @method moveComponent
    */
   moveComponent: function (event) {
     App.showConfirmationPopup(function() {
@@ -1273,6 +1534,8 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Restart clients host components to apply config changes
+   * @param {object} event
+   * @method refreshConfigs
    */
   refreshConfigs: function(event) {
     var self = this;

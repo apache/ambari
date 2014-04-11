@@ -24,28 +24,28 @@ App.WizardStep8View = Em.View.extend({
   templateName: require('templates/wizard/step8'),
 
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.loadStep();
+    this.get('controller').loadStep();
   },
 
-  spinner : null,
-
+  /**
+   * Print review-report
+   * @method printReview
+   */
   printReview: function() {
     var o = $("#step8-info");
     o.jqprint();
   },
 
-  ajaxQueueLength: function() {
-    return this.get('controller.ajaxQueueLength');
-  }.property('controller.ajaxQueueLength'),
-
-  ajaxQueueLeft: function() {
-    return this.get('controller.ajaxQueueLeft');
-  }.property('controller.ajaxQueueLeft'),
-
-  // reference to modalPopup to make sure only one instance is created
+  /**
+   * Reference to modalPopup to make sure only one instance is created
+   * @type {App.ModalPopup|null}
+   */
   modalPopup: null,
 
+  /**
+   * Should ajax-queue progress bar be displayed
+   * @method showLoadingIndicator
+   */
   showLoadingIndicator: function() {
     if (!this.get('controller.isSubmitDisabled') || App.testMode) {
       if (this.get('modalPopup')) {
@@ -59,39 +59,53 @@ App.WizardStep8View = Em.View.extend({
       return;
     }
     this.set('modalPopup', App.ModalPopup.show({
+
       header: '',
 
       showFooter: false,
 
       showCloseButton: false,
 
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step8_log_popup'),
+      bodyClass: Em.View.extend({
 
-        message: function() {
-          return Em.I18n.t('installer.step8.deployPopup.message').format(this.get('ajaxQueueComplete'), this.get('ajaxQueueLength'));
-        }.property('ajaxQueueComplete', 'ajaxQueueLength'),
+        templateName: require('templates/wizard/step8_log_popup'),
 
         controllerBinding: 'App.router.wizardStep8Controller',
 
-        ajaxQueueLength: function() {
-          return this.get('controller.ajaxQueueLength');
-        }.property(),
+        /**
+         * Css-property for progress-bar
+         * @type {string}
+         */
+        barWidth: '',
 
-        ajaxQueueComplete: function() {
-          return this.get('ajaxQueueLength') - this.get('controller.ajaxQueueLeft');
-        }.property('controller.ajaxQueueLeft', 'ajaxQueueLength'),
+        /**
+         * Popup-message
+         * @type {string}
+         */
+        message: '',
 
-        barWidth: function () {
-          return 'width: ' + (this.get('ajaxQueueComplete') / this.get('ajaxQueueLength') * 100) + '%;';
-        }.property('ajaxQueueComplete', 'ajaxQueueLength'),
+        /**
+         * Set progress bar width and popup message when ajax-queue requests are proccessed
+         * @method ajaxQueueChangeObs
+         */
+        ajaxQueueChangeObs: function() {
+          var length = this.get('controller.ajaxQueueLength');
+          var left = this.get('controller.ajaxRequestsQueue.queue.length');
+          this.set('barWidth', 'width: ' + ((length - left) / length * 100) + '%;');
+          this.set('message', Em.I18n.t('installer.step8.deployPopup.message').format((length - left), length));
+        }.observes('controller.ajaxQueueLength', 'controller.ajaxRequestsQueue.queue.length'),
 
+        /**
+         * Hide popup when ajax-queue is finished
+         * @method autoHide
+         */
         autoHide: function() {
           if (this.get('controller.servicesInstalled')) {
             this.get('parentView').hide();
           }
         }.observes('controller.servicesInstalled')
       })
+
     }));
   }.observes('controller.isSubmitDisabled')
 });

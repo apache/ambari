@@ -16,9 +16,20 @@
  * limitations under the License.
  */
 var App = require('app');
+require('mixins/common/userPref');
 
-App.clusterStatus = Ember.Object.create({
+App.clusterStatus = Em.Object.create(App.UserPref, {
+
+  /**
+   * Cluster name
+   * @type {string}
+   */
   clusterName: '',
+
+  /**
+   * List valid cluster states
+   * @type {string[]}
+   */
   validStates: [
     'DEFAULT',
     'CLUSTER_NOT_CREATED_1',
@@ -43,93 +54,139 @@ App.clusterStatus = Ember.Object.create({
     'DISABLE_SECURITY',
     'HIGH_AVAILABILITY_DEPLOY',
     'ROLLBACK_HIGH_AVAILABILITY'],
+
+  /**
+   * Default cluster state
+   * @type {string}
+   */
   clusterState: 'CLUSTER_NOT_CREATED_1',
+
+  /**
+   * Current used wizard <code>controller.name</code>
+   * @type {string|null}
+   */
   wizardControllerName: null,
+
+  /**
+   * Local DB
+   * @type {object|null}
+   */
   localdb: null,
+
+  /**
+   * Persist key
+   * @type {string}
+   */
   key: 'CLUSTER_CURRENT_STATUS',
-  isInstalled: function(){
+
+  /**
+   * Is cluster installed
+   * @type {bool}
+   */
+  isInstalled: function () {
     var notInstalledStates = ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'SERVICE_STARTING_3'];
     return !notInstalledStates.contains(this.get('clusterState'));
   }.property('clusterState'),
+
+  /**
+   * General info about cluster
+   * @type {{clusterName: string, clusterState: string, wizardControllerName: string, localdb: object}}
+   */
+  value: function () {
+    return {
+      clusterName: this.get('clusterName'),
+      clusterState: this.get('clusterState'),
+      wizardControllerName: this.get('wizardControllerName'),
+      localdb: this.get('localdb')
+    };
+  }.property('clusterName', 'clusterState', 'localdb', 'wizardControllerName'),
+
   /**
    * get cluster data from server and update cluster status
-   * @param {Boolean} isAsync set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
-   * @param {Boolean} overrideLocaldb
+   * @param {bool} isAsync set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
+   * @param {bool} overrideLocaldb
    * @return promise object for the get call
+   * @method updateFromServer
    */
-  updateFromServer: function(isAsync, overrideLocaldb) {
+  updateFromServer: function (isAsync, overrideLocaldb) {
     // if isAsync is undefined, set it to false
-    isAsync = isAsync || false;
+    this.set('makeRequestAsync', isAsync || false);
     // if overrideLocaldb is undefined, set it to true
-    if(typeof overrideLocaldb == "undefined"){
-      overrideLocaldb =  true;
-    }
-    var user = App.db.getUser();
-    var login = App.db.getLoginName();
-    var url = App.apiPrefix + '/persist/' + this.get('key');
-    return jQuery.ajax(
-      {
-        url: url,
-        context: this,
-        async: isAsync,
-        success: function (response) {
-          if (response) {
-            var newValue = jQuery.parseJSON(response);
-            if (newValue.clusterState) {
-              this.set('clusterState', newValue.clusterState);
-            }
-            if (newValue.clusterName) {
-              this.set('clusterName', newValue.clusterName);
-            }
-            if (newValue.wizardControllerName) {
-              this.set('wizardControllerName', newValue.wizardControllerName);
-            }
-            if (newValue.localdb) {
-              this.set('localdb', newValue.localdb);
-              // restore HAWizard data if process was started
-              var isHAWizardStarted = App.get('isAdmin') && !App.isEmptyObject(newValue.localdb.HighAvailabilityWizard);
-              if (overrideLocaldb || isHAWizardStarted) {
-                App.db.data = newValue.localdb;
-                App.db.setLocalStorage();
-                App.db.setUser(user);
-                App.db.setLoginName(login);
-              }
-            }
-          } else {
-            // default status already set
-          }
-          // this is to ensure that the local storage namespaces are initialized with all expected namespaces.
-          // after upgrading ambari, loading local storage data from the "persist" data saved via an older version of
-          // Ambari can result in missing namespaces that are defined in the new version of Ambari.
-          App.db.mergeStorage();
-        },
-        error: function (xhr) {
-          if (xhr.status == 404) {
-            // default status already set
-            console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
-            return;
-          }
-          App.ModalPopup.show({
-            header: Em.I18n.t('common.error'),
-            secondary: false,
-            bodyClass: Ember.View.extend({
-              template: Ember.Handlebars.compile('<p>{{t common.update.error}}</p>')
-            })
-          });
-        },
-        statusCode: require('data/statusCodes')
-      }
-    );
+    this.set('additionalData', {
+      user: App.db.getUser(),
+      login: App.db.getLoginName(),
+      overrideLocaldb: overrideLocaldb || true
+    });
+    return this.getUserPref(this.get('key'));
   },
+
+  /**
+   * Success callback for get-persist request
+   * @param {object} response
+   * @param {object} opt
+   * @param {object} params
+   * @method getUserPrefSuccessCallback
+   */
+  getUserPrefSuccessCallback: function (response, opt, params) {
+    if (response) {
+      if (response.clusterState) {
+        this.set('clusterState', response.clusterState);
+      }
+      if (response.clusterName) {
+        this.set('clusterName', response.clusterName);
+      }
+      if (response.wizardControllerName) {
+        this.set('wizardControllerName', response.wizardControllerName);
+      }
+      if (response.localdb) {
+        this.set('localdb', response.localdb);
+        // restore HAWizard data if process was started
+        var isHAWizardStarted = App.get('isAdmin') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
+        if (params.overrideLocaldb || isHAWizardStarted) {
+          App.db.data = response.localdb;
+          App.db.setLocalStorage();
+          App.db.setUser(params.user);
+          App.db.setLoginName(params.login);
+        }
+      }
+    }
+    // this is to ensure that the local storage namespaces are initialized with all expected namespaces.
+    // after upgrading ambari, loading local storage data from the "persist" data saved via an older version of
+    // Ambari can result in missing namespaces that are defined in the new version of Ambari.
+    App.db.mergeStorage();
+  },
+
+  /**
+   * Error callback for get-persist request
+   * @param {object} request
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @method getUserPrefErrorCallback
+   */
+  getUserPrefErrorCallback: function (request, ajaxOptions, error) {
+    if (request.status == 404) {
+      // default status already set
+      console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+      return;
+    }
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      bodyClass: Em.View.extend({
+        template: Em.Handlebars.compile('<p>{{t common.update.error}}</p>')
+      })
+    });
+  },
+
   /**
    * update cluster status and post it on server
-   * @param newValue
-   * @param opt - used for additional ajax request options, by default ajax used synchronous mode
-   *
+   * @param {object} newValue
+   * @param {object} opt - used for additional ajax request options, by default ajax used synchronous mode
+   * @method setClusterStatus
    * @return {*}
    */
-  setClusterStatus: function(newValue, opt){
-    if(App.testMode) return false;
+  setClusterStatus: function (newValue, opt) {
+    if (App.testMode) return false;
     var user = App.db.getUser();
     var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
@@ -137,7 +194,7 @@ App.clusterStatus = Ember.Object.create({
       //setter
       if (newValue.clusterName) {
         this.set('clusterName', newValue.clusterName);
-        val.clusterName =  newValue.clusterName;
+        val.clusterName = newValue.clusterName;
       }
 
       if (newValue.clusterState) {
@@ -164,38 +221,39 @@ App.clusterStatus = Ember.Object.create({
         App.db.setLoginName(login);
       }
 
-      var keyValuePair = {};
-
-      keyValuePair[this.get('key')] = JSON.stringify(val);
-
-      var ajaxOptions = {
-        name: 'cluster.state',
-        sender: this,
-        data: {
-          keyValuePair: keyValuePair
-        },
-        beforeSend: 'clusterStatusBeforeSend',
-        error: 'clusterStatusErrorCallBack'
-      };
-
       if (opt) {
-        ajaxOptions.async = !!opt.async;
-        ajaxOptions.sender = opt.sender || this;
-        ajaxOptions.success = opt.success;
-        ajaxOptions.beforeSend = opt.beforeSend;
-        ajaxOptions.error = opt.error;
+        var keyValuePair = {};
+        keyValuePair[this.get('key')] = JSON.stringify(val);
+        App.ajax.send({
+          name: 'settings.post.user_pref',
+          sender: opt.sender || this,
+          data: {
+            async: !!opt.async,
+            keyValuePair: keyValuePair
+          },
+          success: opt.success || Em.K,
+          beforeSend: opt.beforeSend || Em.K,
+          error: opt.error || Em.K
+        });
       }
-
-      App.ajax.send(ajaxOptions);
+      else {
+        this.set('makeRequestAsync', false);
+        this.postUserPref(this.get('key'), val);
+      }
       return newValue;
     }
   },
-  clusterStatusBeforeSend: function (keyValuePair) {
-    console.log('BeforeSend: persistKeyValues', keyValuePair);
-  },
-  clusterStatusErrorCallBack: function(request, ajaxOptions, error, opt) {
+
+  /**
+   * Error callback for post-persist request
+   * @param {object} request
+   * @param {object} ajaxOptions
+   * @param {string} error
+   * @method postUserPrefErrorCallback
+   */
+  postUserPrefErrorCallback: function (request, ajaxOptions, error) {
     console.log("ERROR");
-    var msg, doc;
+    var msg = '', doc;
     try {
       msg = 'Error ' + (request.status) + ' ';
       doc = $.parseXML(request.responseText);
@@ -208,22 +266,10 @@ App.clusterStatus = Ember.Object.create({
       header: Em.I18n.t('common.error'),
       secondary: false,
       response: msg,
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
+      bodyClass: Em.View.extend({
+        template: Em.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
       })
     });
-  },
-
-  /**
-   * general info about cluster
-   */
-  value: function () {
-      return {
-        clusterName: this.get('clusterName'),
-        clusterState: this.get('clusterState'),
-        wizardControllerName: this.get('wizardControllerName'),
-        localdb: this.get('localdb')
-      };
-  }.property('clusterName', 'clusterState', 'localdb', 'wizardControllerName')
+  }
 
 });

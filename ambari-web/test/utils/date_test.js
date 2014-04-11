@@ -67,7 +67,7 @@ describe('date', function () {
     });
     it('Today timestamp', function() {
       var now = new Date();
-      var then = new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0);
+      var then = new Date(now.getFullYear(),now.getUTCMonth(),now.getUTCDate(),0,0,0);
       expect(date.dateFormatShort(then.getTime() + 10*3600*1000)).to.equal('Today 10:00:00');
     });
     describe('Incorrect timestamps', function() {
