@@ -80,6 +80,4 @@ App.ConfigurationController = Em.Controller.extend({
     App.db.setConfigs(storedConfigs);
     return loadedConfigs;
   }
-
-
 });

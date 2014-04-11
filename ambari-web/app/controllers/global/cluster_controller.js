@@ -353,8 +353,7 @@ App.ClusterController = Em.Controller.extend({
             self.updateLoadStatus('componentConfigs');
           }
         }, true);
-        App.router.get('updateController').updateServiceMetric(function () {
-        }, true);
+        App.router.get('updateController').updateServiceMetric(function () {});
       });
     });
   },

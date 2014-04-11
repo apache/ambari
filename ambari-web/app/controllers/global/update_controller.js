@@ -19,24 +19,27 @@
 var App = require('app');
 
 App.UpdateController = Em.Controller.extend({
-  name:'updateController',
-  isUpdated:false,
-  cluster:null,
+  name: 'updateController',
+  isUpdated: false,
+  cluster: null,
   isWorking: false,
   timeIntervalId: null,
-  clusterName:function () {
+  clusterName: function () {
     return App.router.get('clusterController.clusterName');
   }.property('App.router.clusterController.clusterName'),
+  location: function () {
+    return App.router.get('location.lastSetURL');
+  }.property('App.router.location.lastSetURL'),
 
-  getUrl:function (testUrl, url) {
+  getUrl: function (testUrl, url) {
     return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + this.get('clusterName') + url;
   },
 
   /**
    * Start polling, when <code>isWorking</code> become true
    */
-  updateAll:function(){
-    if(this.get('isWorking')) {
+  updateAll: function () {
+    if (this.get('isWorking')) {
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHostConditionally', 'isWorking');
       App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
@@ -55,8 +58,7 @@ App.UpdateController = Em.Controller.extend({
    * @param callback
    */
   updateHostConditionally: function (callback) {
-    var location = App.router.get('location.lastSetURL');
-    if (/\/main\/(hosts|charts\/heatmap).*/.test(location)) {
+    if (/\/main\/(hosts|charts\/heatmap).*/.test(this.get('location'))) {
       this.updateHost(callback);
     } else {
       callback();
@@ -69,19 +71,18 @@ App.UpdateController = Em.Controller.extend({
    * /main/services/*
    * @param callback
    */
-  updateServiceMetricConditionally: function(callback){
-    var location = App.router.get('location.lastSetURL');
-    if (/\/main\/(dashboard|services).*/.test(location)) {
+  updateServiceMetricConditionally: function (callback) {
+    if (/\/main\/(dashboard|services).*/.test(this.get('location'))) {
       this.updateServiceMetric(callback);
     } else {
       callback();
     }
   },
 
-  updateHost:function(callback) {
+  updateHost: function (callback) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
     var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/disk_info,Hosts/maintenance_state,' +
-      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free'+
+      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free' +
       '&minimal_response=true');
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
       complete: callback
@@ -89,64 +90,35 @@ App.UpdateController = Em.Controller.extend({
   },
   graphs: [],
   graphsUpdate: function (callback) {
-      var existedGraphs = [];
-      this.get('graphs').forEach(function (_graph) {
-        var view = Em.View.views[_graph.id];
-        if (view) {
-          existedGraphs.push(_graph);
-          //console.log('updated graph', _graph.name);
+    var existedGraphs = [];
+    this.get('graphs').forEach(function (_graph) {
+      var view = Em.View.views[_graph.id];
+      if (view) {
+        existedGraphs.push(_graph);
+        //console.log('updated graph', _graph.name);
+        view.loadData();
+        //if graph opened as modal popup update it to
+        if ($(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").length) {
           view.loadData();
-          //if graph opened as modal popup update it to
-          if($(".modal-graph-line .modal-body #" + _graph.popupId + "-container-popup").length) {
-            view.loadData();
-          }
         }
-      });
+      }
+    });
     callback();
     this.set('graphs', existedGraphs);
   },
 
   /**
-   * Updates the services information. 
+   * Updates the services information.
    *
    * @param callback
-   * @param isInitialLoad  If true, only basic information is loaded.
    */
-  updateServiceMetric: function (callback, isInitialLoad) {
+  updateServiceMetric: function (callback) {
     var self = this;
     self.set('isUpdated', false);
 
-    var conditionalFields = [];
-    var initialFields = [];
-    var serviceSpecificParams = {
-      'FLUME': "host_components/metrics/flume/flume",
-      'YARN': "host_components/metrics/yarn/Queue," +
-              "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
-              "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
-              "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
-              "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
-      'HBASE': "host_components/metrics/hbase/master/IsActiveMaster," +
-               "ServiceComponentInfo/MasterStartTime," +
-               "ServiceComponentInfo/MasterActiveTime," +
-               "ServiceComponentInfo/AverageLoad," +
-               "ServiceComponentInfo/Revision," +
-               "ServiceComponentInfo/RegionsInTransition",
-      'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
-                   "ServiceComponentInfo/GrayListedNodes," +
-                   "ServiceComponentInfo/BlackListedNodes," +
-                   "ServiceComponentInfo/jobtracker/*,",
-      'STORM': "metrics/api/cluster/summary,"
-    };
-    var services = App.cache['services'];
-    services.forEach(function (service) {
-      var urlParams = serviceSpecificParams[service.ServiceInfo.service_name];
-      if (urlParams) {
-        conditionalFields.push(urlParams);
-      }
-    });
+    var conditionalFields = this.getConditionalFields();
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
-    var initialFieldsString = initialFields.length > 0 ? ',' + initialFields.join(',') : '';
-    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json':'/data/dashboard/services.json';
+    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json' : '/data/dashboard/services.json';
 
     var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
       'ServiceComponentInfo/Version,' +
@@ -175,15 +147,49 @@ App.UpdateController = Em.Controller.extend({
       conditionalFieldsString +
       '&minimal_response=true';
 
-    var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + initialFieldsString) : this.getUrl(testUrl, realUrl);
+    var servicesUrl = this.getUrl(testUrl, realUrl);
     callback = callback || function () {
       self.set('isUpdated', true);
     };
     App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {
-      complete: function(){
+      complete: function () {
         callback();
       }
     });
+  },
+  /**
+   * construct conditional parameters of query, depending on which services are installed
+   * @return {Array}
+   */
+  getConditionalFields: function () {
+    var conditionalFields = [];
+    var serviceSpecificParams = {
+      'FLUME': "host_components/metrics/flume/flume",
+      'YARN': "host_components/metrics/yarn/Queue," +
+        "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",
+      'HBASE': "host_components/metrics/hbase/master/IsActiveMaster," +
+        "ServiceComponentInfo/MasterStartTime," +
+        "ServiceComponentInfo/MasterActiveTime," +
+        "ServiceComponentInfo/AverageLoad," +
+        "ServiceComponentInfo/Revision," +
+        "ServiceComponentInfo/RegionsInTransition",
+      'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
+        "ServiceComponentInfo/GrayListedNodes," +
+        "ServiceComponentInfo/BlackListedNodes," +
+        "ServiceComponentInfo/jobtracker/*,",
+      'STORM': "metrics/api/cluster/summary,"
+    };
+    var services = App.cache['services'];
+    services.forEach(function (service) {
+      var urlParams = serviceSpecificParams[service.ServiceInfo.service_name];
+      if (urlParams) {
+        conditionalFields.push(urlParams);
+      }
+    });
+    return conditionalFields;
   },
   updateServices: function (callback) {
     var testUrl = '/data/services/HDP2/services.json';
@@ -199,5 +205,4 @@ App.UpdateController = Em.Controller.extend({
       complete: callback
     });
   }
-
 });
