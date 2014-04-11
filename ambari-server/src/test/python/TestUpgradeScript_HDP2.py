@@ -195,19 +195,78 @@ class TestUpgradeHDP2Script(TestCase):
     pass
 
 
+  @patch.object(UpgradeHelper_HDP2, "has_component_in_stack_def")
+  @patch.object(UpgradeHelper_HDP2, "get_cluster_stackname")
   @patch.object(UpgradeHelper_HDP2, "read_mapping")
   @patch.object(logging, 'FileHandler')
   @patch.object(UpgradeHelper_HDP2, "backup_file")
   @patch.object(UpgradeHelper_HDP2, 'curl')
   @patch('optparse.OptionParser')
-  def test_add_yarn_mr(self, option_parser_mock, curl_mock,
-                       backup_file_mock, file_handler_mock, read_mapping_mock):
+  def test_add_yarn_mr_with_ATS(self, option_parser_mock, curl_mock,
+                       backup_file_mock, file_handler_mock, read_mapping_mock, get_stack_mock,  has_comp_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
     options = self.get_mock_options()
     args = ["add-yarn-mr2"]
     opm.parse_args.return_value = (options, args)
     curl_mock.return_value = ''
+    has_comp_mock.return_value = True
+    read_mapping_mock.return_value = {
+      "TASKTRACKER": ["c6401", "c6402"],
+      "JOBTRACKER": ["c6401"],
+      "HISTORYSERVER": ["c6401"],
+      "MAPREDUCE_CLIENT": ["c6403"]}
+    UpgradeHelper_HDP2.main()
+    expected_curl_calls = [
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/YARN"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/HISTORYSERVER"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/NODEMANAGER"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/YARN_CLIENT"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/RESOURCEMANAGER"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/APP_TIMELINE_SERVER"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/NODEMANAGER"),
+      call(False, '-u', 'admin:admin', '-H', 'X-Requested-By: ambari', '-X', 'POST',
+           'http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/HISTORYSERVER'),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/NODEMANAGER"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/YARN_CLIENT"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/MAPREDUCE2_CLIENT"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/RESOURCEMANAGER"),
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/APP_TIMELINE_SERVER")]
+    curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
+    pass
+  
+  @patch.object(UpgradeHelper_HDP2, "has_component_in_stack_def")
+  @patch.object(UpgradeHelper_HDP2, "get_cluster_stackname")
+  @patch.object(UpgradeHelper_HDP2, "read_mapping")
+  @patch.object(logging, 'FileHandler')
+  @patch.object(UpgradeHelper_HDP2, "backup_file")
+  @patch.object(UpgradeHelper_HDP2, 'curl')
+  @patch('optparse.OptionParser')
+  def test_add_yarn_mr_without_ATS(self, option_parser_mock, curl_mock,
+                       backup_file_mock, file_handler_mock, read_mapping_mock, get_stack_mock,  has_comp_mock):
+    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    opm = option_parser_mock.return_value
+    options = self.get_mock_options()
+    args = ["add-yarn-mr2"]
+    opm.parse_args.return_value = (options, args)
+    curl_mock.return_value = ''
+    has_comp_mock.return_value = False
     read_mapping_mock.return_value = {
       "TASKTRACKER": ["c6401", "c6402"],
       "JOBTRACKER": ["c6401"],
@@ -240,8 +299,15 @@ class TestUpgradeHDP2Script(TestCase):
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/MAPREDUCE2_CLIENT"),
       call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
-           "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/RESOURCEMANAGER")]
+           "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/RESOURCEMANAGER"),
+      ]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
+    
+    # assert no ATS was added
+    self.assert_(not call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+        "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/APP_TIMELINE_SERVER") in curl_mock.call_args_list, "ATS should not be added if it's not present!")     
+    self.assert_(not call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
+        "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/APP_TIMELINE_SERVER") in curl_mock.call_args_list, "ATS should not be added if it's not present!")  
     pass
 
 

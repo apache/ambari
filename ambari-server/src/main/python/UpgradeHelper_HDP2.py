@@ -56,7 +56,9 @@ REPLACE_WITH_TAG = "REPLACE_WITH_"
 DELETE_OLD_TAG = "DELETE_OLD"
 
 AUTH_FORMAT = '{0}:{1}'
-URL_FORMAT = 'http://{0}:8080/api/v1/clusters/{1}'
+ROOT_FORMAT = 'http://{0}:8080/api/v1'
+URL_FORMAT = ROOT_FORMAT+'/clusters/{1}'
+
 
 logger = logging.getLogger()
 
@@ -736,7 +738,36 @@ def delete_mr(options):
     raise FatalException(retcode, errdata)
   pass
 
+def get_cluster_stackname(options):
+  VERSION_URL_FORMAT = URL_FORMAT + '?fields=Clusters/version'
+  
+  response = curl(False, '-u',
+                AUTH_FORMAT.format(options.user, options.password),
+                VERSION_URL_FORMAT.format(options.hostname, options.clustername))
+  retcode, errdata = validate_response(response, True)
+  
+  if not retcode == 0:
+    raise FatalException(retcode, errdata)
+  
+  structured_resp = json.loads(response)
+  
+  if 'Clusters' in structured_resp:
+    if 'version' in structured_resp['Clusters']:
+      return structured_resp['Clusters']['version']
+        
+  raise FatalException(-1, "Unable to get the cluster version")
 
+def has_component_in_stack_def(options, stack_name, service_name, component_name):
+  STACK_COMPONENT_URL_FORMAT = ROOT_FORMAT+'/stacks2/{1}/versions/{2}/stackServices/{3}/serviceComponents/{4}'
+  stack, stack_version = stack_name.split('-')
+  
+  response = curl(False, '-u',
+                AUTH_FORMAT.format(options.user, options.password),
+                STACK_COMPONENT_URL_FORMAT.format(options.hostname, stack,
+                                                  stack_version, service_name, component_name))
+  retcode, errdata = validate_response(response, True)
+  return not bool(retcode)
+  
 def add_services(options):
   SERVICE_URL_FORMAT = URL_FORMAT + '/services/{2}'
   COMPONENT_URL_FORMAT = SERVICE_URL_FORMAT + '/components/{3}'
@@ -750,6 +781,15 @@ def add_services(options):
     "RESOURCEMANAGER": "JOBTRACKER",
     "YARN_CLIENT": "MAPREDUCE_CLIENT",
     "MAPREDUCE2_CLIENT": "MAPREDUCE_CLIENT"}
+  
+  stack_name = get_cluster_stackname(options)
+  stack_has_ats = has_component_in_stack_def(options, stack_name, "YARN", "APP_TIMELINE_SERVER")
+  
+  # if upgrading to stack > 2.1 (which has ats)
+  if stack_has_ats:
+    service_comp["YARN"].append("APP_TIMELINE_SERVER")
+    new_old_host_map["APP_TIMELINE_SERVER"] = "JOBTRACKER"
+    
   hostmapping = read_mapping()
 
   for service in service_comp.keys():
