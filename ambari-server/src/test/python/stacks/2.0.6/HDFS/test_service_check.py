@@ -52,7 +52,7 @@ class TestServiceCheck(RMFTestCase):
         try_sleep = 3,
         user = 'ambari-qa',
     )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp ; hadoop fs -chmod -R 777 /tmp',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp ; hadoop fs -chmod 777 /tmp',
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
         not_if = 'hadoop fs -test -e /tmp',
