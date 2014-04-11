@@ -29,18 +29,13 @@ App.MainAdminController = Em.Controller.extend({
    */
   isAccessAvailable: function() {
     var dependencies = {
-      services: ['YARN', 'TEZ'],
-      components: ['APP_TIMELINE_SERVER']
+      services: ['YARN', 'TEZ']
     };
     var serviceNames = App.Service.find().mapProperty('serviceName')
       .filter(function(serviceName) {
         return dependencies.services.contains(serviceName);
       });
-    var componentNames = App.get('stackDependedComponents').mapProperty('componentName')
-      .filter(function(componentName) {
-        return dependencies.components.contains(componentName);
-      });
-    var isAppTimelineServerAvailable = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER');
-    return (dependencies.services.length == serviceNames.length && componentNames.length == 0 && isAppTimelineServerAvailable);
+    var isAppTimelineServerAvailable = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER') ? true : false;
+    return (dependencies.services.length == serviceNames.length && isAppTimelineServerAvailable);
   }.property()
 });
