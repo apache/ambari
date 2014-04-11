@@ -64,7 +64,7 @@ class CopyFromLocalProvider(Provider):
     pass
 
     if mode:
-      dir_mode = oct(mode)
+      dir_mode = oct(mode)[1:]
       chmod_cmd = format('fs -chmod {dir_mode} {dest_path}')
 
       ExecuteHadoop(chmod_cmd,
