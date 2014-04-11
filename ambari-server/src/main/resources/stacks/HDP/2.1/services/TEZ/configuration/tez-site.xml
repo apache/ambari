@@ -156,7 +156,7 @@
   <!-- Client Submission timeout value when submitting DAGs to a session -->
   <property>
     <name>tez.session.client.timeout.secs</name>
-    <value>60</value>
+    <value>180</value>
     <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
       the client
     </description>
