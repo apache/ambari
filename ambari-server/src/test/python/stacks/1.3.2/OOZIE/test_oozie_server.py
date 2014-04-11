@@ -121,7 +121,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
       not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
     )
-    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars /usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar:',
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*"`:',
       not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
       user = 'oozie',
     )
@@ -263,7 +263,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
       not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
     )
-    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars /usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar:',
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*"`:',
       not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
       user = 'oozie',
     )
@@ -398,7 +398,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars /usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar:',
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*"`:',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               user = 'oozie',
                               )
@@ -497,7 +497,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars /usr/lib/hadoop/lib/hadoop-lzo-0.5.0.jar:',
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*"`:',
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               user = 'oozie',
                               )
