@@ -36,34 +36,51 @@ String.prototype.capitalize = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
-// Use: stringvalue.findIn(multi_dimensional_array_or_object)
-/***Example:
- var tofind = 'emotion';
- var person = {'name': 'Bob Loblaw', 'age': '28', 'personality': {'smart': 'yes', 'funny': 'yes', 'emotion': 'happy'} };
- tofind.findIn(person)
- ***/
-String.prototype.findIn = function (multi) {
+/**
+ * Finds the value in an object where this string is a key.
+ * Optionally, the index of the key can be provided where the
+ * value of the nth key in the hierarchy is returned.
+ *
+ * Example:
+ *  var tofind = 'smart';
+ *  var person = {'name': 'Bob Bob', 'smart': 'no', 'age': '28', 'personality': {'smart': 'yes', 'funny': 'yes', 'emotion': 'happy'} };
+ *  tofind.findIn(person); // 'no'
+ *  tofind.findIn(person, 0); // 'no'
+ *  tofind.findIn(person, 1); // 'yes'
+ *  tofind.findIn(person, 2); // null
+ *
+ *  @param multi  Object
+ *  @param index  Occurrence count of this key
+ *  @return Value of key at given index
+ */
+String.prototype.findIn = function(multi, index, _foundValues) {
+  if (!index) {
+    index = 0;
+  }
+  if (!_foundValues) {
+    _foundValues = [];
+  }
   multi = multi || '';
-  var val = this.valueOf();
-  if(typeof multi == 'object' || typeof multi == 'array')
-  {
-    if(val in multi)
-    {
-      return multi[val];
-    }
-    else
-    {
-      for(var x in multi)
-      {
-        var found = this.findIn(multi[x]);
-        if(found != false)
-        {
-          return found;
-        }
+  var value = null;
+  var str = this.valueOf();
+  if (typeof multi == 'object') {
+    for ( var key in multi) {
+      if (value != null) {
+        break;
+      }
+      if (key == str) {
+        _foundValues.push(multi[key]);
+      }
+      if (_foundValues.length - 1 == index) {
+        // Found the value
+        return _foundValues[index];
+      }
+      if (typeof multi[key] == 'object') {
+        value = value || this.findIn(multi[key], index, _foundValues);
       }
     }
   }
-  return false;
+  return value;
 };
 
 /**

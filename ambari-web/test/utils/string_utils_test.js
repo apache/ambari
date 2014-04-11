@@ -17,6 +17,7 @@
  */
 
 var string_utils = require('utils/string_utils');
+require('utils/helper');
 
 describe('string_utils', function () {
 
@@ -149,6 +150,87 @@ describe('string_utils', function () {
     tests.forEach(function(test) {
       it(test.i + ' to ' + test.e + ' ', function () {
         expect(string_utils.getCamelCase(test.i)).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#findIn', function () {
+    var tests = [
+      {
+        obj: {
+          a: '1',
+          b: '2'
+        },
+        key: 'a',
+        index: 0,
+        e: '1'
+      }, {
+        obj: {
+          a: '1',
+          b: '2'
+        },
+        key: 'a',
+        index: 1,
+        e: null
+      }, {
+        obj: {
+          a: '1',
+          b: '2',
+          c: {
+            a: '11',
+            aa: '12'
+          }
+        },
+        key: 'a',
+        index: 1,
+        e: '11'
+      }, {
+        obj: {
+          a: '1',
+          b: '2',
+          c: {
+            a: '11',
+            aa: {
+              a: '22'
+            }
+          }
+        },
+        key: 'a',
+        index: 2,
+        e: '22'
+      }, {
+        obj: {
+          a: '1',
+          b: '2',
+          c: {
+            a: '11',
+            aa: {
+              a: '22'
+            }
+          }
+        },
+        key: 'a',
+        index: 0,
+        e: '1'
+      }, {
+        obj: {
+          a: '1',
+          b: '2',
+          c: {
+            a: '11',
+            aa: {
+              a: '22'
+            }
+          }
+        },
+        key: 'g',
+        index: 0,
+        e: null
+      }
+    ];
+    tests.forEach(function(test) {
+      it(test.key + ' @ ' + test.index + ' = ' + test.e, function () {
+        expect(test.key.findIn(test.obj, test.index)).to.equal(test.e);
       });
     });
   });
