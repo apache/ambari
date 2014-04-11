@@ -37,8 +37,9 @@ class CopyFromLocalProvider(Provider):
     copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")
     dest_file_name = os.path.split(path)[1]
     dest_path = dest_dir + dest_file_name if dest_dir.endswith(os.sep) else dest_dir + os.sep + dest_file_name
-
-    unless_cmd = format("{kinnit_if_needed} hadoop fs -ls {dest_path} >/dev/null 2>&1")
+    # Need to run unless as resource user
+    su_cmd = 'su - {0} -c'.format(owner)
+    unless_cmd = format("{su_cmd} '{kinnit_if_needed} hadoop fs -ls {dest_path}' >/dev/null 2>&1")
 
     ExecuteHadoop(copy_cmd,
                   not_if=unless_cmd,
