@@ -292,20 +292,27 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       'content.tezDag.vertices.@each.recordReadCount', 'content.tezDag.vertices.@each.recordWriteCount',
       'content.tezDag.vertices.@each.state', 'content.tezDag.vertices.@each.spilledRecords'),
 
-  createOperationPlanObj: function (vertexName, op) {
+  createOperationPlanObj: function (vertexName, op, opIndex) {
     var operatorPlanObj = [];
     var text = this.get('content.tezDag.vertices').findProperty('name', vertexName).get('operationPlan');
     text = text.replace(/:"/g,'"').replace(/([:,])(?=\S)/g,'$1 ');
     var jsonText =  $.parseJSON(text);
-    var jsonText = op.findIn(jsonText);
-    for (var key in jsonText) {
-      if (jsonText.hasOwnProperty(key) && typeof(jsonText[key]) == "string") {
-        operatorPlanObj.push(
-          {
-            name: key,
-            value: jsonText[key]
-          }
-        );
+    if (!opIndex) {
+      opIndex = 0;
+    } else {
+      opIndex = parseInt(opIndex) - 1;
+    }
+    var jsonText = op.findIn(jsonText, opIndex);
+    if (jsonText!=null) {
+      for (var key in jsonText) {
+        if (jsonText.hasOwnProperty(key) && typeof(jsonText[key]) == "string") {
+          operatorPlanObj.push(
+              {
+                name: key,
+                value: jsonText[key]
+              }
+          );
+        }
       }
     }
     return operatorPlanObj;
@@ -670,7 +677,8 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
             operationName: op,
             operatorPlanObj: []
           };
-          var operatorPlanObj = self.createOperationPlanObj(n.name, op);
+          var opIndex = this.getAttribute('opIndex');
+          var operatorPlanObj = self.createOperationPlanObj(n.name, op, opIndex);
           viewContent.operatorPlanObj = operatorPlanObj;
           var template = App.HoverOpTable.create({content: viewContent}) ;
           $(this).find('.svg-tooltip').attr('title', template.renderToBuffer().string()).tooltip('fixTitle').tooltip('show');
