@@ -21,7 +21,7 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.5.1-SNAPSHOT</version>
   <description>Ambari</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
