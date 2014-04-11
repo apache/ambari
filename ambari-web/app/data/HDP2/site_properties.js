@@ -245,6 +245,14 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "yarn.timeline-service.enabled",
+      "displayName": "yarn.timeline-service.enabled",
+      "category": "AppTimelineServer",
+      "displayType": "checkbox",
+      "serviceName": "YARN"
+    },
+    {
+      "id": "site property",
       "name": "yarn.timeline-service.leveldb-timeline-store.path",
       "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
       "category": "AppTimelineServer",
