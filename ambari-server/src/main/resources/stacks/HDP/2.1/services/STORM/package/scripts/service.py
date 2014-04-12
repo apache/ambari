@@ -50,7 +50,7 @@ def service(
     if name == "rest_api":
       cmd = format("{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log")
     else:
-      cmd = format("env JAVA_HOME={java64_home} PATH=$PATH:{java64_home}/bin /usr/bin/storm {name}")
+      cmd = format("env JAVA_HOME={java64_home} PATH=$PATH:{java64_home}/bin /usr/bin/storm {name} > {log_dir}/{name}.out 2>&1")
 
     Execute(cmd,
            not_if=no_op_test,

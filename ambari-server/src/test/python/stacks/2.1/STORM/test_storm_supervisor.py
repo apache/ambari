@@ -43,7 +43,7 @@ class TestStormSupervisor(RMFTestCase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm supervisor',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm supervisor > /var/log/storm/supervisor.out 2>&1',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
       user = 'storm',
@@ -55,7 +55,7 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
       try_sleep = 10,
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm logviewer',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm logviewer > /var/log/storm/logviewer.out 2>&1',
                                wait_for_finish = False,
                                not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
                                user = 'storm'
@@ -112,7 +112,7 @@ class TestStormSupervisor(RMFTestCase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm supervisor',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm supervisor > /var/log/storm/supervisor.out 2>&1',
       wait_for_finish = False,
       not_if = 'ls /var/run/storm/supervisor.pid >/dev/null 2>&1 && ps `cat /var/run/storm/supervisor.pid` >/dev/null 2>&1',
       user = 'storm',
@@ -124,7 +124,7 @@ class TestStormSupervisor(RMFTestCase):
       user = 'storm',
       try_sleep = 10,
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm logviewer',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin /usr/bin/storm logviewer > /var/log/storm/logviewer.out 2>&1',
                         wait_for_finish = False,
                         not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
                         user = 'storm'
