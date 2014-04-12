@@ -21,16 +21,19 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -44,6 +47,9 @@ public class UpgradeCatalog151Test {
   public void testExecuteDDLUpdates() throws Exception {
 
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     dbAccessor.createTable(eq("viewmain"), EasyMock.<List<DBAccessor.DBColumnInfo>>anyObject(), eq("view_name"));
     dbAccessor.createTable(eq("viewinstancedata"), EasyMock.<List<DBAccessor.DBColumnInfo>>anyObject(),
@@ -61,11 +67,15 @@ public class UpgradeCatalog151Test {
     dbAccessor.addFKConstraint("viewresource", "FK_viewres_view_name", "view_name", "viewmain", "view_name", true);
     dbAccessor.addFKConstraint("viewinstance", "FK_viewinst_view_name", "view_name", "viewmain", "view_name", true);
 
-    replay(dbAccessor);
-
+    replay(dbAccessor, configuration);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
+    Class<?> c = AbstractUpgradeCatalog.class;
+    Field f = c.getDeclaredField("configuration");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, configuration);
+
     upgradeCatalog.executeDDLUpdates();
-    verify(dbAccessor);
+    verify(dbAccessor, configuration);
   }
 
   @Test

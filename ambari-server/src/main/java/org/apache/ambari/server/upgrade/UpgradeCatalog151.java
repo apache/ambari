@@ -20,6 +20,7 @@ package org.apache.ambari.server.upgrade;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 
 import java.sql.SQLException;
@@ -101,8 +102,14 @@ public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("subResource_names", String.class, 255, null, true));
     columns.add(new DBAccessor.DBColumnInfo("provider", String.class, 255, null, true));
     columns.add(new DBAccessor.DBColumnInfo("service", String.class, 255, null, true));
-    columns.add(new DBAccessor.DBColumnInfo("\"resource\"", String.class, 255, null, true)); //TODO incorrect name for oracle
-
+    if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+      columns.add(new DBAccessor.DBColumnInfo("`resource`", String.class, 255, null, true));
+      //TODO incorrect name for MySQL
+    	
+    } else{
+      columns.add(new DBAccessor.DBColumnInfo("\"resource\"", String.class, 255, null, true)); 
+        //TODO incorrect name for oracle
+    }
     dbAccessor.createTable("viewresource", columns, "view_name", "name");
 
 
