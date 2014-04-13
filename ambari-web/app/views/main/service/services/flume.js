@@ -21,16 +21,19 @@ var date = require('utils/date');
 App.MainDashboardServiceFlumeView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/flume'),
   serviceName: 'flume',
-  
-  summaryHeader: function () {
-    var count = this.get('service.nodes.length');
-    if(count==1)
-      return this.t("dashboard.services.flume.summary.single").format(count);
-    return this.t("dashboard.services.flume.summary.multiple").format(count);
-  }.property('service.nodes'),
 
-  flumeServerComponent: function () {
+  summaryHeader : function() {
+    var agents = App.FlumeService.find().objectAt(0).get('agents');//this.get('service.agents');
+    var agentCount = agents.get('length');
+    var hostCount = agents.mapProperty('host').uniq().get('length');
+    var prefix = agentCount == 1 ? this.t("dashboard.services.flume.summary.single") :
+      this.t("dashboard.services.flume.summary.multiple").format(agentCount);
+    var suffix = hostCount == 1 ? this.t("dashboard.services.flume.summary.hosts.single") :
+      this.t("dashboard.services.flume.summary.hosts.multiple").format(hostCount);
+    return prefix + suffix;
+  }.property('service.agents'),
+
+  flumeServerComponent: function() {
     return App.HostComponent.find().findProperty('componentName', 'FLUME_SERVER');
-  }.property()
-
+  }.property(),
 });

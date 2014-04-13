@@ -18,50 +18,57 @@
 
 <!-- Flume Agents -->
 <tr>
-  <td>{{t dashboard.services.flume.agentsLabel}}</td>
   <td>
+    <div id="flume-summary">
     <a href="#" {{action filterHosts view.flumeServerComponent}}>{{view.summaryHeader}}</a>
-  </td>
-</tr>
-<!-- Channels -->
-<tr>
-  <td>{{t dashboard.services.flume.channels}}</td>
-  <td>
-    {{view.service.channelsCount}} {{t dashboard.services.flume.channels}}
-    <ul>
-      {{#each view.service.nodes}}
-        {{#if channelsCount}}
-          <li> {{channels}} <a href="#" {{action showDetails host}}>{{host.publicHostName}}</a></li>
-        {{/if}}
+    <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
+      <tr>
+        <th>
+        </th>
+        <th>
+          Agent
+        </th>
+        <th>
+          Host
+        </th>
+        <th>
+          Sources
+        </th>
+        <th>
+          Channels
+        </th>
+        <th>
+          Sinks
+        </th>
+        <th>
+          Actions
+        </th>
+      </tr>
+      {{#each agent in view.service.agents}}
+        <tr>
+          <td class="agent-status">
+            <span {{bindAttr class="agent.healthClass"}}></span>
+          </td>
+          <td class="agent-name">
+            {{agent.name}}
+          </td>
+          <td class="agent-host-name">
+            {{agent.host.hostName}}
+          </td>
+          <td>
+            {{agent.sourcesCount}}
+          </td>
+          <td>
+            {{agent.channelsCount}}
+          </td>
+          <td>
+            {{agent.sinksCount}}
+          </td>
+          <td>
+          </td>
+        </tr>
       {{/each}}
-    </ul>
-  </td>
-</tr>
-<!-- Sources -->
-<tr>
-  <td>{{t dashboard.services.flume.sources}}</td>
-  <td>
-    {{view.service.sourcesCount}} {{t dashboard.services.flume.sources}}
-    <ul>
-      {{#each view.service.nodes}}
-        {{#if sourcesCount}}
-          <li> {{sources}} <a href="#" {{action showDetails host}}>{{host.publicHostName}}</a></li>
-        {{/if}}
-      {{/each}}
-    </ul>
-  </td>
-</tr>
-<!-- Sinks -->
-<tr>
-  <td>{{t dashboard.services.flume.sinks}}</td>
-  <td>
-    {{view.service.sinksCount}} {{t dashboard.services.flume.sinks}}
-    <ul>
-      {{#each view.service.nodes}}
-        {{#if sinksCount}}
-          <li> {{sinks}} <a href="#" {{action showDetails host}}>{{host.publicHostName}}</a></li>
-        {{/if}}
-      {{/each}}
-    </ul>
+    </table>
+    </div>
   </td>
 </tr>

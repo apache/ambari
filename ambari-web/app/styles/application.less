@@ -6057,3 +6057,34 @@ i.icon-asterisks {
   width:100%;
   min-height:600px;
 }
+
+#flume-summary {
+  text-align:left !important;
+  max-height: 490px;
+  overflow: scroll;
+  #flume-agents-table {
+    margin-top: 7px;
+    width: 100%;
+    td.agent-status {
+      width: 14px;
+      overflow: hidden;
+    }
+    td.agent-name {
+      width: 20%;
+      overflow: hidden;
+    }
+    td.agent-host-name {
+      width: 20%;
+      overflow: hidden;
+    }
+    .icon-ok-sign {
+      color: @health-status-green;
+    }
+    .icon-question-sign {
+      color: @health-status-yellow;
+    }
+    .icon-warning-sign {
+      color: #FDB82F;
+    }
+  }
+}

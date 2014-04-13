@@ -217,12 +217,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           finalJson = this.flumeMapper(item);
           finalJson.rand = Math.random();
           result.push(finalJson);
-          if (finalJson.nodeObjs) {
+          // TODO Below block to be uncommented when server data available
+          /*if (finalJson.nodeObjs) {
             finalJson.nodeObjs.forEach(function (no) {
               App.store.load(App.FlumeNode, no);
             });
           }
-          App.store.load(App.FlumeService, finalJson);
+          App.store.load(App.FlumeService, finalJson);*/
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
           finalJson = this.yarnMapper(item);
           finalJson.rand = Math.random();
