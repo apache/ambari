@@ -266,7 +266,7 @@
 
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+    <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>
       Java opts for the MR App Master processes for admin purposes.
       It will appears before the opts set by yarn.app.mapreduce.am.command-opts and
@@ -298,13 +298,13 @@
 
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+    <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>This property stores Java options for map tasks.</description>
   </property>
 
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+    <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>This property stores Java options for reduce tasks.</description>
   </property>
 
