@@ -352,7 +352,7 @@ limitations under the License.
 
   <property>
     <name>hive.tez.java.opts</name>
-    <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true</value>
+    <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC</value>
     <description></description>
   </property>
 
@@ -383,7 +383,7 @@ limitations under the License.
 
   <property>
     <name>hive.server2.tez.default.queues</name>
-    <value></value>
+    <value>default</value>
     <description></description>
   </property>
 
