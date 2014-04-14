@@ -111,8 +111,8 @@ public class AmbariMetaInfo {
   // all the supported OS'es
   private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
       "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
-      "oraclelinux6", "suse11", "sles11", "ubuntu12");
-  
+      "oraclelinux6", "suse11", "sles11", "ubuntu12", "debian12");
+
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
   private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
@@ -688,9 +688,9 @@ public class AmbariMetaInfo {
         return new Thread(r, "Stack Version Loading Thread");
       }
     });
-    
+
     List<LatestRepoCallable> lookupList = new ArrayList<LatestRepoCallable>();
-    
+
     for (StackInfo stack : stacks) {
       LOG.debug("Adding new stack to known stacks"
         + ", stackName = " + stack.getName()
@@ -733,9 +733,9 @@ public class AmbariMetaInfo {
               resolveHooksFolder(stack);
       stack.setStackHooksFolder(stackHooksToUse);
     }
-    
+
     es.invokeAll(lookupList);
-    
+
     es.shutdown();
   }
 
@@ -747,7 +747,7 @@ public class AmbariMetaInfo {
   private List<RepositoryInfo> getRepository(File repositoryFile, StackInfo stack,
       List<LatestRepoCallable> lookupList)
       throws JAXBException {
-    
+
     RepositoryXml rxml = StackExtensionHelper.unmarshal(RepositoryXml.class, repositoryFile);
 
     List<RepositoryInfo> list = new ArrayList<RepositoryInfo>();
@@ -763,7 +763,7 @@ public class AmbariMetaInfo {
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
           ri.setLatestBaseUrl(r.getBaseUrl());
-          
+
           if (null != metainfoDAO) {
             LOG.debug("Checking for override for base_url");
             String key = generateRepoMetaKey(r.getRepoName(), stack.getVersion(),
@@ -783,7 +783,7 @@ public class AmbariMetaInfo {
         }
       }
     }
-    
+
     if (null != rxml.getLatestURI() && list.size() > 0) {
       lookupList.add(new LatestRepoCallable(rxml.getLatestURI(),
           repositoryFile.getParentFile(), stack));
@@ -849,7 +849,7 @@ public class AmbariMetaInfo {
   public File getStackRoot() {
     return stackRoot;
   }
-  
+
   /**
    * Gets the metrics for a Role (component).
    * @return the list of defined metrics.
@@ -857,42 +857,42 @@ public class AmbariMetaInfo {
   public List<MetricDefinition> getMetrics(String stackName, String stackVersion,
       String serviceName, String componentName, String metricType)
   throws AmbariException {
-    
+
     ServiceInfo svc = getService(stackName, stackVersion, serviceName);
-    
+
     if (null == svc.getMetricsFile() || !svc.getMetricsFile().exists()) {
       LOG.debug("Metrics file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
       return null;
     }
-    
+
     Map<String, Map<String, List<MetricDefinition>>> map = svc.getMetrics();
-    
+
     // check for cached
     if (null == map) {
       // data layout:
       // "DATANODE" -> "Component" -> [ MetricDefinition, MetricDefinition, ... ]
       //           \-> "HostComponent" -> [ MetricDefinition, ... ]
       Type type = new TypeToken<Map<String, Map<String, List<MetricDefinition>>>>(){}.getType();
-      
+
       Gson gson = new Gson();
 
       try {
         map = gson.fromJson(new FileReader(svc.getMetricsFile()), type);
-    
+
         svc.setMetrics(map);
-        
+
       } catch (Exception e) {
         LOG.error ("Could not read the metrics file", e);
         throw new AmbariException("Could not read metrics file", e);
       }
     }
-    
+
     if (map.containsKey(componentName)) {
       if (map.get(componentName).containsKey(metricType)) {
         return map.get(componentName).get(metricType);
       }
     }
-	  
+
 	  return null;
   }
 

@@ -74,9 +74,9 @@ public class AmbariMetaInfoTest {
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
-  
+
   private static final String NON_EXT_VALUE = "XXX";
-  
+
   private static final int REPOS_CNT = 3;
   private static final int STACKS_NAMES_CNT = 1;
   private static final int PROPERTIES_CNT = 63;
@@ -86,7 +86,7 @@ public class AmbariMetaInfoTest {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
-  
+
 
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -136,7 +136,7 @@ public class AmbariMetaInfoTest {
     boolean supportedStack = metaInfo.isSupportedStack(STACK_NAME_HDP,
         STACK_VERSION_HDP);
     assertTrue(supportedStack);
-    
+
     boolean notSupportedStack = metaInfo.isSupportedStack(NON_EXT_VALUE,
         NON_EXT_VALUE);
     assertFalse(notSupportedStack);
@@ -180,7 +180,7 @@ public class AmbariMetaInfoTest {
   /**
    * Method: Map<String, ServiceInfo> getServices(String stackName, String
    * version, String serviceName)
-   * @throws AmbariException 
+   * @throws AmbariException
    */
   @Test
   public void getServices() throws AmbariException {
@@ -266,11 +266,11 @@ public class AmbariMetaInfoTest {
     assertEquals(3, redhat5cnt.size());
     assertEquals(3, centos6Cnt.size());
   }
-  
-  
+
+
   @Test
   /**
-   * Make sure global mapping is avaliable when global.xml is 
+   * Make sure global mapping is avaliable when global.xml is
    * in the path.
    * @throws Exception
    */
@@ -280,7 +280,7 @@ public class AmbariMetaInfoTest {
     List<PropertyInfo> pinfo = sinfo.getProperties();
     /** check all the config knobs and make sure the global one is there **/
     boolean checkforglobal = false;
-    
+
     for (PropertyInfo pinfol: pinfo) {
       if ("global.xml".equals(pinfol.getFilename())) {
         checkforglobal = true;
@@ -299,7 +299,7 @@ public class AmbariMetaInfoTest {
     }
     Assert.assertTrue(checkforhadoopheapsize);
   }
-  
+
   @Test
   public void testMetaInfoFileFilter() throws Exception {
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
@@ -322,7 +322,7 @@ public class AmbariMetaInfoTest {
     getSupportedConfigs();
     // Check .svn is not part of the stack but abcd.svn is
     Assert.assertNotNull(ambariMetaInfo.getStackInfo("abcd.svn", "001.svn"));
-    
+
     Assert.assertFalse(ambariMetaInfo.isSupportedStack(".svn", ""));
     Assert.assertFalse(ambariMetaInfo.isSupportedStack(".svn", ""));
   }
@@ -339,9 +339,9 @@ public class AmbariMetaInfoTest {
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
-    
+
   }
-  
+
   @Test
   public void testGetRepositories() throws Exception {
     List<RepositoryInfo> repositories = metaInfo.getRepositories(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE);
@@ -359,7 +359,7 @@ public class AmbariMetaInfoTest {
       Assert.assertTrue(e instanceof StackAccessException);
     }
   }
-  
+
   @Test
   public void testGetService() throws Exception {
     ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
@@ -369,16 +369,16 @@ public class AmbariMetaInfoTest {
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
-    
+
   }
-  
+
   @Test
   public void testGetStacksNames() throws Exception {
     Set<Stack> stackNames = metaInfo.getStackNames();
     assertEquals(stackNames.size(), STACKS_NAMES_CNT);
     assertTrue(stackNames.contains(new Stack(STACK_NAME_HDP)));
   }
-  
+
   @Test
   public void testGetStack() throws Exception {
     Stack stack = metaInfo.getStack(STACK_NAME_HDP);
@@ -408,7 +408,7 @@ public class AmbariMetaInfoTest {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
     Assert.assertEquals(properties.size(), PROPERTIES_CNT);
   }
-  
+
   @Test
   public void testGetProperty() throws Exception {
     PropertyInfo property = metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
@@ -420,21 +420,21 @@ public class AmbariMetaInfoTest {
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
-    
+
   }
-  
+
   @Test
   public void testGetOperatingSystems() throws Exception {
     Set<OperatingSystemInfo> operatingSystems = metaInfo.getOperatingSystems(STACK_NAME_HDP, STACK_VERSION_HDP);
     Assert.assertEquals(OS_CNT, operatingSystems.size());
   }
-  
+
   @Test
   public void testGetOperatingSystem() throws Exception {
     OperatingSystemInfo operatingSystem = metaInfo.getOperatingSystem(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE);
     Assert.assertEquals(operatingSystem.getOsType(), OS_TYPE);
-    
-    
+
+
     try {
       metaInfo.getOperatingSystem(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
     } catch (StackAccessException e) {
@@ -453,6 +453,7 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(metaInfo.isOsSupported("suse11"));
     Assert.assertTrue(metaInfo.isOsSupported("sles11"));
     Assert.assertTrue(metaInfo.isOsSupported("ubuntu12"));
+    Assert.assertTrue(metaInfo.isOsSupported("debian12"));
     Assert.assertFalse(metaInfo.isOsSupported("windows"));
   }
 
@@ -622,7 +623,7 @@ public class AmbariMetaInfoTest {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
     Assert.assertEquals(81, properties.size());
   }
-  
+
   @Test
   public void testBadStack() throws Exception {
     File stackRoot = new File("src/test/resources/bad-stacks");
@@ -634,27 +635,27 @@ public class AmbariMetaInfoTest {
       assertTrue(JAXBException.class.isInstance(e));
     }
   }
-  
+
   @Test
   public void testMetricsJson() throws Exception {
     ServiceInfo svc = metaInfo.getService(STACK_NAME_HDP, "2.0.5", "HDFS");
     Assert.assertNotNull(svc);
     Assert.assertNotNull(svc.getMetricsFile());
-    
+
     svc = metaInfo.getService(STACK_NAME_HDP, "2.0.6", "HDFS");
     Assert.assertNotNull(svc);
     Assert.assertNotNull(svc.getMetricsFile());
-    
+
     List<MetricDefinition> list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "NAMENODE", "Component");
     Assert.assertNotNull(list);
-    
+
     list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", "Component");
     Assert.assertNull(list);
-    
+
     List<MetricDefinition> list0 = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", "Component");
     Assert.assertNull(list0);
     Assert.assertTrue("Expecting subsequent calls to use a cached value for the definition", list == list0);
-    
+
 
     // not explicitly defined, uses 2.0.5
     list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", "Component");
@@ -1254,16 +1255,16 @@ public class AmbariMetaInfoTest {
     }
     return null;
   }
-  
+
   @Test
   public void testCustomConfigDir() throws Exception {
-    
+
     ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "MAPREDUCE2");
 
     // assert that the property was found in a differently-named directory
     // cannot check the dirname itself since extended stacks won't carry over
     // the name
-    
+
     boolean found = false;
     for (PropertyInfo pi : service.getProperties()) {
       if (pi.getName().equals("mr2-prop")) {
@@ -1271,13 +1272,13 @@ public class AmbariMetaInfoTest {
         found = true;
       }
     }
-    
+
     Assert.assertTrue(found);
   }
 
   @Test
   public void testLatestRepo() throws Exception {
-    
+
     for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "centos6")) {
       Assert.assertEquals(
           "Expected the base url to be set properly",
@@ -1288,7 +1289,7 @@ public class AmbariMetaInfoTest {
           "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
           ri.getDefaultBaseUrl());
     }
-    
+
     for (RepositoryInfo ri : metaInfo.getRepositories("HDP", "2.1.1", "suse11")) {
       Assert.assertEquals(
           "Expected hdp.json to be stripped from the url",
@@ -1300,8 +1301,8 @@ public class AmbariMetaInfoTest {
       Assert.assertEquals("http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/BUILDS/2.1.1.0-118",
           ri.getLatestBaseUrl());
     }
-    
-    
+
+
   }
 
 }

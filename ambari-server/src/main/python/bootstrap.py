@@ -28,6 +28,7 @@ import os
 import subprocess
 import threading
 import traceback
+import re
 from pprint import pformat
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
@@ -36,7 +37,7 @@ HOST_BOOTSTRAP_TIMEOUT = 300
 MAX_PARALLEL_BOOTSTRAPS = 20
 # How many seconds to wait between polling parallel bootstraps
 POLL_INTERVAL_SEC = 1
-DEBUG=False
+DEBUG = False
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:/tmp "
 
 
@@ -138,7 +139,7 @@ class Bootstrap(threading.Thread):
   """ Bootstrap the agent on a separate host"""
   TEMP_FOLDER = "/tmp"
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
-  AMBARI_REPO_FILENAME = "ambari.repo"
+  AMBARI_REPO_FILENAME = "ambari"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
   PASSWORD_FILENAME = "host_pass"
   COMMON_FUNCTIONS="/usr/lib/python2.6/site-packages/common_functions"
@@ -154,6 +155,11 @@ class Bootstrap(threading.Thread):
     log_file = os.path.join(self.shared_state.bootdir, self.host + ".log")
     self.host_log = HostLog(log_file)
     self.daemon = True
+
+    if self.is_debian():
+      self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".list"
+    else:
+      self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".repo"
 
 
   def getRemoteName(self, filename):
@@ -179,17 +185,23 @@ class Bootstrap(threading.Thread):
       self(obj, *args, **kwargs)
     return _call
 
-
   def is_suse(self):
     if os.path.isfile("/etc/issue"):
       if "suse" in open("/etc/issue").read().lower():
         return True
     return False
 
+  def is_debian(self):
+    if self.getServerFamily()[0] == "debian":
+      return True
+    return False
+
   def getRepoDir(self):
     """ Ambari repo file for Ambari."""
     if self.is_suse():
       return "/etc/zypp/repos.d"
+    elif self.is_debian():
+      return "/etc/apt/sources.list.d"
     else:
       return "/etc/yum.repos.d"
 
@@ -203,7 +215,7 @@ class Bootstrap(threading.Thread):
 
   def getOsCheckScriptRemoteLocation(self):
     return self.getRemoteName(self.OS_CHECK_SCRIPT_FILENAME)
-  
+
   def getCommonFunctionsRemoteLocation(self):
     return self.TEMP_FOLDER;
 
@@ -230,7 +242,7 @@ class Bootstrap(threading.Thread):
     result = scp.run()
     self.host_log.write("\n")
     return result
-  
+
   def copyCommonFunctions(self):
     # Copying the os check script file
     fileToCopy = self.COMMON_FUNCTIONS
@@ -261,6 +273,9 @@ class Bootstrap(threading.Thread):
     else:
       return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
 
+  def getAptUpdateCommand(self):
+    return "apt-get update -o Dir::Etc::sourcelist=\"%s/%s\" -o API::Get::List-Cleanup=\"0\" --no-list-cleanup" %\
+          ("sources.list.d", self.AMBARI_REPO_FILENAME)
 
   def copyNeededFiles(self):
     # Copying the files
@@ -284,6 +299,18 @@ class Bootstrap(threading.Thread):
               params.bootdir, self.host_log)
     retcode2 = ssh.run()
     self.host_log.write("\n")
+
+    # Update repo cache for debian OS
+    if self.is_debian():
+      self.host_log.write("==========================\n")
+      self.host_log.write("Update apt cache of repository...")
+      command = self.getAptUpdateCommand()
+      ssh = SSH(params.user, params.sshkey_file, self.host, command,
+                params.bootdir, self.host_log)
+      retcode2 = ssh.run()
+      self.host_log.write("\n")
+
+
 
     self.host_log.write("==========================\n")
     self.host_log.write("Copying setup script file...")
@@ -345,7 +372,7 @@ class Bootstrap(threading.Thread):
     params = self.shared_state
     self.host_log.write("==========================\n")
     self.host_log.write("Running OS type check...")
-    
+
     command = "chmod a+x %s && %s %s" % \
               (self.getOsCheckScriptRemoteLocation(),
                PYTHON_ENV + self.getOsCheckScriptRemoteLocation(), params.cluster_os_type)
@@ -379,13 +406,20 @@ class Bootstrap(threading.Thread):
       doneFile.write(str(retcode))
       doneFile.close()
 
+  def getServerFamily(self):
+    '''Return server OS family and version'''
+    cot = re.search("([^\d]+)([\d]*)", self.shared_state.cluster_os_type)
+    return cot.group(1).lower(),cot.group(2).lower()
 
   def checkSudoPackage(self):
     """ Checking 'sudo' package on remote host """
     self.host_log.write("==========================\n")
     self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
-    command = "rpm -qa | grep sudo"
+    if self.getServerFamily()[0] == "debian":
+      command = "dpkg --get-selections|grep -e ^sudo"
+    else:
+      command = "rpm -qa | grep -e ^sudo"
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log,
               errorMessage="Error: Sudo command is not available. " \
@@ -606,7 +640,7 @@ def main(argv=None):
 
   if passwordFile is not None and passwordFile != 'null':
     subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
-  
+
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +
                " with user '" + user + "' sshKey File " + sshkey_file + " password File " + passwordFile +\

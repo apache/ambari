@@ -29,7 +29,6 @@ import threading
 import traceback
 import stat
 from pprint import pformat
-import re
 
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
@@ -40,22 +39,33 @@ def execOsCommand(osCommand):
   ret = {"exitstatus": osStat.returncode, "log": log}
   return ret
 
+
 def is_suse():
   if os.path.isfile("/etc/issue"):
     if "suse" in open("/etc/issue").read().lower():
       return True
   return False
 
-def installAgentSuse(projectVersion):
-  """ Run zypper install and make sure the agent install alright """
-  zypperCommand = ["zypper", "install", "-y", "ambari-agent" + projectVersion]
-  return execOsCommand(zypperCommand)
+
+def is_ubuntu():
+  if os.path.isfile("/etc/issue"):
+    if "ubuntu" in open("/etc/issue").read().lower():
+      return True
+  return False
+
 
 def installAgent(projectVersion):
-  """ Run yum install and make sure the agent install alright """
+  """ Run install and make sure the agent install alright """
   # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
-  rpmCommand = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent" + projectVersion]
-  return execOsCommand(rpmCommand)
+  if is_suse():
+    Command = ["zypper", "install", "-y", "ambari-agent-" + projectVersion]
+  elif is_ubuntu():
+    # add * to end of version in case of some test releases
+    Command = ["apt-get", "install", "-y", "--force-yes", "ambari-agent=" + projectVersion + "*"]
+  else:
+    Command = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent-" + projectVersion]
+  return execOsCommand(Command)
+
 
 def configureAgent(server_hostname):
   """ Configure the agent so that it has all the configs knobs properly installed """
@@ -63,6 +73,7 @@ def configureAgent(server_hostname):
                                 "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
   execOsCommand(osCommand)
   return
+
 
 def runAgent(passPhrase, expected_hostname):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
@@ -82,68 +93,73 @@ def runAgent(passPhrase, expected_hostname):
       return ret['exitstatus']
 
     return agent_retcode
-  except (Exception), e:
+  except (Exception):
     return 1
 
 
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
-  if is_suse():
-    ret = findNearestAgentPackageVersionSuse(optimalVersion)
-  else:
-    ret = findNearestAgentPackageVersion(optimalVersion)
+  ret = findNearestAgentPackageVersion(optimalVersion)
 
   if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" and ret["log"][0].strip() == initialProjectVersion:
     optimalVersion = ret["log"][0].strip()
     retcode = 0
   else:
-    if is_suse():
-        ret = getAvaliableAgentPackageVersionsSuse()
-    else:
-        ret = getAvaliableAgentPackageVersions()
+    ret = getAvaliableAgentPackageVersions()
     retcode = 1
     optimalVersion = ret["log"]
 
   return {"exitstatus": retcode, "log": optimalVersion}
 
 
-def findNearestAgentPackageVersionSuse(projectVersion):
-  if projectVersion == "":
-    projectVersion = "  "
-  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep '" + projectVersion +\
-                                 "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
-  return execOsCommand(zypperCommand)
-
 def findNearestAgentPackageVersion(projectVersion):
   if projectVersion == "":
     projectVersion = "  "
-  yumCommand = ["bash", "-c", "yum list all ambari-agent | grep '" + projectVersion +\
+  if is_suse():
+    Command = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep '" + projectVersion +\
+                                 "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
+  elif is_ubuntu():
+    if projectVersion == "  ":
+      Command = ["bash", "-c", "apt-cache show ambari-agent |grep Version|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//g'"]
+    else:
+      Command = ["bash", "-c", "apt-cache show ambari-agent |grep Version|cut -d ' ' -f 2|grep '" +
+               projectVersion + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z\d]*//g'"]
+  else:
+    Command = ["bash", "-c", "yum list all ambari-agent | grep '" + projectVersion +\
                               "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1 | sed -e 's/-\w[^:]*//1' "]
-  return execOsCommand(yumCommand)
+  return execOsCommand(Command)
+
 
 def isAgentPackageAlreadyInstalled(projectVersion):
-    yumCommand = ["bash", "-c", "rpm -qa | grep ambari-agent"+projectVersion]
-    ret = execOsCommand(yumCommand)
+    if is_ubuntu():
+      Command = ["bash", "-c", "dpkg -s ambari-agent  2>&1|grep Version|grep " + projectVersion]
+    else:
+      Command = ["bash", "-c", "rpm -qa | grep ambari-agent-"+projectVersion]
+    ret = execOsCommand(Command)
     res = False
     if ret["exitstatus"] == 0 and ret["log"][0].strip() != "":
         res = True
     return res
 
-def getAvaliableAgentPackageVersions():
-    yumCommand = ["bash", "-c",
-        """yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
-    return execOsCommand(yumCommand)
 
-def getAvaliableAgentPackageVersionsSuse():
-    yumCommand = ["bash", "-c",
+def getAvaliableAgentPackageVersions():
+  if is_suse():
+    Command = ["bash", "-c",
         """zypper search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
-    return execOsCommand(yumCommand)
+  elif is_ubuntu():
+    Command = ["bash", "-c",
+        """apt-cache show ambari-agent|grep Version|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z\d]*//g'"""]
+  else:
+    Command = ["bash", "-c",
+        """yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
+  return execOsCommand(Command)
+
 
 def checkServerReachability(host, port):
   ret = {}
-  s = socket.socket() 
-  try: 
-   s.connect((host, port)) 
+  s = socket.socket()
+  try:
+   s.connect((host, port))
    return
   except Exception:
    ret["exitstatus"] = 1
@@ -153,8 +169,8 @@ def checkServerReachability(host, port):
    sys.exit(ret)
   pass
 
+
 def main(argv=None):
-  scriptDir = os.path.realpath(os.path.dirname(argv[0]))
   # Parse the input
   onlyargs = argv[1:]
   expected_hostname = onlyargs[0]
@@ -168,26 +184,23 @@ def main(argv=None):
     server_port = onlyargs[4]
   try:
     server_port = int(server_port)
-  except (Exception), e:
+  except (Exception):
     server_port = 8080
 
   checkServerReachability(hostname, server_port)
 
   if projectVersion is None or projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
+    projectVersion = ""  # fix error in error output, if projectVersion leaves None
     retcode = getOptimalVersion("")
   else:
     retcode = getOptimalVersion(projectVersion)
 
-
   if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
-      availiableProjectVersion = "-" + retcode["log"].strip()
+      availiableProjectVersion = retcode["log"].strip()
       if not isAgentPackageAlreadyInstalled(availiableProjectVersion):
-          if is_suse():
-            ret = installAgentSuse(availiableProjectVersion)
-          else:
-            ret = installAgent(availiableProjectVersion)
-          if (not ret["exitstatus"]== 0):
-            sys.exit(ret)
+        ret = installAgent(availiableProjectVersion)
+        if (not ret["exitstatus"] == 0):
+          sys.exit(ret)
   elif retcode["exitstatus"] == 1 and retcode["log"][0].strip() != "":
       sys.exit({"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
                                         " is not available."
@@ -202,4 +215,3 @@ def main(argv=None):
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)
   main(sys.argv)
-
