@@ -108,11 +108,11 @@
             </package>
             <package>
               <type>rpm</type>
-              <name>hadoop-lzo</name>
+              <name>hadoop-lzo-0.5.0</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>hadoop-lzo-native</name>
+              <name>hadoop-lzo-native-0.5.0</name>
             </package>
             <package>
               <type>rpm</type>
