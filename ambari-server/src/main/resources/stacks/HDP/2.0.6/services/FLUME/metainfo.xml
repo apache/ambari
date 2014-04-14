@@ -25,7 +25,7 @@
       <components>
         <component>
           <name>FLUME_HANDLER</name>
-          <category>MASTER</category>
+          <category>SLAVE</category>
           <commandScript>
             <script>scripts/flume_handler.py</script>
             <scriptType>PYTHON</scriptType>
