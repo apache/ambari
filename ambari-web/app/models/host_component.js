@@ -77,7 +77,6 @@ App.HostComponent = DS.Model.extend({
       case 'WEBHCAT_SERVER':
       case 'HUE_SERVER':
       case 'HISTORYSERVER':
-      case 'FLUME_SERVER':
       case 'FALCON_SERVER':
       case 'NIMBUS':
       case 'STORM_UI_SERVER':
@@ -104,6 +103,7 @@ App.HostComponent = DS.Model.extend({
       case 'NODEMANAGER':
       case 'ZKFC':
       case 'SUPERVISOR':
+      case 'FLUME_HANDLER':
         return true;
       default:
         return false;

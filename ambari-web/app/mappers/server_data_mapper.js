@@ -246,6 +246,7 @@ App.QuickDataMapper.componentServiceMap = function () {
     'SUPERVISOR': 'STORM',
     'STORM_UI_SERVER': 'STORM',
     'DRPC_SERVER': 'STORM',
-    'STORM_REST_API': 'STORM'
+    'STORM_REST_API': 'STORM',
+    'FLUME_HANDLER': 'FLUME'
   }
 };

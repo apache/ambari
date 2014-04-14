@@ -1782,6 +1782,7 @@ Em.I18n.translations = {
   'dashboard.services.flume.channels': 'Channels',
   'dashboard.services.flume.sources': 'Sources',
   'dashboard.services.flume.sinks': 'Sinks',
+  'dashboard.services.flume.agent': 'Agent',
 
 
   'dashboard.services.hbase.summary':'{0} region servers with {1} average load',

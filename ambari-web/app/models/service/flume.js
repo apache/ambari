@@ -45,6 +45,10 @@ App.FlumeAgent = DS.Model.extend({
    */
   sinks: DS.attr('string'),
 
+  hostName: function () {
+    return this.get('host.hostName');
+  }.property('host.hostName'),
+
   channelsCount: function() {
     var channels = this.get('channels');
     if (!channels) {

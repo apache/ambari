@@ -23,6 +23,7 @@ var sort = require('views/common/sort_view');
 App.MainDatasetsView = App.TableView.extend({
   name: 'mainDatasetsView',
   templateName: require('templates/main/mirroring/datasets'),
+  pagination: false,
   content: function () {
     return this.get('controller.datasets');
   }.property('controller.datasets.length'),
@@ -30,10 +31,6 @@ App.MainDatasetsView = App.TableView.extend({
   didInsertElement: function () {
     this.filter();
   },
-
-  endIndex: function () {
-    return this.get('filteredContent.length');
-  }.property('filteredContent.length'),
 
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({

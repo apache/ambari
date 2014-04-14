@@ -660,6 +660,30 @@
           }
         }
       ]
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/stacks/HDP/versions/2.1/stackServices/FLUME",
+      "StackServices" : {
+        "comments" : "Efficiently collects, aggregates, and moves large amounts of log data",
+        "service_name" : "FLUME",
+        "service_version" : "1.4.0",
+        "stack_name" : "HDP",
+        "stack_version" : "2.1"
+      },
+      "serviceComponents" : [
+        {
+          "href" : "http://localhost:8080/api/v1/stacks/HDP/versions/2.1/stackServices/FLUME/serviceComponents/FLUME_HANDLER",
+          "StackServiceComponents" : {
+            "component_category" : "SLAVE",
+            "component_name" : "FLUME_HANDLER",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "FLUME",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
     }
   ]
 }

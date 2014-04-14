@@ -344,6 +344,18 @@ module.exports = [
             isMaster: false
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'FLUME',
+        display_name: 'Flume',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Flume Agent',
+            component_name: 'FLUME_HANDLER',
+            component_value: '',
+            isMaster: false
+          })
+        ]
       })
     ]
   }

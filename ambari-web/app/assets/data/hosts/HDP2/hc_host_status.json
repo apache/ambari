@@ -319,6 +319,16 @@
             "host_name" : "dev01.hortonworks.com",
             "state" : "STARTED"
           }
+        },
+        {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/FLUME_HANDLER",
+          "HostRoles" : {
+            "cluster_name" : "perf",
+            "maintenance_state" : "OFF",
+            "component_name" : "FLUME_HANDLER",
+            "host_name" : "dev01.hortonworks.com",
+            "state" : "STARTED"
+          }
         }
       ]
     }

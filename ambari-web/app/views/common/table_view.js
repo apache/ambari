@@ -23,6 +23,12 @@ var sort = require('views/common/sort_view');
 App.TableView = Em.View.extend(App.UserPref, {
 
   /**
+   * Defines to show pagination or show all records
+   * @type {Boolean}
+   */
+  pagination: true,
+
+  /**
    * Shows if all data is loaded and filtered
    * @type {Boolean}
    */
@@ -270,7 +276,11 @@ App.TableView = Em.View.extend(App.UserPref, {
    * Calculate end index for displayed content on the page
    */
   endIndex: function () {
-    return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
+    if (this.get('pagination')) {
+      return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
+    } else {
+      return this.get('filteredContent.length')
+    }
   }.property('startIndex', 'displayLength', 'filteredContent.length'),
 
   /**

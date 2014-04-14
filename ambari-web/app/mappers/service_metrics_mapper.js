@@ -573,7 +573,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var finalConfig = jQuery.extend({}, this.config);
     var finalJson = this.parseIt(item, finalConfig);
     item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "FLUME_SERVER") {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "FLUME_HANDLER") {
         if (!finalJson.nodes) {
           finalJson.nodes = [];
         }

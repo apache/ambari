@@ -1,16 +1,16 @@
 {
-  "href" : "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/services/FLUME/components/FLUME_SERVER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[1371324108,1371327708,15]&_=1371327708316",
+  "href" : "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[1371324108,1371327708,15]&_=1371327708316",
   "ServiceComponentInfo" : {
     "cluster_name" : "fc",
-    "component_name" : "FLUME_SERVER",
+    "component_name" : "FLUME_HANDLER",
     "service_name" : "FLUME"
   },
   "host_components" : [
     {
-      "href" : "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/hosts/ip-10-204-21-198.ec2.internal/host_components/FLUME_SERVER",
+      "href" : "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/hosts/ip-10-204-21-198.ec2.internal/host_components/FLUME_HANDLER",
       "HostRoles" : {
         "cluster_name" : "fc",
-        "component_name" : "FLUME_SERVER",
+        "component_name" : "FLUME_HANDLER",
         "host_name" : "ip-10-204-21-198.ec2.internal"
       },
       "metrics" : {
@@ -955,10 +955,10 @@
       }
     },
     {
-      "href" : "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/hosts/ip-10-38-6-229.ec2.internal/host_components/FLUME_SERVER",
+      "href" : "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/hosts/ip-10-38-6-229.ec2.internal/host_components/FLUME_HANDLER",
       "HostRoles" : {
         "cluster_name" : "fc",
-        "component_name" : "FLUME_SERVER",
+        "component_name" : "FLUME_HANDLER",
         "host_name" : "ip-10-38-6-229.ec2.internal"
       },
       "metrics" : {

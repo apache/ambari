@@ -20,31 +20,21 @@
 <tr>
   <td>
     <div id="flume-summary">
-    <a href="#" {{action filterHosts view.flumeServerComponent}}>{{view.summaryHeader}}</a>
+    <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
     <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
-      <tr>
-        <th>
-        </th>
-        <th>
-          Agent
-        </th>
-        <th>
-          Host
-        </th>
-        <th>
-          Sources
-        </th>
-        <th>
-          Channels
-        </th>
-        <th>
-          Sinks
-        </th>
-        <th>
-          Actions
-        </th>
-      </tr>
-      {{#each agent in view.service.agents}}
+      <thead>
+      {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
+        {{view view.parentView.statusSort}}
+        {{view view.parentView.agentSort}}
+        {{view view.parentView.hostSort}}
+        {{view view.parentView.sourceSort}}
+        {{view view.parentView.channelSort}}
+        {{view view.parentView.sinkSort}}
+        <td></td>
+      {{/view}}
+      </thead>
+      <tbody>
+      {{#each agent in view.pageContent}}
         <tr>
           <td class="agent-status">
             <span {{bindAttr class="agent.healthClass"}}></span>
@@ -68,6 +58,7 @@
           </td>
         </tr>
       {{/each}}
+      </tbody>
     </table>
     </div>
   </td>
