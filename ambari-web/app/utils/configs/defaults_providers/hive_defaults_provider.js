@@ -26,14 +26,14 @@ App.HiveDefaultsProvider = App.YARNDefaultsProvider.extend({
     'hive.auto.convert.join.noconditionaltask.size': null
   },
 
-  getDefaults : function(localDB) {
+  getDefaults: function (localDB) {
     var configs = this._super(localDB);
     if (configs['yarn.scheduler.maximum-allocation-mb'] != null && configs['mapreduce.map.memory.mb'] != null
-        && configs['mapreduce.reduce.memory.mb'] != null) {
+      && configs['mapreduce.reduce.memory.mb'] != null) {
       var containerSize = configs['mapreduce.map.memory.mb'] > 2048 ? configs['mapreduce.map.memory.mb'] : configs['mapreduce.reduce.memory.mb'];
       containerSize = Math.min(configs['yarn.scheduler.maximum-allocation-mb'], containerSize);
       configs['hive.auto.convert.join.noconditionaltask.size'] = Math.round(containerSize / 3) * 1048576; // MB to Bytes
-      configs['hive.tez.java.opts'] = "-server -Xmx"+containerSize+"m -Djava.net.preferIPv4Stack=true";
+      configs['hive.tez.java.opts'] = "-server -Xmx" + containerSize + "m -Djava.net.preferIPv4Stack=true";
       configs['hive.tez.container.size'] = containerSize;
     } else {
       jQuery.extend(configs, this.get('configsTemplate'));

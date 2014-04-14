@@ -22,7 +22,7 @@ require('utils/configs/defaults_providers/yarn_defaults_provider');
 describe('HiveDefaultsProvider', function() {
 
   describe('#getDefaults', function() {
-    var tests = [
+    var tests = Em.A([
       {
         localDB: {},
         m: 'Empty localDB',
@@ -68,7 +68,9 @@ describe('HiveDefaultsProvider', function() {
           'yarn.scheduler.maximum-allocation-mb': 20480,
           'yarn.scheduler.minimum-allocation-mb': 2560,
           'mapreduce.task.io.sort.mb': 1024,
-          'hive.tez.container.size': 2560
+          'hive.tez.container.size': 2560,
+          'hive.auto.convert.join.noconditionaltask.size': 894435328,
+          'hive.tez.java.opts': '-server -Xmx2560m -Djava.net.preferIPv4Stack=true'
         }
       },
       {
@@ -99,7 +101,9 @@ describe('HiveDefaultsProvider', function() {
           'yarn.scheduler.maximum-allocation-mb': 8192,
           'yarn.scheduler.minimum-allocation-mb': 1024,
           'mapreduce.task.io.sort.mb': 410,
-          'hive.tez.container.size': 1024
+          'hive.tez.container.size': 1024,
+          'hive.auto.convert.join.noconditionaltask.size': 357564416,
+          'hive.tez.java.opts': '-server -Xmx1024m -Djava.net.preferIPv4Stack=true'
         }
       },
       {
@@ -130,10 +134,12 @@ describe('HiveDefaultsProvider', function() {
           'yarn.scheduler.maximum-allocation-mb': 69632,
           'yarn.scheduler.minimum-allocation-mb': 8704,
           'mapreduce.task.io.sort.mb': 1024,
-          'hive.tez.container.size': 8704
+          'hive.tez.container.size': 8704,
+          'hive.auto.convert.join.noconditionaltask.size': 3041918976,
+          'hive.tez.java.opts': '-server -Xmx8704m -Djava.net.preferIPv4Stack=true'
         }
       }
-    ];
+    ]);
     tests.forEach(function(test) {
       describe(test.m, function() {
         var defaultsProvider = App.HiveDefaultsProvider.create();
