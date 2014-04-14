@@ -24,9 +24,19 @@ App.HiveConfigsValidator = App.ServiceConfigsValidator.create({
    */
   configValidators: {
     'hive.tez.container.size': 'hiveTezContainerMb',
+    'hive.tez.java.opts': 'hiveTezJavaOpts',
+    'hive.auto.convert.join.noconditionaltask.size': 'hiveTezJoinNoConditionalBytes'
   },
 
   hiveTezContainerMb: function(config) {
+    return this.validatorLessThenDefaultValue(config);
+  },
+
+  hiveTezJavaOpts: function(config) {
+    return this.validateXmxValue(config);
+  },
+
+  hiveTezJoinNoConditionalBytes: function(config) {
     return this.validatorLessThenDefaultValue(config);
   }
 });
