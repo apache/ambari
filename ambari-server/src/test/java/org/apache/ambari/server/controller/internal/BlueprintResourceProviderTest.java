@@ -34,6 +34,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.easymock.Capture;
 
@@ -278,13 +279,26 @@ public class BlueprintResourceProviderTest {
   }
 
   private void setConfigurationProperties(Set<Map<String, Object>> properties ) {
-    Map<String, String> mapConfigsProps = new HashMap<String, String>();
-    mapConfigsProps.put("core-site/fs.trash.interval", "480");
-    mapConfigsProps.put("core-site/ipc.client.idlethreshold", "8500");
+    Map<String, String> clusterProperties = new HashMap<String, String>();
+    clusterProperties.put("core-site/fs.trash.interval", "480");
+    clusterProperties.put("core-site/ipc.client.idlethreshold", "8500");
 
     // single entry in set which was created in getTestProperties
     Map<String, Object> mapProperties = properties.iterator().next();
-    mapProperties.put("configurations", Collections.singleton(mapConfigsProps));
+    mapProperties.put("configurations", Collections.singleton(clusterProperties));
+
+    Map<String, Object> hostGroupProperties = new HashMap<String, Object>();
+    hostGroupProperties.put("core-site/my.custom.hg.property", "anything");
+
+    Collection<Map<String, Object>> hostGroups = (Collection<Map<String, Object>>) mapProperties.get
+        (BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
+
+    for (Map<String, Object> hostGroupProps : hostGroups) {
+      if (hostGroupProps.get(BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID).equals("group2")) {
+        hostGroupProps.put("configurations", Collections.singleton(hostGroupProperties));
+        break;
+      }
+    }
   }
 
   private void validateEntity(BlueprintEntity entity, boolean containsConfig) {
@@ -313,6 +327,19 @@ public class BlueprintResourceProviderTest {
         assertEquals(1, componentEntities.size());
         HostGroupComponentEntity componentEntity = componentEntities.iterator().next();
         assertEquals("component1", componentEntity.getName());
+
+        if (containsConfig) {
+          Collection<HostGroupConfigEntity> configurations = hostGroup.getConfigurations();
+          assertEquals(1, configurations.size());
+          HostGroupConfigEntity hostGroupConfigEntity = configurations.iterator().next();
+          assertEquals(BLUEPRINT_NAME, hostGroupConfigEntity.getBlueprintName());
+          assertSame(hostGroup, hostGroupConfigEntity.getHostGroupEntity());
+          assertEquals("core-site", hostGroupConfigEntity.getType());
+          Map<String, String> properties = gson.<Map<String, String>>fromJson(
+              hostGroupConfigEntity.getConfigData(), Map.class);
+          assertEquals(1, properties.size());
+          assertEquals("anything", properties.get("my.custom.hg.property"));
+        }
       } else {
         fail("Unexpected host group name");
       }

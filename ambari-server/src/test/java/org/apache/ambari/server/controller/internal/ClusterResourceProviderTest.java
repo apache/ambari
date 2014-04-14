@@ -39,6 +39,7 @@ import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
@@ -58,6 +59,7 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -139,6 +141,7 @@ public class ClusterResourceProviderTest {
     String blueprintName = "test-blueprint";
     String stackName = "test";
     String stackVersion = "1.23";
+    String clusterName = "c1";
 
     BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
     AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
@@ -169,10 +172,13 @@ public class ClusterResourceProviderTest {
     HostGroupComponentEntity hostGroupComponent2 = createNiceMock(HostGroupComponentEntity.class);
     HostGroupComponentEntity hostGroupComponent3 = createNiceMock(HostGroupComponentEntity.class);
 
+    HostGroupConfigEntity hostGroupConfig = createNiceMock(HostGroupConfigEntity.class);
+
     ServiceResourceProvider serviceResourceProvider = createStrictMock(ServiceResourceProvider.class);
     ResourceProvider componentResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
     ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
+    ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
     PersistKeyValueImpl persistKeyValue = createNiceMock(PersistKeyValueImpl.class);
 
     Capture<ClusterRequest> createClusterRequestCapture = new Capture<ClusterRequest>();
@@ -188,6 +194,7 @@ public class ClusterResourceProviderTest {
     Capture<Request> componentRequestCapture2 = new Capture<Request>();
     Capture<Request> hostRequestCapture = new Capture<Request>();
     Capture<Request> hostComponentRequestCapture = new Capture<Request>();
+    Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = new Capture<Set<ConfigGroupRequest>>();
 
     Set<StackServiceResponse> stackServiceResponses = new LinkedHashSet<StackServiceResponse>();
     stackServiceResponses.add(stackServiceResponse1);
@@ -221,7 +228,7 @@ public class ClusterResourceProviderTest {
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
-    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "c1");
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
     propertySet.add(properties);
 
@@ -235,6 +242,9 @@ public class ClusterResourceProviderTest {
     hostGroupHostProperties.put("fqdn", "host.domain");
     hostGroupHosts.add(hostGroupHostProperties);
     properties.put("host-groups", hostGroups);
+
+    Map<String, String> mapGroupConfigProperties = new HashMap<String, String>();
+    mapGroupConfigProperties.put("myGroupProp", "awesomeValue");
 
     // blueprint cluster configuration properties
     Map<String, String> blueprintConfigProperties = new HashMap<String, String>();
@@ -285,12 +295,17 @@ public class ClusterResourceProviderTest {
     expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
     expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintConfigProperties));
 
-    expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup));
-    expect(hostGroup.getName()).andReturn("group1");
-    expect(hostGroup.getComponents()).andReturn(hostGroupComponents);
-    expect(hostGroupComponent1.getName()).andReturn("component1");
-    expect(hostGroupComponent2.getName()).andReturn("component2");
-    expect(hostGroupComponent3.getName()).andReturn("component3");
+    expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
+    expect(hostGroup.getName()).andReturn("group1").anyTimes();
+    expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
+    expect(hostGroupComponent1.getName()).andReturn("component1").anyTimes();
+    expect(hostGroupComponent2.getName()).andReturn("component2").anyTimes();
+    expect(hostGroupComponent3.getName()).andReturn("component3").anyTimes();
+    expect(hostGroup.getConfigurations()).andReturn(
+        Collections.<HostGroupConfigEntity>singleton(hostGroupConfig)).anyTimes();
+
+    expect(hostGroupConfig.getType()).andReturn("core-site").anyTimes();
+    expect(hostGroupConfig.getConfigData()).andReturn(new Gson().toJson(mapGroupConfigProperties)).anyTimes();
 
     managementController.createCluster(capture(createClusterRequestCapture));
     expect(managementController.updateClusters(capture(updateClusterRequestCapture),
@@ -306,22 +321,26 @@ public class ClusterResourceProviderTest {
     expect(hostResourceProvider.createResources(capture(hostRequestCapture))).andReturn(null);
     expect(hostComponentResourceProvider.createResources(capture(hostComponentRequestCapture))).andReturn(null);
 
-    expect(serviceResourceProvider.installAndStart("c1")).andReturn(response);
+    expect(serviceResourceProvider.installAndStart(clusterName)).andReturn(response);
+
+    expect(configGroupResourceProvider.createResources(
+        capture(configGroupRequestCapture))).andReturn(null);
 
     persistKeyValue.put("CLUSTER_CURRENT_STATUS", "{\"clusterState\":\"CLUSTER_STARTED_5\"}");
 
     replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
            stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
            stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-           blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, serviceResourceProvider,
-           componentResourceProvider, hostResourceProvider, hostComponentResourceProvider, persistKeyValue);
+           blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
+           serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
+           configGroupResourceProvider, persistKeyValue);
 
     // test
     ClusterResourceProvider.injectBlueprintDAO(blueprintDAO);
     PersistKeyValueService.init(persistKeyValue);
     ResourceProvider provider = new TestClusterResourceProvider(
         managementController, serviceResourceProvider, componentResourceProvider,
-        hostResourceProvider, hostComponentResourceProvider);
+        hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
 
     RequestStatus requestStatus = provider.createResources(request);
 
@@ -367,7 +386,7 @@ public class ClusterResourceProviderTest {
         ! configReq2.getServiceName().equals(configReq1.getServiceName()));
 
     ClusterRequest clusterRequest = createClusterRequestCapture.getValue();
-    assertEquals("c1", clusterRequest.getClusterName());
+    assertEquals(clusterName, clusterRequest.getClusterName());
     assertEquals("test-1.23", clusterRequest.getStackVersion());
 
     Set<ClusterRequest> updateClusterRequest1 = updateClusterRequestCapture.getValue();
@@ -379,9 +398,9 @@ public class ClusterResourceProviderTest {
     ClusterRequest ucr1 = updateClusterRequest1.iterator().next();
     ClusterRequest ucr2 = updateClusterRequest2.iterator().next();
     ClusterRequest ucr3 = updateClusterRequest3.iterator().next();
-    assertEquals("c1", ucr1.getClusterName());
-    assertEquals("c1", ucr2.getClusterName());
-    assertEquals("c1", ucr3.getClusterName());
+    assertEquals(clusterName, ucr1.getClusterName());
+    assertEquals(clusterName, ucr2.getClusterName());
+    assertEquals(clusterName, ucr3.getClusterName());
     ConfigurationRequest cr1 = ucr1.getDesiredConfig();
     ConfigurationRequest cr2 = ucr2.getDesiredConfig();
     ConfigurationRequest cr3 = ucr3.getDesiredConfig();
@@ -422,37 +441,50 @@ public class ClusterResourceProviderTest {
     Set<String> componentRequest1Names = new HashSet<String>();
     for (Map<String, Object> componentRequest1Properties : componentRequest.getProperties()) {
       assertEquals(3, componentRequest1Properties.size());
-      assertEquals("c1", componentRequest1Properties.get("ServiceComponentInfo/cluster_name"));
+      assertEquals(clusterName, componentRequest1Properties.get("ServiceComponentInfo/cluster_name"));
       assertEquals("service1", componentRequest1Properties.get("ServiceComponentInfo/service_name"));
       componentRequest1Names.add((String) componentRequest1Properties.get("ServiceComponentInfo/component_name"));
     }
     assertTrue(componentRequest1Names.contains("component1") && componentRequest1Names.contains("component2"));
     assertEquals(1, componentRequest2.getProperties().size());
     Map<String, Object> componentRequest2Properties = componentRequest2.getProperties().iterator().next();
-    assertEquals("c1", componentRequest2Properties.get("ServiceComponentInfo/cluster_name"));
+    assertEquals(clusterName, componentRequest2Properties.get("ServiceComponentInfo/cluster_name"));
     assertEquals("service2", componentRequest2Properties.get("ServiceComponentInfo/service_name"));
     assertEquals("component3", componentRequest2Properties.get("ServiceComponentInfo/component_name"));
     Request hostRequest = hostRequestCapture.getValue();
     assertEquals(1, hostRequest.getProperties().size());
-    assertEquals("c1", hostRequest.getProperties().iterator().next().get("Hosts/cluster_name"));
+    assertEquals(clusterName, hostRequest.getProperties().iterator().next().get("Hosts/cluster_name"));
     assertEquals("host.domain", hostRequest.getProperties().iterator().next().get("Hosts/host_name"));
     Request hostComponentRequest = hostComponentRequestCapture.getValue();
     assertEquals(3, hostComponentRequest.getProperties().size());
     Set<String> componentNames = new HashSet<String>();
     for (Map<String, Object> hostComponentProperties : hostComponentRequest.getProperties()) {
       assertEquals(3, hostComponentProperties.size());
-      assertEquals("c1", hostComponentProperties.get("HostRoles/cluster_name"));
+      assertEquals(clusterName, hostComponentProperties.get("HostRoles/cluster_name"));
       assertEquals("host.domain", hostComponentProperties.get("HostRoles/host_name"));
       componentNames.add((String) hostComponentProperties.get("HostRoles/component_name"));
     }
     assertTrue(componentNames.contains("component1") && componentNames.contains("component2") &&
         componentNames.contains("component3"));
 
+    Set<ConfigGroupRequest> configGroupRequests = configGroupRequestCapture.getValue();
+    assertEquals(1, configGroupRequests.size());
+    ConfigGroupRequest configGroupRequest = configGroupRequests.iterator().next();
+    assertEquals(clusterName, configGroupRequest.getClusterName());
+    assertEquals("group1", configGroupRequest.getGroupName());
+    assertEquals("service1", configGroupRequest.getTag());
+    assertEquals("Host Group Configuration", configGroupRequest.getDescription());
+    Set<String> hosts = configGroupRequest.getHosts();
+    assertEquals(1, hosts.size());
+    assertEquals("host.domain", hosts.iterator().next());
+    assertEquals(1, configGroupRequest.getConfigs().size());
+
     verify(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
         stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
         stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
-        blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, serviceResourceProvider,
-        componentResourceProvider, hostResourceProvider, hostComponentResourceProvider, persistKeyValue);
+        blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
+        serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
+        configGroupResourceProvider, persistKeyValue);
   }
 
   @Test
@@ -719,12 +751,14 @@ public class ClusterResourceProviderTest {
     private ResourceProvider componentResourceProvider;
     private ResourceProvider hostResourceProvider;
     private ResourceProvider hostComponentResourceProvider;
+    private ResourceProvider configGroupResourceProvider;
 
     TestClusterResourceProvider(AmbariManagementController managementController,
                                 ResourceProvider serviceResourceProvider,
                                 ResourceProvider componentResourceProvider,
                                 ResourceProvider hostResourceProvider,
-                                ResourceProvider hostComponentResourceProvider) {
+                                ResourceProvider hostComponentResourceProvider,
+                                ResourceProvider configGroupResourceProvider) {
 
       super(PropertyHelper.getPropertyIds(Resource.Type.Cluster),
             PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
@@ -734,6 +768,7 @@ public class ClusterResourceProviderTest {
       this.componentResourceProvider = componentResourceProvider;
       this.hostResourceProvider = hostResourceProvider;
       this.hostComponentResourceProvider = hostComponentResourceProvider;
+      this.configGroupResourceProvider = configGroupResourceProvider;
     }
 
     @Override
@@ -746,6 +781,8 @@ public class ClusterResourceProviderTest {
         return this.hostResourceProvider;
       } else if (type == Resource.Type.HostComponent) {
         return this.hostComponentResourceProvider;
+      } else if (type == Resource.Type.ConfigGroup) {
+        return this.configGroupResourceProvider;
       } else {
         fail("Unexpected resource provider type requested");
       }

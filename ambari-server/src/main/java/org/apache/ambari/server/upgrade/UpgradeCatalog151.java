@@ -112,7 +112,6 @@ public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
     }
     dbAccessor.createTable("viewresource", columns, "view_name", "name");
 
-
     // ========================================================================
     // Add constraints
     dbAccessor.addFKConstraint("viewparameter", "FK_viewparam_view_name", "view_name", "viewmain", "view_name", true);
@@ -122,6 +121,9 @@ public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
     dbAccessor.addFKConstraint("viewinstancedata", "FK_viewinstdata_view_name",
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
+
+    dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name", "blueprint_name", "hostgroup", "blueprint_name", true);
+    dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_hostgroup_name", "hostgroup_name", "hostgroup", "name", true);
   }
 
 

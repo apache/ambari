@@ -32,6 +32,7 @@ import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
@@ -56,7 +57,10 @@ import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigImpl;
 
 /**
  * Resource provider for cluster resources.
@@ -266,12 +270,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null);
 
-    
+
     ConfigurationRequest configRequest = getConfigurationRequest("Clusters", properties);
-    
+
     if (null != configRequest)
       cr.setDesiredConfig(configRequest);
-    
+
     return cr;
   }
 
@@ -325,6 +329,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     createServiceAndComponentResources(blueprintHostGroups, clusterName, services);
     createHostAndComponentResources(blueprintHostGroups, clusterName);
+
+    registerConfigGroups(clusterName, blueprintHostGroups, stack);
 
     persistInstallStateForUI();
     return ((ServiceResourceProvider) getResourceProviderByType(Resource.Type.Service)).
@@ -868,6 +874,54 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     return resultGroups;
   }
 
+  /**
+   * Register config groups for host group scoped configuration.
+   * For each host group with configuration specified in the blueprint, a config group is created
+   * and the hosts associated with the host group are assigned to the config group.
+   *
+   * @param clusterName  name of cluster
+   * @param hostGroups   map of host group name to host group
+   * @param stack        associated stack information
+   *
+   * @throws ResourceAlreadyExistsException attempt to create a config group that already exists
+   * @throws SystemException                an unexpected exception occurs
+   * @throws UnsupportedPropertyException   an invalid property is provided when creating a config group
+   * @throws NoSuchParentResourceException  attempt to create a config group for a non-existing cluster
+   */
+  private void registerConfigGroups(String clusterName, Map<String, HostGroup> hostGroups, Stack stack) throws
+      ResourceAlreadyExistsException, SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException {
+
+    for (HostGroup group : hostGroups.values()) {
+      HostGroupEntity entity = group.getEntity();
+      Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
+      for (Map.Entry<String, Map<String, String>> entry: group.getConfigurations().entrySet()) {
+        String type = entry.getKey();
+        String service = stack.getServiceForConfigType(type);
+        Config config = new ConfigImpl(type);
+        config.setVersionTag(entity.getName());
+        config.setProperties(entry.getValue());
+        Map<String, Config> serviceConfigs = groupConfigs.get(service);
+        if (serviceConfigs == null) {
+          serviceConfigs = new HashMap<String, Config>();
+          groupConfigs.put(service, serviceConfigs);
+        }
+        serviceConfigs.put(type, config);
+      }
+
+      for (Map.Entry<String, Map<String, Config>> entry : groupConfigs.entrySet()) {
+        String service = entry.getKey();
+        Map<String, Config> serviceConfigs = entry.getValue();
+        ConfigGroupRequest request = new ConfigGroupRequest(
+            null, clusterName, entity.getName(), service, "Host Group Configuration",
+            new HashSet<String>(group.getHostInfo()), serviceConfigs);
+
+        ((ConfigGroupResourceProvider) getResourceProviderByType(Resource.Type.ConfigGroup)).
+            createResources(Collections.singleton(request));
+      }
+    }
+  }
+
 
   // ----- Inner Classes -----------------------------------------------------
 
@@ -995,6 +1049,24 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
 
     /**
+     * Obtain the service name which corresponds to the specified configuration.
+     *
+     * @param config  configuration type
+     *
+     * @return name of service which corresponds to the specified configuration type
+     */
+    public String getServiceForConfigType(String config) {
+      for (Map.Entry<String, Map<String, Map<String, String>>> entry : serviceConfigurations.entrySet()) {
+        Map<String, Map<String, String>> typeMap = entry.getValue();
+        if (typeMap.containsKey(config)) {
+          return entry.getKey();
+        }
+      }
+      throw new IllegalArgumentException(
+          "Specified configuration type is not associated with any service: " + config);
+    }
+
+    /**
      * Parse components for the specified service from the stack definition.
      *
      * @param service  service name
@@ -1075,6 +1147,13 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     private Map<String, Set<String>> componentsForService = new HashMap<String, Set<String>>();
 
     /**
+     * Map of host group configurations.
+     * Type -> Map<Key, Val>
+     */
+    private Map<String, Map<String, String>> configurations =
+        new HashMap<String, Map<String, String>>();
+
+    /**
      * Associated stack
      */
     private Stack stack;
@@ -1089,6 +1168,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       this.hostGroup = hostGroup;
       this.stack = stack;
       parseComponents();
+      parseConfigurations();
     }
 
     /**
@@ -1130,6 +1210,24 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
 
     /**
+     * Get the configurations associated with the host group.
+     *
+     * @return map of configuration type to a map of properties
+     */
+    public Map<String, Map<String, String>> getConfigurations() {
+      return configurations;
+    }
+
+    /**
+     * Get the associated entity.
+     *
+     * @return  associated host group entity
+     */
+    public HostGroupEntity getEntity() {
+      return hostGroup;
+    }
+
+    /**
      * Parse component information.
      */
     private void parseComponents() {
@@ -1143,6 +1241,23 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
           componentsForService.put(service, serviceComponents);
         }
         serviceComponents.add(name);
+      }
+    }
+
+    /**
+     * Parse host group configurations.
+     */
+    private void parseConfigurations() {
+      Gson jsonSerializer = new Gson();
+      for (HostGroupConfigEntity configEntity : hostGroup.getConfigurations()) {
+        String type = configEntity.getType();
+        Map<String, String> typeProperties = configurations.get(type);
+        if ( typeProperties == null) {
+          typeProperties = new HashMap<String, String>();
+          configurations.put(type, typeProperties);
+        }
+        configurations.put(type, jsonSerializer.<Map<String, String>>fromJson(
+            configEntity.getConfigData(), Map.class));
       }
     }
   }

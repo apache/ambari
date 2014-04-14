@@ -163,6 +163,7 @@ public class SchemaUpgradeHelper {
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
       catalogBinder.addBinding().to(UpgradeCatalog150.class);
       catalogBinder.addBinding().to(UpgradeCatalog151.class);
+      catalogBinder.addBinding().to(UpgradeCatalog160.class);
     }
   }
 

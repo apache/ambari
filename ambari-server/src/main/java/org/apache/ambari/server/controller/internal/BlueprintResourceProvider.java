@@ -34,8 +34,10 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
+import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 
 import java.util.ArrayList;
@@ -85,6 +87,9 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    */
   private static BlueprintDAO dao;
 
+  /**
+   * Used to serialize to/from json.
+   */
   private static Gson jsonSerializer;
 
 
@@ -246,24 +251,15 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
         listComponentProps.add(mapComponentProps);
       }
       mapGroupProps.put(COMPONENT_PROPERTY_ID, listComponentProps);
+      mapGroupProps.put(CONFIGURATION_PROPERTY_ID, populateConfigurationList(
+          hostGroup.getConfigurations()));
     }
     setResourceProperty(resource, HOST_GROUP_PROPERTY_ID, listGroupProps, requestedIds);
-
-    List<Map<String, Object>> listConfigurations = new ArrayList<Map<String, Object>>();
-    Collection<BlueprintConfigEntity> configurations = entity.getConfigurations();
-    for (BlueprintConfigEntity config : configurations) {
-      Map<String, Object> mapConfigurations = new HashMap<String, Object>();
-      String type = config.getType();
-      Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
-          config.getConfigData(), Map.class);
-      mapConfigurations.put(type, properties);
-      listConfigurations.add(mapConfigurations);
-    }
-    setResourceProperty(resource, CONFIGURATION_PROPERTY_ID, listConfigurations, requestedIds);
+    setResourceProperty(resource, CONFIGURATION_PROPERTY_ID,
+        populateConfigurationList(entity.getConfigurations()), requestedIds);
 
     return resource;
   }
-
   /**
    * Convert a resource to a blueprint entity.
    *
@@ -292,6 +288,8 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
 
       Collection<HostGroupComponentEntity> hostGroupComponents = new ArrayList<HostGroupComponentEntity>();
       group.setComponents(hostGroupComponents);
+      createHostGroupConfigEntities((Collection<Map<String,
+          String>>) properties.get(CONFIGURATION_PROPERTY_ID), group);
 
       List<Map<String, String>> listComponents = (List<Map<String, String>>)
           properties.get(BlueprintResourceProvider.COMPONENT_PROPERTY_ID);
@@ -308,8 +306,8 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       blueprintHostGroups.add(group);
     }
 
-    entity.setConfigurations(createConfigEntities(
-        (Collection<Map<String, String>>) resource.getPropertyValue(CONFIGURATION_PROPERTY_ID), entity));
+    createBlueprintConfigEntities((Collection<Map<String,
+        String>>) resource.getPropertyValue(CONFIGURATION_PROPERTY_ID), entity);
 
     return entity;
   }
@@ -344,6 +342,8 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       group.setBlueprintEntity(blueprint);
       group.setBlueprintName(name);
       group.setCardinality((String) hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
+      createHostGroupConfigEntities((Collection<Map<String,
+          String>>) hostGroupProperties.get(CONFIGURATION_PROPERTY_ID), group);
 
       Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
       group.setComponents(components);
@@ -362,46 +362,101 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       blueprintHostGroups.add(group);
     }
 
-    blueprint.setConfigurations(createConfigEntities(
-        (Collection<Map<String, String>>) properties.get(CONFIGURATION_PROPERTY_ID), blueprint));
+    createBlueprintConfigEntities((Collection<Map<String,
+        String>>) properties.get(CONFIGURATION_PROPERTY_ID), blueprint);
 
     return blueprint;
   }
 
   /**
-   * Create blueprint configuration entities from properties.
+   * Populate a list of configuration property maps from a collection of configuration entities.
    *
-   * @param setConfigurations  set of property maps
-   * @param blueprint          blueprint entity
+   * @param configurations  collection of configuration entities
    *
-   * @return collection of blueprint config entities
+   * @return list of configuration property maps
    */
-  private Collection<BlueprintConfigEntity> createConfigEntities(Collection<Map<String, String>> setConfigurations,
-                                                                 BlueprintEntity blueprint) {
+  private List<Map<String, Object>> populateConfigurationList(
+      Collection<? extends BlueprintConfiguration> configurations) {
+
+    List<Map<String, Object>> listConfigurations = new ArrayList<Map<String, Object>>();
+    for (BlueprintConfiguration config : configurations) {
+      Map<String, Object> mapConfigurations = new HashMap<String, Object>();
+      String type = config.getType();
+      Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
+          config.getConfigData(), Map.class);
+      mapConfigurations.put(type, properties);
+      listConfigurations.add(mapConfigurations);
+    }
+
+    return listConfigurations;
+  }
+
+  /**
+   * Populate blueprint configurations.
+   *
+   * @param propertyMaps  collection of configuration property maps
+   * @param blueprint     blueprint entity to set configurations on
+   */
+  private void createBlueprintConfigEntities(Collection<Map<String, String>> propertyMaps,
+                                             BlueprintEntity blueprint) {
 
     Collection<BlueprintConfigEntity> configurations = new ArrayList<BlueprintConfigEntity>();
-    if (setConfigurations != null) {
-      for (Map<String, String> configuration : setConfigurations) {
+    if (propertyMaps != null) {
+      for (Map<String, String> configuration : propertyMaps) {
         BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
         configEntity.setBlueprintEntity(blueprint);
-        configEntity.setBlueprintName(blueprint.getBlueprintName());
-        Map<String, String> configData = new HashMap<String, String>();
-
-        for (Map.Entry<String, String> entry : configuration.entrySet()) {
-          String absolutePropName = entry.getKey();
-
-          int idx = absolutePropName.indexOf('/');
-          if (configEntity.getType() == null) {
-            configEntity.setType(absolutePropName.substring(0, idx));
-          }
-          configData.put(absolutePropName.substring(idx + 1), entry.getValue());
-        }
-        configEntity.setConfigData(jsonSerializer.toJson(configData));
+        populateConfigurationEntity(blueprint.getBlueprintName(), configuration, configEntity);
         configurations.add(configEntity);
       }
     }
+    blueprint.setConfigurations(configurations);
+  }
 
-    return configurations;
+  /**
+   * Populate host group configurations.
+   *
+   * @param propertyMaps  collection of configuration property maps
+   * @param hostGroup     host group entity to set configurations on
+   */
+  private void createHostGroupConfigEntities(Collection<Map<String, String>> propertyMaps,
+                                             HostGroupEntity hostGroup) {
+
+    Collection<HostGroupConfigEntity> configurations = new ArrayList<HostGroupConfigEntity>();
+    if (propertyMaps != null) {
+      for (Map<String, String> configuration : propertyMaps) {
+        HostGroupConfigEntity configEntity = new HostGroupConfigEntity();
+        configEntity.setHostGroupEntity(hostGroup);
+        configEntity.setHostGroupName(hostGroup.getName());
+        populateConfigurationEntity(hostGroup.getBlueprintName(), configuration, configEntity);
+        configurations.add(configEntity);
+      }
+    }
+    hostGroup.setConfigurations(configurations);
+  }
+
+  /**
+   * Populate a configuration entity from properties.
+   *
+   * @param blueprintName  name of blueprint
+   * @param configuration  property map
+   * @param configEntity   config entity to populate
+   */
+  private void  populateConfigurationEntity(String blueprintName, Map<String, String> configuration,
+                                            BlueprintConfiguration configEntity) {
+
+    configEntity.setBlueprintName(blueprintName);
+    Map<String, String> configData = new HashMap<String, String>();
+
+    for (Map.Entry<String, String> entry : configuration.entrySet()) {
+      String absolutePropName = entry.getKey();
+
+      int idx = absolutePropName.indexOf('/');
+      if (configEntity.getType() == null) {
+        configEntity.setType(absolutePropName.substring(0, idx));
+      }
+      configData.put(absolutePropName.substring(idx + 1), entry.getValue());
+    }
+    configEntity.setConfigData(jsonSerializer.toJson(configData));
   }
 
   /**

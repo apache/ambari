@@ -22,21 +22,27 @@ import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * Represents a blueprint configuration.
+ * Represents a blueprint host group configuration.
  */
-@javax.persistence.IdClass(BlueprintConfigEntityPK.class)
-@Table(name = "blueprint_configuration")
+@IdClass(HostGroupConfigEntityPK.class)
+@Table(name = "hostgroup_configuration")
 @Entity
-public class BlueprintConfigEntity implements BlueprintConfiguration {
+public class HostGroupConfigEntity implements BlueprintConfiguration {
 
   @Id
   @Column(name = "blueprint_name", nullable = false, insertable = false, updatable = false)
   private String blueprintName;
+
+  @Id
+  @Column(name = "hostgroup_name", nullable = false, insertable = false, updatable = false)
+  private String hostGroupName;
 
   @Id
   @Column(name = "type_name", nullable = false, insertable = true, updatable = false)
@@ -47,8 +53,11 @@ public class BlueprintConfigEntity implements BlueprintConfiguration {
   private String configData;
 
   @ManyToOne
-  @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
-  private BlueprintEntity blueprint;
+  @JoinColumns({
+      @JoinColumn(name = "hostgroup_name", referencedColumnName = "name", nullable = false),
+      @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
+  })
+  private HostGroupEntity hostGroup;
 
 
   /**
@@ -70,21 +79,21 @@ public class BlueprintConfigEntity implements BlueprintConfiguration {
   }
 
   /**
-   * Get the blueprint entity instance.
+   * Get the host group entity instance.
    *
-   * @return blueprint entity
+   * @return host group entity
    */
-  public BlueprintEntity getBlueprintEntity() {
-    return blueprint;
+  public HostGroupEntity getHostGroupEntity() {
+    return hostGroup;
   }
 
   /**
-   * Set the blueprint entity instance.
+   * Set the host group entity instance.
    *
-   * @param entity  blueprint entity
+   * @param entity  host group entity
    */
-  public void setBlueprintEntity(BlueprintEntity entity) {
-    this.blueprint = entity;
+  public void setHostGroupEntity(HostGroupEntity entity) {
+    this.hostGroup = entity;
   }
 
   /**
@@ -103,6 +112,24 @@ public class BlueprintConfigEntity implements BlueprintConfiguration {
    */
   public void setBlueprintName(String blueprintName) {
     this.blueprintName = blueprintName;
+  }
+
+  /**
+   * Get the name of the associated host group.
+   *
+   * @return host group name
+   */
+  public String getHostGroupName() {
+    return hostGroupName;
+  }
+
+  /**
+   * Set the name of the associated host group.
+   * '
+   * @param hostGroupName  host group name
+   */
+  public void setHostGroupName(String hostGroupName) {
+    this.hostGroupName = hostGroupName;
   }
 
   /**

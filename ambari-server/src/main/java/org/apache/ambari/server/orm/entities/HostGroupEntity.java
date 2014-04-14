@@ -52,6 +52,9 @@ public class HostGroupEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "hostGroup")
   private Collection<HostGroupComponentEntity> components;
 
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "hostGroup")
+  private Collection<HostGroupConfigEntity> configurations;
+
   @ManyToOne
   @JoinColumn(name = "blueprint_name", referencedColumnName = "blueprint_name", nullable = false)
   private BlueprintEntity blueprint;
@@ -127,6 +130,24 @@ public class HostGroupEntity {
    */
   public void setComponents(Collection<HostGroupComponentEntity> components) {
     this.components = components;
+  }
+
+  /**
+   * Get the collection of associated configuration entities.
+   *
+   * @return collection of configurations
+   */
+  public Collection<HostGroupConfigEntity> getConfigurations() {
+    return configurations;
+  }
+
+  /**
+   * Set the collection of associated configuration entities.
+   *
+   * @param configurations  collection of configurations
+   */
+  public void setConfigurations(Collection<HostGroupConfigEntity> configurations) {
+    this.configurations = configurations;
   }
 
   /**

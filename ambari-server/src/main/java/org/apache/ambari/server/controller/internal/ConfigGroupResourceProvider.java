@@ -108,24 +108,9 @@ public class ConfigGroupResourceProvider extends
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getConfigGroupRequest(propertyMap));
     }
-    Set<ConfigGroupResponse> responses =
-      createResources(new Command<Set<ConfigGroupResponse>>() {
-        @Override
-        public Set<ConfigGroupResponse> invoke() throws AmbariException {
-          return createConfigGroups(requests);
-        }
-      });
-
+    RequestStatus status = createResources(requests);
     notifyCreate(Resource.Type.ConfigGroup, request);
-
-    Set<Resource> associatedResources = new HashSet<Resource>();
-    for (ConfigGroupResponse response : responses) {
-      Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
-      resource.setProperty(CONFIGGROUP_ID_PROPERTY_ID, response.getId());
-      associatedResources.add(resource);
-    }
-
-    return getRequestStatus(null, associatedResources);
+    return status;
   }
 
   @Override
@@ -219,6 +204,40 @@ public class ConfigGroupResourceProvider extends
     notifyDelete(Resource.Type.ConfigGroup, predicate);
 
     return getRequestStatus(null);
+  }
+
+  /**
+   * Create configuration group resources based on set of config group requests.
+   *
+   * @param requests  set of config group requests
+   *
+   * @return a request status
+   *
+   * @throws SystemException                an internal system exception occurred
+   * @throws UnsupportedPropertyException   the request contains unsupported property ids
+   * @throws ResourceAlreadyExistsException attempted to create a resource which already exists
+   * @throws NoSuchParentResourceException  a parent resource of the resource to create doesn't exist
+   */
+  public RequestStatus createResources(final Set<ConfigGroupRequest> requests)throws
+      SystemException, UnsupportedPropertyException,
+      ResourceAlreadyExistsException, NoSuchParentResourceException{
+
+    Set<ConfigGroupResponse> responses =
+        createResources(new Command<Set<ConfigGroupResponse>>() {
+          @Override
+          public Set<ConfigGroupResponse> invoke() throws AmbariException {
+            return createConfigGroups(requests);
+          }
+        });
+
+    Set<Resource> associatedResources = new HashSet<Resource>();
+    for (ConfigGroupResponse response : responses) {
+      Resource resource = new ResourceImpl(Resource.Type.ConfigGroup);
+      resource.setProperty(CONFIGGROUP_ID_PROPERTY_ID, response.getId());
+      associatedResources.add(resource);
+    }
+
+    return getRequestStatus(null, associatedResources);
   }
 
   private synchronized  Set<ConfigGroupResponse> getConfigGroups
@@ -613,7 +632,7 @@ public class ConfigGroupResourceProvider extends
    * @param predicate  the predicate
    * @param resource   the resource
    *
-   * @return
+   * @return always returns true
    */
   @Override
   public boolean evaluate(Predicate predicate, Resource resource) {
