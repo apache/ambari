@@ -33,7 +33,7 @@ App.HiveDefaultsProvider = App.YARNDefaultsProvider.extend({
       var containerSize = configs['mapreduce.map.memory.mb'] > 2048 ? configs['mapreduce.map.memory.mb'] : configs['mapreduce.reduce.memory.mb'];
       containerSize = Math.min(configs['yarn.scheduler.maximum-allocation-mb'], containerSize);
       configs['hive.auto.convert.join.noconditionaltask.size'] = Math.round(containerSize / 3) * 1048576; // MB to Bytes
-      configs['hive.tez.java.opts'] = "-server -Xmx"+containerSize+"m -Djava.net.preferIPv4Stack=true";
+      configs['hive.tez.java.opts'] = "-server -Xmx" + Math.round(0.8 * containerSize) + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC";
       configs['hive.tez.container.size'] = containerSize;
     } else {
       jQuery.extend(configs, this.get('configsTemplate'));
