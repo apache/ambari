@@ -66,6 +66,9 @@
               {{#if warning.version}}
                   <td class="package-version">{{warning.version}}</td>
               {{/if}}
+              {{#if warning.target}}
+                <td class="package-version">{{warning.target}}</td>
+              {{/if}}
               <td>{{category.action}}
                 <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hosts}}>
                   {{warning.hosts.length}}

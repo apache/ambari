@@ -764,7 +764,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       packagesWarnings: {},
       processesWarnings: {},
       servicesWarnings: {},
-      usersWarnings: {}
+      usersWarnings: {},
+      alternativeWarnings: {}
     };
 
     data.items.sortPropertyLight('Hosts.host_name').forEach(function (_host) {
@@ -923,6 +924,25 @@ App.WizardStep3Controller = Em.Controller.extend({
           warnings.push(warning);
         }
         host.warnings.push(warning);
+      }
+
+      if (_host.Hosts.last_agent_env.alternatives) {
+        _host.Hosts.last_agent_env.alternatives.forEach(function (alternative) {
+          warning = warningCategories.alternativeWarnings[alternative.name];
+          if (warning) {
+            warning.hosts.push(_host.Hosts.host_name);
+            warning.onSingleHost = false;
+          } else {
+            warningCategories.alternativeWarnings[alternative.name] = warning = {
+              name: alternative.name,
+              target: alternative.target,
+              hosts: [_host.Hosts.host_name],
+              category: 'alternatives',
+              onSingleHost: false
+            };
+          }
+          host.warnings.push(warning);
+        }, this);
       }
 
       hosts.push(host);
@@ -1169,6 +1189,16 @@ App.WizardStep3Controller = Em.Controller.extend({
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.misc'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
               category: 'misc',
+              isCollapsed: true
+            }),
+            Ember.Object.create({
+              warnings: categoryWarnings.filterProperty('category', 'alternatives'),
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives'),
+              message: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.message'),
+              type: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.umask'),
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.emptyinstaller.step3.hostWarningsPopup.alternatives.empty'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
+              category: 'alternatives',
               isCollapsed: true
             })
           ]
