@@ -22,16 +22,16 @@ var stringUtils = require('utils/string_utils');
 require('controllers/main/service/info/configs');
 
 App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
-  name:'mainAdminMiscController',
+  name: 'mainAdminMiscController',
   users: null,
-  content: {
+  content: Em.Object.create({
     serviceName: 'MISC'
-  },
-  loadUsers: function() {
+  }),
+  loadUsers: function () {
     this.set('selectedService', this.get('content.serviceName'));
     this.loadServiceConfig();
   },
-  loadServiceConfig: function() {
+  loadServiceConfig: function () {
     App.ajax.send({
       name: 'config.tags',
       sender: this,
@@ -42,13 +42,13 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
       success: 'loadServiceTagSuccess'
     });
   },
-  loadServiceTagSuccess: function(data, opt, params) {
+  loadServiceTagSuccess: function (data, opt, params) {
     var installedServices = App.Service.find().mapProperty("serviceName");
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     var loadedClusterSiteToTagMap = {};
 
-    for ( var site in data.Clusters.desired_configs) {
+    for (var site in data.Clusters.desired_configs) {
       if (serviceConfigsDef.sites.indexOf(site) > -1) {
         loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
       }
@@ -63,17 +63,42 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
 
     var sortOrder = this.get('configs').filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
 
-    var sorted = [];
-
     //stack, with version lower than 2.1, doesn't have Falcon service
-    var proxyUserGroup = misc_configs.findProperty('name', 'proxyuser_group');
-    if (proxyUserGroup && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.1") !== 1) {
-      proxyUserGroup.set('displayName', "Proxy group for Hive, WebHCat and Oozie");
-    }
+    this.setProxyUserGroupLabel(misc_configs);
 
-    if(sortOrder) {
-      sortOrder.forEach(function(name) {
-        var user = misc_configs.findProperty('name', name);
+    this.set('users', this.sortByOrder(sortOrder, misc_configs));
+
+    this.setContentProperty('hdfsUser', 'hdfs_user', misc_configs);
+    this.setContentProperty('group', 'user_group', misc_configs);
+
+    this.set('dataIsLoaded', true);
+  },
+  /**
+   * set config value to property of "content"
+   * @param key
+   * @param configName
+   * @param misc_configs
+   * @return {Boolean}
+   */
+  setContentProperty: function (key, configName, misc_configs) {
+    var content = this.get('content');
+    if (key && configName && misc_configs.someProperty('name', configName) && content.get(key)) {
+      content.set(key, misc_configs.findProperty('name', configName).get("value"));
+      return true;
+    }
+    return false;
+  },
+  /**
+   * sort miscellaneous configs by specific order
+   * @param sortOrder
+   * @param arrayToSort
+   * @return {Array}
+   */
+  sortByOrder: function (sortOrder, arrayToSort) {
+    var sorted = [];
+    if (sortOrder && sortOrder.length > 0) {
+      sortOrder.forEach(function (name) {
+        var user = arrayToSort.findProperty('name', name);
         if (user) {
           sorted.push({
             isVisible: user.get('isVisible'),
@@ -82,17 +107,19 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
           });
         }
       });
-      this.set('users', sorted);
+      return sorted;
+    } else {
+      return arrayToSort;
     }
-    else {
-      this.set('users', misc_configs);
+  },
+  /**
+   * set displayName of "proxyuser_group" depending on stack version
+   * @param misc_configs
+   */
+  setProxyUserGroupLabel: function (misc_configs) {
+    var proxyUserGroup = misc_configs.findProperty('name', 'proxyuser_group');
+    if (proxyUserGroup && !App.get('isHadoop21Stack')) {
+      proxyUserGroup.set('displayName', "Proxy group for Hive, WebHCat and Oozie");
     }
-    if(this.get("content.hdfsUser")){
-      this.get('content').set('hdfsUser', misc_configs.findProperty('name','hdfs_user').get("value"));
-    }
-    if (this.get("content.group")) {
-      this.get('content').set('group', misc_configs.findProperty('name','user_group').get("value"));
-    }
-    this.set('dataIsLoaded', true);
   }
 });

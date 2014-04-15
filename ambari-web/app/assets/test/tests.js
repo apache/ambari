@@ -27,6 +27,8 @@ require('test/controllers/global/update_controller_test');
 require('test/controllers/global/configuration_controller_test');
 require('test/controllers/main/app_contoller_test');
 require('test/controllers/main/admin/cluster_test');
+require('test/controllers/main/admin/misc_controller_test');
+require('test/controllers/main/admin/security_test');
 require('test/controllers/main/admin/security/add/addSecurity_controller_test');
 require('test/controllers/main/admin/security/add/step2_test');
 require('test/controllers/main/admin/security/add/step3_test');

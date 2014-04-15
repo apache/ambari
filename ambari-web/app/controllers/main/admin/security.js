@@ -47,10 +47,10 @@ App.MainAdminSecurityController = Em.Controller.extend({
   serviceConfigTags: [],
   selectedService: null,
   isNotEditable: true,
-  services: function(){
+  services: function () {
     var secureServices;
     var services = [];
-    if(App.get('isHadoop2Stack')) {
+    if (App.get('isHadoop2Stack')) {
       secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
     } else {
       secureServices = $.extend(true, [], require('data/secure_configs'));
@@ -68,7 +68,26 @@ App.MainAdminSecurityController = Em.Controller.extend({
     return services;
   }.property(),
 
-  loadStep: function(){
+  /**
+   * default values of configs, which contains user names
+   */
+  defaultUserNameMap: {
+    'hdfs_user': 'hdfs',
+    'yarn_user': 'yarn',
+    'mapred_user': 'mapred',
+    'hbase_user': 'hbase',
+    'hive_user': 'hive',
+    'proxyuser_group': 'users',
+    'smokeuser': 'ambari-qa',
+    'zk_user': 'zookeeper',
+    'oozie_user': 'oozie',
+    'nagios_user': 'nagios',
+    'user_group': 'hadoop',
+    'storm_user': 'storm',
+    'falcon_user': 'falcon'
+  },
+
+  loadStep: function () {
     var step2Controller = App.router.get('mainAdminSecurityAddStep2Controller');
     var services = this.get('services');
     this.get('stepConfigs').clear();
@@ -96,9 +115,9 @@ App.MainAdminSecurityController = Em.Controller.extend({
    * @param stepConfigs
    * @param serverConfigs
    */
-  setConfigValuesFromServer: function(stepConfigs, serverConfigs){
+  setConfigValuesFromServer: function (stepConfigs, serverConfigs) {
     var allConfigs = {};
-    serverConfigs.mapProperty('properties').forEach(function(_properties){
+    serverConfigs.mapProperty('properties').forEach(function (_properties) {
       allConfigs = $.extend(allConfigs, _properties);
     }, this);
     // for all services`
@@ -114,7 +133,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
         }
       }, this);
     }, this);
-
   },
 
   /**
@@ -133,7 +151,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
           newTagName: null,
           configs: {}
         };
-        console.log("The value of serviceConfigTags[index]: " + configs[index]);
         this.get('serviceConfigTags').pushObject(serviceConfigObj);
       }
     }
@@ -156,24 +173,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
     }
     this.set('securityUsers', securityUsers);
   },
-  /**
-   * fill config with hosts of component
-   * @param service
-   * @param configName
-   * @param componentName
-   */
-  setHostsToConfig: function (service, configName, componentName) {
-    if (service) {
-      var hosts = service.configs.findProperty('name', configName);
-      if (hosts) {
-        hosts.defaultValue = App.Service.find(service.serviceName)
-          .get('hostComponents')
-          .filterProperty('componentName', componentName)
-          .mapProperty('host.hostName');
-      }
-    }
-  },
-
   /**
    * Load child components to service config object
    * @param _componentConfig
@@ -297,49 +296,36 @@ App.MainAdminSecurityController = Em.Controller.extend({
     this.set('dataIsLoaded', true);
   },
 
-  setNnHaStatus: function(hdfsConfigs) {
+  setNnHaStatus: function (hdfsConfigs) {
     var nnHaStatus = hdfsConfigs && hdfsConfigs['dfs.nameservices'];
     var namenodesKey;
     if (nnHaStatus) {
       namenodesKey = 'dfs.ha.namenodes.' + hdfsConfigs['dfs.nameservices'];
     }
-    if(nnHaStatus && hdfsConfigs[namenodesKey]) {
+    if (nnHaStatus && hdfsConfigs[namenodesKey]) {
       App.db.setIsNameNodeHa('true');
     } else {
       App.db.setIsNameNodeHa('false');
     }
   },
 
-  loadUsers: function (configs) {
-    this.setUserName('hdfs_user',configs, 'hdfs');
-    this.setUserName('yarn_user',configs, 'yarn');
-    this.setUserName('mapred_user',configs, 'mapred');
-    this.setUserName('hbase_user',configs, 'hbase');
-    this.setUserName('hive_user',configs, 'hive');
-    this.setUserName('proxyuser_group',configs, 'users');
-    this.setUserName('smokeuser',configs, 'ambari-qa');
-    this.setUserName('zk_user',configs, 'zookeeper');
-    this.setUserName('oozie_user',configs, 'oozie');
-    this.setUserName('nagios_user',configs, 'nagios');
-    this.setUserName('user_group',configs, 'hadoop');
-    this.setUserName('storm_user',configs, 'storm');
-    this.setUserName('falcon_user',configs,'falcon');
-    App.db.setSecureUserInfo(this.get('serviceUsers'));
-  },
-
   /**
-   *
-   * @param name
-   * @param configs
-   * @param defaultValue
+   * load users names,
+   * substitute missing values with default
+   * @param configs {Object}
    */
-  setUserName: function(name,configs,defaultValue) {
+  loadUsers: function (configs) {
+    var defaultUserNameMap = this.get('defaultUserNameMap');
     var serviceUsers = this.get('serviceUsers');
-    serviceUsers.pushObject({
-      id: 'puppet var',
-      name: name,
-      value: configs[name] ? configs[name] : defaultValue
-    });
+
+    for (var configName in defaultUserNameMap) {
+      serviceUsers.push({
+        id: 'puppet var',
+        name: configName,
+        value: configs[configName] || defaultUserNameMap[configName]
+      });
+    }
+    App.db.setSecureUserInfo(this.get('serviceUsers'));
   },
 
   showSecurityErrorPopup: function () {

@@ -70,7 +70,7 @@ describe('HiveDefaultsProvider', function() {
           'mapreduce.task.io.sort.mb': 1024,
           'hive.tez.container.size': 2560,
           'hive.auto.convert.join.noconditionaltask.size': 894435328,
-          'hive.tez.java.opts': '-server -Xmx2560m -Djava.net.preferIPv4Stack=true'
+          'hive.tez.java.opts': '-server -Xmx2048m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC'
         }
       },
       {
@@ -103,7 +103,7 @@ describe('HiveDefaultsProvider', function() {
           'mapreduce.task.io.sort.mb': 410,
           'hive.tez.container.size': 1024,
           'hive.auto.convert.join.noconditionaltask.size': 357564416,
-          'hive.tez.java.opts': '-server -Xmx1024m -Djava.net.preferIPv4Stack=true'
+          'hive.tez.java.opts': '-server -Xmx819m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC'
         }
       },
       {
@@ -136,7 +136,7 @@ describe('HiveDefaultsProvider', function() {
           'mapreduce.task.io.sort.mb': 1024,
           'hive.tez.container.size': 8704,
           'hive.auto.convert.join.noconditionaltask.size': 3041918976,
-          'hive.tez.java.opts': '-server -Xmx8704m -Djava.net.preferIPv4Stack=true'
+          'hive.tez.java.opts': '-server -Xmx6963m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC'
         }
       }
     ]);
