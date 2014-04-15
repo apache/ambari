@@ -30,6 +30,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.Cluster;
@@ -188,11 +189,18 @@ public class AmbariCustomCommandExecutionHelper {
       sb.append(" ");
       sb.append(resourceFilter.getServiceName());
     }
+
     if (resourceFilter.getComponentName() != null
         && !resourceFilter.getComponentName().equals("")) {
       sb.append("/");
       sb.append(resourceFilter.getComponentName());
     }
+
+    RequestOperationLevel level = actionRequest.getOperationLevel();
+    if (level != null) {
+      sb.append("op_lvl: " + level.getLevel().toString());
+    }
+
     return sb.toString();
   }
 

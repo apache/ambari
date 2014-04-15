@@ -30,7 +30,10 @@ import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -914,8 +917,8 @@ public class RequestResourceProviderTest {
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
 
-    requestInfoProperties.put("/parameters/param1", "value1");
-    requestInfoProperties.put("/parameters/param2", "value2");
+    requestInfoProperties.put("parameters/param1", "value1");
+    requestInfoProperties.put("parameters/param2", "value2");
 
     String[] expectedHosts = new String[]{"host1", "host2", "host3"};
     Map<String, String> expectedParams = new HashMap<String, String>() {{
@@ -965,4 +968,99 @@ public class RequestResourceProviderTest {
       Assert.assertEquals(expectedParams.get(key), capturedRequest.getParameters().get(key));
     }
   }
+
+  @Test
+  public void testCreateResourcesForCommandsWithOpLvl() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
+    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
+            .andReturn(response).anyTimes();
+
+    // replay
+    replay(managementController);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    String c1 = "c1";
+    String host_component = "HOST_COMPONENT";
+    String service_id = "HDFS";
+    String hostcomponent_id = "Namenode";
+    String host_id = "host1";
+
+    properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, c1);
+
+    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
+    Map<String, Object> filterMap = new HashMap<String, Object>();
+    filterMap.put(RequestResourceProvider.SERVICE_ID, service_id);
+    filterMap.put(RequestResourceProvider.HOSTS_ID, host_id);
+    filterSet.add(filterMap);
+
+    properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
+
+    propertySet.add(properties);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
+
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_LEVEL_ID,
+            host_component);
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_CLUSTER_ID, c1);
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_SERVICE_ID,
+            service_id);
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_HOSTCOMPONENT_ID,
+            hostcomponent_id);
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_HOST_ID,
+            host_id);
+
+    Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+            type,
+            PropertyHelper.getPropertyIds(type),
+            PropertyHelper.getKeyPropertyIds(type),
+            managementController);
+
+    // Check exception wrong operation level is specified
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_LEVEL_ID,
+            "wrong_value");
+    try {
+      provider.createResources(request);
+      Assert.fail("Should throw an exception");
+    } catch (UnsupportedOperationException e) {
+      // expected
+    }
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_LEVEL_ID,
+            host_component);
+
+    // Check exception when cluster name is not specified
+    requestInfoProperties.remove(RequestResourceProvider.OPERATION_CLUSTER_ID);
+    try {
+      provider.createResources(request);
+      Assert.fail("Should throw an exception");
+    } catch (UnsupportedOperationException e) {
+      // expected
+    }
+    requestInfoProperties.put(RequestResourceProvider.OPERATION_CLUSTER_ID, c1);
+
+    // create request in a normal way (positive scenario)
+    provider.createResources(request);
+    Assert.assertTrue(actionRequest.hasCaptured());
+    ExecuteActionRequest capturedRequest = actionRequest.getValue();
+    RequestOperationLevel level = capturedRequest.getOperationLevel();
+    Assert.assertEquals(level.getLevel().toString(), "HostComponent");
+    Assert.assertEquals(level.getClusterName(), c1);
+    Assert.assertEquals(level.getServiceName(), service_id);
+    Assert.assertEquals(level.getHostComponentName(), hostcomponent_id);
+    Assert.assertEquals(level.getHostName(), host_id);
+  }
+
+
 }

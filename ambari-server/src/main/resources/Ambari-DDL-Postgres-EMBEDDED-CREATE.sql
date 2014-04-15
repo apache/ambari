@@ -85,6 +85,9 @@ GRANT ALL PRIVILEGES ON TABLE ambari.request TO :username;
 CREATE TABLE ambari.requestresourcefilter (filter_id BIGINT NOT NULL, request_id BIGINT NOT NULL, service_name VARCHAR(255), component_name VARCHAR(255), hosts BYTEA, PRIMARY KEY (filter_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestresourcefilter TO :username;
 
+CREATE TABLE ambari.requestoperationlevel (operation_level_id BIGINT NOT NULL, request_id BIGINT NOT NULL, level_name VARCHAR(255), cluster_name VARCHAR(255), service_name VARCHAR(255), host_component_name VARCHAR(255), host_name VARCHAR(255), PRIMARY KEY (operation_level_id));
+GRANT ALL PRIVILEGES ON TABLE ambari.requestoperationlevel TO :username;
+
 CREATE TABLE ambari.ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.ClusterHostMapping TO :username;
 
@@ -181,6 +184,7 @@ ALTER TABLE ambari.hostgroup_component ADD CONSTRAINT FK_hgc_blueprint_name FORE
 ALTER TABLE ambari.blueprint_configuration ADD CONSTRAINT FK_cfg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name);
 ALTER TABLE ambari.hostgroup_configuration ADD CONSTRAINT FK_hg_cfg_bp_hg_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES ambari.hostgroup (blueprint_name, name);
 ALTER TABLE ambari.requestresourcefilter ADD CONSTRAINT FK_reqresfilter_req_id FOREIGN KEY (request_id) REFERENCES ambari.request (request_id);
+ALTER TABLE ambari.requestoperationlevel ADD CONSTRAINT FK_req_op_level_req_id FOREIGN KEY (request_id) REFERENCES ambari.request (request_id);
 ALTER TABLE ambari.viewparameter ADD CONSTRAINT FK_viewparam_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
 ALTER TABLE ambari.viewresource ADD CONSTRAINT FK_viewres_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
 ALTER TABLE ambari.viewinstance ADD CONSTRAINT FK_viewinst_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
@@ -204,7 +208,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, "value")
   union all
   select 'resourcefilter_id_seq', 1
   union all
-  select 'viewentity_id_seq', 0;
+  select 'viewentity_id_seq', 0
+  union all
+  select 'operation_level_id_seq', 1;
 
 
 INSERT INTO ambari.Roles (role_name)

@@ -412,7 +412,7 @@ public class TestActionDBAccessorImpl {
     List<RequestResourceFilter> resourceFilters = new
       ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
     ExecuteActionRequest executeActionRequest = new ExecuteActionRequest
-      ("cluster1", null, actionName, resourceFilters, null);
+      ("cluster1", null, actionName, resourceFilters, null, null);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
   }

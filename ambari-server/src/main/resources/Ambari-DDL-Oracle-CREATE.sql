@@ -34,6 +34,7 @@ CREATE TABLE role_success_criteria (role VARCHAR2(255) NOT NULL, request_id NUMB
 CREATE TABLE stage (stage_id NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NULL, log_info VARCHAR2(255) NULL, request_context VARCHAR2(255) NULL, cluster_host_info BLOB NOT NULL, PRIMARY KEY (stage_id, request_id));
 CREATE TABLE request (request_id NUMBER(19) NOT NULL, cluster_id NUMBER(19), request_schedule_id NUMBER(19), command_name VARCHAR(255), create_time NUMBER(19) NOT NULL, end_time NUMBER(19) NOT NULL, inputs BLOB, request_context VARCHAR(255), request_type VARCHAR(255), start_time NUMBER(19) NOT NULL, status VARCHAR(255), PRIMARY KEY (request_id));
 CREATE TABLE requestresourcefilter (filter_id NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, service_name VARCHAR2(255), component_name VARCHAR2(255), hosts BLOB, PRIMARY KEY (filter_id));
+CREATE TABLE requestoperationlevel (operation_level_id NUMBER(19) NOT NULL, request_id NUMBER(19) NOT NULL, level_name VARCHAR2(255), cluster_name VARCHAR2(255), service_name VARCHAR2(255), host_component_name VARCHAR2(255), host_name VARCHAR2(255), PRIMARY KEY (operation_level_id));
 CREATE TABLE key_value_store ("key" VARCHAR2(255) NOT NULL, "value" CLOB NULL, PRIMARY KEY ("key"));
 CREATE TABLE clusterconfigmapping (type_name VARCHAR2(255) NOT NULL, create_timestamp NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, selected NUMBER(10) NOT NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', PRIMARY KEY (type_name, create_timestamp, cluster_id));
 CREATE TABLE hostconfigmapping (create_timestamp NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, type_name VARCHAR2(255) NOT NULL, selected NUMBER(10) NOT NULL, service_name VARCHAR2(255) NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
@@ -96,6 +97,7 @@ ALTER TABLE hostgroup_component ADD CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY
 ALTER TABLE blueprint_configuration ADD CONSTRAINT FK_cfg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name);
 ALTER TABLE hostgroup_configuration ADD CONSTRAINT FK_hg_cfg_bp_hg_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup(blueprint_name, name);
 ALTER TABLE requestresourcefilter ADD CONSTRAINT FK_reqresfilter_req_id FOREIGN KEY (request_id) REFERENCES request (request_id);
+ALTER TABLE requestoperationlevel ADD CONSTRAINT FK_req_op_level_req_id FOREIGN KEY (request_id) REFERENCES request (request_id);
 ALTER TABLE viewparameter ADD CONSTRAINT FK_viewparam_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
 ALTER TABLE viewresource ADD CONSTRAINT FK_viewres_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
 ALTER TABLE viewinstance ADD CONSTRAINT FK_viewinst_view_name FOREIGN KEY (view_name) REFERENCES viewmain(view_name);
@@ -110,6 +112,7 @@ INSERT INTO ambari_sequences(sequence_name, value) values ('configgroup_id_seq',
 INSERT INTO ambari_sequences(sequence_name, value) values ('requestschedule_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('resourcefilter_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('viewentity_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, value) values ('operation_level_id_seq', 1);
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 
 insert into Roles(role_name)

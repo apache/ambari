@@ -82,6 +82,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VER
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.customactions.ActionDefinition;
@@ -1281,15 +1282,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams = new TreeMap<String, String>();
     }
     commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
-
-
-    // Get command script info for custom command/custom action
-    /*
-     * TODO: Custom actions are not supported yet, that's why we just pass
-     * component main commandScript to agent. This script is only used for
-     * default commads like INSTALL/STOP/START/CONFIGURE
-     */
     String commandTimeout = configs.getDefaultAgentTaskTimeout();
+    /*
+     * This script is only used for
+     * default commads like INSTALL/STOP/START
+     */
     CommandScriptDefinition script = componentInfo.getCommandScript();
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       if (script != null) {
@@ -1394,26 +1391,33 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private ActionExecutionContext getActionExecutionContext
-      (ExecuteActionRequest actionRequest) throws AmbariException {
-
+          (ExecuteActionRequest actionRequest) throws AmbariException {
+    RequestOperationLevel operationLevel = actionRequest.getOperationLevel();
     if (actionRequest.isCommand()) {
-      return new ActionExecutionContext(actionRequest.getClusterName(),
-        actionRequest.getCommandName(), actionRequest.getResourceFilters(),
-        actionRequest.getParameters());
-    } else {
+      ActionExecutionContext actionExecutionContext =
+              new ActionExecutionContext(actionRequest.getClusterName(),
+              actionRequest.getCommandName(), actionRequest.getResourceFilters(),
+              actionRequest.getParameters());
+      actionExecutionContext.setOperationLevel(operationLevel);
+      return actionExecutionContext;
+    } else { // If action
 
-    ActionDefinition actionDef = ambariMetaInfo.getActionDefinition(actionRequest.getActionName());
+      ActionDefinition actionDef =
+              ambariMetaInfo.getActionDefinition(actionRequest.getActionName());
 
-    if (actionDef == null) {
-      throw new AmbariException("Action " + actionRequest.getActionName() + " does not exist");
-    }
+      if (actionDef == null) {
+        throw new AmbariException(
+                "Action " + actionRequest.getActionName() + " does not exist");
+      }
 
-    return new ActionExecutionContext(actionRequest.getClusterName(),
-      actionRequest.getActionName(), actionRequest.getResourceFilters(),
-      actionRequest.getParameters(), actionDef.getTargetType(),
-      actionDef.getDefaultTimeout(), actionDef.getTargetService(),
-      actionDef.getTargetComponent());
-
+      ActionExecutionContext actionExecutionContext =
+              new ActionExecutionContext(actionRequest.getClusterName(),
+              actionRequest.getActionName(), actionRequest.getResourceFilters(),
+              actionRequest.getParameters(), actionDef.getTargetType(),
+              actionDef.getDefaultTimeout(), actionDef.getTargetService(),
+              actionDef.getTargetComponent());
+      actionExecutionContext.setOperationLevel(operationLevel);
+      return actionExecutionContext;
     }
   }
 
@@ -1503,7 +1507,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                       nowTimestamp,
                       scHost.getDesiredStackVersion().getStackId());
                 } else if (oldSchState == State.STARTED
-                    || oldSchState == State.INSTALLED
+// TODO: oldSchState == State.INSTALLED is always false, looks like a bug
+//                    || oldSchState == State.INSTALLED
                     || oldSchState == State.STOPPING) {
                   roleCommand = RoleCommand.STOP;
                   event = new ServiceComponentHostStopEvent(
@@ -2045,6 +2050,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return serviceName;
   }
 
+
+  /**
+   * Checks if assigning new state does not require performing
+   * any additional actions
+   */
   private boolean isDirectTransition(State oldState, State newState) {
     switch (newState) {
       case INSTALLED:
@@ -2228,7 +2238,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               = new RequestResourceFilter(serviceName, "RESOURCEMANAGER", null);
         ExecuteActionRequest actionRequest = new ExecuteActionRequest(
               clusterName, "DECOMMISSION", null,
-              Collections.singletonList(resourceFilter), params);
+              Collections.singletonList(resourceFilter), null, params);
         response = createAction(actionRequest, requestProperties);
       }
     }

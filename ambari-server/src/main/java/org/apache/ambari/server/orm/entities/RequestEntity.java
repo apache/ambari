@@ -32,6 +32,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.Collection;
 
@@ -88,6 +89,9 @@ public class RequestEntity {
 
   @OneToMany(mappedBy = "requestEntity", cascade = CascadeType.ALL)
   private Collection<RequestResourceFilterEntity> resourceFilterEntities;
+
+  @OneToOne(mappedBy = "requestEntity", cascade = {CascadeType.ALL})
+  private RequestOperationLevelEntity requestOperationLevel;
 
   @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
@@ -179,6 +183,14 @@ public class RequestEntity {
 
   public void setResourceFilterEntities(Collection<RequestResourceFilterEntity> resourceFilterEntities) {
     this.resourceFilterEntities = resourceFilterEntities;
+  }
+
+  public RequestOperationLevelEntity getRequestOperationLevel() {
+    return requestOperationLevel;
+  }
+
+  public void setRequestOperationLevel(RequestOperationLevelEntity operationLevel) {
+    this.requestOperationLevel = operationLevel;
   }
 
   public void setClusterId(Long clusterId) {

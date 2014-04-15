@@ -133,9 +133,13 @@ public class JsonRequestBodyParser implements RequestBodyParser {
         }
       } else {
         // field
-        if (path.startsWith(REQUEST_INFO_PATH)) {
+        if (path.equals(REQUEST_INFO_PATH)) {
+           requestInfoProps.put(PropertyHelper.getPropertyId(null, name),
+                   child.asText());
+        } else if (path.startsWith(REQUEST_INFO_PATH)) {
           requestInfoProps.put(PropertyHelper.getPropertyId(
-              path.substring(REQUEST_INFO_PATH.length()), name), child.asText());
+              path.substring(REQUEST_INFO_PATH.length() + SLASH.length()), name),
+                  child.asText());
         } else {
           propertySet.getProperties().put(PropertyHelper.getPropertyId(
               path.equals(BODY_TITLE) ? "" : path, name), child.asText());

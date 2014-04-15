@@ -20,6 +20,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class ActionExecutionContext {
   private final String clusterName;
   private final String actionName;
   private List<RequestResourceFilter> resourceFilters;
+  private RequestOperationLevel operationLevel;
   private Map<String, String> parameters;
   private TargetHostType targetType;
   private Short timeout;
@@ -97,6 +99,14 @@ public class ActionExecutionContext {
     return resourceFilters;
   }
 
+  public RequestOperationLevel getOperationLevel() {
+    return operationLevel;
+  }
+
+  public void setOperationLevel(RequestOperationLevel operationLevel) {
+    this.operationLevel = operationLevel;
+  }
+
   public String getExpectedServiceName() {
     return expectedServiceName;
   }
@@ -111,6 +121,7 @@ public class ActionExecutionContext {
       "clusterName='" + clusterName + '\'' +
       ", actionName='" + actionName + '\'' +
       ", resourceFilters=" + resourceFilters +
+      ", operationLevel=" + operationLevel +
       ", parameters=" + parameters +
       ", targetType=" + targetType +
       ", timeout=" + timeout +

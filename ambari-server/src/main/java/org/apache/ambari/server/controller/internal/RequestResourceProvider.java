@@ -62,6 +62,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String REQUEST_TYPE_ID = "Requests/type";
   protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
   protected static final String REQUEST_RESOURCE_FILTER_ID = "Requests/resource_filters";
+  protected static final String REQUEST_OPERATION_LEVEL_ID = "Requests/operation_level";
   protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
   protected static final String REQUEST_START_TIME_ID = "Requests/start_time";
   protected static final String REQUEST_END_TIME_ID = "Requests/end_time";
@@ -81,6 +82,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           REQUEST_ID_PROPERTY_ID}));
+
+  /**
+   * Operation level-related parameters
+   */
+  protected static final String OPERATION_LEVEL_ID = "operation_level/level";
+  protected static final String OPERATION_CLUSTER_ID = "operation_level/cluster_name";
+  protected static final String OPERATION_SERVICE_ID = "operation_level/service_name";
+  protected static final String OPERATION_HOSTCOMPONENT_ID = "operation_level/hostcomponent_name";
+  protected static final String OPERATION_HOST_ID = "operation_level/host_name";
 
   // ----- Constructors ----------------------------------------------------
 
@@ -171,7 +181,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   // Get request to execute an action/command
   @SuppressWarnings("unchecked")
-  private ExecuteActionRequest getActionRequest(Request request) {
+  private ExecuteActionRequest getActionRequest(Request request)
+          throws UnsupportedOperationException {
     Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
     Map<String, Object> propertyMap = request.getProperties().iterator().next();
 
@@ -216,20 +227,49 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         ));
       }
     }
+    // Extract operation level property
+    RequestOperationLevel operationLevel = null;
+    Object operationLevelObj = requestInfoProperties.get(OPERATION_LEVEL_ID);
+    if (operationLevelObj != null) {
+      Resource.Type level;
+      try {
+        String internalOpLevelNameStr =
+                RequestOperationLevel.getInternalLevelName(
+                        (String)operationLevelObj);
+        level = Resource.Type.valueOf(internalOpLevelNameStr);
+      } catch (IllegalArgumentException e) {
+        String message = String.format(
+                "Wrong operation level value: %s", operationLevelObj);
+        throw new UnsupportedOperationException(message, e);
+      }
+      if (!requestInfoProperties.containsKey(OPERATION_CLUSTER_ID)) {
+        String message = String.format(
+                "Mandatory key %s for operation level is not specified",
+                OPERATION_CLUSTER_ID);
+        throw new UnsupportedOperationException(message);
+      }
+      String clusterName = requestInfoProperties.get(OPERATION_CLUSTER_ID);
+      String serviceName = requestInfoProperties.get(OPERATION_SERVICE_ID);
+      String hostComponentName =
+              requestInfoProperties.get(OPERATION_HOSTCOMPONENT_ID);
+      String hostName = requestInfoProperties.get(OPERATION_HOST_ID);
+      operationLevel = new RequestOperationLevel(level, clusterName,
+              serviceName, hostComponentName, hostName);
+    }
 
     Map<String, String> params = new HashMap<String, String>();
-    String keyPrefix = "/" + INPUTS_ID + "/";
+    String keyPrefix = INPUTS_ID + "/";
     for (String key : requestInfoProperties.keySet()) {
       if (key.startsWith(keyPrefix)) {
         params.put(key.substring(keyPrefix.length()), requestInfoProperties.get(key));
       }
     }
-
     return new ExecuteActionRequest(
       (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID),
       commandName,
       actionName,
       resourceFilterList,
+      operationLevel,
       params);
   }
 
@@ -311,6 +351,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_TYPE_ID, request.getRequestType(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_INPUTS_ID, request.getInputs(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID, request.getResourceFilters(), requestedPropertyIds);
+
+    RequestOperationLevel operationLevel = request.getOperationLevel();
+    String opLevelStr = null;
+    if (operationLevel != null) {
+      opLevelStr = RequestOperationLevel.getExternalLevelName(
+              operationLevel.getLevel().toString());
+    }
+    setResourceProperty(resource, REQUEST_OPERATION_LEVEL_ID, opLevelStr, requestedPropertyIds);
+
     setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
@@ -321,73 +370,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     List<HostRoleCommand> commands = request.getCommands();
-
-    int taskCount = commands.size();
-    int completedTaskCount = 0;
-    int queuedTaskCount = 0;
-    int pendingTaskCount = 0;
-    int failedTaskCount = 0;
-    int abortedTaskCount = 0;
-    int timedOutTaskCount = 0;
-
-    for (HostRoleCommand hostRoleCommand : commands) {
-      HostRoleStatus status = hostRoleCommand.getStatus();
-      if (status.isCompletedState()) {
-        completedTaskCount++;
-
-        switch (status) {
-          case ABORTED:
-            abortedTaskCount++;
-            break;
-          case FAILED:
-            failedTaskCount++;
-            break;
-          case TIMEDOUT:
-            timedOutTaskCount++;
-            break;
-        }
-      } else if (status.equals(HostRoleStatus.QUEUED)) {
-        queuedTaskCount++;
-      } else if (status.equals(HostRoleStatus.PENDING)) {
-        pendingTaskCount++;
-      }
-    }
-
-    int inProgressTaskCount = taskCount - completedTaskCount - queuedTaskCount - pendingTaskCount;
-
-    // determine request status
-    HostRoleStatus requestStatus = failedTaskCount > 0 ? HostRoleStatus.FAILED :
-        abortedTaskCount > 0 ? HostRoleStatus.ABORTED :
-            timedOutTaskCount > 0 ? HostRoleStatus.TIMEDOUT :
-                inProgressTaskCount > 0 ? HostRoleStatus.IN_PROGRESS :
-                    completedTaskCount == taskCount ? HostRoleStatus.COMPLETED :
-                        HostRoleStatus.PENDING;
-    double progressPercent =
-        ((queuedTaskCount * 0.09 + inProgressTaskCount * 0.35 + completedTaskCount) / (double) taskCount) * 100.0;
-
-    setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_FAILED_TASK_CNT_ID, failedTaskCount, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_ABORTED_TASK_CNT_ID, abortedTaskCount, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_TIMED_OUT_TASK_CNT_ID, timedOutTaskCount, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_QUEUED_TASK_CNT_ID, queuedTaskCount, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_COMPLETED_TASK_CNT_ID, completedTaskCount, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, progressPercent, requestedPropertyIds);
-
-    return resource;
-  }
-
-  // Get a request resource from the given set of host role commands.
-  private Resource getRequestResource(String clusterName,
-                                      Long requestId,
-                                      String context,
-                                      Set<HostRoleCommand> commands,
-                                      Set<String> requestedPropertyIds) {
-    Resource resource = new ResourceImpl(Resource.Type.Request);
-
-    setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, requestId, requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_CONTEXT_ID, context, requestedPropertyIds);
 
     int taskCount = commands.size();
     int completedTaskCount = 0;

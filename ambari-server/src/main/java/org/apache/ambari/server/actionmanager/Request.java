@@ -23,8 +23,11 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
@@ -51,6 +54,7 @@ public class Request {
   private HostRoleStatus status; // not persisted yet
   private String inputs;
   private List<RequestResourceFilter> resourceFilters;
+  private RequestOperationLevel operationLevel;
   private RequestType requestType;
 
   private Collection<Stage> stages = new ArrayList<Stage>();
@@ -114,6 +118,7 @@ public class Request {
     this(stages, clusters);
     if (actionRequest != null) {
       this.resourceFilters = actionRequest.getResourceFilters();
+      this.operationLevel = actionRequest.getOperationLevel();
       this.inputs = gson.toJson(actionRequest.getParameters());
       this.requestType = actionRequest.isCommand() ? RequestType.COMMAND : RequestType.ACTION;
       this.commandName = actionRequest.isCommand() ? actionRequest.getCommandName() : actionRequest.getActionName();
@@ -160,6 +165,16 @@ public class Request {
             getHostsList(resourceFilterEntity.getHosts()));
         this.resourceFilters.add(resourceFilter);
       }
+    }
+    RequestOperationLevelEntity operationLevelEntity = entity.getRequestOperationLevel();
+    if (operationLevelEntity != null) {
+      this.operationLevel = new RequestOperationLevel(
+          Resource.Type.valueOf(operationLevelEntity.getLevel()),
+        operationLevelEntity.getClusterName(),
+        operationLevelEntity.getServiceName(),
+        operationLevelEntity.getHostComponentName(),
+        operationLevelEntity.getHostName()
+      );
     }
   }
 
@@ -214,6 +229,19 @@ public class Request {
         filterEntities.add(filterEntity);
       }
       requestEntity.setResourceFilterEntities(filterEntities);
+    }
+
+    if (operationLevel != null) {
+      RequestOperationLevelEntity operationLevelEntity =
+              new RequestOperationLevelEntity();
+      operationLevelEntity.setLevel(operationLevel.getLevel().toString());
+      operationLevelEntity.setClusterName(operationLevel.getClusterName());
+      operationLevelEntity.setServiceName(operationLevel.getServiceName());
+      operationLevelEntity.setHostComponentName(operationLevel.getHostComponentName());
+      operationLevelEntity.setHostName(operationLevel.getHostName());
+      operationLevelEntity.setRequestEntity(requestEntity);
+      operationLevelEntity.setRequestId(requestId);
+      requestEntity.setRequestOperationLevel(operationLevelEntity);
     }
 
     return requestEntity;
@@ -272,6 +300,14 @@ public class Request {
     this.resourceFilters = resourceFilters;
   }
 
+  public RequestOperationLevel getOperationLevel() {
+    return operationLevel;
+  }
+
+  public void setOperationLevel(RequestOperationLevel operationLevel) {
+    this.operationLevel = operationLevel;
+  }
+
   public RequestType getRequestType() {
     return requestType;
   }
@@ -316,6 +352,7 @@ public class Request {
         ", endTime=" + endTime +
         ", inputs='" + inputs + '\'' +
         ", resourceFilters='" + resourceFilters + '\'' +
+        ", operationLevel='" + operationLevel + '\'' +
         ", requestType=" + requestType +
         ", stages=" + stages +
         '}';

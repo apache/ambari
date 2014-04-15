@@ -33,6 +33,11 @@ public interface RequestBodyParser {
   public static final String REQUEST_INFO_PATH = "RequestInfo";
 
   /**
+   * Slash symbol
+   */
+  public static final String SLASH = "/";
+
+  /**
    * Category path to ignore parsing of the child node
    */
   public static final String REQUEST_BLOB_TITLE = "RequestBodyInfo";

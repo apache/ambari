@@ -55,6 +55,10 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, String> commandParams;
   private String serviceName;
   private String componentName;
+
+  /**
+   * Used for ignoring nagios alerts at agent
+   */
   private Set<Map<String,String>> passiveInfo;
 
   @JsonProperty("commandId")

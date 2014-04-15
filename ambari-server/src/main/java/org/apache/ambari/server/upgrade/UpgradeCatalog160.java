@@ -78,7 +78,7 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
       restartRequiredColumn.setDefaultValue(Boolean.FALSE);
     }
     dbAccessor.addColumn("hostcomponentdesiredstate",
-      restartRequiredColumn);
+      new DBAccessor.DBColumnInfo("restart_required", Boolean.class, 1, 0, false));
 
     // ========================================================================
     // Add constraints
@@ -98,7 +98,7 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     String dbType = getDbType();
 
-    // Add new sequences for view entity
+    //add new sequences for view entity
     String valueColumnName = "\"value\"";
     if (Configuration.ORACLE_DB_NAME.equals(dbType) || Configuration.MYSQL_DB_NAME.equals(dbType)) {
       valueColumnName = "value";

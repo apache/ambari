@@ -137,7 +137,6 @@ public class MaintenanceStateHelper {
    * {@link MaintenanceState#IMPLIED_FROM_SERVICE_AND_HOST})
    */
   public Set<Map<String, String>> getMaintenanceHostComponents(Clusters clusters, Cluster cluster) throws AmbariException {
-    
     Set<Map<String, String>> set = new HashSet<Map<String, String>>();
 
     Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
@@ -187,7 +186,8 @@ public class MaintenanceStateHelper {
     for (String clusterName : clusterNames) {
       ExecuteActionRequest actionRequest = new ExecuteActionRequest(
         clusterName, null, NAGIOS_ACTION_NAME,
-        Collections.singletonList(resourceFilter), params);
+        Collections.singletonList(resourceFilter),
+        null, params);
       
       if (null == response) {
         response = amc.createAction(actionRequest, requestProperties);
@@ -200,45 +200,41 @@ public class MaintenanceStateHelper {
    * Determine based on the requesting Resource level and the state of the
    * operand whether to allow operations on it.
    *
-   * @param sourceType Request Source: {CLUSTER, SERVICE, HOSTCOMPONENT, HOST}
+   * @param operationLevel Request Source: {CLUSTER, SERVICE, HOSTCOMPONENT, HOST}
    * @param sch HostComponent which is the operand of the operation
    * @return
    * @throws AmbariException
    */
-  public boolean isOperationAllowed(Resource.Type sourceType,
+  public boolean isOperationAllowed(Resource.Type operationLevel,
                                     ServiceComponentHost sch) throws AmbariException {
     MaintenanceState maintenanceState = sch.getMaintenanceState();
 
-    if (sourceType.equals(Resource.Type.Cluster)) {
-
-      if (maintenanceState.equals(MaintenanceState.OFF)) {
+    switch (operationLevel.getInternalType()) {
+      case Cluster:
+          if (maintenanceState.equals(MaintenanceState.OFF)) {
+            return true;
+          }
+          break;
+      case Service:
+        if (maintenanceState.equals(MaintenanceState.IMPLIED_FROM_SERVICE)
+                || maintenanceState.equals(MaintenanceState.OFF)) {
+          return true;
+        }
+        break;
+      case Host:
+        if (maintenanceState.equals(MaintenanceState.IMPLIED_FROM_HOST)
+                || maintenanceState.equals(MaintenanceState.OFF)) {
+          return true;
+        }
+        break;
+      case HostComponent: {
         return true;
       }
-
-    } else if (sourceType.equals(Resource.Type.Service)) {
-
-      if (maintenanceState.equals(MaintenanceState.IMPLIED_FROM_SERVICE)
-          || maintenanceState.equals(MaintenanceState.OFF)) {
-        return true;
-      }
-
-    } else if (sourceType.equals(Resource.Type.Host)) {
-
-      if (maintenanceState.equals(MaintenanceState.IMPLIED_FROM_HOST)
-          || maintenanceState.equals(MaintenanceState.OFF)) {
-        return true;
-      }
-
-    } else if (sourceType.equals(Resource.Type.HostComponent)) {
-
-      return true;
-
-    } else {
-      LOG.warn("Unsupported Resource type, type = " + sourceType);
+      default:
+        LOG.warn("Unsupported Resource type, type = " + operationLevel);
+        break;
     }
-
     return false;
   }
-
 
 }

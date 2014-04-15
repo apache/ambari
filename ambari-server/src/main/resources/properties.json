@@ -104,6 +104,7 @@
         "Requests/type",
         "Requests/inputs",
         "Requests/resource_filters",
+        "Requests/operation_level",
         "Requests/create_time",
         "Requests/start_time",
         "Requests/end_time",

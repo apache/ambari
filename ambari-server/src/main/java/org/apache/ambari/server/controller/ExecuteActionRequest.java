@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 
 import java.util.ArrayList;
@@ -31,18 +32,21 @@ public class ExecuteActionRequest {
   private final String clusterName;
   private final String commandName;
   private final List<RequestResourceFilter> resourceFilters;
+  private RequestOperationLevel operationLevel = null;
   private String actionName;
   private Map<String, String> parameters;
 
   public ExecuteActionRequest(String clusterName, String commandName,
                               String actionName,
                               List<RequestResourceFilter> resourceFilters,
+                              RequestOperationLevel operationLevel,
                               Map<String, String> parameters) {
     this(clusterName, commandName, parameters);
     this.actionName = actionName;
     if (resourceFilters != null) {
       this.resourceFilters.addAll(resourceFilters);
     }
+    this.operationLevel = operationLevel;
   }
 
   /**
@@ -74,6 +78,10 @@ public class ExecuteActionRequest {
 
   public List<RequestResourceFilter> getResourceFilters() {
     return resourceFilters;
+  }
+
+  public RequestOperationLevel getOperationLevel() {
+    return operationLevel;
   }
 
   public Map<String, String> getParameters() {

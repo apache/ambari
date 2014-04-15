@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
@@ -52,6 +53,7 @@ public class HeartbeatMonitor implements Runnable {
   private final AmbariMetaInfo ambariMetaInfo;
   private final AmbariManagementController ambariManagementController;
   private final Configuration configuration;
+  private final MaintenanceStateHelper maintenanceStateHelper;
 
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
@@ -64,6 +66,7 @@ public class HeartbeatMonitor implements Runnable {
     this.ambariManagementController = injector.getInstance(
             AmbariManagementController.class);
     this.configuration = injector.getInstance(Configuration.class);
+    this.maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
   }
 
   public void shutdown() {
