@@ -88,5 +88,6 @@ class TestHookBeforeInstall(RMFTestCase):
                               gid='hadoop',
                               groups=['users'], )
     self.assertResourceCalled('Package', 'unzip', )
+    self.assertResourceCalled('Package', 'curl', )
     self.assertResourceCalled('Package', 'net-snmp', )
     self.assertNoMoreResources()

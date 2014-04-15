@@ -65,8 +65,8 @@ class DebianRepositoryProvider(Provider):
     with Environment.get_instance_copy() as env:
       with tempfile.NamedTemporaryFile() as tmpf:
         File(tmpf.name,
-          content = InlineTemplate("{{package_type}} {{base_url}} {{relase_name}} {{components}}", 
-              package_type=self.package_type, base_url=self.resource.base_url, relase_name=env.system.os_release_name, components=' '.join(self.resource.components))
+          content = InlineTemplate("{{package_type}} {{base_url}} {{components}}", 
+              package_type=self.package_type, base_url=self.resource.base_url, components=' '.join(self.resource.components))
         )
         
         repo_file_name = format("{repo_file_name}.list",repo_file_name = self.resource.repo_file_name)

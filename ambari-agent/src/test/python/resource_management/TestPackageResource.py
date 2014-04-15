@@ -36,7 +36,7 @@ class TestPackageResource(TestCase):
       Package("some_package",
       )
     call_mock.assert_called_with('dpkg --get-selections some_package | grep -v deinstall')    
-    shell_mock.assert_called_with("/usr/bin/apt-get --assume-yes install some_package")
+    shell_mock.assert_called_with("/usr/bin/apt-get --force-yes --assume-yes install some_package")
 
 
   @patch.object(shell, "call")

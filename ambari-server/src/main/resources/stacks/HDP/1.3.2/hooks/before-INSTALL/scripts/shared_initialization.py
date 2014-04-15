@@ -102,8 +102,10 @@ def set_uid(user, user_dirs):
           not_if = format("test $(id -u {user}) -gt 1000"))
 
 def install_packages():
-  Package("unzip")
-  Package("net-snmp")
+  packages = {"redhat": ["net-snmp-utils", "net-snmp"],
+              "suse": ["net-snmp"],
+              "all": ["unzip"]
+              }
   
-  if System.get_instance().os_family != "suse":
-    Package("net-snmp-utils")
+  Package(packages['all'])
+  Package(packages[System.get_instance().os_family])

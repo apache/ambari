@@ -50,15 +50,11 @@
           <packages>
             <package>
               <type>rpm</type>
-              <name>oozie.noarch</name>
+              <name>oozie</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>oozie-client.noarch</name>
-            </package>
-            <package>
-              <type>rpm</type>
-              <name>extjs-2.2-1</name>
+              <name>oozie-client</name>
             </package>
             <package>
               <type>rpm</type>
@@ -66,6 +62,27 @@
             </package>
           </packages>
         </osSpecific>
+        
+       <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>extjs-2.2-1</name>
+            </package>
+          </packages>
+        </osSpecific>
+        
+        <osSpecific>
+          <osFamily>debian12</osFamily>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>extjs</name>
+            </package>
+          </packages>
+        </osSpecific>
+        
       </osSpecifics>
 
       <commandScript>
