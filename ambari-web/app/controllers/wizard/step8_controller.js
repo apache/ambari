@@ -949,8 +949,8 @@ App.WizardStep8Controller = Em.Controller.extend({
   setLocalRepositories: function () {
     if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) return;
     var self = this;
-
-    this.get('content.stacks').findProperty('isSelected', true).operatingSystems.forEach(function (os) {
+    var stack = this.get('content.stacks').findProperty('isSelected', true);
+    stack.operatingSystems.forEach(function (os) {
       if (os.baseUrl !== os.originalBaseUrl) {
         console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
         self.addRequestToAjaxQueue({
