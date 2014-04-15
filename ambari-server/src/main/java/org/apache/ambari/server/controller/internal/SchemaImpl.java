@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Set;
+
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.Schema;
-
-import java.util.Collections;
 
 
 /**
@@ -53,5 +53,10 @@ public class SchemaImpl implements Schema {
   @Override
   public String getKeyPropertyId(Resource.Type type) {
     return resourceProvider.getKeyPropertyIds().get(type);
+  }
+
+  @Override
+  public Set<Resource.Type> getKeyTypes() {
+    return resourceProvider.getKeyPropertyIds().keySet();
   }
 }

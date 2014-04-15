@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
@@ -106,6 +109,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private long lastOpLastUpdateTime;
   private Map<String, HostConfig> actualConfigs = new HashMap<String,
     HostConfig>();
+  private List<Map<String, String>> processes = new ArrayList<Map<String, String>>();
 
   private static final StateMachineFactory
   <ServiceComponentHostImpl, State,
@@ -1341,6 +1345,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
   
+  
+  
   @Override
   public Map<String, HostConfig> getActualConfigs() {
     clusterGlobalLock.readLock().lock();
@@ -1402,5 +1408,36 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.readLock().unlock();
     }
   }
+  
+  @Override
+  public void setProcesses(List<Map<String, String>> procs) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        processes = Collections.unmodifiableList(procs);
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+  
+  @Override  
+  public List<Map<String, String>> getProcesses() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return processes;
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+  
   
 }

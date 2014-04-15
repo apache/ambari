@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -123,6 +124,17 @@ public interface ServiceComponentHost {
    * @return the maintenance state
    */
   public MaintenanceState getMaintenanceState();
+
+  /**
+   * @param procs a list containing a map describing each process
+   */
+  public void setProcesses(List<Map<String, String>> procs);
+  
+  
+  /**  
+   * @return the list of maps describing each process
+   */
+  public List<Map<String, String>> getProcesses();
 
   
 }

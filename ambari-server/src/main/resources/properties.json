@@ -313,5 +313,12 @@
         "host_groups/components",
         "host_groups/cardinality",
         "configurations"
+    ],
+    "HostComponentProcess": [
+      "HostComponentProcess/cluster_name",
+      "HostComponentProcess/host_name",
+      "HostComponentProcess/component_name",
+      "HostComponentProcess/name",
+      "HostComponentProcess/status"
     ]
 }

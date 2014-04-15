@@ -19,14 +19,14 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.view.ViewRegistry;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Factory for creating resource instances.
@@ -206,6 +206,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
       case Blueprint:
         resourceDefinition = new BlueprintResourceDefinition();
+        break;
+        
+      case HostComponentProcess:
+        resourceDefinition = new HostComponentProcessResourceDefinition();
         break;
 
       default:

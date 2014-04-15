@@ -1744,4 +1744,100 @@ public class TestHeartbeatHandler {
     cluster.setCurrentStackVersion(stackId);
     return cluster;
   }
+  
+  @Test
+  public void testCommandStatusProcesses() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    Cluster cluster = getDummyCluster();
+    Host hostObject = clusters.getHost(DummyHostname1);
+    clusters.mapHostToCluster(hostObject.getHostName(), cluster.getClusterName());
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
+    
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+    
+
+    List<Map<String, String>> procs = new ArrayList<Map<String, String>>();
+    Map<String, String> proc1info = new HashMap<String, String>();
+    proc1info.put("name", "a");
+    proc1info.put("status", "RUNNING");
+    procs.add(proc1info);
+    
+    Map<String, String> proc2info = new HashMap<String, String>();
+    proc2info.put("name", "b");
+    proc2info.put("status", "NOT_RUNNING");
+    procs.add(proc2info);
+    
+    Map<String, Object> extra = new HashMap<String, Object>();
+    extra.put("processes", procs);
+    
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ComponentStatus componentStatus1 = new ComponentStatus();
+    componentStatus1.setClusterName(DummyCluster);
+    componentStatus1.setServiceName(HDFS);
+    componentStatus1.setMessage(DummyHostStatus);
+    componentStatus1.setStatus(State.STARTED.name());
+    componentStatus1.setComponentName(DATANODE);
+    
+    componentStatus1.setExtra(extra);
+    componentStatuses.add(componentStatus1);
+    hb.setComponentStatus(componentStatuses);
+    
+    handler.handleHeartBeat(hb);
+    ServiceComponentHost sch = hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1); 
+
+    Assert.assertEquals(Integer.valueOf(2), Integer.valueOf(sch.getProcesses().size()));
+  }
+  
+  @Test
+  public void testCommandStatusProcesses_empty() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    Cluster cluster = getDummyCluster();
+    Host hostObject = clusters.getHost(DummyHostname1);
+    clusters.mapHostToCluster(hostObject.getHostName(), cluster.getClusterName());
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
+    
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(new ArrayList<CommandReport>());
+    
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ComponentStatus componentStatus1 = new ComponentStatus();
+    componentStatus1.setClusterName(DummyCluster);
+    componentStatus1.setServiceName(HDFS);
+    componentStatus1.setMessage(DummyHostStatus);
+    componentStatus1.setStatus(State.STARTED.name());
+    componentStatus1.setComponentName(DATANODE);
+    
+    componentStatuses.add(componentStatus1);
+    hb.setComponentStatus(componentStatuses);
+    
+    handler.handleHeartBeat(hb);
+    ServiceComponentHost sch = hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1); 
+
+    Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(sch.getProcesses().size()));
+  }  
 }

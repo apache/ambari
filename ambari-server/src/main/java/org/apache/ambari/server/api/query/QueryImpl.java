@@ -854,10 +854,13 @@ public class QueryImpl implements Query, ResourceInstance {
         resourceKeyValueMap.put(type, value);
       }
     }
-    String resourceKeyProp = clusterController.getSchema(resource.getType()).
-        getKeyPropertyId(resource.getType());
+    Schema schema = clusterController.getSchema(resource.getType());
+    Set<Resource.Type> types = schema.getKeyTypes();
 
-    resourceKeyValueMap.put(resource.getType(), resource.getPropertyValue(resourceKeyProp).toString());
+    for (Resource.Type type : types) {
+      String resourceKeyProp = schema.getKeyPropertyId(type);
+      resourceKeyValueMap.put(type, resource.getPropertyValue(resourceKeyProp).toString());
+    }
     return resourceKeyValueMap;
   }
 

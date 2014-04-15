@@ -18,6 +18,8 @@
 package org.apache.ambari.server.controller.spi;
 
 
+import java.util.Set;
+
 /**
  * The schema is used to describe all of the properties that a resource type
  * supports.
@@ -38,4 +40,17 @@ public interface Schema {
    * @return the key property id for the given resource type
    */
   public String getKeyPropertyId(Resource.Type type);
+
+  /**
+   * Get the set of resource types used in the key that uniquely identifies
+   * the resource type described by this schema.
+   * </p>
+   * For example, the resource 'HostComponent' is uniquely identified by
+   * its associated 'Cluster', 'Host' and 'Component' resources.  Calling
+   * this method should return a set of those resource types.
+   *
+   * @return the set of resource types used in the key that uniquely identifies
+   *         the resource type described by this schema.
+   */
+  public Set<Resource.Type> getKeyTypes();
   }

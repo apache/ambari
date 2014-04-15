@@ -20,15 +20,18 @@ package org.apache.ambari.server.agent;
 import java.util.Map;
 
 
-
+/**
+ * Represents a status for a Host Component
+ */
 public class ComponentStatus {
-  String componentName;
-  String msg;
-  String status;
-  String serviceName;
-  String clusterName;
-  String stackVersion;
+  private String componentName;
+  private String msg;
+  private String status;
+  private String serviceName;
+  private String clusterName;
+  private String stackVersion;
   private Map<String, Map<String, String>> configurationTags;
+  private Map<String, Object> extra;
 
   public String getComponentName() {
     return this.componentName;
@@ -99,6 +102,20 @@ public class ComponentStatus {
    */
   public Map<String, Map<String,String>> getConfigTags() {
     return configurationTags;
+  }
+  
+  /**
+   * Sets extra information coming from the status. 
+   */
+  public void setExtra(Map<String, Object> info) {
+    extra = info;
+  }
+
+  /**
+   * Gets extra information coming from the status. 
+   */
+  public Map<String, Object> getExtra() {
+    return extra;
   }
 
   @Override

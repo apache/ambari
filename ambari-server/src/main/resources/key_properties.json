@@ -109,5 +109,12 @@
   },
   "Blueprint": {
     "Blueprint": "Blueprints/blueprint_name"
-    }
+  },
+  "HostComponentProcess": {
+    "Cluster": "HostComponentProcess/cluster_name",
+    "Host": "HostComponentProcess/host_name",
+    "Component": "HostComponentProcess/component_name",
+    "HostComponent": "HostComponentProcess/component_name",
+    "HostComponentProcess": "HostComponentProcess/name"
+  }
 }

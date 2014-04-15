@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import glob
+import json
 import os
 from resource_management import *
 
@@ -35,6 +36,7 @@ def flume(action = None):
     for agent in flume_agents.keys():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
       flume_agent_conf_file = flume_agent_conf_dir + os.sep + 'flume.conf'
+      flume_agent_meta_file = flume_agent_conf_dir + os.sep + 'ambari-meta.json'
       flume_agent_log4j_file = flume_agent_conf_dir + os.sep + 'log4j.properties'
 
       Directory(flume_agent_conf_dir)
@@ -46,6 +48,11 @@ def flume(action = None):
       File(flume_agent_log4j_file,
         content=Template('log4j.properties.j2', agent_name = agent),
         mode = 0644)
+
+      File(flume_agent_meta_file,
+        content = json.dumps(ambari_meta(agent, flume_agents[agent])),
+        mode = 0644)
+
 
   elif action == 'start':
     flume_base = format('env JAVA_HOME={java_home} /usr/bin/flume-ng agent '
@@ -94,38 +101,49 @@ def flume(action = None):
   elif action == 'status':
     pass
 
+def ambari_meta(agent_name, agent_conf):
+  res = {}
+
+  sources = agent_conf[agent_name + '.sources'].split(' ')
+  res['sources_count'] = len(sources)
+
+  sinks = agent_conf[agent_name + '.sinks'].split(' ')
+  res['sinks_count'] = len(sinks)
+
+  channels = agent_conf[agent_name + '.channels'].split(' ')
+  res['channels_count'] = len(channels)
+
+  return res
+
 # define a map of dictionaries, where the key is agent name
 # and the dictionary is the name/value pair
 def build_flume_topology(content):
-  import ConfigParser
-  import StringIO
-
-  config = StringIO.StringIO()
-  config.write('[dummy]\n')
-  config.write(content)
-  config.seek(0, os.SEEK_SET)
-
-  cp = ConfigParser.ConfigParser()
-  cp.readfp(config)
 
   result = {}
   agent_names = []
 
-  for item in cp.items('dummy'):
-    key = item[0]
-    part0 = key.split('.')[0]
-    if key.endswith(".sources"):
-      agent_names.append(part0)
+  for line in content.split('\n'):
+    rline = line.strip()
+    if 0 != len(rline) and not rline.startswith('#'):
+      pair = rline.split('=')
+      lhs = pair[0].strip()
+      rhs = pair[1].strip()
 
-    if not result.has_key(part0):
-      result[part0] = {}
+      part0 = lhs.split('.')[0]
 
-    result[part0][key] = item[1]
+      if lhs.endswith(".sources"):
+        agent_names.append(part0)
+
+      if not result.has_key(part0):
+        result[part0] = {}
+
+      result[part0][lhs] = rhs
 
   # trim out non-agents
   for k in result.keys():
     if not k in agent_names:
       del result[k]
+
 
   return result
 
@@ -141,9 +159,34 @@ def is_live(pid_file):
   return live
 
 def live_status(pid_file):
+  import params
+  import traceback
+
+  pid_file_part = pid_file.split(os.sep).pop()
+
   res = {}
-  res['name'] = pid_file.split(os.sep).pop()
+  res['name'] = pid_file_part
+  
+  if pid_file_part.endswith(".pid"):
+    res['name'] = pid_file_part[:-4]
+
   res['status'] = 'RUNNING' if is_live(pid_file) else 'NOT_RUNNING'
+  res['sources_count'] = 0
+  res['sinks_count'] = 0
+  res['channels_count'] = 0
+
+  flume_agent_conf_dir = params.flume_conf_dir + os.sep + res['name']
+  flume_agent_meta_file = flume_agent_conf_dir + os.sep + 'ambari-meta.json'
+
+  try:
+    with open(flume_agent_meta_file) as fp:
+      meta = json.load(fp)
+      res['sources_count'] = meta['sources_count']
+      res['sinks_count'] = meta['sinks_count']
+      res['channels_count'] = meta['channels_count']
+  except:
+    traceback.print_exc() 
+    pass
 
   return res
   

@@ -18,13 +18,23 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.spi.Resource;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for host_components resource requests.
@@ -206,8 +216,23 @@ public class HostComponentService extends BaseService {
 
     return handleRequest(headers, null, ui, Request.Type.DELETE,
         createHostComponentResource(m_clusterName, m_hostName, null));
-  }  
+  }
+  
+  @GET
+  @Path("{hostComponentName}/processes")
+  @Produces("text/plain")
+  public Response getProcesses(@Context HttpHeaders headers, @Context UriInfo ui,
+      @PathParam("hostComponentName") String hostComponentName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, m_clusterName);
+    mapIds.put(Resource.Type.Host, m_hostName);
+    mapIds.put(Resource.Type.HostComponent, hostComponentName);
 
+    ResourceInstance ri = createResource(Resource.Type.HostComponentProcess, mapIds);
+
+    return handleRequest(headers, null, ui, Request.Type.GET, ri);
+  }
+  
   /**
    * Create a host_component resource instance.
    *

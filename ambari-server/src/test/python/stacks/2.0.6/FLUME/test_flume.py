@@ -99,7 +99,9 @@ class TestFlumeHandler(RMFTestCase):
                        config_file="default.json")
     
     self.assertTrue(structured_out_mock.called)
-    structured_out_mock.assert_called_with({'processes': [{'status': 'NOT_RUNNING', 'name': 'a1.pid'}]})
+    structured_out_mock.assert_called_with({'processes':
+      [{'status': 'NOT_RUNNING', 'channels_count': 0, 'sinks_count': 0,
+        'name': 'a1', 'sources_count': 0}]})
 
     self.assertNoMoreResources()
 
@@ -113,7 +115,7 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
       mode = 0644,
-      properties = buildFlumeTopology(
+      properties = build_flume(
         self.getConfig()['configurations']['flume-conf']['content'])['a1'])
 
     self.assertResourceCalled('File',
@@ -121,36 +123,36 @@ class TestFlumeHandler(RMFTestCase):
       content = Template('log4j.properties.j2', agent_name = 'a1'),
       mode = 0644)
 
-def buildFlumeTopology(content):
-  import os
-  import ConfigParser
-  import StringIO
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/ambari-meta.json',
+      content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
+      mode = 0644)
 
-  config = StringIO.StringIO()
-  config.write('[dummy]\n')
-  config.write(content)
-  config.seek(0, os.SEEK_SET)
-
-  cp = ConfigParser.ConfigParser()
-  cp.readfp(config)
-
+def build_flume(content):
   result = {}
   agent_names = []
 
-  for item in cp.items('dummy'):
-    key = item[0]
-    part0 = key.split('.')[0]
-    if key.endswith(".sources"):
-      agent_names.append(part0)
+  for line in content.split('\n'):
+    rline = line.strip()
+    if 0 != len(rline) and not rline.startswith('#'):
+      pair = rline.split('=')
+      lhs = pair[0].strip()
+      rhs = pair[1].strip()
 
-    if not result.has_key(part0):
-      result[part0] = {}
+      part0 = lhs.split('.')[0]
 
-    result[part0][key] = item[1]
+      if lhs.endswith(".sources"):
+        agent_names.append(part0)
+
+      if not result.has_key(part0):
+        result[part0] = {}
+
+      result[part0][lhs] = rhs
 
   # trim out non-agents
   for k in result.keys():
     if not k in agent_names:
       del result[k]
+
 
   return result

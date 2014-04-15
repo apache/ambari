@@ -306,7 +306,7 @@ public class HeartBeatHandler {
         RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand())) {
         continue;
       }
-
+      
       Cluster cl = clusterFsm.getCluster(report.getClusterName());
       String service = report.getServiceName();
       if (service == null || service.isEmpty()) {
@@ -382,6 +382,7 @@ public class HeartBeatHandler {
         if (status.getClusterName().equals(cl.getClusterName())) {
           try {
             Service svc = cl.getService(status.getServiceName());
+            
             String componentName = status.getComponentName();
             if (svc.getServiceComponents().containsKey(componentName)) {
               ServiceComponent svcComp = svc.getServiceComponent(
@@ -412,6 +413,24 @@ public class HeartBeatHandler {
               if (null != status.getConfigTags()) {
                 scHost.updateActualConfigs(status.getConfigTags());
               }
+              
+              Map<String, Object> extra = status.getExtra();
+              if (null != extra && !extra.isEmpty()) {
+                try {
+                  if (extra.containsKey("processes")) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, String>> list = (List<Map<String, String>>) extra.get("processes");
+                    scHost.setProcesses(list);
+                  }
+                  
+                } catch (Exception e) {
+                  LOG.error("Could not access extra JSON for " +
+                      scHost.getServiceComponentName() + " from " +
+                      scHost.getHostName() + ": " + status.getExtra() +
+                      " (" + e.getMessage() + ")");
+                }
+              }
+              
 
             } else {
               // TODO: What should be done otherwise?
