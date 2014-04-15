@@ -23,11 +23,13 @@ var Ember = require('ember');
 require('models/host');
 require('controllers/wizard/stack_upgrade/step3_controller');
 
-App.router = Ember.Object.create({
-  stackUpgradeController: Ember.Object.create({
-    save: function(val) {}
-  })
-});
+if (!App.router) {
+  App.router = Em.Object.create({});
+}
+
+App.router.set('stackUpgradeController', Em.Object.create({
+  save: Em.K
+}));
 
 describe('App.StackUpgradeStep3Controller', function() {
 

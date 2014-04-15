@@ -21,28 +21,139 @@ var lazyloading = require('utils/lazy_loading');
 var numberUtils = require('utils/number_utils');
 
 App.WizardStep3Controller = Em.Controller.extend({
+
   name: 'wizardStep3Controller',
+
   hosts: [],
+
   content: [],
+
   bootHosts: [],
+
   registeredHosts: [],
+
   repoCategoryWarnings: [],
+
   diskCategoryWarnings: [],
+
   registrationStartedAt: null,
-  registrationTimeoutSecs: function(){
-    if(this.get('content.installOptions.manualInstall')){
-      return 15;
-    }
-    return 120;
+
+  /**
+   * Timeout for registration
+   * Based on <code>installOptions.manualInstall</code>
+   * @type {number}
+   */
+  registrationTimeoutSecs: function () {
+    return this.get('content.installOptions.manualInstall') ? 15 : 120;
   }.property('content.installOptions.manualInstall'),
+
+  /**
+   * Bootstrap calls are stopped
+   * @type {bool}
+   */
   stopBootstrap: false,
+
+  /**
+   * is Submit button disabled
+   * @type {bool}
+   */
   isSubmitDisabled: true,
 
+  /**
+   * is Retry button disabled
+   * @type {bool}
+   */
   isRetryDisabled: true,
+
+  /**
+   * @type {bool}
+   */
   isLoaded: false,
 
+  /**
+   * Polls count
+   * @type {number}
+   */
+  numPolls: 0,
+
+  /**
+   * Is hosts registration in progress
+   * @type {bool}
+   */
+  isRegistrationInProgress: true,
+
+  /**
+   * Are some registered hosts which are not added by user
+   * @type {bool}
+   */
+  hasMoreRegisteredHosts: false,
+
+  /**
+   * List of installed hostnames
+   * @type {string[]}
+   */
+  hostsInCluster: function () {
+    return App.Host.find().getEach('hostName');
+  }.property().volatile(),
+
+  /**
+   * All hosts warnings
+   * @type {object[]}
+   */
+  warnings: [],
+
+  /**
+   * Warnings grouped by host
+   * @type {Ember.Enumerable}
+   */
+  warningsByHost: [],
+
+  /**
+   * Timeout for "warning"-requests
+   * @type {number}
+   */
+  warningsTimeInterval: 60000,
+
+  /**
+   * Are hosts warnings loaded
+   * @type {bool}
+   */
+  isWarningsLoaded: false,
+
+  /**
+   * Check are hosts have any warnings
+   * @type {bool}
+   */
+  isHostHaveWarnings: function () {
+    return this.get('warnings.length') > 0;
+  }.property('warnings'),
+
+  /**
+   * Should warnings-box be visible
+   * @type {bool}
+   */
+  isWarningsBoxVisible: function () {
+    return (App.testMode) ? true : !this.get('isRegistrationInProgress');
+  }.property('isRegistrationInProgress'),
+
+  /**
+   * Progress value for "update hosts status" process
+   * @type {number}
+   */
+  checksUpdateProgress: 0,
+
+  /**
+   *
+   * @type {object}
+   */
+  checksUpdateStatus: null,
+
+  /**
+   *
+   * @method navigateStep
+   */
   navigateStep: function () {
-    if(this.get('isLoaded')){
+    if (this.get('isLoaded')) {
       if (!this.get('content.installOptions.manualInstall')) {
         if (!this.get('wizardController').getDBProperty('bootStatus')) {
           this.startBootstrap();
@@ -62,6 +173,10 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   }.observes('isLoaded'),
 
+  /**
+   * Clear controller data
+   * @method clearStep
+   */
   clearStep: function () {
     this.set('stopBootstrap', false);
     this.set('hosts', []);
@@ -71,18 +186,23 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('isRetryDisabled', true);
   },
 
+  /**
+   * Make basic init steps
+   * @method loadStep
+   */
   loadStep: function () {
     console.log("TRACE: Loading step3: Confirm Hosts");
     this.set('registrationStartedAt', null);
     this.set('isLoaded', false);
     this.disablePreviousSteps();
-
     this.clearStep();
     this.loadHosts();
-    // hosts.setEach('bootStatus', 'RUNNING');
   },
 
-  /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
+  /**
+   * Loads the hostinfo from localStorage on the insertion of view. It's being called from view
+   * @method loadHosts
+   */
   loadHosts: function () {
     var hostsInfo = this.get('content.hosts');
     var hosts = [];
@@ -92,13 +212,13 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
 
     for (var index in hostsInfo) {
-      var hostInfo = App.HostInfo.create({
-        name: hostsInfo[index].name,
-        bootStatus: bootStatus,
-        isChecked: false
-      });
-
-      hosts.pushObject(hostInfo);
+      if (hostsInfo.hasOwnProperty(index)) {
+        hosts.pushObject(App.HostInfo.create({
+          name: hostsInfo[index].name,
+          bootStatus: bootStatus,
+          isChecked: false
+        }));
+      }
     }
     this.set('hosts', hosts);
     this.set('isLoaded', true);
@@ -106,7 +226,8 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /**
    * Parses and updates the content based on bootstrap API response.
-   * Returns true if polling should continue (some hosts are in "RUNNING" state); false otherwise
+   * @return {bool} true if polling should continue (some hosts are in "RUNNING" state); false otherwise
+   * @method parseHostInfo
    */
   parseHostInfo: function (hostsStatusFromServer) {
     hostsStatusFromServer.forEach(function (_hostStatus) {
@@ -123,48 +244,60 @@ App.WizardStep3Controller = Em.Controller.extend({
     return this.get('bootHosts').length != 0 && this.get('bootHosts').someProperty('bootStatus', 'RUNNING');
   },
 
+  /**
+   * Remove list of hosts
+   * @param {Ember.Enumerable} hosts
+   * @return {App.ModalPopup}
+   * @method removeHosts
+   */
   removeHosts: function (hosts) {
     var self = this;
-    App.showConfirmationPopup(function() {
+    return App.showConfirmationPopup(function () {
       App.router.send('removeHosts', hosts);
       self.hosts.removeObjects(hosts);
       if (!self.hosts.length) {
         self.set('isSubmitDisabled', true);
       }
-    },Em.I18n.t('installer.step3.hosts.remove.popup.body'));
+    }, Em.I18n.t('installer.step3.hosts.remove.popup.body'));
   },
 
-  /* Removes a single element on the trash icon click. Called from View */
+  /**
+   * Removes a single element on the trash icon click. Called from View
+   * @param {object} hostInfo
+   * @method removeHost
+   */
   removeHost: function (hostInfo) {
     this.removeHosts([hostInfo]);
   },
 
+  /**
+   * Remove selected hosts (click-handler)
+   * @return App.ModalPopup
+   * @method removeSelectedHosts
+   */
   removeSelectedHosts: function () {
-    if (!this.get('noHostsSelected')) {
-      var selectedHosts = this.get('hosts').filterProperty('isChecked', true);
-      selectedHosts.forEach(function (_hostInfo) {
-        console.log('Removing:  ' + _hostInfo.name);
-      });
-      this.removeHosts(selectedHosts);
-    }
+    var selectedHosts = this.get('hosts').filterProperty('isChecked', true);
+    selectedHosts.forEach(function (_hostInfo) {
+      console.log('Removing:  ' + _hostInfo.name);
+    });
+    return this.removeHosts(selectedHosts);
   },
 
   /**
-   * show popup with the list of hosts which are selected
+   * Show popup with the list of hosts which are selected
+   * @return App.ModalPopup
+   * @method selectedHostsPopup
    */
   selectedHostsPopup: function () {
     var selectedHosts = this.get('hosts').filterProperty('isChecked').mapProperty('name');
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step3.selectedHosts.popup.header'),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: null,
-      bodyClass: Ember.View.extend({
+      bodyClass: Em.View.extend({
         templateName: require('templates/common/items_list_popup'),
         items: selectedHosts,
         insertedItems: [],
-        didInsertElement: function() {
+        didInsertElement: function () {
           lazyloading.run({
             destination: this.get('insertedItems'),
             source: this.get('items'),
@@ -178,25 +311,44 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
   },
 
+  /**
+   * Retry one host {click-handler}
+   * @param {object} hostInfo
+   * @method retryHost
+   */
   retryHost: function (hostInfo) {
     this.retryHosts([hostInfo]);
   },
 
+  /**
+   * Retry list of hosts
+   * @param {object[]} hosts
+   * @method retryHosts
+   */
   retryHosts: function (hosts) {
-    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.installOptions.sshKey'), 'hosts': hosts.mapProperty('name'), 'user': this.get('content.installOptions.sshUser')});
-    this.numPolls = 0;
-    if (this.get('content.installOptions.manualInstall') !== true) {
-      var requestId = App.router.get('installerController').launchBootstrap(bootStrapData);
-      this.set('content.installOptions.bootRequestId', requestId);
-      this.set('registrationStartedAt', null);
-      this.doBootstrap();
-    } else {
-      this.set('registrationStartedAt', null);
+    var bootStrapData = JSON.stringify({
+      'verbose': true,
+      'sshKey': this.get('content.installOptions.sshKey'),
+      'hosts': hosts.mapProperty('name'),
+      'user': this.get('content.installOptions.sshUser')}
+    );
+    this.set('numPolls', 0);
+    this.set('registrationStartedAt', null);
+    if (this.get('content.installOptions.manualInstall')) {
       this.get('bootHosts').setEach('bootStatus', 'DONE');
       this.startRegistration();
     }
+    else {
+      var requestId = App.router.get('installerController').launchBootstrap(bootStrapData);
+      this.set('content.installOptions.bootRequestId', requestId);
+      this.doBootstrap();
+    }
   },
 
+  /**
+   * Retry selected hosts (click-handler)
+   * @method retrySelectedHosts
+   */
   retrySelectedHosts: function () {
     if (!this.get('isRetryDisabled')) {
       this.set('isRetryDisabled', true);
@@ -209,22 +361,30 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
-  numPolls: 0,
-
+  /**
+   * Init bootstrap settings and start it
+   * @method startBootstrap
+   */
   startBootstrap: function () {
     //this.set('isSubmitDisabled', true);    //TODO: uncomment after actual hookup
-    this.numPolls = 0;
+    this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
     this.set('bootHosts', this.get('hosts'));
     this.doBootstrap();
   },
 
-  isRegistrationInProgress: true,
-
+  /**
+   * Update <code>isRegistrationInProgress</code> once
+   * @method setRegistrationInProgressOnce
+   */
   setRegistrationInProgressOnce: function () {
-    Ember.run.once(this, 'setRegistrationInProgress');
+    Em.run.once(this, 'setRegistrationInProgress');
   }.observes('bootHosts.@each.bootStatus'),
 
+  /**
+   * Set <code>isRegistrationInProgress</code> value based on each host boot status
+   * @method setRegistrationInProgress
+   */
   setRegistrationInProgress: function () {
     var bootHosts = this.get('bootHosts');
     //if hosts aren't loaded yet then registration should be in progress
@@ -238,6 +398,10 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('isRegistrationInProgress', result);
   },
 
+  /**
+   * Disable wizard's previous steps (while registering)
+   * @method disablePreviousSteps
+   */
   disablePreviousSteps: function () {
     App.router.get('installerController.isStepDisabled').filter(function (step) {
       return step.step >= 0 && step.step <= 2;
@@ -247,18 +411,22 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   }.observes('isRegistrationInProgress'),
 
+  /**
+   * Do bootstrap calls
+   * @method doBootstrap
+   */
   doBootstrap: function () {
     if (this.get('stopBootstrap')) {
       return;
     }
-    this.numPolls++;
+    this.incrementProperty('numPolls');
 
     App.ajax.send({
       name: 'wizard.step3.bootstrap',
       sender: this,
       data: {
         bootRequestId: this.get('content.installOptions.bootRequestId'),
-        numPolls: this.numPolls
+        numPolls: this.get('numPolls')
       },
       success: 'doBootstrapSuccessCallback'
     }).
@@ -267,18 +435,23 @@ App.WizardStep3Controller = Em.Controller.extend({
         timeout: App.timeout
       }).
       then(
-        null,
-        function () {
-          App.showReloadPopup();
-          console.log('Bootstrap failed');
-        }
-      );
+      null,
+      function () {
+        App.showReloadPopup();
+        console.log('Bootstrap failed');
+      }
+    );
   },
 
+  /**
+   * Success-callback for each boostrap request
+   * @param {object} data
+   * @method doBootstrapSuccessCallback
+   */
   doBootstrapSuccessCallback: function (data) {
     var self = this;
     var pollingInterval = 3000;
-    if (data.hostsStatus === undefined) {
+    if (Em.isNone(data.hostsStatus)) {
       console.log('Invalid response, setting timeout');
       window.setTimeout(function () {
         self.doBootstrap()
@@ -302,7 +475,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         for (var i = 0; i < hosts.length; i++) {
 
           var isValidHost = data.hostsStatus.someProperty('hostName', hosts[i].get('name'));
-          if(hosts[i].get('bootStatus') !== 'REGISTERED'){
+          if (hosts[i].get('bootStatus') !== 'REGISTERED') {
             if (!isValidHost) {
               hosts[i].set('bootStatus', 'FAILED');
               hosts[i].set('bootLog', Em.I18n.t('installer.step3.hosts.bootLog.failed'));
@@ -323,14 +496,22 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * Start hosts registration
+   * @method startRegistration
+   */
   startRegistration: function () {
-    if (this.get('registrationStartedAt') == null) {
+    if (Em.isNone(this.get('registrationStartedAt'))) {
       this.set('registrationStartedAt', App.dateTime());
       console.log('registration started at ' + this.get('registrationStartedAt'));
       this.isHostsRegistered();
     }
   },
 
+  /**
+   * Do requests to check if hosts are already registered
+   * @method isHostsRegistered
+   */
   isHostsRegistered: function () {
     if (this.get('stopBootstrap')) {
       return;
@@ -344,15 +525,20 @@ App.WizardStep3Controller = Em.Controller.extend({
         times: App.maxRetries,
         timeout: App.timeout
       }).
-        then(
-          null,
-          function () {
-            App.showReloadPopup();
-            console.log('Error: Getting registered host information from the server');
-          }
-        );
+      then(
+      null,
+      function () {
+        App.showReloadPopup();
+        console.log('Error: Getting registered host information from the server');
+      }
+    );
   },
 
+  /**
+   * Success-callback for registered hosts request
+   * @param {object} data
+   * @method isHostsRegisteredSuccessCallback
+   */
   isHostsRegisteredSuccessCallback: function (data) {
     console.log('registration attempt...');
     var hosts = this.get('bootHosts');
@@ -405,61 +591,76 @@ App.WizardStep3Controller = Em.Controller.extend({
 
     if (stopPolling) {
       this.getHostInfo();
-    } else if (hosts.someProperty('bootStatus', 'RUNNING') || App.dateTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
-      // we want to keep polling for registration status if any of the hosts are still bootstrapping (so we check for RUNNING).
-      var self = this;
-      window.setTimeout(function () {
-        self.isHostsRegistered();
-      }, 3000);
-    } else {
-      // registration timed out.  mark all REGISTERING hosts to FAILED
-      console.log('registration timed out');
-      hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
-        _host.set('bootStatus', 'FAILED');
-        _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
-      });
-      this.getHostInfo();
+    }
+    else {
+      if (hosts.someProperty('bootStatus', 'RUNNING') || App.dateTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
+        // we want to keep polling for registration status if any of the hosts are still bootstrapping (so we check for RUNNING).
+        var self = this;
+        window.setTimeout(function () {
+          self.isHostsRegistered();
+        }, 3000);
+      }
+      else {
+        // registration timed out.  mark all REGISTERING hosts to FAILED
+        console.log('registration timed out');
+        hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
+          _host.set('bootStatus', 'FAILED');
+          _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
+        });
+        this.getHostInfo();
+      }
     }
   },
 
-  hasMoreRegisteredHosts: false,
-
-  getAllRegisteredHosts: function() {
-    App.ajax.send({
+  /**
+   * Do request for all registered hosts
+   * @return {$.ajax}
+   * @method getAllRegisteredHosts
+   */
+  getAllRegisteredHosts: function () {
+    return App.ajax.send({
       name: 'wizard.step3.is_hosts_registered',
       sender: this,
       success: 'getAllRegisteredHostsCallback'
     });
   }.observes('bootHosts'),
 
-  hostsInCluster: function() {
-    return App.Host.find().getEach('hostName');
-  }.property().volatile(),
-
-  getAllRegisteredHostsCallback: function(hosts) {
+  /**
+   * Success-callback for all registered hosts request
+   * @param {object} hosts
+   * @method getAllRegisteredHostsCallback
+   */
+  getAllRegisteredHostsCallback: function (hosts) {
     var registeredHosts = [];
     var hostsInCluster = this.get('hostsInCluster');
     var addedHosts = this.get('bootHosts').getEach('name');
-    hosts.items.forEach(function(host){
+    hosts.items.forEach(function (host) {
       if (!hostsInCluster.contains(host.Hosts.host_name) && !addedHosts.contains(host.Hosts.host_name)) {
         registeredHosts.push(host.Hosts.host_name);
       }
     });
-    if(registeredHosts.length) {
-      this.set('hasMoreRegisteredHosts',true);
-      this.set('registeredHosts',registeredHosts);
+    if (registeredHosts.length) {
+      this.set('hasMoreRegisteredHosts', true);
+      this.set('registeredHosts', registeredHosts);
     } else {
-      this.set('hasMoreRegisteredHosts',false);
-      this.set('registeredHosts','');
+      this.set('hasMoreRegisteredHosts', false);
+      this.set('registeredHosts', '');
     }
   },
 
+  /**
+   * Show popup with regitration error-message
+   * @param {string} header
+   * @param {string} message
+   * @return {App.ModalPopup}
+   * @method registerErrPopup
+   */
   registerErrPopup: function (header, message) {
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: header,
       secondary: false,
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>{{view.message}}</p>'),
+      bodyClass: Em.View.extend({
+        template: Em.Handlebars.compile('<p>{{view.message}}</p>'),
         message: message
       })
     });
@@ -467,10 +668,12 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /**
    * Get disk info and cpu count of booted hosts from server
+   * @return {$.ajax}
+   * @method getHostInfo
    */
   getHostInfo: function () {
     this.set('isWarningsLoaded', false);
-    App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.step3.host_info',
       sender: this,
       success: 'getHostInfoSuccessCallback',
@@ -478,6 +681,11 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
   },
 
+  /**
+   * Success-callback for hosts info request
+   * @param {object} jsonData
+   * @method getHostInfoSuccessCallback
+   */
   getHostInfoSuccessCallback: function (jsonData) {
     var hosts = this.get('bootHosts');
     var self = this;
@@ -493,7 +701,12 @@ App.WizardStep3Controller = Em.Controller.extend({
       if (App.skipBootstrap) {
         _host.set('cpu', 2);
         _host.set('memory', ((parseInt(2000000))).toFixed(2));
-        _host.set('disk_info', [{"mountpoint": "/", "type":"ext4"},{"mountpoint": "/grid/0", "type":"ext4"}, {"mountpoint": "/grid/1", "type":"ext4"}, {"mountpoint": "/grid/2", "type":"ext4"}]);
+        _host.set('disk_info', [
+          {"mountpoint": "/", "type": "ext4"},
+          {"mountpoint": "/grid/0", "type": "ext4"},
+          {"mountpoint": "/grid/1", "type": "ext4"},
+          {"mountpoint": "/grid/2", "type": "ext4"}
+        ]);
       } else if (host) {
         _host.set('cpu', host.Hosts.cpu_count);
         _host.set('memory', ((parseInt(host.Hosts.total_mem))).toFixed(2));
@@ -503,7 +716,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         _host.set('ip', host.Hosts.ip);
 
         var context = self.checkHostOSType(host.Hosts.os_type, host.Hosts.host_name);
-        if(context) {
+        if (context) {
           hostsContext.push(context);
           hostsRepoNames.push(host.Hosts.host_name);
         }
@@ -541,12 +754,20 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.stopRegistration();
   },
 
+  /**
+   * Error-callback for hosts info request
+   * @method getHostInfoErrorCallback
+   */
   getHostInfoErrorCallback: function () {
     console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
     this.set('isWarningsLoaded', true);
     this.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
   },
 
+  /**
+   * Enable or disable submit/retry buttons according to hosts boot statuses
+   * @method stopRegistration
+   */
   stopRegistration: function () {
     this.set('isSubmitDisabled', !this.get('bootHosts').someProperty('bootStatus', 'REGISTERED'));
     this.set('isRetryDisabled', !this.get('bootHosts').someProperty('bootStatus', 'FAILED'));
@@ -554,16 +775,20 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /**
    * Check if the customized os group contains the registered host os type. If not the repo on that host is invalid.
+   * @param {string} osType
+   * @param {string} hostName
+   * @return {string} error-message or empty string
+   * @method checkHostOSType
    */
   checkHostOSType: function (osType, hostName) {
-    if(this.get('content.stacks')){
+    if (this.get('content.stacks')) {
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
       var selectedOS = [];
       var isValid = false;
       if (selectedStack && selectedStack.operatingSystems) {
-        selectedStack.get('operatingSystems').filterProperty('selected', true).forEach( function(os) {
+        selectedStack.get('operatingSystems').filterProperty('selected', true).forEach(function (os) {
           selectedOS.pushObject(os.osType);
-          if ( os.osType == osType) {
+          if (os.osType == osType) {
             isValid = true;
           }
         });
@@ -571,49 +796,62 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       if (!isValid) {
         console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
-          'Host Name: '+ hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
+          'Host Name: ' + hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
         return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS);
       } else {
-        return null;
+        return '';
       }
-    }else{
-      return null;
+    } else {
+      return '';
     }
   },
 
   /**
    * Check if current host has enough free disk usage.
+   * @param {string} hostName
+   * @param {object} diskInfo
+   * @return {string} error-message or empty string
+   * @method checkHostDiskSpace
    */
   checkHostDiskSpace: function (hostName, diskInfo) {
     var minFreeRootSpace = App.minDiskSpace * 1024 * 1024; //in kilobyte
     var minFreeUsrLibSpace = App.minDiskSpaceUsrLib * 1024 * 1024; //in kilobyte
     var warningString = '';
 
-    diskInfo.forEach( function(info) {
+    diskInfo.forEach(function (info) {
       switch (info.mountpoint) {
         case '/':
-          warningString = info.available < minFreeRootSpace ? Em.I18n.t('installer.step3.hostWarningsPopup.disk.context2').format(App.minDiskSpace + 'GB', info.mountpoint) + ' ' + warningString : warningString;
+          warningString = info.available < minFreeRootSpace ?
+            Em.I18n.t('installer.step3.hostWarningsPopup.disk.context2').format(App.minDiskSpace + 'GB', info.mountpoint) + ' ' + warningString :
+            warningString;
           break;
         case '/usr':
         case '/usr/lib':
-          warningString = info.available < minFreeUsrLibSpace ? Em.I18n.t('installer.step3.hostWarningsPopup.disk.context2').format(App.minDiskSpaceUsrLib + 'GB', info.mountpoint) + ' ' + warningString : warningString;
+          warningString = info.available < minFreeUsrLibSpace ?
+            Em.I18n.t('installer.step3.hostWarningsPopup.disk.context2').format(App.minDiskSpaceUsrLib + 'GB', info.mountpoint) + ' ' + warningString :
+            warningString;
           break;
         default:
           break;
       }
     });
     if (warningString) {
-      console.log('WARNING: Getting host free disk space. ' + 'Host Name: '+ hostName);
+      console.log('WARNING: Getting host free disk space. ' + 'Host Name: ' + hostName);
       return Em.I18n.t('installer.step3.hostWarningsPopup.disk.context1').format(hostName) + ' ' + warningString;
     } else {
-      return null;
+      return '';
     }
   },
 
+  /**
+   * Submit-click handler
+   * @return {App.ModalPopup|null}
+   * @method submit
+   */
   submit: function () {
     if (this.get('isHostHaveWarnings')) {
       var self = this;
-      App.showConfirmationPopup(
+      return App.showConfirmationPopup(
         function () {
           self.set('content.hosts', self.get('bootHosts'));
           App.router.send('next');
@@ -624,62 +862,29 @@ App.WizardStep3Controller = Em.Controller.extend({
       this.set('content.hosts', this.get('bootHosts'));
       App.router.send('next');
     }
+    return null;
   },
 
-  hostLogPopup: function (event, context) {
+  /**
+   * Show popup with host log
+   * @param {object} event
+   * @return {App.ModalPopup}
+   */
+  hostLogPopup: function (event) {
     var host = event.context;
 
-    App.ModalPopup.show({
-
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step3.hostLog.popup.header').format(host.get('name')),
       secondary: null,
-
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step3_host_log_popup'),
-        host: host,
-        didInsertElement: function () {
-          var self = this;
-          var button = $(this.get('element')).find('.textTrigger');
-          button.click(function () {
-            if (self.get('isTextArea')) {
-              $(this).text(Em.I18n.t('installer.step3.hostLogPopup.highlight'));
-            } else {
-              $(this).text(Em.I18n.t('installer.step3.hostLogPopup.copy'));
-            }
-            self.set('isTextArea', !self.get('isTextArea'));
-          });
-          $(this.get('element')).find('.content-area').mouseenter(
-            function () {
-              var element = $(this);
-              element.css('border', '1px solid #dcdcdc');
-              button.css('visibility', 'visible');
-            }).mouseleave(
-            function () {
-              var element = $(this);
-              element.css('border', 'none');
-              button.css('visibility', 'hidden');
-            })
-        },
-        isTextArea: false,
-        textArea: Em.TextArea.extend({
-          didInsertElement: function () {
-            var element = $(this.get('element'));
-            element.width($(this.get('parentView').get('element')).width() - 10);
-            element.height($(this.get('parentView').get('element')).height());
-            element.select();
-            element.css('resize', 'none');
-          },
-          readOnly: true,
-          value: function () {
-            return this.get('content');
-          }.property('content')
-        })
-      })
+      host: host,
+      bodyClass: App.WizardStep3HostLogPopupBody
     });
   },
+
   /**
-   * check warnings from server and put it in parsing
-    */
+   * Check warnings from server and put it in parsing
+   * @method rerunChecks
+   */
   rerunChecks: function () {
     var self = this;
     var currentProgress = 0;
@@ -699,40 +904,33 @@ App.WizardStep3Controller = Em.Controller.extend({
     }, 1000);
   },
 
+  /**
+   * Success-callback for rerun request
+   * @param {object} data
+   * @method rerunChecksSuccessCallback
+   */
   rerunChecksSuccessCallback: function (data) {
     this.set('checksUpdateProgress', 100);
     this.set('checksUpdateStatus', 'SUCCESS');
     this.parseWarnings(data);
   },
 
+  /**
+   * Error-callback for rerun request
+   * @method rerunChecksErrorCallback
+   */
   rerunChecksErrorCallback: function () {
     this.set('checksUpdateProgress', 100);
     this.set('checksUpdateStatus', 'FAILED');
     console.log('INFO: Getting host information(last_agent_env) from the server failed');
   },
 
-  warnings: [],
-  warningsByHost: [],
-  warningsTimeInterval: 60000,
-  isWarningsLoaded: false,
   /**
-   * check are hosts have any warnings
-   */
-  isHostHaveWarnings: function(){
-    return this.get('warnings.length') > 0;
-  }.property('warnings'),
-
-  isWarningsBoxVisible: function(){
-    return (App.testMode) ? true : !this.get('isRegistrationInProgress');
-  }.property('isRegistrationInProgress'),
-
-  checksUpdateProgress:0,
-  checksUpdateStatus: null,
-  /**
-   * filter data for warnings parse
+   * Filter data for warnings parse
    * is data from host in bootStrap
-   * @param data
+   * @param {object} data
    * @return {Object}
+   * @method filterBootHosts
    */
   filterBootHosts: function (data) {
     var bootHostNames = {};
@@ -750,9 +948,11 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
     return filteredData;
   },
+
   /**
-   * parse warnings data for each host and total
-   * @param data
+   * Parse warnings data for each host and total
+   * @param {object} data
+   * @method parseWarnings
    */
   parseWarnings: function (data) {
     data = App.testMode ? data : this.filterBootHosts(data);
@@ -801,7 +1001,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       }, this);
 
       //parse all package warnings for host
-      _host.Hosts.last_agent_env.installedPackages.forEach(function (_package) {
+      if (_host.Hosts.last_agent_env.installedPackages) {
+        _host.Hosts.last_agent_env.installedPackages.forEach(function (_package) {
           warning = warningCategories.packagesWarnings[_package.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
@@ -817,12 +1018,14 @@ App.WizardStep3Controller = Em.Controller.extend({
             };
           }
           host.warnings.push(warning);
-      }, this);
+        }, this);
+      }
 
       //parse all process warnings for host
 
       //todo: to be removed after check in new API
       var javaProcs = _host.Hosts.last_agent_env.hostHealth ? _host.Hosts.last_agent_env.hostHealth.activeJavaProcs : _host.Hosts.last_agent_env.javaProcs;
+      if (javaProcs) {
       javaProcs.forEach(function (process) {
         warning = warningCategories.processesWarnings[process.pid];
         if (warning) {
@@ -836,14 +1039,15 @@ App.WizardStep3Controller = Em.Controller.extend({
             user: process.user,
             pid: process.pid,
             command: '<table><tr><td style="word-break: break-all;">' +
-                ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
-                    '<p style="text-align: center">................</p>' +
-                    '...' + process.command.substr(-230)) + '</td></tr></table>',
+              ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
+                '<p style="text-align: center">................</p>' +
+                '...' + process.command.substr(-230)) + '</td></tr></table>',
             onSingleHost: true
           };
         }
         host.warnings.push(warning);
       }, this);
+    }
 
       //parse all service warnings for host
 
@@ -906,9 +1110,9 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
         host.warnings.push(warning);
       }
-      
+
       var firewallRunning = _host.Hosts.last_agent_env.iptablesIsRunning;
-      if (firewallRunning!==null && firewallRunning) {
+      if (firewallRunning !== null && firewallRunning) {
         var name = Em.I18n.t('installer.step3.hostWarningsPopup.firewall.name');
         warning = warnings.filterProperty('category', 'firewall').findProperty('name', name);
         if (warning) {
@@ -938,7 +1142,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               target: alternative.target,
               hosts: [_host.Hosts.host_name],
               category: 'alternatives',
-              onSingleHost: false
+              onSingleHost: true
             };
           }
           host.warnings.push(warning);
@@ -959,7 +1163,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       if (warn.hosts.length < 11) {
         warn.hostsList = warn.hosts.join('<br>')
       } else {
-        warn.hostsList = warn.hosts.slice(0,10).join('<br>') + '<br> ' + Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(warn.hosts.length - 10);
+        warn.hostsList = warn.hosts.slice(0, 10).join('<br>') + '<br> ' + Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(warn.hosts.length - 10);
       }
     });
     hosts.unshift({
@@ -970,361 +1174,58 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('warningsByHost', hosts);
     this.set('isWarningsLoaded', true);
   },
+
   /**
-   * open popup that contain hosts' warnings
-   * @param event
+   * Open popup that contain hosts' warnings
+   * @return {App.ModalPopup}
+   * @method hostWarningsPopup
    */
-  hostWarningsPopup: function(event){
+  hostWarningsPopup: function () {
     var self = this;
-    var repoCategoryWarnings = this.get('repoCategoryWarnings');
-    var diskCategoryWarnings = this.get('diskCategoryWarnings');
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
 
       header: Em.I18n.t('installer.step3.warnings.popup.header'),
+
       secondary: Em.I18n.t('installer.step3.hostWarningsPopup.rerunChecks'),
+
       primary: Em.I18n.t('common.close'),
+
       onPrimary: function () {
         self.set('checksUpdateStatus', null);
         this.hide();
       },
-      onClose: function(){
+
+      onClose: function () {
         self.set('checksUpdateStatus', null);
         this.hide();
       },
-      onSecondary: function() {
+
+      onSecondary: function () {
         self.rerunChecks();
       },
+
       didInsertElement: function () {
         this.fitHeight();
       },
 
-      footerClass: Ember.View.extend({
-        templateName: require('templates/wizard/step3_host_warning_popup_footer'),
-        classNames: ['modal-footer', 'host-checks-update'],
-        footerControllerBinding: 'App.router.wizardStep3Controller',
-        progressWidth: function(){
-          return 'width:'+this.get('footerController.checksUpdateProgress')+'%';
-        }.property('footerController.checksUpdateProgress'),
-        isUpdateInProgress: function(){
-          if((this.get('footerController.checksUpdateProgress') > 0) &&
-             (this.get('footerController.checksUpdateProgress') < 100)){
-            return true;
-          }
-        }.property('footerController.checksUpdateProgress'),
-        updateStatusClass:function(){
-          var status = this.get('footerController.checksUpdateStatus');
-          if(status === 'SUCCESS'){
-            return 'text-success';
-          } else if(status === 'FAILED'){
-            return 'text-error';
-          } else {
-            return null;
-          }
-        }.property('footerController.checksUpdateStatus'),
-        updateStatus:function(){
-          var status = this.get('footerController.checksUpdateStatus');
-          if(status === 'SUCCESS'){
-            return Em.I18n.t('installer.step3.warnings.updateChecks.success');
-          } else if(status === 'FAILED'){
-            return Em.I18n.t('installer.step3.warnings.updateChecks.failed');
-          } else {
-            return null;
-          }
-        }.property('footerController.checksUpdateStatus')
-      }),
+      footerClass: App.WizardStep3HostWarningPopupFooter,
 
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step3_host_warnings_popup'),
-        classNames: ['host-check'],
-        bodyControllerBinding: 'App.router.wizardStep3Controller',
-        didInsertElement: function () {
-          Ember.run.next(this, function () {
-            App.tooltip(this.$("[rel='HostsListTooltip']"), {html: true, placement: "right"});
-            App.tooltip(this.$('#process .warning-name'), {html: true, placement: "top"});
-          });
-        }.observes('content'),
-        hostSelectView: Ember.Select.extend({
-          //content has default value "All Hosts" to bind selection to category
-          content: ['All Hosts'],
-          hosts: function () {
-            return this.get('parentView.warningsByHost').mapProperty('name');
-          }.property('parentView.warningsByHost'),
-          isLoaded: false,
-          selectionBinding: "parentView.category",
-          didInsertElement: function(){
-            this.initContent();
-          },
-          initContent: function () {
-            this.set('isLoaded', false);
-            //The lazy loading for select elements supported only by Firefox and Chrome
-            var isBrowserSupported = $.browser.mozilla || ($.browser.safari && navigator.userAgent.indexOf('Chrome') !== -1);
-            var isLazyLoading = isBrowserSupported && this.get('hosts').length > 100;
-            this.set('isLazyLoading', isLazyLoading);
-            if (isLazyLoading) {
-              //select need at least 30 hosts to have scrollbar
-              this.set('content', this.get('hosts').slice(0, 30));
-            } else {
-              this.set('content', this.get('hosts'));
-              this.set('isLoaded', true);
-            }
-          }.observes('parentView.warningsByHost'),
-          /**
-           * on click start lazy loading
-           */
-          click: function () {
-            if (!this.get('isLoaded') && this.get('isLazyLoading')) {
-              //filter out hosts, which already pushed in select
-              var source = this.get('hosts').filter(function (_host) {
-                return !this.get('content').contains(_host);
-              }, this).slice();
-              lazyloading.run({
-                destination: this.get('content'),
-                source: source,
-                context: this,
-                initSize: 30,
-                chunkSize: 200,
-                delay: 50
-              });
-            }
-          }
-        }),
-        warningsByHost: function () {
-          return this.get('bodyController.warningsByHost');
-        }.property('bodyController.warningsByHost'),
-        warnings: function () {
-          return this.get('bodyController.warnings');
-        }.property('bodyController.warnings'),
-        category: 'All Hosts',
-        categoryWarnings: function () {
-          return this.get('warningsByHost').findProperty('name', this.get('category')).warnings
-        }.property('warningsByHost', 'category'),
-        content: function () {
-          var categoryWarnings = this.get('categoryWarnings');
-          return [
-            Ember.Object.create({
-              warnings: diskCategoryWarnings,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.disk'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.disk.message'),
-              type: Em.I18n.t('common.issues'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.disk'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'disk',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: repoCategoryWarnings,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.repositories'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.message'),
-              type: Em.I18n.t('common.issues'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.repositories'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.invalid'),
-              category: 'repositories',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-             warnings: categoryWarnings.filterProperty('category', 'firewall'),
-             title: Em.I18n.t('installer.step3.hostWarningsPopup.firewall'),
-             message: Em.I18n.t('installer.step3.hostWarningsPopup.firewall.message'),
-             type: Em.I18n.t('common.issues'),
-             emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.firewall'),
-             action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-             category: 'firewall',
-             isCollapsed: true
-            }),
-            Ember.Object.create({
-             warnings: categoryWarnings.filterProperty('category', 'processes'),
-             title: Em.I18n.t('installer.step3.hostWarningsPopup.process'),
-             message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
-             type: Em.I18n.t('common.process'),
-             emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
-             action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-             category: 'process',
-             isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'packages'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.package'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.packages.message'),
-              type: Em.I18n.t('common.package'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.packages'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.installed'),
-              category: 'package',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.fileAndFolder'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders.message'),
-              type: Em.I18n.t('common.path'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.filesAndFolders'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'fileFolders',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'services'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.service'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.services.message'),
-              type: Em.I18n.t('common.service'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.services'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.notRunning'),
-              category: 'service',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'users'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.user'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.users.message'),
-              type: Em.I18n.t('common.user'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.users'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'user',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'misc'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.misc'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.misc.message'),
-              type: Em.I18n.t('installer.step3.hostWarningsPopup.misc.umask'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.misc'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'misc',
-              isCollapsed: true
-            }),
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'alternatives'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.message'),
-              type: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.umask'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.emptyinstaller.step3.hostWarningsPopup.alternatives.empty'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-              category: 'alternatives',
-              isCollapsed: true
-            })
-          ]
-        }.property('category', 'warningsByHost'),
-
-        showHostsPopup: function (hosts) {
-          $('.tooltip').hide();
-          App.ModalPopup.show({
-            header: Em.I18n.t('installer.step3.hostWarningsPopup.allHosts'),
-            bodyClass: Ember.View.extend({
-              hosts: hosts.context,
-              template: Ember.Handlebars.compile('<ul>{{#each host in view.hosts}}<li>{{host}}</li>{{/each}}</ul>')
-            }),
-            secondary: null
-          });
-        },
-
-        onToggleBlock: function (category) {
-          this.$('#' + category.context.category).toggle('blind', 500);
-          category.context.set("isCollapsed", !category.context.get("isCollapsed"));
-        },
-        /**
-         * generate number of hosts which had warnings, avoid duplicated host names in different warnings.
-         */
-        warningHostsNamesCount: function () {
-          var hostNameMap = Ember.Object.create();
-          var warningsByHost = self.get('warningsByHost').slice();
-          warningsByHost.shift();
-          warningsByHost.forEach( function( _host) {
-            if (_host.warnings.length) {
-              hostNameMap[_host.name] = true;
-            }
-          })
-          if (repoCategoryWarnings.length) {
-            repoCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
-              if (!hostNameMap[_hostName]) {
-                hostNameMap[_hostName] = true;
-              }
-            })
-          }
-          if (diskCategoryWarnings.length) {
-            diskCategoryWarnings[0].hostsNames.forEach(function (_hostName) {
-              if (!hostNameMap[_hostName]) {
-                hostNameMap[_hostName] = true;
-              }
-            })
-          }
-          var size = 0;
-          for (var key in hostNameMap) {
-            if (hostNameMap.hasOwnProperty(key)) size++;
-          }
-          return size;
-        },
-        warningsNotice: function () {
-          var warnings = this.get('warnings');
-          var issuesNumber = warnings.length + repoCategoryWarnings.length + diskCategoryWarnings.length;
-          var issues = issuesNumber + ' ' + (issuesNumber.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
-          var hostsCnt = this.warningHostsNamesCount();
-          var hosts = hostsCnt + ' ' + (hostsCnt === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
-          return Em.I18n.t('installer.step3.hostWarningsPopup.summary').format(issues, hosts);
-        }.property('warnings', 'warningsByHost'),
-        /**
-         * generate detailed content to show it in new window
-         */
-        contentInDetails: function () {
-          var content = this.get('content');
-          var warningsByHost = this.get('warningsByHost').slice();
-          warningsByHost.shift();
-          var newContent = '';
-          newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.header') + new Date;
-          newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hosts');
-          newContent += warningsByHost.filterProperty('warnings.length').mapProperty('name').join(' ');
-          if (content.findProperty('category', 'firewall').warnings.length) {
-            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.firewall');
-            newContent += content.findProperty('category', 'firewall').warnings.mapProperty('name').join('<br>');
-          }
-          if (content.findProperty('category', 'fileFolders').warnings.length) {
-            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.fileFolders');
-            newContent += content.findProperty('category', 'fileFolders').warnings.mapProperty('name').join(' ');
-          }
-          if (content.findProperty('category', 'process').warnings.length) {
-            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.process');
-            content.findProperty('category', 'process').warnings.forEach(function (process, i) {
-              process.hosts.forEach(function (host, j) {
-                if (!!i || !!j) {
-                  newContent += ',';
-                }
-                newContent += '(' + host + ',' + process.user + ',' + process.pid + ')';
-              });
-            });
-          }
-          if (content.findProperty('category', 'package').warnings.length) {
-            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.package');
-            newContent += content.findProperty('category', 'package').warnings.mapProperty('name').join(' ');
-          }
-          if (content.findProperty('category', 'service').warnings.length) {
-            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.service');
-            newContent += content.findProperty('category', 'service').warnings.mapProperty('name').join(' ');
-          }
-          if (content.findProperty('category', 'user').warnings.length) {
-            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.user');
-            newContent += content.findProperty('category', 'user').warnings.mapProperty('name').join(' ');
-          }
-          newContent += '</p>';
-          return newContent;
-        }.property('content', 'warningsByHost'),
-        /**
-         * open new browser tab with detailed content
-         */
-        openWarningsInDialog: function(){
-          var newWindow = window.open('');
-          var newDocument = newWindow.document;
-          newDocument.write(this.get('contentInDetails'));
-          newWindow.focus();
-        }
-      })
-    })
+      bodyClass: App.WizardStep3HostWarningPopupBody
+    });
   },
 
-  registeredHostsPopup: function(){
+  /**
+   * Show popup with registered hosts
+   * @return {App.ModalPopup}
+   * @method registeredHostsPopup
+   */
+  registeredHostsPopup: function () {
     var self = this;
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('registeredHosts').length),
       secondary: null,
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step3_registered_hosts_popup'),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/wizard/step3/step3_registered_hosts_popup'),
         message: Em.I18n.t('installer.step3.registeredHostsPopup'),
         registeredHosts: self.get('registeredHosts')
       })
@@ -1332,4 +1233,3 @@ App.WizardStep3Controller = Em.Controller.extend({
   }
 
 });
-

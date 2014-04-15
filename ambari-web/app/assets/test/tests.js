@@ -126,6 +126,8 @@ require('test/views/main/charts/heatmap/heatmap_host_test');
 require('test/views/main/charts/heatmap/heatmap_rack_test');
 require('test/views/main/service/info/config_test');
 require('test/views/common/configs/services_config_test');
+require('test/views/wizard/step3/hostLogPopupBody_view_test');
+require('test/views/wizard/step3/hostWarningPopupFooter_view_test');
 require('test/views/wizard/step0_view_test');
 require('test/views/wizard/step1_view_test');
 require('test/views/wizard/step2_view_test');

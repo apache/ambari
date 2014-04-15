@@ -338,4 +338,13 @@ describe('App.WizardStep4Controller', function () {
     }, this);
   });
 
+  describe('#monitoringCheckPopup', function() {
+    it('should show App.ModalPopup', function() {
+      sinon.spy(App.ModalPopup, 'show');
+      controller.monitoringCheckPopup();
+      expect(App.ModalPopup.show.calledOnce).to.equal(true);
+      App.ModalPopup.show.restore();
+    });
+  })
+
 });

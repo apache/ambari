@@ -23,78 +23,63 @@ App.WizardStep3View = App.TableView.extend({
 
   templateName: require('templates/wizard/step3'),
 
+  /**
+   * List of hosts
+   * Same to <code>controller.hosts</code>
+   * @type {Ember.Enumerable}
+   */
   content:function () {
     return this.get('controller.hosts');
   }.property('controller.hosts.length'),
 
+  /**
+   * Message with info about registration result
+   * @type {string}
+   */
   message:'',
+
+  /**
+   * Text to link for hosts' warnings popup
+   * @type {string}
+   */
   linkText: '',
+
+  /**
+   * Registration status
+   * @type {string}
+   */
   status: '',
 
+  /**
+   * Active category
+   * @type {string}
+   */
   selectedCategory: function() {
     return this.get('categories').findProperty('isActive');
   }.property('categories.@each.isActive'),
 
+  /**
+   * Message about other registered hosts (not included in current registration)
+   * @type {string}
+   */
   registeredHostsMessage: '',
 
+  /**
+   * Number of visible hosts on page
+   * @type {string}
+   */
   displayLength: "25",
 
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  },
-
+  /**
+   * All checkboxes on page are checked
+   * @type {bool}
+   */
   pageChecked: false,
 
   /**
-   * select checkboxes of hosts on page
+   * bootStatus category object
+   * @type {Ember.Object}
    */
-  onPageChecked: function () {
-    if (this.get('selectionInProgress')) return;
-    this.get('pageContent').setEach('isChecked', this.get('pageChecked'));
-  }.observes('pageChecked'),
-
-  /**
-   * select checkboxes of all hosts
-   */
-  selectAll: function () {
-    this.get('content').setEach('isChecked', true);
-  },
-
-  /**
-   * reset checkbox of all hosts
-   */
-  unSelectAll: function() {
-    this.get('content').setEach('isChecked', false);
-  },
-
-  watchSelectionOnce: function () {
-    Em.run.once(this, 'watchSelection');
-  }.observes('content.@each.isChecked', 'pageContent'),
-
-  /**
-   * watch selection and calculate such flags as:
-   * - noHostsSelected
-   * - selectedHostsCount
-   * - pageChecked
-   */
-  watchSelection: function() {
-    this.set('selectionInProgress', true);
-    this.set('pageChecked', !!this.get('pageContent.length') && this.get('pageContent').everyProperty('isChecked', true));
-    this.set('selectionInProgress', false);
-    var noHostsSelected = true;
-    var selectedHostsCount = 0;
-    this.get('content').forEach(function(host){
-      selectedHostsCount += ~~host.get('isChecked');
-      noHostsSelected = (noHostsSelected) ? !host.get('isChecked') : noHostsSelected;
-    });
-    this.set('noHostsSelected', noHostsSelected);
-    this.set('selectedHostsCount', selectedHostsCount);
-  },
-
-  setRegisteredHosts: function(){
-    this.set('registeredHostsMessage',Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('controller.registeredHosts').length));
-  }.observes('controller.registeredHosts'),
-
   categoryObject: Em.Object.extend({
     hostsCount: 0,
     label: function () {
@@ -106,6 +91,10 @@ App.WizardStep3View = App.TableView.extend({
     }.property('isActive')
   }),
 
+  /**
+   * List of bootStatus categories
+   * @type {categoryObject[]}
+   */
   categories: function () {
     return [
       this.categoryObject.create({value: Em.I18n.t('common.all'), hostsBootStatus: 'ALL', isActive: true}),
@@ -116,12 +105,88 @@ App.WizardStep3View = App.TableView.extend({
     ];
   }.property(),
 
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
+
+  /**
+   * Select checkboxes of hosts on page
+   * @method onPageChecked
+   */
+  onPageChecked: function () {
+    if (this.get('selectionInProgress')) return;
+    this.get('pageContent').setEach('isChecked', this.get('pageChecked'));
+  }.observes('pageChecked'),
+
+  /**
+   * Select checkboxes of all hosts
+   * @method selectAll
+   */
+  selectAll: function () {
+    this.get('content').setEach('isChecked', true);
+  },
+
+  /**
+   * Reset checkbox of all hosts
+   * @method unSelectAll
+   */
+  unSelectAll: function() {
+    this.get('content').setEach('isChecked', false);
+  },
+
+  /**
+   * Call <code>watchSelection</code> only once
+   * @method watchSelectionOnce
+   */
+  watchSelectionOnce: function () {
+    Em.run.once(this, 'watchSelection');
+  }.observes('content.@each.isChecked', 'pageContent'),
+
+  /**
+   * Watch selection and calculate such flags as:
+   * <ul>
+   *  <li>noHostsSelected</li>
+   *  <li>selectedHostsCount</li>
+   *  <li>pageChecked</li>
+   * </ul>
+   * @method watchSelection
+   */
+  watchSelection: function() {
+    this.set('selectionInProgress', true);
+    this.set('pageChecked', !!this.get('pageContent.length') && this.get('pageContent').everyProperty('isChecked', true));
+    this.set('selectionInProgress', false);
+    var noHostsSelected = true;
+    var selectedHostsCount = 0;
+    this.get('content').forEach(function(host){
+      selectedHostsCount += host.get('isChecked') ? 1 : 0;
+      noHostsSelected = (noHostsSelected) ? !host.get('isChecked') : noHostsSelected;
+    });
+    this.set('noHostsSelected', noHostsSelected);
+    this.set('selectedHostsCount', selectedHostsCount);
+  },
+
+  /**
+   * Update <code>registeredHostsMessage</code> according to <code>controller.registeredHots.length</code>
+   * @method setRegisteredHosts
+   */
+  setRegisteredHosts: function(){
+    this.set('registeredHostsMessage',Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('controller.registeredHosts').length));
+  }.observes('controller.registeredHosts'),
+
+  /**
+   * Call filters and counters one time
+   * @method hostBootStatusObserver
+   */
   hostBootStatusObserver: function(){
-    Ember.run.once(this, 'countCategoryHosts');
-    Ember.run.once(this, 'filter');
-    Ember.run.once(this, 'monitorStatuses');
+    Em.run.once(this, 'countCategoryHosts');
+    Em.run.once(this, 'filter');
+    Em.run.once(this, 'monitorStatuses');
   }.observes('content.@each.bootStatus'),
 
+  /**
+   * Calculate host count grouped by <code>bootStatus</code>
+   * @method countCategoryHosts
+   */
   countCategoryHosts: function () {
     var counters = {
       "RUNNING": 0,
@@ -130,7 +195,7 @@ App.WizardStep3View = App.TableView.extend({
       "FAILED": 0
     };
     this.get('content').forEach(function (host) {
-      if (counters[host.get('bootStatus')] !== undefined) {
+      if (!Em.isNone(counters[host.get('bootStatus')])) {
         counters[host.get('bootStatus')]++;
       }
     }, this);
@@ -142,7 +207,8 @@ App.WizardStep3View = App.TableView.extend({
 
 
   /**
-   * filter hosts by category
+   * Filter hosts by category
+   * @method filter
    */
   filter: function () {
     var self = this;
@@ -157,13 +223,14 @@ App.WizardStep3View = App.TableView.extend({
       self.set('filteredContent', result);
     });
   }.observes('selectedCategory'),
+
   /**
    * Trigger on Category click
    * @param {Object} event
+   * @method selectCategory
    */
   selectCategory: function (event) {
     var categoryStatus = event.context.get('hostsBootStatus');
-    var self = this;
     this.get('categories').forEach(function (category) {
       category.set('isActive', (category.get('hostsBootStatus') === categoryStatus));
     });
@@ -173,6 +240,7 @@ App.WizardStep3View = App.TableView.extend({
   /**
    * Select "All" hosts category
    * run registration of failed hosts again
+   * @method retrySelectedHosts
    */
   retrySelectedHosts: function () {
     var eventObject = {context: Em.Object.create({hostsBootStatus: 'ALL'})};
@@ -180,6 +248,10 @@ App.WizardStep3View = App.TableView.extend({
     this.get('controller').retrySelectedHosts();
   },
 
+  /**
+   * Update <code>status</code>, <code>linkText</code>, <code>message</code> according to hosts statuses
+   * @method monitorStatuses
+   */
   monitorStatuses: function() {
     var hosts = this.get('controller.bootHosts');
     var failedHosts = hosts.filterProperty('bootStatus', 'FAILED').length;
@@ -188,56 +260,81 @@ App.WizardStep3View = App.TableView.extend({
       this.set('status', 'alert-warn');
       this.set('linkText', '');
       this.set('message', Em.I18n.t('installer.step3.warnings.missingHosts'));
-    } else if (!this.get('controller.isWarningsLoaded')) {
-      this.set('status', 'alert-info');
-      this.set('linkText', '');
-      this.set('message', Em.I18n.t('installer.step3.warning.loading'));
-    } else if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length') || this.get('controller.diskCategoryWarnings.length')) {
-      this.set('status', 'alert-warn');
-      this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
-      this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length - failedHosts));
-    } else {
-      this.set('status', 'alert-success');
-      this.set('linkText', Em.I18n.t('installer.step3.noWarnings.linkText'));
-      if (failedHosts == 0) {
-        // all are ok
-        this.set('message', Em.I18n.t('installer.step3.warnings.noWarnings').format(hosts.length));
-      } else if (failedHosts == hosts.length) {
-        // all failed
-        this.set('status', 'alert-warn');
+    }
+    else {
+      if (!this.get('controller.isWarningsLoaded')) {
+        this.set('status', 'alert-info');
         this.set('linkText', '');
-        this.set('message', Em.I18n.t('installer.step3.warnings.allFailed').format(failedHosts));
-      } else {
-        // some failed
-        this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length - failedHosts), failedHosts));
+        this.set('message', Em.I18n.t('installer.step3.warning.loading'));
+      }
+      else {
+        if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length') || this.get('controller.diskCategoryWarnings.length')) {
+          this.set('status', 'alert-warn');
+          this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
+          this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length - failedHosts));
+        }
+        else {
+          this.set('status', 'alert-success');
+          this.set('linkText', Em.I18n.t('installer.step3.noWarnings.linkText'));
+          if (failedHosts == 0) {
+            // all are ok
+            this.set('message', Em.I18n.t('installer.step3.warnings.noWarnings').format(hosts.length));
+          }
+          else {
+            if (failedHosts == hosts.length) {
+              // all failed
+              this.set('status', 'alert-warn');
+              this.set('linkText', '');
+              this.set('message', Em.I18n.t('installer.step3.warnings.allFailed').format(failedHosts));
+            }
+            else {
+              // some failed
+              this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length - failedHosts), failedHosts));
+            }
+          }
+        }
       }
     }
   }.observes('controller.isWarningsLoaded', 'controller.isHostHaveWarnings', 'controller.repoCategoryWarnings', 'controller.diskCategoryWarnings')
+
 });
 
 //todo: move it inside WizardStep3View
 App.WizardHostView = Em.View.extend({
 
   tagName: 'tr',
+
   classNameBindings: ['hostInfo.bootStatus'],
+
+  /**
+   * Host from parent view
+   * @type {Object}
+   */
   hostInfo: null,
 
+  /**
+   * @type {bool}
+   */
+  isRetryable: function() {
+    // return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
+    return false;
+  }.property('hostInfo.bootStatus'),
+
+  /**
+   * Remove selected host
+   * @method remove
+   */
   remove: function () {
     this.get('controller').removeHost(this.get('hostInfo'));
   },
 
+  /**
+   * Retry register selected host
+   * @method retry
+   */
   retry: function() {
     this.get('controller').retryHost(this.get('hostInfo'));
-  },
-
-  isRemovable: function () {
-    return true;
-  }.property(),
-
-  isRetryable: function() {
-    // return ['FAILED'].contains(this.get('hostInfo.bootStatus'));
-    return false;
-  }.property('hostInfo.bootStatus')
+  }
 
 });
 

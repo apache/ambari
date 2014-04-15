@@ -16,18 +16,16 @@
 * limitations under the License.
 }}
 
-<div class="update-progress pull-left">
-  {{#if view.isUpdateInProgress}}
-    <div class="progress-info active progress">
-      <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
-    </div>
-  {{else}}
-    <label {{bindAttr class="view.updateStatusClass"}}>{{view.updateStatus}}</label>
-  {{/if}}
+
+<div id="host-log">
+  <div class="content-area">
+    <div class="textTrigger">{{t popup.highlight}}</div>
+    {{#if view.isTextArea}}
+      <div>
+        {{view view.textArea contentBinding="view.bootLog"}}
+      </div>
+    {{else}}
+      <pre class="bootLog">{{view.bootLog}}</pre>
+    {{/if}}
+  </div>
 </div>
-{{#if view.parentView.secondary}}
-  <button type="button" class="btn btn-info" {{bindAttr disabled="view.isUpdateInProgress"}} {{action onSecondary target="view.parentView"}}><i class="icon-repeat"></i>&nbsp;{{view.parentView.secondary}}</button>
-{{/if}}
-{{#if view.parentView.primary}}
-  <button type="button" class="btn" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</button>
-{{/if}}

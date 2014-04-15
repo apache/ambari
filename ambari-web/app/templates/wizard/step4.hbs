@@ -28,9 +28,8 @@
       <th class="span3">{{t common.service}}
         <span style="margin-left:10px">
           <a href="#" {{action selectAll target="controller"}} {{bindAttr class="isAll:selected:deselected"}}>{{t all}}</a>
-                |
-                <a
-                  href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>{{t none}}</a>
+           |
+          <a href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>{{t none}}</a>
         </span>
       </th>
       <th>{{t common.version}}</th>
@@ -38,24 +37,22 @@
     </tr>
     </thead>
     <tbody>
-    {{#each controller}}
-    {{#unless isHidden}}
-    <tr {{bindAttr class="isSelected:success:"}}>
-      <td><label
-        class="checkbox">{{view Ember.Checkbox disabledBinding="isDisabled" checkedBinding="isSelected"}}{{displayName}}</label>
-      </td>
-      <td>{{version}}</td>
-      <td>{{{description}}}</td>
-    </tr>
-    {{/unless}}
-    {{/each}}
+      {{#each controller}}
+        {{#unless isHidden}}
+        <tr {{bindAttr class="isSelected:success:"}}>
+          <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isDisabled" checkedBinding="isSelected"}}{{displayName}}</label>
+          </td>
+          <td>{{version}}</td>
+          <td>{{{description}}}</td>
+        </tr>
+        {{/unless}}
+      {{/each}}
     </tbody>
   </table>
 
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-    <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}
-    </a>
+      <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
     {{/unless}}
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}> {{t common.next}} &rarr;</a>
   </div>

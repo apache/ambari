@@ -1,0 +1,94 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+
+<div id="host-warnings">
+  <div class="notice">
+    <span>{{t installer.step3.hostWarningsPopup.checks}} <b>{{view.warningsNotice}}</b>.<br>{{t installer.step3.hostWarningsPopup.notice}}</span>
+  </div>
+  <div class="row-fluid">
+    <div class="span7">
+      {{t common.hosts}}&nbsp;{{view view.hostSelectView}}
+    </div>
+    {{#if view.categoryWarnings.length}}
+      <div class="span3 offset2">
+        <a href="javascript:void(null)" title="Show Details" {{action openWarningsInDialog target="view"}}
+           class="task-detail-open-dialog"><i
+            class="icon-external-link"></i> {{t installer.step3.hostWarningsPopup.report}}</a>
+      </div>
+    {{/if}}
+  </div>
+  <div class="accordion warnings-list" id="accordion2">
+    {{#each category in view.content}}
+      <div class="accordion-group block">
+        <div class="accordion-heading" {{action onToggleBlock category}}>
+          <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+          {{#if category.warnings.length}}
+            <i class="pull-right accordion-toggle icon-warning-sign"></i>
+          {{else}}
+            <i class="pull-right accordion-toggle icon-ok"></i>
+          {{/if}}
+          <a class="accordion-toggle">
+            {{category.title}} ({{category.warnings.length}})
+          </a>
+        </div>
+        <div id="{{unbound category.category}}" class="accordion-body collapse in" style="display: none">
+          <div class="accordion-inner">
+            {{#if category.warnings.length}}
+              <table>
+                <thead>
+                <tr>
+                  <th colspan="2">{{{category.message}}}</th>
+                </tr>
+                <tr>
+                  <th colspan="2"><b>{{category.type}}</b></th>
+                </tr>
+                </thead>
+                <tbody>
+                  {{#each warning in category.warnings}}
+                  <tr>
+                    <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{{warning.name}}}</td>
+                    {{#if warning.version}}
+                      <td class="package-version">{{warning.version}}</td>
+                    {{/if}}
+                    {{#if warning.target}}
+                      <td class="package-version">{{warning.target}}</td>
+                    {{/if}}
+                    <td>{{category.action}}
+                      <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hosts}}>
+                        {{warning.hosts.length}}
+                        {{#if warning.onSingleHost}}
+                          {{t installer.step3.hostWarningsPopup.host}}
+                        {{else}}
+                          {{t installer.step3.hostWarningsPopup.hosts}}
+                        {{/if}}
+                      </a>
+                    </td>
+                  </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            {{else}}
+              {{t installer.step3.hostWarningsPopup.emptyMessage}} {{category.emptyName}}
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</div>
