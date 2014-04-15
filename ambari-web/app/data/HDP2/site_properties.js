@@ -1659,8 +1659,22 @@ module.exports =
       "category": "AdvancedFlumeConf",
       "displayName": "content",
       "name": "content",
-      "displayType": "custom",
-      "filename": "flume.conf"
+      "isCanBeEmpty": true,
+      "displayType": "multiLine",
+      "filename": "flume-conf.xml"
+    },
+  /********************************************* flume-agent *****************************/
+    {
+      "id": "site property",
+      "name": "content",
+      "displayName": "content",
+      "showLabel": false,
+      "isRequired": false,
+      "displayType": "multiLine",
+      "serviceName": "FLUME",
+      "isCanBeEmpty": true,
+      "category": "FlumeAgent",
+      "filename": "flume-agent.xml"
     }
   ]
 };

@@ -53,6 +53,7 @@
       </commandScript>
 
       <configuration-dependencies>
+        <config-type>flume-agent</config-type>
         <config-type>flume-conf</config-type>
         <config-type>flume-log4j</config-type>
         <config-type>global</config-type>

@@ -109,14 +109,14 @@ App.config = Em.Object.create({
   categoriesWithCustom: ['CapacityScheduler'],
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function () {
+    var customFiles = ['flume-conf.xml', 'flume-agent.xml'];
     if (App.supports.capacitySchedulerUi) {
       if (App.get('isHadoop2Stack')) {
-        return ['capacity-scheduler.xml'];
+        return customFiles.concat(['capacity-scheduler.xml']);
       }
-      return ['capacity-scheduler.xml', 'mapred-queue-acls.xml'];
-    } else {
-      return [];
+      return customFiles.concat(['capacity-scheduler.xml', 'mapred-queue-acls.xml']);
     }
+    return customFiles;
   }.property('App.isHadoop2Stack'),
 
   /**

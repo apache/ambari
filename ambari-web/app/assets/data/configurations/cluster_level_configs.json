@@ -684,6 +684,28 @@
         "tez.staging-dir" : "/tmp/${user.name}/staging",
         "tez.task.get-task.sleep.interval-ms.max" : "100"
       }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/configurations?type=flume-agent&tag=version1",
+      "tag" : "version1",
+      "type" : "flume-agent",
+      "Config" : {
+        "cluster_name" : "c1"
+      },
+      "properties" : {
+        "content" : ""
+      }
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/configurations?type=flume-conf&tag=version1",
+      "tag" : "version1",
+      "type" : "flume-conf",
+      "Config" : {
+        "cluster_name" : "c1"
+      },
+      "properties" : {
+        "content" : "agent.sources = seqGenSrc\nagent.channels = memoryChannel\nagent.sinks = loggerSink\n"
+      }
     }
   ]
 }

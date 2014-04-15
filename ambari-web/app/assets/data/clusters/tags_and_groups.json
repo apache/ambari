@@ -41,6 +41,12 @@
       "tez-site": {
         "tag": "version1"
       },
+      "flume-agent": {
+        "tag": "version1"
+      },
+      "flume-conf": {
+        "tag": "version1"
+      },
       "core-site" : {
         "tag" : "version1"
       }

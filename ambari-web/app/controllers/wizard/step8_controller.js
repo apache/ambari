@@ -351,7 +351,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     serviceConfigProperties.forEach(function (_config) {
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });
-    var storedConfigs = serviceConfigProperties.filterProperty('value');
+    var storedConfigs = serviceConfigProperties.filter(function(configProperty) {
+      return !!configProperty.value || configProperty.isCanBeEmpty;
+    });
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
     var uiConfigs = this.loadUiSideConfigs(mappedConfigs);
     this.set('configs', storedConfigs.concat(uiConfigs));
@@ -1336,7 +1338,10 @@ App.WizardStep8Controller = Em.Controller.extend({
         {filename: 'tez-site', isXmlFile: true}
       ], log4j: []},
       ZOOKEEPER: {site: [], log4j: ['zookeeper']},
-      FLUME: {site: [], log4j: []}
+      FLUME: {site: [
+        {filename: 'flume-agent', isXmlFile: false},
+        {filename: 'flume-conf', isXmlFile: false}
+      ], log4j: []}
     };
 
     if (App.supports.capacitySchedulerUi) {
@@ -1364,9 +1369,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
       this.get('serviceConfigTags').pushObject(this.createZooCfgObj());
-    }
-    if (selectedServices.someProperty('serviceName', 'FLUME')) {
-      this.get('serviceConfigTags').pushObject(this.createFlumeConfObj());
     }
   },
 
@@ -1607,21 +1609,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     return {type: 'zoo.cfg', tag: 'version1', properties: csProperties};
   },
-
-  /**
-   * Create flume.conf Object
-   * @returns {{type: string, tag: string, properties: {}}}
-   * @method createFlumeConfObj
-   */
-  createFlumeConfObj: function () {
-    var configs = this.get('configs').filterProperty('filename', 'flume.conf');
-    var csProperties = {};
-    configs.forEach(function (_configProperty) {
-      csProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
-    }, this);
-    return {type: 'flume.conf', tag: 'version1', properties: csProperties};
-  },
-
   /**
    * Create site obj for Storm
    * Some config-properties should be modified in custom way
