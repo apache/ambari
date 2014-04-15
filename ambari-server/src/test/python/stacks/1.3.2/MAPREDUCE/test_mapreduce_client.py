@@ -38,6 +38,10 @@ class TestMapreduceClient(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/mapred/userlogs',
+      mode = 01777,
+      recursive = True,
+    )
     self.assertResourceCalled('Directory', '/hadoop/mapred',
       owner = 'mapred',
       recursive = True,
@@ -75,6 +79,10 @@ class TestMapreduceClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/mapred',
       owner = 'mapred',
       group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/mapred/userlogs',
+      mode = 01777,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred',

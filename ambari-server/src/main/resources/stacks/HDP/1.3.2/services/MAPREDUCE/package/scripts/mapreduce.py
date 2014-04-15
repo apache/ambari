@@ -63,12 +63,17 @@ def mapreduce(name=None):
   )
 
   mapred_log_dir = os.path.join(params.mapred_log_dir_prefix, params.mapred_user)
+  mapred_userlogs_dir = os.path.join(mapred_log_dir, "userlogs")
+
   Directory(mapred_log_dir,
             recursive=True,
             owner=params.mapred_user,
             group=params.user_group
   )
-
+  Directory(mapred_userlogs_dir,
+            recursive=True,
+            mode = 01777
+  )
   if name == 'jobtracker':
     File(os.path.join(mapred_log_dir, 'hadoop-mapreduce.jobsummary.log'),
          owner=params.mapred_user,

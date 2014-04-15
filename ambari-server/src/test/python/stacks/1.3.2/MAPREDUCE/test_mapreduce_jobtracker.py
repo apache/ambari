@@ -228,6 +228,10 @@ class TestJobtracker(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/mapred/userlogs',
+      mode = 01777,
+      recursive = True,
+    )
     self.assertResourceCalled('File', '/var/log/hadoop/mapred/hadoop-mapreduce.jobsummary.log',
       owner = 'mapred',
       group = 'hadoop',
@@ -320,6 +324,10 @@ class TestJobtracker(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop/mapred',
       owner = 'mapred',
       group = 'hadoop',
+      recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/mapred/userlogs',
+      mode = 01777,
       recursive = True,
     )
     self.assertResourceCalled('File', '/var/log/hadoop/mapred/hadoop-mapreduce.jobsummary.log',
