@@ -2544,7 +2544,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
           boolean bFound = false;
           
-          String[] suffixes = configs.getRepoValidationSuffixes();
+          String[] suffixes = configs.getRepoValidationSuffixes(rr.getOsType());
           for (int i = 0; i < suffixes.length && !bFound; i++) {
             String suffix = suffixes[i];
             String spec = rr.getBaseUrl();

@@ -198,7 +198,8 @@ public class Configuration {
   /**
    * Key for repo validation suffixes.
    */
-  public static final String REPO_SUFFIX_KEY = "repo.validation.suffixes";
+  public static final String REPO_SUFFIX_KEY_UBUNTU = "repo.validation.suffixes.ubuntu";
+  public static final String REPO_SUFFIX_KEY_DEFAULT = "repo.validation.suffixes.default";
   public static final String EXECUTION_SCHEDULER_CLUSTERED =
       "server.execution.scheduler.isClustered";
   public static final String EXECUTION_SCHEDULER_THREADS =
@@ -271,6 +272,7 @@ public class Configuration {
    */
   private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
   private static final String REPO_SUFFIX_UBUNTU = "/dists/HDP/Release.gpg,/dists/HDP/Release";
+  
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -893,25 +895,18 @@ public class Configuration {
   /**
    * @return a string array of suffixes used to validate repo URLs.
    */
-  public String[] getRepoValidationSuffixes() {
-	String osType = getServerOsType();
-	
-	if (osType == null || osType.isEmpty()) {
-	  throw new RuntimeException(Configuration.OS_VERSION_KEY + " is not "
-	      + " set in the ambari.properties file");
-	}
-	
-	String value = null;
-	
-	if(osType.equals(UBUNTU_OS)) {
-	    value = properties.getProperty(REPO_SUFFIX_KEY,
-	        REPO_SUFFIX_UBUNTU);
-	} else {
-	    value = properties.getProperty(REPO_SUFFIX_KEY,
-		        REPO_SUFFIX_DEFAULT);		
-	}
+  public String[] getRepoValidationSuffixes(String osFamily) {
+    String repoSuffixes;
     
-    return value.split(",");
+    if(osFamily.equals(UBUNTU_OS)) {
+      repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_UBUNTU, 
+          REPO_SUFFIX_UBUNTU);
+    } else {
+      repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_DEFAULT, 
+          REPO_SUFFIX_DEFAULT);
+    }
+    
+    return repoSuffixes.split(",");
   }
 
   public String isExecutionSchedulerClusterd() {

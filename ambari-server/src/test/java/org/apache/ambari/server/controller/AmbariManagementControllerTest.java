@@ -8043,36 +8043,36 @@ public class AmbariManagementControllerTest {
       baseUrl += "/";
 
     // variation #1: url with trailing slash, suffix preceding slash
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "/repodata/repomd.xml");
-    Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/repodata/repomd.xml");
+    Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("debian12")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     // variation #2: url with trailing slash, suffix no preceding slash
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "repodata/repomd.xml");
-    Assert.assertTrue(baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT, "repodata/repomd.xml");
+    Assert.assertTrue(baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes("redhat6")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     baseUrl = baseUrl.substring(0, baseUrl.length()-1);
     // variation #3: url with no trailing slash, suffix no prededing slash
-    Assert.assertTrue(!baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    Assert.assertTrue(!baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes("redhat6")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     // variation #4: url with no trailing slash, suffix preceding slash
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "/repodata/repomd.xml");
-    Assert.assertTrue(!baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT, "/repodata/repomd.xml");
+    Assert.assertTrue(!baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("suse11")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     // variation #5: multiple suffix tests
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "/foo/bar.xml,/repodata/repomd.xml");
-    Assert.assertTrue(configuration.getRepoValidationSuffixes().length > 1);
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/foo/bar.xml,/repodata/repomd.xml");
+    Assert.assertTrue(configuration.getRepoValidationSuffixes("debian12").length > 1);
     request.setBaseUrl(baseUrl);
     controller.updateRespositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
