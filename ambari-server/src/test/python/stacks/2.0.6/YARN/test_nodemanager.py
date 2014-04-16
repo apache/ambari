@@ -261,6 +261,22 @@ class TestNodeManager(RMFTestCase):
       group = 'hadoop',
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
+                              content = Template('taskcontroller.cfg.j2'),
+                              owner = 'hdfs',
+                              )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
+    self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['capacity-scheduler'],
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/app-logs',
@@ -413,4 +429,26 @@ class TestNodeManager(RMFTestCase):
       group = 'hadoop',
       mode = 0644,
     )
-    
+    self.assertResourceCalled('File', '/usr/lib/hadoop/sbin/task-controller',
+                              owner = 'root',
+                              group = 'hadoop',
+                              mode = 06050,
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
+                              content = Template('taskcontroller.cfg.j2'),
+                              owner = 'root',
+                              group = 'hadoop',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
+    self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['capacity-scheduler'],
+                              )

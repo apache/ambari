@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from hdfs_namenode import namenode
+from hdfs import hdfs
 
 
 class NameNode(Script):
@@ -47,6 +48,7 @@ class NameNode(Script):
     import params
 
     env.set_params(params)
+    hdfs()
     namenode(action="configure")
     pass
 

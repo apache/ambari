@@ -87,3 +87,15 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
+
+#security params
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+
+#java params
+java_home = config['hostLevelParams']['java_home']
+artifact_dir = "/tmp/HDP-artifacts/"
+jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jce_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['hostLevelParams']['jdk_location']

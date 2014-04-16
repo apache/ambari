@@ -29,7 +29,6 @@ class BeforeConfigureHook(Hook):
     import params
 
     env.set_params(params)
-    setup_java()
     setup_hadoop()
     setup_configs()
     create_javahome_symlink()

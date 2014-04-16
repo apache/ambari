@@ -203,6 +203,25 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
+                              content = Template('hdfs.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
+                              )
+
+    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['hdfs-site'],
+                              )
+
+    self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
+                              content = Template('slaves.j2'),
+                              owner = 'hdfs',
+                              )
+
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -211,6 +230,25 @@ class TestNamenode(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
+                              content = Template('hdfs.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
+                              )
+
+    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['hdfs-site'],
+                              )
+
+    self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
+                              content = Template('slaves.j2'),
+                              owner = 'root',
+                              )
+
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode',
                               owner = 'hdfs',
                               group = 'hadoop',

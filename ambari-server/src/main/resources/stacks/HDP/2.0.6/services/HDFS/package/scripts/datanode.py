@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from hdfs_datanode import datanode
+from hdfs import hdfs
 
 
 class DataNode(Script):
@@ -43,7 +44,8 @@ class DataNode(Script):
 
   def configure(self, env):
     import params
-
+    env.set_params(params)
+    hdfs()
     datanode(action="configure")
 
   def status(self, env):

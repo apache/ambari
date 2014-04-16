@@ -37,7 +37,6 @@ class TestTasktracker(RMFTestCase):
                          command = "start",
                          config_file="default.json"
       )
-
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start tasktracker',
                               user = 'mapred',
@@ -80,7 +79,6 @@ class TestTasktracker(RMFTestCase):
                          command = "start",
                          config_file="secured.json"
     )
-
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start tasktracker',
                               user = 'mapred',
@@ -141,6 +139,16 @@ class TestTasktracker(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
+                              content = Template('taskcontroller.cfg.j2'),
+                              owner = 'hdfs',
+                              )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/run/hadoop/mapred',
@@ -171,3 +179,20 @@ class TestTasktracker(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
     )
+    self.assertResourceCalled('File', '/usr/lib/hadoop/bin/task-controller',
+                              owner = 'root',
+                              group = 'hadoop',
+                              mode = 06050,
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
+                              content = Template('taskcontroller.cfg.j2'),
+                              owner = 'root',
+                              group = 'hadoop',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )

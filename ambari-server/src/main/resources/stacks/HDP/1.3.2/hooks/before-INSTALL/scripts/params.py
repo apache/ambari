@@ -23,6 +23,49 @@ import os
 
 config = Script.get_config()
 
+#java params
+artifact_dir = "/tmp/HDP-artifacts/"
+jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
+jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jce_location = config['hostLevelParams']['jdk_location']
+jdk_location = config['hostLevelParams']['jdk_location']
+java_home = config['hostLevelParams']['java_home']
+if System.get_instance().os_family == "suse":
+  jsvc_path = "/usr/lib/bigtop-utils"
+else:
+  jsvc_path = "/usr/libexec/bigtop-utils"
+#security params
+_authentication = config['configurations']['core-site']['hadoop.security.authentication']
+security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+#hadoop params
+hadoop_conf_dir = "/etc/hadoop/conf"
+
+#hadoop-env.sh
+
+java_home = config['hostLevelParams']['java_home']
+if System.get_instance().os_family == "suse":
+  jsvc_path = "/usr/lib/bigtop-utils"
+else:
+  jsvc_path = "/usr/libexec/bigtop-utils"
+hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
+namenode_heapsize = config['configurations']['global']['namenode_heapsize']
+namenode_opt_newsize =  config['configurations']['global']['namenode_opt_newsize']
+namenode_opt_maxnewsize =  config['configurations']['global']['namenode_opt_maxnewsize']
+
+jtnode_opt_newsize = default("jtnode_opt_newsize","200m")
+jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize","200m")
+jtnode_heapsize =  default("jtnode_heapsize","1024m")
+ttnode_heapsize = "1024m"
+
+dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
+mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+mapred_log_dir_prefix = default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
+
+hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
+hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
+
 #users and groups
 yarn_user = config['configurations']['global']['yarn_user']
 hbase_user = config['configurations']['global']['hbase_user']

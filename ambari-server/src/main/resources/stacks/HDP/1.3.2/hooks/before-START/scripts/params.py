@@ -23,23 +23,14 @@ import os
 
 config = Script.get_config()
 
-#java params
-artifact_dir = "/tmp/HDP-artifacts/"
-jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-jdk_location = config['hostLevelParams']['jdk_location']
 #security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
 #users and groups
-mapred_user = config['configurations']['global']['mapred_user']
 hdfs_user = config['configurations']['global']['hdfs_user']
-yarn_user = config['configurations']['global']['yarn_user']
 
 user_group = config['configurations']['global']['user_group']
-mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
 #snmp
 snmp_conf_dir = "/etc/snmp/"

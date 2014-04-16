@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from utils import service
+from hdfs import hdfs
 
 
 class JournalNode(Script):
@@ -57,6 +58,8 @@ class JournalNode(Script):
               owner=params.hdfs_user,
               group=params.user_group
     )
+    env.set_params(params)
+    hdfs()
     pass
 
   def status(self, env):

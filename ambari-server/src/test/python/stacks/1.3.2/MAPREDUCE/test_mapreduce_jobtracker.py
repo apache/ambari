@@ -22,6 +22,7 @@ from stacks.utils.RMFTestCase import *
 
 class TestJobtracker(RMFTestCase):
 
+  @patch("os.path.exists", new = MagicMock(return_value=True))
   def test_configure_default(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/jobtracker.py",
                        classname = "Jobtracker",
@@ -31,13 +32,13 @@ class TestJobtracker(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
+  @patch("os.path.exists", new = MagicMock(return_value=True))
   def test_start_default(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/jobtracker.py",
                        classname = "Jobtracker",
                        command = "start",
                        config_file="default.json"
       )
-
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start jobtracker',
                        user = 'mapred',
@@ -98,6 +99,7 @@ class TestJobtracker(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch("os.path.exists", new = MagicMock(return_value=True))
   def test_configure_secured(self):
 
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/jobtracker.py",
@@ -108,13 +110,13 @@ class TestJobtracker(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
+  @patch("os.path.exists", new = MagicMock(return_value=True))
   def test_start_secured(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/jobtracker.py",
                        classname = "Jobtracker",
                        command = "start",
                        config_file="secured.json"
     )
-
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start jobtracker',
                        user = 'mapred',
@@ -257,6 +259,32 @@ class TestJobtracker(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
+                              content = Template('taskcontroller.cfg.j2'),
+                              owner = 'hdfs',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-server.xml.example',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/mapred',
@@ -349,3 +377,36 @@ class TestJobtracker(RMFTestCase):
       owner = 'mapred',
       group = 'hadoop',
     )
+    self.assertResourceCalled('File', '/usr/lib/hadoop/bin/task-controller',
+                              owner = 'root',
+                              group = 'hadoop',
+                              mode = 06050,
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
+                              content = Template('taskcontroller.cfg.j2'),
+                              owner = 'root',
+                              group = 'hadoop',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-server.xml.example',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )

@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from hdfs_snamenode import snamenode
+from hdfs import hdfs
 
 
 class SNameNode(Script):
@@ -49,7 +50,7 @@ class SNameNode(Script):
     import params
 
     env.set_params(params)
-
+    hdfs()
     snamenode(action="configure")
 
   def status(self, env):

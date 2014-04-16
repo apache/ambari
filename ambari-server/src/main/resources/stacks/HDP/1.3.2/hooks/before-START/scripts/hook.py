@@ -29,8 +29,9 @@ class BeforeConfigureHook(Hook):
     import params
 
     env.set_params(params)
-    setup_java()
+    self.run_custom_hook('after-INSTALL')
     setup_hadoop()
+    setup_database()
     setup_configs()
     create_javahome_symlink()
     init_services()

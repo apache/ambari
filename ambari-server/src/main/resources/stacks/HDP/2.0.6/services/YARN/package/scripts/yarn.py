@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management import *
 import sys
+import os
 
 
 def yarn(name = None):
@@ -151,3 +152,79 @@ def yarn(name = None):
     )
 
 
+  if params.security_enabled:
+    tc_mode = 0644
+    tc_owner = "root"
+  else:
+    tc_mode = None
+    tc_owner = params.hdfs_user
+
+  if params.security_enabled:
+    File(os.path.join(params.hadoop_bin, "task-controller"),
+         owner="root",
+         group=params.mapred_tt_group,
+         mode=06050
+    )
+    File(os.path.join(params.hadoop_conf_dir, 'taskcontroller.cfg'),
+         owner = tc_owner,
+         mode = tc_mode,
+         group = params.mapred_tt_group,
+         content=Template("taskcontroller.cfg.j2")
+    )
+  else:
+    File(os.path.join(params.hadoop_conf_dir, 'taskcontroller.cfg'),
+         owner=tc_owner,
+         content=Template("taskcontroller.cfg.j2")
+    )
+
+  if "mapred-site" in params.config['configurations']:
+    XmlConfig("mapred-site.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['mapred-site'],
+              owner=params.mapred_user,
+              group=params.user_group
+    )
+
+  if "mapred-queue-acls" in params.config['configurations']:
+    XmlConfig("mapred-queue-acls.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations'][
+                'mapred-queue-acls'],
+              owner=params.mapred_user,
+              group=params.user_group
+    )
+  elif os.path.exists(
+    os.path.join(params.hadoop_conf_dir, "mapred-queue-acls.xml")):
+    File(os.path.join(params.hadoop_conf_dir, "mapred-queue-acls.xml"),
+         owner=params.mapred_user,
+         group=params.user_group
+    )
+
+  if "capacity-scheduler" in params.config['configurations']:
+    XmlConfig("capacity-scheduler.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations'][
+                'capacity-scheduler'],
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
+
+  if os.path.exists(os.path.join(params.hadoop_conf_dir, 'fair-scheduler.xml')):
+    File(os.path.join(params.hadoop_conf_dir, 'fair-scheduler.xml'),
+         owner=params.mapred_user,
+         group=params.user_group
+    )
+
+  if os.path.exists(
+    os.path.join(params.hadoop_conf_dir, 'ssl-client.xml.example')):
+    File(os.path.join(params.hadoop_conf_dir, 'ssl-client.xml.example'),
+         owner=params.mapred_user,
+         group=params.user_group
+    )
+
+  if os.path.exists(
+    os.path.join(params.hadoop_conf_dir, 'ssl-server.xml.example')):
+    File(os.path.join(params.hadoop_conf_dir, 'ssl-server.xml.example'),
+         owner=params.mapred_user,
+         group=params.user_group
+    )

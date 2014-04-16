@@ -29,6 +29,7 @@ class BeforeConfigureHook(Hook):
     import params
 
     env.set_params(params)
+    setup_java()
     setup_users()
     install_packages()
 

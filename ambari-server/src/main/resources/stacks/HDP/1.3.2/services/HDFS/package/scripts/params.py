@@ -143,6 +143,4 @@ HdfsDirectory = functools.partial(
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local
 )
-
-
-
+limits_conf_dir = "/etc/security/limits.d"

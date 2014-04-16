@@ -124,3 +124,12 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local
 )
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
+
+hadoop_bin = "/usr/lib/hadoop/sbin"
+mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
+
+#taskcontroller.cfg
+
+mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
+hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
+

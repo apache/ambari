@@ -1,4 +1,3 @@
-##!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,21 +16,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-import sys
+import os
 from resource_management import *
-from shared_initialization import *
 
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
-class BeforeConfigureHook(Hook):
+def setup_hadoop_env():
+  import params
+  if params.security_enabled:
+    tc_owner = "root"
+  else:
+    tc_owner = params.hdfs_user
+  Directory(params.hadoop_conf_dir,
+            recursive=True,
+            owner='root',
+            group='root'
+  )
+  File(os.path.join(params.hadoop_conf_dir, 'hadoop-env.sh'),
+       owner=tc_owner,
+       content=Template('hadoop-env.sh.j2')
+  )
 
-  def hook(self, env):
-    import params
-
-    env.set_params(params)
-    setup_java()
-    setup_users()
-    install_packages()
-
-if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+def setup_config():
+  import params
+  XmlConfig("core-site.xml",
+            conf_dir=params.hadoop_conf_dir,
+            configurations=params.config['configurations']['core-site'],
+            owner=params.hdfs_user,
+            group=params.user_group
+  )

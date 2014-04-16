@@ -157,11 +157,42 @@ class TestJournalnode(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               )
-
+    self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
+                              content = Template('hdfs.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['hdfs-site'],
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
+                              content = Template('slaves.j2'),
+                              owner = 'hdfs',
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/grid/0/hdfs/journal',
                               owner = 'hdfs',
                               group = 'hadoop',
                               recursive = True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
+                              content = Template('hdfs.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hadoop/conf',
+                              configurations = self.getConfig()['configurations']['hdfs-site'],
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
+                              content = Template('slaves.j2'),
+                              owner = 'root',
                               )

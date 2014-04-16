@@ -61,9 +61,9 @@ mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapred.
 #for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
@@ -75,3 +75,7 @@ HdfsDirectory = functools.partial(
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local
 )
+
+mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
+
+slave_hosts = default("/clusterHostInfo/slave_hosts", [])

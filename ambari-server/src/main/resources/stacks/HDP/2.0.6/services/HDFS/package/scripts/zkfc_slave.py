@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 from utils import service
+from hdfs import hdfs
 
 
 class ZkfcSlave(Script):
@@ -48,6 +49,7 @@ class ZkfcSlave(Script):
     )
 
   def configure(self, env):
+    hdfs()
     pass
 
   def status(self, env):

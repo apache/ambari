@@ -23,12 +23,6 @@ import os
 
 config = Script.get_config()
 
-#java params
-artifact_dir = "/tmp/HDP-artifacts/"
-jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
-jce_location = config['hostLevelParams']['jdk_location']
-jdk_location = config['hostLevelParams']['jdk_location']
 #security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
@@ -39,7 +33,6 @@ hdfs_user = config['configurations']['global']['hdfs_user']
 yarn_user = config['configurations']['global']['yarn_user']
 
 user_group = config['configurations']['global']['user_group']
-mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
 #snmp
 snmp_conf_dir = "/etc/snmp/"
@@ -88,7 +81,6 @@ hadoop_home = "/usr"
 hadoop_bin = "/usr/lib/hadoop/sbin"
 
 task_log4j_properties_location = os.path.join(hadoop_conf_dir, "task-log4j.properties")
-limits_conf_dir = "/etc/security/limits.d"
 
 hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
@@ -137,10 +129,6 @@ mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapredu
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 mapred_log_dir_prefix = default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
-
-#taskcontroller.cfg
-
-mapred_local_dir = "/tmp/hadoop-mapred/mapred/local"
 
 #log4j.properties
 

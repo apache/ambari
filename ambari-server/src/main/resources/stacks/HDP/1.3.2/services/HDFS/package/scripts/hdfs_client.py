@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from hdfs import hdfs
 from utils import service
 
 
@@ -44,20 +45,7 @@ class HdfsClient(Script):
 
   def configure(self, env):
     import params
-
-    XmlConfig("core-site.xml",
-              conf_dir=params.hadoop_conf_dir,
-              configurations=params.config['configurations']['core-site'],
-              owner=params.hdfs_user,
-              group=params.user_group
-    )
-    
-    XmlConfig("hdfs-site.xml",
-            conf_dir=params.hadoop_conf_dir,
-            configurations=params.config['configurations']['hdfs-site'],
-            owner=params.hdfs_user,
-            group=params.user_group
-    )
+    hdfs()
 
 
 if __name__ == "__main__":

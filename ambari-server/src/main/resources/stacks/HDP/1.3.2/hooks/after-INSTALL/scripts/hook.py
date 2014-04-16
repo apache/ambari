@@ -22,16 +22,15 @@ import sys
 from resource_management import *
 from shared_initialization import *
 
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
-class BeforeConfigureHook(Hook):
+#Hook for hosts with only client without other components
+class AfterInstallHook(Hook):
 
   def hook(self, env):
     import params
 
     env.set_params(params)
-    setup_java()
-    setup_users()
-    install_packages()
+    setup_hadoop_env()
+    setup_config()
 
 if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+  AfterInstallHook().execute()
