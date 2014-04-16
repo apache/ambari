@@ -72,10 +72,6 @@ class TestNagiosServer(RMFTestCase):
                               content=Template("nagios.conf.j2"),
                               mode=0644
     )
-    self.assertResourceCalled('Execute',
-                              'service snmpd start; chkconfig snmpd on',
-                              path=['/usr/local/bin/:/bin/:/sbin/']
-    )
     self.assertResourceCalled('Directory', '/etc/nagios',
                               owner='nagios',
                               group='nagios',

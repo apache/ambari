@@ -32,11 +32,6 @@ def nagios():
     content = Template("nagios.conf.j2"),
     mode   = 0644
   )
-
-  # enable snmpd
-  Execute( "service snmpd start; chkconfig snmpd on",
-    path = "/usr/local/bin/:/bin/:/sbin/"
-  )
   
   Directory( params.conf_dir,
     owner = params.nagios_user,

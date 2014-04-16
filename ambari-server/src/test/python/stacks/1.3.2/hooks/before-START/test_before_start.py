@@ -42,12 +42,6 @@ class TestHookBeforeStart(RMFTestCase):
                               ignore_failures = True,
                               path = ['/bin', '/usr/bin/'],
                               )
-    self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
-                              content = Template('snmpd.conf.j2'),
-                              )
-    self.assertResourceCalled('Service', 'snmpd',
-                              action = ['restart'],
-                              )
     self.assertResourceCalled('Execute', '/bin/echo 0 > /selinux/enforce',
                               only_if = 'test -f /selinux/enforce',
                               )
@@ -169,6 +163,12 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
       owner = 'mapred',
       group = 'hadoop',
     )
+    self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
+                              content = Template('snmpd.conf.j2'),
+                              )
+    self.assertResourceCalled('Execute', 'service snmpd start; chkconfig snmpd on',
+                              path = ['/usr/local/bin/:/bin/:/sbin/'],
+                              )
     self.assertNoMoreResources()
 
   def test_hook_secured(self):
@@ -194,12 +194,6 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
                               path = ['/bin/', '/usr/bin'],
                               only_if = 'test -e /usr/jdk64/jdk1.7.0_45/jre/lib/security && test -f /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
                               cwd = '/usr/jdk64/jdk1.7.0_45/jre/lib/security',
-                              )
-    self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
-                              content = Template('snmpd.conf.j2'),
-                              )
-    self.assertResourceCalled('Service', 'snmpd',
-                              action = ['restart'],
                               )
     self.assertResourceCalled('Execute', '/bin/echo 0 > /selinux/enforce',
                               only_if = 'test -f /selinux/enforce',
@@ -315,5 +309,11 @@ log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger=true
                               owner = 'mapred',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
+                              content = Template('snmpd.conf.j2'),
+                              )
+    self.assertResourceCalled('Execute', 'service snmpd start; chkconfig snmpd on',
+                              path = ['/usr/local/bin/:/bin/:/sbin/'],
+                             )
     self.assertNoMoreResources()
 
