@@ -49,31 +49,31 @@
           <packages>
             <package>
               <type>rpm</type>
-              <name>libganglia-3.5.0-99</name>
+              <name>libganglia</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>ganglia-devel-3.5.0-99</name>
+              <name>ganglia-devel</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>ganglia-gmetad-3.5.0-99</name>
+              <name>ganglia-gmetad</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>ganglia-web-3.5.7-99.noarch</name>
+              <name>ganglia-web</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>python-rrdtool.x86_64</name>
+              <name>python-rrdtool</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>ganglia-gmond-3.5.0-99</name>
+              <name>ganglia-gmond</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>ganglia-gmond-modules-python-3.5.0-99</name>
+              <name>ganglia-gmond-modules-python</name>
             </package>
           </packages>
         </osSpecific>
