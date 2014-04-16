@@ -58,6 +58,10 @@ App.StackServiceComponent = DS.Model.extend({
     return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"].contains(this.get('componentName'));
   }.property('componentName'),
 
+  isRefreshConfigsAllowed: function() {
+    return ["FLUME_HANDLER"].contains(this.get('componentName'));
+  }.property('componentName'),
+
   isAddableToHost: function() {
     return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR"].contains(this.get('componentName'));
   }.property('componentName'),

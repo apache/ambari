@@ -603,6 +603,24 @@ var urls = {
       }
     }
   },
+
+  'host.host_component.refresh_configs': {
+    'real':'/clusters/{clusterName}/requests',
+    'mock':'',
+    'format': function(data) {
+      return {
+        type : 'POST',
+        data : JSON.stringify({
+          "RequestInfo": {
+            "command": "CONFIGURE",
+            "context": data.context
+          },
+          "Requests/resource_filters": data.resource_filters
+        })
+      }
+    }
+  },
+
   'host.delete': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'mock': '',

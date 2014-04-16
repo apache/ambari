@@ -250,6 +250,7 @@ module.exports = Em.Application.create({
       deletable: this.StackServiceComponent.find().filterProperty('isDeletable',true).mapProperty('componentName'),
       rollinRestartAllowed: this.StackServiceComponent.find().filterProperty('isRollinRestartAllowed',true).mapProperty('componentName'),
       decommissionAllowed: this.StackServiceComponent.find().filterProperty('isDecommissionAllowed',true).mapProperty('componentName'),
+      refreshConfigsAllowed: this.StackServiceComponent.find().filterProperty('isRefreshConfigsAllowed',true).mapProperty('componentName'),
       addableToHost: this.StackServiceComponent.find().filterProperty('isAddableToHost',true).mapProperty('componentName'),
       slaves: this.StackServiceComponent.find().filterProperty('isMaster',false).filterProperty('isClient',false).mapProperty('componentName'),
       masters: this.StackServiceComponent.find().filterProperty('isMaster',true).mapProperty('componentName'),

@@ -232,6 +232,14 @@ App.HostComponentView = Em.View.extend({
     return ![App.HostComponentStatus.started].contains(this.get('workStatus'));
   }.property('workStatus'),
 
+  /**
+   * Check if component configs can be refreshed
+   * @type {bool}
+   */
+  isRefreshConfigsAllowed: function() {
+    return App.get('components.refreshConfigsAllowed').contains(this.get('content.componentName'));
+  }.property('content'),
+
   didInsertElement: function () {
     App.tooltip($('[rel=componentHealthTooltip]'));
     App.tooltip($('[rel=passiveTooltip]'));

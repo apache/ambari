@@ -226,6 +226,7 @@ Em.I18n.translations = {
   'requestInfo.stopHostComponent':'Stop',
   'requestInfo.installHostComponent':'Install',
   'requestInfo.installNewHostComponent':'Install',
+  'requestInfo.refreshComponentConfigs':'Refresh {0} configs',
   'requestInfo.stop':'Stop {0}',
   'requestInfo.start':'Start {0}',
   'requestInfo.unspecified':'Request name not specified',

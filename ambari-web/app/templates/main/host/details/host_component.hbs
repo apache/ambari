@@ -115,6 +115,13 @@
                 </a>
             </li>
         {{/if}}
+        {{#if view.isRefreshConfigsAllowed}}
+            <li>
+                <a href="javascript:void(null)" data-toggle="modal" {{action "refreshComponentConfigs" view.content target="controller"}}>
+                  {{t hosts.host.details.refreshConfigs}}
+                </a>
+            </li>
+        {{/if}}
       </ul>
     </div>
   {{/if}}

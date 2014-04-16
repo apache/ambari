@@ -657,6 +657,59 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Send command to server to resfresh configs of selected component
+   * @param {object} event
+   * @method refreshComponentConfigs
+   */
+  refreshComponentConfigs: function (event) {
+    var self = this;
+    App.showConfirmationPopup(function() {
+      var component = event.context;
+      var context = Em.I18n.t('requestInfo.refreshComponentConfigs').format(component.get('displayName'));
+      self.sendRefreshComponentConfigsCommand(component, context);
+    });
+  },
+
+  /**
+   * PUTs a command to server to refresh configs of host component.
+   * @param {object} component
+   * @param {object} context Context under which this command is beign sent.
+   * @method sendRefreshComponentConfigsCommand
+   */
+  sendRefreshComponentConfigsCommand: function (component, context) {
+    resource_filters = [
+      {
+        service_name: component.get('service.serviceName'),
+        component_name: component.get('componentName'),
+        hosts: component.get('host.hostName')
+      }
+    ];
+    App.ajax.send({
+      name: 'host.host_component.refresh_configs',
+      sender: this,
+      data: {
+        resource_filters: resource_filters,
+        context: context
+      },
+      success: 'refreshComponentConfigsSuccessCallback'
+    });
+  },
+
+  /**
+   * Success callback for refresh host component configs request
+   * @method refreshComponentConfigsSuccessCallback
+   */
+  refreshComponentConfigsSuccessCallback: function() {
+    console.log('Send request for refresh configs successfully');
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (showPopup) {
+      if (showPopup) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+
+  /**
    * Load tags
    * @method checkZkConfigs
    */
