@@ -351,6 +351,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
         this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
         break;
+      case 'yarn.timeline-service.address':
+        var hsHost = masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER').hostName;
+        this.setDefaultValue("(0.0.0.0)(?=:)", hsHost);
+        break;
       case 'nm_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
         break;
