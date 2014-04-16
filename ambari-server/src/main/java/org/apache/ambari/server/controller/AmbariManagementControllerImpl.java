@@ -1347,7 +1347,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
-      Map<String, String> requestParameters, String requestContext,
+      Map<String, String> requestParameters,
+      Map<String, String> requestProperties,
       boolean runSmokeTest, boolean reconfigureClients)
       throws AmbariException {
 
@@ -1388,7 +1389,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
       Stage stage = createNewStage(requestStages.getLastStageId() + 1, cluster,
-          requestStages.getId(), requestContext, clusterHostInfoJson);
+          requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY), clusterHostInfoJson);
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1541,6 +1542,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
 
+            // any targeted information
+            String keyName = scHost.getServiceComponentName().toLowerCase();
+            if (requestProperties.containsKey(keyName)) {
+              if (null == requestParameters)
+                requestParameters = new HashMap<String, String>();
+              requestParameters.put(keyName, requestProperties.get(keyName));
+            }
+            
             createHostAction(cluster, stage, scHost, configurations, configTags,
               roleCommand, requestParameters, event);
           }
@@ -1673,7 +1682,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     List<Stage> stages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
-        changedHosts, requestParameters, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
+        changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients);
 
     requestStages.addStages(stages);
@@ -2356,7 +2365,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public RequestStatusResponse createAction(ExecuteActionRequest actionRequest, Map<String, String> requestProperties)
+  public RequestStatusResponse createAction(ExecuteActionRequest actionRequest,
+      Map<String, String> requestProperties)
       throws AmbariException {
     String clusterName;
     String requestContext = "";
@@ -2397,7 +2407,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, String> params = createDefaultHostParams(cluster);
 
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
+      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
+          params, requestProperties);
     } else {
       actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, params);
     }

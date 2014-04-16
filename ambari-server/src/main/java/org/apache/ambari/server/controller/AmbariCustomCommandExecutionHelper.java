@@ -695,7 +695,9 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException
    */
   public void addExecutionCommandsToStage(ActionExecutionContext actionExecutionContext,
-                                          Stage stage, Map<String, String> hostLevelParams)
+                                          Stage stage,
+                                          Map<String, String> hostLevelParams,
+                                          Map<String, String> requestParams)
                                           throws AmbariException {
 
     List<RequestResourceFilter> resourceFilters = actionExecutionContext.getResourceFilters();
@@ -713,8 +715,18 @@ public class AmbariCustomCommandExecutionHelper {
         addDecommissionAction(actionExecutionContext, resourceFilter, stage, hostLevelParams);
       } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
+
+        Map<String, String> extraParams = null;
+        String componentName = (null == resourceFilter.getComponentName()) ? null :
+            resourceFilter.getComponentName().toLowerCase();
+        
+        if (null != componentName && requestParams.containsKey(componentName)) {
+          extraParams = new HashMap<String, String>();
+          extraParams.put(componentName, requestParams.get(componentName));
+        }
+          
         addCustomCommandAction(actionExecutionContext, resourceFilter, stage,
-          hostLevelParams, null, commandDetail);
+          hostLevelParams, extraParams, commandDetail);
       } else {
         throw new AmbariException("Unsupported action " +
           actionExecutionContext.getActionName());

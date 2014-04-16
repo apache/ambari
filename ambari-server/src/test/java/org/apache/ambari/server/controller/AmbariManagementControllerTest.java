@@ -3489,6 +3489,7 @@ public class AmbariManagementControllerTest {
 
     Map<String,String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "testServiceComponentHostUpdateStackId");
+    
     RequestStatusResponse resp = controller.updateHostComponents(reqs, mapRequestProps, true);
     List<Stage> stages = actionDB.getAllStages(resp.getRequestId());
     Assert.assertEquals(1, stages.size());
@@ -3794,6 +3795,7 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+    requestProperties.put("datanode", "abc");
 
     ArrayList<String> hosts = new ArrayList<String>() {{add("h1");}};
     RequestResourceFilter resourceFilter = new RequestResourceFilter("HDFS", "DATANODE", hosts);
@@ -3930,7 +3932,8 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
-
+    requestProperties.put("hdfs_client", "abc");
+    
     RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
 
     List<Stage> stages = actionDB.getAllStages(response.getRequestId());
@@ -3956,6 +3959,8 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.MYSQL_JDBC_URL));
     Assert.assertTrue(hostParams.containsKey(ExecutionCommand.KeyNames.ORACLE_JDBC_URL));
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
+    Assert.assertTrue(hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().containsKey("hdfs_client"));
+    Assert.assertEquals("abc", hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().get("hdfs_client"));
     
     // verify passive info is not passed when not NAGIOS
     Assert.assertNull(hrc.getExecutionCommandWrapper().getExecutionCommand().getPassiveInfo());
@@ -7878,7 +7883,21 @@ public class AmbariManagementControllerTest {
 
     // issue an installed state request without failure
     ServiceComponentHostRequest schr = new ServiceComponentHostRequest(clusterName, "HDFS", "DATANODE", host2, "INSTALLED");
-    controller.updateHostComponents(Collections.singleton(schr), new HashMap<String,String>(), false);
+    Map<String, String> requestProps = new HashMap<String, String>();
+    requestProps.put("datanode", "dn_value");
+    requestProps.put("namenode", "nn_value");
+    RequestStatusResponse rsr = controller.updateHostComponents(Collections.singleton(schr), requestProps, false);
+
+    List<Stage> stages = actionDB.getAllStages(rsr.getRequestId());
+    Assert.assertEquals(1, stages.size());
+    Stage stage = stages.iterator().next();
+    List<ExecutionCommandWrapper> execWrappers = stage.getExecutionCommands(host2);
+    Assert.assertEquals(1, execWrappers.size());
+    ExecutionCommandWrapper execWrapper = execWrappers.iterator().next();
+    Assert.assertTrue(execWrapper.getExecutionCommand().getCommandParams().containsKey("datanode"));
+    Assert.assertFalse(execWrapper.getExecutionCommand().getCommandParams().containsKey("namendode"));
+     
+    
 
     // set the host components on host2 to UNKNOWN state to simulate a lost host
     for (ServiceComponentHost sch : clusters.getCluster(clusterName).getServiceComponentHosts(host2)) {

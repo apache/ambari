@@ -34,7 +34,12 @@ class TestFlumeHandler(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  def test_start_default(self):
+  @patch("os.path.isfile")
+  def test_start_default(self, os_path_isfile_mock):
+    # 1st call is to check if the conf file is there - that should be True
+    # 2nd call is to check if the process is live - that should be False
+    os_path_isfile_mock.side_effect = [True, False]
+
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
                        command = "start",
@@ -139,6 +144,116 @@ class TestFlumeHandler(RMFTestCase):
       '/etc/flume/conf/a1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
+
+  def assert_configure_many(self):
+
+    self.assertResourceCalled('Directory', '/etc/flume/conf')
+
+    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+
+    top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
+
+    # a1
+    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
+    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
+      mode = 0644,
+      properties = top['a1'])
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/log4j.properties',
+      content = Template('log4j.properties.j2', agent_name = 'a1'),
+      mode = 0644)
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/a1/ambari-meta.json',
+      content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
+      mode = 0644)
+
+    # b1
+    self.assertResourceCalled('Directory', '/etc/flume/conf/b1')
+    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/b1/flume.conf',
+      mode = 0644,
+      properties = top['b1'])
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/b1/log4j.properties',
+      content = Template('log4j.properties.j2', agent_name = 'b1'),
+      mode = 0644)
+    self.assertResourceCalled('File',
+      '/etc/flume/conf/b1/ambari-meta.json',
+      content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
+      mode = 0644)
+
+  @patch("os.path.isfile")
+  def test_start_single(self, os_path_isfile_mock):
+    # 1st call is to check if the conf file is there - that should be True
+    # 2nd call is to check if the process is live - that should be False
+    os_path_isfile_mock.side_effect = [True, False]
+
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "start",
+                       config_file="flume_target.json")
+
+    self.assert_configure_many()
+
+    self.assertResourceCalled('Execute', format('env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng agent '
+      '--name b1 '
+      '--conf /etc/flume/conf/b1 '
+      '--conf-file /etc/flume/conf/b1/flume.conf '
+      '-Dflume.monitoring.type=ganglia '
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
+      wait_for_finish = False)
+
+    self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/b1/flume.conf > /var/run/flume/b1.pid',
+      logoutput = True,
+      tries = 5,
+      try_sleep = 10)
+
+    self.assertNoMoreResources()
+
+  @patch("os.path.isfile")
+  def test_start_single(self, os_path_isfile_mock):
+    # 1st call is to check if the conf file is there - that should be True
+    # 2nd call is to check if the process is live - that should be False
+    os_path_isfile_mock.side_effect = [True, False]
+
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "start",
+                       config_file="flume_target.json")
+
+    self.assert_configure_many()
+
+    self.assertResourceCalled('Execute', format('env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng agent '
+      '--name b1 '
+      '--conf /etc/flume/conf/b1 '
+      '--conf-file /etc/flume/conf/b1/flume.conf '
+      '-Dflume.monitoring.type=ganglia '
+      '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
+      wait_for_finish = False)
+
+    self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/b1/flume.conf > /var/run/flume/b1.pid',
+      logoutput = True,
+      tries = 5,
+      try_sleep = 10)
+
+    self.assertNoMoreResources()
+
+  @patch("glob.glob")
+  def test_stop_single(self, glob_mock):
+    glob_mock.return_value = ['/var/run/flume/b1.pid']
+
+    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "stop",
+                       config_file="flume_target.json")
+
+    self.assertTrue(glob_mock.called)
+
+    self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/b1.pid` > /dev/null 2>&1',
+      ignore_failures = True)
+
+    self.assertResourceCalled('File', '/var/run/flume/b1.pid', action = ['delete'])
+
+    self.assertNoMoreResources()
 
 def build_flume(content):
   result = {}

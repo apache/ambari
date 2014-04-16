@@ -29,6 +29,10 @@ def flume(action = None):
   if params.flume_conf_content is not None:
     flume_agents = build_flume_topology(params.flume_conf_content)
 
+  agent_names = flume_agents.keys()
+  if len(params.flume_command_targets) > 0:
+    agent_names = params.flume_command_targets
+
   if action == 'config':
     Directory(params.flume_conf_dir)
     Directory(params.flume_log_dir, owner=params.flume_user)
@@ -60,10 +64,13 @@ def flume(action = None):
       '--conf-file {{2}} '
       '{{3}}')
 
-    for agent in flume_agents.keys():
+    for agent in agent_names:
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
       flume_agent_conf_file = flume_agent_conf_dir + os.sep + "flume.conf"
       flume_agent_pid_file = params.flume_run_dir + os.sep + agent + ".pid"
+
+      if not os.path.isfile(flume_agent_conf_file):
+        continue
 
       if not is_live(flume_agent_pid_file):
         # TODO someday make the ganglia ports configurable
@@ -89,12 +96,17 @@ def flume(action = None):
     if 0 == len(pid_files):
       return
 
-    for pid_file in pid_files:
-      pid = format('`cat {pid_file}` > /dev/null 2>&1')
-      Execute(format('kill {pid}'), ignore_failures=True)
-
-    for pid_file in pid_files:
-      File(pid_file, action = 'delete')
+    if len(agent_names) > 0:
+      for agent in agent_names:
+        pid_file = params.flume_run_dir + os.sep + agent + '.pid'
+        pid = format('`cat {pid_file}` > /dev/null 2>&1')
+        Execute(format('kill {pid}'), ignore_failures=True)
+        File(pid_file, action = 'delete')
+    else:
+      for pid_file in pid_files:
+        pid = format('`cat {pid_file}` > /dev/null 2>&1')
+        Execute(format('kill {pid}'), ignore_failures=True)
+        File(pid_file, action = 'delete')
     
 
 def ambari_meta(agent_name, agent_conf):
