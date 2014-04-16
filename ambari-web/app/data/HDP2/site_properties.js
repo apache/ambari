@@ -1660,7 +1660,7 @@ module.exports =
       "serviceName": "FLUME",
       "isCanBeEmpty": true,
       "category": "FlumeAgent",
-      "filename": "flume-agent.xml"
+      "filename": "flume-conf.xml"
     }
   ]
 };

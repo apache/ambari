@@ -283,9 +283,9 @@ module.exports = [
     serviceName: 'FLUME',
     displayName: 'Flume',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'FlumeAgent', displayName : 'flume-agent.conf', siteFileName: 'flume-agent', canAddProperty: false})
+      App.ServiceConfigCategory.create({ name: 'FlumeAgent', displayName : 'flume.conf', siteFileName: 'flume-conf', canAddProperty: false})
     ],
-    sites: ['flume-agent'],
+    sites: ['flume-conf'],
     configs: []
   },
   {
