@@ -1990,6 +1990,8 @@ Em.I18n.translations = {
 
   'jobs.nothingToShow': 'No jobs to display',
   'jobs.loadingTasks': 'Loading...',
+  'jobs.error.ats.down': 'Jobs data cannot be shown since YARN App Timeline Server is not running.',
+  'jobs.error.400': 'Unable to load data.',
   'jobs.table.custom.date.am':'AM',
   'jobs.table.custom.date.pm':'PM',
   'jobs.table.custom.date.header':'Select Custom Dates',

@@ -107,6 +107,7 @@ App.MainJobsController = Em.Controller.extend({
   sortProperty: 'id',
   sortAscending: true,
   sortingDone: true,
+  jobsMessage: Em.I18n.t('jobs.loadingTasks'),
 
   sortingColumnObserver: function () {
     if(this.get('sortingColumn')){
@@ -377,11 +378,25 @@ App.MainJobsController = Em.Controller.extend({
     console.debug(jqXHR);
   },
 
+  checkDataLoadingError: function (jqXHR){
+    var atsComponent = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER');
+    if(atsComponent && atsComponent.get('workStatus') != "STARTED") {
+      this.set('jobsMessage', Em.I18n.t('jobs.error.ats.down'));
+      return true;
+    }else if (jqXHR && jqXHR.status == 400) {
+      this.set('jobsMessage', Em.I18n.t('jobs.error.400'));
+    }else{
+      this.set('jobsMessage', Em.I18n.t('jobs.loadingTasks'));
+    }
+    return false;
+  },
+
   loadJobs : function() {
     var self = this;
     var timeout = this.get('loadTimeout');
     var yarnService = App.YARNService.find().objectAt(0);
-    if (yarnService != null) {
+    var retryLoad = this.checkDataLoadingError();
+    if (yarnService != null && !retryLoad) {
       this.set('loading', true);
       var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
       var filtersLink = this.get('filterObject').createJobsFiltersLink();
@@ -407,6 +422,7 @@ App.MainJobsController = Em.Controller.extend({
           self.set('loaded', true);
         }
       }, function (jqXHR, textStatus) {
+        self.checkDataLoadingError(jqXHR);
         App.hiveJobsMapper.map({entities : []});
       });
     }else{
