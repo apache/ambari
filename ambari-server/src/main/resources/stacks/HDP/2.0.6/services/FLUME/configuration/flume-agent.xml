@@ -23,7 +23,7 @@
 <configuration>
   <property>
     <name>content</name>
-    <description>Flume agent config</description>
-    <value></value>
+    <description>Describe all the Flume agent configurations</description>
+    <value># Flume agents configuration</value>
   </property>
 </configuration>

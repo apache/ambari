@@ -1339,8 +1339,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       ], log4j: []},
       ZOOKEEPER: {site: [], log4j: ['zookeeper']},
       FLUME: {site: [
-        {filename: 'flume-agent', isXmlFile: false},
-        {filename: 'flume-conf', isXmlFile: false}
+        {filename: 'flume-agent', isXmlFile: false}
       ], log4j: []}
     };
 

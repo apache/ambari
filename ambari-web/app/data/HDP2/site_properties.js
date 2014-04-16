@@ -1649,20 +1649,6 @@ module.exports =
       "serviceName": "GLUSTERFS",
       "category": "General"
     },
-
-  /********************************************* flume.conf *****************************/
-    {
-      "id": "site property",
-      "serviceName": "FLUME",
-      "showLabel": false,
-      "isRequired": false,
-      "category": "AdvancedFlumeConf",
-      "displayName": "content",
-      "name": "content",
-      "isCanBeEmpty": true,
-      "displayType": "multiLine",
-      "filename": "flume-conf.xml"
-    },
   /********************************************* flume-agent *****************************/
     {
       "id": "site property",
@@ -1670,7 +1656,7 @@ module.exports =
       "displayName": "content",
       "showLabel": false,
       "isRequired": false,
-      "displayType": "multiLine",
+      "displayType": "content",
       "serviceName": "FLUME",
       "isCanBeEmpty": true,
       "category": "FlumeAgent",
