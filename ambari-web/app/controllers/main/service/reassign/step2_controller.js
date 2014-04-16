@@ -36,7 +36,6 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
   },
 
   loadComponents: function () {
-    var components = this.get('components').filterProperty('isMaster', true);
     var masterComponents = this.get('content.masterComponentHosts');
     this.set('currentHostId', this.get('content').get('reassign').host_id);
     var componentNameToReassign = this.get('content').get('reassign').component_name;
