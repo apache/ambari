@@ -25,7 +25,7 @@ import datetime
 from resource_management.core import shell
 
 def get_unique_id_and_date():
-    out = shell.checked_call("hostid")[1]
+    out = shell.checked_call("hostid")[1].split('\n')[-1] # bugfix: take the lastline (stdin is not tty part cut)
     id = out.strip()
 
     now = datetime.datetime.now()
