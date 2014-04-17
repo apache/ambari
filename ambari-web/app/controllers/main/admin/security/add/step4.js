@@ -382,19 +382,6 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     return true;
   },
 
-  deleteComponents: function(componentName, hostName) {
-    App.ajax.send({
-      name: 'admin.delete_component',
-      sender: this,
-      data: {
-        componentName: componentName,
-        hostName: hostName
-      },
-      success: 'onDeleteComplete',
-      error: 'onDeleteError'
-    });
-  },
-
   onDeleteComplete: function () {
     var deleteAtsCommand = this.get('commands').findProperty('name', 'DELETE_ATS');
     console.warn('APP_TIMELINE_SERVER doesn\'t support security mode. It has been removed from YARN service ');

@@ -27,17 +27,22 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
 
   dataIsLoaded: false,
 
+  /**
+   * enable High Availability
+   * @return {Boolean}
+   */
   enableHighAvailability: function () {
     var message = [];
+    var hostComponents = App.HostComponent.find();
     //Prerequisite Checks
     if (this.get('securityEnabled')) {
       this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.security'));
-      return;
+      return false;
     } else {
-      if (App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
+      if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
         message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
       }
-      if (App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
+      if (hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
         message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
       }
 
@@ -46,10 +51,11 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       }
       if (message.length > 0) {
         this.showErrorPopup(message);
-        return;
+        return false;
       }
     }
     App.router.transitionTo('enableHighAvailability');
+    return true;
   },
 
   disableHighAvailability: function () {
@@ -80,12 +86,15 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     if ('global' in configs) {
       this.set('tag', configs['global'].tag);
       this.getServiceConfigsFromServer();
-    }
-    else {
+    } else {
       this.showErrorPopup(Em.I18n.t('admin.security.status.error'));
     }
   },
 
+  /**
+   * get service configs from server and
+   * indicate whether security is enabled
+   */
   getServiceConfigsFromServer: function () {
     var tags = [
       {
@@ -95,20 +104,25 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     ];
     var data = App.router.get('configurationController').getConfigsByTags(tags);
     var configs = data.findProperty('tag', this.get('tag')).properties;
-    if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
-      this.set('securityEnabled', true);
-    } else {
-      this.set('securityEnabled', false);
-    }
+    var securityEnabled = !!(configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true));
+    this.set('securityEnabled', securityEnabled);
     this.set('dataIsLoaded', true);
+  },
+  /**
+   * join or wrap message depending on whether it is array or string
+   * @param message
+   * @return {*}
+   */
+  joinMessage: function (message) {
+    if (Array.isArray(message)) {
+      return message.join('<br/>');
+    } else {
+      return '<p>' + message + '</p>';
+    }
   },
 
   showErrorPopup: function (message) {
-    if(Array.isArray(message)){
-      message = message.join('<br/>');
-    } else {
-      message = '<p>' + message + '</p>';
-    }
+    message = this.joinMessage(message);
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       bodyClass: Ember.View.extend({

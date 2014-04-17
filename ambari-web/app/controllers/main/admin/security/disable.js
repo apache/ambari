@@ -17,17 +17,42 @@
  */
 
 var App = require('app');
-App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController.extend({
+require('controllers/main/admin/security/security_progress_controller');
 
+App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController.extend({
   name: 'mainAdminSecurityDisableController',
   secureServices: [],
+  /**
+   * values of site configs when security disabled
+   */
+  secureConfigValuesMap: {
+    'dfs.datanode.address': '0.0.0.0:50010',
+    'dfs.datanode.http.address': '0.0.0.0:50075',
+    'mapred.task.tracker.task-controller': 'org.apache.hadoop.mapred.DefaultTaskController',
+    'yarn.nodemanager.container-executor.class': 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor',
+    'hbase.security.authentication': 'simple',
+    'hbase.rpc.engine': 'org.apache.hadoop.hbase.ipc.WritableRpcEngine',
+    'hbase.security.authorization': 'false',
+    'zookeeper.znode.parent': '/hbase-unsecure',
+    'hive.security.authorization.enabled': 'false'
+  },
 
+  isSubmitDisabled: function () {
+    return !(this.get('commands').someProperty('isError') || this.get('commands').everyProperty('isSuccess'));
+  }.property('commands.@each.isCompleted'),
+
+  /**
+   * clear step info
+   */
   clearStep: function () {
     this.get('commands').clear();
     this.get('secureServices').clear();
     this.get('serviceConfigTags').clear();
   },
 
+  /**
+   * load info required by current step
+   */
   loadStep: function () {
     this.clearStep();
     var commands = App.db.getSecurityDeployCommands();
@@ -50,30 +75,48 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     } else {
       this.loadCommands();
       this.addInfoToCommands();
-      var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
-      var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
-      var stopCommand = this.get('commands').findProperty('name', 'STOP_SERVICES');
-      if (stopCommand.get('name') === 'STOP_SERVICES' && stopAllOperation) {
-        stopCommand.set('requestId', stopAllOperation.get('id'));
-      }
+      this.syncStopServicesCommand();
     }
     this.loadSecureServices();
     this.addObserverToCommands();
     this.moveToNextCommand();
   },
 
+  /**
+   * resume info about commands from local storage
+   * @return {Boolean}
+   */
+  resumeCommands: function () {
+    var commands = App.db.getSecurityDeployCommands();
+    if (!commands || commands.length === 0) return false;
 
-  enableSubmit: function () {
-    if (this.get('commands').someProperty('isError', true) || this.get('commands').everyProperty('isSuccess', true)) {
-      this.set('isSubmitDisabled', false);
-    } else {
-      this.set('isSubmitDisabled', true);
+    commands.forEach(function (_command) {
+      this.get('commands').pushObject(App.Poll.create(_command));
+    }, this);
+    var runningCommand = this.get('commands').filterProperty('isStarted').findProperty('isCompleted', false);
+    if (runningCommand) {
+      runningCommand.set('isStarted', false);
     }
-  }.observes('commands.@each.isCompleted'),
+    return true;
+  },
 
+  /**
+   * synchronize existing background operation "Stop All Services" with command in Security wizard
+   */
+  syncStopServicesCommand: function () {
+    var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
+    var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
+    var stopCommand = this.get('commands').findProperty('name', 'STOP_SERVICES');
+    if (stopCommand && stopAllOperation) {
+      stopCommand.set('requestId', stopAllOperation.get('id'));
+    }
+  },
 
+  /**
+   * load secure configs of installed services
+   */
   loadSecureServices: function () {
-    var secureServices = App.get('isHadoop2Stack')?require('data/HDP2/secure_configs'):require('data/secure_configs');
+    var secureServices = App.get('isHadoop2Stack') ? require('data/HDP2/secure_configs') : require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
     this.get('secureServices').pushObject(secureServices.findProperty('serviceName', 'GENERAL'));
     //General (only non service tab) tab is always displayed
@@ -85,68 +128,67 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     }, this);
   },
 
-
+  /**
+   * manage configurations from serviceConfigTags
+   * @return {Boolean}
+   */
   manageSecureConfigs: function () {
-    try {
-      this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
-        _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-        if (_serviceConfigTags.siteName === 'global') {
-          this.get('secureProperties').forEach(function (_config) {
-            if (_config.name in _serviceConfigTags.configs) {
-              delete _serviceConfigTags.configs[_config.name];
-            }
-          }, this);
-          _serviceConfigTags.configs.security_enabled = 'false';
-        } else {
-          this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
-            var configName = _config.name;
-            if (configName in _serviceConfigTags.configs) {
-              switch (configName) {
-                case 'dfs.datanode.address':
-                  _serviceConfigTags.configs[configName] = '0.0.0.0:50010';
-                  break;
-                case 'dfs.datanode.http.address':
-                  _serviceConfigTags.configs[configName] = '0.0.0.0:50075';
-                  break;
-                case 'mapred.task.tracker.task-controller':
-                  _serviceConfigTags.configs[configName] = 'org.apache.hadoop.mapred.DefaultTaskController';
-                  break;
-                case 'yarn.nodemanager.container-executor.class':
-                  _serviceConfigTags.configs[configName] = 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor';
-                  break;
-                case 'hbase.security.authentication':
-                  _serviceConfigTags.configs[configName] = 'simple';
-                  break;
-                case 'hbase.rpc.engine':
-                  _serviceConfigTags.configs[configName] = 'org.apache.hadoop.hbase.ipc.WritableRpcEngine';
-                  break;
-                case 'hbase.security.authorization':
-                  _serviceConfigTags.configs[configName] = 'false';
-                  break;
-                case 'zookeeper.znode.parent':
-                  _serviceConfigTags.configs[configName] = '/hbase-unsecure';
-                  break;
-                case 'hive.security.authorization.enabled':
-                  _serviceConfigTags.configs[configName] = 'false';
-                  break;
-                default:
-                  delete _serviceConfigTags.configs[configName];
-              }
-            }
-            console.log("Not Deleted" + _config.name);
-          }, this);
-        }
-      }, this);
-    } catch (err) {
+    var serviceConfigTags = this.get('serviceConfigTags');
+    var secureProperties = this.get('secureProperties');
+    var secureMapping = this.get('secureMapping');
+    if (!serviceConfigTags || !secureProperties || !secureMapping) {
       var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
       command.set('isSuccess', false);
       command.set('isError', true);
-      if (err) {
-        console.log("Error: Error occurred while applying secure configs to the server. Error message: " + err);
-      }
       return false;
+    } else {
+      serviceConfigTags.forEach(function (_serviceConfigTags) {
+        _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
+        if (_serviceConfigTags.siteName === 'global') {
+          this.deleteDisabledGlobalConfigs(secureProperties, _serviceConfigTags);
+          _serviceConfigTags.configs.security_enabled = 'false';
+        } else {
+          this.modifySiteConfigs(secureMapping, _serviceConfigTags);
+        }
+      }, this);
+      return true;
     }
+  },
+  /**
+   * delete global configs, which aren't required when security disabled
+   * @param secureProperties
+   * @param _serviceConfigTags
+   * @return {Boolean}
+   */
+  deleteDisabledGlobalConfigs: function (secureProperties, _serviceConfigTags) {
+    if (!secureProperties || !_serviceConfigTags) return false;
+    secureProperties.forEach(function (_config) {
+      if (_config.name in _serviceConfigTags.configs) {
+        delete _serviceConfigTags.configs[_config.name];
+      }
+    }, this);
+    return true;
+  },
+  /**
+   * delete unnecessary site configs and
+   * change config values
+   * @param secureMapping
+   * @param _serviceConfigTags
+   * @return {Boolean}
+   */
+  modifySiteConfigs: function (secureMapping, _serviceConfigTags) {
+    var secureConfigValuesMap = this.get('secureConfigValuesMap');
+    if (!secureMapping || !_serviceConfigTags) return false;
+    secureMapping.filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+      var configName = _config.name;
+      if (configName in _serviceConfigTags.configs) {
+        if (secureConfigValuesMap[configName]) {
+          _serviceConfigTags.configs[configName] = secureConfigValuesMap[configName]
+        } else {
+          delete _serviceConfigTags.configs[configName]
+        }
+      }
+    }, this);
     return true;
   }
-
 });

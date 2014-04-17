@@ -17,38 +17,50 @@
  */
 
 var App = require('app');
-App.MainAdminSecurityProgressController = Em.Controller.extend({
 
+App.MainAdminSecurityProgressController = Em.Controller.extend({
   name: 'mainAdminSecurityProgressController',
-  secureMapping: function () {
-    if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/secure_mapping');
-    } else {
-      return require('data/secure_mapping');
-    }
-  }.property(App.isHadoop2Stack),
-  secureProperties: function () {
-    if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/secure_properties').configProperties;
-    } else {
-      return require('data/secure_properties').configProperties;
-    }
-  }.property(App.isHadoop2Stack),
+
   commands: [],
   configs: [],
   serviceConfigTags: [],
   globalProperties: [],
   totalSteps: 3,
   isSubmitDisabled: true,
-
-
   hasHostPopup: true,
   services: [],
   serviceTimestamp: null,
+  operationsInfo: [
+    {
+      name: 'STOP_SERVICES',
+      realUrl: '/services',
+      testUrl: '/data/wizard/deploy/2_hosts/poll_1.json',
+      data: '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.stopAllServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}'
+    },
+    {
+      name: 'START_SERVICES',
+      realUrl: '/services?params/run_smoke_test=true',
+      testUrl: '/data/wizard/deploy/2_hosts/poll_1.json',
+      data: '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}'
+    }
+  ],
 
+  secureMapping: function () {
+    return (App.get('isHadoop2Stack')) ? require('data/HDP2/secure_mapping') : require('data/secure_mapping');
+  }.property('App.isHadoop2Stack'),
+  secureProperties: function () {
+    if (App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_properties').configProperties;
+    } else {
+      return require('data/secure_properties').configProperties;
+    }
+  }.property('App.isHadoop2Stack'),
 
+  /**
+   * prepare and restart failed command
+   */
   retry: function () {
-    var failedCommand = this.get('commands').findProperty('isError', true);
+    var failedCommand = this.get('commands').findProperty('isError');
     if (failedCommand) {
       failedCommand.set('isStarted', false);
       failedCommand.set('isError', false);
@@ -56,21 +68,25 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     }
   },
 
+  /**
+   * update info about progress of operation of commands
+   */
   updateServices: function () {
     this.services.clear();
     var services = this.get("services");
     this.get("commands").forEach(function (command) {
+      var polledData = command.get('polledData');
       var newService = Ember.Object.create({
-        name: command.label,
+        name: command.get('label'),
         hosts: []
       });
-      if (command && command.get("polledData")) {
-        var hostNames = command.get("polledData").mapProperty('Tasks.host_name').uniq();
+      if (polledData) {
+        var hostNames = polledData.mapProperty('Tasks.host_name').uniq();
         hostNames.forEach(function (name) {
           newService.hosts.push({
             name: name,
             publicName: name,
-            logTasks: command.polledData.filterProperty("Tasks.host_name", name)
+            logTasks: polledData.filterProperty("Tasks.host_name", name)
           });
         });
         services.push(newService);
@@ -78,7 +94,9 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     });
     this.set('serviceTimestamp', App.dateTime());
   }.observes('commands.@each.polledData'),
-
+  /**
+   * initialize default commands
+   */
   loadCommands: function () {
     this.get('commands').pushObjects([
       App.Poll.create({name: 'STOP_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.stop.services'], isPolling: true }),
@@ -87,49 +105,58 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     ]);
   },
 
-  addObserverToCommands: function() {
+  addObserverToCommands: function () {
     this.setIndex(this.get('commands'));
     this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
   },
-
-  setIndex: function(commandArray) {
-    commandArray.forEach(function(command,index){
-      command.set('index',index+1);
-    },this);
+  /**
+   * set index to each command
+   * @param commandArray
+   */
+  setIndex: function (commandArray) {
+    commandArray.forEach(function (command, index) {
+      command.set('index', index + 1);
+    }, this);
     this.set('totalSteps', commandArray.length);
   },
 
-  startCommand: function (commnad) {
+  startCommand: function (command) {
     if (this.get('commands').length === this.get('totalSteps')) {
-      if (!commnad) {
+      if (!command) {
         var startedCommand = this.get('commands').filterProperty('isStarted', true);
-        commnad = startedCommand.findProperty('isCompleted', false);
+        command = startedCommand.findProperty('isCompleted', false);
       }
-      if (commnad && commnad.get('isPolling') === true) {
-        commnad.set('isStarted', true);
-        commnad.start();
-      } else if (commnad && commnad.get('name') === 'APPLY_CONFIGURATIONS') {
-        commnad.set('isStarted', true);
-        if (App.testMode) {
-          commnad.set('isError', false);
-          commnad.set('isSuccess', true);
-        } else {
-          this.loadClusterConfigs();
+      if (command) {
+        if (command.get('isPolling')) {
+          command.set('isStarted', true);
+          command.start();
+        } else if (command.get('name') === 'APPLY_CONFIGURATIONS') {
+          command.set('isStarted', true);
+          if (App.testMode) {
+            command.set('isError', false);
+            command.set('isSuccess', true);
+          } else {
+            this.loadClusterConfigs();
+          }
+        } else if (command.get('name') === 'DELETE_ATS') {
+          command.set('isStarted', true);
+          if (App.testMode) {
+            command.set('isError', false);
+            command.set('isSuccess', true);
+          } else {
+            var timeLineServer = App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER');
+            this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('host.hostName'));
+          }
         }
-      } else if (commnad && commnad.get('name') === 'DELETE_ATS') {
-        commnad.set('isStarted', true);
-        if (App.testMode) {
-          commnad.set('isError', false);
-          commnad.set('isSuccess', true);
-        } else {
-          var timeLineServer = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
-          this.deleteComponents('APP_TIMELINE_SERVER', timeLineServer.get('host.hostName'));
-        }
+        return true;
       }
     }
+    return false;
   },
-
-
+  /**
+   * on command completion move to next command
+   * @return {Boolean}
+   */
   onCompleteCommand: function () {
     if (this.get('commands').length === this.get('totalSteps')) {
       var index = this.get('commands').filterProperty('isSuccess', true).length;
@@ -138,40 +165,37 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         if (lastCompletedCommandResult) {
           var nextCommand = this.get('commands').objectAt(index);
           this.moveToNextCommand(nextCommand);
+          return true;
         }
       }
     }
+    return false;
   },
-
+  /**
+   * move to next command
+   * @param nextCommand
+   */
   moveToNextCommand: function (nextCommand) {
-    if (!nextCommand) {
-      nextCommand = this.get('commands').findProperty('isStarted', false);
-    }
+    nextCommand = nextCommand || this.get('commands').findProperty('isStarted', false);
     if (nextCommand) {
       this.startCommand(nextCommand);
+      return true;
     }
+    return false;
   },
 
+  /**
+   * add query information(url, data) to commands
+   */
   addInfoToCommands: function () {
-    this.addInfoToStopService();
-    this.addInfoToStartServices();
-  },
-
-
-  addInfoToStopService: function () {
-    var command = this.get('commands').findProperty('name', 'STOP_SERVICES');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
-    var data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.stopAllServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    command.set('url', url);
-    command.set('data', data);
-  },
-
-  addInfoToStartServices: function () {
-    var command = this.get('commands').findProperty('name', 'START_SERVICES');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services?params/run_smoke_test=true';
-    var data = '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
-    command.set('url', url);
-    command.set('data', data);
+    var operationsInfo = this.get('operationsInfo');
+    var urlPrefix = App.apiPrefix + '/clusters/' + App.get('clusterName');
+    operationsInfo.forEach(function (operation) {
+      var command = this.get('commands').findProperty('name', operation.name);
+      var url = (App.testMode) ? operation.testUrl : urlPrefix + operation.realUrl;
+      command.set('url', url);
+      command.set('data', operation.data);
+    }, this);
   },
 
   loadClusterConfigs: function () {
@@ -184,23 +208,25 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   },
 
   loadClusterConfigsSuccessCallback: function (data) {
-    var self = this;
     //prepare tags to fetch all configuration for a service
     this.get('secureServices').forEach(function (_secureService) {
-      self.setServiceTagNames(_secureService, data.Clusters.desired_configs);
-    },this);
+      this.setServiceTagNames(_secureService, data.Clusters.desired_configs);
+    }, this);
     this.getAllConfigurations();
   },
 
   loadClusterConfigsErrorCallback: function (request, ajaxOptions, error) {
     var command = this.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
-    command .set('isSuccess', false);
-    command .set('isError', true);
+    command.set('isSuccess', false);
+    command.set('isError', true);
     console.log("TRACE: error code status is: " + request.status);
   },
 
   /**
-   * set tagnames for configuration of the *-site.xml
+   * set tag names according to installed services and desired configs
+   * @param secureService
+   * @param configs
+   * @return {Object}
    */
   setServiceTagNames: function (secureService, configs) {
     //var serviceConfigTags = this.get('serviceConfigTags');
@@ -218,6 +244,9 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     return serviceConfigObj;
   },
 
+  /**
+   * form query data and apply security configurations to server
+   */
   applyConfigurationsToCluster: function () {
     var configData = [];
     this.get('serviceConfigTags').forEach(function (_serviceConfig) {
@@ -316,7 +345,13 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
     }, this);
   },
 
-  setServerConfigValue: function(configName, value) {
+  /**
+   * set specific server values to config
+   * @param configName
+   * @param value
+   * @return {*}
+   */
+  setServerConfigValue: function (configName, value) {
     switch (configName) {
       case 'storm.zookeeper.servers':
         return value;
@@ -324,15 +359,9 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         return App.config.escapeXMLCharacters(value);
     }
   },
-
-  saveCommandsOnRequestId: function () {
-    this.saveCommands();
-  }.observes('commands.@each.requestId'),
-
-  saveCommandsOnCompleted: function () {
-    this.saveCommands();
-  }.observes('commands.@each.isCompleted'),
-
+  /**
+   * save commands to server and local storage
+   */
   saveCommands: function () {
     var commands = [];
     if (this.get('commands').length === this.get('totalSteps')) {
@@ -341,7 +370,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
           name: _command.get('name'),
           label: _command.get('label'),
           isPolling: _command.get('isPolling'),
-          isVisible:  _command.get('isVisible'),
+          isVisible: _command.get('isVisible'),
           isStarted: _command.get('isStarted'),
           requestId: _command.get('requestId'),
           isSuccess: _command.get('isSuccess'),
@@ -362,5 +391,5 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
         });
       }
     }
-  }
+  }.observes('commands.@each.isCompleted', 'commands.@each.requestId')
 });

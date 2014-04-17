@@ -17,10 +17,10 @@
 }}
 
 {{#if view.message}}
-  <p {{bindAttr class="view.msgColor :alert"}}>{{view.message}}</p>
+    <p {{bindAttr class="view.msgColor :alert"}}>{{view.message}}</p>
 {{/if}}
 {{view App.MainServiceReconfigureView}}
 <div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-    {{action done}}>{{t common.done}} </a>
+    <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
+      {{action done}}>{{t common.done}} </button>
 </div>
