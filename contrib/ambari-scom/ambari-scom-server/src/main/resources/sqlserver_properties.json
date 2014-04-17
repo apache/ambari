@@ -11628,7 +11628,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersCompleted": {
-        "metric": "yarn.ContainersCompleted",
+        "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
         "pointInTime": true,
         "temporal": true
       },
@@ -11643,7 +11643,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersKilled": {
-        "metric": "yarn.ContainersKilled",
+        "metric": "yarn.NodeManagerMetrics.ContainersKilled",
         "pointInTime": true,
         "temporal": true
       },
@@ -11698,7 +11698,7 @@
         "temporal": true
       },
       "metrics/yarn/AllocatedGB": {
-        "metric": "yarn.AllocatedGB",
+        "metric": "yarn.NodeManagerMetrics.AllocatedGB",
         "pointInTime": true,
         "temporal": true
       },
@@ -11733,7 +11733,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersFailed": {
-        "metric": "yarn.ContainersFailed",
+        "metric": "yarn.NodeManagerMetrics.ContainersFailed",
         "pointInTime": true,
         "temporal": true
       },
@@ -11758,7 +11758,7 @@
         "temporal": true
       },
       "metrics/yarn/AllocatedContainers": {
-        "metric": "yarn.AllocatedContainers",
+        "metric": "yarn.NodeManagerMetrics.AllocatedContainers",
         "pointInTime": true,
         "temporal": true
       },
@@ -11828,7 +11828,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersRunning": {
-        "metric": "yarn.ContainersRunning",
+        "metric": "yarn.NodeManagerMetrics.ContainersRunning",
         "pointInTime": true,
         "temporal": true
       },
@@ -11843,7 +11843,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersLaunched": {
-        "metric": "yarn.ContainersLaunched",
+        "metric": "yarn.NodeManagerMetrics.ContainersLaunched",
         "pointInTime": true,
         "temporal": true
       },
@@ -11863,7 +11863,7 @@
         "temporal": true
       },
       "metrics/yarn/AvailableGB": {
-        "metric": "yarn.AvailableGB",
+        "metric": "yarn.NodeManagerMetrics.AvailableGB",
         "pointInTime": true,
         "temporal": true
       },
@@ -11878,7 +11878,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersIniting": {
-        "metric": "yarn.ContainersIniting",
+        "metric": "yarn.NodeManagerMetrics.ContainersIniting",
         "pointInTime": true,
         "temporal": true
       },
@@ -22365,7 +22365,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersCompleted": {
-        "metric": "yarn.ContainersCompleted",
+        "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
         "pointInTime": true,
         "temporal": true
       },
@@ -22380,7 +22380,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersKilled": {
-        "metric": "yarn.ContainersKilled",
+        "metric": "yarn.NodeManagerMetrics.ContainersKilled",
         "pointInTime": true,
         "temporal": true
       },
@@ -22435,7 +22435,7 @@
         "temporal": true
       },
       "metrics/yarn/AllocatedGB": {
-        "metric": "yarn.AllocatedGB",
+        "metric": "yarn.NodeManagerMetrics.AllocatedGB",
         "pointInTime": true,
         "temporal": true
       },
@@ -22470,7 +22470,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersFailed": {
-        "metric": "yarn.ContainersFailed",
+        "metric": "yarn.NodeManagerMetrics.ContainersFailed",
         "pointInTime": true,
         "temporal": true
       },
@@ -22495,7 +22495,7 @@
         "temporal": true
       },
       "metrics/yarn/AllocatedContainers": {
-        "metric": "yarn.AllocatedContainers",
+        "metric": "yarn.NodeManagerMetrics.AllocatedContainers",
         "pointInTime": true,
         "temporal": true
       },
@@ -22565,7 +22565,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersRunning": {
-        "metric": "yarn.ContainersRunning",
+        "metric": "yarn.NodeManagerMetrics.ContainersRunning",
         "pointInTime": true,
         "temporal": true
       },
@@ -22580,7 +22580,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersLaunched": {
-        "metric": "yarn.ContainersLaunched",
+        "metric": "yarn.NodeManagerMetrics.ContainersLaunched",
         "pointInTime": true,
         "temporal": true
       },
@@ -22600,7 +22600,7 @@
         "temporal": true
       },
       "metrics/yarn/AvailableGB": {
-        "metric": "yarn.AvailableGB",
+        "metric": "yarn.NodeManagerMetrics.AvailableGB",
         "pointInTime": true,
         "temporal": true
       },
@@ -22615,7 +22615,7 @@
         "temporal": true
       },
       "metrics/yarn/ContainersIniting": {
-        "metric": "yarn.ContainersIniting",
+        "metric": "yarn.NodeManagerMetrics.ContainersIniting",
         "pointInTime": true,
         "temporal": true
       },
