@@ -230,6 +230,162 @@ public class TestHeartbeatHandler {
   }
 
   @Test
+  public void testHeartbeatCustomCommandWithConfigs() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.INSTALLED);
+    serviceComponentHost2.setState(State.INSTALLED);
+
+
+    HeartBeat hb = new HeartBeat();
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setServiceName(HDFS);
+    cr.setRoleCommand("CUSTOM_COMMAND");
+    cr.setCustomCommand("RESTART");
+    cr.setTaskId(1);
+    cr.setRole(DATANODE);
+    cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
+    cr.setExitCode(215);
+    cr.setClusterName(DummyCluster);
+    cr.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
+      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+    }});
+    CommandReport crn = new CommandReport();
+    crn.setActionId(StageUtils.getActionId(requestId, stageId));
+    crn.setServiceName(HDFS);
+    crn.setRoleCommand("CUSTOM_COMMAND");
+    crn.setCustomCommand("START");
+    crn.setTaskId(1);
+    crn.setRole(NAMENODE);
+    crn.setStatus("COMPLETED");
+    crn.setStdErr("");
+    crn.setStdOut("");
+    crn.setExitCode(215);
+    crn.setClusterName(DummyCluster);
+    crn.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
+      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+    }});
+
+    reports.add(cr);
+    reports.add(crn);
+    hb.setReports(reports);
+
+    handler.handleHeartBeat(hb);
+
+    // the heartbeat test passed if actual configs is populated
+    Assert.assertNotNull(serviceComponentHost1.getActualConfigs());
+    Assert.assertEquals(serviceComponentHost1.getActualConfigs().size(), 1);
+    Assert.assertNotNull(serviceComponentHost2.getActualConfigs());
+    Assert.assertEquals(serviceComponentHost2.getActualConfigs().size(), 1);
+  }
+
+  @Test
+  public void testHeartbeatCustomStartStop() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>(){{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
+    ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).
+        getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
+    serviceComponentHost1.setState(State.INSTALLED);
+    serviceComponentHost2.setState(State.STARTED);
+
+
+    HeartBeat hb = new HeartBeat();
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+
+    List<CommandReport> reports = new ArrayList<CommandReport>();
+    CommandReport cr = new CommandReport();
+    cr.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr.setServiceName(HDFS);
+    cr.setRoleCommand("CUSTOM_COMMAND");
+    cr.setCustomCommand("START");
+    cr.setTaskId(1);
+    cr.setRole(DATANODE);
+    cr.setStatus("COMPLETED");
+    cr.setStdErr("");
+    cr.setStdOut("");
+    cr.setExitCode(215);
+    cr.setClusterName(DummyCluster);
+    CommandReport crn = new CommandReport();
+    crn.setActionId(StageUtils.getActionId(requestId, stageId));
+    crn.setServiceName(HDFS);
+    crn.setRoleCommand("CUSTOM_COMMAND");
+    crn.setCustomCommand("STOP");
+    crn.setTaskId(1);
+    crn.setRole(NAMENODE);
+    crn.setStatus("COMPLETED");
+    crn.setStdErr("");
+    crn.setStdOut("");
+    crn.setExitCode(215);
+    crn.setClusterName(DummyCluster);
+
+    reports.add(cr);
+    reports.add(crn);
+    hb.setReports(reports);
+
+    handler.handleHeartBeat(hb);
+
+    // the heartbeat test passed if actual configs is populated
+    State componentState1 = serviceComponentHost1.getState();
+    assertEquals(State.STARTED, componentState1);
+    State componentState2 = serviceComponentHost2.getState();
+    assertEquals(State.INSTALLED, componentState2);
+  }
+
+  @Test
   public void testStatusHeartbeat() throws Exception {
     ActionManager am = getMockActionManager();
 

@@ -57,6 +57,7 @@ class TestActionQueue(TestCase):
     'taskId': 3,
     'clusterName': u'cc',
     'serviceName': u'HDFS',
+    'hostLevelParams': {},
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v1' }}
   }
@@ -69,7 +70,7 @@ class TestActionQueue(TestCase):
       'serviceName' : "serviceName",
       'roleCommand' : 'UPGRADE',
       'hostname' : "localhost.localdomain",
-      'hostLevelParams': "hostLevelParams",
+      'hostLevelParams': {},
       'clusterHostInfo': "clusterHostInfo",
       'commandType': "EXECUTION_COMMAND",
       'configurations':{'global' : {}},
@@ -88,6 +89,7 @@ class TestActionQueue(TestCase):
     'taskId': 4,
     'clusterName': u'cc',
     'serviceName': u'HDFS',
+    'hostLevelParams': {}
     }
 
   snamenode_install_command = {
@@ -98,6 +100,7 @@ class TestActionQueue(TestCase):
     'taskId': 5,
     'clusterName': u'cc',
     'serviceName': u'HDFS',
+    'hostLevelParams': {}
     }
 
   nagios_install_command = {
@@ -108,6 +111,7 @@ class TestActionQueue(TestCase):
     'taskId': 6,
     'clusterName': u'cc',
     'serviceName': u'HDFS',
+    'hostLevelParams': {}
     }
 
   hbase_install_command = {
@@ -118,6 +122,7 @@ class TestActionQueue(TestCase):
     'taskId': 7,
     'clusterName': u'cc',
     'serviceName': u'HDFS',
+    'hostLevelParams': {}
     }
 
   status_command = {
@@ -125,7 +130,8 @@ class TestActionQueue(TestCase):
     "commandType" : "STATUS_COMMAND",
     "clusterName" : "",
     "componentName" : "DATANODE",
-    'configurations':{}
+    'configurations':{},
+    'hostLevelParams': {}
   }
 
   datanode_restart_command = {
@@ -411,6 +417,7 @@ class TestActionQueue(TestCase):
                 'roleCommand': u'CUSTOM_COMMAND',
                 'serviceName': u'HDFS',
                 'status': 'COMPLETED',
+                'customCommand': 'RESTART',
                 'stderr': 'stderr',
                 'stdout': 'out',
                 'structuredOut': '',

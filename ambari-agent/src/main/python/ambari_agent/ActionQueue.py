@@ -208,6 +208,10 @@ class ActionQueue(threading.Thread):
     if roleResult['stderr'] == '':
       roleResult['stderr'] = 'None'
 
+    # let ambari know name of custom command
+    if command['hostLevelParams'].has_key('custom_command'):
+      roleResult['customCommand'] = command['hostLevelParams']['custom_command']
+
     if 'structuredOut' in commandresult:
       roleResult['structuredOut'] = str(commandresult['structuredOut'])
     else:

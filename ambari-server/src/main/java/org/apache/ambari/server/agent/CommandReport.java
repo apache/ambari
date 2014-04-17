@@ -35,9 +35,19 @@ public class CommandReport {
   private String serviceName;
   private long taskId;
   private String roleCommand;
-  
+  private String customCommand;
   private Map<String, Map<String, String>> configurationTags;
-  
+
+  @JsonProperty("customCommand")
+  public String getCustomCommand() {
+    return customCommand;
+  }
+
+  @JsonProperty("customCommand")
+  public void setCustomCommand(String customCommand) {
+    this.customCommand = customCommand;
+  }
+
   @JsonProperty("taskId")
   public long getTaskId() {
     return taskId;
@@ -178,6 +188,7 @@ public class CommandReport {
             ", taskId=" + taskId +
             ", roleCommand=" + roleCommand +
             ", configurationTags=" + configurationTags +
+            ", customCommand=" + customCommand +
             '}';
   }
 }

@@ -302,8 +302,12 @@ public class HeartBeatHandler {
     List<CommandReport> reports = heartbeat.getReports();
     for (CommandReport report : reports) {
       LOG.debug("Received command report: " + report);
+      //pass custom STAR, STOP and RESTART
       if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
-        RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand())) {
+         (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
+         !("RESTART".equals(report.getCustomCommand()) ||
+         "START".equals(report.getCustomCommand()) ||
+         "STOP".equals(report.getCustomCommand())))) {
         continue;
       }
       
@@ -326,7 +330,10 @@ public class HeartBeatHandler {
             // Updating stack version, if needed
             if (scHost.getState().equals(State.UPGRADING)) {
               scHost.setStackVersion(scHost.getDesiredStackVersion());
-            } else if (report.getRoleCommand().equals(RoleCommand.START.toString())
+            } else if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
+                (report.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND.toString()) &&
+                    ("START".equals(report.getCustomCommand()) ||
+                    "RESTART".equals(report.getCustomCommand()))))
                 && null != report.getConfigurationTags()
                 && !report.getConfigurationTags().isEmpty()) {
               LOG.info("Updating applied config on service " + scHost.getServiceName() +
@@ -334,10 +341,22 @@ public class HeartBeatHandler {
               scHost.updateActualConfigs(report.getConfigurationTags());
             }
 
-            if (RoleCommand.START.toString().equals(report.getRoleCommand())) {
+            if (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
+                !("START".equals(report.getCustomCommand()) ||
+                 "STOP".equals(report.getCustomCommand()))) {
+              //do not affect states for custom commands except START and STOP
+              //lets status commands to be responsible for this
+              continue;
+            }
+
+            if (RoleCommand.START.toString().equals(report.getRoleCommand()) ||
+                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
+                    "START".equals(report.getCustomCommand()))) {
               scHost.handleEvent(new ServiceComponentHostStartedEvent(schName,
                   hostname, now));
-            } else if (RoleCommand.STOP.toString().equals(report.getRoleCommand())) {
+            } else if (RoleCommand.STOP.toString().equals(report.getRoleCommand()) ||
+                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
+                    "STOP".equals(report.getCustomCommand()))) {
               scHost.handleEvent(new ServiceComponentHostStoppedEvent(schName,
                   hostname, now));
             } else {
