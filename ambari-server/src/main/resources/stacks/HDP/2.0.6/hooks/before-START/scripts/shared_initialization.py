@@ -183,6 +183,15 @@ def init_services():
   File(os.path.join(params.snmp_conf_dir, 'snmpd.conf'),
        content=Template("snmpd.conf.j2"))
   # enable snmpd
-  Execute( "service snmpd start; chkconfig snmpd on",
-    path = "/usr/local/bin/:/bin/:/sbin/"
+  Execute( "service snmpd start",
   )
+  
+  if System.get_instance().os_family == "debian":
+    Execute( "update-rc.d snmpd defaults",
+    )    
+  else:
+    Execute( "chkconfig snmpd on",
+    )
+      
+  
+  

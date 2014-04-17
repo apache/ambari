@@ -99,8 +99,9 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
                               content = Template('snmpd.conf.j2'),
                               )
-    self.assertResourceCalled('Execute', 'service snmpd start; chkconfig snmpd on',
-                              path = ['/usr/local/bin/:/bin/:/sbin/'],
+    self.assertResourceCalled('Execute', 'service snmpd start',
+                              )
+    self.assertResourceCalled('Execute', 'chkconfig snmpd on',
                               )
     self.assertNoMoreResources()
 
@@ -180,7 +181,8 @@ class TestHookBeforeStart(RMFTestCase):
     self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
                               content = Template('snmpd.conf.j2'),
                               )
-    self.assertResourceCalled('Execute', 'service snmpd start; chkconfig snmpd on',
-                            path = ['/usr/local/bin/:/bin/:/sbin/'],
+    self.assertResourceCalled('Execute', 'service snmpd start',
+                            )
+    self.assertResourceCalled('Execute', 'chkconfig snmpd on',
                             )
     self.assertNoMoreResources()
