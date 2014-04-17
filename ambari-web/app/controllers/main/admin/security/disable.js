@@ -38,7 +38,7 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
       if (commands.someProperty('isError', true)) {
         this.get('commands').pushObjects(commands);
         this.loadSecureServices();
-        this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
+        this.addObserverToCommands();
         return;
       } else if (commands.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningCommand = commands.filterProperty('isStarted', true).findProperty('isCompleted', false);
@@ -58,7 +58,7 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
       }
     }
     this.loadSecureServices();
-    this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
+    this.addObserverToCommands();
     this.moveToNextCommand();
   },
 

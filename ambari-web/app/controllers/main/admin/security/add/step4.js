@@ -68,9 +68,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     // no need to remove ATS component if YARN and ATS are not installed
     if (this.get('secureServices').findProperty('serviceName', 'YARN') && App.Service.find('YARN').get('hostComponents').someProperty('componentName', 'APP_TIMELINE_SERVER')) {
       this.get('commands').splice(2, 0, App.Poll.create({name: 'DELETE_ATS', label: Em.I18n.translations['admin.addSecurity.apply.delete.ats'], isPolling: false}));
-      this.set('totalSteps', 4);
     }
-    this.setIndex(this.get('commands'));
   },
 
   loadStep: function () {
@@ -84,7 +82,7 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
       }, this);
       if (commands.someProperty('isError', true)) {
         this.get('commands').pushObjects(commands);
-        this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
+        this.addObserverToCommands();
         return;
       } else if (commands.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningCommand = commands.filterProperty('isStarted', true).findProperty('isCompleted', false);
@@ -103,9 +101,10 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
         stopCommand.set('requestId', stopAllOperation.get('id'));
       }
     }
-    this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
+    this.addObserverToCommands();
     this.moveToNextCommand();
   },
+
 
   enableSubmit: function () {
     var addSecurityController = App.router.get('addSecurityController');

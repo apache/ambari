@@ -99,9 +99,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
         expect(controller.get('commands').length).to.eql(4);
       });
 
-      it('total steps should be equal to 4', function() {
-        expect(controller.get('totalSteps')).to.eql(4);
-      });
     });
 
     describe('YARN installed without ATS', function() {
@@ -128,10 +125,6 @@ describe('App.MainAdminSecurityAddStep4Controller', function () {
 
       it('commands length should be equal to 3', function() {
         expect(controller.get('commands').length).to.eql(3);
-      });
-
-      it('total steps should be equal to 3', function() {
-        expect(controller.get('totalSteps')).to.eql(3);
       });
     });
 

@@ -85,17 +85,22 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
       App.Poll.create({name: 'APPLY_CONFIGURATIONS', label: Em.I18n.translations['admin.addSecurity.apply.save.config'], isPolling: false }),
       App.Poll.create({name: 'START_SERVICES', label: Em.I18n.translations['admin.addSecurity.apply.start.services'], isPolling: true })
     ]);
+  },
+
+  addObserverToCommands: function() {
     this.setIndex(this.get('commands'));
+    this.addObserver('commands.@each.isSuccess', this, 'onCompleteCommand');
   },
 
   setIndex: function(commandArray) {
     commandArray.forEach(function(command,index){
       command.set('index',index+1);
     },this);
+    this.set('totalSteps', commandArray.length);
   },
 
   startCommand: function (commnad) {
-    if (this.get('commands').length === this.totalSteps) {
+    if (this.get('commands').length === this.get('totalSteps')) {
       if (!commnad) {
         var startedCommand = this.get('commands').filterProperty('isStarted', true);
         commnad = startedCommand.findProperty('isCompleted', false);
@@ -126,7 +131,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
 
 
   onCompleteCommand: function () {
-    if (this.get('commands').length === this.totalSteps) {
+    if (this.get('commands').length === this.get('totalSteps')) {
       var index = this.get('commands').filterProperty('isSuccess', true).length;
       if (index > 0) {
         var lastCompletedCommandResult = this.get('commands').objectAt(index - 1).get('isSuccess');
@@ -330,7 +335,7 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
 
   saveCommands: function () {
     var commands = [];
-    if (this.get('commands').length === this.totalSteps) {
+    if (this.get('commands').length === this.get('totalSteps')) {
       this.get('commands').forEach(function (_command) {
         var command = {
           name: _command.get('name'),
