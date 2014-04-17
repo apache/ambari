@@ -53,7 +53,6 @@ def flume(action = None):
         content = json.dumps(ambari_meta(agent, flume_agents[agent])),
         mode = 0644)
 
-
   elif action == 'start':
     flume_base = format('env JAVA_HOME={java_home} /usr/bin/flume-ng agent '
       '--name {{0}} '
@@ -97,9 +96,6 @@ def flume(action = None):
     for pid_file in pid_files:
       File(pid_file, action = 'delete')
     
-    pass
-  elif action == 'status':
-    pass
 
 def ambari_meta(agent_name, agent_conf):
   res = {}
@@ -160,7 +156,6 @@ def is_live(pid_file):
 
 def live_status(pid_file):
   import params
-  import traceback
 
   pid_file_part = pid_file.split(os.sep).pop()
 
@@ -185,22 +180,23 @@ def live_status(pid_file):
       res['sinks_count'] = meta['sinks_count']
       res['channels_count'] = meta['channels_count']
   except:
-    traceback.print_exc() 
     pass
 
   return res
   
-
 def flume_status():
   import params
-  
+
+  # these are what Ambari believes should be running
+  meta_files = glob.glob(params.flume_conf_dir + os.sep + "*/ambari-meta.json")
+  pid_files = []
+  for meta_file in meta_files:
+    agent_name = os.path.dirname(meta_file).split(os.sep).pop()
+    pid_files.append(os.path.join(params.flume_run_dir, agent_name + '.pid'))
+
   procs = []
-
-  pid_files = glob.glob(params.flume_run_dir + os.sep + "*.pid")
-
-  if 0 != len(pid_files):
-    for pid_file in pid_files:
-      procs.append(live_status(pid_file))
+  for pid_file in pid_files:
+    procs.append(live_status(pid_file))
 
   return procs
 

@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -104,6 +105,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   static {
     serviceStateMap.put("HDFS", new HDFSServiceState());
     serviceStateMap.put("HBASE", new HBaseServiceState());
+    serviceStateMap.put("FLUME", new FlumeServiceState());
   }
 
   private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
@@ -1126,6 +1128,48 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           LOG.error("Can't determine service state.", e);
         }
       }
+      return State.UNKNOWN;
+    }
+  }
+
+  /**
+   * Determines the service status for Flume.  Generically, this means that
+   * the state of Flume is the lowest ordinal state calculated.  For example:
+   * <ul>
+   *   <li>If all handlers are STARTED, service is STARTED.</li>
+   *   <li>If one handler is INSTALLED, the service is INSTALLED.</li>
+   * </ul>
+   */
+  protected static class FlumeServiceState implements ServiceState {
+    @Override
+    public State getState(AmbariManagementController controller,
+        String clusterName, String serviceName) {
+      Clusters       clusters       = controller.getClusters();
+
+      if (clusterName != null && clusterName.length() > 0) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          if (cluster != null) {
+
+            ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+                serviceName, null, null, null);
+
+            Set<ServiceComponentHostResponse> hostComponentResponses =
+                controller.getHostComponents(Collections.singleton(request));
+            
+            State state = State.UNKNOWN;
+            for (ServiceComponentHostResponse schr : hostComponentResponses) {
+              State schState = getHostComponentState(schr);
+              if (schState.ordinal() < state.ordinal())
+                state = schState;
+            }
+            return state;
+          }
+        } catch (AmbariException e) {
+          LOG.error("Can't determine service state.", e);
+        }
+      }
+       
       return State.UNKNOWN;
     }
   }

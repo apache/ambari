@@ -76,11 +76,17 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  def test_status_default(self, structured_out_mock):
-    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+  @patch("sys.exit")
+  def test_status_default(self, sys_exit_mock, structured_out_mock):
+    
+    try:
+      self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
                        command = "status",
                        config_file="default.json")
+    except:
+      # expected since ComponentIsNotRunning gets raised
+      pass
     
     # test that the method was called with empty processes
     self.assertTrue(structured_out_mock.called)
@@ -90,15 +96,21 @@ class TestFlumeHandler(RMFTestCase):
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("glob.glob")
-  def test_status_with_result(self, glob_mock, structured_out_mock):
-    glob_mock.return_value = ['/var/run/flume/a1.pid']
+  @patch("sys.exit")
+  def test_status_with_result(self, sys_exit_mock, glob_mock, structured_out_mock):
+    glob_mock.return_value = ['/etc/flume/conf/a1/ambari-meta.json']
 
-    self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
+    try:
+      self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
                        classname = "FlumeHandler",
                        command = "status",
                        config_file="default.json")
+    except:
+      # expected since ComponentIsNotRunning gets raised
+      pass
     
     self.assertTrue(structured_out_mock.called)
+
     structured_out_mock.assert_called_with({'processes':
       [{'status': 'NOT_RUNNING', 'channels_count': 0, 'sinks_count': 0,
         'name': 'a1', 'sources_count': 0}]})

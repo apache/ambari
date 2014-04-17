@@ -1185,7 +1185,65 @@ public class ServiceResourceProviderTest {
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
   }
+  
+  @Test
+  public void testFlumeServiceState_STARTED() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
 
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host200", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    
+    replay(managementController, clusters, cluster);
+    
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.FlumeServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "FLUME");
+    
+    Assert.assertEquals(State.STARTED, state);
+    
+    verify(managementController, clusters, cluster);
+  }
+  
+  @Test
+  public void testFlumeServiceState_INSTALLED() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host200", "INSTALLED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    
+    replay(managementController, clusters, cluster);
+    
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.FlumeServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "FLUME");
+    Assert.assertEquals(State.INSTALLED, state);
+    
+    verify(managementController, clusters, cluster);
+  }
+
+  
   public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.Service;
     return new ServiceResourceProvider(PropertyHelper.getPropertyIds(type),
