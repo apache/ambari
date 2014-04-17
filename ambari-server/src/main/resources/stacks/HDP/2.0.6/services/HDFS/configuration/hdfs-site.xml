@@ -311,7 +311,7 @@
   -->
   <property>
     <name>dfs.namenode.kerberos.https.principal</name>
-    <value>HTTP/_HOST@EXAMPLE.COm</value>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
     <description>The Kerberos principal for the host that the NameNode runs on.</description>
 
   </property>
