@@ -54,6 +54,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     pig :false,
     sqoop: false
   },
+  /** @property metricsHeader {string} - custom metrics title **/
+  metricsHeader: null,
 
   servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON"],
 
@@ -518,5 +520,30 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     });
 
     return names.length ? names.join(', ') : false;
-  }.property('clientComponents')
+  }.property('clientComponents'),
+  /**
+   * Show metric by related info.
+   *
+   * @method setMetric
+   * @param {object} context - data related to metric
+   */
+  setMetric: function(context) {
+    switch (this.get('service.serviceName')) {
+      case 'FLUME':
+        this.setFlumeAgentMetric(context);
+        break;
+      default:
+        break;
+    }
+  },
+  /**
+   * Show Flume agent metric.
+   *
+   * @method setFlumeAgentMetric
+   * @param {object} agent - DS.model of agent
+   */
+  setFlumeAgentMetric: function(agent) {
+    this.set('metricsHeader', Em.I18n.t('common.metrics') + " - " + agent.get('name'));
+  }
+
 });

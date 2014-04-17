@@ -83,5 +83,26 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
 
   didInsertElement: function () {
     this.filter();
+  },
+  /**
+   * Action handler from flume tepmlate.
+   * Highlight selected row and show metrics graphs of selected agent.
+   *
+   * @method showAgentInfo
+   * @param {object} event
+   */
+  showAgentInfo: function(event){
+    this.toggleHighlight($(event.currentTarget));
+    this.get('parentView').setMetric(event.context);
+  },
+  /**
+   * Highlight current row and remove highlight from previously selected item.
+   *
+   * @method toggleHighlight
+   * @param {object} element - jQuery object
+   */
+  toggleHighlight: function(element) {
+    element.parent().find('.highlight').removeClass('highlight');
+    element.addClass('highlight');
   }
 });

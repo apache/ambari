@@ -35,7 +35,7 @@
       </thead>
       <tbody>
       {{#each agent in view.pageContent}}
-        <tr>
+        <tr {{action showAgentInfo agent target="view"}}>
           <td class="agent-status">
             <span {{bindAttr class="agent.healthClass"}}></span>
           </td>

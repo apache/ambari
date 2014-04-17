@@ -6065,6 +6065,12 @@ i.icon-asterisks {
   #flume-agents-table {
     margin-top: 7px;
     width: 100%;
+    .highlight {
+      td, th {
+        background-color: #BDC3C7;
+        color: #666;
+      }
+    }
     td.agent-status {
       width: 14px;
       overflow: hidden;
@@ -6076,6 +6082,7 @@ i.icon-asterisks {
     td.agent-host-name {
       width: 20%;
       overflow: hidden;
+      max-width: 90px;
     }
     .icon-ok-sign {
       color: @health-status-green;
