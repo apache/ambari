@@ -30,7 +30,12 @@ var modelSetup = require('test/init_model_test');
 describe('App.MainHostSummaryView', function() {
 
   beforeEach(function() {
+    modelSetup.setupStackServiceComponent();
     mainHostSummaryView = extendedMainHostSummaryView.create({});
+  });
+
+  afterEach(function(){
+    modelSetup.cleanStackServiceComponent();
   });
 
   describe('#sortedComponents', function() {
@@ -269,13 +274,6 @@ describe('App.MainHostSummaryView', function() {
 
   describe('#installableClientComponents', function() {
 
-    beforeEach(function(){
-      modelSetup.setupStackServiceComponent();
-    });
-    afterEach(function(){
-      modelSetup.cleanStackServiceComponent();
-    });
-
     it('delete host not supported', function() {
       App.set('supports.deleteHost', false);
       expect(mainHostSummaryView.get('installableClientComponents')).to.eql([]);
@@ -335,12 +333,6 @@ describe('App.MainHostSummaryView', function() {
   });
 
   describe('#addableComponents', function() {
-    beforeEach(function(){
-      modelSetup.setupStackServiceComponent();
-    });
-    afterEach(function(){
-      modelSetup.cleanStackServiceComponent();
-    });
     var tests = Em.A([
       {
         content: Em.Object.create({
@@ -392,8 +384,11 @@ describe('App.MainHostSummaryView', function() {
       it(test.m, function() {
         mainHostSummaryView.set('content', test.content);
         mainHostSummaryView.set('installedServices', test.services);
-        expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.include.members(test.e);
-        expect(test.e).to.include.members(mainHostSummaryView.get('addableComponents').mapProperty('componentName'));
+        //expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.include.members(test.e);
+        console.log('!!!!!!!!!', mainHostSummaryView.get('addableComponents').mapProperty('componentName').join(', '));
+        console.log('@@@@@@@@@', test.e.join(', '));
+        console.log('#########', App.get('components.addableToHost').join(', '));
+        expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.eql(test.e);
       });
     });
 

@@ -19,8 +19,15 @@ var App = require('app');
 require('utils/helper');
 require('views/common/rolling_restart_view');
 var batchUtils = require('utils/batch_scheduled_requests');
-
+var modelSetup = require('test/init_model_test');
 describe('batch_scheduled_requests', function() {
+
+  beforeEach(function(){
+    modelSetup.setupStackServiceComponent();
+  });
+  afterEach(function(){
+    modelSetup.cleanStackServiceComponent();
+  });
 
   describe('#getRollingRestartComponentName', function() {
     var tests = [
