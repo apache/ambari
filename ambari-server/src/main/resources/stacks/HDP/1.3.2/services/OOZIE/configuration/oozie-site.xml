@@ -111,27 +111,11 @@
   </property>
 
   <property>
-    <name>oozie.service.HadoopAccessorService.jobTracker.whitelist</name>
-    <value></value>
-    <description>
-      Whitelisted job tracker for Oozie service.
-    </description>
-  </property>
-
-  <property>
     <name>oozie.authentication.type</name>
     <value>simple</value>
     <description>
       Authentication used for Oozie HTTP endpoint, the supported values are: simple | kerberos |
       #AUTHENTICATION_HANDLER_CLASSNAME#.
-    </description>
-  </property>
-
-  <property>
-    <name>oozie.service.HadoopAccessorService.nameNode.whitelist</name>
-    <value></value>
-    <description>
-      Whitelisted NameNode for Oozie service.
     </description>
   </property>
 

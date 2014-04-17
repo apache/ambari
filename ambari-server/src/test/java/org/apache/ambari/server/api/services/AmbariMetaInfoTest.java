@@ -491,23 +491,22 @@ public class AmbariMetaInfoTest {
     PropertyInfo deleteProperty2 = null;
     PropertyInfo redefinedProperty1 = null;
     PropertyInfo redefinedProperty2 = null;
+    PropertyInfo redefinedProperty3 = null;
     PropertyInfo inheritedProperty = null;
     PropertyInfo newProperty = null;
     PropertyInfo originalProperty = null;
 
     for (PropertyInfo propertyInfo : redefinedService.getProperties()) {
-      if (propertyInfo.getName().equals("yarn.resourcemanager" +
-        ".resource-tracker.address")) {
+      if (propertyInfo.getName().equals("yarn.resourcemanager.resource-tracker.address")) {
         deleteProperty1 = propertyInfo;
-      } else if (propertyInfo.getName().equals("yarn.resourcemanager" +
-        ".scheduler.address")) {
+      } else if (propertyInfo.getName().equals("yarn.resourcemanager.scheduler.address")) {
         deleteProperty2 = propertyInfo;
-      } else if (propertyInfo.getName().equals("yarn.resourcemanager" +
-        ".address")) {
+      } else if (propertyInfo.getName().equals("yarn.resourcemanager.address")) {
         redefinedProperty1 = propertyInfo;
-      } else if (propertyInfo.getName().equals("yarn.resourcemanager.admin" +
-        ".address")) {
+      } else if (propertyInfo.getName().equals("yarn.resourcemanager.admin.address")) {
         redefinedProperty2 = propertyInfo;
+      } else if (propertyInfo.getName().equals("yarn.nodemanager.health-checker.interval-ms")) {
+        redefinedProperty3 = propertyInfo;
       } else if (propertyInfo.getName().equals("yarn.nodemanager.address")) {
         inheritedProperty = propertyInfo;
       } else if (propertyInfo.getName().equals("new-yarn-property")) {
@@ -524,9 +523,11 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull("yarn.nodemanager.address expected to be inherited " +
       "from parent", inheritedProperty);
     Assert.assertEquals("localhost:100009", redefinedProperty1.getValue());
-    // Parent property value will result in property being present in the
-    // child stack
-    Assert.assertEquals("localhost:8141", redefinedProperty2.getValue());
+    // Parent property value will result in property being present in the child stack
+    Assert.assertNotNull(redefinedProperty3);
+    Assert.assertEquals("135000", redefinedProperty3.getValue());
+    // Child can override parent property to empty value
+    Assert.assertEquals("", redefinedProperty2.getValue());
     // New property
     Assert.assertNotNull(newProperty);
     Assert.assertEquals("some-value", newProperty.getValue());
@@ -557,8 +558,8 @@ public class AmbariMetaInfoTest {
     method.setAccessible(true);
     StackExtensionHelper helper = new StackExtensionHelper(metaInfo.getStackRoot());
     helper.fillInfo();
-    Map<String, List<StackInfo>> stacks = (Map<String, List<StackInfo>>)
-      method.invoke(helper, allStacks);
+    Map<String, List<StackInfo>> stacks =
+      (Map<String, List<StackInfo>>) method.invoke(helper, allStacks);
 
     Assert.assertNotNull(stacks.get("2.0.99"));
     // Verify order
@@ -621,7 +622,8 @@ public class AmbariMetaInfoTest {
   @Test
   public void testPropertyCount() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
-    Assert.assertEquals(81, properties.size());
+    // 3 empty properties
+    Assert.assertEquals(84, properties.size());
   }
 
   @Test

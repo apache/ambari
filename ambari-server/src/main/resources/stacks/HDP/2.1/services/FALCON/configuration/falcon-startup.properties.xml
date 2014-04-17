@@ -97,8 +97,6 @@
     <description>Location to store user entity configurations</description>
   </property>
   <property>
-  </property>
-  <property>
     <name>*.system.lib.location</name>
     <value>${falcon.home}/server/webapp/${falcon.app.type}/WEB-INF/lib</value>
     <description>Location of libraries that is shipped to Hadoop</description>
@@ -141,7 +139,7 @@
   <!--properties without default values-->
   <property>
     <name>*.falcon.http.authentication.cookie.domain</name>
-    <value></value>
+    <value>EXAMPLE.COM</value>
     <description></description>
   </property>
   <property>
@@ -183,27 +181,27 @@
   <!--kerberos params, must be set during security enabling-->
   <property>
     <name>*.falcon.service.authentication.kerberos.principal</name>
-    <value></value>
+    <value>falcon/_HOST@EXAMPLE.COM</value>
     <description></description>
   </property>
   <property>
     <name>*.falcon.service.authentication.kerberos.keytab</name>
-    <value></value>
+    <value>/etc/security/keytabs/falcon.service.keytab</value>
     <description></description>
   </property>
   <property>
     <name>*.dfs.namenode.kerberos.principal</name>
-    <value></value>
+    <value>nn/_HOST@EXAMPLE.COM</value>
     <description>name node principal to talk to config store</description>
   </property>
   <property>
     <name>*.falcon.http.authentication.kerberos.principal</name>
-    <value></value>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
     <description>Indicates the Kerberos principal to be used for HTTP endpoint</description>
   </property>
   <property>
     <name>*.falcon.http.authentication.kerberos.keytab</name>
-    <value></value>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
     <description>Location of the keytab file with the credentials for the HTTP principal</description>
   </property>
 </configuration>

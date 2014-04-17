@@ -22,29 +22,14 @@
 
 <configuration>
   <property>
-    <name>namenode_host</name>
-    <value></value>
-    <description>NameNode Host.</description>
-  </property>
-  <property>
     <name>dfs_namenode_name_dir</name>
     <value>/hadoop/hdfs/namenode</value>
     <description>NameNode Directories.</description>
   </property>
   <property>
-    <name>snamenode_host</name>
-    <value></value>
-    <description>Secondary NameNode.</description>
-  </property>
-  <property>
     <name>dfs_namenode_checkpoint_dir</name>
     <value>/hadoop/hdfs/namesecondary</value>
     <description>Secondary NameNode checkpoint dir.</description>
-  </property>
-  <property>
-    <name>datanode_hosts</name>
-    <value></value>
-    <description>List of Datanode Hosts.</description>
   </property>
   <property>
     <name>dfs_datanode_data_dir</name>
@@ -151,11 +136,6 @@
     <name>kerberos_domain</name>
     <value>EXAMPLE.COM</value>
     <description>Kerberos realm.</description>
-  </property>
-  <property>
-    <name>kadmin_pw</name>
-    <value></value>
-    <description>Kerberos realm admin password</description>
   </property>
   <property>
     <name>keytab_path</name>

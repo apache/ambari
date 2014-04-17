@@ -103,7 +103,7 @@
 
  <property>
     <name>security.admin.operations.protocol.acl</name>
-    <value></value>
+    <value>*</value>
     <description>ACL for AdminOperationsProtocol. Used for admin commands.
     The ACL is a comma-separated list of user and group names. The user and
     group list is separated by a blank. For e.g. "alice,bob users,wheel".
@@ -112,7 +112,7 @@
 
   <property>
     <name>security.refresh.usertogroups.mappings.protocol.acl</name>
-    <value></value>
+    <value>*</value>
     <description>ACL for RefreshUserMappingsProtocol. Used to refresh
     users mappings. The ACL is a comma-separated list of user and
     group names. The user and group list is separated by a blank. For
@@ -122,7 +122,7 @@
 
 <property>
     <name>security.refresh.policy.protocol.acl</name>
-    <value></value>
+    <value>*</value>
     <description>ACL for RefreshAuthorizationPolicyProtocol, used by the
     dfsadmin and mradmin commands to refresh the security policy in-effect.
     The ACL is a comma-separated list of user and group names. The user and

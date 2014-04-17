@@ -22,16 +22,6 @@
 
 <configuration>
   <property>
-    <name>rm_host</name>
-    <value></value>
-    <description>ResourceManager.</description>
-  </property>
-  <property>
-    <name>nm_hosts</name>
-    <value></value>
-    <description>List of NodeManager Hosts.</description>
-  </property>
-  <property>
     <name>yarn_log_dir_prefix</name>
     <value>/var/log/hadoop-yarn</value>
     <description>YARN Log Dir Prefix</description>

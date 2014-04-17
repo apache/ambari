@@ -594,12 +594,9 @@ public class StackExtensionHelper {
       List<PropertyInfo> list = new ArrayList<PropertyInfo>();
       
       for (PropertyInfo pi : cx.getProperties()) {
-        // maintain old behavior
-        if (null == pi.getValue() || pi.getValue().isEmpty())
-          continue;
-        
         pi.setFilename(propertyFile.getName());
         list.add(pi);
+
       }
       return list;
     } catch (Exception e) {
@@ -620,12 +617,10 @@ public class StackExtensionHelper {
     if (!serviceConfigFolder.exists() || !serviceConfigFolder.isDirectory())
       return;
     
-    File[] configFiles = serviceConfigFolder.listFiles
-            (AmbariMetaInfo.FILENAME_FILTER);
+    File[] configFiles = serviceConfigFolder.listFiles(AmbariMetaInfo.FILENAME_FILTER);
     if (configFiles != null) {
       for (File config : configFiles) {
-        if (config.getName().endsWith
-                (AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
+        if (config.getName().endsWith(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
           serviceInfo.getProperties().addAll(getProperties(config));
         }
       }

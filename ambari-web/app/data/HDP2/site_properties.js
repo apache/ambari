@@ -470,6 +470,14 @@ module.exports =
       "category": "Hive Metastore",
       "index": 4
     },
+    {
+      "id": "site property",
+      "name": "hive.server2.tez.default.queues",
+      "displayName": "hive.server2.tez.default.queues",
+      "isRequired": false,
+      "serviceName": "HIVE",
+      "category": "Advanced"
+    },
   /**********************************************tez-site*****************************************/
     {
       "id": "site property",
@@ -689,6 +697,22 @@ module.exports =
       "category": "General",
       "serviceName": "HBASE",
       "index": 5
+    },
+    {
+      "id": "site property",
+      "name": "hbase.coprocessor.region.classes",
+      "displayName": "hbase.coprocessor.region.classes",
+      "category": "Advanced",
+      "isRequired": false,
+      "serviceName": "HBASE"
+    },
+    {
+      "id": "site property",
+      "name": "hbase.coprocessor.master.classes",
+      "displayName": "hbase.coprocessor.master.classes",
+      "category": "Advanced",
+      "isRequired": false,
+      "serviceName": "HBASE"
     },
     {
       "id": "site property",
@@ -1466,6 +1490,16 @@ module.exports =
       "serviceName": "FALCON",
       "filename": "falcon-startup.properties.xml"
     },
+   {
+      "id": "site property",
+      "name": "*.falcon.http.authentication.blacklisted.users",
+      "displayName": "*.falcon.http.authentication.blacklisted.users",
+      "isRequired": false,
+      "category": "FalconStartupSite",
+      "serviceName": "FALCON",
+      "filename": "falcon-startup.properties.xml"
+    },
+
   /**********************************************webhcat-site***************************************/
     {
       "id": "site property",

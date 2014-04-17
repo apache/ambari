@@ -22,16 +22,6 @@
 
 <configuration>
   <property>
-    <name>jobtracker_host</name>
-    <value></value>
-    <description>JobTracker Host.</description>
-  </property>
-  <property>
-    <name>tasktracker_hosts</name>
-    <value></value>
-    <description>TaskTracker hosts.</description>
-  </property>
-  <property>
     <name>mapred_local_dir</name>
     <value>/hadoop/mapred</value>
     <description>MapRed Local Directories.</description>

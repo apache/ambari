@@ -350,7 +350,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
        });
      }
 
-     if (filter != null) {
+     if (filter != null && typeof searchString === "string") {
        return searchString.toLowerCase().indexOf(filter) > -1;
      } else {
        return true;

@@ -249,11 +249,6 @@
 
 
   <!-- copied from kryptonite configuration -->
-  <property>
-    <name>mapred.compress.map.output</name>
-    <value></value>
-  </property>
-
 
   <property>
     <name>mapred.task.timeout</name>
@@ -432,13 +427,6 @@
   </property>
 
   <property>
-    <name>mapred.task.maxvmem</name>
-    <value></value>
-    <final>true</final>
-    <description>No description</description>
-  </property>
-
-  <property>
     <name>mapred.jobtracker.maxtasks.per.job</name>
     <value>-1</value>
     <final>true</final>
@@ -471,7 +459,7 @@
 
   <property>
     <name>mapreduce.jobtracker.kerberos.principal</name>
-    <value></value>
+    <value>jt/_HOST@EXAMPLE.COM</value>
     <description>
       JT user name key.
     </description>
@@ -479,7 +467,7 @@
 
   <property>
     <name>mapreduce.tasktracker.kerberos.principal</name>
-    <value></value>
+    <value>tt/_HOST@EXAMPLE.COM</value>
     <description>
       tt user name key. "_HOST" is replaced by the host name of the task tracker.
     </description>
@@ -498,7 +486,7 @@
 
   <property>
     <name>mapreduce.jobtracker.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/jt.service.keytab</value>
     <description>
       The keytab for the jobtracker principal.
     </description>
@@ -507,14 +495,8 @@
 
   <property>
     <name>mapreduce.tasktracker.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/tt.service.keytab</value>
     <description>The filename of the keytab for the task tracker</description>
-  </property>
-
-  <property>
-    <name>mapred.task.tracker.http.address</name>
-    <value></value>
-    <description>Http address for task tracker.</description>
   </property>
 
   <property>
@@ -558,7 +540,7 @@
   <property>
     <name>mapreduce.jobhistory.kerberos.principal</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>jhs/_HOST@EXAMPLE.COM</value>
     <description>Job history user name key. (must map to same user as JT
       user)</description>
   </property>
@@ -566,7 +548,7 @@
   <property>
     <name>mapreduce.jobhistory.keytab.file</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>/etc/security/keytabs/jhs.service.keytab</value>
     <description>The keytab for the job history server principal.</description>
   </property>
 

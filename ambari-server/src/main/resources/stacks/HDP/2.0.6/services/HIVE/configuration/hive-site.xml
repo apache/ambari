@@ -57,21 +57,21 @@ limitations under the License.
 
   <property>
     <name>hive.metastore.sasl.enabled</name>
-    <value></value>
+    <value>false</value>
     <description>If true, the metastore thrift interface will be secured with SASL.
      Clients must authenticate with Kerberos.</description>
   </property>
 
   <property>
     <name>hive.metastore.kerberos.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/hive.service.keytab</value>
     <description>The path to the Kerberos Keytab file containing the metastore
      thrift server's service principal.</description>
   </property>
 
   <property>
     <name>hive.metastore.kerberos.principal</name>
-    <value></value>
+    <value>hive/_HOST@EXAMPLE.COM</value>
     <description>The service principal for the metastore thrift server. The special
     string _HOST will be replaced automatically with the correct host name.</description>
   </property>

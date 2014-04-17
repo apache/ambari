@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -66,7 +67,7 @@ public class StackExtensionHelperTest {
         assertEquals("MASTER", components.get(0).getCategory());
         List<PropertyInfo> properties = serviceInfo.getProperties();
         // Check some property
-        assertEquals(35, properties.size());
+        assertEquals(38, properties.size());
         boolean found = false;
         for (PropertyInfo property : properties) {
           if (property.getName().equals("javax.jdo.option.ConnectionDriverName")) {
@@ -156,7 +157,14 @@ public class StackExtensionHelperTest {
         assertEquals(50, serviceScriptDefinition.getTimeout());
         // Check some property
         List<PropertyInfo> properties = serviceInfo.getProperties();
-        assertEquals(38, properties.size());
+        List<PropertyInfo> emptyValueProperties = new ArrayList<PropertyInfo>();
+        for (PropertyInfo propertyInfo : properties) {
+          if (propertyInfo.getValue().isEmpty()) {
+            emptyValueProperties.add(propertyInfo);
+          }
+        }
+        assertEquals(28, emptyValueProperties.size());
+        assertEquals(66, properties.size());
         boolean found = false;
         for (PropertyInfo property : properties) {
           if (property.getName().equals("hbase.cluster.distributed")) {

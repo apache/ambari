@@ -724,13 +724,11 @@ public class AmbariMetaInfo {
       }
 
       // Populate services
-      List<ServiceInfo> services = stackExtensionHelper
-        .getAllApplicableServices(stack);
+      List<ServiceInfo> services = stackExtensionHelper.getAllApplicableServices(stack);
       stack.setServices(services);
 
       // Resolve hooks folder
-      String stackHooksToUse = stackExtensionHelper.
-              resolveHooksFolder(stack);
+      String stackHooksToUse = stackExtensionHelper.resolveHooksFolder(stack);
       stack.setStackHooksFolder(stackHooksToUse);
     }
 

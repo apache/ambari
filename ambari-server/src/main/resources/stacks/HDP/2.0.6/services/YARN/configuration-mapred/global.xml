@@ -22,11 +22,6 @@
 
 <configuration>
   <property>
-    <name>hs_host</name>
-    <value></value>
-    <description>History Server.</description>
-  </property>
-  <property>
     <name>mapred_log_dir_prefix</name>
     <value>/var/log/hadoop-mapreduce</value>
     <description>Mapreduce Log Dir Prefix</description>

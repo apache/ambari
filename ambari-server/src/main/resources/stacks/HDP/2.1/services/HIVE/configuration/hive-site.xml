@@ -57,21 +57,21 @@ limitations under the License.
 
   <property>
     <name>hive.metastore.sasl.enabled</name>
-    <value></value>
+    <value>false</value>
     <description>If true, the metastore thrift interface will be secured with SASL.
      Clients must authenticate with Kerberos.</description>
   </property>
 
   <property>
     <name>hive.metastore.kerberos.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/hive.service.keytab</value>
     <description>The path to the Kerberos Keytab file containing the metastore
      thrift server's service principal.</description>
   </property>
 
   <property>
     <name>hive.metastore.kerberos.principal</name>
-    <value></value>
+    <value>hive/_HOST@EXAMPLE.COM</value>
     <description>The service principal for the metastore thrift server. The special
     string _HOST will be replaced automatically with the correct host name.</description>
   </property>
@@ -384,7 +384,7 @@ limitations under the License.
   <property>
     <name>hive.server2.tez.default.queues</name>
     <value>default</value>
-    <description></description>
+    <description>A comma-separated list of queues configured for the cluster.</description>
   </property>
 
   <property>
@@ -403,18 +403,6 @@ limitations under the License.
     <name>hive.txn.manager</name>
     <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
     <description>Select the class to do transaction management. The default DummyTxnManager does no transactions and retains the legacy behavior.</description>
-  </property>
-
-  <property>
-    <name>hive.txn.driver</name>
-    <value></value>
-    <description>Gives the jdbc driver to use to connect to the metastore</description>
-  </property>
-
-  <property>
-    <name>hive.txn.connection.string</name>
-    <value></value>
-    <description>Gives the connection string to pass the jdbc driver</description>
   </property>
 
   <property>
@@ -469,12 +457,6 @@ limitations under the License.
     <name>hive.compactor.abortedtxn.threshold</name>
     <value>1000</value>
     <description>Number of aborted transactions involving a particular table or partition before major compaction is initiated.</description>
-  </property>
-
-  <property>
-    <name>hive.users.in.admin.role</name>
-    <value></value>
-    <description>If user is specified as value of this config, that user has superuser privileges in DB</description>
   </property>
 
 </configuration>

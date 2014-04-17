@@ -273,7 +273,7 @@
 
   <property>
     <name>dfs.namenode.kerberos.principal</name>
-    <value></value>
+    <value>nn/_HOST@EXAMPLE.COM</value>
     <description>
       Kerberos principal name for the NameNode
     </description>
@@ -281,7 +281,7 @@
 
   <property>
     <name>dfs.secondary.namenode.kerberos.principal</name>
-    <value></value>
+    <value>nn/_HOST@EXAMPLE.COM</value>
     <description>
       Kerberos principal name for the secondary NameNode.
     </description>
@@ -293,14 +293,14 @@
   -->
   <property>
     <name>dfs.namenode.kerberos.https.principal</name>
-    <value></value>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
     <description>The Kerberos principal for the host that the NameNode runs on.</description>
 
   </property>
 
   <property>
     <name>dfs.secondary.namenode.kerberos.https.principal</name>
-    <value></value>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
     <description>The Kerberos principal for the hostthat the secondary NameNode runs on.</description>
 
   </property>
@@ -320,7 +320,7 @@
 
   <property>
     <name>dfs.web.authentication.kerberos.principal</name>
-    <value></value>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
     <description>
       The HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
       The HTTP Kerberos principal MUST start with 'HTTP/' per Kerberos
@@ -330,7 +330,7 @@
 
   <property>
     <name>dfs.web.authentication.kerberos.keytab</name>
-    <value></value>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
     <description>
       The Kerberos keytab file with the credentials for the
       HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
@@ -339,7 +339,7 @@
 
   <property>
     <name>dfs.datanode.kerberos.principal</name>
-    <value></value>
+    <value>dn/_HOST@EXAMPLE.COM</value>
     <description>
       The Kerberos principal that the DataNode runs as. "_HOST" is replaced by the real host name.
     </description>
@@ -347,7 +347,7 @@
 
   <property>
     <name>dfs.namenode.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/nn.service.keytab</value>
     <description>
       Combined keytab file containing the namenode service and host principals.
     </description>
@@ -355,7 +355,7 @@
 
   <property>
     <name>dfs.secondary.namenode.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/nn.service.keytab</value>
     <description>
       Combined keytab file containing the namenode service and host principals.
     </description>
@@ -363,7 +363,7 @@
 
   <property>
     <name>dfs.datanode.keytab.file</name>
-    <value></value>
+    <value>/etc/security/keytabs/dn.service.keytab</value>
     <description>
       The filename of the keytab file for the DataNode.
     </description>

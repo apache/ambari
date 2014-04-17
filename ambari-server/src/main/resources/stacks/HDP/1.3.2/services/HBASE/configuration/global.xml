@@ -22,16 +22,6 @@
 
 <configuration>
   <property>
-    <name>hbasemaster_host</name>
-    <value></value>
-    <description>HBase Master Host.</description>
-  </property>
-  <property>
-    <name>regionserver_hosts</name>
-    <value></value>
-    <description>Region Server Hosts</description>
-  </property>
-  <property>
     <name>hbase_log_dir</name>
     <value>/var/log/hbase</value>
     <description>Log Directories for HBase.</description>
@@ -85,11 +75,6 @@
     <name>hregion_blockmultiplier</name>
     <value>2</value>
     <description>HBase Region Block Multiplier</description>
-  </property>
-    <property>
-    <name>hregion_memstoreflushsize</name>
-    <value></value>
-    <description>HBase Region MemStore Flush Size.</description>
   </property>
     <property>
     <name>client_scannercaching</name>

@@ -27,49 +27,14 @@
     <description>Oozie User.</description>
   </property>
   <property>
-    <name>oozieserver_host</name>
-    <value></value>
-    <description>Oozie Server Host.</description>
-  </property>
-  <property>
     <name>oozie_database</name>
-    <value></value>
+    <value>New Derby Database</value>
     <description>Oozie Server Database.</description>
   </property>
   <property>
     <name>oozie_derby_database</name>
     <value>Derby</value>
     <description>Oozie Derby Database.</description>
-  </property>
-  <property>
-    <name>oozie_existing_mysql_database</name>
-    <value>MySQL</value>
-    <description>Oozie MySQL Database.</description>
-  </property>
-  <property>
-    <name>oozie_existing_mysql_host</name>
-    <value></value>
-    <description>Existing MySQL Host.</description>
-  </property>
-  <property>
-    <name>oozie_existing_oracle_database</name>
-    <value>Oracle</value>
-    <description>Oracle Database</description>
-  </property>
-  <property>
-    <name>oozie_existing_oracle_host</name>
-    <value></value>
-    <description>Database Host.</description>
-  </property>
-  <property>
-    <name>oozie_ambari_database</name>
-    <value>MySQL</value>
-    <description>Database default.</description>
-  </property>
-  <property>
-    <name>oozie_ambari_host</name>
-    <value></value>
-    <description>Host on which databse will be created.</description>
   </property>
   <property>
     <name>oozie_database_name</name>

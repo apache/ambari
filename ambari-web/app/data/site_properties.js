@@ -667,6 +667,22 @@ module.exports =
     },
     {
       "id": "site property",
+      "name": "hbase.coprocessor.region.classes",
+      "displayName": "hbase.coprocessor.region.classes",
+      "category": "Advanced",
+      "isRequired": false,
+      "serviceName": "HBASE"
+    },
+    {
+      "id": "site property",
+      "name": "hbase.coprocessor.master.classes",
+      "displayName": "hbase.coprocessor.master.classes",
+      "category": "Advanced",
+      "isRequired": false,
+      "serviceName": "HBASE"
+    },
+    {
+      "id": "site property",
       "name": "dfs.client.read.shortcircuit",
       "displayName": "HDFS Short-circuit read",
       "description": "This configuration parameter turns on short-circuit local reads.",

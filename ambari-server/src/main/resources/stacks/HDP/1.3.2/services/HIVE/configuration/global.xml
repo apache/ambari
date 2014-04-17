@@ -22,45 +22,17 @@
 
 <configuration>
   <property>
-    <name>hivemetastore_host</name>
-    <value></value>
-    <description>Hive Metastore host.</description>
-  </property>
-  <property>
     <name>hive_database</name>
-    <value></value>
-    <description>Hive database name.</description>
-  </property>
-  <property>
-    <name>hive_existing_mysql_database</name>
-    <value></value>
-    <description>Hive database name.</description>
-  </property>
-  <property>
-    <name>hive_existing_mysql_host</name>
-    <value></value>
-    <description></description>
-  </property>
-  <property>
-    <name>hive_existing_oracle_database</name>
-    <value></value>
-    <description>Hive database name.</description>
-  </property>
-  <property>
-    <name>hive_existing_oracle_host</name>
-    <value></value>
-    <description></description>
+    <value>New MySQL Database</value>
+    <description>
+      Property that determines whether the HIVE DB is managed by Ambari.
+    </description>
   </property>
   <property>
     <name>hive_ambari_database</name>
     <value>MySQL</value>
     <description>Database type.</description>
   </property>  
-  <property>
-    <name>hive_ambari_host</name>
-    <value></value>
-    <description>Database hostname.</description>
-  </property>
   <property>
     <name>hive_database_name</name>
     <value></value>

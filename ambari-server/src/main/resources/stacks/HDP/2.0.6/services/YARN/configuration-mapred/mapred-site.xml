@@ -120,14 +120,6 @@
   </property>
 
   <property>
-    <name>mapreduce.map.output.compress.codec</name>
-    <value></value>
-    <description>If the map outputs are compressed, how should they be
-      compressed
-    </description>
-  </property>
-
-  <property>
     <name>mapreduce.output.fileoutputformat.compress.type</name>
     <value>BLOCK</value>
     <description>
@@ -180,8 +172,7 @@
 
   <property>
     <name>mapreduce.jobhistory.keytab.file</name>
-    <!-- cluster variant -->
-    <value></value>
+    <value>/etc/security/keytabs/jhs.service.keytab</value>
     <description>The keytab for the job history server principal.</description>
   </property>
 
@@ -283,17 +274,6 @@
     <name>yarn.app.mapreduce.am.log.level</name>
     <value>INFO</value>
     <description>MR App Master process log level.</description>
-  </property>
-
-  <property>
-    <name>yarn.app.mapreduce.am.env</name>
-    <value></value>
-    <description>
-      User added environment variables for the MR App Master
-      processes. Example :
-      1) A=foo  This will set the env variable A to foo
-      2) B=$B:c This is inherit tasktracker's B env variable.
-    </description>
   </property>
 
   <property>

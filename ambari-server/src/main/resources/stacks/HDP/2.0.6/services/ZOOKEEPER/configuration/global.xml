@@ -27,11 +27,6 @@
     <description>ZooKeeper User.</description>
   </property>
   <property>
-    <name>zookeeperserver_host</name>
-    <value></value>
-    <description>ZooKeeper Server Hosts.</description>
-  </property>
-  <property>
     <name>zk_data_dir</name>
     <value>/hadoop/zookeeper</value>
     <description>Data directory for ZooKeeper.</description>
