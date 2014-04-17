@@ -266,6 +266,8 @@ public abstract class AbstractResourceProvider implements ResourceProvider {
       return new RequestProvider(clusterDefinition);
     } else if (type.equals(Resource.Type.Task)) {
       return new TaskProvider(clusterDefinition);
+    } else if (type.equals(Resource.Type.Configuration)) {
+      return new ConfigurationProvider(clusterDefinition);
     } else {
       return new NoOpProvider(type, clusterDefinition);
     }

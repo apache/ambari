@@ -43,6 +43,7 @@ public class AbstractResourceProviderTest {
     types.add(Resource.Type.HostComponent);
     types.add(Resource.Type.Request);
     types.add(Resource.Type.Task);
+    types.add(Resource.Type.Configuration);
   }
 
   @Test

@@ -171,7 +171,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
   @Override
   public ResourceProvider getResourceProvider(Resource.Type type) {
-    if (!propertyProviders.containsKey(type)) {
+    if (!resourceProviders.containsKey(type)) {
       registerResourceProvider(type);
     }
     return resourceProviders.get(type);
