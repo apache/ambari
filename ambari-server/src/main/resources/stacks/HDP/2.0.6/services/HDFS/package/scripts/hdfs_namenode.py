@@ -115,7 +115,7 @@ def format_namenode(force=None):
            content=StaticFile("checkForFormat.sh"),
            mode=0755)
       Execute(format(
-        "sh /tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
+        "/tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
         "{dfs_name_dir}"),
               not_if=format("test -d {mark_dir}"),
               path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin")

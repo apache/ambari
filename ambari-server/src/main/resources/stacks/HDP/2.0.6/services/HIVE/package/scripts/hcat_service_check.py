@@ -38,7 +38,7 @@ def hcat_service_check():
          mode=0755
     )
 
-    prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")
+    prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")
 
     Execute(prepare_cmd,
             tries=3,
@@ -56,7 +56,7 @@ def hcat_service_check():
                   keytab=params.hdfs_user_keytab
     )
 
-    cleanup_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} cleanup")
+    cleanup_cmd = format("{kinit_cmd} /tmp/hcatSmoke.sh hcatsmoke{unique} cleanup")
 
     Execute(cleanup_cmd,
             tries=3,

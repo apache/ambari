@@ -32,7 +32,7 @@ class WebHCatServiceCheck(Script):
          mode=0755
     )
     
-    cmd = format("sh /tmp/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
+    cmd = format("/tmp/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
                  " {security_param} {kinit_path_local}",
                  smokeuser_keytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
 

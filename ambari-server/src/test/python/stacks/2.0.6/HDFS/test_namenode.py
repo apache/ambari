@@ -43,7 +43,7 @@ class TestNamenode(RMFTestCase):
                               content = StaticFile('checkForFormat.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', 'sh /tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/',
                               )
@@ -148,7 +148,7 @@ class TestNamenode(RMFTestCase):
                               content = StaticFile('checkForFormat.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', 'sh /tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /var/run/hadoop/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/',
                               )

@@ -37,7 +37,7 @@ class TestServiceCheck(RMFTestCase):
                         content = StaticFile('hcatSmoke.sh'),
                         mode = 0755,
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 sh /tmp/hcatSmoke.sh hcatsmoke prepare',
+    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
@@ -52,7 +52,7 @@ class TestServiceCheck(RMFTestCase):
                         kinit_path_local='/usr/bin/kinit',
                         security_enabled=False
     )
-    self.assertResourceCalled('Execute', 'sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
+    self.assertResourceCalled('Execute', ' /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
@@ -73,7 +73,7 @@ class TestServiceCheck(RMFTestCase):
                         content = StaticFile('hcatSmoke.sh'),
                         mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 sh /tmp/hcatSmoke.sh hcatsmoke prepare',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
@@ -88,7 +88,7 @@ class TestServiceCheck(RMFTestCase):
                         kinit_path_local='/usr/bin/kinit',
                         security_enabled=True
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;  /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
                         path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
                         tries = 3,
