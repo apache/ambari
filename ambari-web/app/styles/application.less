@@ -2424,6 +2424,31 @@ width:100%;
   }
 }
 
+.metrics-collapsed-graphs {
+  margin-bottom: 10px;
+  .accordion {
+    .accordion-heading {
+      font-size: 15px;
+      color: #777;
+      font-weight: bold;
+      padding: 0;
+      .accordion-toggle {
+        .icon-caret-toggle:before {
+          content: "\f0d7";
+        }
+        &.collapsed {
+          .icon-caret-toggle:before {
+            content: "\f0da";
+          }
+        }
+      }
+      .btn {
+        margin: 3px;
+      }
+    }
+  }
+}
+
 /*End Services*/
 table.graphs {
   table-layout: fixed;
