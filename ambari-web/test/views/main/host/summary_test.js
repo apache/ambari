@@ -384,10 +384,6 @@ describe('App.MainHostSummaryView', function() {
       it(test.m, function() {
         mainHostSummaryView.set('content', test.content);
         mainHostSummaryView.set('installedServices', test.services);
-        //expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.include.members(test.e);
-        console.log('!!!!!!!!!', mainHostSummaryView.get('addableComponents').mapProperty('componentName').join(', '));
-        console.log('@@@@@@@@@', test.e.join(', '));
-        console.log('#########', App.get('components.addableToHost').join(', '));
         expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.eql(test.e);
       });
     });

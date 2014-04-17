@@ -22,25 +22,58 @@ var lazyloading = require('utils/lazy_loading');
 
 App.WizardStep5View = Em.View.extend({
 
-  templateName:require('templates/wizard/step5'),
+  templateName: require('templates/wizard/step5'),
 
-  didInsertElement:function () {
+  didInsertElement: function () {
     this.get('controller').loadStep();
-  },
-
-  body: Em.I18n.t('installer.step5.body')
+  }
 
 });
 
 App.SelectHostView = Em.Select.extend({
-  content:[],
-  zId:null,
-  selectedHost:null,
-  componentName:null,
-  attributeBindings:['disabled'],
+
+  /**
+   * List of avaiable host names
+   * @type {string[]}
+   */
+  content: [],
+
+  /**
+   * Index for multiple component (like ZOOKEEPER_SERVER)
+   * @type {number|null}
+   */
+  zId: null,
+
+  /**
+   * Selected host name for host component
+   * @type {string}
+   */
+  selectedHost: null,
+
+  /**
+   * Host component name
+   * @type {string}
+   */
+  componentName: null,
+
+  attributeBindings: ['disabled'],
+
+  /**
+   * Is data loaded
+   * @type {bool}
+   */
   isLoaded: false,
+
+  /**
+   * Is lazy loading used
+   * @type {bool}
+   */
   isLazyLoading: false,
 
+  /**
+   * Handler for selected value change
+   * @method change
+   */
   change: function () {
     this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
     this.set('selectedHost', this.get('value'));
@@ -49,7 +82,8 @@ App.SelectHostView = Em.Select.extend({
   },
 
   /**
-   * recalculate available hosts
+   * Recalculate available hosts
+   * @method rebalanceComponentHosts
    */
   rebalanceComponentHosts: function () {
     if (this.get('componentName') === this.get('controller.componentToRebalance')) {
@@ -60,18 +94,21 @@ App.SelectHostView = Em.Select.extend({
   }.observes('controller.rebalanceComponentHostsCounter'),
 
   /**
-   * get available hosts
-   * @multipleComponents component can be assigned to multiple hosts,
+   * Get available hosts
+   * multipleComponents component can be assigned to multiple hosts,
    * shared hosts among the same component should be filtered out
-   * @return {*}
+   * @return {string[]}
+   * @method getAvailableHosts
    */
   getAvailableHosts: function () {
-    var hosts = this.get('controller.hosts').slice();
-    var componentName = this.get('componentName');
-    var multipleComponents = this.get('controller.multipleComponents');
-    var occupiedHosts = this.get('controller.selectedServicesMasters')
-      .filterProperty('component_name', componentName)
-      .mapProperty('selectedHost').without(this.get('selectedHost'));
+    var hosts = this.get('controller.hosts').slice(),
+      componentName = this.get('componentName'),
+      multipleComponents = this.get('controller.multipleComponents'),
+      occupiedHosts = this.get('controller.selectedServicesMasters')
+        .filterProperty('component_name', componentName)
+        .mapProperty('selectedHost')
+        .without(this.get('selectedHost'));
+
     if (multipleComponents.contains(componentName)) {
       return hosts.filter(function (host) {
         return !occupiedHosts.contains(host.get('host_name'));
@@ -80,7 +117,8 @@ App.SelectHostView = Em.Select.extend({
     return hosts;
   },
   /**
-   * on click start lazy loading
+   * On click start lazy loading
+   * @method click
    */
   click: function () {
     var source = [];
@@ -90,7 +128,7 @@ App.SelectHostView = Em.Select.extend({
 
     if (!this.get('isLoaded') && this.get('isLazyLoading')) {
       //filter out hosts, which already pushed in select
-      source = availableHosts.filter(function(_host){
+      source = availableHosts.filter(function (_host) {
         return !this.get('content').someProperty('host_name', _host.host_name);
       }, this).slice();
       lazyloading.run({
@@ -112,10 +150,12 @@ App.SelectHostView = Em.Select.extend({
     this.initContent();
     this.set("value", this.get("selectedHost"));
   },
+
   /**
-   * extract hosts from controller,
+   * Extract hosts from controller,
    * filter out available to selection and
    * push them into Em.Select content
+   * @method initContent
    */
   initContent: function () {
     var hosts = this.getAvailableHosts();
@@ -126,31 +166,63 @@ App.SelectHostView = Em.Select.extend({
         initialHosts.unshift(hosts.findProperty('host_name', this.get('selectedHost')));
       }
       this.set("content", initialHosts);
-    } else {
+    }
+    else {
       this.set("content", hosts);
     }
   }
 });
 
 App.AddControlView = Em.View.extend({
-  componentName:null,
-  tagName:"span",
-  classNames:["badge", "badge-important"],
-  template:Ember.Handlebars.compile('+'),
 
-  click:function () {
+  /**
+   * Current component name
+   * @type {string}
+   */
+  componentName: null,
+
+  tagName: "span",
+
+  classNames: ["badge", "badge-important"],
+
+  template: Em.Handlebars.compile('+'),
+
+  /**
+   * Onclick handler
+   * Add selected component
+   * @method click
+   */
+  click: function () {
     this.get('controller').addComponent(this.get('componentName'));
   }
 });
 
 App.RemoveControlView = Em.View.extend({
-  zId:null,
-  componentName:null,
-  tagName:"span",
-  classNames:["badge", "badge-important"],
-  template:Ember.Handlebars.compile('-'),
 
-  click:function () {
+  /**
+   * Index for multiple component
+   * @type {number}
+   */
+  zId: null,
+
+  /**
+   * Current component name
+   * @type {string}
+   */
+  componentName: null,
+
+  tagName: "span",
+
+  classNames: ["badge", "badge-important"],
+
+  template: Em.Handlebars.compile('-'),
+
+  /**
+   * Onclick handler
+   * Remove current component
+   * @method click
+   */
+  click: function () {
     this.get('controller').removeComponent(this.get('componentName'), this.get("zId"));
   }
 });
