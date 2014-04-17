@@ -19,7 +19,12 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+import os
 
+origin_exists = os.path.exists
+@patch.object(os.path, "exists", new=MagicMock(
+  side_effect=lambda *args: origin_exists(args[0])
+  if args[0][-2:] == "j2" else True))
 class TestServiceCheck(RMFTestCase):
 
   def test_service_check_default(self):

@@ -19,7 +19,12 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+import os
 
+origin_exists = os.path.exists
+@patch.object(os.path, "exists", new=MagicMock(
+    side_effect=lambda *args: origin_exists(args[0])
+    if args[0][-2:] == "j2" else True))
 class TestAppTimelineServer(RMFTestCase):
 
   def test_configure_default(self):
@@ -165,9 +170,25 @@ class TestAppTimelineServer(RMFTestCase):
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'capacity-scheduler.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['capacity-scheduler'],
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-server.xml.example',
+                              owner = 'mapred',
+                              group = 'hadoop',
                               )
