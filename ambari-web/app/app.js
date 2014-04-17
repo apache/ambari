@@ -34,20 +34,20 @@ module.exports = Em.Application.create({
   /**
    * return url prefix with number value of version of HDP stack
    */
-  stackVersionURL:function(){
+  stackVersionURL: function () {
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
-    if(stackVersion.indexOf('HDPLocal') !== -1){
+    if (stackVersion.indexOf('HDPLocal') !== -1) {
       return '/stacks/HDPLocal/version/' + stackVersion.replace(/HDPLocal-/g, '');
     }
     return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
-  
+
   /**
    * return url prefix with number value of version of HDP stack
    */
-  stack2VersionURL:function(){
+  stack2VersionURL: function () {
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
-    if(stackVersion.indexOf('HDPLocal') !== -1){
+    if (stackVersion.indexOf('HDPLocal') !== -1) {
       return '/stacks2/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
     }
     return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
@@ -62,16 +62,16 @@ module.exports = Em.Application.create({
   }.property().volatile(),
 
   clusterName: null,
-  clockDistance:null, // server clock - client clock
+  clockDistance: null, // server clock - client clock
   currentStackVersion: '',
-  currentStackVersionNumber: function(){
+  currentStackVersionNumber: function () {
     return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
   }.property('currentStackVersion'),
-  isHadoop2Stack: function(){
+  isHadoop2Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
   }.property('currentStackVersionNumber'),
-  isHadoop21Stack: function(){
+  isHadoop21Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") === 0)
   }.property('currentStackVersionNumber'),
@@ -82,7 +82,7 @@ module.exports = Em.Application.create({
    *
    * @type {bool}
    */
-  isHaEnabled: function() {
+  isHaEnabled: function () {
     if (!this.get('isHadoop2Stack')) return false;
     return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
   }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
@@ -104,12 +104,12 @@ module.exports = Em.Application.create({
    *
    * @param component {Ember.Object} - #stackDependedComponents item
    */
-  enableComponent: function(component) {
+  enableComponent: function (component) {
     var propertyFileNames = ['global_properties', 'site_properties'];
     var requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
     // add properties
-    propertyFileNames.forEach(function(fileName) {
-      require(requirePrefix + fileName).configProperties = require(requirePrefix + fileName).configProperties.concat(component.get('properties.'+fileName));
+    propertyFileNames.forEach(function (fileName) {
+      require(requirePrefix + fileName).configProperties = require(requirePrefix + fileName).configProperties.concat(component.get('properties.' + fileName));
     });
     var reviewConfigsService = require('data/review_configs')
       .findProperty('config_name', 'services').config_value
@@ -124,7 +124,7 @@ module.exports = Em.Application.create({
    *
    * @return {Ember.Object} - item of <code>stackDependedComponents</code> property
    */
-  disableComponent: function(component) {
+  disableComponent: function (component) {
     var componentCopy, propertyFileNames;
     var service_configs = require('data/service_configs');
     propertyFileNames = ['global_properties', 'site_properties'];
@@ -139,7 +139,7 @@ module.exports = Em.Application.create({
     var serviceConfigsCategoryName, requirePrefix, serviceConfig;
     // get service category name related to component
     serviceConfig = service_configs.findProperty('serviceName', component.get('serviceName'));
-    serviceConfig.configCategories = serviceConfig.configCategories.filter(function(configCategory) {
+    serviceConfig.configCategories = serviceConfig.configCategories.filter(function (configCategory) {
       if (configCategory.get('hostComponentNames')) {
         serviceConfigsCategoryName = configCategory.get('name');
         if (configCategory.get('hostComponentNames').contains(component.get('componentName'))) {
@@ -150,13 +150,13 @@ module.exports = Em.Application.create({
     });
     requirePrefix = this.get('isHadoop2Stack') ? 'data/HDP2/' : 'data/';
     var propertyObj = {};
-    propertyFileNames.forEach(function(propertyFileName) {
+    propertyFileNames.forEach(function (propertyFileName) {
       propertyObj[propertyFileName] = [];
     });
     // remove config properties related to this component
-    propertyFileNames.forEach(function(propertyFileName) {
+    propertyFileNames.forEach(function (propertyFileName) {
       var properties = require(requirePrefix + propertyFileName);
-      properties.configProperties = properties.configProperties.filter(function(property) {
+      properties.configProperties = properties.configProperties.filter(function (property) {
         if (property.category == serviceConfigsCategoryName) {
           propertyObj[propertyFileName].push(property);
           return false;
@@ -199,7 +199,7 @@ module.exports = Em.Application.create({
     var stackDependedComponents = this.get('stackDependedComponents');
     var service_configs = require('data/service_configs');
     var stackServiceComponents = this.StackServiceComponent.find();
-    var stackServices =  stackServiceComponents.mapProperty('serviceName').uniq();
+    var stackServices = stackServiceComponents.mapProperty('serviceName').uniq();
     if (!stackServiceComponents.mapProperty('componentName').length) {
       return;
     }
@@ -210,11 +210,10 @@ module.exports = Em.Application.create({
         if (categoryComponents && categoryComponents.length) {
           categoryComponents.forEach(function (categoryComponent) {
             var stackServiceComponent = stackServiceComponents.findProperty('componentName', categoryComponent);
-           // populate App.stackDependedComponents if the service config category for the serviceComponent
-           // exists in the 'data/service_configs.js' and the service to which the component belongs also exists in the
-           // stack but the serviceComponent does not exists in the stack. Also check App.stackDependedComponents doesn't already have the componentName
-            if (!stackServiceComponent && stackServices.contains(service.serviceName) &&
-              !stackDependedComponents.mapProperty('componentName').contains['categoryComponent']) {
+            // populate App.stackDependedComponents if the service config category for the serviceComponent
+            // exists in the 'data/service_configs.js' and the service to which the component belongs also exists in the
+            // stack but the serviceComponent does not exists in the stack. Also check App.stackDependedComponents doesn't already have the componentName
+            if (!stackServiceComponent && stackServices.contains(service.serviceName) && !stackDependedComponents.mapProperty('componentName').contains['categoryComponent']) {
               var _stackServiceComponent = Ember.Object.create({
                 componentName: categoryComponent,
                 serviceName: service.serviceName
@@ -242,19 +241,49 @@ module.exports = Em.Application.create({
    * List of components with allowed action for them
    * @type {Em.Object}
    */
-  components: function() {
-    return Em.Object.create({
-      allComponents:this.StackServiceComponent.find().mapProperty('componentName'),
-      reassignable: this.StackServiceComponent.find().filterProperty('isReassignable',true).mapProperty('componentName'),
-      restartable: this.StackServiceComponent.find().filterProperty('isRestartable',true).mapProperty('componentName'),
-      deletable: this.StackServiceComponent.find().filterProperty('isDeletable',true).mapProperty('componentName'),
-      rollinRestartAllowed: this.StackServiceComponent.find().filterProperty('isRollinRestartAllowed',true).mapProperty('componentName'),
-      decommissionAllowed: this.StackServiceComponent.find().filterProperty('isDecommissionAllowed',true).mapProperty('componentName'),
-      refreshConfigsAllowed: this.StackServiceComponent.find().filterProperty('isRefreshConfigsAllowed',true).mapProperty('componentName'),
-      addableToHost: this.StackServiceComponent.find().filterProperty('isAddableToHost',true).mapProperty('componentName'),
-      slaves: this.StackServiceComponent.find().filterProperty('isMaster',false).filterProperty('isClient',false).mapProperty('componentName'),
-      masters: this.StackServiceComponent.find().filterProperty('isMaster',true).mapProperty('componentName'),
-      clients: this.StackServiceComponent.find().filterProperty('isClient',true).mapProperty('componentName')
-    });
-  }.property('App.router.clusterController.isLoaded')
+  components: Em.Object.create({
+    allComponents: function () {
+      return App.StackServiceComponent.find().mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    reassignable: function () {
+      return App.StackServiceComponent.find().filterProperty('isReassignable', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    restartable: function () {
+      return App.StackServiceComponent.find().filterProperty('isRestartable', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    deletable: function () {
+      return App.StackServiceComponent.find().filterProperty('isDeletable', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    rollinRestartAllowed: function () {
+      return App.StackServiceComponent.find().filterProperty('isRollinRestartAllowed', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    decommissionAllowed: function () {
+      return App.StackServiceComponent.find().filterProperty('isDecommissionAllowed', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    refreshConfigsAllowed: function () {
+      return App.StackServiceComponent.find().filterProperty('isRefreshConfigsAllowed', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    addableToHost: function () {
+      return App.StackServiceComponent.find().filterProperty('isAddableToHost', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    slaves: function () {
+      return App.StackServiceComponent.find().filterProperty('isMaster', false).filterProperty('isClient', false).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    masters: function () {
+      return App.StackServiceComponent.find().filterProperty('isMaster', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    clients: function () {
+      return App.StackServiceComponent.find().filterProperty('isClient', true).mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded')
+  })
 });
