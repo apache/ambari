@@ -487,8 +487,16 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           metric.setHost_name(reader.readLine());
           metric.setMetric_name(reader.readLine());
 
-          int time = convertToNumber(reader.readLine()).intValue();
-          int step = convertToNumber(reader.readLine()).intValue();
+          String timeStr = reader.readLine();
+          String stepStr = reader.readLine();
+          if (timeStr == null || timeStr.isEmpty() || stepStr == null
+              || stepStr.isEmpty()) {
+            LOG.info("Unexpected end of stream reached while getting ganglia " +
+                "metrics for spec => " + spec);
+            return Collections.emptySet();
+          }
+          int time = convertToNumber(timeStr).intValue();
+          int step = convertToNumber(stepStr).intValue();
 
           String val     = reader.readLine();
           String lastVal = null;
