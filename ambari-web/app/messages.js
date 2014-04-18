@@ -1325,7 +1325,7 @@ Em.I18n.translations = {
       '<ol>' +
       '<li>Copy the contents of <b>{0}</b> on the source host <b>{1}</b> to <b>{0}</b> on the target host <b>{2}</b>.</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the NameNode dirs by running:' +
-      '<div class="code-snippet">chown -R {3}:{5} /hadoop/hdfs/namenode/</div></li>' +
+      '<div class="code-snippet">chown -R {3}:{5} {6}</div></li>' +
       '<li>Create marker directory by running:' +
       '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
       '</ol>' +
@@ -1352,7 +1352,7 @@ Em.I18n.translations = {
       '<ol>' +
       '<li>Copy the contents of <b>{0}</b> on the source host <b>{1}</b> to <b>{0}</b> on the target host <b>{2}</b>.</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the SNameNode dirs by running:' +
-      '<div class="code-snippet">chown -R {3}:{5} /hadoop/hdfs/namesecondary/</div></li>' +
+      '<div class="code-snippet">chown -R {3}:{5} {6}</div></li>' +
       '</ol>' +
       '</div>',
   'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +

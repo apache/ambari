@@ -28,6 +28,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
       return '';
     }
     var componentDir = this.get('controller.content.componentDir');
+    var componentDirCmd = componentDir.replace(/,/g, ' ');
     var sourceHost = this.get('controller.content.reassignHosts.source');
     var targetHost = this.get('controller.content.reassignHosts.target');
     var ha = '';
@@ -35,7 +36,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
       ha = '_ha';
       var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(this.get('controller.content.reassignHosts.target'));
     }
-    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'), nnStartedHost,this.get('controller.content.group'));
+    return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'), nnStartedHost,this.get('controller.content.group'), componentDirCmd);
   }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
 
   securityNotice: function () {
