@@ -2173,10 +2173,26 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(args.database_username, "ambari-server")
     self.assertEqual(args.sid_or_sname, "sname")
 
+  @patch.object(os.path, "exists")
+  def test_validate_jdk(self, exists_mock):
+    exists_mock.side_effect = [False]
+    result = ambari_server.validate_jdk("path")
+    self.assertFalse(result)
+
+    exists_mock.side_effect = [True, False]
+    result = ambari_server.validate_jdk("path")
+    self.assertFalse(result)
+
+    exists_mock.side_effect = [True, True]
+    result = ambari_server.validate_jdk("path")
+    self.assertTrue(result)
+
   @patch("glob.glob")
   @patch.object(ambari_server, "get_JAVA_HOME")
-  def test_find_jdk(self, get_JAVA_HOME_mock, globMock):
+  @patch.object(ambari_server, "validate_jdk")
+  def test_find_jdk(self, validate_jdk_mock, get_JAVA_HOME_mock, globMock):
     get_JAVA_HOME_mock.return_value = "somewhere"
+    validate_jdk_mock.return_value = True
     result = ambari_server.find_jdk()
     self.assertEqual("somewhere", result)
 
@@ -2188,6 +2204,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     globMock.return_value = ["one", "two"]
     result = ambari_server.find_jdk()
     self.assertNotEqual(None, result)
+
+    globMock.return_value = ["one", "two"]
+    validate_jdk_mock.side_effect = [False, True]
+    result = ambari_server.find_jdk()
+    self.assertEqual(result, "two")
 
   @patch("os.path.exists")
   @patch.object(ambari_server, "remove_file")

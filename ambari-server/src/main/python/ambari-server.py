@@ -2008,21 +2008,38 @@ def get_JAVA_HOME():
 
 
 #
+# Checks jdk path for correctness
+#
+def validate_jdk(jdk_path):
+  if jdk_path:
+    return os.path.exists(jdk_path) and os.path.exists(
+      jdk_path + os.sep + 'bin' + os.sep + 'java')
+  else:
+    return False
+
+
+#
 # Finds the available JDKs.
 #
 def find_jdk():
-  if get_JAVA_HOME():
-    return get_JAVA_HOME()
+  jdkPath = get_JAVA_HOME()
+  if jdkPath:
+    if validate_jdk(jdkPath):
+      return jdkPath
   print "Looking for available JDKs at " + JDK_INSTALL_DIR
   jdks = glob.glob(JDK_INSTALL_DIR + os.sep + "jdk*")
   jdks.sort()
   print "Found: " + str(jdks)
-  count = len(jdks)
-  if count == 0:
+  if len(jdks) == 0:
     return
-  jdkPath = jdks[count - 1]
-  print "Selected JDK {0}".format(jdkPath)
-  return jdkPath
+  for jdkPath in jdks:
+    print "Trying to use JDK {0}".format(jdkPath)
+    if validate_jdk(jdkPath):
+      print "Selected JDK {0}".format(jdkPath)
+      return jdkPath
+    else:
+      print "JDK {0} is invalid".format(jdkPath)
+  return
 
 
 #
