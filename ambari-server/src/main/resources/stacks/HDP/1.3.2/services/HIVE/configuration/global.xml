@@ -35,8 +35,8 @@
   </property>  
   <property>
     <name>hive_database_name</name>
-    <value></value>
-    <description>Database hname</description>
+    <value>hive</value>
+    <description>Database name.</description>
   </property>    
   <property>
     <name>hive_metastore_user_name</name>
