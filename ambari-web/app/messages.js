@@ -29,7 +29,7 @@ Em.I18n.translations = {
     '<br>Ambari Server: <strong>{0}</strong>' +
     '<br>Ambari Web Client: <strong>{1}</strong><br>' +
     '<br>This typically happens after upgrading Ambari due to Ambari Web Client code cached in the browser.' +
-    '<br>Perform hard refresh to see if this message disappears.' +
+    '<br>Perform a hard browser cache refresh, typically \'Ctrl+Shift+R\' (\'Cmd+Shift+R\' on OS X), to see if this message disappears.' +
     '<br>If you keep seeing this message, clear the browser cache completely and hit this URL again.' +
     '<br>You must resolve this error in order to continue.',
   'app.signout':'Sign out',
