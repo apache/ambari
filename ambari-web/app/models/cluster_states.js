@@ -231,9 +231,9 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
             async: !!opt.async,
             keyValuePair: keyValuePair
           },
-          success: opt.success || Em.K,
-          beforeSend: opt.beforeSend || Em.K,
-          error: opt.error || Em.K
+          success: opt.success,
+          beforeSend: opt.beforeSend,
+          error: opt.error
         });
       }
       else {
