@@ -17,49 +17,63 @@
 }}
 
 <!-- Flume Agents -->
-<tr>
-  <td>
     <div id="flume-summary">
-    <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
-    <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
-      <thead>
-      {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
-        {{view view.parentView.statusSort}}
-        {{view view.parentView.agentSort}}
-        {{view view.parentView.hostSort}}
-        {{view view.parentView.sourceSort}}
-        {{view view.parentView.channelSort}}
-        {{view view.parentView.sinkSort}}
-        <td></td>
-      {{/view}}
-      </thead>
-      <tbody>
-      {{#each agent in view.pageContent}}
-        <tr {{action showAgentInfo agent target="view"}}>
-          <td class="agent-status">
-            <span {{bindAttr class="agent.healthClass"}}></span>
-          </td>
-          <td class="agent-name">
-            {{agent.name}}
-          </td>
-          <td class="agent-host-name">
-            {{agent.host.hostName}}
-          </td>
-          <td>
-            {{agent.sourcesCount}}
-          </td>
-          <td>
-            {{agent.channelsCount}}
-          </td>
-          <td>
-            {{agent.sinksCount}}
-          </td>
-          <td>
-          </td>
-        </tr>
-      {{/each}}
-      </tbody>
-    </table>
+      <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
+        <div class="btn-group display-inline-block flume-agents-actions pull-right">
+          <a {{bindAttr class=":btn :dropdown-toggle view.isActionsDisabled:disabled"}} data-toggle="dropdown" href="javascript:void(null)">{{t common.actions}}
+            <span class="caret"></span>
+          </a>
+          <ul class="pull-left dropdown-menu">
+            <li {{bindAttr class="view.isStartAgentDisabled:disabled"}}>
+              <a href="javascript:void(null)"
+                      {{bindAttr class="view.isStartAgentDisabled:disabled"}}
+                      {{action startFlumeAgent target="controller"}}>
+                {{t services.service.summary.flume.startAgent}}</a>
+            </li>
+            <li {{bindAttr class="view.isStopAgentDisabled:disabled"}}>
+              <a href="javascript:void(null)"
+                      {{bindAttr class="view.isStopAgentDisabled:disabled"}}
+                      {{action stopFlumeAgent target="controller"}}>
+                {{t services.service.summary.flume.stopAgent}}</a>
+            </li>
+          </ul>
+        </div>
+      <div class="scrollable-container">
+        <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
+          <thead>
+          {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
+            {{view view.parentView.statusSort}}
+            {{view view.parentView.agentSort}}
+            {{view view.parentView.hostSort}}
+            {{view view.parentView.sourceSort}}
+            {{view view.parentView.channelSort}}
+            {{view view.parentView.sinkSort}}
+          {{/view}}
+          </thead>
+          <tbody>
+          {{#each agent in view.pageContent}}
+            <tr {{action showAgentInfo agent target="view"}}>
+              <td class="agent-status">
+                <span {{bindAttr class="agent.healthClass"}}></span>
+              </td>
+              <td class="agent-name">
+                {{agent.name}}
+              </td>
+              <td class="agent-host-name">
+                {{agent.host.hostName}}
+              </td>
+              <td>
+                {{agent.sourcesCount}}
+              </td>
+              <td>
+                {{agent.channelsCount}}
+              </td>
+              <td>
+                {{agent.sinksCount}}
+              </td>
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </td>
-</tr>

@@ -24,6 +24,12 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
 
   pagination: false,
 
+  isActionsDisabled: true,
+
+  isStartAgentDisabled: true,
+
+  isStopAgentDisabled: true,
+
   content: function () {
     return this.get('service.agents');
   }.property('service.agents.length'),
@@ -82,8 +88,22 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
   }),
 
   didInsertElement: function () {
+    this.set('controller.selectedFlumeAgent', null);
     this.filter();
   },
+
+  /**
+   * Change classes for dropdown DOM elements after status change of selected agent
+   */
+  setActionsDropdownClasses: function () {
+    var selectedFlumeAgent = this.get('controller.selectedFlumeAgent');
+    this.set('isActionsDisabled', !selectedFlumeAgent);
+    if (selectedFlumeAgent) {
+      this.set('isStartAgentDisabled', selectedFlumeAgent.get('status') !== 'INSTALLED');
+      this.set('isStopAgentDisabled', selectedFlumeAgent.get('status') !== 'STARTED');
+    }
+  }.observes('controller.selectedFlumeAgent', 'controller.selectedFlumeAgent.status'),
+
   /**
    * Action handler from flume tepmlate.
    * Highlight selected row and show metrics graphs of selected agent.
@@ -91,9 +111,11 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
    * @method showAgentInfo
    * @param {object} event
    */
-  showAgentInfo: function(event){
+  showAgentInfo: function (event) {
+    var agent = event.context;
+    this.set('controller.selectedFlumeAgent', agent);
     this.toggleHighlight($(event.currentTarget));
-    this.get('parentView').setMetric(event.context);
+    this.get('parentView').setMetric(agent);
   },
   /**
    * Highlight current row and remove highlight from previously selected item.

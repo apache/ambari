@@ -1100,6 +1100,10 @@ Em.I18n.translations = {
   'services.service.summary.storm.tasks': 'Tasks',
   'services.service.summary.storm.nimbus.uptime': 'Nimbus uptime',
   'services.service.summary.storm.topologies': 'Topologies',
+  'services.service.summary.flume.startAgent': 'Start Agent',
+  'services.service.summary.flume.stopAgent': 'Stop Agent',
+  'services.service.summary.flume.stop.context': 'Stop Flume Agent {0}',
+  'services.service.summary.flume.start.context': 'Start Flume Agent {0}',
 
   'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
   'services.service.info.metrics.flume.channelSize':'Channel Size',

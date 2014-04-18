@@ -141,6 +141,29 @@ var urls = {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': '/data/configurations/config_group.json'
   },
+  'service.flume.agent.command': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": data.command,
+            "context": data.context,
+            "flume_handler": data.agentName
+          },
+          "Requests/resource_filters": [
+            {
+              "service_name": "FLUME",
+              "component_name": "FLUME_HANDLER",
+              "hosts": data.host
+            }
+          ]
+        })
+      }
+    }
+  },
   'reassign.stop_services': {
     'real': '/clusters/{clusterName}/services',
     'mock': '',

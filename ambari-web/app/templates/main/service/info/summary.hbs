@@ -60,7 +60,11 @@
               {{template "templates/main/service/info/summary/hue"}}
             {{/if}}
             {{#if view.serviceStatus.flume}}
-              {{view App.MainDashboardServiceFlumeView serviceBinding="view.service"}}
+              <tr>
+                <td>
+                  {{view App.MainDashboardServiceFlumeView serviceBinding="view.service"}}
+                </td>
+              </tr>
             {{/if}}
             {{#if view.serviceStatus.falcon}}
               {{template "templates/main/service/info/summary/falcon"}}
