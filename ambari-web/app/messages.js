@@ -1779,7 +1779,7 @@ Em.I18n.translations = {
   'dashboard.services.mapreduce.jobTrackerUptime':'Job Trackers Uptime',
   'dashboard.services.mapreduce.chart.label':'Jobs Running',
 
-  'dashboard.services.flume.summary.single':'{0} Flume Agent on ',
+  'dashboard.services.flume.summary.single':'1 Flume Agent on ',
   'dashboard.services.flume.summary.multiple':'{0} Flume Agents on ',
   'dashboard.services.flume.summary.hosts.single':'1 host',
   'dashboard.services.flume.summary.hosts.multiple':'{0} hosts',

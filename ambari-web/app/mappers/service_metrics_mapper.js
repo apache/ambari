@@ -135,6 +135,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     total_executors: 'restApiComponent.metrics.api.cluster.summary.["executors.total"]',
     nimbus_uptime: 'restApiComponent.metrics.api.cluster.summary.["nimbus.uptime"]'
   },
+  flumeAgentConfig: {
+    id: 'HostComponentProcess.name',
+    name: 'HostComponentProcess.name',
+    status: 'HostComponentProcess.status',
+    host_id: 'HostComponentProcess.host_name'
+  },
 
   model3: App.HostComponent,
   config3: {
@@ -217,13 +223,9 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           finalJson = this.flumeMapper(item);
           finalJson.rand = Math.random();
           result.push(finalJson);
-          // TODO Below block to be uncommented when server data available
-          /*if (finalJson.nodeObjs) {
-            finalJson.nodeObjs.forEach(function (no) {
-              App.store.load(App.FlumeNode, no);
-            });
-          }
-          App.store.load(App.FlumeService, finalJson);*/
+          App.store.load(App.FlumeService, finalJson);
+          var agentsJson = this.flumeAgentMapper(item);
+          App.store.loadMany(App.FlumeAgent, agentsJson);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
           finalJson = this.yarnMapper(item);
           finalJson.rand = Math.random();
@@ -566,64 +568,22 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
   
   /**
    * Flume is different from other services, in that the important
-   * data is in customizeable channels. Hence we directly transfer 
+   * data is in customizable channels. Hence we directly transfer
    * data into the JSON object.
    */
   flumeMapper: function (item) {
-    var finalConfig = jQuery.extend({}, this.config);
-    var finalJson = this.parseIt(item, finalConfig);
-    item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "FLUME_HANDLER") {
-        if (!finalJson.nodes) {
-          finalJson.nodes = [];
-        }
-        if (!finalJson.nodeObjs) {
-          finalJson.nodeObjs = [];
-        }
-        if (component.host_components) {
-          component.host_components.forEach(function (hc) {
-            var fnode = {};
-            fnode.id = hc.HostRoles.host_name;
-            fnode.host_id = hc.HostRoles.host_name;
-            fnode.channels = "";
-            fnode.sources = "";
-            fnode.sinks = "";
-            if (hc.metrics != null && hc.metrics.flume && hc.metrics.flume.flume && hc.metrics.flume.flume) {
-              if (hc.metrics.flume.flume.CHANNEL) {
-                for ( var c in hc.metrics.flume.flume.CHANNEL) {
-                  if (fnode.channels.length < 1) {
-                    fnode.channels += c;
-                  } else {
-                    fnode.channels += ("," + c);
-                  }
-                }
-              }
-              if (hc.metrics.flume.flume.SINK) {
-                for ( var c in hc.metrics.flume.flume.SINK) {
-                  if (fnode.sinks.length < 1) {
-                    fnode.sinks += c;
-                  } else {
-                    fnode.sinks += ("," + c);
-                  }
-                }
-              }
-              if (hc.metrics.flume.flume.SOURCE) {
-                for ( var c in hc.metrics.flume.flume.SOURCE) {
-                  if (fnode.sources.length < 1) {
-                    fnode.sources += c;
-                  } else {
-                    fnode.sources += ("," + c);
-                  }
-                }
-              }
-            }
-            finalJson.nodeObjs.push(fnode);
-            finalJson.nodes.push(hc.HostRoles.host_name);
-          });
-        }
-      }
-    });
+    var finalJson = this.parseIt(item, this.config);
+    finalJson.agents = item.components[0].host_components[0].processes.mapProperty('HostComponentProcess.name');
     return finalJson;
+  },
+
+  flumeAgentMapper: function (item) {
+    var dataToParse = item.components[0].host_components[0].processes;
+    var result = [];
+    dataToParse.forEach(function(dataItem){
+      result.push(this.parseIt(dataItem, this.flumeAgentConfig));
+    }, this);
+    return result;
   },
 
   /**

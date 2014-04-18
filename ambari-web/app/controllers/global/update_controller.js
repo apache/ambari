@@ -119,8 +119,10 @@ App.UpdateController = Em.Controller.extend({
     var conditionalFields = this.getConditionalFields();
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json' : '/data/dashboard/services.json';
-
-    var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
+    var isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME');
+    var flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '';
+    realUrl = '/components/?' + flumeHandlerParam +
+      'ServiceComponentInfo/category=MASTER&fields=' +
       'ServiceComponentInfo/Version,' +
       'ServiceComponentInfo/StartTime,' +
       'ServiceComponentInfo/HeapMemoryUsed,' +
@@ -164,7 +166,8 @@ App.UpdateController = Em.Controller.extend({
   getConditionalFields: function () {
     var conditionalFields = [];
     var serviceSpecificParams = {
-      'FLUME': "host_components/metrics/flume/flume",
+      'FLUME': "host_components/metrics/flume/flume," +
+         "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
         "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
         "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +

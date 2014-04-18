@@ -116,7 +116,6 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     this.set('controller.selectedFlumeAgent', agent);
     this.toggleHighlight($(event.currentTarget));
     this.setAgentMetrics(event.context);
-    this.get('parentView').setMetric(agent);
   },
   /**
    * Highlight current row and remove highlight from previously selected item.
