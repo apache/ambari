@@ -71,13 +71,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   if 'hbase-policy' in params.config['configurations']:
     XmlConfig( "hbase-policy.xml",
-      configurations = params.config['configurations']['hbase-policy'],
-      owner = params.hbase_user,
-      group = params.user_group
+            conf_dir = params.conf_dir,
+            configurations = params.config['configurations']['hbase-policy'],
+            owner = params.hbase_user,
+            group = params.user_group
     )
   # Manually overriding ownership of file installed by hadoop package
   else: 
-    File( format("{conf_dir}/hbase-policy.xml"),
+    File( format("{params.conf_dir}/hbase-policy.xml"),
       owner = params.hbase_user,
       group = params.user_group
     )
