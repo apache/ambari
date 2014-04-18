@@ -123,26 +123,26 @@
   </div>
 </div>
 
-{{#if view.collapsedMetrics}}
+{{#if view.collapsedSections}}
   <div class="row-fluid">
     <div class="span12 metrics-collapsed-graphs">
-      {{#each collapsedMetric in view.collapsedMetrics}}
-        <div {{bindAttr class=":accordion collapsedMetric.toggleIndex"}}>
+      {{#each collapsedSection in view.collapsedSections}}
+        <div {{bindAttr class=":accordion collapsedSection.toggleIndex"}}>
           <div class="accordion-group box">
             <div class="accordion-heading box-header">
-              <span class="pull-left accordion-toggle" data-toggle="collapse" {{bindAttr dataParent="collapsedMetric.toggleIndex" href="collapsedMetric.toggleIndex"}}>
+              <span class="pull-left accordion-toggle" data-toggle="collapse" {{bindAttr dataParent="collapsedSection.toggleIndex" href="collapsedSection.toggleIndex"}}>
                 <i class="pull-left icon-caret-toggle"></i>
-                <span>{{collapsedMetric.header}}</span>
+                <span>{{collapsedSection.header}}</span>
               </span>
-              <a class="btn pull-right" {{bindAttr href="collapsedMetric.url"}} target="_blank">
+              <a class="btn pull-right" {{bindAttr href="collapsedSection.url"}} target="_blank">
                 <i class="icon-link"></i>
               </a>
               <div class="clearfix"></div>
             </div>
-            <div class="accordion-body collapse in" {{bindAttr id="collapsedMetric.id"}}>
+            <div class="accordion-body collapse in" {{bindAttr id="collapsedSection.id"}}>
               <div class="accordion-inner">
-                {{#if collapsedMetric.metricView}}
-                  {{view collapsedMetric.metricView}}
+                {{#if collapsedSection.metricView}}
+                  {{view collapsedSection.metricView}}
                 {{/if}}
               </div>
             </div>

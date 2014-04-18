@@ -115,6 +115,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     var agent = event.context;
     this.set('controller.selectedFlumeAgent', agent);
     this.toggleHighlight($(event.currentTarget));
+    this.setAgentMetrics(event.context);
     this.get('parentView').setMetric(agent);
   },
   /**
@@ -126,5 +127,40 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
   toggleHighlight: function(element) {
     element.parent().find('.highlight').removeClass('highlight');
     element.addClass('highlight');
+  },
+  /**
+   * Show Flume agent metric.
+   *
+   * @method setFlumeAgentMetric
+   * @param {object} agent - DS.model of agent
+   */
+  setAgentMetrics: function(agent) {
+    var getMetricTitle = function(metricTypeKey, hostName) {
+      var metricType = Em.I18n.t('services.service.info.metrics.flume.' + metricTypeKey).format(Em.I18n.t('common.metrics'));
+      return  metricType + ' - ' + hostName;
+    };
+    var gangliaUrlTpl = App.router.get('clusterController.gangliaUrl') + '/?r=hour&cs=&ce=&m=load_one&s=by+name&c=HDPFlumeServer&h={0}&host_regex=&max_graphs=0&tab=m&vn=&sh=1&z=small&hc=4';
+    var agentHostMock = 'localhost'; // @todo change to agent hostname
+    var mockMetricData = [
+      {
+        header: 'sinkName',
+        metricView: App.ChartServiceMetricsFlume_SinkDrainSuccessCount.extend()
+      },
+      {
+        header: 'sourceName',
+        metricView: App.ChartServiceMetricsFlume_SourceAcceptedCount.extend()
+      },
+      {
+        header: 'channelName',
+        metricView: App.ChartServiceMetricsFlume_ChannelSize.extend()
+      }
+    ];
+    mockMetricData.forEach(function(mockData, index) {
+      mockData.header = getMetricTitle(mockData.header, agentHostMock);
+      mockData.url = gangliaUrlTpl.format(agentHostMock);
+      mockData.id = 'metric' + index;
+      mockData.toggleIndex = '#' + mockData.id;
+    });
+    this.set('parentView.collapsedSections', mockMetricData);
   }
 });

@@ -54,8 +54,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     pig :false,
     sqoop: false
   },
-  /** @property collapsedMetrics {array} - metrics list for collapsed view **/
-  collapsedMetrics: null,
+  /** @property collapsedMetrics {object[]} - metrics list for collapsed section
+   *    structure of element from list:
+   *      @property {string} header - title for section
+   *      @property {string} id - id of section for toggling, like: metric1
+   *      @property {string} toggleIndex - passed to `data-parent` attribute, like: #metric1
+   *      @property {Em.View} metricView - metric view class
+   */
+  collapsedSections: null,
 
   servicesHaveClients: ["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2", "TEZ", "SQOOP", "PIG","FALCON"],
 
@@ -520,56 +526,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     });
 
     return names.length ? names.join(', ') : false;
-  }.property('clientComponents'),
-  /**
-   * Show metric by related info.
-   *
-   * @method setMetric
-   * @param {object} context - data related to metric
-   */
-  setMetric: function(context) {
-    switch (this.get('service.serviceName')) {
-      case 'FLUME':
-        this.setFlumeAgentMetric(context);
-        break;
-      default:
-        break;
-    }
-  },
-  /**
-   * Show Flume agent metric.
-   *
-   * @method setFlumeAgentMetric
-   * @param {object} agent - DS.model of agent
-   */
-  setFlumeAgentMetric: function(agent) {
-    var getMetricTitle = function(metricTypeKey, hostName) {
-      var metricType = Em.I18n.t('services.service.info.metrics.flume.' + metricTypeKey).format(Em.I18n.t('common.metrics'));
-      return  metricType + ' - ' + hostName;
-    };
-    var gangliaUrlTpl = App.router.get('clusterController.gangliaUrl') + '/?r=hour&cs=&ce=&m=load_one&s=by+name&c=HDPFlumeServer&h={0}&host_regex=&max_graphs=0&tab=m&vn=&sh=1&z=small&hc=4';
-    var agentHostMock = 'localhost'; // @todo change to agent hostname
-    var mockMetricData = [
-      {
-        header: 'sinkName',
-        metricView: App.ChartServiceMetricsFlume_SinkDrainSuccessCount.extend()
-      },
-      {
-        header: 'sourceName',
-        metricView: App.ChartServiceMetricsFlume_SourceAcceptedCount.extend()
-      },
-      {
-        header: 'channelName',
-        metricView: App.ChartServiceMetricsFlume_ChannelSize.extend()
-      }
-    ];
-    mockMetricData.forEach(function(mockData, index) {
-      mockData.header = getMetricTitle(mockData.header, agentHostMock);
-      mockData.url = gangliaUrlTpl.format(agentHostMock);
-      mockData.id = 'metric' + index;
-      mockData.toggleIndex = '#' + mockData.id;
-    });
-    this.set('collapsedMetrics', mockMetricData);
-  }
+  }.property('clientComponents')
 
 });
