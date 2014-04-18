@@ -34,7 +34,9 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
     'hbase.rpc.engine': 'org.apache.hadoop.hbase.ipc.WritableRpcEngine',
     'hbase.security.authorization': 'false',
     'zookeeper.znode.parent': '/hbase-unsecure',
-    'hive.security.authorization.enabled': 'false'
+    'hive.security.authorization.enabled': 'false',
+    '*.falcon.authentication.type': 'simple',
+    '*.falcon.http.authentication.type': 'simple'
   },
 
   isSubmitDisabled: function () {
