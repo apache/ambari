@@ -59,7 +59,7 @@ module.exports = Em.Route.extend({
 
   index: Ember.Route.extend({
     route: '/',
-    redirectsTo: 'dashboard'
+    redirectsTo: 'dashboard.index'
   }),
 
 
@@ -68,7 +68,6 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainViews');
     }
-
   }),
   test: Em.Route.extend({
     route: '/test',
@@ -81,38 +80,65 @@ module.exports = Em.Route.extend({
     router.get('applicationController').connectOutlet('main');
   },
 
-  charts: Em.Route.extend({
-    route: '/charts',
+  dashboard: Em.Route.extend({
+    route: '/dashboard',
     connectOutlets: function (router, context) {
-      router.get('mainController').connectOutlet('mainCharts');
+      router.get('mainController').connectOutlet('mainDashboard');
     },
     enter: function (router) {
       Em.run.next(function () {
-        router.transitionTo('heatmap');
+        router.transitionTo('widgets');
       });
     },
-    index: Ember.Route.extend({
+    index: Em.Route.extend({
       route: '/',
-      redirectsTo: 'heatmap'
+      redirectsTo: 'widgets'
     }),
-    heatmap: Em.Route.extend({
-      route: '/heatmap',
-      connectOutlets: function (router, context) {
-        router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
-      }
-    }),
-    horizon_chart: Em.Route.extend({
-      route: '/horizon_chart',
-      connectOutlets: function (router, context) {
-        router.get('mainChartsController').connectOutlet('mainChartsHorizon');
-      }
-    }),
-    showChart: function (router, event) {
-      var parent = event.view._parentView;
-      parent.deactivateChildViews();
-      event.view.set('active', "active");
+    //on click nav tabs events, go to widgets view or heatmap view
+    goToDashboardView: function (router, event) {
       router.transitionTo(event.context);
-    }
+    },
+    widgets: Em.Route.extend({
+      route: '/clusterWidgets',
+      connectOutlets: function (router, context) {
+        router.set('mainDashboardController.selectedCategory', 'widgets');
+        router.get('mainDashboardController').connectOutlet('mainDashboardWidgets');
+      }
+    }),
+    charts: Em.Route.extend({
+      route: '/charts',
+      connectOutlets: function (router, context) {
+        router.set('mainDashboardController.selectedCategory', 'charts');
+        router.get('mainDashboardController').connectOutlet('mainCharts');
+      },
+      enter: function (router) {
+        Em.run.next(function () {
+          router.transitionTo('heatmap');
+        });
+      },
+      index: Ember.Route.extend({
+        route: '/',
+        redirectsTo: 'heatmap'
+      }),
+      heatmap: Em.Route.extend({
+        route: '/heatmap',
+        connectOutlets: function (router, context) {
+          router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
+        }
+      }),
+      horizon_chart: Em.Route.extend({
+        route: '/horizon_chart',
+        connectOutlets: function (router, context) {
+          router.get('mainChartsController').connectOutlet('mainChartsHorizon');
+        }
+      }),
+      showChart: function (router, event) {
+        var parent = event.view._parentView;
+        parent.deactivateChildViews();
+        event.view.set('active', "active");
+        router.transitionTo(event.context);
+      }
+    })
   }),
 
   apps: Em.Route.extend({
@@ -585,20 +611,13 @@ module.exports = Em.Route.extend({
       router.transitionTo('admin' + object.context.capitalize());
     },
 
-//events
+    //events
     goToAdmin: function (router, event) {
       router.transitionTo(event.context);
     }
 
   }),
   stackUpgrade: require('routes/stack_upgrade'),
-
-  dashboard: Em.Route.extend({
-    route: '/dashboard',
-    connectOutlets: function (router, context) {
-      router.get('mainController').connectOutlet('mainDashboard');
-    }
-  }),
 
   services: Em.Route.extend({
     route: '/services',

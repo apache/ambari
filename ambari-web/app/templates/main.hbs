@@ -22,13 +22,6 @@
   </div>
 {{else}}
   {{#if isClusterDataLoaded}}
-    <div id="main-nav">
-      <div class="navbar">
-        <div class="navbar-inner">
-          {{view App.MainMenuView}}
-        </div>
-      </div>
-    </div>
     {{outlet}}
   {{/if}}
   {{#unless isClusterDataLoaded}}

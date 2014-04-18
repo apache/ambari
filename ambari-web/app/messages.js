@@ -1656,7 +1656,8 @@ Em.I18n.translations = {
   'dashboard.clusterMetrics.memory':'Memory Usage',
   'dashboard.clusterMetrics.network':'Network Usage',
 
-  'dashboard.widgets': 'Cluster Status and Metrics',
+  'dashboard.widgets.title': 'Cluster Status and Metrics',
+  'dashboard.heatmaps.title': 'Heatmaps',
   'dashboard.button.switch': 'Switch to classic dashboard',
   'dashboard.button.switchShort': 'Switch',
   'dashboard.button.reset': 'Reset all widgets to default ',
@@ -1984,13 +1985,12 @@ Em.I18n.translations = {
   'restart.service.rest.context': 'Restart {0}s',
 
   'menu.item.dashboard':'Dashboard',
-  'menu.item.heatmaps':'Heatmaps',
   'menu.item.services':'Services',
   'menu.item.hosts':'Hosts',
   'menu.item.mirroring':'Mirroring',
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
-  'menu.item.views':'Views',
+  'menu.item.views':'<i class="icon-th"></i>',
 
   'jobs.nothingToShow': 'No jobs to display',
   'jobs.loadingTasks': 'Loading...',

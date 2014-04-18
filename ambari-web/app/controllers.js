@@ -25,6 +25,7 @@ require('controllers/wizard');
 require('controllers/installer');
 require('controllers/global/background_operations_controller');
 require('controllers/main');
+require('controllers/main/dashboard');
 require('controllers/main/admin');
 require('controllers/main/admin/highAvailability_controller');
 require('controllers/main/admin/highAvailability/wizard_controller');

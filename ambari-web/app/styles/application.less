@@ -39,6 +39,25 @@
   100% { background-color: #118fff; }
 }
 
+@-webkit-keyframes greenPulseInner {
+  from { color: #118fff; }
+  50% { color: #006DCC; }
+  to { color: #118fff; }
+}
+
+@-moz-keyframes greenPulseInner {
+  from { color: #118fff; }
+  50% { color: #006DCC; }
+  to { color: #118fff; }
+}
+
+@keyframes greenPulseInner
+{
+  0% { color: #118fff; }
+  50% { color: #006DCC; }
+  100% { color: #118fff; }
+}
+
 .gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
@@ -87,12 +106,38 @@ footer {
   padding: 15px 0;
 }
 
-#top-nav {
-  .navbar {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
+@top-nav-bg-color-from: #555555;
+@top-nav-bg-color-to: #333333;
+@top-nav-brand-color: #ffffff;
+@top-nav-ops-count-color: #ffffff;
+@top-nav-ops-count-bg-color: #c3c3c3;
+@top-nav-menu-active-text-color: #333333;
+@top-nav-menu-active-bg-color: #ffffff;
+@top-nav-menu-text-color: #c3c3c3;
+@top-nav-menu-text-hover-color: #ffffff;
+@top-nav-menu-dropdown-border-color: #c3c3c3;
+@top-nav-menu-dropdown-bg-color: #ffffff;
+@top-nav-menu-dropdown-text-color: #333333;
 
-  .navbar {
+#top-nav {
+
+  .navbar.navbar-static-top {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -moz-box-shadow: 0 1 5px #888;
+    -webkit-box-shadow: 0 1px 5px #888;
+    box-shadow: 0 1px 5px #888;
+    .navbar-inner {
+      background-image: -moz-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
+      background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@top-nav-bg-color-from), to(@top-nav-bg-color-to));
+      background-image: -webkit-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
+      background-image: -o-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
+      background-image: linear-gradient(to bottom, @top-nav-bg-color-from, @top-nav-bg-color-to);
+      -webkit-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+      -moz-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+      max-height: 40px;
+    }
+
     .logo {
       float: left;
       padding-top: 2px;
@@ -102,12 +147,13 @@ footer {
     }
 
     .brand {
-      color: #666666;
+      color: @top-nav-brand-color;
       font-size: 16px;
       font-weight: normal;
       line-height: 32px;
       margin-left: 0;
       padding: 2px 5px 0 10px;
+      text-shadow: 0 1px 0 #555555;
     }
 
     .brand.cluster-name {
@@ -124,10 +170,144 @@ footer {
         animation-name: greenPulse;
         animation-duration: 1s;
         animation-iteration-count: infinite;
-        margin: 2px;
+        //margin: 2px;
       }
-    }
+      .label  {
+         padding: 3px 5px 3px;
+         color: @top-nav-ops-count-color;
+         text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+         background-color: @top-nav-ops-count-bg-color;
+       }
+      .icon-caret-left {
+        color: @top-nav-ops-count-bg-color;
+        margin-right: -1px;
+        text-shadow: none;
+      }
+      .ops-count {
+        margin-right: -1px;
+        color: #006DCC;
+        text-shadow: none;
+        -webkit-animation-name: greenPulseInner;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        -moz-animation-name: greenPulseInner;
+        -moz-animation-duration: 1s;
+        -moz-animation-iteration-count: infinite;
+        animation-name: greenPulseInner;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+      }
 
+    }
+    .top-nav-menu.nav {
+      display: block;
+      float: right;
+      padding-left: 20px;
+      overflow: visible;
+
+      li > a {
+        text-shadow: none;
+        color: @top-nav-menu-text-color;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .active > a, .active > a:hover, .active > a:focus {
+        color: @top-nav-menu-active-text-color;
+        background-color: @top-nav-menu-active-bg-color;
+        -webkit-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.125);
+        -moz-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.125);
+        box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.125);
+      }
+      li > a:focus, li > a:hover {
+        color: @top-nav-menu-text-hover-color;
+        text-decoration: none;
+        background-color: transparent;
+      }
+      .alerts-count {
+        margin: 1px;
+      }
+      .icon-th {
+        font-size: 1.3em;
+      }
+      //top-nav bar dropdown menu on hover
+      li.top-nav-dropdown {
+        position: relative;
+      }
+      .top-nav-dropdown:hover .top-nav-dropdown-menu {
+        display: block;
+
+      }
+      .top-nav-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 95%;
+        left: 0;
+        z-index: 1000;
+        float: left;
+        min-width: 160px;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        list-style: none;
+        background-color: @top-nav-menu-dropdown-bg-color;
+        border: 3px solid @top-nav-menu-dropdown-border-color;
+        -webkit-border-radius: 6px;
+        -moz-border-radius: 6px;
+        border-radius: 6px;
+        -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        -webkit-background-clip: padding-box;
+        -moz-background-clip: padding;
+        background-clip: padding-box;
+        .health-status-LIVE, .health-status-STARTING {
+          color: @health-status-green;
+        }
+        .health-status-DEAD-RED, .health-status-STOPPING {
+          color: @health-status-red;
+        }
+        .health-status-DEAD-YELLOW {
+          color: @health-status-yellow;
+        }
+        .icon-refresh {
+          color: #fdb82f;
+          margin-left: 4px;
+        }
+        .label {
+          padding: 0 0 0 3px;
+        }
+        .operations-count {
+          background: #953B39;
+        }
+      }
+      .top-nav-dropdown-menu > li{
+        position: relative;
+      }
+      .top-nav-dropdown-menu > li.active > a{
+        background-color: @top-nav-menu-dropdown-border-color;
+      }
+      .top-nav-dropdown-menu > li > a {
+        text-decoration: none;
+        text-align: left;
+        padding: 5px;
+        display: block;
+        padding: 3px 20px;
+        clear: both;
+        font-weight: normal;
+        line-height: 20px;
+        color: @top-nav-menu-dropdown-text-color;
+        white-space: nowrap;
+      }
+      .top-nav-dropdown-menu > li.active > a{
+        background-color: #e5e5e5;
+      }
+      .top-nav-dropdown-menu > li > a:hover {
+        color: #ffffff;
+        background-color: #666666;
+        background-image: linear-gradient(to bottom, #666666, #555555);
+        background-repeat: repeat-x;
+      }
+
+    }
   }
 
   .navbar .nav {
@@ -137,14 +317,19 @@ footer {
 
   .navbar-inner {
     min-height: 40px;
+    border: none;
   }
 
-  .navbar .nav .active > a, .navbar .nav .active > a:hover {
+  .top-nav-user {
+    float: right;
+  }
+  .navbar .nav .top-nav-user .active > a,
+  .navbar .nav .top-nav-user .active > a:hover {
     color: #FFFFFF;
     text-decoration: none;
   }
 
-  .navbar .nav > li > a {
+  .navbar .nav .top-nav-user > li > a {
     border-radius: 8px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
@@ -157,13 +342,13 @@ footer {
     text-shadow: none;
   }
 
-  .navbar .nav > li > a:hover {
+  .navbar .nav .top-nav-user > li > a:hover {
     background-color: transparent;
     color: #999999;
     text-decoration: none;
   }
 
-  .navbar .nav > li.right {
+  .navbar .nav .top-nav-user > li.right {
     float: right;
   }
 }
@@ -2457,12 +2642,14 @@ table.graphs {
 
 /*Dashboard Widgets Start*/
 #dashboard-widgets-container{
+  > ul.nav.nav-tabs {
+    margin-bottom: 10px;
+  }
   h4{
     line-height: 30px;
     margin-bottom: 0px;
     margin-top: 0px;
   }
-
   .add-widget-button{
     margin-top: 0px;
     margin-left: -22px;
@@ -2525,8 +2712,6 @@ table.graphs {
     padding-bottom: 9px;
     margin-right: 4px;
   }
-
-
 
   #dashboard-widgets{
     .caption {
@@ -4025,6 +4210,7 @@ ul.filter {
 
 /*Start Heatmap*/
 .heatmap {
+  padding: 5px;
   #heatmap-metric-title {
     margin-left: 23px;
   }
@@ -4054,7 +4240,11 @@ ul.filter {
     }
   }
   .legend-column {
-    min-width: 160px;
+    min-width: 150px;
+  }
+  .heatmap-content {
+    float: right;
+    width: 80%;
   }
   .heatmap_host_details {
     font-size: 12px;
@@ -4075,8 +4265,9 @@ ul.filter {
   .legend {
     margin-top: 20px;
     margin-bottom: 20px;
+    font-size: 12px;
     .tile {
-      width: 50px;
+      width: 30px;
       height: 1em;
       padding: 4px;
       border: 1px solid #D4D4D4;

@@ -53,7 +53,94 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   },
 
   tagName:'ul',
-  classNames:["nav", "nav-list", "nav-services"],
+  classNames:[ "nav", "nav-list", "nav-services"],
+
+  itemViewClass:Em.View.extend({
+
+    classNameBindings:["active", "clients"],
+    templateName:require('templates/main/service/menu_item'),
+    restartRequiredMessage: null,
+
+    shouldBeRestarted: function() {
+      return this.get('content.hostComponents').someProperty('staleConfigs', true);
+    }.property('content.hostComponents.@each.staleConfigs'),
+
+    active:function () {
+      return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
+    }.property('parentView.activeServiceId'),
+
+    alertsCount: function () {
+      return this.get('content.criticalAlertsCount');
+    }.property('content.criticalAlertsCount'),
+
+    link: function() {
+      var stateName = (['summary','configs'].contains(App.router.get('currentState.name')))
+        ? this.get('content.isConfigurable') ?  App.router.get('currentState.name') : 'summary'
+        : 'summary';
+      return "#/main/services/" + this.get('content.id') + "/" + stateName;
+    }.property('App.router.currentState.name', 'parentView.activeServiceId'),
+
+    refreshRestartRequiredMessage: function() {
+      var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
+      restarted = this.get('content.restartRequiredHostsAndComponents');
+      componentsCount = 0;
+      hostsCount = 0;
+      message = "";
+      for (var host in restarted) {
+        hostsCount++;
+        componentsCount += restarted[host].length;
+      }
+      if (hostsCount > 1) {
+        tHosts = Em.I18n.t('common.hosts');
+      } else {
+        tHosts = Em.I18n.t('common.host');
+      }
+      if (componentsCount > 1) {
+        tComponents = Em.I18n.t('common.components');
+      } else {
+        tComponents = Em.I18n.t('common.component');
+      }
+      message += componentsCount + ' ' + tComponents + ' ' + Em.I18n.t('on') + ' ' +
+        hostsCount + ' ' + tHosts + ' ' + Em.I18n.t('services.service.config.restartService.needToRestartEnd');
+      this.set('restartRequiredMessage', message);
+    }.observes('content.restartRequiredHostsAndComponents')
+  })
+
+});
+
+App.TopNavServiceMenuView = Em.CollectionView.extend({
+  disabledServices: ['HCATALOG'],
+
+  content:function () {
+    var items = App.router.get('mainServiceController.content').filter(function(item){
+      return !this.get('disabledServices').contains(item.get('id'));
+    }, this);
+    return misc.sortByOrder(App.Service.servicesSortOrder, items);
+  }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
+
+  didInsertElement:function () {
+    App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
+    this.renderOnRoute();
+    App.tooltip($(".restart-required-service"), {html:true, placement:"right"});
+  },
+
+  activeServiceId:null,
+  /**
+   *    Syncs navigation menu with requested URL
+   */
+  renderOnRoute:function () {
+    var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+    if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
+      return;
+    }
+    var reg = /^\/main\/services\/(\S+)\//g;
+    var sub_url = reg.exec(last_url);
+    var service_id = (null != sub_url) ? sub_url[1] : 1;
+    this.set('activeServiceId', service_id);
+  },
+
+  tagName:'ul',
+  classNames:[ "top-nav-dropdown-menu"],
 
   itemViewClass:Em.View.extend({
 

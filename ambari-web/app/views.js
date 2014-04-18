@@ -107,6 +107,7 @@ require('views/main/dashboard/cluster_metrics/memory');
 require('views/main/dashboard/cluster_metrics/network');
 
 require('views/main/dashboard/widget');
+require('views/main/dashboard/widgets');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widgets/uptime_text_widget');
 require('views/main/dashboard/widgets/links_widget');

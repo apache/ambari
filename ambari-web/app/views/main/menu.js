@@ -24,7 +24,7 @@ var App = require('app');
  */
 App.MainMenuView = Em.CollectionView.extend({
   tagName:'ul',
-  classNames:['nav'],
+  classNames:['nav', 'top-nav-menu'],
 
   views: function() {
     return App.router.get('clusterController.ambariViews');
@@ -33,7 +33,6 @@ App.MainMenuView = Em.CollectionView.extend({
   content:function(){
     var result = [
       { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
-      { label:Em.I18n.t('menu.item.heatmaps'), routing:'charts'},
       { label:Em.I18n.t('menu.item.services'), routing:'services'},
       { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
     ];
@@ -84,7 +83,7 @@ App.MainMenuView = Em.CollectionView.extend({
 
   itemViewClass:Em.View.extend({
 
-    classNameBindings:['active', ':span2'],
+    classNameBindings:['active', ':top-nav-dropdown'],
     active:'',
 
     alertsCount:function () {
@@ -94,6 +93,74 @@ App.MainMenuView = Em.CollectionView.extend({
       }
     }.property('App.router.mainHostController.content.@each.criticalAlertsCount'),
 
-    templateName: require('templates/main/menu_item')
+    templateName: require('templates/main/menu_item'),
+
+    dropdownMenu: function () {
+      var item = this.get('content').routing;
+      var itemsWithDropdown = ['services', 'admin', 'views'];
+      return itemsWithDropdown.contains(item);
+    }.property(''),
+    isAdminItem: function () {
+      return this.get('content').routing == 'admin';
+    }.property(''),
+    isServicesItem: function () {
+      return this.get('content').routing == 'services';
+    }.property(''),
+    isViewsItem: function () {
+      return this.get('content').routing == 'views';
+    }.property(''),
+    goToCategory: function (event) {
+      //App.router.transitionTo('admin.service.summary', service);
+      var itemName = this.get('content').routing;
+      // route to correct category of current menu item
+      if (itemName == 'admin') {
+        App.router.transitionTo('admin.' + event.context);
+      }
+    },
+    dropdownCategories: function () {
+      var itemName = this.get('content').routing;
+      var categories = [];
+      // create dropdown categories for each menu item
+      if (itemName == 'admin') {
+        categories = [{
+          name: 'user',
+          url: 'adminUser',
+          label: Em.I18n.t('common.users')
+        }];
+        if (App.get('isHadoop2Stack') && App.supports.highAvailability) {
+          categories.push({
+            name: 'highAvailability',
+            url: 'adminHighAvailability',
+            label: Em.I18n.t('admin.highAvailability')
+          });
+        }
+        if (App.supports.secureCluster) {
+          categories.push({
+            name: 'security',
+            url: 'adminSecurity.index',
+            label: Em.I18n.t('common.security')
+          });
+        }
+        categories.push({
+          name: 'cluster',
+          url: 'adminCluster',
+          label: Em.I18n.t('common.cluster')
+        });
+        categories.push({
+          name: 'misc',
+          url: 'adminMisc',
+          label: Em.I18n.t('common.misc')
+        });
+        if (App.router.get('mainAdminController.isAccessAvailable')) {
+          categories.push({
+            name: 'access',
+            url: 'adminAccess',
+            label: Em.I18n.t('common.access')
+          });
+        }
+      }
+      return categories;
+
+    }.property('')
   })
 });
