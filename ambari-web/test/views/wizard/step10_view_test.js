@@ -16,15 +16,21 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
-
-App.WizardStep10View = Em.View.extend({
-
-  templateName: require('templates/wizard/step10'),
-
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  }
-
+require('views/wizard/step10_view');
+var view;
+describe('App.WizardStep10View', function() {
+  beforeEach(function() {
+    view = App.WizardStep10View.create({
+      controller: App.WizardStep10Controller.create()
+    });
+  });
+  describe('didInsertElement', function() {
+    it('should call loadStep', function() {
+      sinon.stub(view.get('controller'), 'loadStep', Em.K);
+      view.didInsertElement();
+      expect(view.get('controller').loadStep.calledOnce).to.equal(true);
+      view.get('controller').loadStep.restore();
+    });
+  });
 });

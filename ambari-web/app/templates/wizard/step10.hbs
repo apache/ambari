@@ -31,18 +31,18 @@
       <li>
         <span {{bindAttr class="item.color"}}>{{item.displayStatement}}</span>
         <ul>
-        {{#each status in item.status}}
-          <li>
-            <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
-            <ul>
-              {{#each statement in status.statements}}
-              <li>
-                <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
-              </li>
-              {{/each}}
-            </ul>
-          </li>
-        {{/each}}
+          {{#each status in item.status}}
+            <li>
+              <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
+              <ul>
+                {{#each statement in status.statements}}
+                  <li>
+                    <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
+                  </li>
+                {{/each}}
+              </ul>
+            </li>
+          {{/each}}
         </ul>
       </li>
     {{/each}}

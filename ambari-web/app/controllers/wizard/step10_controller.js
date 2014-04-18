@@ -19,16 +19,32 @@
 var App = require('app');
 
 App.WizardStep10Controller = Em.Controller.extend({
+
+  /**
+   * List of data about installed cluster components (hosts, services etc)
+   * @type {Ember.Object[]}
+   */
   clusterInfo: [],
 
-  isNagiosRestartRequired: function() {
+  /**
+   * Show message about required Nagios restart if installWizard used and Nagios is installed
+   * @type {bool}
+   */
+  isNagiosRestartRequired: function () {
     return this.get('content.controllerName') !== 'installerController' && App.Service.find('NAGIOS').get('isLoaded');
   }.property(),
 
+  /**
+   * Clear <code>clusterInfo</code>
+   * @method clearStep
+   */
   clearStep: function () {
     this.get('clusterInfo').clear();
   },
 
+  /**
+   * @method loadStep
+   */
   loadStep: function () {
     console.log("TRACE: Loading step10: Summary Page");
     this.clearStep();
@@ -44,6 +60,11 @@ App.WizardStep10Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * Get list of clusterInfo object about registered hosts
+   * @returns {{id: number, color: string, displayStatement: string, status: array}}
+   * @method loadRegisteredHosts
+   */
   loadRegisteredHosts: function () {
     var masterHosts = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
     var slaveHosts = this.get('content.slaveComponentHosts');
@@ -54,7 +75,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     slaveHosts = hostObj.mapProperty('hostName').uniq();
     var registeredHosts = App.Host.find().mapProperty('hostName').concat(masterHosts.concat(slaveHosts)).uniq();
     var registerHostsStatement = Em.I18n.t('installer.step10.hostsSummary').format(registeredHosts.length);
-    var registerHostsObj = Ember.Object.create({
+    var registerHostsObj = Em.Object.create({
       id: 1,
       color: 'text-info',
       displayStatement: registerHostsStatement,
@@ -65,17 +86,25 @@ App.WizardStep10Controller = Em.Controller.extend({
     return registerHostsObj;
   },
 
-  loadInstalledHosts: function (host) {
+  /**
+   * Push info about installed hosts to <code>clusterInfo</code>
+   * @method loadInstalledHosts
+   */
+  loadInstalledHosts: function () {
     var hosts = this.get('content.hosts');
     var hostsInfo = [];
     for (var index in hosts) {
-      hostsInfo.pushObject(hosts[index]);
+      if (hosts.hasOwnProperty(index)) {
+        hostsInfo.pushObject(hosts[index]);
+      }
     }
     var succeededHosts = hostsInfo.filterProperty('status', 'success');
-    var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
+    var warnedHosts = hostsInfo.filter(function(host) {
+      return ['warning', 'failed'].contains(host.get('status'));
+    });
     if (succeededHosts.length) {
       var successStatement = Em.I18n.t('installer.step10.servicesSummary').format(succeededHosts.length) + ((succeededHosts.length > 1) ? Em.I18n.t('installer.step8.hosts') : Em.I18n.t('installer.step8.host'));
-      this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
+      this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Em.Object.create({
         id: 1,
         color: 'text-success',
         displayStatement: successStatement
@@ -84,67 +113,60 @@ App.WizardStep10Controller = Em.Controller.extend({
 
     if (warnedHosts.length) {
       var warnStatement = warnedHosts.length + Em.I18n.t('installer.step10.warnings');
-      this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Ember.Object.create({
+      this.get('clusterInfo').findProperty('id', 1).get('status').pushObject(Em.Object.create({
         id: 2,
         color: 'text-warning',
         displayStatement: warnStatement,
         statements: []
       }));
-
       warnedHosts.forEach(function (_host) {
-        var clusterState;
-        console.log("Content.cluster.status is: " + this.get('content.cluster.status'));
+        var clusterState = '';
         if (this.get('content.cluster.status') === 'INSTALL FAILED') {
           clusterState = Em.I18n.t('installer.step10.clusterState.installing');
-        } else if (this.get('content.cluster.status') === 'START FAILED') {
-          clusterState = Em.I18n.t('installer.step10.clusterState.starting');
         }
-        var failedTasks = _host.tasks.filterProperty('Tasks.status', 'FAILED');
-        failedTasks.forEach(function (_task) {
-          var taskStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;
-          this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
-            status: 'failed',
-            color: 'text-info',
-            displayStatement: taskStatement
-          }));
-        }, this);
+        else {
+          if (this.get('content.cluster.status') === 'START FAILED') {
+            clusterState = Em.I18n.t('installer.step10.clusterState.starting');
+          }
+        }
 
-        var abortedTasks = _host.tasks.filterProperty('Tasks.status', 'ABORTED');
-        abortedTasks.forEach(function (_task) {
-          var abortStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.aborted') + _host.name;
-          this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
-            status: 'aborted',
-            color: 'text-info',
-            displayStatement: abortStatement
-          }));
-        }, this);
-
-        var timedOutTasks = _host.tasks.filterProperty('Tasks.status', 'TIMEDOUT');
-        timedOutTasks.forEach(function (_task) {
-          var timedOutStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.timedOut') + _host.name;
-          this.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Ember.Object.create({
-            status: 'timedout',
-            color: 'text-info',
-            displayStatement: timedOutStatement
-          }));
-        }, this);
+        var self = this;
+        Em.A([
+            {Tst: 'FAILED', st: 'failed'},
+            {Tst: 'ABORTED', st: 'aborted'},
+            {Tst: 'TIMEDOUT', st: 'timedout'}
+          ]).forEach(function (s) {
+            _host.tasks.filterProperty('Tasks.status', s.Tst).forEach(function (_task) {
+              var statement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;
+              self.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').pushObject(Em.Object.create({
+                status: s.st,
+                color: 'text-info',
+                displayStatement: statement
+              }));
+            });
+          });
       }, this);
     }
   },
 
+  /**
+   * Push info about installed/failed master components to <code>clusterInfo</code>
+   * @returns {bool}
+   * @method loadMasterComponents
+   */
   loadMasterComponents: function () {
     var components = this.get('content.masterComponentHosts');
-    var statement;
     if (this.get('content.cluster.status') === 'INSTALL FAILED') {
-      this.get('clusterInfo').pushObject(Ember.Object.create({
+      this.get('clusterInfo').pushObject(Em.Object.create({
         id: 2,
         displayStatement: Em.I18n.t('installer.step10.installStatus.failed'),
         color: 'text-error',
         status: []
       }));
       return false;
-    } else {
-      this.get('clusterInfo').pushObject(Ember.Object.create({
+    }
+    else {
+      this.get('clusterInfo').pushObject(Em.Object.create({
         id: 2,
         displayStatement: Em.I18n.t('installer.step10.installStatus.installed'),
         color: 'text-success',
@@ -154,207 +176,45 @@ App.WizardStep10Controller = Em.Controller.extend({
 
     console.log('STEP10 master components:  ' + JSON.stringify(components));
     components.forEach(function (_component) {
-      var component = Ember.Object.create(_component);
-      switch (component.component) {
-        case 'NAMENODE':
-          this.loadNn(component);
-          break;
-        case 'SECONDARY_NAMENODE':
-          this.loadSnn(component);
-          break;
-        case 'JOBTRACKER' :
-          this.loadJt(component);
-          break;
-        case 'HISTORYSERVER':
-          this.loadHS(component);
-          break;
-        case 'RESOURCEMANAGER':
-          this.loadRM(component);
-          break;
-        case 'ZOOKEEPER_SERVER' :
-          // TODO: Fix this; redundant entries and wrong number
-          //this.loadZk(component);
-          break;
-        case 'HBASE_MASTER':
-          this.loadHb(component);
-          break;
-        case 'HIVE_SERVER':
-          this.loadHiveServer(component);
-          break;
-        case 'OOZIE_SERVER':
-          this.loadOozieServer(component);
-          break;
-        case 'GANGLIA_SERVER':
-          this.loadGanglia(component);
-          break;
-        case 'NAGIOS_SERVER':
-          this.loadNagios(component);
-          break;
+      var component = Em.Object.create(_component);
+      if (['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'HBASE_MASTER',
+        'HIVE_SERVER', 'OOZIE_SERVER', 'GANGLIA_SERVER', 'NAGIOS_SERVER'].contains(component.component)) {
+        this.loadMasterComponent(component);
       }
     }, this);
     return true;
   },
 
-  loadHS: function (component) {
+  /**
+   * Push component info to <code>clusterInfo</code>
+   * @param {Ember.Object} component
+   * @method loadMasterComponent
+   */
+  loadMasterComponent: function (component) {
     if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.historyServer') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
+      var statement = Em.I18n.t('installer.step10.master.installedOn').format(component.get('display_name'), component.get('hostName'));
+      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Em.Object.create({
         id: 1,
         color: 'text-info',
         displayStatement: statement
       }));
-    } else {
-      console.log('ERROR: no host name assigned to HistoryServer component');
     }
   },
 
-  loadRM: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.resourceManager') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to ResourceManager component');
-    }
-  },
-
-  loadNn: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.nameNode') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to NameNode component');
-    }
-  },
-
-  loadSnn: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.secondaryNameNode') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to SecondaryNameNode component');
-    }
-  },
-
-  loadJt: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.jobTracker') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to JobTracker component');
-    }
-  },
-
-  loadZk: function (component) {
-    var hostLength = component.get('hostName').length;
-    if (hostLength) {
-      var hostVal;
-      if (hostLength === 1) {
-        hostVal = Em.I18n.t('installer.step8.host');
-      } else {
-        hostVal = Em.I18n.t('installer.step8.hosts');
-      }
-      var statement = Em.I18n.t('installer.step10.master.zooKeeper') + component.get('hostName').length + ' ' + hostVal;
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to Zookeeper component');
-    }
-  },
-
-  loadHb: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.hbase') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to HBase Master component');
-    }
-  },
-
-  loadHiveServer: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.hiveMetastore') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to Hive server component');
-    }
-  },
-
-  loadOozieServer: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.oozie') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to Oozie server component');
-    }
-  },
-
-  loadGanglia: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.ganglia') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to Ganglia server component');
-    }
-  },
-
-  loadNagios: function (component) {
-    if (component.get('hostName')) {
-      var statement = Em.I18n.t('installer.step10.master.nagios') + component.get('hostName');
-      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
-        id: 1,
-        color: 'text-info',
-        displayStatement: statement
-      }));
-    } else {
-      console.log('ERROR: no host name assigned to Nagios server component');
-    }
-  },
-
-  loadStartedServices: function (component) {
+  /**
+   * Push info about installed/started/failed services to <code>clusterInfo</code>
+   * @returns {bool}
+   * @method loadStartedServices
+   */
+  loadStartedServices: function () {
     if (this.get('content.cluster.status') === 'STARTED') {
-      var statement = Em.I18n.t('installer.step10.startStatus.started');
-      this.get('clusterInfo').pushObject(Ember.Object.create({
+      this.get('clusterInfo').pushObject(Em.Object.create({
         id: 3,
         color: 'text-success',
         displayStatement: Em.I18n.t('installer.step10.startStatus.started'),
         status: []
       }));
-      this.get('clusterInfo').pushObject(Ember.Object.create({
+      this.get('clusterInfo').pushObject(Em.Object.create({
         id: 4,
         color: 'text-success',
         displayStatement: Em.I18n.t('installer.step10.startStatus.passed'),
@@ -362,7 +222,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       }));
       return true;
     } else {
-      this.get('clusterInfo').pushObject(Ember.Object.create({
+      this.get('clusterInfo').pushObject(Em.Object.create({
         id: 3,
         color: 'text-error',
         displayStatement: Em.I18n.t('installer.step10.startStatus.failed'),
@@ -372,9 +232,12 @@ App.WizardStep10Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * Push install time to <code>clusterInfo</code>
+   * @method loadInstallTime
+   */
   loadInstallTime: function () {
-    var statement;
-    var time;
+    var statement, time;
     if (this.get('content.cluster.installTime')) {
       time = this.calculateInstallTime(this.get('content.cluster.installTime'));
       if (time.minutes !== 0) {
@@ -382,7 +245,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       } else {
         statement = Em.I18n.t('installer.step10.installTime.seconds').format(time.seconds);
       }
-      this.get('clusterInfo').pushObject(Ember.Object.create({
+      this.get('clusterInfo').pushObject(Em.Object.create({
         id: 5,
         color: 'text-info',
         displayStatement: statement,
@@ -390,7 +253,14 @@ App.WizardStep10Controller = Em.Controller.extend({
       }));
     }
   },
-  calculateInstallTime: function(installTime){
+
+  /**
+   * Get used time for install process
+   * @param {number} installTime
+   * @returns {{minutes: *, seconds: *}}
+   * @method calculateInstallTime
+   */
+  calculateInstallTime: function (installTime) {
     var secondsPerMinute = 60;
     var minutes = Math.floor(installTime);
     var seconds = Math.floor((installTime - minutes) * secondsPerMinute);
@@ -399,5 +269,5 @@ App.WizardStep10Controller = Em.Controller.extend({
       seconds: seconds
     }
   }
-});
 
+});
