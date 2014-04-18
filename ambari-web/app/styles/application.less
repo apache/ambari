@@ -250,9 +250,6 @@ footer {
         list-style: none;
         background-color: @top-nav-menu-dropdown-bg-color;
         border: 3px solid @top-nav-menu-dropdown-border-color;
-        -webkit-border-radius: 6px;
-        -moz-border-radius: 6px;
-        border-radius: 6px;
         -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
@@ -1158,18 +1155,15 @@ a:focus {
 /*****start styles for boxes*****/
 .box {
   border: 1px solid #D4D4D4;
-  border-radius: 4px;
   margin-bottom: 20px;
 
   .box-header {
     border-bottom: 1px solid #D4D4D4;
-    border-radius: 4px 4px 0 0;
   }
   .box-header,
   .box-footer {
     padding: 4px 4px 4px 10px;
-  /*background: #dedede;*/
-    .gradient(#dedede, #ffffff, #dedede)
+    background: #f5f5f5;
   }
   .box-header:after,
   .box-footer:after {
@@ -1196,6 +1190,57 @@ a:focus {
 }
 
 /*****end styles for boxes*****/
+
+/*****start styles for well *****/
+.well {
+  border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+/*****end styles for well *****/
+
+
+/*****start styles for table*****/
+.table-bordered {
+  border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  thead:first-child tr:first-child th:first-child,
+  tbody:first-child tr:first-child td:first-child,
+  thead:first-child tr:first-child th:last-child,
+  tbody:first-child tr:first-child td:last-child {
+    -webkit-border-top-left-radius: 0px;
+    border-top-left-radius: 0px;
+    -moz-border-radius-topleft: 0px;
+  }
+}
+/*****end styles for table*****/
+
+/**********start styles for thumbnail ****************/
+.thumbnail {
+  border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+/**********end styles for thumbnail ****************/
+
+/**********start styles for dropdown-menu, accordion-group ****************/
+.dropdown-menu,
+.nav-pills .dropdown-menu,
+.accordion-group {
+  border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+}
+/**********end styles for dropdown-menu ****************/
+
+
 
 /*90% width modal window start*/
 .full-width-modal {
