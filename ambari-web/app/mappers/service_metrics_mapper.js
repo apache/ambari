@@ -136,10 +136,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     nimbus_uptime: 'restApiComponent.metrics.api.cluster.summary.["nimbus.uptime"]'
   },
   flumeAgentConfig: {
-    id: 'HostComponentProcess.name',
     name: 'HostComponentProcess.name',
     status: 'HostComponentProcess.status',
-    host_id: 'HostComponentProcess.host_name'
+    host_id: 'HostComponentProcess.host_name',
+    channels_count: 'HostComponentProcess.channels_count',
+    sources_count: 'HostComponentProcess.sources_count',
+    sinks_count: 'HostComponentProcess.sinks_count'
   },
 
   model3: App.HostComponent,
@@ -224,8 +226,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.FlumeService, finalJson);
-          var agentsJson = this.flumeAgentMapper(item);
-          App.store.loadMany(App.FlumeAgent, agentsJson);
+          App.store.loadMany(App.FlumeAgent, finalJson.agentJsons);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
           finalJson = this.yarnMapper(item);
           finalJson.rand = Math.random();
@@ -572,18 +573,22 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
    * data into the JSON object.
    */
   flumeMapper: function (item) {
-    var finalJson = this.parseIt(item, this.config);
-    finalJson.agents = item.components[0].host_components[0].processes.mapProperty('HostComponentProcess.name');
+    var self = this;
+    var finalJson = self.parseIt(item, self.config);
+    var flumeHandlers = item.components[0].host_components;
+    finalJson.agents = [];
+    finalJson.agentJsons = [];
+    flumeHandlers.forEach(function(flumeHandler){
+      var hostName = flumeHandler.HostRoles.host_name;
+      flumeHandler.processes.forEach(function(process){
+        var agentJson = self.parseIt(process, self.flumeAgentConfig);
+        var agentId = agentJson.name + "-" + hostName;
+        finalJson.agents.push(agentId);
+        agentJson.id = agentId;
+        finalJson.agentJsons.push(agentJson);
+      });
+    });
     return finalJson;
-  },
-
-  flumeAgentMapper: function (item) {
-    var dataToParse = item.components[0].host_components[0].processes;
-    var result = [];
-    dataToParse.forEach(function(dataItem){
-      result.push(this.parseIt(dataItem, this.flumeAgentConfig));
-    }, this);
-    return result;
   },
 
   /**

@@ -23,6 +23,11 @@ App.FlumeService = App.Service.extend({
 });
 
 App.FlumeAgent = DS.Model.extend({
+  /**
+   * ID of a flume agent will be of the format
+   * '<agent-name>-<host-name>'
+   */
+  id: DS.attr('string'),
   name: DS.attr('string'),
   /**
    * Status of agent. One of 'STARTED', 'INSTALLED', 'UNKNOWN'.
@@ -30,51 +35,9 @@ App.FlumeAgent = DS.Model.extend({
   status: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
 
-  /**
-   * A comma separated list of channels.
-   */
-  channels: DS.attr('string'),
-
-  /**
-   * A comma separated list of sources.
-   */
-  sources: DS.attr('string'),
-
-  /**
-   * A comma separated list of sinks.
-   */
-  sinks: DS.attr('string'),
-
-  hostName: function () {
-    return this.get('host.hostName');
-  }.property('host.hostName'),
-
-  channelsCount: function() {
-    var channels = this.get('channels');
-    if (!channels) {
-      return 0;
-    } else {
-      return channels.split(',').length;
-    }
-  }.property('channels'),
-
-  sourcesCount: function() {
-    var sources = this.get('sources');
-    if (!sources) {
-      return 0;
-    } else {
-      return sources.split(',').length;
-    }
-  }.property('sources'),
-
-  sinksCount: function() {
-    var sinks = this.get('sinks');
-    if (!sinks) {
-      return 0;
-    } else {
-      return sinks.split(',').length;
-    }
-  }.property('sinks'),
+  channelsCount: DS.attr('number'),
+  sourcesCount: DS.attr('number'),
+  sinksCount: DS.attr('number'),
 
   healthClass : function() {
     switch (this.get('status')) {
