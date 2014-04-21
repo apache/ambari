@@ -341,19 +341,19 @@ limitations under the License.
   <property>
     <name>hive.tez.container.size</name>
     <value>3000000000</value>
-    <description></description>
+    <description>By default, Tez uses the java options from map tasks. Use this property to override that value. Assigned value must match value specified for mapreduce.map.child.java.opts.</description>
   </property>
 
   <property>
     <name>hive.tez.input.format</name>
     <value>org.apache.hadoop.hive.ql.io.HiveInputFormat</value>
-    <description></description>
+    <description>The default input format for Tez. Tez groups splits in the Application Master.</description>
   </property>
 
   <property>
     <name>hive.tez.java.opts</name>
     <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC</value>
-    <description></description>
+    <description>Java command line options for Tez. Must be assigned the same value as mapreduce.map.child.java.opts.</description>
   </property>
 
   <property>
@@ -390,13 +390,13 @@ limitations under the License.
   <property>
     <name>hive.server2.tez.sessions.per.default.queue</name>
     <value>1</value>
-    <description></description>
+    <description>The number of sessions for each queue named in the hive.server2.tez.default.queues.</description>
   </property>
 
   <property>
     <name>hive.server2.tez.initialize.default.sessions</name>
     <value>false</value>
-    <description></description>
+    <description>Enables a user to use HiveServer2 without enabling Tez for HiveServer2. Users may potentially may want to run queries with Tez without a pool of sessions.</description>
   </property>
 
   <property>

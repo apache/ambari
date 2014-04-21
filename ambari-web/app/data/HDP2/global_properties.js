@@ -125,6 +125,20 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "namenode_opt_maxnewsize",
+      "displayName": "NameNode maximum new generation size",
+      "description": "Maximum size of Java new generation for NameNode (Java option -XX:MaxnewSize).",
+      "defaultValue": "200",
+      "displayType": "int",
+      "unit": "MB",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "category": "NameNode",
+      "index": 4
+    },
+    {
+      "id": "puppet var",
       "name": "snamenode_host",
       "displayName": "SNameNode host",
       "value": "",
@@ -206,19 +220,6 @@ module.exports =
       "isVisible": true,
       "serviceName": "HDFS",
       "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "namenode_opt_maxnewsize",
-      "displayName": "NameNode maximum new generation size",
-      "description": "",
-      "defaultValue": "200",
-      "displayType": "int",
-      "unit": "MB",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "HDFS",
-      "category": "NameNode"
     },
     {
       "id": "puppet var",

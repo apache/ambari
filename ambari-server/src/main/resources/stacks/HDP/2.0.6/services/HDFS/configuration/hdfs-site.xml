@@ -243,7 +243,7 @@
   <property>
     <name>dfs.datanode.max.transfer.threads</name>
     <value>1024</value>
-    <description>PRIVATE CONFIG VARIABLE</description>
+    <description>Specifies the maximum number of threads to use for transferring data in and out of the datanode.</description>
   </property>
 
   <!-- Permissions configuration -->
