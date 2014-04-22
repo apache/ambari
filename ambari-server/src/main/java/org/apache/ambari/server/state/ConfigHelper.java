@@ -236,10 +236,14 @@ public class ConfigHelper {
    */
   public boolean isStaleConfigs(ServiceComponentHost sch) throws AmbariException {
 
-    Map<String, HostConfig> actual = sch.getActualConfigs();
+    if (sch.isRestartRequired()) {
+      return true;
+    }
+
+    Map <String, HostConfig> actual = sch.getActualConfigs();
     if (null == actual || actual.isEmpty())
       return false;
-    
+
     Cluster cluster = clusters.getClusterById(sch.getClusterId());
     StackId stackId = cluster.getDesiredStackVersion();
     

@@ -16,15 +16,85 @@
    limitations under the License.
 -->
 <metainfo>
-    <user>root</user>
-    <comment>Nagios Monitoring and Alerting system</comment>
-    <version>3.5.0</version>
-
-    <components>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>NAGIOS</name>
+      <comment>Nagios Monitoring and Alerting system</comment>
+      <version>3.5.0</version>
+      <components>
         <component>
-            <name>NAGIOS_SERVER</name>
-            <category>MASTER</category>
+          <name>NAGIOS_SERVER</name>
+          <category>MASTER</category>
+          <commandScript>
+            <script>scripts/nagios_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
         </component>
-    </components>
-
+      </components>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>perl</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>perl-Net-SNMP</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>nagios-plugins</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>nagios</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>nagios-www</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>nagios-devel</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>fping</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>hdp_mon_nagios_addons</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse11</osFamily>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php5-json</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>apache2-mod_php5</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5</osFamily>
+          <packages>
+            <package>
+              <type>rpm</type>
+              <name>php-pecl-json.x86_64</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <monitoringService>true</monitoringService>
+    </service>
+  </services>
 </metainfo>

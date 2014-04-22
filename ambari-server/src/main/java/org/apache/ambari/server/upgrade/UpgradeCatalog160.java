@@ -56,6 +56,11 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     dbAccessor.createTable("hostgroup_configuration", columns, "blueprint_name",
         "hostgroup_name", "type_name");
 
+    //=========================================================================
+    // Add columns
+    dbAccessor.addColumn("hostcomponentdesiredstate",
+      new DBAccessor.DBColumnInfo("restart_required", Boolean.class, 1, 0, false));
+
     // ========================================================================
     // Add constraints
     dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name",

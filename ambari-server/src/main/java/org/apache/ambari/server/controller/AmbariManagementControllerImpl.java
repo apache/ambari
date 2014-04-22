@@ -497,23 +497,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new DuplicateResourceException(msg + names.toString());
     }
 
+    // set restartRequired flag for  monitoring services
+    setMonitoringServicesRestartRequired(requests);
     // now doing actual work
     persistServiceComponentHosts(requests);
   }
 
   @Transactional
-  void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests) throws AmbariException {
+  void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
+    throws AmbariException {
+
     for (ServiceComponentHostRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = s.getServiceComponent(
           request.getComponentName());
-
-      StackId stackId = sc.getDesiredStackVersion();
-      ComponentInfo compInfo = ambariMetaInfo.getComponentCategory(
-          stackId.getStackName(), stackId.getStackVersion(),
-          s.getName(), sc.getName());
-      boolean isClient = compInfo.isClient();
 
       ServiceComponentHost sch =
           serviceComponentHostFactory.createNew(sc, request.getHostname());
@@ -528,6 +526,39 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       sc.addServiceComponentHost(sch);
       sch.persist();
+    }
+  }
+
+  private void setMonitoringServicesRestartRequired(
+    Set<ServiceComponentHostRequest> requests) throws AmbariException {
+
+    for (ServiceComponentHostRequest request : requests) {
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+
+      StackId stackId = cluster.getCurrentStackVersion();
+      List<String> monitoringServices = ambariMetaInfo.getMonitoringServiceNames(
+        stackId.getStackName(), stackId.getStackVersion());
+
+      for (String serviceName : monitoringServices) {
+        if (cluster.getServices().containsKey(serviceName)) {
+          Service service = cluster.getService(serviceName);
+
+          for (ServiceComponent sc : service.getServiceComponents().values()) {
+            if (sc.isMasterComponent()) {
+              for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+                sch.setRestartRequired(true);
+              }
+              continue;
+            }
+
+            String hostname = request.getHostname();
+            if (sc.getServiceComponentHosts().containsKey(hostname)) {
+              ServiceComponentHost sch = sc.getServiceComponentHost(hostname);
+              sch.setRestartRequired(true);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -2116,6 +2147,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
+    // set restartRequired flag for  monitoring services
+    if (!safeToRemoveSCHs.isEmpty()) {
+      setMonitoringServicesRestartRequired(requests);
+    }
     return null;
   }
 

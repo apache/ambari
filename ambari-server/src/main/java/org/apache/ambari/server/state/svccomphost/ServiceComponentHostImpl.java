@@ -1438,6 +1438,35 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       clusterGlobalLock.readLock().unlock();
     }
   }
-  
-  
+
+  @Override
+  public boolean isRestartRequired() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return desiredStateEntity.isRestartRequired();
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setRestartRequired(boolean restartRequired) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        desiredStateEntity.setRestartRequired(restartRequired);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
 }

@@ -339,6 +339,7 @@ public class HeartBeatHandler {
               LOG.info("Updating applied config on service " + scHost.getServiceName() +
                   ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
               scHost.updateActualConfigs(report.getConfigurationTags());
+              scHost.setRestartRequired(false);
             }
 
             if (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
@@ -354,6 +355,7 @@ public class HeartBeatHandler {
                     "START".equals(report.getCustomCommand()))) {
               scHost.handleEvent(new ServiceComponentHostStartedEvent(schName,
                   hostname, now));
+              scHost.setRestartRequired(false);
             } else if (RoleCommand.STOP.toString().equals(report.getRoleCommand()) ||
                 (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
                     "STOP".equals(report.getCustomCommand()))) {

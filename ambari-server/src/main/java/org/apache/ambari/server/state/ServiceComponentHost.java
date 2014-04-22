@@ -136,5 +136,14 @@ public interface ServiceComponentHost {
    */
   public List<Map<String, String>> getProcesses();
 
-  
+  /**
+   * @return whether restart required
+   */
+  public boolean isRestartRequired();
+
+  /**
+   * @param restartRequired the restartRequired flag
+   */
+  public void setRestartRequired(boolean restartRequired);
+
 }

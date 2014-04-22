@@ -339,7 +339,8 @@ public class TestHeartbeatHandler {
         getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
     serviceComponentHost1.setState(State.INSTALLED);
     serviceComponentHost2.setState(State.STARTED);
-
+    serviceComponentHost1.setRestartRequired(true);
+    serviceComponentHost2.setRestartRequired(true);
 
     HeartBeat hb = new HeartBeat();
     hb.setResponseId(0);
@@ -376,13 +377,17 @@ public class TestHeartbeatHandler {
     reports.add(crn);
     hb.setReports(reports);
 
+    assertTrue(serviceComponentHost1.isRestartRequired());
+
     handler.handleHeartBeat(hb);
 
     // the heartbeat test passed if actual configs is populated
     State componentState1 = serviceComponentHost1.getState();
     assertEquals(State.STARTED, componentState1);
+    assertFalse(serviceComponentHost1.isRestartRequired());
     State componentState2 = serviceComponentHost2.getState();
     assertEquals(State.INSTALLED, componentState2);
+    assertTrue(serviceComponentHost2.isRestartRequired());
   }
 
   @Test

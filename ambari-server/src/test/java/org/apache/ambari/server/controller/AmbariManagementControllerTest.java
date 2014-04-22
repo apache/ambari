@@ -133,7 +133,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
 
 public class AmbariManagementControllerTest {
 
@@ -1172,9 +1171,15 @@ public class AmbariManagementControllerTest {
     Cluster foo = clusters.getCluster("foo");
     Cluster c1 = clusters.getCluster("c1");
     Cluster c2 = clusters.getCluster("c2");
-    foo.setDesiredStackVersion(new StackId("HDP-0.2"));
-    c1.setDesiredStackVersion(new StackId("HDP-0.2"));
-    c2.setDesiredStackVersion(new StackId("HDP-0.2"));
+    StackId stackId = new StackId("HDP-0.2");
+    foo.setDesiredStackVersion(stackId);
+    foo.setCurrentStackVersion(stackId);
+    stackId = new StackId("HDP-0.2");
+    c1.setDesiredStackVersion(stackId);
+    c1.setCurrentStackVersion(stackId);
+    stackId = new StackId("HDP-0.2");
+    c2.setDesiredStackVersion(stackId);
+    c2.setCurrentStackVersion(stackId);
 
     try {
       set1.clear();
@@ -9362,6 +9367,56 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(hrc1);
     Assert.assertNotNull(hrc2);
     Assert.assertNull(hrc3);
+  }
+
+  @Test
+  public void setMonitoringServicesRestartRequired() throws Exception {
+    String clusterName = "c1";
+    createCluster(clusterName);
+    Cluster cluster = clusters.getCluster(clusterName);
+    StackId stackId = new StackId("HDP-2.0.5");
+    cluster.setDesiredStackVersion(stackId);
+    cluster.setCurrentStackVersion(stackId);
+
+    String hdfsService = "HDFS";
+    String nagiosService = "NAGIOS";
+    createService(clusterName, hdfsService, null);
+    createService(clusterName, nagiosService, null);
+
+    String namenode = "NAMENODE";
+    String datanode = "DATANODE";
+    String hdfsClient = "HDFS_CLIENT";
+    String nagiosServer = "NAGIOS_SERVER";
+    createServiceComponent(clusterName, hdfsService, namenode,
+      State.INIT);
+    createServiceComponent(clusterName, hdfsService, datanode,
+      State.INIT);
+    createServiceComponent(clusterName, nagiosService, nagiosServer,
+      State.INIT);
+
+    String host1 = "h1";
+
+    addHost(host1, clusterName);
+    createServiceComponentHost(clusterName, hdfsService, namenode, host1, null);
+    createServiceComponentHost(clusterName, hdfsService, datanode, host1, null);
+    createServiceComponentHost(clusterName, nagiosService, nagiosServer, host1,
+      null);
+
+
+    ServiceComponentHost nagiosSch = null;
+    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(host1)) {
+      if (sch.getServiceComponentName().equals(nagiosServer)) {
+        nagiosSch = sch;
+      }
+    }
+    assertFalse(nagiosSch.isRestartRequired());
+
+    createServiceComponent(clusterName, hdfsService, hdfsClient,
+      State.INIT);
+    createServiceComponentHost(clusterName, hdfsService, hdfsClient, host1, null);
+
+    assertTrue(nagiosSch.isRestartRequired());
+
   }
 
   @Test

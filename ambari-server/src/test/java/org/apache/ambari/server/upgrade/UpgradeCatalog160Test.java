@@ -53,10 +53,11 @@ public class UpgradeCatalog160Test {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Capture<List<DBAccessor.DBColumnInfo>> hgConfigcolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
-    setBPHostGroupConfigExpectations(dbAccessor, hgConfigcolumnCapture);
+    setBPHostGroupConfigExpectations(dbAccessor, hgConfigcolumnCapture, restartRequiredColumnCapture);
 
     replay(dbAccessor, configuration);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
@@ -69,6 +70,7 @@ public class UpgradeCatalog160Test {
     verify(dbAccessor, configuration);
 
     assertHGConfigColumns(hgConfigcolumnCapture);
+    assertRestartRequiredColumn(restartRequiredColumnCapture);
   }
 
   @Test
@@ -98,10 +100,15 @@ public class UpgradeCatalog160Test {
     return injector.getInstance(UpgradeCatalog160.class);
   }
 
-  private void setBPHostGroupConfigExpectations(DBAccessor dbAccessor, Capture<List<DBAccessor.DBColumnInfo>> columnCapture) throws SQLException {
+  private void setBPHostGroupConfigExpectations(DBAccessor dbAccessor,
+    Capture<List<DBAccessor.DBColumnInfo>> columnCapture,
+    Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture) throws SQLException {
+
     dbAccessor.createTable(eq("hostgroup_configuration"), capture(columnCapture),
         eq("blueprint_name"), eq("hostgroup_name"), eq("type_name"));
 
+    dbAccessor.addColumn(eq("hostcomponentdesiredstate"),
+      capture(restartRequiredColumnCapture));
 
     dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_blueprint_name",
         "blueprint_name", "hostgroup", "blueprint_name", true);
@@ -140,4 +147,16 @@ public class UpgradeCatalog160Test {
     assertNull(column.getDefaultValue());
     assertFalse(column.isNullable());
   }
+
+  private void assertRestartRequiredColumn(
+    Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture) {
+    DBAccessor.DBColumnInfo column = restartRequiredColumnCapture.getValue();
+    assertEquals("restart_required", column.getName());
+    assertEquals(1, (int) column.getLength());
+    assertEquals(Boolean.class, column.getType());
+    assertEquals(0, column.getDefaultValue());
+    assertFalse(column.isNullable());
+
+  }
+
 }

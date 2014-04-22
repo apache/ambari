@@ -57,6 +57,10 @@ public class ServiceInfo {
   @XmlElementWrapper(name="configuration-dependencies")
   @XmlElement(name="config-type")
   private List<String> configDependencies;
+
+  @JsonIgnore
+  @XmlElement(defaultValue = "false")
+  private boolean monitoringService;
   
   @XmlTransient
   private File metricsFile = null;
@@ -382,4 +386,11 @@ public class ServiceInfo {
     return configDir;
   }
 
+  public boolean isMonitoringService() {
+    return monitoringService;
+  }
+
+  public void setMonitoringService(boolean monitoringService) {
+    this.monitoringService = monitoringService;
+  }
 }

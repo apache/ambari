@@ -95,6 +95,7 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <monitoringService>true</monitoringService>
     </service>
   </services>
 </metainfo>

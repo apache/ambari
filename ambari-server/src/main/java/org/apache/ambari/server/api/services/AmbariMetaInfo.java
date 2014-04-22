@@ -466,12 +466,25 @@ public class AmbariMetaInfo {
     return serviceInfoResult;
   }
 
-  public List<ServiceInfo> getSupportedServices(String stackName, String version) throws AmbariException {
+  public List<ServiceInfo> getSupportedServices(String stackName, String version)
+    throws AmbariException {
     List<ServiceInfo> servicesResult = null;
     StackInfo stack = getStackInfo(stackName, version);
     if (stack != null)
       servicesResult = stack.getServices();
     return servicesResult;
+  }
+
+  public List<String> getMonitoringServiceNames(String stackName, String version)
+    throws AmbariException{
+
+    List<String> monitoringServices = new ArrayList<String>();
+    for (ServiceInfo service : getSupportedServices(stackName, version)) {
+      if (service.isMonitoringService()) {
+        monitoringServices.add(service.getName());
+      }
+    }
+    return monitoringServices;
   }
 
   public List<StackInfo> getSupportedStacks() {

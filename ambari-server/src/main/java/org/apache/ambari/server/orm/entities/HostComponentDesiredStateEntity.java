@@ -74,6 +74,10 @@ public class HostComponentDesiredStateEntity {
   @Column(name="maintenance_state", nullable = false, insertable = true, updatable = true)
   private MaintenanceState maintenanceState = MaintenanceState.OFF;
 
+  @Basic
+  @Column(name = "restart_required", insertable = true, updatable = true, nullable = false)
+  private Boolean restartRequired = false;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -185,4 +189,11 @@ public class HostComponentDesiredStateEntity {
     this.hostEntity = hostEntity;
   }
 
+  public boolean isRestartRequired() {
+    return restartRequired;
+  }
+
+  public void setRestartRequired(boolean restartRequired) {
+    this.restartRequired = restartRequired;
+  }
 }
