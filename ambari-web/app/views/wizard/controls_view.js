@@ -222,7 +222,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
               dbClass.set('value', "com.mysql.jdbc.Driver");
               break;
-            case 'Existing Postgresql Database':
+            case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
               connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
               dbClass.set('value', "org.postgresql.Driver");
               break;
@@ -241,7 +241,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName'));
               dbClass.set('value', "com.mysql.jdbc.Driver");
               break;
-            case 'Existing Postgresql Database':
+            case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
               connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
               dbClass.set('value', "org.postgresql.Driver");
               break;
@@ -282,7 +282,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
         case 'Existing MySQL Database':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mysql_host');
           break;
-        case 'Existing Postgresql Database':
+        case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_postgresql_host');
           break;
         case 'Existing Oracle Database':
@@ -303,7 +303,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
         case 'Existing MySQL Database':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mysql_host');
           break;
-        case 'Existing Postgresql Database':
+        case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
           hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_postgresql_host');
           break;
         case 'Existing Oracle Database':

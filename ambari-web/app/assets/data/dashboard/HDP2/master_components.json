@@ -2,6 +2,86 @@
   "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/?ServiceComponentInfo/category=MASTER&fields=ServiceComponentInfo/MasterActiveTime,host_components/metrics/jvm/memHeapUsedM,host_components/metrics/jvm/memHeapCommittedM,host_components/metrics/mapred/jobtracker/trackers_decommissioned,host_components/metrics/cpu/cpu_wio,host_components/metrics/rpc/RpcQueueTime_avg_time,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/BlocksTotal,host_components/metrics/dfs/FSNamesystem/CorruptBlocks,host_components/metrics/dfs/FSNamesystem/MissingBlocks,host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,host_components/metrics/dfs/namenode/Version,host_components/metrics/dfs/namenode/LiveNodes,host_components/metrics/dfs/namenode/DeadNodes,host_components/metrics/dfs/namenode/DecomNodes,host_components/metrics/dfs/namenode/TotalFiles,host_components/metrics/dfs/namenode/UpgradeFinalized,host_components/metrics/dfs/namenode/Safemode,host_components/metrics/runtime/StartTime,host_components/metrics/flume/flume,host_components/metrics/yarn/Queue,host_components/metrics/hbase/master/IsActiveMaster,host_components/HostRoles/state",
   "items" : [
     {
+      "ServiceComponentInfo" : {
+        "component_name" : "FLUME_HANDLER",
+        "service_name" : "FLUME"
+      },
+      "host_components" : [
+        {
+          "HostRoles" : {
+            "component_name" : "FLUME_HANDLER",
+            "host_name" : "dev01.hortonworks.com",
+            "maintenance_state" : "OFF",
+            "stale_configs" : false,
+            "state" : "STARTED"
+          },
+          "metrics" : {
+            "cpu" : {
+              "cpu_wio" : 0.0347222222222
+            },
+            "flume" : {
+              "flume" : {
+                "CHANNEL" : {
+                  "c1" : {
+                    "ChannelCapacity" : 10000.0,
+                    "ChannelFillPercentage" : 0.0,
+                    "ChannelSize" : 0.0,
+                    "EventPutAttemptCount" : 0.0,
+                    "EventPutSuccessCount" : 0.0,
+                    "EventTakeAttemptCount" : 21.0434782609,
+                    "EventTakeSuccessCount" : 0.0,
+                    "StartTime" : 1.39817772503E12,
+                    "StopTime" : 0.0
+                  }
+                },
+                "SINK" : {
+                  "sink1" : {
+                    "BatchCompleteCount" : 0.0,
+                    "BatchEmptyCount" : 20.5594202899,
+                    "BatchUnderflowCount" : 0.0,
+                    "ConnectionClosedCount" : 0.0,
+                    "ConnectionCreatedCount" : 0.0,
+                    "ConnectionFailedCount" : 0.0,
+                    "EventDrainAttemptCount" : 0.0,
+                    "EventDrainSuccessCount" : 0.0,
+                    "StartTime" : 1.39817772504E12,
+                    "StopTime" : 0.0
+                  }
+                },
+                "SOURCE" : {
+                  "src1" : {
+                    "AppendAcceptedCount" : 0.0,
+                    "AppendBatchAcceptedCount" : 0.0,
+                    "AppendBatchReceivedCount" : 0.0,
+                    "AppendReceivedCount" : 0.0,
+                    "EventAcceptedCount" : 0.0,
+                    "EventReceivedCount" : 0.0,
+                    "OpenConnectionCount" : 0.0,
+                    "StartTime" : 1.39817772519E12,
+                    "StopTime" : 0.0
+                  }
+                }
+              }
+            }
+          },
+          "processes" : [
+            {
+              "HostComponentProcess" : {
+                "channels_count" : 1.0,
+                "cluster_name" : "mycluster",
+                "component_name" : "FLUME_HANDLER",
+                "host_name" : "dev01.hortonworks.com",
+                "name" : "agent",
+                "sinks_count" : 1.0,
+                "sources_count" : 1.0,
+                "status" : "RUNNING"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/GANGLIA_SERVER",
       "ServiceComponentInfo" : {
         "category" : "MASTER",

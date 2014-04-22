@@ -1054,7 +1054,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_postgresql_database'));
-      } else if (hiveDb.value === 'Existing Postgresql Database') {
+      } else if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
         var existingPostgreSqlHost = globals.findProperty('name', 'hive_existing_postgresql_host');
         if (existingPostgreSqlHost) {
           existingPostgreSqlHost.name = 'hive_hostname';
@@ -1123,7 +1123,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_postgresql_database'));
-      } else if (oozieDb.value === 'Existing Postgresql Database') {
+      } else if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
         var existingPostgreSqlHost = globals.findProperty('name', 'oozie_existing_postgresql_host');
         if (existingPostgreSqlHost) {
           existingPostgreSqlHost.name = 'oozie_hostname';

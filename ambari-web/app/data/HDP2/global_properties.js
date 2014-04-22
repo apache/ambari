@@ -583,14 +583,14 @@ module.exports =
       "category": "Hive Metastore",
       "index": 1
     },
-    // for existing Postgresql
+    // for existing PostgreSQL
     {
       "id": "puppet var",
       "name": "hive_existing_postgresql_database",
       "displayName": "Database Type",
       "value": "",
-      "defaultValue": "Postgresql",
-      "description": "Using an existing Postgresql database for Hive Metastore",
+      "defaultValue": "PostgreSQL",
+      "description": "Using an existing PostgreSQL database for Hive Metastore",
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": false,
@@ -646,7 +646,7 @@ module.exports =
           foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host']
         },
         {
-            displayName: 'Existing Postgresql Database',
+            displayName: 'Existing PostgreSQL Database',
             foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host']
         },
         {
@@ -895,14 +895,14 @@ module.exports =
       "category": "Oozie Server",
       "index": 1
     },
-    // for existing Postgresql
+    // for existing PostgreSQL
     {
       "id": "puppet var",
       "name": "oozie_existing_postgresql_database",
       "displayName": "Database Type",
       "value": "",
-      "defaultValue": "Postgresql",
-      "description": "Using an existing Postgresql database for Oozie Metastore",
+      "defaultValue": "PostgreSQL",
+      "description": "Using an existing PostgreSQL database for Oozie Metastore",
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": false,
@@ -980,7 +980,7 @@ module.exports =
           hidden: !App.supports.hiveOozieExtraDatabases
         },
                 {
-          displayName: 'Existing Postgresql Database',
+          displayName: 'Existing PostgreSQL Database',
           foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host'],
           hidden: !App.supports.hiveOozieExtraDatabases
         },

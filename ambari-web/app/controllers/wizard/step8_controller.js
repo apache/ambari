@@ -270,7 +270,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
       }
       else {
-        if (hiveDb.value === 'Existing Postgresql Database') {
+        if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
           globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_postgresql_host').value;
           hiveDbType.value = 'postgresql';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
@@ -320,7 +320,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']);
       }
       else {
-        if (oozieDb.value === 'Existing Postgresql Database') {
+        if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
           globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_postgresql_host').value;
           oozieDbType.value = 'postgresql';
           oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
@@ -697,7 +697,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
       }
       else {
-        if (hiveDb.value === 'Existing Postgresql Database') {
+        if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
           db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_postgresql_database');
           dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
         }
@@ -756,7 +756,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
       }
       else {
-        if (oozieDb.value === 'Existing Postgresql Database') {
+        if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
           db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_postgresql_database');
           dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
         }

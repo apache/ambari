@@ -1246,6 +1246,7 @@ Em.I18n.translations = {
   'services.service.config.exitPopup.body':'You have unsaved changes. Save changes or discard?',
   'services.service.config.propertyFilterPopover.title':'Properties filter',
   'services.service.config.propertyFilterPopover.content':'Enter keywords to filter properties by property name, value, or description.',
+  'services.service.config.hive.oozie.postgresql': 'Existing PostgreSQL Database',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',
