@@ -19,11 +19,12 @@
 #
 
 usage () {
-  echo "Usage: configs.sh [-u userId] [-p password] [-port port] <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <CONFIG_TYPE> [CONFIG_FILENAME | CONFIG_KEY [CONFIG_VALUE]]";
+  echo "Usage: configs.sh [-u userId] [-p password] [-port port] [-s] <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <CONFIG_TYPE> [CONFIG_FILENAME | CONFIG_KEY [CONFIG_VALUE]]";
   echo "";
   echo "       [-u userId]: Optional user ID to use for authentication. Default is 'admin'.";
   echo "       [-p password]: Optional password to use for authentication. Default is 'admin'.";
   echo "       [-port port]: Optional port number for Ambari server. Default is '8080'. Provide empty string to not use port.";
+  echo "       [-s]: Optional support of SSL. Default is 'false'. Provide empty string to not use SSL.";
   echo "       <ACTION>: One of 'get', 'set', 'delete'. 'Set' adds/updates as necessary.";
   echo "       <AMBARI_HOST>: Server external host name";
   echo "       <CLUSTER_NAME>: Name given to cluster. Ex: 'c1'"
@@ -37,6 +38,7 @@ usage () {
 USERID="admin"
 PASSWD="admin"
 PORT=":8080"
+SSL_URL_PREFIX=""
 
 if [ "$1" == "-u" ] ; then
   USERID=$2;
@@ -60,7 +62,13 @@ if [ "$1" == "-port" ] ; then
   echo "PORT=$PORT";
 fi
 
-AMBARIURL="http://$2$PORT"
+if [ "$1" == "-s" ] ; then
+  SSL_URL_PREFIX="s"
+  shift;
+  echo "SSL is enabled";
+fi
+
+AMBARIURL="http$SSL_URL_PREFIX://$2$PORT"
 CLUSTER=$3
 SITE=$4
 SITETAG=''
@@ -75,7 +83,7 @@ currentSiteTag () {
   found=''
     
   #currentSite=`cat ds.json | grep -E "$SITE|tag"`; 
-  currentSite=`curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs" | grep -E "$SITE|tag"`;
+  currentSite=`curl -k -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs" | grep -E "$SITE|tag"`;
   for line in $currentSite; do
     if [ $line != "{" -a $line != ":" -a $line != '"tag"' ] ; then
       if [ -n "$found" -a -z "$currentSiteTag" ]; then
@@ -87,9 +95,9 @@ currentSiteTag () {
     fi
   done;
   if [ -z $currentSiteTag ]; then
-    errOutput=`curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs"`;
+    errOutput=`curl -k -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs"`;
     echo "[ERROR] \"$SITE\" not found in server response.";
-    echo "[ERROR] Output of \`curl -s -u $USERID:$PASSWD \"$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs\"\` is:";
+    echo "[ERROR] Output of \`curl -k -s -u $USERID:$PASSWD \"$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs\"\` is:";
     echo $errOutput | while read -r line; do
       echo "[ERROR] $line";
     done;
@@ -108,7 +116,7 @@ doConfigUpdate () {
   currentSiteTag
   echo "########## Performing '$MODE' $CONFIGKEY:$CONFIGVALUE on (Site:$SITE, Tag:$SITETAG)";
   propertiesStarted=0;
-  curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
+  curl -k -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
     ## echo ">>> $line";
     if [ "$propertiesStarted" -eq 0 -a "`echo $line | grep "\"properties\""`" ]; then
       propertiesStarted=1
@@ -136,7 +144,7 @@ doConfigUpdate () {
         newFile="doSet_$newTag.json"
         echo "########## PUTting json into: $newFile"
         echo $finalJson > $newFile
-        curl -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
+        curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
         currentSiteTag
         echo "########## NEW Site:$SITE, Tag:$SITETAG";
       elif [ "`echo $line | grep "\"$CONFIGKEY\""`" ]; then
@@ -163,7 +171,7 @@ doConfigFileUpdate () {
       newFile="$FILENAME"
       echo $finalJson>$newFile
       echo "########## PUTting file:\"$FILENAME\" into config(type:\"$SITE\", tag:$newTag) via $newFile"
-      curl -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
+      curl -k -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
       currentSiteTag
       echo "########## NEW Site:$SITE, Tag:$SITETAG";
     else
@@ -193,7 +201,7 @@ doGet () {
   currentSiteTag
   echo "########## Performing 'GET' on (Site:$SITE, Tag:$SITETAG)";
   propertiesStarted=0;
-  curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
+  curl -k -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
     ## echo ">>> $line";
     if [ "$propertiesStarted" -eq 0 -a "`echo $line | grep "\"properties\""`" ]; then
       propertiesStarted=1
