@@ -1,0 +1,69 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with this
+ * work for additional information regarding copyright ownership. The ASF
+ * licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+var App = require('app');
+require('views/main/service/service');
+
+App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.extend({
+
+  serviceMetricGraphs: function() {
+    var graphRows = [];
+    var viewData = this.get('viewData');
+    if (viewData != null) {
+      var metricType = viewData.metricType;
+      var hostName = viewData.agent.get('host.hostName');
+      var metricNamesGatherer = {
+        success: function(data) {
+          var graphs = [];
+          var metricNames = {};
+          if (data != null && data.metrics != null && data.metrics.flume != null && data.metrics.flume.flume != null && data.metrics.flume.flume[metricType] != null) {
+            for ( var name in data.metrics.flume.flume[metricType]) {
+              for ( var metricName in data.metrics.flume.flume[metricType][name]) {
+                metricNames[metricName] = name;
+              }
+            }
+          }
+          // Now that we have collected all metric names, we create
+          // views for each of them.
+          for ( var metricName in metricNames) {
+            graphs.push(App.ChartServiceFlumeMetricGraph.extend({
+              metricType: metricType,
+              metricName: metricName,
+              hostName: hostName
+            }));
+            if (graphs.length > 3) {
+              graphRows.push(graphs);
+              graphs = [];
+            }
+          }
+        }
+      }
+      App.ajax.send({
+        'name': 'host.host_component.flume.metrics',
+        'sender': metricNamesGatherer,
+        'success': 'success',
+        'data': {
+          async: false,
+          hostName: hostName,
+          flumeComponent: metricType
+        }
+      });
+    }
+    return graphRows;
+  }.property('viewData', 'metricType')
+
+});

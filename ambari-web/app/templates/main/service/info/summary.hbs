@@ -142,7 +142,7 @@
             <div class="accordion-body collapse in" {{bindAttr id="collapsedSection.id"}}>
               <div class="accordion-inner">
                 {{#if collapsedSection.metricView}}
-                  {{view collapsedSection.metricView}}
+                  {{view collapsedSection.metricView viewDataBinding="collapsedSection.metricViewData"}}
                 {{/if}}
               </div>
             </div>

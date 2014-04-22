@@ -41,7 +41,7 @@ App.FlumeAgent = DS.Model.extend({
 
   healthClass : function() {
     switch (this.get('status')) {
-    case 'STARTED':
+    case 'RUNNING':
     case 'STARTING':
       return App.healthIconClassGreen;
       break;

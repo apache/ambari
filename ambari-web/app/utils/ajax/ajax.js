@@ -2067,6 +2067,19 @@ var urls = {
   'views.instances': {
     'real': '/views/{viewName}',
     'mock':''
+  },
+  'host.host_component.flume.metrics': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*',
+    'mock': '',
+    'format': function(data) {
+      return {
+        async: data.async
+      }
+    }
+  },
+  'host.host_component.flume.metrics.timeseries': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/FLUME_HANDLER?fields=metrics/flume/flume/{flumeComponent}/*/{flumeComponentMetric}[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': ''
   }
 };
 /**

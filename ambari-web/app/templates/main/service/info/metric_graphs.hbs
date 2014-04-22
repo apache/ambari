@@ -1,0 +1,13 @@
+<table class="graphs">
+  {{#each graphs in view.serviceMetricGraphs}}
+    <tr>
+      {{#each graph in graphs}}
+        <td>
+          <div class="">
+            {{view graph}}
+          </div>
+        </td>
+      {{/each}}
+    </tr>
+  {{/each}}
+</table>

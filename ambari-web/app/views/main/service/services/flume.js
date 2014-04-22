@@ -145,15 +145,27 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     var mockMetricData = [
       {
         header: 'sinkName',
-        metricView: App.ChartServiceMetricsFlume_SinkDrainSuccessCount.extend()
+        metricView: App.MainServiceInfoFlumeGraphsView.extend(),
+        metricViewData: {
+          agent: agent,
+          metricType: 'SINK'
+        }
       },
       {
         header: 'sourceName',
-        metricView: App.ChartServiceMetricsFlume_SourceAcceptedCount.extend()
+        metricView: App.MainServiceInfoFlumeGraphsView.extend(),
+        metricViewData: {
+          agent: agent,
+          metricType: 'SOURCE'
+        }
       },
       {
         header: 'channelName',
-        metricView: App.ChartServiceMetricsFlume_ChannelSize.extend()
+        metricView: App.MainServiceInfoFlumeGraphsView.extend(),
+        metricViewData: {
+          agent: agent,
+          metricType: 'CHANNEL'
+        }
       }
     ];
     mockMetricData.forEach(function(mockData, index) {
