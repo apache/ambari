@@ -66,10 +66,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
    * Load services data from server.
    */
   loadServicesFromServer: function() {
-    var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stack2VersionURL');
-    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
-    //
+    var apiService = this.loadServiceComponents();
     apiService.forEach(function(item, index){
       apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
       apiService[index].isDisabled = apiService[index].isSelected;
@@ -104,27 +101,6 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.hosts', hosts);
     console.log('ReassignMasterController.loadConfirmedHosts: loaded hosts', hosts);
   },
-
-  /**
-   * Load master component hosts data for using in required step controllers
-   */
-  loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts();
-    if(!masterComponentHosts){
-      masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function(item){
-        masterComponentHosts.push({
-          component: item.get('componentName'),
-          hostName: item.get('host.hostName'),
-          isInstalled: true
-        })
-      });
-
-    }
-    this.set("content.masterComponentHosts", masterComponentHosts);
-    console.log("ReassignMasterController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
-  },
-
   /**
    * save status of the cluster.
    * @param clusterStatus object with status,requestId fields.

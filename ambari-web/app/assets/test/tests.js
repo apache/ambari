@@ -47,6 +47,7 @@ require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_cpuWaitIO_t
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceused_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_memoryused_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed_test');
+require('test/controllers/main/host/add_controller_test');
 require('test/controllers/main/service/add_controller_test');
 require('test/controllers/main/service/reassign_controller_test');
 require('test/controllers/main/dashboard_test');
@@ -103,7 +104,7 @@ require('test/views/common/quick_link_view_test');
 require('test/views/common/rolling_restart_view_test');
 require('test/views/main/dashboard_test');
 require('test/views/main/dashboard/widget_test');
-require('test/views/main/dashboard/widgets_test');1
+require('test/views/main/dashboard/widgets_test');
 require('test/views/main/dashboard/widgets/text_widget_test');
 require('test/views/main/dashboard/widgets/uptime_text_widget_test');
 require('test/views/main/dashboard/widgets/node_managers_live_test');

@@ -425,16 +425,6 @@ App.InstallerController = App.WizardController.extend({
 
     this.set('content.advancedServiceConfig', this.getDBProperty('advancedServiceConfig'));
   },
-
-  /**
-   * Load information about hosts with clients components
-   */
-  loadClients: function () {
-    var clients = this.getDBProperty('clientInfo');
-    this.set('content.clients', clients);
-    console.log("InstallerController.loadClients: loaded list ", clients);
-  },
-
   /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController

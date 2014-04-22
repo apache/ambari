@@ -121,7 +121,7 @@ App.UpdateController = Em.Controller.extend({
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json' : '/data/dashboard/services.json';
     var isFlumeInstalled = App.cache['services'].mapProperty('ServiceInfo.service_name').contains('FLUME');
     var flumeHandlerParam = isFlumeInstalled ? 'ServiceComponentInfo/component_name=FLUME_HANDLER|' : '';
-    realUrl = '/components/?' + flumeHandlerParam +
+    var realUrl = '/components/?' + flumeHandlerParam +
       'ServiceComponentInfo/category=MASTER&fields=' +
       'ServiceComponentInfo/Version,' +
       'ServiceComponentInfo/StartTime,' +

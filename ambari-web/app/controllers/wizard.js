@@ -858,5 +858,33 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     });
 
     return result;
+  },
+  /**
+   * Load master component hosts data for using in required step controllers
+   */
+  loadMasterComponentHosts: function () {
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
+    if (!masterComponentHosts) {
+      masterComponentHosts = [];
+      App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
+        masterComponentHosts.push({
+          component: item.get('componentName'),
+          hostName: item.get('host.hostName'),
+          isInstalled: true,
+          serviceId: item.get('service.id'),
+          display_name: item.get('displayName')
+        })
+      });
+      this.setDBProperty('masterComponentHosts', masterComponentHosts);
+    }
+    this.set("content.masterComponentHosts", masterComponentHosts);
+  },
+  /**
+   * Load information about hosts with clients components
+   */
+  loadClients: function () {
+    var clients = this.getDBProperty('clientInfo');
+    this.set('content.clients', clients);
+    console.log(this.get('content.controllerName') + ".loadClients: loaded list ", clients);
   }
 });

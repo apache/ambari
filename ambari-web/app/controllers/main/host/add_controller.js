@@ -57,6 +57,11 @@ App.AddHostController = App.WizardController.extend({
     configGroups: null
   }),
 
+  /**
+   * save info about wizard progress, particularly current step of wizard
+   * @param currentStep
+   * @param completed
+   */
   setCurrentStep: function (currentStep, completed) {
     this._super(currentStep, completed);
     App.clusterStatus.setClusterStatus({
@@ -69,7 +74,7 @@ App.AddHostController = App.WizardController.extend({
    * return new object extended from clusterStatusTemplate
    * @return Object
    */
-  getCluster: function(){
+  getCluster: function () {
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
 
@@ -77,16 +82,8 @@ App.AddHostController = App.WizardController.extend({
    * return new object extended from installOptionsTemplate
    * @return Object
    */
-  getInstallOptions: function(){
+  getInstallOptions: function () {
     return jQuery.extend({}, this.get('installOptionsTemplate'));
-  },
-
-  /**
-   * return empty hosts array
-   * @return Array
-   */
-  getHosts: function(){
-    return [];
   },
 
   /**
@@ -104,13 +101,11 @@ App.AddHostController = App.WizardController.extend({
 
   /**
    * Load services data from server.
+   * TODO move to mixin
    */
-  loadServicesFromServer: function() {
-    var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stack2VersionURL');
-    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
-    //
-    apiService.forEach(function(item, index){
+  loadServicesFromServer: function () {
+    var apiService = this.loadServiceComponents();
+    apiService.forEach(function (item, index) {
       apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
       apiService[index].isDisabled = apiService[index].isSelected;
       apiService[index].isInstalled = apiService[index].isSelected;
@@ -124,72 +119,13 @@ App.AddHostController = App.WizardController.extend({
    */
   loadServices: function () {
     var servicesInfo = this.getDBProperty('service');
+    console.log('AddHostController.loadServices: loaded data ', servicesInfo);
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
     });
     this.set('content.services', servicesInfo);
-    console.log('AddHostController.loadServices: loaded data ', servicesInfo);
     var serviceNames = servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName');
     console.log('selected services ', serviceNames);
-  },
-
-  /**
-   * Load master component hosts data for using in required step controllers
-   */
-  loadMasterComponentHosts: function () {
-    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
-    if (!masterComponentHosts) {
-      masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
-        masterComponentHosts.push({
-          component: item.get('componentName'),
-          hostName: item.get('host.hostName'),
-          isInstalled: true,
-          serviceId: item.get('service.id'),
-          display_name: item.get('displayName')
-        })
-      });
-      this.setDBProperty('masterComponentHosts', masterComponentHosts);
-    }
-    this.set("content.masterComponentHosts", masterComponentHosts);
-    console.log("AddHostController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
-  },
-
-  /**
-   * Save HBase and ZooKeeper to main controller
-   * @param stepController
-   */
-  saveHbZk: function(stepController) {
-    var self = this;
-    var hosts = stepController.get('hosts');
-    var headers = stepController.get('headers');
-    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
-
-    headers.forEach(function(header) {
-      var rm = masterComponentHosts.filterProperty('component', header.get('name'));
-      if(rm) {
-        masterComponentHosts.removeObjects(rm);
-      }
-    });
-
-    headers.forEach(function(header) {
-      var component = App.StackServiceComponent.find().findProperty('componentName', header.get('name'));
-      hosts.forEach(function(host) {
-        if (host.get('checkboxes').findProperty('title', component.display_name).checked) {
-          masterComponentHosts .push({
-            display_name: component.get('displayName'),
-            component: component.get('componentName'),
-            hostName: host.get('hostName'),
-            serviceId: component.get('serviceName'),
-            isInstalled: false
-          });
-        }
-      });
-    });
-
-    console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
-    this.setDBProperty('masterComponentHosts', masterComponentHosts);
-    this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
   /**
@@ -197,13 +133,14 @@ App.AddHostController = App.WizardController.extend({
    * @return {Array}
    */
   getSlaveComponentHosts: function () {
-    return this._super().filter(function(component){
+    return this._super().filter(function (component) {
       return component.isInstalled;
     });
   },
 
   /**
    * Load master component hosts data for using in required step controllers
+   * TODO move to mixin
    */
   loadSlaveComponentHosts: function () {
     var slaveComponentHosts = this.getDBProperty('slaveComponentHosts');
@@ -215,15 +152,6 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
-   * Load information about hosts with clients components
-   */
-  loadClients: function () {
-    var clients = this.getDBProperty('clientInfo');
-    this.set('content.clients', clients);
-    console.log("AddHostController.loadClients: loaded list ", clients);
-  },
-
-  /**
    * Generate clients list for selected services and save it to model
    */
   saveClients: function () {
@@ -231,10 +159,10 @@ App.AddHostController = App.WizardController.extend({
     var serviceComponents = App.StackServiceComponent.find();
     var hostComponents = App.HostComponent.find();
 
-    this.get('content.services').filterProperty('isSelected', true).forEach(function (_service) {
-      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient', true);
+    this.get('content.services').filterProperty('isSelected').forEach(function (_service) {
+      var client = serviceComponents.filterProperty('serviceName', _service.serviceName).findProperty('isClient');
       if (client) {
-        clients.pushObject({
+        clients.push({
           component_name: client.get('componentName'),
           display_name: client.get('displayName'),
           isInstalled: hostComponents.filterProperty('componentName', client.get('componentName')).length > 0
@@ -252,14 +180,14 @@ App.AddHostController = App.WizardController.extend({
    */
   applyConfigGroup: function () {
     var serviceConfigGroups = this.get('content.serviceConfigGroups');
-    serviceConfigGroups.forEach(function (group){
+    serviceConfigGroups.forEach(function (group) {
       if (group.configGroups.someProperty('ConfigGroup.group_name', group.selectedConfigGroup)) {
         var configGroup = group.configGroups.findProperty('ConfigGroup.group_name', group.selectedConfigGroup);
-        group.hosts.forEach(function(host){
+        group.hosts.forEach(function (host) {
           configGroup.ConfigGroup.hosts.push({
             host_name: host
           });
-        },this);
+        }, this);
         delete configGroup.href;
         App.ajax.send({
           name: 'config_groups.update_config_group',
@@ -270,7 +198,7 @@ App.AddHostController = App.WizardController.extend({
           }
         });
       }
-    },this);
+    }, this);
   },
 
   /**
@@ -293,33 +221,70 @@ App.AddHostController = App.WizardController.extend({
    * Set content.serviceConfigGroups for step4
    */
   loadServiceConfigGroups: function () {
-    var slaveComponentHosts = this.get('content.slaveComponentHosts');
     var selectedServices = [];
-    var selectedClientHosts = slaveComponentHosts.findProperty('componentName', 'CLIENT').hosts.mapProperty('hostName');
+    this.loadServiceConfigGroupsBySlaves(selectedServices);
+    this.loadServiceConfigGroupsByClients(selectedServices);
+    this.sortServiceConfigGroups(selectedServices);
+    this.set('content.serviceConfigGroups', selectedServices);
+  },
+  /**
+   * sort config groups by name
+   * @param selectedServices
+   */
+  sortServiceConfigGroups: function (selectedServices) {
+    selectedServices.forEach(function (selectedService) {
+      selectedService.configGroups.sort(function (cfgA, cfgB) {
+        if (cfgA.ConfigGroup.group_name < cfgB.ConfigGroup.group_name) return -1;
+        if (cfgA.ConfigGroup.group_name > cfgB.ConfigGroup.group_name) return 1;
+        return 0;
+      });
+    });
+  },
+  /**
+   * load service config groups by slave components,
+   * push them into selectedServices
+   * @param selectedServices
+   */
+  loadServiceConfigGroupsBySlaves: function (selectedServices) {
     var componentServiceMap = App.QuickDataMapper.componentServiceMap();
-
-    slaveComponentHosts.forEach(function (slave) {
-      if (slave.hosts.length > 0) {
-        if (slave.componentName != "CLIENT") {
-          var service = componentServiceMap[slave.componentName];
-          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
-          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
-          var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
-          configGroupsNames.unshift(defaultGroupName);
-          selectedServices.push({
-            serviceId: service,
-            displayName: App.Service.DisplayNames[service],
-            hosts: slave.hosts.mapProperty('hostName'),
-            configGroupsNames: configGroupsNames,
-            configGroups: configGroups,
-            selectedConfigGroup: defaultGroupName
-          });
+    var slaveComponentHosts = this.get('content.slaveComponentHosts');
+    if (slaveComponentHosts && slaveComponentHosts.length > 0) {
+      slaveComponentHosts.forEach(function (slave) {
+        if (slave.hosts.length > 0) {
+          if (slave.componentName !== "CLIENT") {
+            var service = componentServiceMap[slave.componentName];
+            var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
+            var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
+            var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+            configGroupsNames.unshift(defaultGroupName);
+            selectedServices.push({
+              serviceId: service,
+              displayName: App.Service.DisplayNames[service],
+              hosts: slave.hosts.mapProperty('hostName'),
+              configGroupsNames: configGroupsNames,
+              configGroups: configGroups,
+              selectedConfigGroup: defaultGroupName
+            });
+          }
         }
-      }
-    }, this);
-    if (selectedClientHosts.length > 0) {
+      }, this);
+      return true;
+    }
+    return false;
+  },
+  /**
+   * load service config groups by clients,
+   * push them into selectedServices
+   * @param selectedServices
+   */
+  loadServiceConfigGroupsByClients: function (selectedServices) {
+    var componentServiceMap = App.QuickDataMapper.componentServiceMap();
+    var slaveComponentHosts = this.get('content.slaveComponentHosts');
+    var clients = this.get('content.clients');
+    var client = slaveComponentHosts && slaveComponentHosts.findProperty('componentName', 'CLIENT');
+    var selectedClientHosts = client && client.hosts.mapProperty('hostName');
+    if (clients && selectedClientHosts && clients.length > 0 && selectedClientHosts.length > 0) {
       this.loadClients();
-      var clients = this.get('content.clients');
       clients.forEach(function (client) {
         var service = componentServiceMap[client.component_name];
         var serviceMatch = selectedServices.findProperty('serviceId', service);
@@ -340,13 +305,9 @@ App.AddHostController = App.WizardController.extend({
           });
         }
       }, this);
+      return true;
     }
-    selectedServices.forEach(function(selectedService){
-      selectedService.configGroups.sort(function(cfgA, cfgB){
-        return cfgA.ConfigGroup.group_name >= cfgB.ConfigGroup.group_name;
-      });
-    });
-    this.set('content.serviceConfigGroups', selectedServices);
+    return false;
   },
 
   loadServiceConfigProperties: function () {
@@ -405,32 +366,31 @@ App.AddHostController = App.WizardController.extend({
     App.updater.immediateRun('updateHost');
   },
 
+  /**
+   * send request to server in order to install services
+   * @param isRetry
+   */
   installServices: function (isRetry) {
     this.set('content.cluster.oldRequestsId', []);
     var clusterName = this.get('content.cluster.name');
-    var data;
-    var name;
-    var hostnames = [];
+    var hostNames = [];
     for (var hostname in this.getDBProperty('hosts')) {
-      hostnames.push(hostname);
+      hostNames.push(hostname);
     }
+    if(!clusterName || hostNames.length === 0) return false;
 
-    if (isRetry) {
-      name = 'wizard.install_services.add_host_controller.is_retry';
-    }
-    else {
-      name = 'wizard.install_services.add_host_controller.not_is_retry';
-    }
-    data = {
+    var name = 'wizard.install_services.add_host_controller.';
+    name += (isRetry) ? 'is_retry' : 'not_is_retry';
+
+    var data = JSON.stringify({
       "RequestInfo": {
         "context": Em.I18n.t('requestInfo.installComponents'),
-        "query": "HostRoles/host_name.in(" + hostnames.join(',') + ")"
+        "query": "HostRoles/host_name.in(" + hostNames.join(',') + ")"
       },
       "Body": {
         "HostRoles": {"state": "INSTALLED"}
       }
-    };
-    data = JSON.stringify(data);
+    });
     App.ajax.send({
       name: name,
       sender: this,
@@ -441,6 +401,6 @@ App.AddHostController = App.WizardController.extend({
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
     });
+    return true;
   }
-
 });

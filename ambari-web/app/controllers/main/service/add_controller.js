@@ -104,9 +104,7 @@ App.AddServiceController = App.WizardController.extend({
     if(this.getDBProperty('service')){
       return;
     }
-    var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stack2VersionURL');
-    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
+    var apiService = this.loadServiceComponents();
     //
     apiService.forEach(function(item, index){
       apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
@@ -188,21 +186,7 @@ App.AddServiceController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
-    if(!masterComponentHosts){
-      masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function(item){
-        masterComponentHosts.push({
-          component: item.get('componentName'),
-          hostName: item.get('host.hostName'),
-          isInstalled: true
-        })
-      });
-
-    }
-    this.set("content.masterComponentHosts", masterComponentHosts);
-    console.log("AddServiceController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
-
+    this._super();
     this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
     this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
   },
@@ -258,15 +242,6 @@ App.AddServiceController = App.WizardController.extend({
     }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("AddServiceController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
-  },
-
-  /**
-   * Load information about hosts with clients components
-   */
-  loadClients: function(){
-    var clients = this.getDBProperty('clientInfo');
-    this.set('content.clients', clients);
-    console.log("AddServiceController.loadClients: loaded list ", clients);
   },
 
   /**
