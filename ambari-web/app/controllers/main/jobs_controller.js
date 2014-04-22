@@ -359,7 +359,10 @@ App.MainJobsController = Em.Controller.extend({
       { name: Em.I18n.t('jobs.column.start.time'), index: 2 },
       { name: Em.I18n.t('jobs.column.end.time'), index: 3 },
       { name: Em.I18n.t('jobs.column.duration'), index: 4 }
-    ]
+    ],
+    columnsCount: function () {
+      return this.get('content.length') + 1;
+    }.property('content.length')
   }),
 
   lastIDSuccessCallback: function(data, jqXHR, textStatus) {

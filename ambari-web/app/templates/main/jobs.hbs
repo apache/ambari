@@ -52,7 +52,7 @@
           <tbody>
           {{#if view.noDataToShow}}
               <tr>
-                <td class="no-data" {{bindAttr colspan="controller.columnsName.content.length"}}>
+                <td class="no-data" {{bindAttr colspan="controller.columnsName.columnsCount"}}>
                   {{#if controller.loaded}}
                     {{t jobs.nothingToShow}}
                   {{else}}
