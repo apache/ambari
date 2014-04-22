@@ -47,7 +47,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   isDeletable: function() {
-    return ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER'].contains(this.get('componentName'));
+    return ['SUPERVISOR', 'HBASE_MASTER', 'DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(this.get('componentName'));
   }.property('componentName'),
 
   isRollinRestartAllowed: function() {
@@ -63,7 +63,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   isAddableToHost: function() {
-    return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR"].contains(this.get('componentName'));
+    return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER", "HBASE_MASTER", "ZOOKEEPER_SERVER", "SUPERVISOR", "GANGLIA_MONITOR"].contains(this.get('componentName'));
   }.property('componentName'),
 
   isShownOnInstallerAssignMasterPage: function() {
