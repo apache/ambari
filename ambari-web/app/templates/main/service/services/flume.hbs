@@ -60,7 +60,9 @@
                 {{agent.name}}
               </td>
               <td class="agent-host-name">
-                {{agent.host.hostName}}
+                <a href="javascript:void(null)" {{action showDetails agent.host}}>
+                  {{agent.host.hostName}}
+                </a>
               </td>
               <td>
                 {{agent.sourcesCount}}
