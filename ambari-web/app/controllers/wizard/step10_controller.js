@@ -100,7 +100,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     }
     var succeededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filter(function(host) {
-      return ['warning', 'failed'].contains(host.get('status'));
+      return ['warning', 'failed'].contains(host.status);
     });
     if (succeededHosts.length) {
       var successStatement = Em.I18n.t('installer.step10.servicesSummary').format(succeededHosts.length) + ((succeededHosts.length > 1) ? Em.I18n.t('installer.step8.hosts') : Em.I18n.t('installer.step8.host'));

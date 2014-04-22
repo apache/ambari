@@ -77,7 +77,7 @@ module.exports = {
    * @return {Boolean}
    */
   isIpAddress: function(value) {
-    var ipRegex = /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(\:[0-9]{1,5})?$/;
+    var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)($|\:[0-9]{1,5})$/;
     return ipRegex.test(value);
   },
 
@@ -137,6 +137,7 @@ module.exports = {
       case "0":
       case null:
       case false:
+      case undefined:
       case typeof this == "undefined":
         return true;
       default :

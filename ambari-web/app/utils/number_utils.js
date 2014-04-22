@@ -57,6 +57,11 @@ module.exports = {
    * Validates if the given string or number is an integer between the
    * values of min and max (inclusive). The minimum and maximum
    * checks are ignored if their valid is NaN.
+   *
+   * @method validateInteger
+   * @param {string|number} str - input string
+   * @param {string|number} [min]
+   * @param {string|number} [max]
    */
   validateInteger : function(str, min, max) {
     if (str==null || str==undefined || (str + "").trim().length < 1) {

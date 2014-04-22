@@ -45,7 +45,8 @@ describe('string_utils', function () {
       {m: '"name" to "name"', i: 'name', l: 4, a: 1, f: ' ', e: 'name'},
       {m: '"name" to "||||||||name"', i: 'name', l: 8, a:1, f: '||', e: '||||||||name'},
       {m: '"name" to "||||name||||"', i: 'name', l: 8, a:3, f: '||', e: '||||name||||'},
-      {m: '"name" to "name||||||||"', i: 'name', l: 8, a:2, f: '||', e: 'name||||||||'}
+      {m: '"name" to "name||||||||"', i: 'name', l: 8, a:2, f: '||', e: 'name||||||||'},
+      {m: '"name" to "name" `str` param passed only', i: 'name', e: 'name'}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
@@ -61,7 +62,8 @@ describe('string_utils', function () {
       {m: '1.3 higher than 1.2', v1:'1.3', v2:'1.2', e: 1},
       {m: '1.2.1 higher than 1.2', v1:'1.2.1', v2:'1.2', e: 1},
       {m: '11.2 higher than 2.2', v1:'11.2', v2:'2.2', e: 1},
-      {m: '0.9 higher than 0.8', v1:'0.9', v2:'0.8', e: 1}
+      {m: '0.9 higher than 0.8', v1:'0.9', v2:'0.8', e: 1},
+      {m: 'return false if no string passed', v1: '0.9', e: false}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
@@ -145,7 +147,9 @@ describe('string_utils', function () {
       {i:'aAA. bBB',e:'Aaa. Bbb'},
       {i:'STARTING',e:'Starting'},
       {i:'starting',e:'Starting'},
-      {i:'starting,ending',e:'Starting,Ending'}
+      {i:'starting,ending',e:'Starting,Ending'},
+      {i: null, e: null},
+      {i: undefined, e: undefined}
     ];
     tests.forEach(function(test) {
       it(test.i + ' to ' + test.e + ' ', function () {

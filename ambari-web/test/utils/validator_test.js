@@ -137,7 +137,7 @@ describe('validator', function () {
     })
 
   });
-  /*describe('#isIpAddress(value)', function () {
+  describe('#isIpAddress(value)', function () {
     it('"127.0.0.1" - valid IP', function () {
       expect(validator.isIpAddress('127.0.0.1')).to.equal(true);
     })
@@ -171,16 +171,8 @@ describe('validator', function () {
     it('"327.0.0.0:45555" - invalid IP', function () {
       expect(validator.isIpAddress('327.0.0.0:45555')).to.equal(false);
     })
-    it('"0.0.0.0" - invalid IP', function () {
-      expect(validator.isIpAddress('0.0.0.0')).to.equal(false);
-    })
-    it('"0.0.0.0:12" - invalid IP', function () {
-      expect(validator.isIpAddress('0.0.0.0:12')).to.equal(false);
-    })
-    it('"1.0.0.0:0" - invalid IP', function () {
-      expect(validator.isIpAddress('1.0.0.0:0')).to.equal(false);
-    })
-  })*/
+  });
+
   describe('#isDomainName(value)', function () {
     it('"google.com" - valid Domain Name', function () {
       expect(validator.isDomainName('google.com')).to.equal(true);
@@ -197,6 +189,54 @@ describe('validator', function () {
     it('"55454" - invalid Domain Name', function () {
       expect(validator.isDomainName('55454')).to.equal(false);
     })
+  });
+
+  describe('#hasSpaces()', function(){
+    var testable = [
+      { str: ' hello', detect: true },
+      { str: 'hello world', detect: true },
+      { str: 'hello ', detect: true },
+      { str: 'hello', detect: false }
+    ];
+    testable.forEach(function(value){
+      it('should ' + (value.detect ? '' : 'not') + ' detects spaces in `' + value.str + '`', function(){
+        expect(validator.hasSpaces(value.str)).to.eql(value.detect);
+      });
+    });
+  });
+  describe('#isNotTrimmed', function(){
+    var testable = [
+      { str: ' hello world', detect: true },
+      { str: ' hello world ', detect: true },
+      { str: 'hello world ', detect: true },
+      { str: 'hello world', detect: false },
+      { str: 'hello world !', detect: false }
+    ];
+    testable.forEach(function(value){
+      it('should ' + (value.detect ? '' : 'not') + 'trimmed string', function() {
+        expect(validator.isNotTrimmed(value.str)).to.eql(value.detect);
+      });
+    });
+  });
+  describe('#empty()', function(){
+    var testable = [
+      { obj: "", detect: true },
+      { obj: 0, detect: true },
+      { obj: "0", detect: true },
+      { obj: null, detect: true },
+      { obj: undefined, detect: true },
+      { obj: 'hello', detect: false },
+      { obj: {}, detect: false },
+      { obj: [], detect: false },
+      { obj: ['a'], detect: false },
+      { obj: 1, detect: false },
+      { obj: true, detect: false }
+    ];
+    testable.forEach(function(value){
+      it('should ' + (value.detect ? '' : 'not') + ' detect empty value in `' + new String(value.obj) + '`', function(){
+        expect(validator.empty(value.obj)).to.eql(value.detect);
+      });
+    });
   });
   describe('#isValidUserName(value)', function() {
     var tests = [

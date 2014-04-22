@@ -39,6 +39,30 @@ describe('', function() {
           multiplyBy: null,
           e: 'n/a',
           m: '"n/a" if bytes is undefined'
+        },
+        {
+          bytes: 200,
+          precision: null,
+          parseType: undefined,
+          multiplyBy: null,
+          e: '0 Bytes',
+          m: '0 if multiply is `null`'
+        },
+        {
+          bytes: 200,
+          precision: null,
+          parseType: undefined,
+          multiplyBy: undefined,
+          e: '200 Bytes',
+          m: '"200 Bytes" if `multiplyBy` and `parseType` are `undefined`'
+        },
+        {
+          bytes: 200,
+          precision: null,
+          parseType: undefined,
+          multiplyBy: 1,
+          e: '200 Bytes',
+          m: '`200 Bytes` if `parsetype` is `undefined`'
         }
       ]);
 
@@ -167,6 +191,58 @@ describe('', function() {
       });
     });
 
+  });
+  describe('#validateInteger()', function() {
+    var tests = [
+      {
+        str: null,
+        min: null,
+        max: null,
+        m: 'all params null to' + Em.I18n.t('number.validate.empty'),
+        e: Em.I18n.t('number.validate.empty')
+      },
+      {
+        str: "string",
+        min: null,
+        max: null,
+        m: 'try to validate `string` should return ' + Em.I18n.t('number.validate.empty'),
+        e: Em.I18n.t('number.validate.notValidNumber')
+      },
+      {
+        str: "string",
+        min: null,
+        max: null,
+        m: 'try to validate `string` should return ' + Em.I18n.t('number.validate.notValidNumber'),
+        e: Em.I18n.t('number.validate.notValidNumber')
+      },
+      {
+        str: "1abc",
+        min: null,
+        max: null,
+        m: 'try to validate `1abc` should return ' + Em.I18n.t('number.validate.notValidNumber'),
+        e: Em.I18n.t('number.validate.notValidNumber')
+      },
+      {
+        str: "1",
+        min: null,
+        max: null,
+        m: 'try to validate `1` should return ' + Em.I18n.t('number.validate.moreThanMaximum').format(null),
+        e: Em.I18n.t('number.validate.moreThanMaximum').format(null)
+      },
+      {
+        str: "1",
+        min: 2,
+        max: 0,
+        m: 'try to validate `1` with max = 0 and min = 2 should return ' + Em.I18n.t('number.validate.lessThanMinumum').format(2),
+        e: Em.I18n.t('number.validate.lessThanMinumum').format(2)
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function(){
+        expect(numberUtils.validateInteger(test.str, test.min, test.max)).to.eql(test.e);
+      });
+    });
   });
 
 });

@@ -84,4 +84,27 @@ describe('misc', function () {
     });
   });
 
+  describe('#xmlToObject()', function(){
+    var xml = '<!-- Edited by XMLSpy -->'+
+      '<stacks name="HDP-2.1">'+
+      '<service>'+
+      '<name>NAGIOS</name>'+
+      '<name>OOZIE</name>'+
+      '<name>HDFS</name>'+
+      '<component>NAGIOS_SERVER</component>'+
+      '</service>'+
+      '</stacks>';
+    xml = new DOMParser().parseFromString(xml,"text/xml");
+    var converted = misc.xmlToObject(xml);
+    it('should be an object', function(){
+      expect(converted).to.a('object');
+    });
+    it('`attribute` name should be present', function(){
+      expect(converted.stacks).to.ok;
+    });
+    it('`stacks.service.name` should be an array', function() {
+      expect(converted.stacks.service.name).to.a('array');
+    });
+  });
+
 });
