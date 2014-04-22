@@ -108,7 +108,7 @@ limitations under the License.
 
   <property>
     <name>hive.security.authorization.enabled</name>
-    <value>true</value>
+    <value>false</value>
     <description>enable or disable the hive client authorization</description>
   </property>
 
