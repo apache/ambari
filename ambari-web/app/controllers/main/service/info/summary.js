@@ -44,7 +44,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   stopFlumeAgent: function () {
     var selectedFlumeAgent = this.get('selectedFlumeAgent');
-    if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'STARTED') {
+    if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'RUNNING') {
       var self = this;
       App.showConfirmationPopup(function () {
         var command = 'STOP';

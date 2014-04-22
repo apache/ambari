@@ -52,7 +52,7 @@
           </thead>
           <tbody>
           {{#each agent in view.pageContent}}
-            <tr {{action showAgentInfo agent target="view"}}>
+            {{#view view.agentView contentBinding="agent"}}
               <td class="agent-status">
                 <span {{bindAttr class="agent.healthClass"}}></span>
               </td>
@@ -73,7 +73,7 @@
               <td>
                 {{agent.sinksCount}}
               </td>
-            </tr>
+            {{/view}}
           {{/each}}
           </tbody>
         </table>

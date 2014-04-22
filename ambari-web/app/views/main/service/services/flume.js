@@ -49,6 +49,20 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     return App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER');
   }.property(),
 
+  agentView: Em.View.extend({
+    content: null,
+    tagName: 'tr',
+    classNameBindings: ['selectedClass'],
+
+    selectedClass: function () {
+      return this.get('controller.selectedFlumeAgent.id') === this.get('content.id') ? 'highlight' : '';
+    }.property('controller.selectedFlumeAgent'),
+
+    click: function () {
+      this.get('parentView').showAgentInfo(this.get('content'));
+    }
+  }),
+
   sortView: sort.wrapperView,
 
   statusSort: sort.fieldView.extend({
@@ -100,7 +114,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     this.set('isActionsDisabled', !selectedFlumeAgent);
     if (selectedFlumeAgent) {
       this.set('isStartAgentDisabled', selectedFlumeAgent.get('status') !== 'INSTALLED');
-      this.set('isStopAgentDisabled', selectedFlumeAgent.get('status') !== 'STARTED');
+      this.set('isStopAgentDisabled', selectedFlumeAgent.get('status') !== 'RUNNING');
     }
   }.observes('controller.selectedFlumeAgent', 'controller.selectedFlumeAgent.status'),
 
@@ -111,21 +125,9 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
    * @method showAgentInfo
    * @param {object} event
    */
-  showAgentInfo: function (event) {
-    var agent = event.context;
+  showAgentInfo: function (agent) {
     this.set('controller.selectedFlumeAgent', agent);
-    this.toggleHighlight($(event.currentTarget));
-    this.setAgentMetrics(event.context);
-  },
-  /**
-   * Highlight current row and remove highlight from previously selected item.
-   *
-   * @method toggleHighlight
-   * @param {object} element - jQuery object
-   */
-  toggleHighlight: function(element) {
-    element.parent().find('.highlight').removeClass('highlight');
-    element.addClass('highlight');
+    this.setAgentMetrics(agent);
   },
   /**
    * Show Flume agent metric.
