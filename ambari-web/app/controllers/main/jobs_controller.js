@@ -366,6 +366,9 @@ App.MainJobsController = Em.Controller.extend({
   }),
 
   lastIDSuccessCallback: function(data, jqXHR, textStatus) {
+    if(!data.entities[0]){
+      return;
+    }
     var lastReceivedID = data.entities[0].entity;
     if(this.get('lastJobID') == '') {
       this.set('lastJobID', lastReceivedID);
