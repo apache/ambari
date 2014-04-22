@@ -56,7 +56,8 @@ App.MainMenuView = Em.CollectionView.extend({
       result.push({ label:Em.I18n.t('menu.item.views'), routing:'views', isView:true, views: this.get('views')});
     }
     return result;
-  }.property(),
+  }.property('App.supports.views', 'App.supports.mirroring', 'App.supports.secureCluster', 'App.supports.highAvailability', 'App.supports.jobs'),
+
     /**
      *    Adds observer on lastSetURL and calls navigation sync procedure
      */
