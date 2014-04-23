@@ -123,6 +123,7 @@ def main():
   sys.path.append(ambari_agent_folder + "/src/main/python")
   sys.path.append(ambari_server_folder + "/src/test/python")
   sys.path.append(ambari_server_folder + "/src/main/python")
+  sys.path.append(ambari_server_folder + "/src/main/resources/scripts")
 
   stacks_folder = pwd+'/stacks'
   #generate test variants(path, service, stack)
