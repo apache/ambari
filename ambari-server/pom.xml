@@ -331,10 +331,10 @@
                   <location>src/main/resources/Ambari-DDL-Postgres-DROP.sql</location>
                 </source>
                 <source>
-                  <location>target/classes/Ambari-DDL-Postgres-REMOTE-CREATE.sql</location>
+                  <location>target/classes/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql</location>
                 </source>
                 <source>
-                  <location>src/main/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql</location>
+                  <location>src/main/resources/Ambari-DDL-Postgres-EMBEDDED-DROP.sql</location>
                 </source>
                 <source>
                   <location>target/classes/Ambari-DDL-Oracle-CREATE.sql</location>
@@ -1230,9 +1230,9 @@
       <version>2.2.2</version>
     </dependency>
     <dependency>
-      <groupId>postgresql</groupId>
+      <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>9.1-901.jdbc4</version>
+      <version>9.3-1101-jdbc4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

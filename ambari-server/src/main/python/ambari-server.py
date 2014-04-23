@@ -328,10 +328,10 @@ DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{
                             'mysql --user={1} --password={2} {3}<{0}']
 
 MYSQL_INIT_SCRIPT = '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
-DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-CREATE.sql',
+DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql',
                          MYSQL_INIT_SCRIPT]
-DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql',
+DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
 
@@ -1185,17 +1185,27 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n==============================================================================\nEnter choice (" + database_num + "): ",
+        "[1] - PostgreSQL (Embedded)\n[2] - PostgreSQL (External)\n[3] - Oracle\n[4] - MySQL\n"
+        "==============================================================================\n"
+        "Enter choice (" + database_num + "): ",
         database_num,
-        "^[123]$",
+        "^[1234]$",
         "Invalid number.",
         False
       )
 
-      DATABASE_INDEX = int(database_num) - 1
-      args.dbms = DATABASE_NAMES[DATABASE_INDEX]
+      if int(database_num) == 1:
+        args.persistence_type = 'local'
+        args.database_index = 0
+        DATABASE_INDEX = 0
+      else:
+        args.persistence_type = 'remote'
+        args.database_index = int(database_num) - 2
+        DATABASE_INDEX = int(database_num) - 2
 
-      if args.dbms != "postgres":
+      args.dbms = DATABASE_NAMES[args.database_index]
+
+      if args.persistence_type != 'local':
         args.database_host = get_validated_string_input(
           "Hostname (" + args.database_host + "): ",
           args.database_host,
@@ -1231,7 +1241,7 @@ def prompt_db_properties(args):
           IDTYPE_INDEX = int(idType) - 1
           args.database_name = get_validated_service_name(args.database_name,
                                                           IDTYPE_INDEX)
-        elif args.dbms == "mysql":
+        elif args.dbms in ["mysql", "postgres"]:
           args.database_name = get_validated_db_name(args.database_name)
 
         else:
@@ -1377,7 +1387,7 @@ def execute_remote_script(args, scriptPath):
   if args.dbms == "postgres":
 
     os.environ["PGPASSWORD"] = args.database_password
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool,  POSTGRES_EXEC_ARGS.format(
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, POSTGRES_EXEC_ARGS.format(
       args.database_host,
       args.database_port,
       args.database_name,
@@ -4004,11 +4014,11 @@ def main():
 
   parser.add_option('-f', '--init-script-file',
                       default='/var/lib/ambari-server/'
-                              'resources/Ambari-DDL-Postgres-CREATE.sql',
+                              'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql',
                       help="File with setup script")
   parser.add_option('-r', '--drop-script-file', default="/var/lib/"
                               "ambari-server/resources/"
-                              "Ambari-DDL-Postgres-DROP.sql",
+                              "Ambari-DDL-Postgres-EMBEDDED-DROP.sql",
                       help="File with drop script")
   parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
                               "ambari-server/resources/upgrade/ddl/"
