@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -19,6 +19,10 @@
 # under the License.
 #
 #
+
+os_family=$1
+shift
+
 function getValueFromField {
   xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
   return $?
@@ -64,7 +68,15 @@ export OOZIE_EXIT_CODE=0
 export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/yarn-site.xml yarn.resourcemanager.address`
 export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.defaultFS`
 export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url | tr '[:upper:]' '[:lower:]'`
-export OOZIE_EXAMPLES_DIR=`rpm -ql oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
+
+if [ "$os_family" == "debian" ] ; then
+  LIST_PACKAGE_FILES_CMD='dpkg-query -L'
+else
+  LIST_PACKAGE_FILES_CMD='rpm -ql'
+fi
+  
+
+export OOZIE_EXAMPLES_DIR=`$LIST_PACKAGE_FILES_CMD oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
 cd $OOZIE_EXAMPLES_DIR
 
 tar -zxf oozie-examples.tar.gz

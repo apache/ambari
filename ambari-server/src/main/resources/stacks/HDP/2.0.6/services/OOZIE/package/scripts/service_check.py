@@ -40,10 +40,12 @@ def oozie_smoke_shell_file(
     mode = 0755
   )
   
+  os_family = System.get_instance().os_family
+  
   if params.security_enabled:
-    sh_cmd = format("sh /tmp/{file_name} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local}")
+    sh_cmd = format("/tmp/{file_name} {os_family} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local}")
   else:
-    sh_cmd = format("sh /tmp/{file_name} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled}")
+    sh_cmd = format("/tmp/{file_name} {os_family} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled}")
 
   Execute( format("/tmp/{file_name}"),
     command   = sh_cmd,
