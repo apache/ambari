@@ -48,8 +48,6 @@ class MysqlServer(Script):
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     )
 
-    mysql_service(daemon_name=params.daemon_name, action='stop')
-
   def start(self, env):
     import params
     env.set_params(params)

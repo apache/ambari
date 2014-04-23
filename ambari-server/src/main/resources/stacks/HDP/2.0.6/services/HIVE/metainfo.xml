@@ -74,6 +74,11 @@
               <type>rpm</type>
               <name>mysql-connector-java</name>
             </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <packages>
             <package>
               <type>rpm</type>
               <name>mysql</name>
@@ -81,52 +86,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>centos6</osFamily>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>centos5</osFamily>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat6</osFamily>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat5</osFamily>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>oraclelinux6</osFamily>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>oraclelinux5</osFamily>
+          <osFamily>redhat5,redhat6,debian12</osFamily>
           <packages>
             <package>
               <type>rpm</type>
@@ -136,15 +96,6 @@
         </osSpecific>
         <osSpecific>
           <osFamily>suse11</osFamily>
-          <packages>
-            <package>
-              <type>rpm</type>
-              <name>mysql-client</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>sles11</osFamily>
           <packages>
             <package>
               <type>rpm</type>

@@ -38,9 +38,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
+    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    )
     self.assertResourceCalled('Execute', 'service mysql start',
                        logoutput = True,
-                       path = ['/usr/local/bin/:/bin/:/sbin/'],
                        tries = 1,
     )
     self.assertNoMoreResources()
@@ -52,9 +53,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
+    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    )
     self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
-                              path = ['/usr/local/bin/:/bin/:/sbin/'],
                               tries = 1,
     )
     self.assertNoMoreResources()
@@ -76,9 +78,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="secured.json"
     )
 
+    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    )
     self.assertResourceCalled('Execute', 'service mysql start',
                               logoutput = True,
-                              path = ['/usr/local/bin/:/bin/:/sbin/'],
                               tries = 1,
                               )
     self.assertNoMoreResources()
@@ -89,18 +92,20 @@ class TestMySqlServer(RMFTestCase):
                        command = "stop",
                        config_file="secured.json"
     )
-
+    
+    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    )
     self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
-                              path = ['/usr/local/bin/:/bin/:/sbin/'],
                               tries = 1,
                               )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    )
     self.assertResourceCalled('Execute', 'service mysql start',
       logoutput = True,
-      path = ['/usr/local/bin/:/bin/:/sbin/'],
       tries = 1,
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
@@ -111,17 +116,13 @@ class TestMySqlServer(RMFTestCase):
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       try_sleep = 5,
-    )
-    self.assertResourceCalled('Execute', 'service mysql stop',
-      logoutput = True,
-      path = ['/usr/local/bin/:/bin/:/sbin/'],
-      tries = 1,
     )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    )
     self.assertResourceCalled('Execute', 'service mysql start',
       logoutput = True,
-      path = ['/usr/local/bin/:/bin/:/sbin/'],
       tries = 1,
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
@@ -132,9 +133,4 @@ class TestMySqlServer(RMFTestCase):
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       try_sleep = 5,
-    )
-    self.assertResourceCalled('Execute', 'service mysql stop',
-      logoutput = True,
-      path = ['/usr/local/bin/:/bin/:/sbin/'],
-      tries = 1,
     )

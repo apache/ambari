@@ -22,15 +22,17 @@ from resource_management import *
 
 
 def mysql_service(daemon_name=None, action='start'):
-  cmd = format('service {daemon_name} {action}')
-
+  
   if action == 'status':
     logoutput = False
   else:
     logoutput = True
-
+    # required for running hive
+    replace_bind_address = format("sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' {mysql_configname}")  
+    Execute(replace_bind_address)
+    
+  cmd = format('service {daemon_name} {action}')
   Execute(cmd,
-          path="/usr/local/bin/:/bin/:/sbin/",
           tries=1,
           logoutput=logoutput)
 

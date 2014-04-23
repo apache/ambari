@@ -172,6 +172,12 @@ tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
 tez_user = config['configurations']['global']['tez_user']
 
+if System.get_instance().os_family == "debian":
+  mysql_configname = '/etc/mysql/my.cnf'
+else:
+  mysql_configname = '/etc/my.cnf'
+  
+
 # Hive security
 hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
 
