@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.AutoDeployInfo;
 
 public class StackServiceComponentResourceProvider extends
     ReadOnlyResourceProvider {
@@ -55,6 +56,13 @@ public class StackServiceComponentResourceProvider extends
       .getPropertyId("StackServiceComponents", "is_client");
   protected static final String IS_MASTER_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackServiceComponents", "is_master");
+  protected static final String CARDINALITY_ID = PropertyHelper
+      .getPropertyId("StackServiceComponents", "cardinality");
+  protected static final String AUTO_DEPLOY_ENABLED_ID = PropertyHelper
+      .getPropertyId("auto_deploy", "enabled");
+  protected static final String AUTO_DEPLOY_LOCATION_ID = PropertyHelper
+      .getPropertyId("auto_deploy", "location");
+
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -117,7 +125,19 @@ public class StackServiceComponentResourceProvider extends
       setResourceProperty(resource, IS_MASTER_PROPERTY_ID,
           response.isMaster(), requestedIds);
 
+      setResourceProperty(resource, CARDINALITY_ID,
+          response.getCardinality(), requestedIds);
 
+      AutoDeployInfo autoDeployInfo = response.getAutoDeploy();
+      if (autoDeployInfo != null) {
+        setResourceProperty(resource, AUTO_DEPLOY_ENABLED_ID,
+            autoDeployInfo.isEnabled(), requestedIds);
+
+        if (autoDeployInfo.getCoLocate() != null) {
+          setResourceProperty(resource, AUTO_DEPLOY_LOCATION_ID,
+              autoDeployInfo.getCoLocate(), requestedIds);
+        }
+      }
       resources.add(resource);
     }
 

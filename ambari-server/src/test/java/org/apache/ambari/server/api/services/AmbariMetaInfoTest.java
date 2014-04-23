@@ -1303,8 +1303,33 @@ public class AmbariMetaInfoTest {
       Assert.assertEquals("http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/BUILDS/2.1.1.0-118",
           ri.getLatestBaseUrl());
     }
+  }
 
+  @Test
+  public void testGetComponentDependency() throws AmbariException {
+    DependencyInfo dependency = metaInfo.getComponentDependency("HDP", "1.3.4", "HIVE", "HIVE_SERVER", "ZOOKEEPER_SERVER");
+    assertEquals("ZOOKEEPER/ZOOKEEPER_SERVER", dependency.getName());
+    assertEquals("ZOOKEEPER_SERVER", dependency.getComponentName());
+    assertEquals("ZOOKEEPER", dependency.getServiceName());
+    assertEquals("cluster", dependency.getScope());
+  }
 
+  @Test
+  public void testGetComponentDependencies() throws AmbariException {
+    List<DependencyInfo> dependencies = metaInfo.getComponentDependencies("HDP", "1.3.4", "HBASE", "HBASE_MASTER");
+    assertEquals(2, dependencies.size());
+
+    DependencyInfo dependency = dependencies.get(0);
+    assertEquals("HDFS/HDFS_CLIENT", dependency.getName());
+    assertEquals("HDFS_CLIENT", dependency.getComponentName());
+    assertEquals("HDFS", dependency.getServiceName());
+    assertEquals("host", dependency.getScope());
+
+    dependency = dependencies.get(1);
+    assertEquals("ZOOKEEPER/ZOOKEEPER_SERVER", dependency.getName());
+    assertEquals("ZOOKEEPER_SERVER", dependency.getComponentName());
+    assertEquals("ZOOKEEPER", dependency.getServiceName());
+    assertEquals("cluster", dependency.getScope());
   }
 
 }

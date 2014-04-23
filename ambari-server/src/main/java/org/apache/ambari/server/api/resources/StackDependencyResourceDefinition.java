@@ -20,29 +20,25 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
-import java.util.Set;
+/**
+ * Stack Service Dependency Resource Definition.
+ */
+public class StackDependencyResourceDefinition extends BaseResourceDefinition {
 
-public class StackServiceComponentResourceDefinition extends
-    BaseResourceDefinition {
-
-  public StackServiceComponentResourceDefinition() {
-    super(Resource.Type.StackServiceComponent);
+  /**
+   * Constructor.
+   */
+  public StackDependencyResourceDefinition() {
+    super(Resource.Type.StackServiceComponentDependency);
   }
 
   @Override
   public String getPluralName() {
-    return "serviceComponents";
+    return "dependencies";
   }
 
   @Override
   public String getSingularName() {
-    return "serviceComponent";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.singleton(new SubResourceDefinition(
-        Resource.Type.StackServiceComponentDependency));
+    return "dependency";
   }
 }

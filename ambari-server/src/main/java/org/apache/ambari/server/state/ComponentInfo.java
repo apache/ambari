@@ -61,7 +61,7 @@ public class ComponentInfo {
    * the component is auto-deployed to the cluster topology.
    */
   @XmlElement(name="auto-deploy")
-  private AutoDeployInfo m_autoDeploy;
+  private AutoDeployInfo autoDeploy;
 
   public ComponentInfo() {
   }
@@ -77,7 +77,7 @@ public class ComponentInfo {
     commandScript = prototype.commandScript;
     customCommands = prototype.customCommands;
     dependencies = prototype.dependencies;
-    m_autoDeploy = prototype.m_autoDeploy;
+    autoDeploy = prototype.autoDeploy;
   }
 
   public String getName() {
@@ -105,7 +105,13 @@ public class ComponentInfo {
   }
 
   public StackServiceComponentResponse convertToResponse() {
-    return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
+    StackServiceComponentResponse response = new StackServiceComponentResponse(
+        getName(), getCategory(), isClient(), isMaster(), cardinality);
+
+    if (autoDeploy != null) {
+      response.setAutoDeploy(autoDeploy);
+    }
+    return response;
   }
 
   public boolean isDeleted() {
@@ -151,11 +157,7 @@ public class ComponentInfo {
   }
 
   public AutoDeployInfo getAutoDeploy() {
-    return m_autoDeploy;
-  }
-
-  public void setCardinality(String cardinality) {
-    this.cardinality = cardinality;
+    return autoDeploy;
   }
 
   public String getCardinality() {

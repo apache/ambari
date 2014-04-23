@@ -51,7 +51,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
@@ -333,7 +332,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     registerConfigGroups(clusterName, blueprintHostGroups, stack);
 
     persistInstallStateForUI();
-    return ((ServiceResourceProvider) getResourceProviderByType(Resource.Type.Service)).
+    return ((ServiceResourceProvider) getResourceProvider(Resource.Type.Service)).
         installAndStart(clusterName);
   }
 
@@ -381,7 +380,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Request serviceRequest = new RequestImpl(null, setServiceRequestProps, null, null);
-    getResourceProviderByType(Resource.Type.Service).createResources(serviceRequest);
+    getResourceProvider(Resource.Type.Service).createResources(serviceRequest);
     createComponentResources(blueprintHostGroups, clusterName, services);
   }
 
@@ -414,8 +413,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private void createHostAndComponentResources(Map<String, HostGroup> blueprintHostGroups, String clusterName)
       throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
-    ResourceProvider hostProvider = getResourceProviderByType(Resource.Type.Host);
-    ResourceProvider hostComponentProvider = getResourceProviderByType(Resource.Type.HostComponent);
+    ResourceProvider hostProvider = getResourceProvider(Resource.Type.Host);
+    ResourceProvider hostComponentProvider = getResourceProvider(Resource.Type.HostComponent);
     for (HostGroup group : blueprintHostGroups.values()) {
       for (String host : group.getHostInfo()) {
         Map<String, Object> hostProperties = new HashMap<String, Object>();
@@ -479,7 +478,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         setComponentRequestProps.add(componentProperties);
       }
       Request componentRequest = new RequestImpl(null, setComponentRequestProps, null, null);
-      ResourceProvider componentProvider = getResourceProviderByType(Resource.Type.Component);
+      ResourceProvider componentProvider = getResourceProvider(Resource.Type.Component);
       componentProvider.createResources(componentRequest);
     }
   }
@@ -626,18 +625,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         return null;
       }
     });
-  }
-  /**
-   * Obtain a resource provider based on type.
-   *
-   * @param type  resource provider type
-   *
-   * @return resource provider for the specified type
-   */
-  //todo: inject a better mechanism for getting resource providers
-  ResourceProvider getResourceProviderByType(Resource.Type type) {
-    return ((ClusterControllerImpl) ClusterControllerHelper.getClusterController()).
-        ensureResourceProvider(type);
   }
 
   /**
@@ -916,7 +903,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
             null, clusterName, entity.getName(), service, "Host Group Configuration",
             new HashSet<String>(group.getHostInfo()), serviceConfigs);
 
-        ((ConfigGroupResourceProvider) getResourceProviderByType(Resource.Type.ConfigGroup)).
+        ((ConfigGroupResourceProvider) getResourceProvider(Resource.Type.ConfigGroup)).
             createResources(Collections.singleton(request));
       }
     }

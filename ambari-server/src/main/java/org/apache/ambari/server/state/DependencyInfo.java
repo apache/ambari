@@ -29,12 +29,22 @@ public class DependencyInfo {
    * The name of the component which is the dependency.
    * Specified in the form serviceName/componentName.
    */
-  private String m_name;
+  private String name;
 
   /**
    * The scope of the dependency.  Either "cluster" or "host".
    */
-  private String m_scope;
+  private String scope;
+
+  /**
+   * Service name of the dependency.
+   */
+  private String serviceName;
+
+  /**
+   * Component name of the dependency.
+   */
+  private String componentName;
 
   /**
    * Auto-deployment information for the dependency.
@@ -52,7 +62,14 @@ public class DependencyInfo {
    *             in the form serviceName/componentName
    */
   public void setName(String name) {
-    m_name = name;
+    if (! name.contains("/")) {
+      throw new IllegalArgumentException("Invalid dependency name specified in stack.  " +
+                                         "Expected form is: serviceName/componentName");
+    }
+    this.name = name;
+    int idx = name.indexOf('/');
+    serviceName = name.substring(0, idx);
+    componentName = name.substring(idx + 1);
   }
 
   /**
@@ -62,7 +79,7 @@ public class DependencyInfo {
    *         in the form serviceName/componentName
    */
   public String getName() {
-    return m_name;
+    return name;
   }
 
   /**
@@ -71,7 +88,7 @@ public class DependencyInfo {
    * @param scope the scope of the dependency.  Either "cluster" or "host".
    */
   public void setScope(String scope) {
-    m_scope = scope;
+    this.scope = scope;
   }
 
   /**
@@ -80,7 +97,7 @@ public class DependencyInfo {
    * @return either "cluster" or "host".
    */
   public String getScope() {
-    return m_scope;
+    return scope;
   }
 
   /**
@@ -99,5 +116,23 @@ public class DependencyInfo {
    */
   public AutoDeployInfo getAutoDeploy() {
     return m_autoDeploy;
+  }
+
+  /**
+   * Get the component name of the dependency.
+   *
+   * @return dependency component name
+   */
+  public String getComponentName() {
+    return componentName;
+  }
+
+  /**
+   * Get the service name associated with the dependency component.
+   *
+   * @return associated service name
+   */
+  public String getServiceName() {
+    return serviceName;
   }
 }

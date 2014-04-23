@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -39,6 +40,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.configuration.Configuration;
@@ -47,6 +49,7 @@ import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -168,8 +171,7 @@ public class AmbariMetaInfo {
   public ComponentInfo getComponentCategory(String stackName, String version,
                                             String serviceName, String componentName) throws AmbariException {
     ComponentInfo component = null;
-    List<ComponentInfo> components = getComponentsByService(stackName, version,
-        serviceName);
+    List<ComponentInfo> components = getComponentsByService(stackName, version, serviceName);
     if (components != null)
       for (ComponentInfo cmp : components) {
         if (cmp.getName().equals(componentName)) {
@@ -189,15 +191,18 @@ public class AmbariMetaInfo {
    * @return
    * @throws AmbariException
    */
-  public List<ComponentInfo> getComponentsByService(String stackName,
-                                                    String version, String serviceName) throws AmbariException {
-    List<ComponentInfo> componentsResult = null;
-    ServiceInfo service = getServiceInfo(stackName, version, serviceName);
-    if (service != null)
-      componentsResult = service.getComponents();
+  public List<ComponentInfo> getComponentsByService(String stackName, String version, String serviceName)
+      throws AmbariException {
 
-    return componentsResult;
+    ServiceInfo service = getServiceInfo(stackName, version, serviceName);
+    if (service == null) {
+      throw new ParentObjectNotFoundException("Parent Service resource doesn't exist. stackName=" +
+          stackName + ", stackVersion=" + version + ", serviceName=" + serviceName);
+    }
+
+    return service.getComponents();
   }
+
 
   public ComponentInfo getComponent(String stackName, String version, String serviceName,
                                     String componentName) throws AmbariException {
@@ -207,7 +212,7 @@ public class AmbariMetaInfo {
     if (componentsByService.size() == 0)
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
-          + ", stackVersion=" + serviceName
+          + ", serviceName=" + serviceName
           + ", componentName=" + componentName);
 
     ComponentInfo componentResult = null;
@@ -220,10 +225,69 @@ public class AmbariMetaInfo {
     if (componentResult == null)
       throw new StackAccessException("stackName=" + stackName
           + ", stackVersion=" + version
-          + ", stackVersion=" + serviceName
+          + ", serviceName=" + serviceName
           + ", componentName=" + componentName);
 
     return componentResult;
+  }
+
+  /**
+   * Get all dependencies for a component.
+   *
+   * @param stackName  stack name
+   * @param version    stack version
+   * @param service    service name
+   * @param component  component name
+   *
+   * @return List of dependencies for the given component
+   * @throws AmbariException if unable to obtain the dependencies for the component
+   */
+  public List<DependencyInfo> getComponentDependencies(String stackName, String version,
+                                                       String service, String component)
+                                                       throws AmbariException {
+    ComponentInfo componentInfo;
+    try {
+      componentInfo = getComponent(stackName, version, service, component);
+    } catch (StackAccessException e) {
+      throw new ParentObjectNotFoundException("Parent Component resource doesn't exist", e);
+    }
+    return componentInfo.getDependencies();
+  }
+
+  /**
+   * Obtain a specific dependency by name.
+   *
+   * @param stackName       stack name
+   * @param version         stack version
+   * @param service         service name
+   * @param component       component name
+   * @param dependencyName  dependency component name
+   *
+   * @return the requested dependency
+   * @throws AmbariException if unable to obtain the requested dependency
+   */
+  public DependencyInfo getComponentDependency(String stackName, String version, String service,
+                                               String component, String dependencyName) throws AmbariException {
+
+    DependencyInfo foundDependency = null;
+    List<DependencyInfo> componentDependencies = getComponentDependencies(
+        stackName, version, service, component);
+    Iterator<DependencyInfo> iter = componentDependencies.iterator();
+    while (foundDependency == null && iter.hasNext()) {
+      DependencyInfo dependency = iter.next();
+      if (dependencyName.equals(dependency.getComponentName())) {
+        foundDependency = dependency;
+      }
+    }
+    if (foundDependency == null) {
+      throw new StackAccessException("stackName=" + stackName
+          + ", stackVersion= " + version
+          + ", stackService=" + service
+          + ", stackComponent= " + component
+          + ", dependency=" + dependencyName);
+    }
+
+    return foundDependency;
   }
 
   public Map<String, List<RepositoryInfo>> getRepository(String stackName,
@@ -276,7 +340,7 @@ public class AmbariMetaInfo {
     }
     if (repoResult == null)
       throw new StackAccessException("stackName=" + stackName
-          + ", stackName= " + version
+          + ", stackVersion= " + version
           + ", osType=" + osType
           + ", repoId= " + repoId);
     return repoResult;
@@ -412,18 +476,21 @@ public class AmbariMetaInfo {
    *
    * @param stackName the stack name
    * @param version   the version of the stack
-   * @return the information of abt varios services that are supported in the
-   *         stack
+   * @return the information of abt various services that are supported in the stack
    * @throws AmbariException
    */
   public Map<String, ServiceInfo> getServices(String stackName, String version) throws AmbariException {
 
     Map<String, ServiceInfo> servicesInfoResult = new HashMap<String, ServiceInfo>();
 
-    List<ServiceInfo> services = null;
-    StackInfo stack = getStackInfo(stackName, version);
-    if (stack == null)
-      return null;
+    List<ServiceInfo> services;
+    StackInfo stack;
+    try {
+      stack = getStackInfo(stackName, version);
+    } catch (StackAccessException e) {
+      throw new ParentObjectNotFoundException("Parent Stack Version resource doesn't exist", e);
+    }
+
     services = stack.getServices();
     if (services != null)
       for (ServiceInfo service : services) {
@@ -451,10 +518,14 @@ public class AmbariMetaInfo {
   public ServiceInfo getServiceInfo(String stackName, String version,
                                     String serviceName) throws AmbariException {
     ServiceInfo serviceInfoResult = null;
-    List<ServiceInfo> services = null;
-    StackInfo stack = getStackInfo(stackName, version);
-    if (stack == null)
-      return null;
+    List<ServiceInfo> services;
+    StackInfo stack;
+    try {
+      stack = getStackInfo(stackName, version);
+    } catch (StackAccessException e) {
+      throw new ParentObjectNotFoundException("Parent Stack Version resource doesn't exist", e);
+    }
+
     services = stack.getServices();
     if (services != null)
       for (ServiceInfo service : services) {

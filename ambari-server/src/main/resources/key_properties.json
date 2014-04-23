@@ -76,6 +76,13 @@
     "StackService": "StackServiceComponents/service_name",
     "StackServiceComponent": "StackServiceComponents/component_name"
   },
+    "StackServiceComponentDependency": {
+    "Stack": "Dependencies/stack_name",
+    "StackVersion": "Dependencies/stack_version",
+    "StackService": "Dependencies/dependent_service_name",
+    "StackServiceComponent": "Dependencies/dependent_component_name",
+    "StackServiceComponentDependency": "Dependencies/component_name"
+  },
   "DRFeed": {
     "DRFeed": "Feed/name"
   },

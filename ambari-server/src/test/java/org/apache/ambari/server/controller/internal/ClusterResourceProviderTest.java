@@ -772,7 +772,7 @@ public class ClusterResourceProviderTest {
     }
 
     @Override
-    ResourceProvider getResourceProviderByType(Resource.Type type) {
+    ResourceProvider getResourceProvider(Resource.Type type) {
       if (type == Resource.Type.Service) {
         return this.serviceResourceProvider;
       } else if (type == Resource.Type.Component) {

@@ -213,7 +213,21 @@
         "StackServiceComponents/component_category",
         "StackServiceComponents/is_client",
         "StackServiceComponents/is_master",
+        "StackServiceComponents/cardinality",
+        "auto_deploy/enabled",
+        "auto_deploy/location",
         "_"
+    ],
+    "StackServiceComponentDependency" :[
+        "Dependencies/stack_name",
+        "Dependencies/stack_version",
+        "Dependencies/dependent_service_name",
+        "Dependencies/dependent_component_name",
+        "Dependencies/service_name",
+        "Dependencies/component_name",
+        "Dependencies/scope",
+        "auto_deploy/enabled",
+        "auto_deploy/location"
     ],
     "DRFeed":[
         "Feed/name",

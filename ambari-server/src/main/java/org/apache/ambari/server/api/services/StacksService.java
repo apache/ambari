@@ -183,6 +183,35 @@ public class StacksService extends BaseService {
   }
 
   @GET
+  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}/dependencies")
+  @Produces("text/plain")
+  public Response getServiceComponentDependencies(@Context HttpHeaders headers,
+                                                  @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                                  @PathParam("stackVersion") String stackVersion,
+                                                  @PathParam("serviceName") String serviceName,
+                                                  @PathParam("componentName") String componentName) {
+
+    return handleRequest(headers, null, ui, Request.Type.GET,
+        createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, null));
+  }
+
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}/dependencies/{dependencyName}")
+  @Produces("text/plain")
+  public Response getServiceComponentDependency(@Context HttpHeaders headers,
+                                      @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                      @PathParam("stackVersion") String stackVersion,
+                                      @PathParam("serviceName") String serviceName,
+                                      @PathParam("componentName") String componentName,
+                                      @PathParam("dependencyName") String dependencyName) {
+
+    return handleRequest(headers, null, ui, Request.Type.GET,
+        createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, dependencyName));
+  }
+
+
+
+  @GET
   @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}")
   @Produces("text/plain")
   public Response getServiceComponent(@Context HttpHeaders headers,
@@ -241,6 +270,19 @@ public class StacksService extends BaseService {
     mapIds.put(Resource.Type.StackServiceComponent, componentName);
 
     return createResource(Resource.Type.StackServiceComponent, mapIds);
+  }
+
+  ResourceInstance createStackServiceComponentDependencyResource(
+      String stackName, String stackVersion, String serviceName, String componentName, String dependencyName) {
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.StackService, serviceName);
+    mapIds.put(Resource.Type.StackServiceComponent, componentName);
+    mapIds.put(Resource.Type.StackServiceComponentDependency, dependencyName);
+
+    return createResource(Resource.Type.StackServiceComponentDependency, mapIds);
   }
 
   ResourceInstance createStackConfigurationResource(String stackName,

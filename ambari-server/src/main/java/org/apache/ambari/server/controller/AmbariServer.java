@@ -45,6 +45,7 @@ import org.apache.ambari.server.controller.internal.AbstractControllerResourcePr
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
+import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
 import org.apache.ambari.server.controller.nagios.NagiosPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -509,6 +510,7 @@ public class AmbariServer {
     NagiosPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
     BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class), injector.getInstance(Gson.class));
+    StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.injectBlueprintDAO(injector.getInstance(BlueprintDAO.class));
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class));
   }

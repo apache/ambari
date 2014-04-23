@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 
 import java.util.Map;
 import java.util.Set;
@@ -140,6 +141,18 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }
+  }
+
+  /**
+   * Obtain a resource provider based on type.
+   *
+   * @param type  resource provider type
+   *
+   * @return resource provider for the specified type
+   */
+  ResourceProvider getResourceProvider(Resource.Type type) {
+    return ((ClusterControllerImpl) ClusterControllerHelper.getClusterController()).
+        ensureResourceProvider(type);
   }
 
   /**
