@@ -98,7 +98,7 @@ App.MainServiceItemController = Em.Controller.extend({
       additionalWarningMsg:  isMaintenanceOFF && serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null
     });
 
-    App.showConfirmationFeedBackPopup(function(query) {
+    return App.showConfirmationFeedBackPopup(function(query) {
       self.set('isPending', true);
       self.startStopPopupPrimary(serviceHealth, query);
     }, bodyMessage);
@@ -150,8 +150,8 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   runRebalancer: function (event) {
     var self = this;
-    App.showConfirmationPopup(function() {
-      self.content.set('runRebalancer', true);
+    return App.showConfirmationPopup(function() {
+      self.set("content.runRebalancer", true);
       // load data (if we need to show this background operations popup) from persist
       App.router.get('applicationController').dataLoading().done(function (initValue) {
         if (initValue) {
@@ -167,8 +167,8 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   runCompaction: function (event) {
     var self = this;
-    App.showConfirmationPopup(function() {
-      self.content.set('runCompaction', true);
+    return App.showConfirmationPopup(function() {
+      self.set("content.runCompaction", true);
       // load data (if we need to show this background operations popup) from persist
       App.router.get('applicationController').dataLoading().done(function (initValue) {
         if (initValue) {
@@ -185,10 +185,9 @@ App.MainServiceItemController = Em.Controller.extend({
   runSmokeTest: function (event) {
     var self = this;
     if (this.get('content.serviceName') === 'MAPREDUCE2' && !App.Service.find('YARN').get('isStarted')) {
-      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('services.mapreduce2.smokeTest.requirement'));
-      return;
+      return App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('services.mapreduce2.smokeTest.requirement'));
     }
-    App.showConfirmationFeedBackPopup(function(query) {
+    return App.showConfirmationFeedBackPopup(function(query) {
       self.runSmokeTestPrimary(query);
     });
   },
@@ -200,7 +199,7 @@ App.MainServiceItemController = Em.Controller.extend({
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
      });
-    App.showConfirmationFeedBackPopup(function(query) {
+    return App.showConfirmationFeedBackPopup(function(query) {
       batchUtils.restartAllServiceHostComponents(serviceName, false, query);
     }, bodyMessage);
   },
@@ -209,7 +208,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     var state = this.get('content.passiveState') == 'OFF' ? 'ON' : 'OFF';
     var onOff = state === 'ON' ? "On" : "Off";
-    App.showConfirmationPopup(function() {
+    return App.showConfirmationPopup(function() {
           self.turnOnOffPassiveRequest(state, label)
         },
         Em.I18n.t('hosts.passiveMode.popup').format(onOff,self.get('content.displayName'))
@@ -282,11 +281,13 @@ App.MainServiceItemController = Em.Controller.extend({
   reassignMaster: function (hostComponent) {
     var component = App.HostComponent.find().findProperty('componentName', hostComponent);
     console.log('In Reassign Master', hostComponent);
-    var reassignMasterController = App.router.get('reassignMasterController');
-    reassignMasterController.saveComponentToReassign(component);
-    reassignMasterController.getSecurityStatus();
-    reassignMasterController.setCurrentStep('1');
-    App.router.transitionTo('reassign');
+    if (component) {
+      var reassignMasterController = App.router.get('reassignMasterController');
+      reassignMasterController.saveComponentToReassign(component);
+      reassignMasterController.getSecurityStatus();
+      reassignMasterController.setCurrentStep('1');
+      App.router.transitionTo('reassign');
+    }
   },
 
   /**
@@ -311,12 +312,16 @@ App.MainServiceItemController = Em.Controller.extend({
   refreshConfigs: function() {
     var self = this;
     if (this.get('content.isClientsOnly')) {
-      App.showConfirmationFeedBackPopup(function(query) {
+      return App.showConfirmationFeedBackPopup(function(query) {
         batchUtils.restartHostComponents(self.get('content.hostComponents'), Em.I18n.t('rollingrestart.context.allForSelectedService').format(self.get('content.serviceName')), query);
       });
     }
   },
 
+  /**
+   * set property isPending (if this property is true - means that service has task in BGO)
+   * and this makes start/stop button disabled
+   */
   setStartStopState: function () {
     var serviceName = this.get('content.serviceName');
     var backgroundOperations = App.router.get('backgroundOperationsController.services');
