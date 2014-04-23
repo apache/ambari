@@ -710,7 +710,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       } else if (host) {
         _host.set('cpu', host.Hosts.cpu_count);
         _host.set('memory', ((parseInt(host.Hosts.total_mem))).toFixed(2));
-        _host.set('disk_info', host.Hosts.disk_info);
+        _host.set('disk_info', host.Hosts.disk_info.filter(function(host){ return host.mountpoint!="/boot"}));
         _host.set('os_type', host.Hosts.os_type);
         _host.set('os_arch', host.Hosts.os_arch);
         _host.set('ip', host.Hosts.ip);

@@ -77,7 +77,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         item.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + hostName;
         }, this);
-
+        item.Hosts.disk_info = item.Hosts.disk_info.filter(function(h) {return h.mountpoint!="/boot"});
         hostIds[hostName] = true;
         currentHostStatuses[hostName] = item.Hosts.host_status;
 
