@@ -31,9 +31,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'INSTALLED') {
       var self = this;
       App.showConfirmationPopup(function () {
-        var command = 'START';
+        var state = 'STARTED';
         var context = Em.I18n.t('services.service.summary.flume.start.context').format(selectedFlumeAgent.get('name'));
-        self.sendFlumeAgentCommandToServer(command, context, selectedFlumeAgent);
+        self.sendFlumeAgentCommandToServer(state, context, selectedFlumeAgent);
       });
     }
   },
@@ -47,26 +47,26 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'RUNNING') {
       var self = this;
       App.showConfirmationPopup(function () {
-        var command = 'STOP';
+        var state = 'INSTALLED';
         var context = Em.I18n.t('services.service.summary.flume.stop.context').format(selectedFlumeAgent.get('name'));
-        self.sendFlumeAgentCommandToServer(command, context, selectedFlumeAgent);
+        self.sendFlumeAgentCommandToServer(state, context, selectedFlumeAgent);
       });
     }
   },
 
   /**
    * Send command for Flume Agent to server
-   * @param {string} command
+   * @param {string} state
    * @param {string} context
    * @param {Object} agent
    * @method sendFlumeAgentCommandToServer
    */
-  sendFlumeAgentCommandToServer: function (command, context, agent) {
+  sendFlumeAgentCommandToServer: function (state, context, agent) {
     App.ajax.send({
       name: 'service.flume.agent.command',
       sender: this,
       data: {
-        command: command,
+        state: state,
         context: context,
         agentName: agent.get('name'),
         host: agent.get('host.hostName')

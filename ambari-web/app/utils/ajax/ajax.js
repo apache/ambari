@@ -142,24 +142,21 @@ var urls = {
     'mock': '/data/configurations/config_group.json'
   },
   'service.flume.agent.command': {
-    'real': '/clusters/{clusterName}/requests',
+    'real': '/clusters/{clusterName}/hosts/{host}/host_components/FLUME_HANDLER',
     'mock': '',
     'format': function (data) {
       return {
-        type: 'POST',
+        type: 'PUT',
         data: JSON.stringify({
           "RequestInfo": {
-            "command": data.command,
             "context": data.context,
             "flume_handler": data.agentName
           },
-          "Requests/resource_filters": [
-            {
-              "service_name": "FLUME",
-              "component_name": "FLUME_HANDLER",
-              "hosts": data.host
+          "Body": {
+            "HostRoles": {
+              "state": data.state
             }
-          ]
+          }
         })
       }
     }
