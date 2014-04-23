@@ -274,7 +274,7 @@ class Bootstrap(threading.Thread):
       return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
 
   def getAptUpdateCommand(self):
-    return "apt-get update -o Dir::Etc::sourcelist=\"%s/%s\" -o API::Get::List-Cleanup=\"0\" --no-list-cleanup" %\
+    return "sudo apt-get update -o Dir::Etc::sourcelist=\"%s/%s\" -o API::Get::List-Cleanup=\"0\" --no-list-cleanup" %\
           ("sources.list.d", self.AMBARI_REPO_FILENAME)
 
   def copyNeededFiles(self):
