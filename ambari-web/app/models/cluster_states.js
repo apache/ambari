@@ -115,7 +115,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
     this.set('additionalData', {
       user: App.db.getUser(),
       login: App.db.getLoginName(),
-      overrideLocaldb: overrideLocaldb || true
+      overrideLocaldb: Em.isNone(overrideLocaldb) ? true : overrideLocaldb
     });
     return this.getUserPref(this.get('key'));
   },
@@ -142,11 +142,11 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         this.set('localdb', response.localdb);
         // restore HAWizard data if process was started
         var isHAWizardStarted = App.get('isAdmin') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
-        if (params.overrideLocaldb || isHAWizardStarted) {
+        if (params.data.overrideLocaldb || isHAWizardStarted) {
           App.db.data = response.localdb;
           App.db.setLocalStorage();
-          App.db.setUser(params.user);
-          App.db.setLoginName(params.login);
+          App.db.setUser(params.data.user);
+          App.db.setLoginName(params.data.login);
         }
       }
     }
