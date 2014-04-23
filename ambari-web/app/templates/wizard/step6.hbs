@@ -30,56 +30,56 @@
           <th>{{t common.host}}</th>
           {{#each header in controller.headers}}
 
-              <th>
-                <a href="#" {{bindAttr class="header.allChecked:selected:deselected"}}
-                  {{action "selectAllNodes" header target="controller"}}>{{t all}}</a> |
+            <th>
+              <a href="#" {{bindAttr class="header.allChecked:selected:deselected"}}
+                {{action "selectAllNodes" header target="controller"}}>{{t all}}</a> |
 
-                <a href="#" {{bindAttr class="header.noChecked:selected:deselected"}}
-                  {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
-              </th>
+              <a href="#" {{bindAttr class="header.noChecked:selected:deselected"}}
+                {{action "deselectAllNodes" header target="controller"}}>{{t none}}</a>
+            </th>
 
           {{/each}}
         </tr>
       </thead>
       <tbody>
-      {{#if view.pageContent}}
-        {{#each host in view.pageContent}}
-          <tr>
-            {{#view App.WizardStep6HostView hostBinding="host" }}
-              {{host.hostName}}
-              {{#if host.hasMaster}}
-                <i class=icon-asterisks>&#10037;</i>
-              {{/if}}
-            {{/view}}
-            {{#each checkbox in host.checkboxes}}
-              <td>
+        {{#if view.pageContent}}
+          {{#each host in view.pageContent}}
+            <tr>
+              {{#view App.WizardStep6HostView hostBinding="host" }}
+                {{host.hostName}}
+                {{#if host.hasMaster}}
+                  <i class=icon-asterisks>&#10037;</i>
+                {{/if}}
+              {{/view}}
+              {{#each checkbox in host.checkboxes}}
+                <td>
                   <label class="checkbox">
                     {{#view view.checkboxView checkboxBinding="checkbox"}}
                       {{checkbox.title}}
                     {{/view}}
                   </label>
-              </td>
-            {{/each}}
-          </tr>
-        {{/each}}
-      {{/if}}
+                </td>
+              {{/each}}
+            </tr>
+          {{/each}}
+        {{/if}}
       </tbody>
     </table>
   </div>
-    <div id="hosts">
-        <div class="page-bar">
-            <div class="items-on-page">
-                <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-            </div>
-            <div class="info">{{view.paginationInfo}}</div>
-            <div class="paging_two_button">
-              {{view view.paginationFirst}}
-              {{view view.paginationLeft}}
-              {{view view.paginationRight}}
-              {{view view.paginationLast}}
-            </div>
-        </div>
+  <div id="hosts">
+    <div class="page-bar">
+      <div class="items-on-page">
+        <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+      </div>
+      <div class="info">{{view.paginationInfo}}</div>
+      <div class="paging_two_button">
+        {{view view.paginationFirst}}
+        {{view view.paginationLeft}}
+        {{view view.paginationRight}}
+        {{view view.paginationLast}}
+      </div>
     </div>
+  </div>
   <div class="btn-area">
     <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>

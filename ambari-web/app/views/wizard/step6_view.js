@@ -25,16 +25,32 @@ App.WizardStep6View = App.TableView.extend({
 
   title: '',
 
+  /**
+   * Numbe rof visible rows
+   * @type {string}
+   */
   displayLength: "25",
 
+  /**
+   * List of hosts
+   * @type {object[]}
+   */
   content: function () {
     return this.get('controller.hosts');
   }.property('controller.hosts'),
 
+  /**
+   * Synonym to <code>content</code> in this <code>App.TableView</code>
+   * @type {object[]}
+   */
   filteredContent: function () {
     return this.get('content');
   }.property('content'),
 
+  /**
+   * Set <code>label</code>, <code>title</code> and do <code>loadStep</code>
+   * @method didInsertElement
+   */
   didInsertElement: function () {
     var controller = this.get('controller');
     if (controller.get('isMasters')) {
@@ -49,6 +65,10 @@ App.WizardStep6View = App.TableView.extend({
     controller.loadStep();
   },
 
+  /**
+   * Set <code>label</code> value
+   * @method setLabel
+   */
   setLabel: function () {
     var label = Em.I18n.t('installer.step6.body');
     var clients = this.get('controller.content.clients');
@@ -56,26 +76,30 @@ App.WizardStep6View = App.TableView.extend({
       if (clients.length === 1) {
         label = label + ' ' + _client.display_name;
       }
-      else
+      else {
         if (_client !== clients[clients.length - 1]) {           // [clients.length - 1]
           label = label + ' ' + _client.display_name;
-          if(_client !== clients[clients.length - 2]) {
+          if (_client !== clients[clients.length - 2]) {
             label = label + ',';
           }
         }
         else {
           label = label + ' ' + Em.I18n.t('and') + ' ' + _client.display_name + '.';
         }
+      }
     }, this);
     this.set('label', label);
   },
+
   /**
    * Binding host property with dynamic name
-   * @type {*}
+   * @type {Ember.Checkbox}
    */
   checkboxView: Em.Checkbox.extend({
+
     /**
      * Header object with host property name
+     * @type {object}
      */
     checkbox: null,
 
@@ -85,6 +109,10 @@ App.WizardStep6View = App.TableView.extend({
 
     disabledBinding: 'checkbox.isInstalled',
 
+    /**
+     * Click-handler on checkbox
+     * @method click
+     */
     click: function () {
       if ($.browser.mozilla) {
         this.toggleProperty('checkbox.checked');
@@ -96,24 +124,33 @@ App.WizardStep6View = App.TableView.extend({
 
 App.WizardStep6HostView = Em.View.extend({
 
+  /**
+   * Binded <code>host</code> object
+   * @type {object}
+   */
   host: null,
+
   tagName: 'td',
 
+  /**
+   * Create hover-labels for hostName with list of installed master-components
+   * @method didInsertElement
+   */
   didInsertElement: function () {
-    if (!this.get('controller.isMasters')) {
-      var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostName'));
-      if (components && components.length > 0) {
-        components = components.map(function(_component) {
-          return App.format.role(_component);
-        });
-        components = components.join(" /\n");
-        App.popover(this.$(), {
-          title: Em.I18n.t('installer.step6.wizardStep6Host.title').format(this.get('host.hostName')),
-          content: components,
-          placement: 'right',
-          trigger: 'hover'
-        });
-      }
+    if(this.get('controller.isMasters')) return;
+
+    var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostName'));
+    if (components && components.length > 0) {
+      components = components.map(function (_component) {
+        return App.format.role(_component);
+      });
+      components = components.join(" /\n");
+      App.popover(this.$(), {
+        title: Em.I18n.t('installer.step6.wizardStep6Host.title').format(this.get('host.hostName')),
+        content: components,
+        placement: 'right',
+        trigger: 'hover'
+      });
     }
   }
 });

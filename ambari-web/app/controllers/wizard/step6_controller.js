@@ -33,7 +33,12 @@ var db = require('utils/db');
  */
 App.WizardStep6Controller = Em.Controller.extend({
 
+  /**
+   * List of hosts
+   * @type {object[]}
+   */
   hosts: [],
+
   /**
    * List of components info about selecting/deselecting status for components.
    *
@@ -41,33 +46,50 @@ App.WizardStep6Controller = Em.Controller.extend({
    *  @item {Em.Object}
    *    @property name {String} - component name
    *    @property label {String} - component display name
-   *    @property allChecked {Boolean} - all checkboxes are checked
-   *    @property noChecked {Boolean} - no checkboxes checked
+   *    @property allChecked {bool} - all checkboxes are checked
+   *    @property noChecked {bool} - no checkboxes checked
    */
   headers: [],
 
   /**
    * true - assign ZK, HB
    * false - slaves and clients
+   * @type {bool}
    */
   isMasters: false,
+
+  /**
+   * @type {bool}
+   */
   isLoaded: false,
 
-
+  /**
+   * Check if <code>addHostWizard</code> used
+   * @type {bool}
+   */
   isAddHostWizard: function () {
     return this.get('content.controllerName') === 'addHostController';
   }.property('content.controllerName'),
 
+  /**
+   * Check if <code>installerWizard</code> used
+   * @type {bool}
+   */
   isInstallerWizard: function () {
     return this.get('content.controllerName') === 'installerController';
   }.property('content.controllerName'),
 
-  isAddServiceWizard: function() {
+  /**
+   * Check if <code>addHerviceWizard</code> used
+   * @type {bool}
+   */
+  isAddServiceWizard: function () {
     return this.get('content.controllerName') === 'addServiceController';
   }.property('content.controllerName'),
 
   /**
-   * verify condition that at least one checkbox of each component was checked
+   * Verify condition that at least one checkbox of each component was checked
+   * @method clearError
    */
   clearError: function () {
     var self = this;
@@ -114,6 +136,10 @@ App.WizardStep6Controller = Em.Controller.extend({
     }
   },
 
+  /**
+   * Clear Step6 data like <code>hosts</code>, <code>headers</code> etc
+   * @method clearStep
+   */
   clearStep: function () {
     this.set('hosts', []);
     this.set('headers', []);
@@ -123,24 +149,33 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Enable some service for all hosts
-   * @param event
+   * @param {object} event
+   * @method selectAllNodes
    */
   selectAllNodes: function (event) {
-    this.setAllNodes(event.context.name, true);
+    var name = Em.get(event, 'context.name');
+    if (name) {
+      this.setAllNodes(name, true);
+    }
   },
 
   /**
    * Disable some services for all hosts
-   * @param event
+   * @param {object} event
+   * @method deselectAllNodes
    */
   deselectAllNodes: function (event) {
-    this.setAllNodes(event.context.name, false);
+    var name = Em.get(event, 'context.name');
+    if (name) {
+      this.setAllNodes(name, false);
+    }
   },
 
   /**
    * Enable/disable some service for all hosts
    * @param {String} component - component name
-   * @param {Boolean} checked - true - enable, false - disable
+   * @param {bool} checked - true - enable, false - disable
+   * @method setAllNodes
    */
   setAllNodes: function (component, checked) {
     this.get('hosts').forEach(function (host) {
@@ -155,8 +190,9 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Return whether service was selected or not
-   * @param name serviceName
-   * @return {*}
+   * @param {string} name serviceName
+   * @return {bool}
+   * @method isServiceSelected
    */
   isServiceSelected: function (name) {
     return !!(this.get('content.services').findProperty('serviceName', name) &&
@@ -165,30 +201,44 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Checkbox check callback
+   * Verify if all/none checkboxes for current component are checked
    * @param {String} component
+   * @method checkCallback
    */
   checkCallback: function (component) {
     var header = this.get('headers').findProperty('name', component);
-    var hosts = this.get('hosts');
-    var allTrue = true;
-    var allFalse = true;
-    hosts.forEach(function (host) {
-      host.get('checkboxes').forEach(function (checkbox) {
-        if (checkbox.get('component') === component && !checkbox.get('isInstalled')) {
-          allTrue &= checkbox.get('checked');
-          allFalse &= !checkbox.get('checked');
-        }
+    if (header) {
+      var hosts = this.get('hosts');
+      var allTrue = true;
+      var allFalse = true;
+      hosts.forEach(function (host) {
+        host.get('checkboxes').forEach(function (checkbox) {
+          if (checkbox.get('component') === component && !checkbox.get('isInstalled')) {
+            allTrue = allTrue && checkbox.get('checked');
+            allFalse = allFalse && !checkbox.get('checked');
+          }
+        });
       });
-    });
-    header.set('allChecked', allTrue);
-    header.set('noChecked', allFalse);
+      header.set('allChecked', allTrue);
+      header.set('noChecked', allFalse);
+    }
     this.clearError();
   },
 
+  /**
+   * Get <code>displayName</code> for component by <code>componentName</code>
+   * @param componentName
+   * @returns {string}
+   * @method getComponentDisplayName
+   */
   getComponentDisplayName: function (componentName) {
-    return App.StackServiceComponent.find().findProperty('componentName', componentName).get('displayName')
+    return App.StackServiceComponent.find().findProperty('componentName', componentName).get('displayName');
   },
 
+  /**
+   * Init step6 data
+   * @method loadStep
+   */
   loadStep: function () {
 
     var self = this;
@@ -196,7 +246,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
 
-    var headers = [];
+    var headers = Em.A([]);
 
     if (this.get('isMasters')) {
       if (this.isServiceSelected('HBASE') && App.supports.multipleHBaseMasters) {
@@ -214,7 +264,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     }
     else {
       if (this.isServiceSelected('HDFS')) {
-        headers.pushObject(Ember.Object.create({
+        headers.pushObject(Em.Object.create({
           name: 'DATANODE',
           label: self.getComponentDisplayName('DATANODE')
         }));
@@ -249,7 +299,7 @@ App.WizardStep6Controller = Em.Controller.extend({
           label: self.getComponentDisplayName('FLUME_HANDLER')
         }));
       }
-      headers.pushObject(Ember.Object.create({
+      headers.pushObject(Em.Object.create({
         name: 'CLIENT',
         label: App.format.role('CLIENT')
       }));
@@ -276,14 +326,17 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Get active host names
-   * @return {Array}
+   * @return {string[]}
+   * @method getHostNames
    */
   getHostNames: function () {
     var hostInfo = this.get('content.hosts');
     var hostNames = [];
     for (var index in hostInfo) {
-      if (hostInfo[index].bootStatus === 'REGISTERED') {
-        hostNames.push(hostInfo[index].name);
+      if (hostInfo.hasOwnProperty(index)) {
+        if (hostInfo[index].bootStatus === 'REGISTERED') {
+          hostNames.push(hostInfo[index].name);
+        }
       }
     }
     return hostNames;
@@ -291,12 +344,13 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Load all data needed for this module. Then it automatically renders in template
+   * @method render
    */
   render: function () {
-    var hostsObj = [];
-    var masterHosts = [];
-    var headers = this.get('headers');
-    var masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
+    var hostsObj = [],
+      masterHosts = [],
+      headers = this.get('headers'),
+      masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq();
 
     this.getHostNames().forEach(function (_hostName) {
       var hasMaster = masterHostNames.contains(_hostName);
@@ -339,9 +393,10 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   /**
-   *
+   * Set checked values for slaves checkboxes
    * @param {Array} hostsObj
    * @return {Array}
+   * @method renderSlaves
    */
   renderSlaves: function (hostsObj) {
     var self = this;
@@ -389,10 +444,11 @@ App.WizardStep6Controller = Em.Controller.extend({
   },
 
   /**
-   * select checkboxes which correspond to master components
+   * Select checkboxes which correspond to master components
    *
    * @param {Array} hostsObj
    * @return {Array}
+   * @method selectMasterComponents
    */
   selectMasterComponents: function (hostsObj) {
     var masterComponentHosts = this.get('content.masterComponentHosts');
@@ -414,8 +470,9 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Return list of master components for specified <code>hostname</code>
-   * @param hostName
-   * @return {*}
+   * @param {string} hostName
+   * @return {string[]}
+   * @method getMasterComponentsForHost
    */
   getMasterComponentsForHost: function (hostName) {
     return this.get('content.masterComponentHosts').filterProperty('hostName', hostName).mapProperty('component');
@@ -424,7 +481,8 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Validate form. Return do we have errors or not
-   * @return {Boolean}
+   * @return {bool}
+   * @method validate
    */
   validate: function () {
 
@@ -433,19 +491,21 @@ App.WizardStep6Controller = Em.Controller.extend({
     }
     else {
       if (this.get('isInstallerWizard')) {
-       return this.validateEachComponent() && this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForSlaveHost'));
+        return this.validateEachComponent() && this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForSlaveHost'));
       }
       else {
-        if(this.get('isAddServiceWizard')) {
+        if (this.get('isAddServiceWizard')) {
           return this.validateEachComponent();
         }
+        return true;
       }
     }
   },
 
   /**
    * Validate all components for each host. Return do we have errors or not
-   * @return {Boolean}
+   * @return {bool}
+   * @method validateEachHost
    */
   validateEachHost: function (errorMsg) {
 
@@ -459,7 +519,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       var checkboxes = hosts[i].get('checkboxes');
       isError = false;
       headers.forEach(function (header) {
-        isError |= checkboxes.findProperty('title', header.get('label')).checked;
+        isError = isError || checkboxes.findProperty('title', header.get('label')).checked;
       });
       isError = !isError;
       if (isError) {
@@ -472,7 +532,8 @@ App.WizardStep6Controller = Em.Controller.extend({
 
   /**
    * Validate a component for all hosts. Return do we have errors or not
-   * @return {Boolean}
+   * @return {bool}
+   * @method validateEachComponent
    */
   validateEachComponent: function () {
     var isError = false;
