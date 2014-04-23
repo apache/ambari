@@ -94,6 +94,9 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <configuration-dependencies>
+        <config-type>global</config-type>
+      </configuration-dependencies>
       <monitoringService>true</monitoringService>
     </service>
   </services>
