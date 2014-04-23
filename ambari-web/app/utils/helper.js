@@ -296,6 +296,7 @@ App.format = {
     'FALCON_SERVER': 'Falcon Server',
     'FALCON_SERVICE_CHECK': 'Falcon Service Check',
     'FLUME_HANDLER': 'Flume Agent',
+    'FLUME_SERVICE_CHECK': 'Flume Service Check',
     'GANGLIA_MONITOR': 'Ganglia Monitor',
     'GANGLIA_SERVER': 'Ganglia Server',
     'GLUSTERFS_CLIENT': 'GLUSTERFS Client',
