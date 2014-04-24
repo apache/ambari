@@ -52,7 +52,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
   agentView: Em.View.extend({
     content: null,
     tagName: 'tr',
-    classNameBindings: ['selectedClass'],
+    classNameBindings: ['selectedClass', ':agent-row'],
 
     selectedClass: function () {
       return this.get('controller.selectedFlumeAgent.id') === this.get('content.id') ? 'highlight' : '';
