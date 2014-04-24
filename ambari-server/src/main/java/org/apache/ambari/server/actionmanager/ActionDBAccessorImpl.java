@@ -508,11 +508,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     return stages;
   }
 
-  @Override
-  public List<Long> getRequestIds() {
-    return hostRoleCommandDAO.getRequests();
-  }
-
   public HostRoleCommand getTask(long taskId) {
     HostRoleCommandEntity commandEntity = hostRoleCommandDAO.findByPK((int) taskId);
     if (commandEntity == null) {
@@ -522,7 +517,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
-  public List<Long> getRequestsByStatus(RequestStatus status) {
+  public List<Long> getRequestsByStatus(RequestStatus status, int maxResults,
+    boolean ascOrder) {
+
     boolean match = true;
     boolean checkAllTasks = false;
     Set<HostRoleStatus> statuses = new HashSet<HostRoleStatus>();
@@ -540,7 +537,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       statuses.addAll(Arrays.asList(HostRoleStatus.ABORTED,
           HostRoleStatus.FAILED, HostRoleStatus.TIMEDOUT));
     }
-    return hostRoleCommandDAO.getRequestsByTaskStatus(statuses, match, checkAllTasks);
+    return hostRoleCommandDAO.getRequestsByTaskStatus(statuses, match,
+      checkAllTasks, maxResults, ascOrder);
   }
 
   @Override

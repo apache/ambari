@@ -142,19 +142,23 @@ public interface ActionDBAccessor {
   public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses);
 
   /**
-   * Get all requests
-   */
-  public List<Long> getRequestIds();
-
-  /**
    * Gets the host role command corresponding to the task id
    */
   public HostRoleCommand getTask(long taskId);
 
   /**
-   * Gets request id of request that are in the specified status
+   * Get first or last maxResults requests that are in the specified status
+   *
+   * @param status
+   *          Desired request status
+   * @param maxResults
+   *          maximal number of returned id's
+   * @param ascOrder
+   *          defines sorting order for database query result
+   * @return First or last maxResults request id's if ascOrder is true or false,
+   *         respectively
    */
-  public List<Long> getRequestsByStatus(RequestStatus status);
+  public List<Long> getRequestsByStatus(RequestStatus status, int maxResults, boolean ascOrder);
 
   /**
    * Gets request contexts associated with the list of request id
@@ -169,5 +173,5 @@ public interface ActionDBAccessor {
   /**
    * Gets request objects by ids
    */
-  List<Request> getRequests(Collection<Long> requestIds);
+  public List<Request> getRequests(Collection<Long> requestIds);
 }

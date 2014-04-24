@@ -22,6 +22,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -53,6 +54,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 /**
@@ -97,6 +99,76 @@ public class RequestResourceProviderTest {
 
     // verify
     verify(managementController, response);
+  }
+
+  @Test
+  public void testGetResourcesWithRequestInfo() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+
+    Clusters clusters = createNiceMock(Clusters.class);
+    expect(clusters.getCluster("foo_cluster")).andReturn(null).anyTimes();
+
+    AmbariManagementController managementController =
+      createMock(AmbariManagementController.class);
+    expect(managementController.getActionManager()).andReturn(actionManager)
+      .anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+
+    replay(managementController, clusters);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
+      PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
+      managementController);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Request request = null;
+    Predicate predicate = new PredicateBuilder()
+      .property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID)
+      .equals("foo_cluster")
+      .and().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID)
+      .equals(null)
+      .and().property(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID)
+      .equals(null)
+      .toPredicate();
+
+    request = PropertyHelper.getReadRequest(new HashSet<String>(),
+      requestInfoProperties, null);
+    expect(actionManager.getRequests(Collections.<Long> emptyList()))
+      .andReturn(Collections.<org.apache.ambari.server.actionmanager.Request> emptyList());
+    expect(actionManager.getRequestsByStatus(null,
+      BaseRequest.DEFAULT_PAGE_SIZE, false))
+      .andReturn(Collections.<Long> emptyList());
+
+    replay(actionManager);
+    provider.getResources(request, predicate);
+    verify(actionManager);
+    reset(actionManager);
+
+    requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY, "20");
+    request = PropertyHelper.getReadRequest(new HashSet<String>(),
+      requestInfoProperties, null);
+    expect(actionManager.getRequests(Collections.<Long> emptyList()))
+      .andReturn(Collections.<org.apache.ambari.server.actionmanager.Request> emptyList());
+    expect(actionManager.getRequestsByStatus(null, 20, false))
+      .andReturn(Collections.<Long> emptyList());
+    replay(actionManager);
+    provider.getResources(request, predicate);
+    verify(actionManager);
+    reset(actionManager);
+
+    requestInfoProperties.put(BaseRequest.ASC_ORDER_PROPERTY_KEY, "true");
+    request = PropertyHelper.getReadRequest(new HashSet<String>(),
+      requestInfoProperties, null);
+    expect(actionManager.getRequests(Collections.<Long> emptyList()))
+      .andReturn(Collections.<org.apache.ambari.server.actionmanager.Request> emptyList());
+    expect(actionManager.getRequestsByStatus(null, 20, true))
+      .andReturn(Collections.<Long> emptyList());
+    replay(actionManager);
+    provider.getResources(request, predicate);
+    verify(actionManager);
+    reset(actionManager);
   }
 
   @Test

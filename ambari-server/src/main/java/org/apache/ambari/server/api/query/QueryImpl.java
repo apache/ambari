@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
+import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -816,9 +818,20 @@ public class QueryImpl implements Query, ResourceInstance {
   }
 
   private Request createRequest() {
-    
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+
+    if (pageRequest != null) {
+      requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY,
+          Integer.toString(pageRequest.getPageSize() + pageRequest.getOffset()));
+      requestInfoProperties.put(
+        BaseRequest.ASC_ORDER_PROPERTY_KEY,
+          Boolean.toString(pageRequest.getStartingPoint() == StartingPoint.Beginning
+              || pageRequest.getStartingPoint() == StartingPoint.OffsetStart));
+    }
+
     if (allProperties) {
-      return PropertyHelper.getReadRequest(Collections.<String>emptySet());
+      return PropertyHelper.getReadRequest(Collections.<String> emptySet(),
+          requestInfoProperties, null);
     }
 
     Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
@@ -834,7 +847,8 @@ public class QueryImpl implements Query, ResourceInstance {
         mapTemporalInfo.put(propertyId, globalTemporalInfo);
       }
     }
-    return PropertyHelper.getReadRequest(setProperties, mapTemporalInfo);
+
+    return PropertyHelper.getReadRequest(setProperties, requestInfoProperties, mapTemporalInfo);
   }
 
 

@@ -18,9 +18,11 @@
 package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.inject.persist.UnitOfWork;
+
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -28,6 +30,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -270,10 +273,48 @@ public class TestActionDBAccessorImpl {
     clusters.addHost("host2");
     clusters.getHost("host2").persist();
     populateActionDB(db, hostName, requestId + 1, stageId);
-    List<Long> requestIdsResult = db.getRequestsByStatus(null);
+    List<Long> requestIdsResult =
+      db.getRequestsByStatus(null, BaseRequest.DEFAULT_PAGE_SIZE, false);
     
     assertNotNull("List of request IDs is null", requestIdsResult);
     assertEquals("Request IDs not matches", requestIds, requestIdsResult);
+  }
+
+  @Test
+  public void testGetRequestsByStatusWithParams() {
+    List<Long> ids = new ArrayList<Long>();
+
+    for (long l = 0; l < 10; l++) {
+      ids.add(l);
+    }
+
+    for (Long id : ids) {
+      populateActionDB(db, hostName, id, stageId);
+    }
+
+    List<Long> expected = null;
+    List<Long> actual = null;
+
+    // Select all requests
+    actual = db.getRequestsByStatus(null, BaseRequest.DEFAULT_PAGE_SIZE, false);
+    expected = reverse(new ArrayList<Long>(ids));
+    assertEquals("Request IDs not matches", expected, actual);
+
+    actual = db.getRequestsByStatus(null, 4, false);
+    expected = reverse(new ArrayList<Long>(ids.subList(ids.size() - 4, ids.size())));
+    assertEquals("Request IDs not matches", expected, actual);
+
+    actual = db.getRequestsByStatus(null, 7, true);
+    expected = new ArrayList<Long>(ids.subList(0, 7));
+    assertEquals("Request IDs not matches", expected, actual);
+  }
+
+  private <T> List<T> reverse(List<T> list) {
+    List<T> result = new ArrayList<T>(list);
+
+    Collections.reverse(result);
+
+    return result;
   }
 
   @Test

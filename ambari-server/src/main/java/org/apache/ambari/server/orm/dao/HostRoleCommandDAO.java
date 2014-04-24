@@ -46,8 +46,6 @@ public class HostRoleCommandDAO {
   Provider<EntityManager> entityManagerProvider;
   @Inject
   DaoUtils daoUtils;
-  private static Logger LOG = LoggerFactory.getLogger(HostRoleCommandDAO.class);
-  private static final int REQUESTS_RESULT_LIMIT = 10;
 
   @RequiresSession
   public HostRoleCommandEntity findByPK(long taskId) {
@@ -178,19 +176,10 @@ public class HostRoleCommandDAO {
   }
 
   @RequiresSession
-  public List<Long> getRequests() {
-    String queryStr = "SELECT DISTINCT command.requestId " +
-        "FROM HostRoleCommandEntity command ORDER BY command.requestId DESC";
-    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr,
-        Long.class);
-    query.setMaxResults(REQUESTS_RESULT_LIMIT);
-    return daoUtils.selectList(query);
-  }
+  public List<Long> getRequestsByTaskStatus(Collection<HostRoleStatus> statuses,
+    boolean match, boolean checkAllTasks, int maxResults, boolean ascOrder) {
 
-  @RequiresSession
-  public List<Long> getRequestsByTaskStatus(
-    Collection<HostRoleStatus> statuses, boolean match, boolean checkAllTasks) {
-    List<Long> results = null;
+    List<Long> results;
     StringBuilder queryStr = new StringBuilder();
 
     queryStr.append("SELECT DISTINCT command.requestId ").append(
@@ -216,10 +205,10 @@ public class HostRoleCommandDAO {
       }
     }
 
-    queryStr.append("ORDER BY command.requestId DESC");
+    queryStr.append("ORDER BY command.requestId ").append(ascOrder ? "ASC" : "DESC");
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr.toString(),
       Long.class);
-    query.setMaxResults(REQUESTS_RESULT_LIMIT);
+    query.setMaxResults(maxResults);
 
     if (statuses != null && !statuses.isEmpty()) {
       results = daoUtils.selectList(query, statuses);

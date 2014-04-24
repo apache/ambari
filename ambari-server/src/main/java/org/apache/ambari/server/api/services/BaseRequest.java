@@ -73,7 +73,17 @@ public abstract class BaseRequest implements Request {
   /**
    * Default page size for pagination request.
    */
-  private static final int DEFAULT_PAGE_SIZE = 20;
+  public static final int DEFAULT_PAGE_SIZE = 20;
+
+  /**
+   * Page size property key
+   */
+  public static final String PAGE_SIZE_PROPERTY_KEY = "Request_Info/max_results";
+
+  /**
+   * Sort order property key. (true - ASC , false - DESC)
+   */
+  public static final String ASC_ORDER_PROPERTY_KEY = "Request_Info/asc_order";
 
   /**
    * Associated resource renderer.

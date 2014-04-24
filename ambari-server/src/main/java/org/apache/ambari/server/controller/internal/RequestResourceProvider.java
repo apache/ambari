@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -122,6 +122,12 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources = new HashSet<Resource>();
 
+    String maxResultsRaw = request.getRequestInfoProperties().get(BaseRequest.PAGE_SIZE_PROPERTY_KEY);
+    String ascOrderRaw = request.getRequestInfoProperties().get(BaseRequest.ASC_ORDER_PROPERTY_KEY);
+
+    Integer maxResults = (maxResultsRaw == null ? null : Integer.parseInt(maxResultsRaw));
+    Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
+
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
 
@@ -134,7 +140,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
         requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
       }
-      resources.addAll(getRequestResources(clusterName, requestId, requestStatus, requestedIds));
+
+      resources.addAll(getRequestResources(clusterName, requestId, requestStatus, maxResults,
+          ascOrder, requestedIds));
     }
     return resources;
   }
@@ -229,6 +237,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   private Set<Resource> getRequestResources(String clusterName,
                                             Long requestId,
                                             String requestStatus,
+                                            Integer maxResults,
+                                            Boolean ascOrder,
                                             Set<String> requestedPropertyIds)
       throws NoSuchResourceException, NoSuchParentResourceException {
 
@@ -255,8 +265,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             + ", requestId=null"
             + ", requestStatus=" + status);
       }
-      response.addAll(getRequestResources(clusterName, actionManager,
-          actionManager.getRequestsByStatus(status), requestedPropertyIds));
+
+      List<Long> requestIds = actionManager.getRequestsByStatus(status,
+        maxResults != null ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE,
+        ascOrder != null ? ascOrder : false);
+
+      response.addAll(getRequestResources(clusterName, actionManager, requestIds,
+          requestedPropertyIds));
     } else {
       Collection<Resource> responses = getRequestResources(
           clusterName, actionManager, Collections.singletonList(requestId), requestedPropertyIds);

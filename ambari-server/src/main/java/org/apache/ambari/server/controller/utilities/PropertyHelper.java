@@ -284,6 +284,19 @@ public class PropertyHelper {
    * Factory method to create a read request from the given set of property ids.  The set of
    * property ids represents the properties of interest for the query.
    *
+   * @param propertyIds      the property ids associated with the request; may be null
+   * @param requestInfoProperties request info properties
+   * @param mapTemporalInfo  the temporal info
+   */
+  public static Request getReadRequest(Set<String> propertyIds,
+      Map<String, String> requestInfoProperties, Map<String, TemporalInfo> mapTemporalInfo) {
+    return new RequestImpl(propertyIds, null, requestInfoProperties, mapTemporalInfo);
+  }
+
+  /**
+   * Factory method to create a read request from the given set of property ids.  The set of
+   * property ids represents the properties of interest for the query.
+   *
    * @param propertyIds  the property ids associated with the request; may be null
    */
   public static Request getReadRequest(String ... propertyIds) {

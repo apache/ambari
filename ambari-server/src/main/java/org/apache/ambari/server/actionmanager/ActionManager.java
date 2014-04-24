@@ -24,6 +24,7 @@ import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
@@ -196,21 +197,19 @@ public class ActionManager {
   }
 
   /**
-   * Returns last 20 requests
+   * Get first or last maxResults requests that are in the specified status
    *
-   * @return
+   * @param status
+   *          Desired request status
+   * @param maxResults
+   *          maximal number of returned id's
+   * @param ascOrder
+   *          defines sorting order for database query result
+   * @return First or last maxResults request id's if ascOrder is true or false,
+   *         respectively
    */
-  public List<Long> getRequests() {
-    return db.getRequestIds();
-  }
-
-  /**
-   * Returns last 20 requests
-   *
-   * @return
-   */
-  public List<Long> getRequestsByStatus(RequestStatus status) {
-    return db.getRequestsByStatus(status);
+  public List<Long> getRequestsByStatus(RequestStatus status, int maxResults, boolean ascOrder) {
+    return db.getRequestsByStatus(status, maxResults, ascOrder);
   }
 
   public Map<Long, String> getRequestContext(List<Long> requestIds) {
