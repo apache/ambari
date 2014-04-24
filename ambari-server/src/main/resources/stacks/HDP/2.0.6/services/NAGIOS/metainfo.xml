@@ -47,19 +47,19 @@
             </package>
             <package>
               <type>rpm</type>
-              <name>nagios-plugins</name>
+              <name>nagios-plugins-1.4.9</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>nagios</name>
+              <name>nagios-3.5.0-99</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>nagios-www</name>
+              <name>nagios-www-3.5.0-99</name>
             </package>
             <package>
               <type>rpm</type>
-              <name>nagios-devel</name>
+              <name>nagios-devel-3.5.0-99</name>
             </package>
             <package>
               <type>rpm</type>

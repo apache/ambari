@@ -23,11 +23,6 @@
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6</baseurl>
-      <repoid>HDP-UTILS-2.1</repoid>
-      <reponame>HDP-UTILS</reponame>
-    </repo>
   </os>
   <os type="redhat5">
     <repo>
@@ -35,22 +30,12 @@
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
     </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5</baseurl>
-      <repoid>HDP-UTILS-2.1</repoid>
-      <reponame>HDP-UTILS</reponame>
-    </repo>
   </os>
   <os type="suse11">
     <repo>
       <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11</baseurl>
-      <repoid>HDP-UTILS-2.1</repoid>
-      <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
   <os type="debian12">
