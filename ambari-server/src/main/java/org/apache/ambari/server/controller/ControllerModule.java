@@ -102,6 +102,9 @@ public class ControllerModule extends AbstractModule {
   private boolean dbInitNeeded;
   private final Gson prettyGson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
 
+
+  // ----- Constructors ------------------------------------------------------
+
   public ControllerModule() throws Exception {
     configuration = new Configuration();
     hostsMap = new HostsMap(configuration);
@@ -111,6 +114,48 @@ public class ControllerModule extends AbstractModule {
     configuration = new Configuration(properties);
     hostsMap = new HostsMap(configuration);
   }
+
+
+  // ----- ControllerModule --------------------------------------------------
+
+  /**
+   * Get the common persistence related configuration properties.
+   *
+   * @return the configuration properties
+   */
+  public static Properties getPersistenceProperties(Configuration configuration) {
+    Properties properties = new Properties();
+
+    // custom jdbc properties
+    Map<String, String> custom = configuration.getDatabaseCustomProperties();
+
+    if (0 != custom.size()) {
+      for (Entry<String, String> entry : custom.entrySet()) {
+        properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
+            entry.getValue());
+      }
+    }
+
+    switch (configuration.getPersistenceType()) {
+      case IN_MEMORY:
+        properties.setProperty(JDBC_URL, Configuration.JDBC_IN_MEMORY_URL);
+        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_IN_MEMROY_DRIVER);
+        properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
+        properties.setProperty(THROW_EXCEPTIONS, "true");
+      case REMOTE:
+        properties.setProperty(JDBC_URL, configuration.getDatabaseUrl());
+        properties.setProperty(JDBC_DRIVER, configuration.getDatabaseDriver());
+        break;
+      case LOCAL:
+        properties.setProperty(JDBC_URL, configuration.getLocalDatabaseUrl());
+        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_LOCAL_DRIVER);
+        break;
+    }
+    return properties;
+  }
+
+
+  // ----- AbstractModule ----------------------------------------------------
 
   @Override
   protected void configure() {
@@ -154,64 +199,41 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(ExecutionCommandWrapper.class);
   }
 
+
+  // ----- helper methods ----------------------------------------------------
+
   private PersistModule buildJpaPersistModule() {
     PersistenceType persistenceType = configuration.getPersistenceType();
     AmbariJpaPersistModule jpaPersistModule = new AmbariJpaPersistModule(Configuration.JDBC_UNIT_NAME);
 
-    Properties properties = new Properties();
+    Properties persistenceProperties = getPersistenceProperties(configuration);
 
-    // custom jdbc properties
-    Map<String, String> custom = configuration.getDatabaseCustomProperties();
+    if (!persistenceType.equals(PersistenceType.IN_MEMORY)) {
+      persistenceProperties.setProperty(JDBC_USER, configuration.getDatabaseUser());
+      persistenceProperties.setProperty(JDBC_PASSWORD, configuration.getDatabasePassword());
 
-    if (0 != custom.size()) {
-      for (Entry<String, String> entry : custom.entrySet()) {
-        properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
-            entry.getValue());
+      switch (configuration.getJPATableGenerationStrategy()) {
+        case CREATE:
+          persistenceProperties.setProperty(DDL_GENERATION, CREATE_ONLY);
+          dbInitNeeded = true;
+          break;
+        case DROP_AND_CREATE:
+          persistenceProperties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
+          dbInitNeeded = true;
+          break;
+        case CREATE_OR_EXTEND:
+          persistenceProperties.setProperty(DDL_GENERATION, CREATE_OR_EXTEND);
+          break;
+        default:
+          break;
       }
+
+      persistenceProperties.setProperty(DDL_GENERATION_MODE, DDL_BOTH_GENERATION);
+      persistenceProperties.setProperty(CREATE_JDBC_DDL_FILE, "DDL-create.jdbc");
+      persistenceProperties.setProperty(DROP_JDBC_DDL_FILE, "DDL-drop.jdbc");
     }
 
-    switch (persistenceType) {
-      case IN_MEMORY:
-        properties.setProperty(JDBC_URL, Configuration.JDBC_IN_MEMORY_URL);
-        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_IN_MEMROY_DRIVER);
-        properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
-        properties.setProperty(THROW_EXCEPTIONS, "true");
-        jpaPersistModule.properties(properties);
-        return jpaPersistModule;
-      case REMOTE:
-        properties.setProperty(JDBC_URL, configuration.getDatabaseUrl());
-        properties.setProperty(JDBC_DRIVER, configuration.getDatabaseDriver());
-        break;
-      case LOCAL:
-        properties.setProperty(JDBC_URL, configuration.getLocalDatabaseUrl());
-        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_LOCAL_DRIVER);
-        break;
-    }
-
-    properties.setProperty(JDBC_USER, configuration.getDatabaseUser());
-    properties.setProperty(JDBC_PASSWORD, configuration.getDatabasePassword());
-
-    switch (configuration.getJPATableGenerationStrategy()) {
-      case CREATE:
-        properties.setProperty(DDL_GENERATION, CREATE_ONLY);
-        dbInitNeeded = true;
-        break;
-      case DROP_AND_CREATE:
-        properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
-        dbInitNeeded = true;
-        break;
-      case CREATE_OR_EXTEND:
-        properties.setProperty(DDL_GENERATION, CREATE_OR_EXTEND);
-        break;
-      default:
-        break;
-    }
-
-    properties.setProperty(DDL_GENERATION_MODE, DDL_BOTH_GENERATION);
-    properties.setProperty(CREATE_JDBC_DDL_FILE, "DDL-create.jdbc");
-    properties.setProperty(DROP_JDBC_DDL_FILE, "DDL-drop.jdbc");
-
-    jpaPersistModule.properties(properties);
+    jpaPersistModule.properties(persistenceProperties);
 
     return jpaPersistModule;
   }

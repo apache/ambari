@@ -34,6 +34,7 @@ import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertNull;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
@@ -53,11 +54,13 @@ public class UpgradeCatalog160Test {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Capture<List<DBAccessor.DBColumnInfo>> hgConfigcolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> viewEntitycolumnCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<DBAccessor.DBColumnInfo> restartRequiredColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     setBPHostGroupConfigExpectations(dbAccessor, hgConfigcolumnCapture, restartRequiredColumnCapture);
+    setViewEntityConfigExpectations(dbAccessor, viewEntitycolumnCapture);
 
     replay(dbAccessor, configuration);
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
@@ -70,15 +73,29 @@ public class UpgradeCatalog160Test {
     verify(dbAccessor, configuration);
 
     assertHGConfigColumns(hgConfigcolumnCapture);
+    assertViewEntityColumns(viewEntitycolumnCapture);
     assertRestartRequiredColumn(restartRequiredColumnCapture);
   }
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
     UpgradeCatalog160 upgradeCatalog = (UpgradeCatalog160) getUpgradeCatalog(dbAccessor);
 
+    replay(dbAccessor, configuration);
+
+    Class<?> c = AbstractUpgradeCatalog.class;
+    Field f = c.getDeclaredField("configuration");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, configuration);
+
     upgradeCatalog.executeDMLUpdates();
+
+    verify(dbAccessor, configuration);
   }
 
   @Test
@@ -116,6 +133,12 @@ public class UpgradeCatalog160Test {
         "hostgroup_name", "hostgroup", "name", true);
   }
 
+  private void setViewEntityConfigExpectations(DBAccessor dbAccessor,
+    Capture<List<DBAccessor.DBColumnInfo>> columnCapture) throws SQLException {
+
+    dbAccessor.createTable(eq("viewentity"), capture(columnCapture), eq("id"));
+  }
+
   private void assertHGConfigColumns(Capture<List<DBAccessor.DBColumnInfo>> hgConfigcolumnCapture) {
     List<DBAccessor.DBColumnInfo> columns = hgConfigcolumnCapture.getValue();
     assertEquals(4, columns.size());
@@ -146,6 +169,54 @@ public class UpgradeCatalog160Test {
     assertEquals(byte[].class, column.getType());
     assertNull(column.getDefaultValue());
     assertFalse(column.isNullable());
+  }
+
+  private void assertViewEntityColumns(Capture<List<DBAccessor.DBColumnInfo>> hgConfigcolumnCapture) {
+    List<DBAccessor.DBColumnInfo> columns = hgConfigcolumnCapture.getValue();
+    assertEquals(5, columns.size());
+
+
+    columns.add(new DBAccessor.DBColumnInfo("id", Long.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("view_instance_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("class_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("id_property", String.class, 255, null, true));
+
+
+    DBAccessor.DBColumnInfo column = columns.get(0);
+    assertEquals("id", column.getName());
+    assertNull(column.getLength());
+    assertEquals(Long.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertFalse(column.isNullable());
+
+    column = columns.get(1);
+    assertEquals("view_name", column.getName());
+    assertEquals(255, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertFalse(column.isNullable());
+
+    column = columns.get(2);
+    assertEquals("view_instance_name", column.getName());
+    assertEquals(255, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertFalse(column.isNullable());
+
+    column = columns.get(3);
+    assertEquals("class_name", column.getName());
+    assertEquals(255, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertFalse(column.isNullable());
+
+    column = columns.get(4);
+    assertEquals("id_property", column.getName());
+    assertEquals(255, (int) column.getLength());
+    assertEquals(String.class, column.getType());
+    assertNull(column.getDefaultValue());
+    assertTrue(column.isNullable());
   }
 
   private void assertRestartRequiredColumn(

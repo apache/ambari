@@ -89,7 +89,7 @@ public class ViewEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
   private Collection<ViewResourceEntity> resources = new HashSet<ViewResourceEntity>();
 
-  /**
+   /**
    * The list of view instances.
    */
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "view")
@@ -353,6 +353,15 @@ public class ViewEntity {
    */
   public String getAmbariProperty(String key) {
     return ambariConfiguration.getProperty(key);
+  }
+
+  /**
+   * Get the Ambari configuration.
+   *
+   * @return the Ambari configuration
+   */
+  public Configuration getAmbariConfiguration() {
+    return ambariConfiguration;
   }
 
   /**

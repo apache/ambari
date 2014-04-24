@@ -189,4 +189,14 @@ public class ViewEntityTest {
     ViewEntity viewDefinition = getViewEntity();
     Assert.assertEquals("view.jar", viewDefinition.getArchive());
   }
+
+  @Test
+  public void testGetAmbariConfiguration() throws Exception {
+    ViewEntity viewDefinition = getViewEntity();
+    Configuration configuration = viewDefinition.getAmbariConfiguration();
+
+    Assert.assertEquals("v1", configuration.getProperty("p1"));
+    Assert.assertEquals("v2", configuration.getProperty("p2"));
+    Assert.assertEquals("v3", configuration.getProperty("p3"));
+  }
 }

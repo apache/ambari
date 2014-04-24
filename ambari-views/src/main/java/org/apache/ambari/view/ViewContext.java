@@ -115,4 +115,11 @@ public interface ViewContext {
    * @return a stream provider
    */
   public URLStreamProvider getURLStreamProvider();
+
+  /**
+   * Get a data store for view persistence entities.
+   *
+   * @return a data store
+   */
+  public DataStore getDataStore();
 }

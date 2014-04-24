@@ -74,6 +74,12 @@ public class ViewInstanceEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
   private Collection<ViewInstanceDataEntity> data = new HashSet<ViewInstanceDataEntity>();
 
+  /**
+   * The list of view entities.
+   */
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "viewInstance")
+  private Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+
   @ManyToOne
   @JoinColumn(name = "view_name", referencedColumnName = "view_name", nullable = false)
   private ViewEntity view;
@@ -267,6 +273,24 @@ public class ViewInstanceEntity {
    */
   public void setData(Collection<ViewInstanceDataEntity> data) {
     this.data = data;
+  }
+
+  /**
+   * Get the view entities.
+   *
+   * @return the view entities
+   */
+  public Collection<ViewEntityEntity> getEntities() {
+    return entities;
+  }
+
+  /**
+   * Set the view entities.
+   *
+   * @param entities  the view entities
+   */
+  public void setEntities(Collection<ViewEntityEntity> entities) {
+    this.entities = entities;
   }
 
   /**

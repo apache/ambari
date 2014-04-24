@@ -68,6 +68,12 @@ public class ViewConfig {
   private List<InstanceConfig> instances;
 
   /**
+   * The view persistence configuration.
+   */
+  @XmlElement(name="persistence")
+  private PersistenceConfig persistence;
+
+  /**
    * Get the unique name.
    *
    * @return the view name
@@ -119,5 +125,14 @@ public class ViewConfig {
    */
   public List<InstanceConfig> getInstances() {
     return instances == null ? Collections.<InstanceConfig>emptyList() : instances;
+  }
+
+  /**
+   * Get the view persistence configuration.
+   *
+   * @return the view persistence configuration
+   */
+  public PersistenceConfig getPersistence() {
+    return persistence;
   }
 }

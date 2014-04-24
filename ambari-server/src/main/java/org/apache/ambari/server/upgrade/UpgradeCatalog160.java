@@ -21,6 +21,7 @@ package org.apache.ambari.server.upgrade;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 
 import java.sql.SQLException;
@@ -56,6 +57,16 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     dbAccessor.createTable("hostgroup_configuration", columns, "blueprint_name",
         "hostgroup_name", "type_name");
 
+    // View entity
+    columns = new ArrayList<DBAccessor.DBColumnInfo>();
+    columns.add(new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("view_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("view_instance_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("class_name", String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("id_property", String.class, 255, null, true));
+
+    dbAccessor.createTable("viewentity", columns, "id");
+
     //=========================================================================
     // Add columns
     dbAccessor.addColumn("hostcomponentdesiredstate",
@@ -67,6 +78,9 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
         "blueprint_name", "hostgroup", "blueprint_name", true);
     dbAccessor.addFKConstraint("hostgroup_configuration", "FK_hg_config_hostgroup_name",
         "hostgroup_name", "hostgroup", "name", true);
+    dbAccessor.addFKConstraint("viewentity", "FK_viewentity_view_name",
+        new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
+
   }
 
 
@@ -74,6 +88,16 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    String dbType = getDbType();
+
+    //add new sequences for view entity
+    String valueColumnName = "\"value\"";
+    if (Configuration.ORACLE_DB_NAME.equals(dbType) || Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      valueColumnName = "value";
+    }
+
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
+        "VALUES('viewentity_id_seq', 0)", true);
   }
 
   @Override

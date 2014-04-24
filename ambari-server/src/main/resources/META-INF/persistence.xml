@@ -52,6 +52,7 @@
     <class>org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity</class>
     <class>org.apache.ambari.server.orm.entities.ViewParameterEntity</class>
     <class>org.apache.ambari.server.orm.entities.ViewResourceEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ViewEntityEntity</class>
 
     <properties>
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->
@@ -64,4 +65,14 @@
     </properties>
   </persistence-unit>
 
+  <!-- persistence unit for view persistence : entities are added dynamically -->
+  <persistence-unit name="ambari-views" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <exclude-unlisted-classes>false</exclude-unlisted-classes>
+    <properties>
+      <property name="eclipselink.cache.size.default" value="10000" />
+      <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
+      <property name="eclipselink.weaving" value="static" />
+    </properties>
+  </persistence-unit>
 </persistence>

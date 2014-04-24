@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.view;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.view.persistence.DataStoreImpl;
+import org.apache.ambari.server.view.persistence.DataStoreModule;
+import org.apache.ambari.view.DataStore;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
@@ -54,6 +59,11 @@ public class ViewContextImpl implements ViewContext {
    * The available stream provider.
    */
   private final URLStreamProvider streamProvider;
+
+  /**
+   * The data store.
+   */
+  private DataStore dataStore = null;
 
 
   // ---- Constructors -------------------------------------------------------
@@ -137,6 +147,15 @@ public class ViewContextImpl implements ViewContext {
   @Override
   public URLStreamProvider getURLStreamProvider() {
     return streamProvider;
+  }
+
+  @Override
+  public synchronized DataStore getDataStore() {
+    if (dataStore == null) {
+      Injector injector = Guice.createInjector(new DataStoreModule(viewInstanceEntity));
+      dataStore = injector.getInstance(DataStoreImpl.class);
+    }
+    return dataStore;
   }
 
 

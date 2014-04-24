@@ -76,7 +76,7 @@ public class ViewDAO {
   /**
    * Make an instance managed and persistent.
    *
-   * @param ViewEntity  entity to persist
+   * @param ViewEntity  entity to store
    */
   @Transactional
   public void create(ViewEntity ViewEntity) {
