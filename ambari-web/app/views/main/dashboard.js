@@ -27,19 +27,17 @@ App.MainDashboardView = Em.View.extend({
   categories: function() {
     var items = [{
       name: 'widgets',
-      url: 'dashboard.index',
+      url: 'dashboard.widgets',
       label: Em.I18n.t('dashboard.widgets.title'),
       isActive: function () {
-        debugger;
         return 'widgets' === this.get('selected');
       }.property('selected')
     },
     {
       name: 'charts',
-      url: 'dashboard.charts',
+      url: 'dashboard.charts.heatmap',
       label: Em.I18n.t('dashboard.heatmaps.title'),
       isActive: function () {
-        debugger;
         return 'charts' === this.get('selected');
       }.property('selected')
     }];

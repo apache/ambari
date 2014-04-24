@@ -85,11 +85,6 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
     },
-    enter: function (router) {
-      Em.run.next(function () {
-        router.transitionTo('widgets');
-      });
-    },
     index: Em.Route.extend({
       route: '/',
       redirectsTo: 'widgets'
@@ -110,11 +105,6 @@ module.exports = Em.Route.extend({
       connectOutlets: function (router, context) {
         router.set('mainDashboardController.selectedCategory', 'charts');
         router.get('mainDashboardController').connectOutlet('mainCharts');
-      },
-      enter: function (router) {
-        Em.run.next(function () {
-          router.transitionTo('heatmap');
-        });
       },
       index: Ember.Route.extend({
         route: '/',
