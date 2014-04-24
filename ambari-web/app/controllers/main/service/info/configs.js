@@ -1444,7 +1444,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @return {Object}
    */
   createGlobalSiteObj: function (tagName, globalConfigs) {
-    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize'];
+    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
     var globalSiteProperties = {};
     globalConfigs.forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts

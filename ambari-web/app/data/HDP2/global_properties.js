@@ -276,6 +276,20 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "jobhistory_heapsize",
+      "displayName": "History Server heap size",
+      "description": "History Server heap size",
+      "defaultValue": "900",
+      "unit": "MB",
+      "isOverridable": true,
+      "displayType": "int",
+      "isVisible": true,
+      "serviceName": "MAPREDUCE2",
+      "category": "HistoryServer",
+      "index": 1
+    },
+    {
+      "id": "puppet var",
       "name": "mapred_log_dir_prefix",
       "displayName": "Mapreduce Log Dir Prefix",
       "description": "",

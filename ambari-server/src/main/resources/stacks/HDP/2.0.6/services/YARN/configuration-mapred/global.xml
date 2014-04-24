@@ -36,5 +36,9 @@
     <value>mapred</value>
     <description>Mapreduce User</description>
   </property>
-
+  <property>
+    <name>jobhistory_heapsize</name>
+    <value>900</value>
+    <description>Value for JobHistoryServer heap_size variable in hadoop-env.sh</description>
+  </property>
 </configuration>
