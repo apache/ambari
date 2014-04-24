@@ -605,7 +605,7 @@
             </mapper>
           </data>
           <data>
-            <src>target/classes/Ambari-DDL-Postgres-REMOTE-CREATE.sql</src>
+            <src>target/classes/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql</src>
             <type>file</type>
             <mapper>
               <type>perm</type>
@@ -613,7 +613,7 @@
             </mapper>
           </data>
           <data>
-            <src>src/main/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql</src>
+            <src>src/main/resources/Ambari-DDL-Postgres-EMBEDDED-DROP.sql</src>
             <type>file</type>
             <mapper>
               <type>perm</type>
