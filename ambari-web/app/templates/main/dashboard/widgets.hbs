@@ -16,43 +16,43 @@
 * limitations under the License.
 }}
 {{#if view.isDataLoaded}}
-  <div class="box">
-    <div class="box-header">
-      <div class="row-fluid">
-        <h4 class="span10"></h4>
-        <a class="add-widget-button span1">{{view view.plusButtonFilterView}}</a>
-        <div class="btn-group">
-          <button class="btn dropdown-toggle span1 more-options-button"  data-toggle="dropdown">
-            <i class="icon-cog"></i> &nbsp;
-            <span class= "caret"></span>
-          </button>
-            <ul class="dropdown-menu right-align-dropdown">
-              <li>
-                <a href="#" {{action "resetAllWidgets" target="view"}}>
-                    <i class="icon-refresh"></i>
-                  {{t dashboard.button.reset}}
-                </a>
-              </li>
-              <li>
-                <a target="_blank" {{bindAttr href="view.gangliaUrl"}}>
-                    <i class="icon-share"></i>
-                  {{t dashboard.button.gangliaLink}}
-                </a>
-              </li>
-            </ul>
-        </div>
+
+  <div id="widgets-options-menu" class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+    <ul class="dropdown-menu">
+      <li class="dropdown-submenu add-widgets-text">
+        <a href="javascript:void(null);"><i class="icon-plus"></i> &nbsp; {{t common.add}}</a>
+        {{view view.plusButtonFilterView}}
+      </li>
+      <li class="dropdown-submenu">
+        <a href="javascript:void(null);"><i class="icon-cog"></i> &nbsp; {{t common.edit}}</a>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="#" {{action "resetAllWidgets" target="view"}}>
+              <i class="icon-refresh"></i> &nbsp; {{t dashboard.button.reset}}
+            </a>
+          </li>
+          <li>
+            <a target="_blank" {{bindAttr href="view.gangliaUrl"}}>
+              <i class="icon-share"></i> &nbsp; {{t dashboard.button.gangliaLink}}
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="dashboard-widgets-box">
+    <div id="dashboard-widgets"  class="widgets-container">
+      <div class="thumbnails row-fluid" id="sortable">
+        {{#if view.visibleWidgets.length}}
+          {{#each widgetClass in view.visibleWidgets}}
+            <div {{bindAttr class="widgetClass.class"}}>
+              {{view widgetClass }}
+            </div>
+          {{/each}}
+        {{/if}}
       </div>
     </div>
-      <div id="dashboard-widgets"  class="widgets-container">
-        <div class="thumbnails row-fluid" id="sortable">
-          {{#if view.visibleWidgets.length}}
-            {{#each widgetClass in view.visibleWidgets}}
-              <div {{bindAttr class="widgetClass.class"}}>
-                {{view widgetClass }}
-              </div>
-            {{/each}}
-          {{/if}}
-        </div>
-      </div>
   </div>
 {{/if}}

@@ -25,10 +25,11 @@
       <ul class="nav nav-tabs">
         {{#each category in view.categories}}
           {{#view view.NavItemView itemBinding="category.name" }}
-              <a href="#" {{action "goToDashboardView" category.url}} >{{category.label}}</a>
+            <a href="#" {{action "goToDashboardView" category.url}} >{{category.label}}</a>
           {{/view}}
         {{/each}}
       </ul>
+
       <!--show widgets or heapmaps in the content-->
       {{outlet}}
     </div>

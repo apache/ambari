@@ -123,9 +123,6 @@ footer {
 
   .navbar.navbar-static-top {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    -moz-box-shadow: 0 1 5px #888;
-    -webkit-box-shadow: 0 1px 5px #888;
-    box-shadow: 0 1px 5px #888;
     .navbar-inner {
       background-image: -moz-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
       background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@top-nav-bg-color-from), to(@top-nav-bg-color-to));
@@ -1235,7 +1232,10 @@ a:focus {
 
 /**********start styles for dropdown-menu, accordion-group ****************/
 .dropdown-menu,
+.dropdown-submenu > .dropdown-menu,
 .nav-pills .dropdown-menu,
+.nav-pills > li > a,
+.nav-tabs > li > a,
 .accordion-group {
   border-radius: 0px;
   -webkit-border-radius: 0px;
@@ -2688,30 +2688,31 @@ table.graphs {
   width: 100%;
 }
 
-/*Dashboard Widgets Start*/
+/*Dashboard Widgets/heatmaps Start*/
 #dashboard-widgets-container{
   > ul.nav.nav-tabs {
     margin-bottom: 10px;
   }
-  h4{
-    line-height: 30px;
-    margin-bottom: 0px;
-    margin-top: 0px;
+  > ul.nav.nav-tabs > li.active > a, .nav-pills > li.active > a {
+    padding-right: 18px;
   }
-  .add-widget-button{
-    margin-top: 0px;
-    margin-left: -22px;
-    width: 70px;
-    .add-button{
-      color: #666666;
+  #widgets-options-menu {
+    position: relative;
+    top: -39px;
+    left: 62px;
+    width: 15px;
+    .dropdown-submenu {
+      &> a:after {
+        border-left-color: #333;
+      }
     }
-    .filter-components{
-      overflow: auto;
+    .add-widgets-text .dropdown-menu {
+      top: 0;
+      left: 99%;
+      margin-top: -6px;
+      margin-left: -1px;
       max-height: 375px;
       width: 210px;
-      color: #333333;
-      right: 0;
-      left: auto;
       li {
         display: block;
         padding: 3px 0 3px 5px;
@@ -2733,54 +2734,35 @@ table.graphs {
         }
       }
     }
+    .add-widgets-text:hover .dropdown-menu {
+        display: block;
+    }
   }
-  .more-options-button{
+  .dashboard-widgets-box {
+    position: relative;
+    top: -20px;
+  }
+  h4{
+    line-height: 30px;
+    margin-bottom: 0px;
     margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 6px;
-    padding: 1px;
-    width: 70px;
-    .icon-cog{
-      color: #666666;
-      font-size: 18px;
-      position: relative;
-      left: 3px;
-      top: 2px;
-    }
-    .caret{
-      position: relative;
-      left: 5px;
-      top: 2px;
-    }
   }
-  .right-align-dropdown{
-    right: 0;
-    left: auto;
-    padding-top: 9px;
-    padding-bottom: 9px;
-    margin-right: 4px;
-  }
-
   #dashboard-widgets{
     .caption {
       height: 25px;
     }
-    .thumbnails {
-      margin-left: 8px;
-    }
     .row-fluid .span2p4 {
-      width: 19.34%;
-      *width: 19.34%;
+      width: 19.60%;
+      *width: 19.60%;
     }
     .row-fluid .span4p8 {
-      width: 39.1%;
-      *width: 39.1%;
+      width: 39.55%;
+      *width: 39.55%;
     }
-
     .thumbnails  > div {
       margin-left: 0px;
       margin-right: 3px;
-      margin-top: 5px;
+      margin-top: 0px;
       margin-bottom: 7px;
       height: 163px;
     }
@@ -2910,7 +2892,7 @@ table.graphs {
         z-index: 5;
       }
       .uptime-content{
-        top: -136px;
+        top: -116px;
       }
       .uptime-content-isNA{
         top: -95px;
@@ -4115,13 +4097,13 @@ ul.filter {
 }
 /*start charts rack*/
 .rack {
-  width: 98%;
+  width: 99%;
   display: inline-block;
   vertical-align: top;
   border: 1px solid #D4D4D4;
-  border-radius: 5px;
   margin-right: 4px;
   margin-bottom: 10px;
+  margin-top:5px;
 
   .rackHeader {
     background-color: #F7F7F7;
@@ -4258,7 +4240,6 @@ ul.filter {
 
 /*Start Heatmap*/
 .heatmap {
-  padding: 5px;
   #heatmap-metric-title {
     margin-left: 23px;
   }
@@ -4289,10 +4270,11 @@ ul.filter {
   }
   .legend-column {
     min-width: 150px;
+    margin-right: 10px;
   }
   .heatmap-content {
     float: right;
-    width: 80%;
+    width: 78%;
   }
   .heatmap_host_details {
     font-size: 12px;
@@ -5769,24 +5751,17 @@ i.icon-asterisks {
 
 #dashboard-widgets-container{
 
-  .add-widget-button{
-    margin-left: 9px; //3px for 3 buttons view
-  }
-  .more-options-button{
-    margin-right: 2px;
-  }
-
   #dashboard-widgets{
     .row-fluid .span2p4 {
-      width: 19.08%;
-      *width: 19.08%;
+      width: 19.47%;
+      *width: 19.47%;
     }
     .row-fluid .span4p8 {
-      width: 39%;
-      *width: 39%;
+      width: 39.45%;
+      *width: 39.45%;
     }
     .thumbnails  > div {
-      margin-right: 8px;
+      margin-right: 5px;
     }
     .thumbnail .caption {
       font-size: 14px;

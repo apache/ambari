@@ -197,22 +197,21 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * Submenu view for New Dashboard style
    * @type {Ember.View}
    */
-  plusButtonFilterView: filters.createComponentView({
-    /**
-     * Base methods was implemented in <code>filters.componentFieldView</code>
-     */
-    hiddenWidgetsBinding: 'parentView.hiddenWidgets',
-    visibleWidgetsBinding: 'parentView.visibleWidgets',
-    layout: null,
-
-    filterView: filters.componentFieldView.extend({
-      templateName:require('templates/main/dashboard/plus_button_filter'),
+  plusButtonFilterView: Ember.View.extend({
+      templateName: require('templates/main/dashboard/plus_button_filter'),
       hiddenWidgetsBinding: 'parentView.hiddenWidgets',
       visibleWidgetsBinding: 'parentView.visibleWidgets',
       valueBinding: '',
+      didInsertElement: function() {
+        $(".add-widgets-dropdown-list").click(function( event ) {
+          event.stopPropagation();
+        });
+      },
+      closeFilter:function () {
+      },
       applyFilter:function() {
-        this._super();
-        var parent = this.get('parentView').get('parentView');
+        this.closeFilter();
+        var parent = this.get('parentView');
         var hiddenWidgets = this.get('hiddenWidgets');
         var checkedWidgets = hiddenWidgets.filterProperty('checked', true);
 
@@ -245,7 +244,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
           parent.translateToReal(newValue);
         }
       }
-    })
   }),
 
   /**

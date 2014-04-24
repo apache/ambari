@@ -1647,7 +1647,7 @@ Em.I18n.translations = {
   'dashboard.clusterMetrics.memory':'Memory Usage',
   'dashboard.clusterMetrics.network':'Network Usage',
 
-  'dashboard.widgets.title': 'Cluster Status and Metrics',
+  'dashboard.widgets.title': 'Metrics',
   'dashboard.heatmaps.title': 'Heatmaps',
   'dashboard.button.switch': 'Switch to classic dashboard',
   'dashboard.button.switchShort': 'Switch',

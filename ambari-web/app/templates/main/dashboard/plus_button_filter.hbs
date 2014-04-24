@@ -16,12 +16,9 @@
 * limitations under the License.
 }}
 
-<button class="btn single-btn-group add-button" {{action "clickFilterButton" target="view"}} >
-    <i class="icon-plus"></i> <span style="font-weight: bold">{{t common.add}}</span>
-</button>
-<ul class="dropdown-menu filter-components" >
+<ul class="dropdown-menu" >
   {{#if view.hiddenWidgets.length}}
-    <li>
+    <li class="add-widgets-dropdown-list">
       <ul>
         {{#each widget in view.hiddenWidgets}}
           <li>
@@ -45,6 +42,5 @@
     <li>
       <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
     </li>
-
   {{/if}}
 </ul>

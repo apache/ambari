@@ -94,7 +94,7 @@ module.exports = Em.Route.extend({
       router.transitionTo(event.context);
     },
     widgets: Em.Route.extend({
-      route: '/clusterWidgets',
+      route: '/metrics',
       connectOutlets: function (router, context) {
         router.set('mainDashboardController.selectedCategory', 'widgets');
         router.get('mainDashboardController').connectOutlet('mainDashboardWidgets');
