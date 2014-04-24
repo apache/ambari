@@ -306,7 +306,7 @@ App.format = {
     'HADOOP_CLIENT': 'Hadoop Client',
     'HBASE_CLIENT': 'HBase Client',
     'HBASE_MASTER': 'HBase Master',
-    'HBASE_REGIONSERVER': 'HBase RegionServer',
+    'HBASE_REGIONSERVER': 'RegionServer',
     'HBASE_SERVICE_CHECK': 'HBase Service Check',
     'HCAT': 'HCat',
     'HCAT_SERVICE_CHECK': 'HCat Service Check',
@@ -359,7 +359,7 @@ App.format = {
     'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check',
     'ZOOKEEPER_SERVER': 'ZooKeeper Server',
     'ZOOKEEPER_SERVICE_CHECK': 'ZooKeeper Service Check',
-    'CLIENT': 'client'
+    'CLIENT': 'Client'
   },
 
   /**

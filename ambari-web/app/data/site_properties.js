@@ -570,7 +570,7 @@ module.exports =
     {
       "id": "site property",
       "name": "hbase.regionserver.handler.count",
-      "displayName": "HBase RegionServer Handler",
+      "displayName": "RegionServer Handler",
       "description": "Count of RPC Listener instances spun up on RegionServers",
       "defaultValue": "60",
       "displayType": "int",

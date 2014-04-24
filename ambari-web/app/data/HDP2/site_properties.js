@@ -625,7 +625,7 @@ module.exports =
     {
       "id": "site property",
       "name": "hbase.regionserver.handler.count",
-      "displayName": "HBase RegionServer Handler",
+      "displayName": "RegionServer Handler",
       "displayType": "int",
       "category": "RegionServer",
       "serviceName": "HBASE",
