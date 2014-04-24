@@ -144,3 +144,9 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local
 )
 limits_conf_dir = "/etc/security/limits.d"
+
+io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
+if not "com.hadoop.compression.lzo" in io_compression_codecs:
+  exclude_packages = ["lzo", "hadoop-lzo", "hadoop-lzo-native"]
+else:
+  exclude_packages = []

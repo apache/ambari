@@ -28,7 +28,7 @@ class SNameNode(Script):
 
     env.set_params(params)
 
-    self.install_packages(env)
+    self.install_packages(env, params.exclude_packages)
 
 
   def start(self, env):

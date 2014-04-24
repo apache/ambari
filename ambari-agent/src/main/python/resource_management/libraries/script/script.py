@@ -143,7 +143,7 @@ class Script(object):
     self.install_packages(env)
 
 
-  def install_packages(self, env):
+  def install_packages(self, env, exclude_packages=[]):
     """
     List of packages that are required by service is received from the server
     as a command parameter. The method installs all packages
@@ -157,8 +157,9 @@ class Script(object):
       if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
-          name = package['name']
-          Package(name)
+          if not package['name'] in exclude_packages:
+            name = package['name']
+            Package(name)
     except KeyError:
       pass # No reason to worry
     

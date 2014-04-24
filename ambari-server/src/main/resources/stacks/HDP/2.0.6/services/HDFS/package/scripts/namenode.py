@@ -26,7 +26,7 @@ class NameNode(Script):
   def install(self, env):
     import params
 
-    self.install_packages(env)
+    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
     #TODO we need this for HA because of manual steps
     self.configure(env)
