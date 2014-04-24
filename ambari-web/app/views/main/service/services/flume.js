@@ -144,6 +144,14 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     var agentHostMock = agent.get('host.hostName');
     var mockMetricData = [
       {
+        header: 'channelName',
+        metricView: App.MainServiceInfoFlumeGraphsView.extend(),
+        metricViewData: {
+          agent: agent,
+          metricType: 'CHANNEL'
+        }
+      },
+      {
         header: 'sinkName',
         metricView: App.MainServiceInfoFlumeGraphsView.extend(),
         metricViewData: {
@@ -157,14 +165,6 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
         metricViewData: {
           agent: agent,
           metricType: 'SOURCE'
-        }
-      },
-      {
-        header: 'channelName',
-        metricView: App.MainServiceInfoFlumeGraphsView.extend(),
-        metricViewData: {
-          agent: agent,
-          metricType: 'CHANNEL'
         }
       }
     ];
