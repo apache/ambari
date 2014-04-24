@@ -62,6 +62,7 @@
                         <exclude>**/*.snk</exclude>
                         <exclude>**/*.cs</exclude>
                         <exclude>**/*.json</exclude>
+                        <exclude>**/*.sln</exclude>
                     </excludes>
                 </configuration>
                 <executions>
