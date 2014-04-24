@@ -102,7 +102,7 @@ public class SchemaUpgradeHelper {
   protected String getAmbariServerVersion() {
     String versionFilePath = configuration.getServerVersionFilePath();
     try {
-      return FileUtils.readFileToString(new File(versionFilePath));
+      return FileUtils.readFileToString(new File(versionFilePath)).trim();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -174,12 +174,6 @@ public class SchemaUpgradeHelper {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
         try {
           upgradeCatalog.upgradeSchema();
-        } catch (AmbariException e) {
-          LOG.error("Upgrade failed. ", e);
-          throw e;
-        } catch (SQLException e) {
-          LOG.error("Upgrade failed. ", e);
-          throw new AmbariException(e.getMessage(), e);
         } catch (Exception e) {
           LOG.error("Upgrade failed. ", e);
           throw new AmbariException(e.getMessage(), e);
@@ -195,12 +189,6 @@ public class SchemaUpgradeHelper {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
         try {
           upgradeCatalog.upgradeData();
-        } catch (AmbariException e) {
-          LOG.error("Upgrade failed. ", e);
-          throw e;
-        } catch (SQLException e) {
-          LOG.error("Upgrade failed. ", e);
-          throw new AmbariException(e.getMessage());
         } catch (Exception e) {
           LOG.error("Upgrade failed. ", e);
           throw new AmbariException(e.getMessage(), e);
@@ -215,32 +203,41 @@ public class SchemaUpgradeHelper {
    * @param args args[0] = target version to upgrade to.
    */
   public static void main(String[] args) throws Exception {
-    Injector injector = Guice.createInjector(new UpgradeHelperModule());
-    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
+    try {
+      Injector injector = Guice.createInjector(new UpgradeHelperModule());
+      SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
-    String targetVersion = schemaUpgradeHelper.getAmbariServerVersion();
-    LOG.info("Upgrading schema to target version = " + targetVersion);
+      String targetVersion = schemaUpgradeHelper.getAmbariServerVersion();
+      LOG.info("Upgrading schema to target version = " + targetVersion);
 
-    UpgradeCatalog targetUpgradeCatalog = AbstractUpgradeCatalog
-      .getUpgradeCatalog(targetVersion);
+      UpgradeCatalog targetUpgradeCatalog = AbstractUpgradeCatalog
+        .getUpgradeCatalog(targetVersion);
 
-    LOG.debug("Target upgrade catalog. " + targetUpgradeCatalog);
+      LOG.debug("Target upgrade catalog. " + targetUpgradeCatalog);
 
-    // Read source version from DB
-    String sourceVersion = schemaUpgradeHelper.readSourceVersion();
-    LOG.info("Upgrading schema from source version = " + sourceVersion);
+      // Read source version from DB
+      String sourceVersion = schemaUpgradeHelper.readSourceVersion();
+      LOG.info("Upgrading schema from source version = " + sourceVersion);
 
-    List<UpgradeCatalog> upgradeCatalogs =
-      schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
+      List<UpgradeCatalog> upgradeCatalogs =
+        schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
 
-    schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
+      schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
 
-    schemaUpgradeHelper.startPersistenceService();
+      schemaUpgradeHelper.startPersistenceService();
 
-    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
+      schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
 
-    LOG.info("Upgrade successful.");
+      LOG.info("Upgrade successful.");
 
-    schemaUpgradeHelper.stopPersistenceService();
+      schemaUpgradeHelper.stopPersistenceService();
+    } catch (Throwable e) {
+      if (e instanceof AmbariException) {
+        throw (AmbariException)e;
+      }else{
+        LOG.error("Unexpected error, upgrade failed", e);
+        throw new Exception("Unexpected error, upgrade failed", e);
+      }
+    }
   }
 }

@@ -63,6 +63,7 @@ public class TestVersionUtils {
     Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3", "1.2.3.4", 3));
     Assert.assertEquals(0, VersionUtils.compareVersions("1.2.3.6.7", "1.2.3.4", 3));
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.6.7", "1.2.3.4", 4));
+    Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.6.7\n", "1.2.3.4\n", 4)); //test version trimming
 
     Assert.assertEquals(1, VersionUtils.compareVersions("1.2.3.1", "1.2.3", true));
     Assert.assertEquals(1, VersionUtils.compareVersions("2.1.3", "1.2.3", true));

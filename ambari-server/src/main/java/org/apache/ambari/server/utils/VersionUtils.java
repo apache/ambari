@@ -18,6 +18,7 @@
 package org.apache.ambari.server.utils;
 
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Provides various utility functions to be used for version handling.
@@ -36,6 +37,9 @@ public class VersionUtils {
    */
   public static int compareVersions(String version1, String version2, int maxLengthToCompare)
     throws IllegalArgumentException {
+    version1 = StringUtils.trim(version1);
+    version2 = StringUtils.trim(version2);
+
     if (version1 == null || version1.isEmpty()) {
       throw new IllegalArgumentException("version1 cannot be null or empty");
     }
@@ -46,9 +50,9 @@ public class VersionUtils {
       throw new IllegalArgumentException("maxLengthToCompare cannot be less than 0");
     }
 
-    
+
     if(BootStrapImpl.DEV_VERSION.equals(version1.trim())) return 0;
-    
+
     String[] version1Parts = version1.split("\\.");
     String[] version2Parts = version2.split("\\.");
 
