@@ -376,7 +376,7 @@ public class ClusterDefinition {
             Set<String> componentNames = entry.getValue();
 
             for (String componentName : componentNames) {
-              if(state.equals(getHostComponentState(hostName, componentName))) continue;
+              if(isClientOnlyComponent(componentName) || state.equals(getHostComponentState(hostName, componentName))) continue;
               requestId = recordProcess(stateProvider.setRunningState(hostName, componentName, s), requestId,
                       "Set service " + serviceName + " state to " + s);
             }
