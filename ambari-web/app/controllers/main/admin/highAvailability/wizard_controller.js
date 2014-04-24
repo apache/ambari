@@ -137,7 +137,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
         isInstalled: true
       });
     });
-    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
