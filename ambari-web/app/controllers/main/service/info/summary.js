@@ -28,7 +28,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   startFlumeAgent: function () {
     var selectedFlumeAgent = this.get('selectedFlumeAgent');
-    if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'INSTALLED') {
+    if (selectedFlumeAgent && selectedFlumeAgent.get('status') === 'NOT_RUNNING') {
       var self = this;
       App.showConfirmationPopup(function () {
         var state = 'STARTED';

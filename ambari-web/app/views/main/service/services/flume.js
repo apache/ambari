@@ -113,7 +113,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
     var selectedFlumeAgent = this.get('controller.selectedFlumeAgent');
     this.set('isActionsDisabled', !selectedFlumeAgent);
     if (selectedFlumeAgent) {
-      this.set('isStartAgentDisabled', selectedFlumeAgent.get('status') !== 'INSTALLED');
+      this.set('isStartAgentDisabled', selectedFlumeAgent.get('status') !== 'NOT_RUNNING');
       this.set('isStopAgentDisabled', selectedFlumeAgent.get('status') !== 'RUNNING');
     }
   }.observes('controller.selectedFlumeAgent', 'controller.selectedFlumeAgent.status'),
@@ -123,7 +123,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
    * Highlight selected row and show metrics graphs of selected agent.
    *
    * @method showAgentInfo
-   * @param {object} event
+   * @param {object} agent
    */
   showAgentInfo: function (agent) {
     this.set('controller.selectedFlumeAgent', agent);

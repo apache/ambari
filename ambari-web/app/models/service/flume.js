@@ -30,7 +30,7 @@ App.FlumeAgent = DS.Model.extend({
   id: DS.attr('string'),
   name: DS.attr('string'),
   /**
-   * Status of agent. One of 'STARTED', 'INSTALLED', 'UNKNOWN'.
+   * Status of agent. One of 'RUNNING', 'NOT_RUNNING', 'UNKNOWN'.
    */
   status: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
@@ -42,11 +42,9 @@ App.FlumeAgent = DS.Model.extend({
   healthClass : function() {
     switch (this.get('status')) {
     case 'RUNNING':
-    case 'STARTING':
       return App.healthIconClassGreen;
       break;
-    case 'INSTALLED':
-    case 'STOPPING':
+    case 'NOT_RUNNING':
       return App.healthIconClassRed;
       break;
     case 'UNKNOWN':
