@@ -1307,9 +1307,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (serviceInfo.getOsSpecifics().containsKey(AmbariMetaInfo.ANY_OS)) {
       anyOs = serviceInfo.getOsSpecifics().get(AmbariMetaInfo.ANY_OS);
     }
-    ServiceOsSpecific hostOs = null;
-    if (serviceInfo.getOsSpecifics().containsKey(osFamily)) {
-      hostOs = serviceInfo.getOsSpecifics().get(osFamily);
+    ServiceOsSpecific hostOs = new ServiceOsSpecific(osFamily);
+    List<ServiceOsSpecific> foundedOSSpecifics = getOSSpecificsByFamily(serviceInfo.getOsSpecifics(), osFamily);
+    if (!foundedOSSpecifics.isEmpty()) {
+      for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
+        hostOs.addPackages(osSpecific.getPackages());
+      }
+      serviceInfo.getOsSpecifics().get(osFamily);
       // Choose repo that is relevant for host
       ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
       if (serviceRepo != null) {
@@ -1347,6 +1351,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       execCmd.setPassiveInfo(
         maintenanceStateHelper.getMaintenanceHostComponents(clusters, cluster));
     }
+  }
+
+  private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
+    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<ServiceOsSpecific>();
+    for (Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
+      if (osSpecific.getKey().indexOf(osFamily) != -1) {
+        foundedOSSpecifics.add(osSpecific.getValue());
+      }
+    }
+    return foundedOSSpecifics;
   }
 
   private ActionExecutionContext getActionExecutionContext

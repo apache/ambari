@@ -32,6 +32,12 @@ public class ServiceOsSpecific {
   private String osFamily;
   private Repo repo;
 
+  public ServiceOsSpecific() {
+  }
+
+  public ServiceOsSpecific(String osFamily) {
+    this.osFamily = osFamily;
+  }
 
   @XmlElementWrapper(name="packages")
   @XmlElements(@XmlElement(name="package"))
@@ -50,6 +56,10 @@ public class ServiceOsSpecific {
 
   public List<Package> getPackages() {
     return packages;
+  }
+
+  public void addPackages(List<Package> packages) {
+    this.packages.addAll(packages);
   }
 
   /**

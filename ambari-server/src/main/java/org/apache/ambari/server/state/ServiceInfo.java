@@ -66,8 +66,6 @@ public class ServiceInfo {
   private File metricsFile = null;
   @XmlTransient
   private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
-  
-  private static final String OS_SEPARATOR = ",";
 
 
   /**
@@ -316,9 +314,7 @@ public class ServiceInfo {
                   new TreeMap<String, ServiceOsSpecific>();
           if (serviceOsSpecifics != null) {
             for (ServiceOsSpecific osSpecific : serviceOsSpecifics) {
-              for(String osFamily:osSpecific.getOsFamily().split(OS_SEPARATOR)) {
-                tmpMap.put(osFamily.trim(), osSpecific);
-              }
+              tmpMap.put(osSpecific.getOsFamily(), osSpecific);
             }
           }
           serviceOsSpecificsMap = tmpMap;
