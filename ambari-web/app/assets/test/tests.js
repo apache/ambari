@@ -140,6 +140,7 @@ require('test/views/wizard/step3_view_test');
 require('test/views/wizard/step5_view_test');
 require('test/views/wizard/step6_view_test');
 require('test/views/wizard/step9_view_test');
+require('test/views/wizard/step9/hostLogPopupBody_view_test');
 require('test/views/wizard/step10_view_test');
 require('test/models/host_test');
 require('test/models/host_component_test');

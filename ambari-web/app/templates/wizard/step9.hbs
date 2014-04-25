@@ -21,6 +21,7 @@
   <h2>{{t installer.step9.header}}</h2>
 
   <p class="alert alert-info">{{t installer.step9.body}}</p>
+
   <div id="overallProgress">
     <div class="row-fluid">
       <div class="span10">
@@ -37,10 +38,10 @@
     <div class="box-header">
       <div class="pull-left">
         {{#if controller.showRetry}}
-        <a class="btn btn-primary"
-           href="#" {{action retry}}><i class="icon-repeat icon-white"></i>
-          {{t common.retry}}
-        </a>
+          <a class="btn btn-primary" href="#" {{action retry}}>
+            <i class="icon-repeat icon-white"></i>
+            {{t common.retry}}
+          </a>
         {{/if}}
       </div>
       <!-- filter by host level -->
@@ -75,9 +76,9 @@
         </thead>
 
         <tbody>
-        {{#if view.pageContent}}
-          {{#each host in view.pageContent}}
-            {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
+          {{#if view.pageContent}}
+            {{#each host in view.pageContent}}
+              {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
               <td>
                 {{host.name}}
               </td>
@@ -91,50 +92,52 @@
               </td>
               <td>
                 <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
-                  href="javascript:void(null)"
-                  data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>
+                    href="javascript:void(null)"
+                    data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>
               </td>
-            {{/view}}
-          {{/each}}
-        {{else}}
+              {{/view}}
+            {{/each}}
+          {{else}}
           <tr>
             <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
           </tr>
-        {{/if}}
+          {{/if}}
         </tbody>
       </table>
     </div>
-      <div id="hosts">
-        <div class="page-bar">
-          <div class="selected-hosts-info pull-left">
-            {{view.filteredHostsInfo}}
-            -
-            <a {{action showAllHosts target="view"}} href="#">{{t tableView.filters.showAll}}</a>
-          </div>
-          <div class="items-on-page">
-              <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-          </div>
-          <div class="info">{{view.paginationInfo}}</div>
-          <div class="paging_two_button">
-            {{view view.paginationFirst}}
-            {{view view.paginationLeft}}
-            {{view view.paginationRight}}
-            {{view view.paginationLast}}
-          </div>
+    <div id="hosts">
+      <div class="page-bar">
+        <div class="selected-hosts-info pull-left">
+          {{view.filteredHostsInfo}}
+          -
+          <a {{action showAllHosts target="view"}} href="#">{{t tableView.filters.showAll}}</a>
+        </div>
+        <div class="items-on-page">
+          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+        </div>
+        <div class="info">{{view.paginationInfo}}</div>
+        <div class="paging_two_button">
+          {{view view.paginationFirst}}
+          {{view view.paginationLeft}}
+          {{view view.paginationRight}}
+          {{view view.paginationLast}}
         </div>
       </div>
+    </div>
   </div>
 
   <div>
     {{#if view.resultMsg}}
       <p {{bindAttr class="view.resultMsgColor :alert"}}>{{view.resultMsg}}
-      {{#if view.isHostHeartbeatLost}}
-        <a href="javascript:void(null)" data-toggle="modal" {{action hostWithInstallFailed target="view"}}>{{t common.showDetails}}</a>
-      {{/if}}
+        {{#if view.isHostHeartbeatLost}}
+          <a href="javascript:void(null)"
+             data-toggle="modal" {{action hostWithInstallFailed target="view"}}>{{t common.showDetails}}</a>
+        {{/if}}
       </p>
     {{/if}}
     <div class="btn-area">
-      <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+      <button
+          class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
     </div>
   </div>
 

@@ -36,17 +36,16 @@ App.WizardStep9Controller = Em.Controller.extend({
    *  </code>
    *  @type {Array.<{name: string, status: string, logTasks: object[], message: string, progress: number, isNoTasksForInstall: bool}>}
    */
-
   hosts: [],
 
   /**
-   * overall progress of <Install,Start and Test> page shown as progress bar on the top of the page
+   * Overall progress of <Install,Start and Test> page shown as progress bar on the top of the page
    * @type {string}
    */
   progress: '0',
 
   /*
-   * json file for the mock data to be used in mock mode
+   * Json file for the mock data to be used in mock mode
    * @type {string}
    */
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
@@ -119,10 +118,12 @@ App.WizardStep9Controller = Em.Controller.extend({
   togglePreviousSteps: function () {
     if (App.testMode) {
       return;
-    } else if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
-      App.router.get('installerController').setStepsEnable();
+    }
+    var installerController = App.router.get('installerController');
+    if ('INSTALL FAILED' === this.get('content.cluster.status') && this.get('content.controllerName') == 'installerController') {
+      installerController.setStepsEnable();
     } else {
-      App.router.get('installerController').setLowerStepsDisable(9);
+      installerController.setLowerStepsDisable(9);
     }
   }.observes('content.cluster.status', 'content.controllerName'),
 
@@ -142,12 +143,29 @@ App.WizardStep9Controller = Em.Controller.extend({
     Em.run.once(this, 'updateStatus');
   }.observes('hosts.@each.status'),
 
-
   /**
    * A flag that gets set with installation failure.
    * @type {bool}
    */
   installFailed: false,
+
+  /**
+   * Incremental flag that triggers an event in step 9 view to change the tasks related data and icons of hosts.
+   * @type {number}
+   */
+  logTasksChangesCounter: 0,
+
+  /**
+   * <code>taskId</code> of current open task
+   * @type {number}
+   */
+  currentOpenTaskId: 0,
+
+  /**
+   * <code>requestId</code> of current open task
+   * @type {number}
+   */
+  currentOpenTaskRequestId: 0,
 
   /**
    * Observer function: Updates {status} field of the controller.
@@ -172,24 +190,6 @@ App.WizardStep9Controller = Em.Controller.extend({
   }.observes('progress'),
 
   /**
-   * Incremental flag that triggers an event in step 9 view to change the tasks related data and icons of hosts.
-   * @type {number}
-   */
-  logTasksChangesCounter: 0,
-
-  /**
-   * <code>taskId</code> of current open task
-   * @type {number}
-   */
-  currentOpenTaskId: 0,
-
-  /**
-   * <code>requestId</code> of current open task
-   * @type {number}
-   */
-  currentOpenTaskRequestId: 0,
-
-  /**
    * This function is called when a click event happens on Next button of "Install, Start and Test" page
    * @method submit
    */
@@ -206,7 +206,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       App.router.send('back');
     }
   },
-
 
   /**
    * navigateStep is called by App.WizardStep9View's didInsertElement and "retry" from router.
@@ -283,7 +282,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.loadHosts();
   },
 
-
   /**
    * Reset status and message of all hosts when retry install
    * @method resetHostsForRetry
@@ -339,6 +337,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   displayMessage: function (task) {
     var role = App.format.role(task.role);
+    /* istanbul ignore next */
     switch (task.command) {
       case 'INSTALL':
         switch (task.status) {
@@ -431,6 +430,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   /**
    * Run start/check services after installation phase.
    * Does Ajax call to start all services
+   * @return {$.ajax|null}
    * @method launchStartServices
    */
   launchStartServices: function () {
@@ -465,7 +465,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.set('numPolls', 6);
     }
 
-    App.ajax.send({
+    return App.ajax.send({
       name: name,
       sender: this,
       data: {
@@ -497,7 +497,8 @@ App.WizardStep9Controller = Em.Controller.extend({
       };
       this.hostHasClientsOnly(false);
       this.saveClusterStatus(clusterStatus);
-    } else {
+    }
+    else {
       console.log('ERROR: Error occurred in parsing JSON data');
       this.hostHasClientsOnly(true);
       clusterStatus = {
@@ -759,7 +760,8 @@ App.WizardStep9Controller = Em.Controller.extend({
         clusterStatus.status = 'STARTED';
         var serviceStartTime = App.dateTime();
         clusterStatus.installTime = ((parseInt(serviceStartTime) - parseInt(this.get('content.cluster.installStartTime'))) / 60000).toFixed(2);
-      } else {
+      }
+      else {
         clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed
       }
       this.saveClusterStatus(clusterStatus);
@@ -835,9 +837,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     var totalProgress = 0;
     var tasksData = polledData.tasks;
     console.log("The value of tasksData is: ", tasksData);
-    if (!tasksData) {
-      console.log("Step9: ERROR: NO tasks available to process");
-    }
     var requestId = this.get('content.cluster.requestId');
     tasksData.setEach('Tasks.request_id', requestId);
     if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
@@ -947,10 +946,13 @@ App.WizardStep9Controller = Em.Controller.extend({
   loadCurrentTaskLogSuccessCallback: function (data) {
     var taskId = this.get('currentOpenTaskId');
     if (taskId) {
-      var currentTask = this.get('hosts').findProperty('name', data.Tasks.host_name).get('logTasks').findProperty('Tasks.id', data.Tasks.id);
-      if (currentTask) {
-        currentTask.Tasks.stderr = data.Tasks.stderr;
-        currentTask.Tasks.stdout = data.Tasks.stdout;
+      var host = this.get('hosts').findProperty('name', data.Tasks.host_name);
+      if (host) {
+        var currentTask = host.get('logTasks').findProperty('Tasks.id', data.Tasks.id);
+        if (currentTask) {
+          currentTask.Tasks.stderr = data.Tasks.stderr;
+          currentTask.Tasks.stdout = data.Tasks.stdout;
+        }
       }
     }
     this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
@@ -969,9 +971,10 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @param {bool} polling whether to continue polling for status or not
    * @param {number} requestId
    * @method getLogsByRequest
+   * @return {$.ajax|null}
    */
   getLogsByRequest: function (polling, requestId) {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.step9.load_log',
       sender: this,
       data: {
@@ -1015,22 +1018,15 @@ App.WizardStep9Controller = Em.Controller.extend({
           self.loadCurrentTaskLog();
         }
         self.doPolling();
-      }, this.POLL_INTERVAL);
+      }, this.get('POLL_INTERVAL'));
     }
   },
 
   /**
    * Error-callback for get log by request
-   * @param {object} request
-   * @param {object} ajaxOptions
-   * @param {string} error
    * @method getLogsByRequestErrorCallback
    */
-  getLogsByRequestErrorCallback: function (request, ajaxOptions, error) {
-    console.log("TRACE: STep9 -> In error function for the GET logs data");
-    console.log("TRACE: STep9 -> value of the url is: " + url);
-    console.log("TRACE: STep9 -> error code status is: " + request.status);
-  },
+  getLogsByRequestErrorCallback: Em.K,
 
   /**
    * Delegates the function call to {getLogsByRequest} with appropriate params
@@ -1047,13 +1043,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   /**
    * Check that all components are in INSTALLED state before issuing start command
    * @method isAllComponentsInstalled
+   * @return {$.ajax|null}
    */
   isAllComponentsInstalled: function () {
     if (this.get('content.controllerName') !== 'installerController') {
-      return;
+      return null;
     }
     var name = 'wizard.step9.installer.get_host_status';
-    App.ajax.send({
+    return App.ajax.send({
       name: name,
       sender: this,
       data: {
@@ -1109,7 +1106,6 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @method isAllComponentsInstalledErrorCallback
    */
   isAllComponentsInstalledErrorCallback: function () {
-    console.log("ERROR");
     var clusterStatus = {
       status: 'INSTALL FAILED',
       isStartError: true,
@@ -1134,18 +1130,22 @@ App.WizardStep9Controller = Em.Controller.extend({
   getComponentMessage: function (componentArr) {
     var label = '';
     componentArr.forEach(function (_component) {
-      if (_component === componentArr[0]) {
+      if (componentArr.length === 1) {
         label = _component;
-      } else if (_component !== componentArr[componentArr.length - 1]) {           // [clients.length - 1]
-        label = label + ' ' + _component;
-        if (_component !== componentArr[componentArr.length - 2]) {
-          label = label + ',';
+      }
+      else {
+        if (_component !== componentArr[componentArr.length - 1]) {           // [clients.length - 1]
+          label = label + ' ' + _component;
+          if (_component !== componentArr[componentArr.length - 2]) {
+            label = label + ',';
+          }
         }
-      } else {
-        label = label + ' ' + Em.I18n.t('and') + ' ' + _component;
+        else {
+          label = label + ' ' + Em.I18n.t('and') + ' ' + _component;
+        }
       }
     }, this);
-    return label;
+    return label.trim();
   },
 
   /**
@@ -1156,7 +1156,8 @@ App.WizardStep9Controller = Em.Controller.extend({
   saveClusterStatus: function (clusterStatus) {
     if (!App.testMode) {
       App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
-    } else {
+    }
+    else {
       this.set('content.cluster', clusterStatus);
     }
   },
@@ -1168,7 +1169,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    */
   saveInstalledHosts: function (context) {
     if (!App.testMode) {
-      App.router.get(this.get('content.controllerName')).saveInstalledHosts(context)
+      App.router.get(this.get('content.controllerName')).saveInstalledHosts(context);
     }
   }
 
