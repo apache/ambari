@@ -275,13 +275,13 @@ App.Router = Em.Router.extend({
       if (App.alwaysGoToInstaller) {
         return 'installer';
       } else {
-        return 'main.dashboard';
+        return 'main.dashboard.index';
       }
     }
     App.clusterStatus.updateFromServer(false, false);
     var clusterStatusOnServer = App.clusterStatus.get('value');
     if (!App.get('isAdmin') || clusterStatusOnServer && clusterStatusOnServer.clusterState === 'DEFAULT') {
-      return 'main.dashboard';
+      return 'main.dashboard.index';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
       // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
       return 'main.hostAdd';

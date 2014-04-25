@@ -70,7 +70,7 @@ module.exports = Em.Route.extend({
                   break;
                 case 'DEFAULT' :
                 default:
-                  router.transitionTo('main.dashboard');
+                  router.transitionTo('main.dashboard.index');
                   break;
               }
             }
@@ -410,7 +410,7 @@ module.exports = Em.Route.extend({
       // We need to do recovery based on whether we are in Add Host or Installer wizard
       controller.saveClusterState('DEFAULT');
 
-      router.transitionTo('main.dashboard');
+      router.transitionTo('main.dashboard.index');
     }
   }),
 

@@ -73,7 +73,7 @@ App.MainHiveJobDetailsController = Em.Controller.extend({
    * open dashboard page
    */
   routeHome : function() {
-    App.router.transitionTo('main.dashboard');
+    App.router.transitionTo('main.dashboard.index');
   },
 
   /**

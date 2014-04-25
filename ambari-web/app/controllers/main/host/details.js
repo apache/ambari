@@ -46,7 +46,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method routeHome
    */
   routeHome: function () {
-    App.router.transitionTo('main.dashboard');
+    App.router.transitionTo('main.dashboard.index');
   },
 
   /**

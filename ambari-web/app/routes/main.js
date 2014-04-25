@@ -87,7 +87,11 @@ module.exports = Em.Route.extend({
     },
     index: Em.Route.extend({
       route: '/',
-      redirectsTo: 'widgets'
+      enter: function(router) {
+        Em.run.next(function(){
+          router.transitionTo('widgets');
+        });
+      }
     }),
     //on click nav tabs events, go to widgets view or heatmap view
     goToDashboardView: function (router, event) {
@@ -108,7 +112,11 @@ module.exports = Em.Route.extend({
       },
       index: Ember.Route.extend({
         route: '/',
-        redirectsTo: 'heatmap'
+        enter: function(router) {
+         Em.run.next(function(){
+           router.transitionTo('heatmap');
+         });
+        }
       }),
       heatmap: Em.Route.extend({
         route: '/heatmap',
@@ -136,7 +144,7 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       if (App.get('isHadoop2Stack')) {
         Em.run.next(function () {
-          router.transitionTo('main.dashboard');
+          router.transitionTo('main.dashboard.index');
         });
       } else {
         router.get('mainAppsController').loadRuns();
@@ -150,7 +158,7 @@ module.exports = Em.Route.extend({
     enter: function (router) {
       if(!App.router.get('mainAdminAccessController.showJobs') && !App.get('isAdmin')){
         Em.run.next(function () {
-          router.transitionTo('main.dashboard');
+          router.transitionTo('main.dashboard.index');
         });
       }
     },
@@ -162,7 +170,7 @@ module.exports = Em.Route.extend({
       connectOutlets : function(router) {
         if (!App.get('isHadoop2Stack')) {
           Em.run.next(function() {
-            router.transitionTo('main.dashboard');
+            router.transitionTo('main.dashboard.index');
           });
         } else {
           router.get('mainJobsController').updateJobs('mainJobsController', 'refreshLoadedJobs');
@@ -329,7 +337,7 @@ module.exports = Em.Route.extend({
     enter: function (router, transition) {
       if (!App.isAdmin) {
         Em.run.next(function () {
-          router.transitionTo('main.dashboard');
+          router.transitionTo('main.dashboard.index');
         });
       }
     },
@@ -337,7 +345,7 @@ module.exports = Em.Route.extend({
     routePath: function (router, event) {
       if (!App.isAdmin) {
         Em.run.next(function () {
-          App.router.transitionTo('main.dashboard');
+          App.router.transitionTo('main.dashboard.index');
         });
       } else {
         var controller = router.get('mainAdminController');
