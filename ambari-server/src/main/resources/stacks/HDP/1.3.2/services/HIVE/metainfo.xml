@@ -53,6 +53,13 @@
                 <co-locate>HIVE/HIVE_SERVER</co-locate>
               </auto-deploy>
             </dependency>
+            <dependency>
+              <name>MAPREDUCE/MAPREDUCE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
           </dependencies>
           <commandScript>
             <script>scripts/hive_server.py</script>

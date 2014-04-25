@@ -28,6 +28,24 @@
         <component>
           <name>HBASE_MASTER</name>
           <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>HBASE/HBASE_MASTER</co-locate>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/hbase_master.py</script>
             <scriptType>PYTHON</scriptType>
