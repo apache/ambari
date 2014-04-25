@@ -985,7 +985,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: ''}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1003,7 +1003,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: ''}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1024,7 +1024,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: true}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1045,7 +1045,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: false}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1066,7 +1066,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: true}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1087,7 +1087,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: false}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1095,7 +1095,7 @@ describe('App.WizardStep6Controller', function () {
             }),
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: true}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1117,7 +1117,7 @@ describe('App.WizardStep6Controller', function () {
           hostsObj: [
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: false}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
@@ -1125,7 +1125,7 @@ describe('App.WizardStep6Controller', function () {
             }),
             Em.Object.create({
               checkboxes: Em.A([
-                Em.Object.create({isInstalled: false, title: 'client'}),
+                Em.Object.create({isInstalled: false, title: 'Client'}),
                 Em.Object.create({isInstalled: false, title: 'DataNode', checked: true}),
                 Em.Object.create({isInstalled: false, title: ''})
               ]),
