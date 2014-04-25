@@ -258,6 +258,11 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
     )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      owner = 'hive',
+      group = 'hadoop',
+    )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
       content = Template('startHiveserver2.sh.j2'),
       mode = 0755,
@@ -279,11 +284,6 @@ class TestHiveServer(RMFTestCase):
       group = 'hadoop',
       mode = 0755,
       recursive = True,
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
-      owner = 'hive',
-      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
       owner = 'hive',
@@ -351,6 +351,11 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
       not_if = '[ -f DBConnectionVerification.jar]',
     )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
+      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      owner = 'hive',
+      group = 'hadoop',
+    )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
       content = Template('startHiveserver2.sh.j2'),
       mode = 0755,
@@ -372,11 +377,6 @@ class TestHiveServer(RMFTestCase):
       group = 'hadoop',
       mode = 0755,
       recursive = True,
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
-      owner = 'hive',
-      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
       owner = 'hive',

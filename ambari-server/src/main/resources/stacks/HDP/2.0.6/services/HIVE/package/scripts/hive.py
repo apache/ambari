@@ -73,18 +73,26 @@ def hive(name=None):
   Execute(cmd,
           not_if=format("[ -f {check_db_connection_jar_name}]"))
 
+  File(format("{hive_config_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=Template('hive-env.sh.j2', conf_dir=hive_config_dir)
+  )
+
   if name == 'metastore':
     File(params.start_metastore_path,
          mode=0755,
          content=StaticFile('startMetastore.sh')
     )
     if params.init_metastore_schema:
-      create_schema_cmd = format("{hive_bin}/schematool -initSchema "
+      create_schema_cmd = format("export HIVE_CONF_DIR={hive_config_dir} ; "
+                                 "{hive_bin}/schematool -initSchema "
                                  "-dbType {hive_metastore_db_type} "
                                  "-userName {hive_metastore_user_name} "
                                  "-passWord {hive_metastore_user_passwd}")
 
-      check_schema_created_cmd = format("{hive_bin}/schematool -info "
+      check_schema_created_cmd = format("export HIVE_CONF_DIR={hive_config_dir} ; "
+                                        "{hive_bin}/schematool -info "
                                         "-dbType {hive_metastore_db_type} "
                                         "-userName {hive_metastore_user_name} "
                                         "-passWord {hive_metastore_user_passwd}")
@@ -102,12 +110,6 @@ def hive(name=None):
     crt_directory(params.hive_pid_dir)
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
-
-  File(format("{hive_config_dir}/hive-env.sh"),
-       owner=params.hive_user,
-       group=params.user_group,
-       content=Template('hive-env.sh.j2', conf_dir=hive_config_dir)
-  )
 
   crt_file(format("{hive_conf_dir}/hive-default.xml.template"))
   crt_file(format("{hive_conf_dir}/hive-env.sh.template"))
