@@ -82,7 +82,7 @@ public class StacksService extends BaseService {
 
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories")
+  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories")
   @Produces("text/plain")
   public Response getRepositories(@Context HttpHeaders headers,
                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -94,7 +94,7 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}")
+  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}")
   @Produces("text/plain")
   public Response getRepository(@Context HttpHeaders headers,
                                 @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -107,7 +107,7 @@ public class StacksService extends BaseService {
   }
 
   @PUT
-  @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{repoId}")
+  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}")
   @Produces("text/plain")
   public Response updateRepository(String body, @Context HttpHeaders headers,
                                    @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -121,7 +121,7 @@ public class StacksService extends BaseService {
 
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices")
+  @Path("{stackName}/versions/{stackVersion}/services")
   @Produces("text/plain")
   public Response getStackServices(@Context HttpHeaders headers,
                                    @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -132,7 +132,7 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}")
   @Produces("text/plain")
   public Response getStackService(@Context HttpHeaders headers,
                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -145,7 +145,7 @@ public class StacksService extends BaseService {
 
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/configurations")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/configurations")
   @Produces("text/plain")
   public Response getStackConfigurations(@Context HttpHeaders headers,
                                          @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -158,7 +158,7 @@ public class StacksService extends BaseService {
 
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/configurations/{propertyName}")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/configurations/{propertyName}")
   @Produces("text/plain")
   public Response getStackConfiguration(@Context HttpHeaders headers,
                                         @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -171,7 +171,7 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/components")
   @Produces("text/plain")
   public Response getServiceComponents(@Context HttpHeaders headers,
                                        @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -183,7 +183,7 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}/dependencies")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/components/{componentName}/dependencies")
   @Produces("text/plain")
   public Response getServiceComponentDependencies(@Context HttpHeaders headers,
                                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -196,7 +196,7 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}/dependencies/{dependencyName}")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/components/{componentName}/dependencies/{dependencyName}")
   @Produces("text/plain")
   public Response getServiceComponentDependency(@Context HttpHeaders headers,
                                       @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -212,7 +212,7 @@ public class StacksService extends BaseService {
 
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/stackServices/{serviceName}/serviceComponents/{componentName}")
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/components/{componentName}")
   @Produces("text/plain")
   public Response getServiceComponent(@Context HttpHeaders headers,
                                       @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -226,7 +226,7 @@ public class StacksService extends BaseService {
 
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/operatingSystems")
+  @Path("{stackName}/versions/{stackVersion}/operating_systems")
   @Produces("text/plain")
   public Response getOperatingSystems(@Context HttpHeaders headers,
                                       @Context UriInfo ui, @PathParam("stackName") String stackName,
@@ -237,7 +237,7 @@ public class StacksService extends BaseService {
   }
 
   @GET
-  @Path("{stackName}/versions/{stackVersion}/operatingSystems/{osType}")
+  @Path("{stackName}/versions/{stackVersion}/operating_systems/{osType}")
   @Produces("text/plain")
   public Response getOperatingSystem(@Context HttpHeaders headers,
                                      @Context UriInfo ui, @PathParam("stackName") String stackName,
