@@ -28,7 +28,6 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
       var hostName = viewData.agent.get('host.hostName');
       var metricNamesGatherer = {
         success: function(data) {
-          var graphs = [];
           var metricNames = {};
           if (data != null && data.metrics != null && data.metrics.flume != null && data.metrics.flume.flume != null && data.metrics.flume.flume[metricType] != null) {
             for ( var name in data.metrics.flume.flume[metricType]) {
@@ -38,20 +37,22 @@ App.MainServiceInfoFlumeGraphsView = App.MainServiceInfoSummaryMetricGraphsView.
             }
           }
           // Now that we have collected all metric names, we create
-          // views for each of them.
-          for ( var metricName in metricNames) {
+          // views for each of them and store them 4 in a row.
+          graphRows.push([]);
+          var graphs = graphRows[0];
+          for (var metricName in metricNames) {
+            if (graphs.length > 3) {
+              graphRows.push([]);
+              graphs = graphRows[graphRows.length - 1];
+            }
             graphs.push(App.ChartServiceFlumeMetricGraph.extend({
               metricType: metricType,
               metricName: metricName,
               hostName: hostName
             }));
-            if (graphs.length > 3) {
-              graphRows.push(graphs);
-              graphs = [];
-            }
           }
         }
-      }
+      };
       App.ajax.send({
         'name': 'host.host_component.flume.metrics',
         'sender': metricNamesGatherer,
