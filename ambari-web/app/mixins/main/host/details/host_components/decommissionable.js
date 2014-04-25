@@ -71,6 +71,13 @@ App.Decommissionable = Em.Mixin.create({
   }.property('content.service.workStatus'),
 
   /**
+   * @override App.HostComponentView.isRestartableComponent
+   */
+  isRestartableComponent: function() {
+    return this.get('isComponentDecommissionAvailable') && App.get('components.restartable').contains(this.get('content.componentName'));
+  }.property('isComponentDecommissionAvailable'),
+
+  /**
    * Tooltip message shows if decommission/recommission is disabled
    * when masters for current component is down
    */

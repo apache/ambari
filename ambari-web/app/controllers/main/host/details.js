@@ -1014,7 +1014,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {string} slaveType - slave component name
    */
   warnBeforeDecommission: function(hostNames, serviceName, componentName, slaveType) {
-    if (this.get('content.hostComponents').findProperty('componentName', componentName).get('passiveState') == "OFF") {
+    if (App.HostComponent.find().findProperty('componentName', componentName).get('passiveState') == "OFF") {
       App.ModalPopup.show({
         header: Em.I18n.t('common.warning'),
         message: function(){
