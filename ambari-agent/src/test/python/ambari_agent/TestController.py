@@ -80,18 +80,18 @@ class TestController(unittest.TestCase):
 
     self.controller.sendRequest = MagicMock()
 
-    dumpsMock.return_value = "request"
-    self.controller.sendRequest.return_value = '{"log":"Error text", "exitstatus":"1"}'
+    dumpsMock.return_value = '{"valid_object": true}'
+    self.controller.sendRequest.return_value = {"log":"Error text", "exitstatus":"1"}
 
     self.assertEqual({u'exitstatus': u'1', u'log': u'Error text'}, self.controller.registerWithServer())
     self.assertEqual(LiveStatus_mock.SERVICES, [])
     self.assertEqual(LiveStatus_mock.CLIENT_COMPONENTS, [])
     self.assertEqual(LiveStatus_mock.COMPONENTS, [])
 
-    self.controller.sendRequest.return_value = '{"responseId":1}'
+    self.controller.sendRequest.return_value = {"responseId":1}
     self.assertEqual({"responseId":1}, self.controller.registerWithServer())
 
-    self.controller.sendRequest.return_value = '{"responseId":1, "statusCommands": "commands", "log":"", "exitstatus":"0"}'
+    self.controller.sendRequest.return_value = {"responseId":1, "statusCommands": "commands", "log":"", "exitstatus":"0"}
     self.controller.addToStatusQueue = MagicMock(name="addToStatusQueue")
     self.controller.isRegistered = False
     self.assertEqual({'exitstatus': '0', 'responseId': 1, 'log': '', 'statusCommands': 'commands'}, self.controller.registerWithServer())
@@ -105,7 +105,7 @@ class TestController(unittest.TestCase):
         raise Exception("test")
       return "request"
 
-    self.controller.sendRequest.return_value = '{"responseId":1}'
+    self.controller.sendRequest.return_value = {"responseId":1}
 
     dumpsMock.side_effect = side_effect
     self.controller.isRegistered = False
@@ -306,7 +306,6 @@ class TestController(unittest.TestCase):
   def test_sendRequest(self, security_mock, requestMock):
 
     conMock = MagicMock()
-    conMock.request.return_value = "response"
     security_mock.CachedHTTPSConnection.return_value = conMock
     url = "url"
     data = "data"
@@ -314,19 +313,34 @@ class TestController(unittest.TestCase):
 
     self.controller.cachedconnect = None
 
-    self.assertEqual("response", self.controller.sendRequest(url, data))
+    conMock.request.return_value = '{"valid_object": true}'
+    actual = self.controller.sendRequest(url, data)
+    expected = json.loads('{"valid_object": true}')
+    self.assertEqual(actual, expected)
+    
     security_mock.CachedHTTPSConnection.assert_called_once_with(
       self.controller.config)
     requestMock.called_once_with(url, data,
       {'Content-Type': 'application/json'})
 
+    conMock.request.return_value = '{invalid_object}'
+    actual = self.controller.sendRequest(url, data)
+    expected = {'exitstatus': 1, 'log': ('Response parsing failed! Request data: ' + data
+                                         + '; Response: {invalid_object}')}
+    self.assertEqual(actual, expected)
+
+    conMock.request.side_effect = Exception()
+    actual = self.controller.sendRequest(url, data)
+    expected = {'exitstatus': 1, 'log': 'Request failed! Data: ' + data}
+
+    self.assertEqual(actual, expected)
+
+
 
   @patch.object(threading._Event, "wait")
   @patch("time.sleep")
-  @patch("json.loads")
   @patch("json.dumps")
-  def test_heartbeatWithServer(self, dumpsMock, loadsMock, sleepMock, event_mock):
-
+  def test_heartbeatWithServer(self, dumpsMock, sleepMock, event_mock):
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -340,11 +354,11 @@ class TestController(unittest.TestCase):
 
     self.controller.responseId = 1
     response = {"responseId":"2", "restartAgent":"false"}
-    loadsMock.return_value = response
+    sendRequest.return_value = response
 
     def one_heartbeat(*args, **kwargs):
       self.controller.DEBUG_STOP_HEARTBEATING = True
-      return "data"
+      return response
 
     sendRequest.side_effect = one_heartbeat
 
@@ -364,7 +378,7 @@ class TestController(unittest.TestCase):
         raise Exception()
       if len(calls) > 0:
         self.controller.DEBUG_STOP_HEARTBEATING = True
-      return "data"
+      return response
 
     # exception, retry, successful and stop
     sendRequest.side_effect = retry
@@ -374,6 +388,7 @@ class TestController(unittest.TestCase):
     self.assertEqual(1, self.controller.DEBUG_SUCCESSFULL_HEARTBEATS)
 
     # retry registration
+    self.controller.responseId = 2
     response["registrationCommand"] = "true"
     sendRequest.side_effect = one_heartbeat
     self.controller.DEBUG_STOP_HEARTBEATING = False
@@ -382,6 +397,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(self.controller.repeatRegistration)
 
     # components are not mapped
+    self.controller.responseId = 2
     response["registrationCommand"] = "false"
     response["hasMappedComponents"] = False
     sendRequest.side_effect = one_heartbeat
@@ -391,6 +407,7 @@ class TestController(unittest.TestCase):
     self.assertFalse(self.controller.hasMappedComponents)
 
     # components are mapped
+    self.controller.responseId = 2
     response["hasMappedComponents"] = True
     sendRequest.side_effect = one_heartbeat
     self.controller.DEBUG_STOP_HEARTBEATING = False
@@ -399,6 +416,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(self.controller.hasMappedComponents)
 
     # components are mapped
+    self.controller.responseId = 2
     del response["hasMappedComponents"]
     sendRequest.side_effect = one_heartbeat
     self.controller.DEBUG_STOP_HEARTBEATING = False
@@ -407,8 +425,8 @@ class TestController(unittest.TestCase):
     self.assertTrue(self.controller.hasMappedComponents)
 
     # wrong responseId => restart
+    self.controller.responseId = 2
     response = {"responseId":"2", "restartAgent":"false"}
-    loadsMock.return_value = response
 
     restartAgent = MagicMock(name="restartAgent")
     self.controller.restartAgent = restartAgent
@@ -491,12 +509,12 @@ class TestController(unittest.TestCase):
     self.controller.componentsUrl = "foo_url/"
     sendRequest = Mock()
     self.controller.sendRequest = sendRequest
-    self.controller.sendRequest.return_value = ('{"clusterName":"dummy_cluster_name",'
-                                                '"stackName":"dummy_stack_name",'
-                                                '"stackVersion":"dummy_stack_version",'
-                                                '"components":{"PIG":{"PIG":"CLIENT"},'
-                                                '"MAPREDUCE":{"MAPREDUCE_CLIENT":"CLIENT",'
-                                                '"JOBTRACKER":"MASTER","TASKTRACKER":"SLAVE"}}}')
+    self.controller.sendRequest.return_value = {"clusterName":"dummy_cluster_name",
+                                                "stackName":"dummy_stack_name",
+                                                "stackVersion":"dummy_stack_version",
+                                                "components":{"PIG":{"PIG":"CLIENT"},
+                                                "MAPREDUCE":{"MAPREDUCE_CLIENT":"CLIENT",
+                                                "JOBTRACKER":"MASTER","TASKTRACKER":"SLAVE"}}}
     self.controller.updateComponents("dummy_cluster_name")
     sendRequest.assert_called_with('foo_url/dummy_cluster_name', None)
     services_expected = [u'MAPREDUCE', u'PIG']

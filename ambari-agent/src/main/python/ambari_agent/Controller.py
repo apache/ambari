@@ -88,8 +88,7 @@ class Controller(threading.Thread):
       try:
         data = json.dumps(self.register.build(id))
         logger.info("Registering with the server " + pprint.pformat(data))
-        response = self.sendRequest(self.registerUrl, data)
-        ret = json.loads(response)
+        ret = self.sendRequest(self.registerUrl, data)
         exitstatus = 0
         # exitstatus is a code of error which was rised on server side.
         # exitstatus = 0 (OK - Default)
@@ -177,7 +176,6 @@ class Controller(threading.Thread):
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1
         response = self.sendRequest(self.heartbeatUrl, data)
-        response = json.loads(response)
 
         logger.debug('Got server response: ' + pprint.pformat(response))
         
@@ -283,17 +281,28 @@ class Controller(threading.Thread):
     pass
 
   def sendRequest(self, url, data):
-    if self.cachedconnect is None: # Lazy initialization
-      self.cachedconnect = security.CachedHTTPSConnection(self.config)
-    req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
-    response = self.cachedconnect.request(req)
-    return response
+    try:
+      if self.cachedconnect is None: # Lazy initialization
+        self.cachedconnect = security.CachedHTTPSConnection(self.config)
+      req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+      response = None
+      response = self.cachedconnect.request(req)
+      return json.loads(response)
+    except Exception:
+      if response is None:
+        err_msg = 'Request failed! Data: ' + str(data)
+        logger.warn(err_msg)
+        return {'exitstatus': 1, 'log': err_msg}
+      else:
+        err_msg = ('Response parsing failed! Request data: ' + str(data)
+            + '; Response: ' + str(response))
+        logger.warn(err_msg)
+        return {'exitstatus': 1, 'log': err_msg}
 
   def updateComponents(self, cluster_name):
     logger.info("Updating components map of cluster " + cluster_name)
     response = self.sendRequest(self.componentsUrl + cluster_name, None)
-    logger.debug("Response from server = " + response)
-    response = json.loads(response)
+    logger.debug("Response from server = " + str(response))
     for service, components in response['components'].items():
       LiveStatus.SERVICES.append(service)
       for component, category in components.items():

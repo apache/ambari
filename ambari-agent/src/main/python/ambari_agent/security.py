@@ -208,8 +208,12 @@ class CertificateManager():
     f = urllib2.urlopen(req)
     response = f.read()
     f.close()
-    data = json.loads(response)
-    logger.debug("Sign response from Server: \n" + pprint.pformat(data))
+    try:
+      data = json.loads(response)
+      logger.debug("Sign response from Server: \n" + pprint.pformat(data))
+    except Exception:
+      logger.warn("Malformed response! data: " + str(data))
+      data = {'result': 'ERROR'}
     result=data['result']
     if result == 'OK':
       agentCrtContent=data['signedCa']

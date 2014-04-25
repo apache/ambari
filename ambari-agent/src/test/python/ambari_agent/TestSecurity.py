@@ -325,8 +325,15 @@ class TestSecurity(unittest.TestCase):
       # expected
       pass
 
-
-
+    # Test malformed JSON response
+    open_mock.return_value.write.reset_mock()
+    loads_mock.side_effect = Exception()
+    try:
+      man.reqSignCrt()
+      self.fail("Expected exception here")
+    except ssl.SSLError:
+      pass
+    self.assertFalse(open_mock.return_value.write.called)
 
   @patch("subprocess.Popen")
   @patch("subprocess.Popen.communicate")
@@ -339,6 +346,34 @@ class TestSecurity(unittest.TestCase):
     self.assertTrue(popen_mock.called)
     self.assertTrue(communicate_mock.called)
 
+  @patch("ambari_agent.hostname.hostname")
+  @patch('__builtin__.open', create=True, autospec=True)
+  @patch('urllib2.urlopen')
+  @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
+  def test_reqSignCrt_malformedJson(self, urlopen_mock, open_mock, hostname_mock):
+    hostname_mock.return_value = "dummy-hostname"
+    open_mock.return_value.read.return_value = "dummy_request"
+    self.config.set('security', 'keysdir', '/dummy-keysdir')
+    self.config.set('security', 'passphrase_env_var_name', 'DUMMY_PASSPHRASE')
+    man = CertificateManager(self.config)
+
+    # test valid JSON response
+    urlopen_mock.return_value.read.return_value = '{"result": "OK", "signedCa":"dummy"}'
+    try:
+      man.reqSignCrt()
+    except ssl.SSLError:
+      self.fail("Unexpected exception!")
+    open_mock.return_value.write.assert_called_with(u'dummy')
+
+    # test malformed JSON response
+    open_mock.return_value.write.reset_mock()
+    urlopen_mock.return_value.read.return_value = '{malformed_object}'
+    try:
+      man.reqSignCrt()
+      self.fail("Expected exception!")
+    except ssl.SSLError:
+      pass
+    self.assertFalse(open_mock.return_value.write.called)
 
   @patch.object(security.CertificateManager, "checkCertExists")
   def test_initSecurity(self, checkCertExists_method):
