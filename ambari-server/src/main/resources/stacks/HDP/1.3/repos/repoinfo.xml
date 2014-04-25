@@ -15,9 +15,27 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
-    <extends>1.3.2</extends>
-</metainfo>
+<reposinfo>
+  <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
+  <os type="redhat6">
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.7.0</baseurl>
+      <repoid>HDP-1.3</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+  </os>
+  <os type="redhat5">
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.7.0</baseurl>
+      <repoid>HDP-1.3</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+  </os>
+  <os type="suse11">
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.7.0</baseurl>
+      <repoid>HDP-1.3</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+  </os>
+</reposinfo>

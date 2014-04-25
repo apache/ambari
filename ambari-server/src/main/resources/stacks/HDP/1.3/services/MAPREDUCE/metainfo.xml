@@ -15,9 +15,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
-    <extends>1.3.2</extends>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>MAPREDUCE</name>
+      <comment>Apache Hadoop Distributed Processing Framework</comment>
+      <version>1.2.0.1.3</version>
+    </service>
+  </services>
 </metainfo>

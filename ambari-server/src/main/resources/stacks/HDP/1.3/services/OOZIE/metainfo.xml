@@ -16,8 +16,13 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
-    <extends>1.3.2</extends>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>OOZIE</name>
+      <comment>System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the &lt;a target="_blank" href="http://www.sencha.com/products/extjs/license/"&gt;ExtJS&lt;/a&gt; Library.
+      </comment>
+      <version>3.3.2.1.3</version>
+    </service>
+  </services>
 </metainfo>

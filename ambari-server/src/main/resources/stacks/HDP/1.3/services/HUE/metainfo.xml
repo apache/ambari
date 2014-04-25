@@ -16,8 +16,16 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-	  <active>false</active>
-    </versions>
-    <extends>1.3.2</extends>
+    <user>root</user>
+    <comment>Hue is a graphical user interface to operate and develop
+      applications for Apache Hadoop.</comment>
+    <version>2.2.0.1.3</version>
+    <components>
+        <component>
+            <name>HUE_SERVER</name>
+            <category>MASTER</category>
+            <cardinality>1</cardinality>
+        </component>
+    </components>
+
 </metainfo>
