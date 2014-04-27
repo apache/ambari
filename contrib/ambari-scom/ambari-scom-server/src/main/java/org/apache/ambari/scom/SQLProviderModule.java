@@ -62,13 +62,16 @@ public class SQLProviderModule extends DefaultProviderModule implements HostInfo
 
   private void initServiceNames() {
     Integer majorStackVersion = clusterDefinition.getMajorStackVersion();
+    Integer minorStackVersion = clusterDefinition.getMinorStackVersion();
     if(majorStackVersion != null) {
-        serviceNames.put("HIVE_SERVER", majorStackVersion == 1 ? "hiveserver" : "hiveserver2");
+      serviceNames.put("HIVE_SERVER", majorStackVersion == 1 ? "hiveserver" : "hiveserver2");
+      if(minorStackVersion != null) {
+        serviceNames.put("HISTORYSERVER", majorStackVersion > 1 && minorStackVersion > 0 ? "jobhistoryserver" : "historyserver");
+      }
     }
     serviceNames.put("NAMENODE", "namenode");
     serviceNames.put("SECONDARY_NAMENODE", "secondarynamenode");
     serviceNames.put("JOBTRACKER", "jobtracker");
-    serviceNames.put("HISTORYSERVER", "historyserver");
     serviceNames.put("HIVE_METASTORE", "metastore");
     serviceNames.put("HIVE_CLIENT", "hwi");
     serviceNames.put("OOZIE_SERVER", "oozieservice");

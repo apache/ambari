@@ -351,4 +351,16 @@ public class ClusterDefinitionTest {
 
     verify(mockClusterDefinitionProvider, mockHostInfoProvider, mockStateProvider);
   }
+
+  @Test
+  public void testGetMajorStackVersion() {
+    TestClusterDefinitionProvider testClusterDefinitionProvider = new TestClusterDefinitionProvider("clusterproperties_HDP2.txt", "myCluster", "HDP-2.0.6");
+    ClusterDefinition clusterDefinition = new ClusterDefinition(new TestStateProvider(), testClusterDefinitionProvider, new TestHostInfoProvider());
+
+    Integer majorVersion = clusterDefinition.getMajorStackVersion();
+    Integer minorVersion = clusterDefinition.getMinorStackVersion();
+
+    Assert.assertTrue(2 == majorVersion);
+    Assert.assertTrue(0 == minorVersion);
+  }
 }

@@ -225,6 +225,16 @@ public class ClusterDefinition {
     return null;
   }
 
+  public Integer getMinorStackVersion() {
+    if(StringUtils.isNotEmpty(versionId)) {
+      String majorVersion = StringUtils.substring(versionId, 6, 7);
+      if(StringUtils.isNotEmpty(majorVersion)) {
+        return Integer.parseInt(majorVersion);
+      }
+    }
+    return null;
+  }
+
   // ----- ClusterDefinition -------------------------------------------------
 
   /**
