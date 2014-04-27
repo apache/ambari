@@ -334,6 +334,7 @@ public class ClusterDefinition {
    * @return the service state
    */
   public String getServiceState(String serviceName) {
+    if (isClientOnlyService(serviceName)) return "INSTALLED";
     Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
     if (serviceHostComponents != null) {
 
