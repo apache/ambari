@@ -2495,6 +2495,8 @@ def start(args):
   pidfile = PID_DIR + os.sep + PID_NAME
   command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
   command = command_base.format(jdk_path, conf_dir, get_ambari_classpath(), pidfile)
+  if not os.path.exists(PID_DIR):
+    os.makedirs(PID_DIR, 0755)
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
     # from subprocess, we have to skip --login option of su command. That's why

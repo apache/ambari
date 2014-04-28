@@ -2463,6 +2463,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
+  @patch('os.makedirs')
   @patch.object(ambari_server.utils, 'locate_file')
   @patch.object(ambari_server, 'is_server_runing')
   @patch("os.chown")
@@ -2496,7 +2497,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                   get_ambari_properties_mock, os_environ_mock,
                   get_validated_string_input_method, os_chmod_method,
                   save_master_key_method, get_master_key_location_method,
-                  getpwnam_mock, os_chown_mock, is_server_running_mock, locate_file_mock):
+                  getpwnam_mock, os_chown_mock, is_server_running_mock, locate_file_mock,
+                  os_makedirs_mock):
      args = MagicMock()
      locate_file_mock.side_effect = lambda *args: '/bin/su' if args[0] == 'su' else '/bin/sh'
      f = MagicMock()

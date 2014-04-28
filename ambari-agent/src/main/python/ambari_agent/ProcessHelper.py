@@ -26,11 +26,12 @@ from shell import getTempFiles
 
 logger = logging.getLogger()
 
-
 if 'AMBARI_PID_DIR' in os.environ:
-    pidfile = os.environ['AMBARI_PID_DIR'] + "/ambari-agent.pid"
+    piddir = os.environ['AMBARI_PID_DIR']
 else:
-    pidfile = "/var/run/ambari-agent/ambari-agent.pid"
+    piddir = "/var/run/ambari-agent"
+
+pidfile = os.path.join(piddir, "ambari-agent.pid")
 
 
 def _clean():
