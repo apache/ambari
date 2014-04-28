@@ -29,9 +29,9 @@ class BeforeConfigureHook(Hook):
     import params
 
     env.set_params(params)
+    install_packages()
     setup_java()
     setup_users()
-    install_packages()
 
 if __name__ == "__main__":
   BeforeConfigureHook().execute()
