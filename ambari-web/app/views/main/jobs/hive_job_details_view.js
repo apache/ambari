@@ -125,17 +125,19 @@ App.MainHiveJobDetailsView = Em.View.extend({
         vertices.setEach('isSelected', false);
         this.doSelectVertex({
           context : vertices.objectAt(0)
-        });
+        }, false);
       }
     }
   }.observes('selectedVertex', 'content.tezDag.vertices.@each.id'),
 
-  doSelectVertex : function(event) {
+  doSelectVertex : function(event,notTableClick) {
+    notTableClick = notTableClick ? true : false;
     var newVertex = event.context;
     var currentVertex = this.get('selectedVertex');
     if (currentVertex != null) {
       currentVertex.set('isSelected', false);
     }
+    newVertex.set('notTableClick', notTableClick);
     newVertex.set('isSelected', true);
     this.set('selectedVertex', newVertex);
   },

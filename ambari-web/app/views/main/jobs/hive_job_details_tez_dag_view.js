@@ -194,13 +194,24 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
 
   vertexSelectionUpdated : function() {
     var vertexId = this.get('selectedVertex.id');
-    console.log("vertexSelectionUpdated(): Selected ",vertexId);
+    var zoomTranslate = [];
+    var zoomBehavior = this.get('zoomBehavior');
+    var selectedNode = this.get('dagVisualModel').nodes.findProperty('id', vertexId);
     var dagVisualModel = this.get('dagVisualModel');
     if (dagVisualModel && dagVisualModel.nodes && dagVisualModel.nodes.length > 0) {
       dagVisualModel.nodes.forEach(function(node) {
         node.selected = node.id == vertexId;
         console.log("vertexSelectionUpdated(): Updated  ",node.id," to ",node.selected);
       })
+    }
+    if(!this.get('selectedVertex.notTableClick')){
+      var cX = selectedNode.x + (selectedNode.width) / 2;
+      var cY = selectedNode.y + (selectedNode.height) / 2;
+      zoomTranslate[0] = (225 / zoomBehavior.scale() -cX) ;
+      zoomTranslate[1] = (250 / zoomBehavior.scale() -cY) ;
+      this.set('zoomTranslate', [0,0]);
+      this.get('svgVerticesLayer').attr("transform", "translate(0,0)");
+      this.get('svgVerticesLayer').attr("transform", "translate("+zoomTranslate[0]+","+zoomTranslate[1]+")");
     }
     this.refreshGraphUI();
   }.observes('selectedVertex'),
@@ -654,7 +665,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       if (vertex != null) {
         self.get('parentView').doSelectVertex({
           context : vertex
-        });
+        }, true);
       }
     });
     node.each(function(n, nodeIndex) {
