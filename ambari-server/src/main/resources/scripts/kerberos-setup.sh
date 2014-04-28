@@ -89,9 +89,9 @@ processCSVFile () {
               seenHosts="$seenHosts$hostName";
         fi
         
-        if [[ $seenPrincipals != *$principal* ]]; then
+        if [[ $seenPrincipals != *" $principal"* ]]; then
           echo -e "kadmin.local -q \"addprinc -randkey $principal\"" >> commands.addprinc;
-          seenPrincipals="$seenPrincipals$principal"
+          seenPrincipals="$seenPrincipals $principal"
         fi
         tmpKeytabFile="`pwd`/tmp_keytabs/$keytabFile";
 	    newKeytabPath="`pwd`/keytabs_$hostName$keytabFilePath";
@@ -176,22 +176,48 @@ processCSVFile () {
 installKDC () {
   csvFile=$1;
   sshLoginKey=$2;
+  HOSTNAME=`hostname --fqdn`
+  scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  krb5_new_conf=$scriptDir"/krb5.conf"
   krb5_conf="/etc/krb5.conf"
-  # Configure /etc/krb5.conf
-  sed -c -i "/FILE/!s/\(kdc *= *\).*/\1$HOSTNAME/" $krb5_conf
-  sed -c -i "/FILE/!s/\(admin_server *= *\).*/\1$HOSTNAME/" $krb5_conf
-  # Install kdc server on this host
-  yum install krb5-server krb5-libs krb5-auth-dialog  krb5-workstation -y; 
   # Install rng tools
-  yum install rng-tools -y
-  sed -c -i "s/\(EXTRAOPTIONS *= *\).*/\1\"-r \/dev\/urandom\"/" "/etc/sysconfig/rngd"
-  # start rngd
-  /etc/init.d/rngd start
-  (echo; echo;) | kdb5_util create -s
-  /sbin/service krb5kdc start
-  /sbin/service kadmin start
+  $inst_cmd rng-tools
+  if [ $os == 'debian' ]; then
+    echo "HRNGDEVICE=/dev/urandom" >> /etc/default/rng-tools
+    /etc/init.d/rng-tools start
+  else
+    sed -i "s/\(EXTRAOPTIONS *= *\).*/\1\"-r \/dev\/urandom\"/" "/etc/sysconfig/rngd"
+    # start rngd
+    /etc/init.d/rngd start
+  fi
+  # Install kdc server on this host
+  if [ $os == 'debian' ]; then
+    OLD_DEBIAN_FRONTEND=$DEBIAN_FRONTEND
+    export DEBIAN_FRONTEND=noninteractive
+    $inst_cmd krb5-kdc krb5-admin-server krb5-user libpam-krb5 libpam-ccreds auth-client-config
+  else
+    $inst_cmd krb5-server krb5-libs krb5-auth-dialog  krb5-workstation
+  fi
+  # Configure /etc/krb5.conf
+  # !!! sed -i "s/\(default_realm *= *\).*/\1$EXAMPLE.COM/" $krb5_conf
+  # !!! should we set default_realm?
+  # !!!
+  cp $krb5_conf $krb5_conf".bak"
+  cp $krb5_new_conf $krb5_conf
+  sed -i "s/\(kdc *= *\).*/\1$HOSTNAME/" $krb5_conf
+  sed -i "s/\(admin_server *= *\).*/\1$HOSTNAME/" $krb5_conf
+  # Install rng tools
+  if [ $os == 'debian' ]; then
+    echo -ne '\n\n' | kdb5_util create -s
+    /usr/sbin/service krb5-admin-server start
+    /usr/sbin/service krb5-kdc start
+  else
+    echo -ne '\n\n' | kdb5_util create -s
+    /sbin/service krb5kdc start
+    /sbin/service kadmin start
+  fi
   # Install pdsh on this host
-  yum install pdsh -y; 
+  $inst_cmd pdsh;
   chown root:root -R /usr;
   eval `ssh-agent`
   ssh-add $sshLoginKey
@@ -206,10 +232,20 @@ installKDC () {
       hostNames=$hostNames,$hostName;
     fi
   done < $csvFile
-  pdsh -w $hostNames yum install krb5-workstation -y
-  pdsh -w $hostNames yum install pdsh -y
-  pdsh -w $hostNames chown root:root -R /usr
-  pdcp -w $hostNames $krb5_conf $krb5_conf
+  export PDSH_SSH_ARGS_APPEND="-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=publickey"
+  if [ $os == 'debian' ]; then
+    pdsh -R ssh -w $hostNames OLD_DEBIAN_FRONTEND=$DEBIAN_FRONTEND; export DEBIAN_FRONTEND=noninteractive; $inst_cmd krb5-user libpam-krb5 libpam-ccreds auth-client-config; export DEBIAN_FRONTEND=OLD_DEBIAN_FRONTEND
+  else
+    pdsh -R ssh -w $hostNames $inst_cmd krb5-workstation
+  fi
+  pdsh -R ssh -w $hostNames $inst_cmd pdsh
+  pdsh -R ssh -w $hostNames chown root:root -R /usr
+  pdcp -R ssh -w $hostNames $krb5_conf $krb5_conf
+
+  #restore env variables to old state
+  if [ $os == 'debian' ]; then
+    export DEBIAN_FRONTEND=OLD_DEBIAN_FRONTEND
+  fi
 }
 
 distributeKeytabs () {
@@ -219,15 +255,35 @@ distributeKeytabs () {
     derivedname=${i%.*}
     derivedname=${derivedname##keytabs_}
     echo $derivedname
-    scp $i root@$derivedname:/
-    ssh root@$derivedname "cd /;tar xvf $i"
+    scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $i root@$derivedname:/
+    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@$derivedname "cd /;tar xvf $i"
   done
+}
+
+getEnvironmentCMD () {
+#get linux distribution type and package manager
+    os=`python -c 'import sys; sys.path.append("/usr/lib/python2.6/site-packages/"); from common_functions import OSCheck; print OSCheck.get_os_family()'`
+    case $os in
+    'debian' )
+        pkgmgr='apt-get'
+        inst_cmd="/usr/bin/$pkgmgr --force-yes --assume-yes install "
+        ;;
+    'redhat' )
+        pkgmgr='yum'
+        inst_cmd="/usr/bin/$pkgmgr -d 0 -e 0 -y install "
+        ;;
+    'suse' )
+        pkgmgr='zypper'
+        inst_cmd="/usr/bin/$pkgmgr --quiet install --auto-agree-with-licenses --no-confirm "
+        ;;
+    esac
 }
 
 if (($# != 2)); then
     usage
 fi
 
+getEnvironmentCMD
 installKDC $@
 processCSVFile $@
 distributeKeytabs $@
