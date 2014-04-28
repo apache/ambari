@@ -186,11 +186,13 @@ function Main( $scriptDir )
 	Write-Log "Removing Ambari folder"
 	Remove-Item $destination -force -Recurse
 	Write-Log "Removing shortcut"
-    $shortcuts = @("$env:USERPROFILE\Desktop\Start Ambari SCOM Server.lnk","$env:USERPROFILE\Desktop\Browse Ambari API.url","$env:USERPROFILE\Desktop\Browse Ambari Metrics.url")
+    $shortcuts = @("$env:USERPROFILE\Desktop\Stop Ambari SCOM Server.lnk","$env:USERPROFILE\Desktop\Start Ambari SCOM Server.lnk","$env:USERPROFILE\Desktop\Browse Ambari API.url","$env:USERPROFILE\Desktop\Browse Ambari Metrics.url")
     foreach ($shortcut in $shortcuts)
     {
     	Remove-Item $shortcut -Force
     }
+    Write-Log "Removing service"
+    StopAndDeleteAmbariService "ambariscom"
     $vars = @("HDP_LAYOUT","START_SERVICES","RECREATE_DB","AMB_DATA_DIR")
     foreach ($var in $vars)
     {

@@ -316,52 +316,67 @@ function Main( $scriptDir )
 			$current +=$server
 		}
 	}
-	Write-Log "Unpacking ambari-server-conf"
-	$package = Join-Path $Package_trim "resources\ambari-scom-*-conf.zip"
-	$ambari_conf = GetName $package "short"
-	$ambari_conf = $ambari_conf -replace ".zip"
-	$package = GetName $package "full"
-	$winpkg = Join-Path $Package_trim "resources\winpkg.ps1"
-	$command = "$winpkg $Package unzip $destination"
-	Invoke-Pschk $command
-	Write-Log "Unpacking ambari-server-lib"
-	$package = Join-Path $Package_trim "resources\ambari-scom-*-lib.zip"
-	$ambari_lib = GetName $package "short"
-	$ambari_lib = $ambari_lib -replace ".zip"
-	$package = GetName $package "full"
-	$command = "$winpkg $Package unzip $destination"
-	Invoke-Pschk $command
-	Write-Log "Modifiying ambari.properties"
-	$props = Join-Path $destination "$ambari_conf\conf\ambari.properties"
-	Add-Content $props "scom.sink.db.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver"
-	$value = "scom.sink.db.url=jdbc:sqlserver://$env:SQL_SERVER_NAME':$env:SQL_SERVER_PORT;databaseName=HadoopMetrics;user=$env:SQL_SERVER_LOGIN;password=$env:SQL_SERVER_PASSWORD"
-	Add-Content $props $value.Replace("'","")
-	Write-Log "Copying cluster.properties to ambari config"
-	$clp = $ENV:HDP_LAYOUT
-	$destination_conf = Join-Path $destination "$ambari_conf\conf\clusterproperties.txt"
-	Copy-Item -Force $clp $destination_conf
-	Write-Log "Creating shortcut to start Ambari"
-	$objShell = New-Object -ComObject ("WScript.Shell")
-	$objShortCut = $objShell.CreateShortcut($env:USERPROFILE + "\Desktop" + "\Start Ambari SCOM Server.lnk")
-	$classpath = "$env:AMB_DATA_DIR\$ambari_conf\conf\;$env:AMB_DATA_DIR\sqljdbc4.jar;$env:AMB_DATA_DIR\$ambari_scom;$env:AMB_DATA_DIR\$ambari_lib\lib\*;$env:HADOOP_HOME\etc\hadoop"
-	$targetpath = "$ENV:JAVA_HOME\bin\java"
-	$arguments = "-server -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60  -cp $classpath org.apache.ambari.scom.AmbariServer"
-	$objShortCut.TargetPath = $targetpath
-	$objShortCut.Arguments = $arguments
-	$objShortCut.Description = "Start Ambari"
-	$objShortCut.Save()
-	CreateUrl "http://$ENV:COMPUTERNAME':8080/api/v1/clusters" "Browse Ambari API.url"
-	CreateUrl "http://$ENV:COMPUTERNAME':8080/api/v1/clusters/ambari/services/HDFS/components/NAMENODE" "Browse Ambari Metrics.url"
-	Write-Log "Copying ambari properties file"
-	Copy-Item $ENV:AMB_LAYOUT "$env:AMB_DATA_DIR\ambariproperties.txt"
+    Write-Log "Unpacking ambari-server-conf"
+    $package = Join-Path $Package_trim "resources\ambari-scom-*-conf.zip"
+    $ambari_conf = GetName $package "short"
+    $ambari_conf = $ambari_conf -replace ".zip"
+    $package = GetName $package "full"
+    $winpkg = Join-Path $Package_trim "resources\winpkg.ps1"
+    $command = "$winpkg $Package unzip $destination"
+    Invoke-Pschk $command
+    Write-Log "Unpacking ambari-server-lib"
+    $package = Join-Path $Package_trim "resources\ambari-scom-*-lib.zip"
+    $ambari_lib = GetName $package "short"
+    $ambari_lib = $ambari_lib -replace ".zip"
+    $package = GetName $package "full"
+    $command = "$winpkg $Package unzip $destination"
+    Invoke-Pschk $command
+    Write-Log "Modifiying ambari.properties"
+    $props = Join-Path $destination "$ambari_conf\conf\ambari.properties"
+    Add-Content $props "scom.sink.db.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver"
+    $value = "scom.sink.db.url=jdbc:sqlserver://$env:SQL_SERVER_NAME':$env:SQL_SERVER_PORT;databaseName=HadoopMetrics;user=$env:SQL_SERVER_LOGIN;password=$env:SQL_SERVER_PASSWORD"
+    Add-Content $props $value.Replace("'","")
+    Write-Log "Copying cluster.properties to ambari config"
+    $clp = $ENV:HDP_LAYOUT
+    $destination_conf = Join-Path $destination "$ambari_conf\conf\clusterproperties.txt"
+    Copy-Item -Force $clp $destination_conf
+    Write-Log "Copying ambari properties file"
+    Copy-Item $ENV:AMB_LAYOUT "$env:AMB_DATA_DIR\ambariproperties.txt"
+    Write-Log "Creating service"
+    $classpath = "$env:AMB_DATA_DIR\$ambari_conf\conf\;$env:AMB_DATA_DIR\sqljdbc4.jar;$env:AMB_DATA_DIR\$ambari_scom;$env:AMB_DATA_DIR\$ambari_lib\lib\*;$env:HADOOP_HOME\etc\hadoop"
+    $arguments = "-server -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60  -cp $classpath org.apache.ambari.scom.AmbariServer"
+    $servicename = "ambariscom"
+    $servicedir = "$env:AMB_DATA_DIR\service"
+    $serviceconfig = "$servicedir\$servicename.xml"
+    New-Item -Path $servicedir -ItemType directory -ErrorAction SilentlyContinue
+    CreateAndConfigureAmbariService $servicename "$Package_trim\resources" $servicedir
+    Copy-Item -Path "$Package_trim\resources\servicehost.xml" -Destination $serviceconfig -Force -ErrorAction Stop
+    ReplaceAmbariServiceXML $serviceconfig "%service%" $servicename
+    ReplaceAmbariServiceXML $serviceconfig "%JAVA_HOME%" $ENV:JAVA_HOME
+    ReplaceAmbariServiceXML $serviceconfig "%arguments%" $arguments
+    Write-Log "Creating shortcut to start Ambari"
+    $objShell = New-Object -ComObject ("WScript.Shell")
+    $objShortCut = $objShell.CreateShortcut($env:USERPROFILE + "\Desktop" + "\Start Ambari SCOM Server.lnk")
+    $objShortCut.TargetPath = "sc.exe"
+    $objShortCut.Arguments = "start $servicename"
+    $objShortCut.Description = "Start Ambari"
+    $objShortCut.IconLocation = "cmd.exe"
+    $objShortCut.Save()
+    Write-Log "Creating shortcut to stop Ambari"
+    $objShortCut = $objShell.CreateShortcut($env:USERPROFILE + "\Desktop" + "\Stop Ambari SCOM Server.lnk")
+    $objShortCut.TargetPath = "sc.exe"
+    $objShortCut.Arguments = "stop $servicename"
+    $objShortCut.Description = "Stop Ambari"
+    $objShortCut.IconLocation = "cmd.exe"
+    $objShortCut.Save()
+    CreateUrl "http://$ENV:COMPUTERNAME':8080/api/v1/clusters" "Browse Ambari API.url"
+    CreateUrl "http://$ENV:COMPUTERNAME':8080/api/v1/clusters/ambari/services/HDFS/components/NAMENODE" "Browse Ambari Metrics.url"
     $vars = @("HDP_LAYOUT","START_SERVICES","RECREATE_DB")
     foreach ($var in $vars)
     {
         [Environment]::SetEnvironmentVariable($var,$null,"Machine")
     }
-	Write-Log "INSTALLATION COMPLETE" 
-
-	
+    Write-Log "INSTALLATION COMPLETE" 
 }
 
 try

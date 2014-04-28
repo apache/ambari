@@ -272,6 +272,117 @@ function GiveFullPermissions(
     Invoke-CmdChk $cmd
 }
 
+### Add service control permissions to authenticated users.
+### Reference:
+### http://stackoverflow.com/questions/4436558/start-stop-a-windows-service-from-a-non-administrator-user-account 
+### http://msmvps.com/blogs/erikr/archive/2007/09/26/set-permissions-on-a-specific-service-windows.aspx
+
+function Set-ServiceAcl ($service)
+{
+    $cmd = "sc sdshow $service"
+    $sd = Invoke-Cmd $cmd
+
+    Write-Log "Current SD: $sd"
+
+    ## A;; --- allow
+    ## RP ---- SERVICE_START
+    ## WP ---- SERVICE_STOP
+    ## CR ---- SERVICE_USER_DEFINED_CONTROL    
+    ## ;;;AU - AUTHENTICATED_USERS
+
+    $sd = [String]$sd
+    $sd = $sd.Replace( "S:(", "(A;;RPWPCR;;;AU)S:(" )
+    Write-Log "Modifying SD to: $sd"
+
+    $cmd = "sc sdset $service $sd"
+    Invoke-Cmd $cmd
+}
+
+### Creates and configures the service.
+function CreateAndConfigureAmbariService(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $service,
+    [String]
+    [Parameter( Position=1, Mandatory=$true )]
+    $ambResourcesDir,
+    [String]
+    [Parameter( Position=2, Mandatory=$true )]
+    $serviceBinDir
+)
+{
+    if ( -not ( Get-Service "$service" -ErrorAction SilentlyContinue ) )
+    {
+        Write-Log "Creating service `"$service`" as $serviceBinDir\$service.exe"
+        $xcopyServiceHost_cmd = "copy /Y `"$ambResourcesDir\serviceHost.exe`" `"$serviceBinDir\$service.exe`""
+        Invoke-CmdChk $xcopyServiceHost_cmd
+
+        #ServiceHost.exe will write to this log but does not create it
+        #Creating the event log needs to be done from an elevated process, so we do it here
+        if( -not ([Diagnostics.EventLog]::SourceExists( "$service" )))
+        {
+            [Diagnostics.EventLog]::CreateEventSource( "$service", "" )
+        }
+
+        Write-Log "Adding service $service"
+        $s = New-Service -Name "$service" -BinaryPathName "$serviceBinDir\$service.exe" -DisplayName "Apache Ambari $service"
+        if ( $s -eq $null )
+        {
+            throw "CreateAndConfigureAmbariService: Service `"$service`" creation failed"
+        }
+
+        $cmd="$ENV:WINDIR\system32\sc.exe failure $service reset= 30 actions= restart/5000"
+        Invoke-CmdChk $cmd
+
+        $cmd="$ENV:WINDIR\system32\sc.exe config $service start= demand"
+        Invoke-CmdChk $cmd
+
+        Set-ServiceAcl $service
+    }
+    else
+    {
+        Write-Log "Service `"$service`" already exists, Removing `"$service`""
+        StopAndDeleteAmbariService $service
+        CreateAndConfigureAmbariService $service $ambResourcesDir $serviceBinDir
+    }
+}
+
+### Stops and deletes the Ambari service.
+function StopAndDeleteAmbariService(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $service
+)
+{
+    Write-Log "Stopping $service"
+    $s = Get-Service $service -ErrorAction SilentlyContinue
+
+    if( $s -ne $null )
+    {
+        Stop-Service $service
+        $cmd = "sc.exe delete $service"
+        Invoke-Cmd $cmd
+    }
+}
+
+function ReplaceAmbariServiceXML(
+    [String]
+    [Parameter( Position=0, Mandatory=$true )]
+    $file,
+    [String]
+    [Parameter( Position=1, Mandatory=$true )]
+    $find,
+    [String]
+    [Parameter( Position=2, Mandatory=$true )]
+    $replace
+)
+{
+    Get-Content $file | ForEach-Object { $_ -replace $find, $replace } | Set-Content ($file+".tmp")
+    Remove-Item $file
+    Rename-Item ($file+".tmp") $file
+}
+
+
 Export-ModuleMember -Function UpdateXmlConfig
 Export-ModuleMember -Function GetIPAddress
 Export-ModuleMember -Function IsSameHost
@@ -279,3 +390,6 @@ Export-ModuleMember -Function Export-ClusterLayoutIntoEnv
 Export-ModuleMember -Function Which
 Export-ModuleMember -Function Get-AppendedPath
 Export-ModuleMember -Function GiveFullPermissions
+Export-ModuleMember -Function CreateAndConfigureAmbariService
+Export-ModuleMember -Function StopAndDeleteAmbariService
+Export-ModuleMember -Function ReplaceAmbariServiceXML
