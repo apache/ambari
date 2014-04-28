@@ -331,14 +331,9 @@ App.InstallerController = App.WizardController.extend({
   checkServerClientVersion: function () {
     var dfd = $.Deferred();
     var self = this;
-    if (App.get('version')) {
-      self.getServerVersion().done(function () {
-        dfd.resolve();
-      });
-    } else {
-      this.set('isServerClientVersionMismatch', false);
+    self.getServerVersion().done(function () {
       dfd.resolve();
-    }
+    });
     return dfd.promise();
   },
   getServerVersion: function(){
@@ -352,8 +347,13 @@ App.InstallerController = App.WizardController.extend({
   getServerVersionSuccessCallback: function (data) {
     var clientVersion = App.get('version');
     var serverVersion = (data.RootServiceComponents.component_version).toString();
-    this.set('versionConflictAlertBody', Em.I18n.t('app.versionMismatchAlert.body').format(serverVersion, clientVersion));
-    this.set('isServerClientVersionMismatch', clientVersion != serverVersion);
+    this.set('ambariServerVersion', serverVersion);
+    if (clientVersion) {
+      this.set('versionConflictAlertBody', Em.I18n.t('app.versionMismatchAlert.body').format(serverVersion, clientVersion));
+      this.set('isServerClientVersionMismatch', clientVersion != serverVersion);
+    } else {
+      this.set('isServerClientVersionMismatch', false);
+    }
   },
   getServerVersionErrorCallback: function () {
     console.log('ERROR: Cannot load Ambari server version');

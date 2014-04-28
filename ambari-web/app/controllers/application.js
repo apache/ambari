@@ -27,9 +27,12 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     return (App.router.get('clusterController.clusterName') || 'My Cluster');
   }.property('App.router.clusterController.clusterName'),
 
+  /**
+   * set ambari server version from installerController or mainController, making sure version shown up all the time
+   */
   ambariVersion: function () {
-    return (App.router.get('clusterController.ambariVersion') || Em.I18n.t('common.notAvailable'));
-  }.property('App.router.clusterController.ambariVersion'),
+    return (App.router.get('installerController.ambariServerVersion') || App.router.get('mainController.ambariServerVersion') || Em.I18n.t('common.notAvailable'));
+  }.property('App.router.installerController.ambariServerVersion', 'App.router.mainController.ambariServerVersion'),
 
   clusterDisplayName: function () {
     var name = this.get('clusterName');
