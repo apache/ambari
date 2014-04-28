@@ -171,11 +171,4 @@ def create_javahome_symlink():
     Execute("mkdir -p /usr/jdk64/")
     Execute("ln -s /usr/jdk/jdk1.6.0_31 /usr/jdk64/jdk1.6.0_31")
 
-def init_services():
-  import params
-  File(os.path.join(params.snmp_conf_dir, 'snmpd.conf'),
-       content=Template("snmpd.conf.j2"))
-  # enable snmpd
-  Execute( "service snmpd start; chkconfig snmpd on",
-    path = "/usr/local/bin/:/bin/:/sbin/"
-  )  
+

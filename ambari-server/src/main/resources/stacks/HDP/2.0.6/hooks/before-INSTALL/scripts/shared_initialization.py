@@ -163,11 +163,4 @@ def setup_java():
     )
 
 def install_packages():
-  packages = {"redhat": ["net-snmp-utils", "net-snmp"],
-              "suse": ["net-snmp"],
-              "debian": ["snmp", "snmpd"],
-              "all": ["unzip", "curl"]
-              }
-  
-  Package(packages['all'])
-  Package(packages[System.get_instance().os_family])
+  Package(['unzip', 'curl'])

@@ -88,10 +88,6 @@
             </package>
             <package>
               <type>rpm</type>
-              <name>perl-Net-SNMP</name>
-            </package>
-            <package>
-              <type>rpm</type>
               <name>nagios-plugins-1.4.9</name>
             </package>
             <package>

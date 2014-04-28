@@ -96,13 +96,6 @@ class TestHookBeforeStart(RMFTestCase):
       owner = 'hdfs',
       group = 'hadoop',
     )
-    self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
-                              content = Template('snmpd.conf.j2'),
-                              )
-    self.assertResourceCalled('Execute', 'service snmpd start',
-                              )
-    self.assertResourceCalled('Execute', 'chkconfig snmpd on',
-                              )
     self.assertNoMoreResources()
 
   def test_hook_secured(self):
@@ -178,11 +171,4 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/etc/snmp/snmpd.conf',
-                              content = Template('snmpd.conf.j2'),
-                              )
-    self.assertResourceCalled('Execute', 'service snmpd start',
-                            )
-    self.assertResourceCalled('Execute', 'chkconfig snmpd on',
-                            )
     self.assertNoMoreResources()

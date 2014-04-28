@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 from functions import get_port_from_url
+from functions import is_jdk_greater_6
 from resource_management import *
 import status_params
 
@@ -65,7 +66,8 @@ flume_port = "4159"
 hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
 hive_server_port = "10000"
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
-hbase_rs_port = "60030"
+hbase_master_port = config['configurations']['hbase-site']['hbase.master.info.port'] #"60010"
+hbase_rs_port = config['configurations']['hbase-site']['hbase.regionserver.info.port'] #"60030"
 
 # this 4 is different for HDP2
 jtnode_port = get_port_from_url(config['configurations']['mapred-site']['mapred.job.tracker.http.address'])
@@ -79,6 +81,7 @@ clientPort = config['configurations']['global']['clientPort'] #ZK
 
 
 java64_home = config['hostLevelParams']['java_home']
+check_cpu_on = is_jdk_greater_6(java64_home)
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 

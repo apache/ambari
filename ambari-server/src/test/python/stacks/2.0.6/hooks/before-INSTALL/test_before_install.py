@@ -30,7 +30,6 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled('Package', 'unzip', )
     self.assertResourceCalled('Package', 'curl', )
-    self.assertResourceCalled('Package', 'net-snmp', )
     
     self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/ ; curl -kf --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz',
                               not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',

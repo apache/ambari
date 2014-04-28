@@ -360,13 +360,14 @@ define service {
         max_check_attempts      3
 }
 
-{% if env.system.os_family != "suse" %}
+{% if check_cpu_on %}
 define service {
         host_name               {{ namenode_hostname }}
         use                     hadoop-service
         service_description     NAMENODE::NameNode host CPU utilization on {{ namenode_hostname }}
         servicegroups           HDFS
-        check_command           check_cpu!200%!250%
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu!{{ namenode_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2
         max_check_attempts      5
@@ -448,13 +449,14 @@ define service {
         max_check_attempts      3
 }
 
-{% if env.system.os_family != "suse" %}
+{% if check_cpu_on %}
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager CPU utilization
         servicegroups           YARN
-        check_command           check_cpu!200%!250%
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu!{{ rm_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5
@@ -532,13 +534,14 @@ define service {
         max_check_attempts      3
 }
 
-{% if env.system.os_family != "suse" %}
+{% if check_cpu_on %}
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
         service_description     JOBHISTORY::HistoryServer CPU utilization
         servicegroups           MAPREDUCE
-        check_command           check_cpu!200%!250%
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu!{{ hs_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5
@@ -676,13 +679,14 @@ define service {
 #         max_check_attempts      3
 # #}
 {%  for hbasemaster in hbase_master_hosts  %}
-{% if env.system.os_family != "suse" %}
+{% if check_cpu_on %}
 define service {
         host_name               {{ hbasemaster }}
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master CPU utilization on {{ hbasemaster }}
         servicegroups           HBASE
-        check_command           check_cpu!200%!250%
+#        check_command           check_cpu!200%!250%
+        check_command           check_cpu!{{ hbase_master_port }}!200%!250%!{{ str(hadoop_ssl_enabled).lower() }}!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}!{{ str(security_enabled).lower() }}
         normal_check_interval   5
         retry_check_interval    2 
         max_check_attempts      5

@@ -85,35 +85,8 @@ function check_jetty {
   fi
 }
 
-function check_link {
-  snmp=/usr/bin/snmpwalk
-  if [ -e $snmp ] ; then
-    $snmp -t 5 -Oe  -Oq  -Os -v 1 -c public localhost if | \
-    awk ' {
-      split($1,a,".") ;
-      if ( a[1] == "ifIndex" ) { ifIndex[a[2]] = $2 }
-      if ( a[1] == "ifDescr" ) { ifDescr[a[2]] = $2 }
-      if ( a[1] == "ifType" ) { ifType[a[2]] = $2 }
-      if ( a[1] == "ifSpeed" ) { ifSpeed[a[2]] = $2 }
-      if ( a[1] == "ifAdminStatus" ) { ifAdminStatus[a[2]] = $2 }
-      if ( a[1] == "ifOperStatus" ) { ifOperStatus[a[2]] = $2 }
-    }
-    END {
-      up=0;
-      for (i in ifIndex ) {
-      if ( ifType[i] == 6 && ifAdminStatus[i] == 1 && ifOperStatus[i] == 1 && ifSpeed[i] == 1000000000 ) {
-      up=i;
-      }
-      }
-      if ( up == 0 ) { print "check link" ; exit 2 }
-      else { print ifDescr[up],"ok" }
-    }'
-    exit $? ;
-  fi
-}
 
 # Run all checks
-# Disabled 'check_link' for now... 
 for check in disks taskcontroller jetty; do
   msg=`check_${check}` ;
   if [ $? -eq 0 ] ; then

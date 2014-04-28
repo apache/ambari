@@ -38,11 +38,12 @@
 #
 #
 
-{% if env.system.os_family != "suse" %}
+{% if check_cpu_on %}
 # 'check_cpu' check remote cpu load
 define command {
         command_name    check_cpu
-        command_line    $USER1$/check_wrapper.sh $USER1$/check_cpu.pl -H $HOSTADDRESS$ -C hadoop -w $ARG1$ -c $ARG2$
+#        command_line    $USER1$/check_wrapper.sh $USER1$/check_cpu.pl -H $HOSTADDRESS$ -C hadoop -w $ARG1$ -c $ARG2$
+        command_line    $USER1$/check_wrapper.sh php $USER1$/check_cpu.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -e $ARG4$ -k $ARG5$ -r $ARG6$ -t $ARG7$ -u $ARG8$
        }
 {% endif %}
 

@@ -32,11 +32,6 @@ hdfs_user = config['configurations']['global']['hdfs_user']
 
 user_group = config['configurations']['global']['user_group']
 
-#snmp
-snmp_conf_dir = "/etc/snmp/"
-snmp_source = "0.0.0.0/0"
-snmp_community = "hadoop"
-
 #hosts
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
