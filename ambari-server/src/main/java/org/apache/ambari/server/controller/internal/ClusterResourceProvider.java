@@ -248,7 +248,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     // extract to own method
     baseUnsupported.remove("blueprint");
-    baseUnsupported.remove("host-groups");
+    baseUnsupported.remove("host_groups");
 
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
@@ -543,7 +543,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     @SuppressWarnings("unchecked")
     Collection<Map<String, Object>> hostGroups =
-        (Collection<Map<String, Object>>) properties.get("host-groups");
+        (Collection<Map<String, Object>>) properties.get("host_groups");
 
     // iterate over host groups provided in request body
     for (Map<String, Object> hostGroupProperties : hostGroups) {

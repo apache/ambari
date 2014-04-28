@@ -241,7 +241,7 @@ public class ClusterResourceProviderTest {
     Map<String, String> hostGroupHostProperties = new HashMap<String, String>();
     hostGroupHostProperties.put("fqdn", "host.domain");
     hostGroupHosts.add(hostGroupHostProperties);
-    properties.put("host-groups", hostGroups);
+    properties.put("host_groups", hostGroups);
 
     Map<String, String> mapGroupConfigProperties = new HashMap<String, String>();
     mapGroupConfigProperties.put("myGroupProp", "awesomeValue");

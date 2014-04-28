@@ -223,7 +223,7 @@ class AmbariBlueprint:
 
   def buildHostAssignments(self, blueprintName, blueprintJson, masters,
                            slaves, gateway = None):
-    hostAssignments = '{{"blueprint":"{0}","host-groups":[{1}]}}'
+    hostAssignments = '{{"blueprint":"{0}","host_groups":[{1}]}}'
     hostGroupHosts = '{{"name":"{0}","hosts":[{1}]}}'
     hosts = '{{"fqdn":"{0}"}},'
     logger.debug("Blueprint: {0}, Masters: {1}, Slaves: {2}".format(blueprintName, masters, slaves))
