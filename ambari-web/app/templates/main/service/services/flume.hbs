@@ -51,30 +51,38 @@
           {{/view}}
           </thead>
           <tbody>
-          {{#each agent in view.pageContent}}
-            {{#view view.agentView contentBinding="agent"}}
-              <td class="agent-status">
-                <span {{bindAttr class="agent.healthClass"}}></span>
+          {{#if view.pageContent}}
+            {{#each agent in view.pageContent}}
+              {{#view view.agentView contentBinding="agent"}}
+                <td class="agent-status">
+                  <span {{bindAttr class="agent.healthClass"}}></span>
+                </td>
+                <td class="agent-name">
+                  {{agent.name}}
+                </td>
+                <td class="agent-host-name">
+                  <a href="javascript:void(null)" {{action showDetails agent.host}}>
+                    {{agent.host.hostName}}
+                  </a>
+                </td>
+                <td>
+                  {{agent.sourcesCount}}
+                </td>
+                <td>
+                  {{agent.channelsCount}}
+                </td>
+                <td>
+                  {{agent.sinksCount}}
+                </td>
+              {{/view}}
+            {{/each}}
+          {{else}}
+            <tr>
+              <td colspan="6" class="empty-label">
+                {{t services.service.summary.flume.noAgents}}
               </td>
-              <td class="agent-name">
-                {{agent.name}}
-              </td>
-              <td class="agent-host-name">
-                <a href="javascript:void(null)" {{action showDetails agent.host}}>
-                  {{agent.host.hostName}}
-                </a>
-              </td>
-              <td>
-                {{agent.sourcesCount}}
-              </td>
-              <td>
-                {{agent.channelsCount}}
-              </td>
-              <td>
-                {{agent.sinksCount}}
-              </td>
-            {{/view}}
-          {{/each}}
+            </tr>
+          {{/if}}
           </tbody>
         </table>
       </div>

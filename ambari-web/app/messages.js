@@ -1094,6 +1094,7 @@ Em.I18n.translations = {
   'services.service.summary.flume.stopAgent': 'Stop Agent',
   'services.service.summary.flume.stop.context': 'Stop Flume Agent {0}',
   'services.service.summary.flume.start.context': 'Start Flume Agent {0}',
+  'services.service.summary.flume.noAgents': 'No Flume Agents to display',
 
   'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
   'services.service.info.metrics.flume.channelSize':'Channel Size',
