@@ -125,3 +125,41 @@ class TestCommandStatusDict(TestCase):
       }
     self.assertEquals(report, expected)
 
+  @patch("__builtin__.open")
+  def test_structured_output(self, open_mock):
+    callback_mock = MagicMock()
+    commandStatuses = CommandStatusDict(callback_action = callback_mock)
+    file_mock = MagicMock(name = 'file_mock')
+    file_mock.__enter__.return_value = file_mock
+    file_mock.read.return_value = '{"var1":"test1", "var2":"test2"}'
+    open_mock.return_value = file_mock
+    command_in_progress1 = {
+      'commandType': 'EXECUTION_COMMAND',
+      'commandId': '1-1',
+      'clusterName': u'cc',
+      'exitCode': 777,
+      'role': u'DATANODE',
+      'roleCommand': u'INSTALL',
+      'serviceName': u'HDFS',
+      'stderr': '',
+      'stdout': "notice: /Stage[1]/Hdp::Iptables/Service[iptables]/ensure: ensure changed 'running' to 'stopped'\nnotice: /Stage[1]/Hdp/File[/tmp/changeUid.sh]/ensure: defined content as '{md5}32b994a2e970f8acc3c91c198b484654'\nnotice: /Stage[1]/Hdp::Snappy::Package/Hdp::Package[snappy]/Hdp::Package::Process_pkg[snappy]/Package[snappy]/ensure: created\nnotice: /Stage[1]/Hdp/Hdp::Group[nagios_group]/Group[nagios_group]/ensure: created\nnotice: /Stage[1]/Hdp/Hdp::User[nagios_user]/User[nagios]/ensure: created\nnotice: /Stage[1]/Hdp::Snmp/Hdp::Package[snmp]/Hdp::Package::Process_pkg[snmp]/Package[net-snmp-utils]/ensure: created",
+      'taskId': 5
+    }
+    command_in_progress1_report = {
+      'status': 'IN_PROGRESS',
+      'taskId': 5,
+      'structuredOut' : 'structured_out.tmp',
+      }
+    commandStatuses.put_command_status(command_in_progress1, command_in_progress1_report)
+    report = commandStatuses.generate_report()
+    expected = \
+      {'componentStatus': [],
+       'reports': [{'status': 'IN_PROGRESS', 'stderr': '...',
+                    'stdout': '...', 'clusterName': u'cc',
+                    'structuredOut': '{"var1":"test1", "var2":"test2"}',
+                    'roleCommand': u'INSTALL',
+                    'serviceName': u'HDFS',
+                    'role': u'DATANODE',
+                    'actionId': '1-1', 'taskId': 5, 'exitCode': 777}]
+      }
+    self.assertEquals(report, expected)

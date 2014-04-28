@@ -222,10 +222,9 @@ class TestActionQueue(TestCase):
     self.assertTrue(print_exc_mock.called)
 
 
-  @patch("json.load")
   @patch("__builtin__.open")
   @patch.object(ActionQueue, "status_update_callback")
-  def test_execute_command(self, status_update_callback_mock, open_mock, json_load_mock):
+  def test_execute_command(self, status_update_callback_mock, open_mock):
     # Make file read calls visible
     def open_side_effect(file, mode):
       if mode == 'r':
@@ -235,7 +234,6 @@ class TestActionQueue(TestCase):
       else:
         return self.original_open(file, mode)
     open_mock.side_effect = open_side_effect
-    json_load_mock.return_value = ''
 
     config = AmbariConfig().getConfig()
     tempdir = tempfile.gettempdir()
@@ -276,7 +274,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'IN_PROGRESS',
                 'stderr': 'Read from {0}/errors-3.txt'.format(tempdir),
                 'stdout': 'Read from {0}/output-3.txt'.format(tempdir),
-                'structuredOut' : '',
+                'structuredOut' : 'Read from {0}/structured-out-3.json'.format(tempdir),
                 'clusterName': u'cc',
                 'roleCommand': u'INSTALL',
                 'serviceName': u'HDFS',

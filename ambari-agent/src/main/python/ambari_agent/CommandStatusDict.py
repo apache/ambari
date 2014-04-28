@@ -102,8 +102,7 @@ class CommandStatusDict():
       tmpout = '...'
       tmperr = '...'
     try:
-      with open(report['structuredOut'], 'r') as fp:
-        tmpstructuredout = json.load(fp)
+      tmpstructuredout = open(report['structuredOut'], 'r').read()
     except Exception:
       tmpstructuredout = '{}'
     grep = Grep()
