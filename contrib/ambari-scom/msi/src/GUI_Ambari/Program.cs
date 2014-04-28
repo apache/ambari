@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace GUI_Ambari
 {
@@ -27,12 +28,30 @@ namespace GUI_Ambari
         static void Main(string[] args)
         {
             string mode = args[0];
+            string upgrade = null;
+            try
+            {
+                upgrade = args[1];
+            }
+            catch { }
             switch (mode)
-            { 
+            {
+                case "upgrade":
+                    if (!String.IsNullOrEmpty(upgrade))
+                    {
+                        DialogResult upgrade_dial = MessageBox.Show("Old version of Ambari-SCOM detected. Do you want to perform upgrade?", "Ambari-SCOM Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                        if (upgrade_dial == DialogResult.No)
+                        {
+                            Kill_Msiexec();
+                            Environment.Exit(0);
+                        }
+                    }
+
+                    break;
                 case "gui":
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-                    Application.Run(new Form1());
+                    Application.Run(new Form1(upgrade));
                 break;
                 case "install":
                 string file_inst = Environment.GetEnvironmentVariable("tmp") + @"\ambari_failed.txt";
@@ -75,6 +94,21 @@ namespace GUI_Ambari
                     }
                 break;
 
+            }
+        }
+
+        public static void Kill_Msiexec()
+        {
+            try
+            {
+                var processes = Process.GetProcessesByName("msiexec").OrderBy(x => x.StartTime);
+                foreach (var process in processes)
+                {
+                    process.Kill();
+                }
+            }
+            catch
+            {
             }
         }
     }

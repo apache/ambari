@@ -120,7 +120,7 @@ function PushInstall-Files( $node,$source_path,$target_path)
 }
 function Main( $scriptDir )
 {
-	Write-Log "INSTALLATION started"
+	Write-Log "INSTALLATION of 2.0.0 started"
     Write-Log "Reading Ambari layout from $ENV:AMB_LAYOUT"
     if ( -not (Test-Path $ENV:AMB_LAYOUT))
     {
@@ -170,12 +170,15 @@ function Main( $scriptDir )
 	$SQL_SERVER_LOGIN = $env:SQL_SERVER_LOGIN
 	$SQL_SERVER_PASSWORD= $env:SQL_SERVER_PASSWORD
 	$START_SERVICES = $ENV:START_SERVICES
+    $RECREATE_DB = $ENV:RECREATE_DB
 	Write-log "Start services flag is $START_SERVICES"
-	$hosts= @($SQL_SERVER_NAME,$ENV:NAMENODE_HOST,$ENV:SECONDARY_NAMENODE_HOST,$ENV:JOBTRACKER_HOST,$ENV:HIVE_SERVER_HOST,$ENV:OOZIE_SERVER_HOST,
+    Write-log "Recreate DB flag is $RECREATE_DB"
+	$hosts= @($SQL_SERVER_NAME,$ENV:NAMENODE_HOST,$ENV:SECONDARY_NAMENODE_HOST,$ENV:RESOURCEMANAGER_HOST,$ENV:HIVE_SERVER_HOST,$ENV:OOZIE_SERVER_HOST,
 	$ENV:WEBHCAT_HOST,$ENV:HBASE_MASTER)
 	Split_Hosts $ENV:SLAVE_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:ZOOKEEPER_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:FLUME_HOSTS ([REF]$hosts)
+    Split_Hosts $ENV:CLIENT_HOSTS ([REF]$hosts)
 	Write-Log "Hosts list:"
 	Write-log $hosts
 	Write-Log "Intalling data sink on each host"
@@ -187,8 +190,9 @@ function Main( $scriptDir )
 			PushInstall-Files $server $destination $destination
 			Write-Log "Executing data sink installation"
 			$out = Invoke-Command -ComputerName $server -ScriptBlock {
-				param( $server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES )
+				param( $server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES,$RECREATE_DB )
 				$log = Join-Path $destination "ambari_install.log"
+                 Out-File -FilePath $log -InputObject "Starting installation" -Append -Encoding "UTF8"
 				function Invoke-Cmd ($command)
 				{
 					Out-File -FilePath $log -InputObject "$command" -Append -Encoding "UTF8"
@@ -229,19 +233,24 @@ function Main( $scriptDir )
 					$value = "$name.sink.sql.databaseUrl=jdbc:sqlserver://$SQL_SERVER_NAME':$SQL_SERVER_PORT;databaseName=HadoopMetrics;user=$SQL_SERVER_LOGIN;password=$SQL_SERVER_PASSWORD"
 					Add-Content $metrics $value.Replace("'","")
 				}
+                Out-File -FilePath $log -InputObject "Recreate db is $RECREATE_DB" -Append -Encoding "UTF8"
 				if ($server -ieq $SQL_SERVER_NAME)
 				{
-					Out-File -FilePath $log -InputObject "Creating MonitoringDatabase environment" -Append -Encoding "UTF8"
-					Write-HOST "Creating MonitoringDatabase environment"
-                    Write-Output "Creating MonitoringDatabase environment"
-					$sql_path = Join-Path $destination "\Hadoop-Metrics-SQLServer-CREATE.ddl"
-					$cmd ="sqlcmd -s $SQL_SERVER_NAME -i $sql_path -U $SQL_SERVER_LOGIN -P $SQL_SERVER_PASSWORD"
-					$check = invoke-cmd $cmd 
-					if ($check -like "*failed*")
-					{
-						Write-Output "Cannot create database"
-						Out-File -FilePath $log -InputObject "Cannot create database" -Append -Encoding "UTF8"
-					}
+                    Out-File -FilePath $log -InputObject "$server is DB" -Append -Encoding "UTF8"
+                    if ($RECREATE_DB -like "*yes*")
+                    {
+    					Out-File -FilePath $log -InputObject "Creating MonitoringDatabase environment" -Append -Encoding "UTF8"
+    					Write-HOST "Creating MonitoringDatabase environment"
+                        Write-Output "Creating MonitoringDatabase environment"
+    					$sql_path = Join-Path $destination "\Hadoop-Metrics-SQLServer-CREATE.ddl"
+    					$cmd ="sqlcmd -s $SQL_SERVER_NAME -i $sql_path -U $SQL_SERVER_LOGIN -P $SQL_SERVER_PASSWORD"
+    					$check = invoke-cmd $cmd 
+    					if ($check -like "*failed*")
+    					{
+    						Write-Output "Cannot create database"
+    						Out-File -FilePath $log -InputObject "Cannot create database" -Append -Encoding "UTF8"
+    					}
+                    }
 				}
 				$hdp_home = [Environment]::GetEnvironmentVariable("HADOOP_HOME","Machine")
 				if ($hdp_home -ne $null)
@@ -249,13 +258,13 @@ function Main( $scriptDir )
 					Out-File -FilePath $log -InputObject "Installing data sink on $server" -Append -Encoding "UTF8"
 					Write-Host "Installing data sink on $server"
                     Write-Output "Installing data sink on $server"
-					$metrics = Join-Path $hdp_home "bin\hadoop-metrics2.properties"
+					$metrics = Join-Path $hdp_home "etc\hadoop\hadoop-metrics2.properties"
 					if (-not (test-path $metrics))
 					{
 						$metrics = Join-Path $hdp_home "conf\hadoop-metrics2.properties"
 					}
-					Add-Content $metrics "*.sink.sql.class=org.apache.hadoop.metrics2.sink.SqlServerSink"
-					$names = @("namenode","datanode","jobtracker","tasktracker","maptask","reducetask")
+					Add-Content $metrics "*.sink.sql.class=org.apache.hadoop.metrics2.sink.SqlServerSinkHadoop2"
+					$names = @("namenode","secondarynamenode","datanode","resourcemanager","nodemanager","maptask","mrappmaster","reducetask")
 					foreach ($name in $names)
 					{
 						modify_value $name
@@ -263,7 +272,7 @@ function Main( $scriptDir )
 					Out-File -FilePath $log -InputObject "Modifying CLASSPATH" -Append -Encoding "UTF8"
 					Write-Host "Modifying CLASSPATH"
                     Write-Output "Modifying CLASSPATH"
-					$names = @("namenode","secondarynamenode","datanode","historyserver","jobtracker","tasktracker")
+					$names = @("namenode","secondarynamenode","datanode","historyserver","resourcemanager","nodemanager")
 					foreach ($name in $names)
 					{
 						modify_xml $name
@@ -289,7 +298,7 @@ function Main( $scriptDir )
 					Copy-Item $log $log_new
 					Remove-Item $Destination -force -Recurse
 				}
-			} -ArgumentList ($server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES)
+			} -ArgumentList ($server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES,$RECREATE_DB)
             if ($out -like "*Cannot create database*")
 			{
                 Write-Log "DB creation on $server failed."
@@ -331,12 +340,10 @@ function Main( $scriptDir )
 	$clp = $ENV:HDP_LAYOUT
 	$destination_conf = Join-Path $destination "$ambari_conf\conf\clusterproperties.txt"
 	Copy-Item -Force $clp $destination_conf
-	$destination = Join-Path $destination "clusterproperties.txt"
-	Copy-Item -Force $clp $destination
 	Write-Log "Creating shortcut to start Ambari"
 	$objShell = New-Object -ComObject ("WScript.Shell")
 	$objShortCut = $objShell.CreateShortcut($env:USERPROFILE + "\Desktop" + "\Start Ambari SCOM Server.lnk")
-	$classpath = "$env:AMB_DATA_DIR\$ambari_conf\conf\;$env:AMB_DATA_DIR\sqljdbc4.jar;$env:AMB_DATA_DIR\$ambari_scom;$env:AMB_DATA_DIR\$ambari_lib\lib\*"
+	$classpath = "$env:AMB_DATA_DIR\$ambari_conf\conf\;$env:AMB_DATA_DIR\sqljdbc4.jar;$env:AMB_DATA_DIR\$ambari_scom;$env:AMB_DATA_DIR\$ambari_lib\lib\*;$env:HADOOP_HOME\etc\hadoop"
 	$targetpath = "$ENV:JAVA_HOME\bin\java"
 	$arguments = "-server -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60  -cp $classpath org.apache.ambari.scom.AmbariServer"
 	$objShortCut.TargetPath = $targetpath
@@ -347,8 +354,11 @@ function Main( $scriptDir )
 	CreateUrl "http://$ENV:COMPUTERNAME':8080/api/v1/clusters/ambari/services/HDFS/components/NAMENODE" "Browse Ambari Metrics.url"
 	Write-Log "Copying ambari properties file"
 	Copy-Item $ENV:AMB_LAYOUT "$env:AMB_DATA_DIR\ambariproperties.txt"
-	[Environment]::SetEnvironmentVariable("HDP_LAYOUT","","Machine")
-	[Environment]::SetEnvironmentVariable("START_SERVICES","","Machine")
+    $vars = @("HDP_LAYOUT","START_SERVICES","RECREATE_DB")
+    foreach ($var in $vars)
+    {
+        [Environment]::SetEnvironmentVariable($var,$null,"Machine")
+    }
 	Write-Log "INSTALLATION COMPLETE" 
 
 	

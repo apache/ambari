@@ -28,10 +28,15 @@ namespace GUI_Ambari
 {
     public partial class Form1 : Form
     {
-        public Form1()
+        public Form1(string upgrade)
         {
 
             InitializeComponent();
+            if (!string.IsNullOrEmpty(upgrade))
+            {
+                DBdel.Checked = false;
+                Install.Text = "Upgrade";
+            }
 
         }
 
@@ -123,25 +128,11 @@ namespace GUI_Ambari
             DialogResult result = MessageBox.Show("Do you really want to exit?", "Warning", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
-                Kill_Msiexec();
+                GUI_Ambari.Program.Kill_Msiexec();
                 Environment.Exit(1);
             }
         }
 
-        private void Kill_Msiexec()
-        {
-            try
-            {
-                var processes = Process.GetProcessesByName("msiexec").OrderBy(x => x.StartTime);
-                foreach (var process in processes)
-                {
-                    process.Kill();
-                }
-            }
-            catch
-            {
-            }
-        }
         private void Reset_Click(object sender, EventArgs e)
         {
             AID.Text = "C:\\Ambari";
@@ -153,6 +144,7 @@ namespace GUI_Ambari
             Cpath.Clear();
             SQLDpath.Clear();
             Cstart.Checked = false;
+            DBdel.Checked = true;
             CLP_Path();
         }
 
@@ -194,7 +186,18 @@ namespace GUI_Ambari
                 {
                     Environment.SetEnvironmentVariable("START_SERVICES", "yes", EnvironmentVariableTarget.Machine);
                 }
-
+                else
+                {
+                    Environment.SetEnvironmentVariable("START_SERVICES", "no", EnvironmentVariableTarget.Machine);
+                }
+                if (DBdel.Checked == true)
+                {
+                    Environment.SetEnvironmentVariable("RECREATE_DB", "yes", EnvironmentVariableTarget.Machine);
+                }
+                else
+                {
+                    Environment.SetEnvironmentVariable("RECREATE_DB", "no", EnvironmentVariableTarget.Machine);
+                }
             }
             Environment.SetEnvironmentVariable("HDP_LAYOUT", Cpath.Text, EnvironmentVariableTarget.Machine);
             Environment.Exit(0);

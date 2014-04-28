@@ -44,7 +44,7 @@ function GetName($name,$param)
 }
 function Main( $scriptDir )
 {
-    Write-Log "UNINSTALLATION STARTED"
+    Write-Log "UNINSTALLATION of 2.0.0 STARTED"
 	Write-Log "Reading Ambari and HDP layout"
 	$destination= [Environment]::GetEnvironmentVariable("AMB_DATA_DIR","Machine")
 	if (-not (Test-Path ENV:AMB_LAYOUT))
@@ -53,21 +53,25 @@ function Main( $scriptDir )
 	}
 	if (-not (Test-Path ENV:HDP_LAYOUT) -or ($ENV:HDP_LAYOUT -notlike "*:"))
 	{
-		$ENV:HDP_LAYOUT = Join-Path $destination "clusterproperties.txt"
+        $hdp = Join-Path $destination "\ambari-scom-server-*-conf"
+        $hdp = Getname $hdp "full"
+		$ENV:HDP_LAYOUT = Join-Path $hdp "conf\clusterproperties.txt"
 	}
 	Write-Log "Ambari layout = $ENV:AMB_LAYOUT" 
 	Write-Log "Cluster layout = $ENV:HDP_LAYOUT" 
 	Export-ClusterLayoutIntoEnv $ENV:AMB_LAYOUT "amb"
 	Export-ClusterLayoutIntoEnv $ENV:HDP_LAYOUT "hdp"
 	$jar = Join-Path $destination "\metrics-sink-*.jar"
-	$ambari_metrics = Getname $jar "short"
+    $ambari_metrics = Getname $jar "short"
+    Write-Log "Metrics sink is $ambari_metrics" 
 	$current = @()
 	$SQL_SERVER_NAME = $env:SQL_SERVER_NAME
-	$hosts= @($SQL_SERVER_NAME,$ENV:NAMENODE_HOST,$ENV:SECONDARY_NAMENODE_HOST,$ENV:JOBTRACKER_HOST,$ENV:HIVE_SERVER_HOST,$ENV:OOZIE_SERVER_HOST,
+	$hosts= @($SQL_SERVER_NAME,$ENV:NAMENODE_HOST,$ENV:SECONDARY_NAMENODE_HOST,$ENV:RESOURCEMANAGER_HOST,$ENV:HIVE_SERVER_HOST,$ENV:OOZIE_SERVER_HOST,
 	$ENV:WEBHCAT_HOST,$ENV:HBASE_MASTER)
 	Split_Hosts $ENV:SLAVE_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:ZOOKEEPER_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:FLUME_HOSTS ([REF]$hosts)
+    Split_Hosts $ENV:CLIENT_HOSTS ([REF]$hosts)
 	Write-Log "Hosts list:"
 	Write-log $hosts
 	Write-Log "Uninstalling from each host"
@@ -108,7 +112,7 @@ function Main( $scriptDir )
 						Write-Output "Succeeded"
 					}
 					Out-File -FilePath $log -InputObject "Cleaning up metrics" -Append -Encoding "UTF8"
-					$metrics = Join-Path $hdp_home "bin\hadoop-metrics2.properties"
+					$metrics = Join-Path $hdp_home "etc\hadoop\hadoop-metrics2.properties"
 					if (-not (test-path $metrics))
 					{
 						$metrics = Join-Path $hdp_home "conf\hadoop-metrics2.properties"
@@ -124,11 +128,12 @@ function Main( $scriptDir )
 					}
 					Set-Content -Path $metrics -Value $result
 					Out-File -FilePath $log -InputObject "Cleaning up xml's" -Append -Encoding "UTF8"
-					$names = @("namenode","secondarynamenode","datanode","historyserver","jobtracker","tasktracker")
+					$names = @("namenode","secondarynamenode","datanode","historyserver","resourcemanager","nodemanager")
 					foreach ($name in $names)
 					{
 						$xml_file= Join-Path $hdp_home "bin\$name.xml"
 						Out-File -FilePath $log -InputObject "Cleaning up $xml_file" -Append -Encoding "UTF8"
+                        Out-File -FilePath $log -InputObject "Removing ;$destination\$ambari_metrics;$destination\sqljdbc4.jar" -Append -Encoding "UTF8"
 						(Get-Content $xml_file)|ForEach-Object {
 						$_.Replace(";$destination\$ambari_metrics;$destination\sqljdbc4.jar","")
 						}|Set-Content $xml_file
@@ -181,10 +186,16 @@ function Main( $scriptDir )
 	Write-Log "Removing Ambari folder"
 	Remove-Item $destination -force -Recurse
 	Write-Log "Removing shortcut"
-	Remove-Item "$env:USERPROFILE\Desktop\Start Ambari SCOM Server.lnk" -Force
-	Remove-Item "$env:USERPROFILE\Desktop\Browse Ambari API.url" -Force
-	Remove-Item "$env:USERPROFILE\Desktop\Browse Ambari Metrics.url" -Force
-	[Environment]::SetEnvironmentVariable("AMB_DATA_DIR", "", "Machine")
+    $shortcuts = @("$env:USERPROFILE\Desktop\Start Ambari SCOM Server.lnk","$env:USERPROFILE\Desktop\Browse Ambari API.url","$env:USERPROFILE\Desktop\Browse Ambari Metrics.url")
+    foreach ($shortcut in $shortcuts)
+    {
+    	Remove-Item $shortcut -Force
+    }
+    $vars = @("HDP_LAYOUT","START_SERVICES","RECREATE_DB","AMB_DATA_DIR")
+    foreach ($var in $vars)
+    {
+        [Environment]::SetEnvironmentVariable($var,$null,"Machine")
+    }
     Write-Log "UNINSTALLATION COMPLETE "
 }
 

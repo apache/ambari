@@ -510,11 +510,27 @@ function Main( $winpkgBinPath, $Package, $Action )
 			}
 		}
 		$start_services = [Environment]::GetEnvironmentVariable("START_SERVICES","Machine")
-		if ($start_services -like "*yes*")
+		if ($start_services -eq "yes")
 		{
 			Write-LOG "Start services flag is $start_services"
 			$env:start_services = $start_services
 		}
+        elseif ($start_services -ne $null)
+        {
+            Write-LOG "Start services flag is $start_services"
+			$env:start_services = $start_services
+        }
+        $recreate_db = [Environment]::GetEnvironmentVariable("RECREATE_DB","Machine")
+		if ($recreate_db -eq "yes")
+		{
+			Write-LOG "Recreate DB flag is $recreate_db"
+			$env:recreate_db = $recreate_db
+		}
+        elseif ($recreate_db -ne $null)
+        {
+            Write-LOG "Recreate DB flag is $recreate_db"
+			$env:recreate_db = $recreate_db
+        }
 		Write-LOG "User is $ENV:USERNAME"
 		Write-Log "Cluster properties path: $ENV:HDP_LAYOUT"
 	    Write-Log "Current Directory: $pwd"

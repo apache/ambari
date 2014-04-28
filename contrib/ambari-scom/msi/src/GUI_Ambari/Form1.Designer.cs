@@ -64,6 +64,7 @@ namespace GUI_Ambari
             this.SQLDbrowse = new System.Windows.Forms.Button();
             this.SQLDpath = new System.Windows.Forms.TextBox();
             this.Cstart = new System.Windows.Forms.CheckBox();
+            this.DBdel = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // Install
@@ -272,14 +273,27 @@ namespace GUI_Ambari
             this.Cstart.Text = "Start Services";
             this.Cstart.UseVisualStyleBackColor = true;
             // 
+            // DBdel
+            // 
+            this.DBdel.AutoSize = true;
+            this.DBdel.Checked = true;
+            this.DBdel.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.DBdel.Location = new System.Drawing.Point(295, 65);
+            this.DBdel.Name = "DBdel";
+            this.DBdel.Size = new System.Drawing.Size(88, 17);
+            this.DBdel.TabIndex = 22;
+            this.DBdel.Text = "Recreate DB";
+            this.DBdel.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AcceptButton = this.Install;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(375, 308);
+            this.ClientSize = new System.Drawing.Size(381, 308);
             this.ControlBox = false;
+            this.Controls.Add(this.DBdel);
             this.Controls.Add(this.Cstart);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.SQLDbrowse);
@@ -342,6 +356,7 @@ namespace GUI_Ambari
         private System.Windows.Forms.Button SQLDbrowse;
         private System.Windows.Forms.TextBox SQLDpath;
         private System.Windows.Forms.CheckBox Cstart;
+        private System.Windows.Forms.CheckBox DBdel;
        
     }
 }
