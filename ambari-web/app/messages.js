@@ -1508,6 +1508,7 @@ Em.I18n.translations = {
   'hosts.host.details.stopAllComponents':'Stop All Components',
   'hosts.host.details.restartAllComponents':'Restart All Components',
   'hosts.host.details.refreshConfigs':'Refresh configs',
+  'hosts.host.details.for.postfix':'{0} for host',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',

@@ -48,6 +48,8 @@ require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceus
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_memoryused_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed_test');
 require('test/controllers/main/host/add_controller_test');
+require('test/controllers/main/host/configs_service_test');
+require('test/controllers/main/host/details_test');
 require('test/controllers/main/service/add_controller_test');
 require('test/controllers/main/service/reassign_controller_test');
 require('test/controllers/main/dashboard_test');
