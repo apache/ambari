@@ -1185,7 +1185,7 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - PostgreSQL (External)\n[3] - Oracle\n[4] - MySQL\n"
+        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n[4] - PostgreSQL (External)\n"
         "==============================================================================\n"
         "Enter choice (" + database_num + "): ",
         database_num,
@@ -1200,8 +1200,18 @@ def prompt_db_properties(args):
         DATABASE_INDEX = 0
       else:
         args.persistence_type = 'remote'
-        args.database_index = int(database_num) - 2
-        DATABASE_INDEX = int(database_num) - 2
+        selected_db_option = int(database_num)
+
+        if selected_db_option == 2:
+          args.database_index = 1
+        elif selected_db_option == 3:
+          args.database_index = 2
+        elif selected_db_option == 4:
+          args.database_index = 0
+        else:
+          print_info_msg('Unknown db option, default to embbeded postgres.')
+          args.database_index = 0
+      pass
 
       args.dbms = DATABASE_NAMES[args.database_index]
 

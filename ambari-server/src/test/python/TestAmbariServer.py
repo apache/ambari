@@ -2102,7 +2102,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_prompt_db_properties_oracle_sname(self, gyni_mock, gvsi_mock, rp_mock, smk_mock):
     ambari_server.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
-    list_of_return_values = ["ambari-server", "ambari", "1", "1521", "localhost", "3"]
+    list_of_return_values = ["ambari-server", "ambari", "1", "1521", "localhost", "2"]
 
     def side_effect(*args, **kwargs):
       return list_of_return_values.pop()
@@ -2128,7 +2128,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_prompt_db_properties_oracle_sid(self, gyni_mock, gvsi_mock, rp_mock, smk_mock):
     ambari_server.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
-    list_of_return_values = ["ambari-server", "ambari", "2", "1521", "localhost", "3"]
+    list_of_return_values = ["ambari-server", "ambari", "2", "1521", "localhost", "2"]
 
     def side_effect(*args, **kwargs):
       return list_of_return_values.pop()
