@@ -354,7 +354,7 @@ App.HostPopup = Em.Object.create({
         existedHosts.forEach(function (host) {
           var newHostInfo = hostsMap[host.get('name')];
           //update only hosts with changed tasks or currently opened tasks of host
-          if (newHostInfo && (newHostInfo.isModified || this.get('currentHostName') === host.get('name'))) {
+          if (newHostInfo && (!this.get('isBackgroundOperations') || newHostInfo.isModified || this.get('currentHostName') === host.get('name'))) {
             var hostStatus = self.getStatus(newHostInfo.logTasks);
             var hostProgress = self.getProgress(newHostInfo.logTasks);
             host.set('status', App.format.taskStatus(hostStatus[0]));
