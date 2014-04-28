@@ -74,4 +74,3 @@ namespace WMI
         void StopService();
     }
 }
-- 
