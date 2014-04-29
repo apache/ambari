@@ -169,6 +169,7 @@ App.showConfirmationFeedBackPopup = function (primary, bodyMessage, secondary) {
       this.set('disablePrimary', true);
       this.set('disableSecondary', true);
       this.set('statusMessage', Em.I18n.t('popup.confirmationFeedBack.sending'));
+      this.hide();
       primary(this.get('query'));
     },
     statusMessage: function () {

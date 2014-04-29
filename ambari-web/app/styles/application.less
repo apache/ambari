@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+
 @space-s: 5px;
 @space-m: 10px;
 @space-l: 20px;
@@ -129,6 +130,7 @@ footer {
       background-image: -webkit-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
       background-image: -o-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
       background-image: linear-gradient(to bottom, @top-nav-bg-color-from, @top-nav-bg-color-to);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr= @top-nav-bg-color-from, endColorstr=@top-nav-bg-color-to); //for IE9-
       -webkit-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
       -moz-box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
       box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
@@ -156,7 +158,7 @@ footer {
     .brand.cluster-name {
       margin-left: 10px;
 
-      .operations-count {
+      .label.operations-count {
         background-color: #006DCC;
         -webkit-animation-name: greenPulse;
         -webkit-animation-duration: 1s;
@@ -167,7 +169,6 @@ footer {
         animation-name: greenPulse;
         animation-duration: 1s;
         animation-iteration-count: infinite;
-        //margin: 2px;
       }
       .label  {
          padding: 3px 5px 3px;

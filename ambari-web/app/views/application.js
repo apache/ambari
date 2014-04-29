@@ -20,5 +20,32 @@
 var App = require('app');
 
 App.ApplicationView = Em.View.extend({
-    templateName: require('templates/application')
+  templateName: require('templates/application'),
+
+  didInsertElement: function () {
+    // on 'Enter' pressed, trigger modal window primary button if primary button is enabled(green)
+    // on 'Esc' pressed, close the modal
+    $(document).keydown(function(event){
+      if (event.which == 13 || event.keyCode == 13 ) {
+        var primaryButton = $(document).find('#modal > .modal-footer > .btn-success').first();
+        if (primaryButton.length > 0 && primaryButton.attr('disabled') != 'disabled') {
+          event.preventDefault();
+          primaryButton.click();
+          return false;
+        }
+      }
+      return true;
+    });
+    $(document).keyup(function(event){
+      if (event.which == 27 || event.keyCode == 27) {
+        var closeButton = $(document).find('#modal > .modal-header > .close').first();
+        if (closeButton.length > 0) {
+          event.preventDefault();
+          closeButton.click();
+          return false;
+        }
+      }
+      return true;
+    });
+  }
 });
