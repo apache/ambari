@@ -68,28 +68,5 @@ module.exports = {
       return leaf;
     }
     return r(obj,'');
-  },
-  
-  /**
-   * Gets value of property path.
-   *
-   * @param {Object} object
-   * @param {String} propertyPath
-   *          Format is 'a.b.c'
-   * @return Returns <code>undefined</code> when path does not exist.
-   */
-  getProperty: function (object, propertyPath) {
-    var props = propertyPath.split('.');
-    for ( var c = 0; c < props.length - 1 && object; c++) {
-      object = object[props[c]];
-      if (object === null) {
-        break;
-      }
-    }
-    if (object != null) {
-      return object[props[props.length - 1]];
-    }
-    return undefined;
   }
-
 };

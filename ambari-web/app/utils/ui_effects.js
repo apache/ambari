@@ -19,20 +19,20 @@
 module.exports = {
   /**
    *
-   * @param node - DOM element which blinking
-   * @param delay - overall time of blinking
-   * @param callback
-   * @param interval - change frequence of blinking
+   * @param node {DOMElement} - DOM element which blinking
+   * @param delay {number} - overall time of blinking
+   * @param callback {function}
+   * @param interval {number} - change frequence of blinking
    */
   pulsate: function (node, delay, callback, interval) {
     var self = this;
     /**
      * execute single blink
-     * @param interval - time of single blink
-     * @param callback
-     * @param opacity
-     * @param iteration - current iteration(default amount of iterations: 10)
-     * @param isReverse - flag, that mean opacity increase or decrease
+     * @param interval {number} - time of single blink
+     * @param callback {function}
+     * @param opacity {string|number}
+     * @param iteration {number} - current iteration(default amount of iterations: 10)
+     * @param isReverse {boolean} - flag, that mean opacity increase or decrease
      */
     var blink = function (interval, callback, opacity, iteration, isReverse) {
       var iterations = 10;

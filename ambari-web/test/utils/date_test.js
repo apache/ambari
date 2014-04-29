@@ -27,7 +27,9 @@ describe('date', function () {
   var correct_tests = Em.A([
     {t: 1349752195000, e: 'Tue, Oct 09, 2012 03:09', e2: 'Tue Oct 09 2012'},
     {t: 1367752195000, e: 'Sun, May 05, 2013 11:09', e2: 'Sun May 05 2013'},
-    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16', e2: 'Thu May 30 2013'}
+    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16', e2: 'Thu May 30 2013'},
+    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16:35', e2: 'Thu May 30 2013', showSeconds: true },
+    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16:35:000', e2: 'Thu May 30 2013', showSeconds: true, showMilliseconds: true }
   ]);
 
   var incorrect_tests = Em.A([
@@ -40,11 +42,32 @@ describe('date', function () {
     {t: function(){}}
   ]);
 
+  describe('#dateFormatZeroFirst()', function() {
+    var tests = [
+      {
+        t: 2,
+        e: '02',
+        m: 'should convert to `02`'
+      },
+      {
+        t: 10,
+        e: '10',
+        m: 'should convert to `10`'
+      }
+    ];
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(date.dateFormatZeroFirst(test.t)).to.eql(test.e);
+      });
+    });
+  });
+
   describe('#dateFormat', function() {
     describe('Correct timestamps', function(){
       correct_tests.forEach(function(test) {
-        it(test.t, function() {
-          expect(date.dateFormat(test.t)).to.equal(test.e);
+        var testMessage = test.t + ' `showSeconds` ' + !!test.showSeconds + '`showMilliseconds` ' + !!test.showMilliseconds;
+        it(testMessage, function() {
+          expect(date.dateFormat(test.t, test.showSeconds, test.showMilliseconds)).to.equal(test.e);
         });
       });
     });
@@ -75,6 +98,22 @@ describe('date', function () {
         it(test.t, function() {
           expect(date.dateFormatShort(test.t)).to.equal(test.t);
         });
+      });
+    });
+  });
+
+  describe('#startTime()', function() {
+    var today = new Date();
+    var tests = [
+      { t: 1349752195000, e: 'Tue Oct 09 2012 06:09' },
+      { t: -10000000, e: 'Not started' },
+      { t: today.getTime(), e: 'Today {0}:{1}'.format(date.dateFormatZeroFirst(today.getHours()), date.dateFormatZeroFirst(today.getMinutes())) },
+      { t: today, e: ''}
+    ];
+    tests.forEach(function(test) {
+      var testMessage = 'should conver {0} to {1}'.format(test.t, test.e);
+      it(testMessage, function() {
+        expect(date.startTime(test.t)).to.be.eql(test.e);
       });
     });
   });
@@ -118,12 +157,69 @@ describe('date', function () {
   describe('#duration', function() {
     var tests = Em.A([
       {startTime: 1, endTime: 2, e: 1},
-      {startTime: 0, endTime: 2000, e: 0}
+      {startTime: 0, endTime: 2000, e: 0},
+      {startTime: 200, endTime: 0, e: 19800}
     ]);
+
+    beforeEach(function() {
+      sinon.stub(App, 'dateTime', function () { return 20000; });
+    });
+
     tests.forEach(function(test) {
       it(test.startTime + ' ' + test.endTime, function() {
         expect(date.duration(test.startTime, test.endTime)).to.equal(test.e);
       });
+    });
+
+    afterEach(function() {
+      App.dateTime.restore();
+    });
+  });
+
+  describe('#durationSummary()', function() {
+    var tests = [
+      {
+        startTimestamp: 1349752195000,
+        endTimestamp: 1349752199000,
+        e: '4.00 secs'
+      },
+      {
+        startTimestamp: 1349752195000,
+        endTimestamp: 1367752195000,
+        e: '208.33 days'
+      },
+      {
+        startTimestamp: -10000000,
+        endTimestamp: 1367752195000,
+        e: Em.I18n.t('common.na')
+      },
+      {
+        startTimestamp: 1349752195000,
+        endTimestamp: -1,
+        stubbed: true,
+        e: '0 secs'
+      },
+      {
+        startTimestamp: 1000,
+        endTimestamp: -1,
+        stubbed: true,
+        e: '19.00 secs'
+      }
+    ];
+
+    beforeEach(function() {
+      sinon.stub(App, 'dateTime', function () { return 20000; });
+    });
+
+    tests.forEach(function(test) {
+      var testMessage = 'duration between {0} and {1} is {2}'.format(test.startTimestamp, test.endTimestamp, test.e) + (test.stubbed ? " App.dateTime() is stubbed" : "");
+      it(testMessage, function() {
+        expect(date.durationSummary(test.startTimestamp, test.endTimestamp)).to.be.eql(test.e);
+      });
+    });
+
+    afterEach(function() {
+      App.dateTime.restore();
     });
   });
 

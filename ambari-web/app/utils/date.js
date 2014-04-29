@@ -42,7 +42,7 @@ module.exports = {
    */
   dateFormatZeroFirst: function (time) {
     if (time < 10) return '0' + time;
-    return time;
+    return ""  + time;
   },
 
   /**
