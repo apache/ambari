@@ -1185,7 +1185,7 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n[4] - PostgreSQL (External)\n"
+        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n[4] - PostgreSQL\n"
         "==============================================================================\n"
         "Enter choice (" + database_num + "): ",
         database_num,
