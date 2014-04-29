@@ -37,13 +37,13 @@ App.MainDashboardServiceFlumeView = App.TableView.extend({
   summaryHeader: function () {
     var agents = App.FlumeService.find().objectAt(0).get('agents');//this.get('service.agents');
     var agentCount = agents.get('length');
-    var hostCount = agents.mapProperty('host').uniq().get('length');
+    var hostCount = this.get('service.hostComponents').filterProperty('componentName', 'FLUME_HANDLER').length;
     var prefix = agentCount == 1 ? this.t("dashboard.services.flume.summary.single") :
         this.t("dashboard.services.flume.summary.multiple").format(agentCount);
     var suffix = hostCount == 1 ? this.t("dashboard.services.flume.summary.hosts.single") :
         this.t("dashboard.services.flume.summary.hosts.multiple").format(hostCount);
     return prefix + suffix;
-  }.property('service.agents'),
+  }.property('service.agents', 'service.hostComponents.length'),
 
   flumeHandlerComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER');
