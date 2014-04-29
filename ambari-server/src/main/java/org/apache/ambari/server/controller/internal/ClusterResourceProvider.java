@@ -409,7 +409,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @throws ResourceAlreadyExistsException attempt to create a host or host_component which already exists
    * @throws NoSuchParentResourceException  a required parent resource is missing
    */
-  //todo: ambari agent must already be installed and registered on all hosts
   private void createHostAndComponentResources(Map<String, HostGroup> blueprintHostGroups, String clusterName)
       throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
@@ -563,6 +562,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         hostGroup.addHostInfo(mapHostProperties.get("fqdn"));
       }
     }
+    validateHostMappings(blueprintHostGroups);
   }
 
   /**
@@ -906,6 +906,32 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         ((ConfigGroupResourceProvider) getResourceProvider(Resource.Type.ConfigGroup)).
             createResources(Collections.singleton(request));
       }
+    }
+  }
+
+  /**
+   * Validate that a host is only mapped to a single host group.
+   *
+   * @param hostGroups map of host group name to host group
+   */
+  private void validateHostMappings(Map<String, HostGroup> hostGroups) {
+    Collection<String> mappedHosts = new HashSet<String>();
+    Collection<String> flaggedHosts = new HashSet<String>();
+
+    for (HostGroup hostgroup : hostGroups.values()) {
+      for (String host : hostgroup.getHostInfo()) {
+        if (mappedHosts.contains(host)) {
+          flaggedHosts.add(host);
+        } else {
+          mappedHosts.add(host);
+        }
+      }
+    }
+
+    if (! flaggedHosts.isEmpty())  {
+      throw new IllegalArgumentException("A host may only be mapped to a single host group at this time." +
+                                         "  The following hosts are mapped to more than one host group: " +
+                                         flaggedHosts);
     }
   }
 
