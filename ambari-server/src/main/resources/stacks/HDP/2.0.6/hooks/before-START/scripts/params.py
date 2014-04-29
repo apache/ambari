@@ -105,9 +105,6 @@ if rca_enabled == True:
 else:
   rca_prefix = rca_disabled_prefix
 
-#mapred-env.sh
-jobhistory_heapsize = config['configurations']['global']['jobhistory_heapsize']
-
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
 

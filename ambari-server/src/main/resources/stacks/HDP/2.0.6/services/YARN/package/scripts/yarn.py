@@ -159,6 +159,11 @@ def yarn(name = None):
     tc_mode = None
     tc_owner = params.hdfs_user
 
+  File(format("{config_dir}/mapred-env.sh"),
+       owner=tc_owner,
+       content=Template('mapred-env.sh.j2')
+  )
+
   if params.security_enabled:
     File(os.path.join(params.hadoop_bin, "task-controller"),
          owner="root",

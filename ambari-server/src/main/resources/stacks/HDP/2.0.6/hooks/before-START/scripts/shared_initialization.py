@@ -60,7 +60,7 @@ def setup_hadoop():
   else:
     tc_owner = params.hdfs_user
 
-  for file in ['hadoop-env.sh', 'commons-logging.properties', 'mapred-env.sh']:
+  for file in ['hadoop-env.sh', 'commons-logging.properties']:
     File(os.path.join(params.hadoop_conf_dir, file),
          owner=tc_owner,
          content=Template(file + ".j2")

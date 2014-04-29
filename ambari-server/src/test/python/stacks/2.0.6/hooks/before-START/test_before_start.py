@@ -63,10 +63,6 @@ class TestHookBeforeStart(RMFTestCase):
                               content = Template('commons-logging.properties.j2'),
                               owner = 'hdfs',
                               )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
-                              content = Template('mapred-env.sh.j2'),
-                              owner = 'hdfs',
-                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/health_check',
                               content = Template('health_check-v2.j2'),
                               owner = 'hdfs',
@@ -147,10 +143,6 @@ class TestHookBeforeStart(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
-                              owner = 'root',
-                              )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
-                              content = Template('mapred-env.sh.j2'),
                               owner = 'root',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/health_check',

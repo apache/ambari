@@ -105,6 +105,7 @@ yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-a
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
 mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']
+jobhistory_heapsize = config['configurations']['global']['jobhistory_heapsize']
 
 #for create_hdfs_directory
 hostname = config["hostname"]

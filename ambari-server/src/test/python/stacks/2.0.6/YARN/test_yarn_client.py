@@ -126,6 +126,10 @@ class TestYarnClient(RMFTestCase):
       group = 'hadoop',
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
+                              content = Template('mapred-env.sh.j2'),
+                              owner = 'hdfs',
+                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
                               content = Template('taskcontroller.cfg.j2'),
                               owner = 'hdfs',
@@ -257,6 +261,10 @@ class TestYarnClient(RMFTestCase):
       group = 'hadoop',
       mode = 0644,
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
+                              content = Template('mapred-env.sh.j2'),
+                              owner = 'root',
+                              )
     self.assertResourceCalled('File', '/usr/lib/hadoop/sbin/task-controller',
                               owner = 'root',
                               group = 'hadoop',
@@ -397,6 +405,10 @@ class TestYarnClient(RMFTestCase):
       group = 'hadoop',
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
+                              content = Template('mapred-env.sh.j2'),
+                              owner = 'hdfs',
+                              )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
                               content = Template('taskcontroller.cfg.j2'),
                               owner = 'hdfs',
