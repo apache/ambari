@@ -259,7 +259,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
         hiveDbType.value = 'mysql';
       }
-      hive_properties = Em.A(['hive_existing_mysql_hos', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
+      hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
         'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
     }
     else {
@@ -351,7 +351,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     serviceConfigProperties.forEach(function (_config) {
       _config.value = (typeof _config.value === "boolean") ? _config.value.toString() : _config.value;
     });
-    var storedConfigs = serviceConfigProperties.filter(function(configProperty) {
+    var storedConfigs = serviceConfigProperties.filter(function (configProperty) {
       return !!configProperty.value || configProperty.isCanBeEmpty;
     });
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping'), this.get('selectedServices').mapProperty('serviceName'));
@@ -562,7 +562,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.set('totalHosts', totalHosts);
     var totalHostsObj = this.rawContent.findProperty('config_name', 'hosts');
     totalHostsObj.config_value = totalHosts.length + ' (' + newHostsCount + ' new)';
-    this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
+    this.get('clusterInfo').pushObject(Em.Object.create(totalHostsObj));
 
     //repo
     if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
@@ -588,18 +588,17 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Get the repositories info of HDP from server. Used only in addHost controller.
+   * @return {$.ajax|null}
    * @method loadRepoInfo
    */
   loadRepoInfo: function () {
-    var nameVersionCombo = App.get('currentStackVersion');
-    var stackName = nameVersionCombo.split('-')[0];
-    var stackVersion = nameVersionCombo.split('-')[1];
-    App.ajax.send({
+    var nameVersionCombo = App.get('currentStackVersion').split('-');
+    return App.ajax.send({
       name: 'cluster.load_repositories',
       sender: this,
       data: {
-        stackName: stackName,
-        stackVersion: stackVersion
+        stackName: nameVersionCombo[0],
+        stackVersion: nameVersionCombo[1]
       },
       success: 'loadRepoInfoSuccessCallback',
       error: 'loadRepoInfoErrorCallback'
@@ -667,11 +666,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     var componentValue;
     if (component.get('customHandler')) {
       this[component.get('customHandler')].call(this, component);
-    } else {
+    }
+    else {
       if (component.get('isMaster')) {
         componentValue = this.get('content.masterComponentHosts')
           .findProperty('component', component.component_name).hostName;
-      } else {
+      }
+      else {
         var hostsLength = this.get('content.slaveComponentHosts')
           .findProperty('componentName', component.component_name)
           .hosts.length;
@@ -687,22 +688,24 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method loadHiveDbValue
    */
   loadHiveDbValue: function (dbComponent) {
-    var db, hiveDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_database');
+    var db,
+      serviceConfigPreoprties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
+      hiveDb = serviceConfigPreoprties .findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
     }
     else {
       if (hiveDb.value === 'Existing MySQL Database') {
-        db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_mysql_database');
+        db = serviceConfigPreoprties .findProperty('name', 'hive_existing_mysql_database');
         dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
       }
       else {
         if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_postgresql_database');
+          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_postgresql_database');
           dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
         }
         else { // existing oracle database
-          db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_oracle_database');
+          db = serviceConfigPreoprties .findProperty('name', 'hive_existing_oracle_database');
           dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
         }
       }
@@ -736,7 +739,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     } else {
       hostSuffix = Em.I18n.t('installer.step8.hosts');
     }
-    serverComponent.set('component_value', zkHostNames + ' ' + hostSuffix);
+    serverComponent.set('component_value', zkHostNames + hostSuffix);
   },
 
   /**
@@ -783,17 +786,18 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * Onclick handler for <code>next</code> button
    * @method submit
+   * @return {App.ModalPopup|null}
    */
   submit: function () {
-    if (this.get('isSubmitDisabled')) return;
+    if (this.get('isSubmitDisabled')) return null;
     if ((this.get('content.controllerName') == 'addHostController') && this.get('securityEnabled')) {
       var self = this;
-      App.showConfirmationPopup(function () {
+      return App.showConfirmationPopup(function () {
         self.submitProceed();
       }, Em.I18n.t('installer.step8.securityConfirmationPopupBody'));
     }
     else {
-      this.submitProceed();
+      return this.submitProceed();
     }
   },
 
@@ -1089,17 +1093,19 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @param {object} params
    * @method newServiceComponentErrorCallback
    */
-  newServiceComponentErrorCallback: function(request, ajaxOptions, error, opt, params) {
+  newServiceComponentErrorCallback: function (request, ajaxOptions, error, opt, params) {
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_components',
       data: {
         serviceName: params.serviceName,
         data: JSON.stringify({
-          "components": [{
-            "ServiceComponentInfo": {
-              "component_name": params.componentName
+          "components": [
+            {
+              "ServiceComponentInfo": {
+                "component_name": params.componentName
+              }
             }
-          }]
+          ]
         })
       }
     });
@@ -1650,7 +1656,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @method addRequestToAjaxQueue
    */
   addRequestToAjaxQueue: function (params) {
-    if (App.testMode) return;
+    if (App.get('testMode')) return;
 
     params = jQuery.extend({
       sender: this,

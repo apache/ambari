@@ -742,20 +742,24 @@ describe('App.InstallerStep9Controller', function () {
       expect(result).to.equal(false);
     });
     it('for INSTALLED status should call isServicesStarted', function () {
+      sinon.stub(c, 'togglePreviousSteps', Em.K);
       c.set('content', {cluster: {status: 'INSTALLED'}});
       var polledData = {'{}': {}};
       sinon.stub(c, 'isServicesStarted', Em.K);
       c.finishState(polledData);
       expect(c.isServicesStarted.calledWith(polledData)).to.equal(true);
       c.isServicesStarted.restore();
+      c.togglePreviousSteps.restore();
     });
     it('for PENDING status should call isServicesInstalled', function () {
+      sinon.stub(c, 'togglePreviousSteps', Em.K);
       c.set('content', {cluster: {status: 'PENDING'}});
       var polledData = {'{}': {}};
       sinon.stub(c, 'isServicesInstalled', Em.K);
       c.finishState(polledData);
       expect(c.isServicesInstalled.calledWith(polledData)).to.equal(true);
       c.isServicesInstalled.restore();
+      c.togglePreviousSteps.restore();
     });
   });
 
@@ -956,12 +960,14 @@ describe('App.InstallerStep9Controller', function () {
       });
     });
     it('shouldn\'t do nothing if polledData.Requests.id != requestId', function () {
+      sinon.stub(c, 'togglePreviousSteps', Em.K);
       c.set('content', {cluster: {requestId: 1}});
       var polledData = {Requests: {id: 2}, tasks: []};
       sinon.spy(c, 'finishState');
       expect(c.parseHostInfo(polledData)).to.equal(false);
       expect(c.finishState.called).to.equal(false);
       c.finishState.restore();
+      c.togglePreviousSteps.restore();
     });
   });
 

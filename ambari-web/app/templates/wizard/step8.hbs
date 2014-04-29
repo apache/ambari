@@ -30,7 +30,7 @@
 
 <div id="step8-content" class="well pre-scrollable">
   <div id="printReview">
-      <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
+    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
   </div>
   <div id="step8-info">
     {{#each item in controller.clusterInfo}}
@@ -40,6 +40,7 @@
     {{/each}}
 
     <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
+
     <div>
       <ul>
         {{#each item in controller.clusterInfo.repoInfo}}
@@ -58,11 +59,11 @@
             <li>
               <em><b>{{display_name}}</b></em>
               <ul>
-              {{#each component in this.service_components}}
-                <li>
-                  <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
-                </li>
-              {{/each}}
+                {{#each component in this.service_components}}
+                  <li>
+                    <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
+                  </li>
+                {{/each}}
               </ul>
             </li>
           {{/each}}
@@ -72,7 +73,7 @@
   </div>
 </div>
 <div class="btn-area">
-    <a class="btn pull-left" {{bindAttr disabled="controller.isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right"
-       id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
+  <a class="btn pull-left" {{bindAttr disabled="controller.isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
+  <a class="btn btn-success pull-right"
+     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
 </div>

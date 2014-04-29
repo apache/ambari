@@ -31,7 +31,7 @@ App.WizardStep8View = Em.View.extend({
    * Print review-report
    * @method printReview
    */
-  printReview: function() {
+  printReview: function () {
     var o = $("#step8-info");
     o.jqprint();
   },
@@ -46,7 +46,7 @@ App.WizardStep8View = Em.View.extend({
    * Should ajax-queue progress bar be displayed
    * @method showLoadingIndicator
    */
-  showLoadingIndicator: function() {
+  showLoadingIndicator: function () {
     if (!this.get('controller.isSubmitDisabled') || App.testMode) {
       if (this.get('modalPopup')) {
         this.get('modalPopup').hide();
@@ -68,7 +68,7 @@ App.WizardStep8View = Em.View.extend({
 
       bodyClass: Em.View.extend({
 
-        templateName: require('templates/wizard/step8_log_popup'),
+        templateName: require('templates/wizard/step8/step8_log_popup'),
 
         controllerBinding: 'App.router.wizardStep8Controller',
 
@@ -88,7 +88,7 @@ App.WizardStep8View = Em.View.extend({
          * Set progress bar width and popup message when ajax-queue requests are proccessed
          * @method ajaxQueueChangeObs
          */
-        ajaxQueueChangeObs: function() {
+        ajaxQueueChangeObs: function () {
           var length = this.get('controller.ajaxQueueLength');
           var left = this.get('controller.ajaxRequestsQueue.queue.length');
           this.set('barWidth', 'width: ' + ((length - left) / length * 100) + '%;');
@@ -99,7 +99,7 @@ App.WizardStep8View = Em.View.extend({
          * Hide popup when ajax-queue is finished
          * @method autoHide
          */
-        autoHide: function() {
+        autoHide: function () {
           if (this.get('controller.servicesInstalled')) {
             this.get('parentView').hide();
           }
