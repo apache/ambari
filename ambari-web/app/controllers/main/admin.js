@@ -27,15 +27,15 @@ App.MainAdminController = Em.Controller.extend({
    *
    * @type {Boolean}
    */
-  isAccessAvailable: function() {
+  isAccessAvailable: function () {
     var dependencies = {
       services: ['YARN', 'TEZ']
     };
     var serviceNames = App.Service.find().mapProperty('serviceName')
-      .filter(function(serviceName) {
+      .filter(function (serviceName) {
         return dependencies.services.contains(serviceName);
       });
-    var isAppTimelineServerAvailable = App.HostComponent.find().findProperty('componentName','APP_TIMELINE_SERVER') ? true : false;
-    return (dependencies.services.length == serviceNames.length && isAppTimelineServerAvailable);
+    var isAppTimelineServerAvailable = App.HostComponent.find().someProperty('componentName', 'APP_TIMELINE_SERVER');
+    return (dependencies.services.length === serviceNames.length && isAppTimelineServerAvailable);
   }.property()
 });

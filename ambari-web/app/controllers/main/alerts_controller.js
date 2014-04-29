@@ -72,7 +72,10 @@ App.MainAlertsController = Em.Controller.extend({
       this.set('isLoaded', true);
     }
   },
-
+  /**
+   * request alerts from server, which belong to particular host
+   * @return {Boolean}
+   */
   getAlertsByHost: function () {
     if (this.get('resourceName')) {
       App.ajax.send({
@@ -83,12 +86,17 @@ App.MainAlertsController = Em.Controller.extend({
         },
         success: 'getAlertsSuccessCallback',
         error: 'getAlertsErrorCallback'
-      })
+      });
+      return true;
     } else {
       console.warn('GET Alerts error: hostName parameter is missing');
+      return false;
     }
   },
-
+  /**
+   * request alerts from server, which belong to particular service
+   * @return {Boolean}
+   */
   getAlertsByService: function () {
     if (this.get('resourceName')) {
       App.ajax.send({
@@ -99,9 +107,11 @@ App.MainAlertsController = Em.Controller.extend({
         },
         success: 'getAlertsSuccessCallback',
         error: 'getAlertsErrorCallback'
-      })
+      });
+      return true;
     } else {
       console.warn('GET Alerts error: serviceName parameter is missing');
+      return false;
     }
   },
 
@@ -109,12 +119,15 @@ App.MainAlertsController = Em.Controller.extend({
    * map to associate old status format with and maintain sorting
    */
   statusNumberMap: {
-    "OK" : "0",
+    "OK": "0",
     "WARNING": "1",
     "CRITICAL": "2",
     "PASSIVE": "3"
   },
-
+  /**
+   * format json data and push into @alerts array
+   * @param json
+   */
   getAlertsSuccessCallback: function (json) {
     var alerts = [];
     if (json && json.alerts && json.alerts.detail) {
@@ -130,11 +143,13 @@ App.MainAlertsController = Em.Controller.extend({
         }));
       }, this);
     }
-    this.set('alerts', alerts.sortProperty('status','date').reverse());
+    this.set('alerts', alerts.sortProperty('status', 'date').reverse());
     this.set('isLoaded', true);
   },
-
-  getAlertsErrorCallback: function(){
+  /**
+   * finish loading if call failed
+   */
+  getAlertsErrorCallback: function () {
     this.set('isLoaded', true);
   }
 });

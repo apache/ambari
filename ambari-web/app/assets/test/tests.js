@@ -58,6 +58,8 @@ require('test/controllers/main/item_test');
 require('test/controllers/main/jobs_controller_test');
 require('test/controllers/main/jobs/hive_job_details_controller_test');
 require('test/controllers/main/service_test');
+require('test/controllers/main/admin_test');
+require('test/controllers/main/alerts_controller_test');
 require('test/controllers/wizard/stack_upgrade/step3_controller_test');
 require('test/controllers/installer_test');
 require('test/controllers/wizard_test');
