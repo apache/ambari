@@ -69,8 +69,15 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
     //=========================================================================
     // Add columns
+    //TODO type converters are not supported by DBAccessor currently, default value will be provided to query as is in most cases
+    DBAccessor.DBColumnInfo restartRequiredColumn =
+      new DBAccessor.DBColumnInfo("restart_required", Boolean.class, 1, 0, false);
+    if (Configuration.POSTGRES_DB_NAME.equals(getDbType())) {
+      //only postgres supports boolean type
+      restartRequiredColumn.setDefaultValue(Boolean.FALSE);
+    }
     dbAccessor.addColumn("hostcomponentdesiredstate",
-      new DBAccessor.DBColumnInfo("restart_required", Boolean.class, 1, 0, false));
+      restartRequiredColumn);
 
     // ========================================================================
     // Add constraints

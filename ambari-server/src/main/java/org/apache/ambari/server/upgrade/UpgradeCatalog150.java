@@ -851,7 +851,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     return "insert into request" +
       "(request_id, cluster_id, request_context, start_time, end_time, create_time) " +
       "select distinct s.request_id, s.cluster_id, s.request_context, " +
-      "coalesce (cmd.start_time, -1), coalesce (cmd.end_time, -1), -1 " +
+      "coalesce(cmd.start_time, -1), coalesce(cmd.end_time, -1), -1 " +
       "from " +
       "(select distinct request_id, cluster_id, request_context from stage ) s " +
       "left join " +
