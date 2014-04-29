@@ -4120,10 +4120,6 @@ def main():
       parser.print_help()
       parser.error("Incorrect database port " + options.database_port)
 
-  if options.dbms is not None and options.dbms == "postgres":
-    print "WARNING: HostName for postgres server " + options.database_host + \
-     " will be ignored: using localhost."
-    options.database_host = "localhost"
 
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
     print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
