@@ -1197,7 +1197,6 @@ def prompt_db_properties(args):
       if int(database_num) == 1:
         args.persistence_type = 'local'
         args.database_index = 0
-        DATABASE_INDEX = 0
       else:
         args.persistence_type = 'remote'
         selected_db_option = int(database_num)
@@ -1211,8 +1210,10 @@ def prompt_db_properties(args):
         else:
           print_info_msg('Unknown db option, default to embbeded postgres.')
           args.database_index = 0
+        pass
       pass
 
+      DATABASE_INDEX = args.database_index
       args.dbms = DATABASE_NAMES[args.database_index]
 
       if args.persistence_type != 'local':
