@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -29,7 +30,9 @@ import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Singleton
@@ -46,6 +49,9 @@ public class RequestDAO {
 
   @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds) {
+    if (null == requestIds || 0 == requestIds.size())
+      return Collections.emptyList();
+    
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
         "WHERE request.requestId IN ?1", RequestEntity.class);
     return daoUtils.selectList(query, requestIds);
