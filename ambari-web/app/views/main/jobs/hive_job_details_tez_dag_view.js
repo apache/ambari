@@ -348,6 +348,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     var dagVisualModel = this.get('dagVisualModel');
     var selectedVertex = this.get('selectedVertex');
     var minVertexDuration = Number.MAX_VALUE;
+    var maxVertexDuration = Number.MIN_VALUE;
 
     //
     // CALCULATE DEPTH - BFS to get correct graph depth
@@ -406,6 +407,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
         }
         if (node.duration < minVertexDuration && node.duration > 0) {
           minVertexDuration = node.duration;
+        }
+        if (node.duration > maxVertexDuration && node.duration > 0) {
+          maxVertexDuration = node.duration;
         }
         vertexIdToNode[vertex.get('id')] = node;
         depthToNodes[node.depth].push(node);
@@ -521,7 +525,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var maxNodeHeight = 0;
       for ( var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
         var node = nodes[nodeIndex];
-        var nodeDim = this.getNodeCalculatedDimensions(node, minVertexDuration);
+        var nodeDim = this.getNodeCalculatedDimensions(node, minVertexDuration, maxVertexDuration);
         node.drawWidth = nodeDim.drawWidth;
         node.drawHeight = nodeDim.drawHeight;
         node.scale = nodeDim.scale;
@@ -542,7 +546,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
           // fraction of parentage
           var childrenWidth = 0;
           node.children.forEach(function(child) {
-            var childDim = self.getNodeCalculatedDimensions(child, minVertexDuration);
+            var childDim = self.getNodeCalculatedDimensions(child, minVertexDuration, maxVertexDuration);
             childrenWidth += ((childDim.width + xGap) / child.parents.length);
           });
           updateNodeEffectiveWidth(node, Math.max(childrenWidth, (node.width+xGap)));
@@ -905,13 +909,13 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
    * {
    *  width: 360, // Scaled width of the node
    *  height: 80, // Scaled height of the node
-   *  scale: 2, // Scale used on vertex dimensions. Quickest vertex is scaled to 1.
+   *  scale: 2, // Scale used on vertex dimensions. Quickest vertex is scaled to 1 and slowest vertex is scaled to 10.
    *  drawWidth: 180, // Width of actual drawing (that will be scaled)
    *  drawHeight: 40 // Height of actual drawing (that will be scaled)
    * }
    * </code>
    */
-  getNodeCalculatedDimensions : function(node, minVertexDuration) {
+  getNodeCalculatedDimensions : function(node, minVertexDuration, maxVertexDuration) {
     var size = {
       width : 180,
       height : 40,
@@ -923,7 +927,20 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       var opsHeight = Math.ceil(node.operations.length / 3);
       size.drawHeight += (opsHeight * 20);
     }
-    size.scale = (minVertexDuration < Number.MAX_VALUE && node.duration > 0) ? (node.duration / minVertexDuration) : 1;
+    if (minVertexDuration < Number.MAX_VALUE && maxVertexDuration > Number.MIN_VALUE &&
+        minVertexDuration < maxVertexDuration && node.duration > 0) {
+      var MAXSCALE = 100;
+      // Upto scale of 100 the actual ratio of durations will be used.
+      // If scale is exceeding 100, some nodes will become too small (not visible) in comparison with others.
+      // Then we fit node scaling into 1 to 100.
+      var minMaxRatio = maxVertexDuration / minVertexDuration;
+      if (minMaxRatio > MAXSCALE) {
+        size.scale = ((maxVertexDuration - node.duration) + MAXSCALE * (node.duration - minVertexDuration));
+        size.scale = size.scale / (maxVertexDuration - minVertexDuration);
+      } else {
+        size.scale = (minVertexDuration < Number.MAX_VALUE && node.duration > 0) ? (node.duration / minVertexDuration) : 1;
+      }
+    }
     if (size.scale < 1) {
       size.scale = 1;
     }
