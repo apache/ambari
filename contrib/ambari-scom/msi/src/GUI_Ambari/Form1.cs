@@ -93,6 +93,7 @@ namespace GUI_Ambari
 
         private void Install_Click(object sender, EventArgs e) 
         {
+            Regex rgx = new Regex(@"(\d+\.\d+\.\d+)");
             if (string.IsNullOrEmpty(AID.Text) || string.IsNullOrEmpty(Sname.Text) || string.IsNullOrEmpty(Sport.Text) || string.IsNullOrEmpty(Slogin.Text) || string.IsNullOrEmpty(Spassword.Text) || string.IsNullOrEmpty(SQLDpath.Text))
             {
                 MessageBox.Show("Please fill in all fields", "Error");
@@ -109,6 +110,10 @@ namespace GUI_Ambari
             {
                 MessageBox.Show("You are installing Ambari on separate node. Please enter correct cluster layout file path", "Error");
             }
+            else if (Userdetect.Checked && !rgx.IsMatch(MainVersion.Text))
+            {
+                MessageBox.Show("Please provide HDP version in correct format. For example 2.0.6", "Error");
+            }
             else
             {
                 //if (!(Sname.Text == Environment.GetEnvironmentVariable("computername")))
@@ -117,9 +122,9 @@ namespace GUI_Ambari
                 //}
                 //else
                 //{
-                    Generate_Ambari_Props();
+                Generate_Ambari_Props();
                 //}
-                
+
             }
         }
 
@@ -145,6 +150,7 @@ namespace GUI_Ambari
             SQLDpath.Clear();
             Cstart.Checked = false;
             DBdel.Checked = true;
+            Autodetect.Checked = true;
             CLP_Path();
         }
 
@@ -190,7 +196,7 @@ namespace GUI_Ambari
                 {
                     Environment.SetEnvironmentVariable("START_SERVICES", "no", EnvironmentVariableTarget.Machine);
                 }
-                if (DBdel.Checked == true)
+                if (DBdel.Checked)
                 {
                     Environment.SetEnvironmentVariable("RECREATE_DB", "yes", EnvironmentVariableTarget.Machine);
                 }
@@ -198,7 +204,11 @@ namespace GUI_Ambari
                 {
                     Environment.SetEnvironmentVariable("RECREATE_DB", "no", EnvironmentVariableTarget.Machine);
                 }
-            }
+                if (Userdetect.Checked == true)
+                {
+                    sw.WriteLine("HDP_VERSION=" + MainVersion.Text);
+                }
+             }
             Environment.SetEnvironmentVariable("HDP_LAYOUT", Cpath.Text, EnvironmentVariableTarget.Machine);
             Environment.Exit(0);
         }
@@ -301,5 +311,23 @@ namespace GUI_Ambari
                 SQLDpath.Text = OpenFile.FileName.ToString();
             }
         }
+
+        private void Userdetect_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Userdetect.Checked)
+            {
+                MainVersion.Visible = true;
+            }
+        }
+
+        private void Autodetect_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Autodetect.Checked)
+            {
+                MainVersion.Visible = false;
+                MainVersion.Clear();
+            }
+        }
+
     }
 }

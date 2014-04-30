@@ -148,7 +148,7 @@ function Main( $scriptDir )
 	Write-log "Copuing SQL query"
 	$jar = Join-Path $Package_trim "resources\Hadoop-Metrics-SQLServer-CREATE.ddl"
 	Copy-Item -Force $jar $destination
-	Write-log "Pushing Ambari-SCOM and SQL Server JDBC to each node"
+   	Write-log "Pushing Ambari-SCOM and SQL Server JDBC to each node"
 	$current = @()
     $failed=@()
  	$failed_file = join-path $env:TMP "ambari_failed.txt"
@@ -179,7 +179,37 @@ function Main( $scriptDir )
 	Split_Hosts $ENV:ZOOKEEPER_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:FLUME_HOSTS ([REF]$hosts)
     Split_Hosts $ENV:CLIENT_HOSTS ([REF]$hosts)
-	Write-Log "Hosts list:"
+    if (-not (Test-Path ENV:HDP_VERSION))
+    {
+        Write-log "Detecting HDP version"
+        if ((Test-Path ENV:HADOOP_HOME) -and ($ENV:HADOOP_HOME -ne $null))
+        {
+            Write-log "Using local HDP version"
+            $hdpversion = $ENV:HADOOP_HOME.Split("-")[1].Substring(6)
+            $ENV:HDP_VERSION = $hdpversion.Substring(0,$hdpversion.Length-2)
+			Write-log $ENV:HDP_VERSION
+        }
+        else
+        {
+            Write-log "Fetching HDP version from $ENV:NAMENODE_HOST"
+            $out = Invoke-Command -ComputerName $ENV:NAMENODE_HOST -ScriptBlock {
+                    $hdpversion = $ENV:HADOOP_HOME.Split("-")[1].Substring(6)
+                    $hdpversion = $hdpversion.Substring(0,$hdpversion.Length-2)
+                    Write-HOST $hdpversion
+                    Write-Output $hdpversion
+            }
+            if ($out -eq $null)
+    		{
+    			Write-Log "Cannot detect HDP version. Please add correct HDP version into ambari.properties file"
+    		}
+			else 
+			{
+				$ENV:HDP_VERSION = $out
+				Write-log $ENV:HDP_VERSION
+			}
+        }
+    }
+    Write-Log "Hosts list:"
 	Write-log $hosts
 	Write-Log "Intalling data sink on each host"
 	foreach ($server in $hosts)
@@ -336,6 +366,10 @@ function Main( $scriptDir )
     Add-Content $props "scom.sink.db.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver"
     $value = "scom.sink.db.url=jdbc:sqlserver://$env:SQL_SERVER_NAME':$env:SQL_SERVER_PORT;databaseName=HadoopMetrics;user=$env:SQL_SERVER_LOGIN;password=$env:SQL_SERVER_PASSWORD"
     Add-Content $props $value.Replace("'","")
+    if ((test-path ENV:HDP_VERSION) -and ($ENV:HDP_VERSION -ne $null))
+    {
+        ReplaceAmbariServiceXML $props "%version%" $ENV:HDP_VERSION
+    }
     Write-Log "Copying cluster.properties to ambari config"
     $clp = $ENV:HDP_LAYOUT
     $destination_conf = Join-Path $destination "$ambari_conf\conf\clusterproperties.txt"

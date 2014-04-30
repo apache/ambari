@@ -20,7 +20,7 @@
 
 ### Valid properties in AMB_LAYOUT file
 $VALID_LAYOUT_PROPERTIES = @("AMB_DATA_DIR", "SQL_SERVER_PASSWORD",
-                             "SQL_SERVER_NAME", "SQL_SERVER_LOGIN", "SQL_SERVER_PORT","SQL_JDBC_PATH"
+                             "SQL_SERVER_NAME", "SQL_SERVER_LOGIN", "SQL_SERVER_PORT","SQL_JDBC_PATH","HDP_VERSION"
                              )
 
 ### Mandatory properties in AMB_LAYOUT file
@@ -29,7 +29,7 @@ $MANDATORY_LAYOUT_PROPERTIES = @("AMB_DATA_DIR", "SQL_SERVER_PASSWORD",
 $HDP_LAYOUT_PROPERTIES = @( "NAMENODE_HOST", "SECONDARY_NAMENODE_HOST", "JOBTRACKER_HOST",
                              "HIVE_SERVER_HOST", "OOZIE_SERVER_HOST", "WEBHCAT_HOST",
                              "SLAVE_HOSTS","ZOOKEEPER_HOSTS", "HBASE_MASTER",
-                             "FLUME_HOSTS")
+                             "FLUME_HOSTS","CLIENT_HOSTS")
 
 
 ### Helper routine that converts a $null object to nothing. Otherwise, iterating over

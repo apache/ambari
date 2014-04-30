@@ -65,11 +65,16 @@ namespace GUI_Ambari
             this.SQLDpath = new System.Windows.Forms.TextBox();
             this.Cstart = new System.Windows.Forms.CheckBox();
             this.DBdel = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.Userdetect = new System.Windows.Forms.RadioButton();
+            this.Autodetect = new System.Windows.Forms.RadioButton();
+            this.MainVersion = new System.Windows.Forms.TextBox();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // Install
             // 
-            this.Install.Location = new System.Drawing.Point(136, 282);
+            this.Install.Location = new System.Drawing.Point(136, 348);
             this.Install.Name = "Install";
             this.Install.Size = new System.Drawing.Size(75, 23);
             this.Install.TabIndex = 0;
@@ -174,7 +179,7 @@ namespace GUI_Ambari
             // Cancel
             // 
             this.Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.Cancel.Location = new System.Drawing.Point(217, 282);
+            this.Cancel.Location = new System.Drawing.Point(217, 348);
             this.Cancel.Name = "Cancel";
             this.Cancel.Size = new System.Drawing.Size(75, 23);
             this.Cancel.TabIndex = 12;
@@ -184,7 +189,7 @@ namespace GUI_Ambari
             // 
             // Reset
             // 
-            this.Reset.Location = new System.Drawing.Point(298, 282);
+            this.Reset.Location = new System.Drawing.Point(298, 348);
             this.Reset.Name = "Reset";
             this.Reset.Size = new System.Drawing.Size(75, 23);
             this.Reset.TabIndex = 13;
@@ -266,7 +271,7 @@ namespace GUI_Ambari
             // Cstart
             // 
             this.Cstart.AutoSize = true;
-            this.Cstart.Location = new System.Drawing.Point(12, 283);
+            this.Cstart.Location = new System.Drawing.Point(12, 349);
             this.Cstart.Name = "Cstart";
             this.Cstart.Size = new System.Drawing.Size(92, 17);
             this.Cstart.TabIndex = 21;
@@ -285,14 +290,60 @@ namespace GUI_Ambari
             this.DBdel.Text = "Recreate DB";
             this.DBdel.UseVisualStyleBackColor = true;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.Userdetect);
+            this.groupBox1.Controls.Add(this.Autodetect);
+            this.groupBox1.Controls.Add(this.MainVersion);
+            this.groupBox1.Location = new System.Drawing.Point(15, 282);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(204, 61);
+            this.groupBox1.TabIndex = 23;
+            this.groupBox1.TabStop = false;
+            // 
+            // Userdetect
+            // 
+            this.Userdetect.AutoSize = true;
+            this.Userdetect.Location = new System.Drawing.Point(7, 34);
+            this.Userdetect.Name = "Userdetect";
+            this.Userdetect.Size = new System.Drawing.Size(123, 17);
+            this.Userdetect.TabIndex = 1;
+            this.Userdetect.TabStop = true;
+            this.Userdetect.Text = "Specify HDP version";
+            this.Userdetect.UseVisualStyleBackColor = true;
+            this.Userdetect.CheckedChanged += new System.EventHandler(this.Userdetect_CheckedChanged);
+            // 
+            // Autodetect
+            // 
+            this.Autodetect.AutoSize = true;
+            this.Autodetect.Checked = true;
+            this.Autodetect.Location = new System.Drawing.Point(7, 10);
+            this.Autodetect.Name = "Autodetect";
+            this.Autodetect.Size = new System.Drawing.Size(184, 17);
+            this.Autodetect.TabIndex = 0;
+            this.Autodetect.TabStop = true;
+            this.Autodetect.Text = "Detect HDP version automatically";
+            this.Autodetect.UseVisualStyleBackColor = true;
+            this.Autodetect.CheckedChanged += new System.EventHandler(this.Autodetect_CheckedChanged);
+            // 
+            // MainVersion
+            // 
+            this.MainVersion.Location = new System.Drawing.Point(134, 34);
+            this.MainVersion.MaxLength = 5;
+            this.MainVersion.Name = "MainVersion";
+            this.MainVersion.Size = new System.Drawing.Size(57, 20);
+            this.MainVersion.TabIndex = 24;
+            this.MainVersion.Visible = false;
+            // 
             // Form1
             // 
             this.AcceptButton = this.Install;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.Cancel;
-            this.ClientSize = new System.Drawing.Size(381, 308);
+            this.ClientSize = new System.Drawing.Size(381, 378);
             this.ControlBox = false;
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.DBdel);
             this.Controls.Add(this.Cstart);
             this.Controls.Add(this.label6);
@@ -325,6 +376,8 @@ namespace GUI_Ambari
             this.Text = "Ambari-SCOM setup";
             this.TopMost = true;
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -357,6 +410,10 @@ namespace GUI_Ambari
         private System.Windows.Forms.TextBox SQLDpath;
         private System.Windows.Forms.CheckBox Cstart;
         private System.Windows.Forms.CheckBox DBdel;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton Userdetect;
+        private System.Windows.Forms.RadioButton Autodetect;
+        private System.Windows.Forms.TextBox MainVersion;
        
     }
 }
