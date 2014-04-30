@@ -49,11 +49,14 @@ class CommandStatusDict():
     """
     if 'taskId' in command:
       key = command['taskId']
+      status_command = False
     else: # Status command reports has no task id
       key = id(command)
+      status_command = True
     with self.lock: # Synchronized
       self.current_state[key] = (command, new_report)
-    self.callback_action()
+    if not status_command:
+      self.callback_action()
 
 
   def generate_report(self):

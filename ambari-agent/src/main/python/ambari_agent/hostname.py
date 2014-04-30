@@ -27,7 +27,14 @@ import traceback
 
 logger = logging.getLogger()
 
+cached_hostname = None
+cached_public_hostname = None
+
 def hostname():
+  global cached_hostname
+  if cached_hostname is not None:
+    return cached_hostname
+
   config = AmbariConfig.config
   try:
     scriptname = config.get('agent', 'hostname_script')
@@ -35,15 +42,20 @@ def hostname():
       osStat = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = osStat.communicate()
       if (0 == osStat.returncode and 0 != len(out.strip())):
-        return out.strip()
+        cached_hostname = out.strip()
       else:
-        return socket.getfqdn()
+        cached_hostname = socket.getfqdn()
     except:
-      return socket.getfqdn()
+      cached_hostname = socket.getfqdn()
   except:
-    return socket.getfqdn()
+    cached_hostname = socket.getfqdn()
+  return cached_hostname
 
 def public_hostname():
+  global cached_public_hostname
+  if cached_public_hostname is not None:
+    return cached_public_hostname
+
   config = AmbariConfig.config
   out = ''
   err = ''
@@ -53,7 +65,8 @@ def public_hostname():
       output = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = output.communicate()
       if (0 == output.returncode and 0 != len(out.strip())):
-        return out.strip()
+        cached_public_hostname = out.strip()
+        return cached_public_hostname
   except:
     #ignore for now. 
     trace_info = traceback.format_exc()
@@ -66,9 +79,10 @@ def public_hostname():
     handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
     str = handle.read()
     handle.close()
-    return str
+    cached_public_hostname = str
   except Exception, e:
-    return socket.getfqdn()
+    cached_public_hostname = socket.getfqdn()
+  return cached_public_hostname
 
 def main(argv=None):
   print hostname()
