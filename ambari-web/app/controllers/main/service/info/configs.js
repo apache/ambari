@@ -1358,6 +1358,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Compares the loaded config values with the saving config values.
+   * @param {Object} loadedConfig -
+   * loadedConfig: {
+   *      configName1: "configValue1",
+   *      configName2: "configValue2"
+   *   }
+   * @param {Object} savingConfig
+   * savingConfig: {
+   *      configName1: "configValue1",
+   *      configName2: "configValue2"
+   *   }
+   * @returns {boolean}
+   * @method isConfigChanged
    */
   isConfigChanged: function (loadedConfig, savingConfig) {
     var changed = false;
@@ -1392,6 +1404,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Saves configuration of a particular site. The provided data
    * contains the site name and tag to be used.
+   * @param {Object} data
+   * @return {bool}
+   * @method doPUTClusterConfigurationSite
    */
   doPUTClusterConfigurationSite: function (data) {
     App.ajax.send({
@@ -1416,11 +1431,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   doPUTClusterConfigurationSiteResult: null,
 
+  /**
+   * set doPUTClusterConfigurationSiteResult to true and write info to log
+   * @param {Object} data
+   * @method doPUTClusterConfigurationSiteSuccessCallback
+   */
   doPUTClusterConfigurationSiteSuccessCallback: function(data) {
     console.log("applyClusterConfigurationToSite(): In success for data:", data);
     this.set('doPUTClusterConfigurationSiteResult', true);
   },
 
+  /**
+   * set doPUTClusterConfigurationSiteResult to false and write info to log
+   * @param {Object} request
+   * @param {Object} ajaxOptions
+   * @param {String} error
+   * @method doPUTClusterConfigurationSiteSuccessCallback
+   */
   doPUTClusterConfigurationSiteErrorCallback: function(request, ajaxOptions, error) {
     console.log('applyClusterConfigurationToSite(): ERROR:', request.responseText, ", error=", error);
     this.set('doPUTClusterConfigurationSiteResult', false);
@@ -1440,8 +1467,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * create global site object
    * @param {String} tagName
-   * @param {Array} globalConfigs
-   * @return {Object}
+   * @param {Array} globalConfigs array of config objects
+   * @return {{"type": String, "tag": String, "properties": Object}}
+   * @method createGlobalSiteObj
    */
   createGlobalSiteObj: function (tagName, globalConfigs) {
     var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'];
@@ -1465,7 +1493,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * create core site object
    * @param tagName
-   * @return {Object}
+   * @return {{"type": String, "tag": String, "properties": Object}}
+   * @method createCoreSiteObj
    */
   createCoreSiteObj: function (tagName) {
     var coreSiteObj = this.get('uiConfigs').filterProperty('filename', 'core-site.xml');
@@ -1520,15 +1549,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       default:
         return App.config.escapeXMLCharacters(value);
     }
-  },
-  /**
-   * return either specific url for request if testMode is false or testUrl
-   * @param testUrl
-   * @param url
-   * @return {*}
-   */
-  getUrl: function (testUrl, url) {
-    return (App.testMode) ? testUrl : App.apiPrefix + '/clusters/' + App.router.getClusterName() + url;
   },
 
   /**
@@ -1650,6 +1670,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
   },
 
+  /**
+   * get hostName of component
+   * @param {String} componentName
+   * @return {String} hostName
+   * @method getMasterComponentHostValue
+   */
   getMasterComponentHostValue: function(componentName) {
     var component = this.get('content.hostComponents').findProperty('componentName', componentName);
     return component ? component.get('host.hostName') : false;
@@ -1657,10 +1683,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Provides service component name and display-name information for
    * the current selected service.
+   * @return {Em.Array} validComponents - array of valid components
+   * @method getCurrentServiceComponents
    */
   getCurrentServiceComponents: function () {
-    var service = this.get('content');
-    var components = service.get('hostComponents');
+    var components = this.get('content.hostComponents');
     var validComponents = Ember.A([]);
     var seenComponents = {};
     components.forEach(function (component) {
@@ -1678,10 +1705,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return validComponents;
   }.property('content'),
 
+  /**
+   * trigger loadStep
+   * @method loadStep
+   */
   doCancel: function () {
     this.loadStep();
   },
 
+  /**
+   * trigger restartAllServiceHostComponents(batchUtils) if confirmed in popup
+   * @method restartAllStaleConfigComponents
+   * @return App.showConfirmationFeedBackPopup
+   */
   restartAllStaleConfigComponents: function() {
     var self = this;
     var serviceDisplayName = this.get('content.displayName');
@@ -1690,16 +1726,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       confirmButton: Em.I18n.t('services.service.restartAll.confirmButton'),
       additionalWarningMsg: this.get('content.passiveState') === 'OFF' ? Em.I18n.t('services.service.restartAll.warningMsg.turnOnMM').format(serviceDisplayName): null
     });
-    App.showConfirmationFeedBackPopup(function(query) {
+    return App.showConfirmationFeedBackPopup(function(query) {
       var selectedService = self.get('content.id');
       batchUtils.restartAllServiceHostComponents(selectedService, true, query);
     }, bodyMessage);
   },
 
+  /**
+   * trigger launchHostComponentRollingRestart(batchUtils)
+   * @method rollingRestartStaleConfigSlaveComponents
+   */
   rollingRestartStaleConfigSlaveComponents: function(componentName) {
     batchUtils.launchHostComponentRollingRestart(componentName.context, this.get('content.displayName'), this.get('content.passiveState') === "ON", true);
   },
 
+  /**
+   * trigger showItemsShouldBeRestarted popup with hosts that requires resetart
+   * @method showHostsShouldBeRestarted
+   */
   showHostsShouldBeRestarted: function() {
     var hosts = [];
     for(var hostName in this.get('content.restartRequiredHostsAndComponents')) {
@@ -1709,6 +1753,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     hosts = hosts.join(', ');
     this.showItemsShouldBeRestarted(hosts, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(hostsText));
   },
+
+  /**
+   * trigger showItemsShouldBeRestarted popup with components that requires resetart
+   * @method showComponentsShouldBeRestarted
+   */
   showComponentsShouldBeRestarted: function() {
     var rhc = this.get('content.restartRequiredHostsAndComponents');
     var hostsComponets = [];
@@ -1758,6 +1807,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * add new overridden property to config property object
+   * @param {object} serviceConfigProperty - config property object
+   * @method addOverrideProperty
+   */
   addOverrideProperty: function(serviceConfigProperty) {
     var overrides = serviceConfigProperty.get('overrides');
     if (!overrides) {
@@ -1774,6 +1828,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     overrides.pushObject(newSCP);
   },
 
+  /**
+   * trigger manageConfigurationGroups
+   * @method manageConfigurationGroup
+   */
   manageConfigurationGroup: function () {
     this.manageConfigurationGroups();
   },
@@ -1783,7 +1841,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = serviceData.get('serviceName');
     var displayName = serviceData.get('displayName');
     App.router.get('manageConfigGroupsController').set('isInstaller', !!controller);
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
       bodyClass: App.MainServiceManageConfigGroupView.extend({
         serviceName: serviceName,
@@ -1901,6 +1959,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
   },
 
+  /**
+   * If user chabges cfg group if some configs was changed popup with propose to save changes must be shown
+   * @param {object} event - triggered event for selecting another config-group
+   * @method selectConfigGroup
+   */
   selectConfigGroup: function (event) {
     if (!this.get('isInit')) {
       if (this.hasUnsavedChanges()) {
@@ -1923,32 +1986,33 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * If some configs are changed and user navigates away or select another config-group, show this popup with propose to save changes
    * @param {String} path
    * @param {object} event - triggered event for selecting another config-group
+   * @method showSavePopup
    */
   showSavePopup: function (path, event) {
-    var _this = this;
-    App.ModalPopup.show({
+    var self = this;
+    return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       body: Em.I18n.t('services.service.config.exitPopup.body'),
       footerClass: Ember.View.extend({
         templateName: require('templates/main/service/info/save_popup_footer'),
         isSaveDisabled: function() {
-          return _this.get('isSubmitDisabled');
+          return self.get('isSubmitDisabled');
         }.property()
       }),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
-        _this.restartServicePopup();
+        self.restartServicePopup();
         this.hide();
       },
       onDiscard: function () {
         if (path) {
-          _this.set('forceTransition', true);
+          self.set('forceTransition', true);
           App.router.route(path);
         } else if (event) {
           // Prevent multiple popups
-          _this.set('hash', _this.getHash());
-          _this.selectConfigGroup(event);
+          self.set('hash', self.getHash());
+          self.selectConfigGroup(event);
         }
         this.hide();
       },
