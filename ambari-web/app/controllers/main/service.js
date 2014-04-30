@@ -120,11 +120,13 @@ App.MainServiceController = Em.ArrayController.extend({
     if (state == 'stopAllService') {
       data = '{"RequestInfo": {"context" :"' +
         App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES +
-        '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+        '", "operation_level": {"level": "CLUSTER","cluster_name" : "' + App.get('clusterName') +
+        '"}}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
     } else {
       data = '{"RequestInfo": {"context" :"' +
         App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES +
-        '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
+        '", "operation_level": {"level": "CLUSTER","cluster_name" : "' + App.get('clusterName') +
+        '"}}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     }
 
     App.ajax.send({

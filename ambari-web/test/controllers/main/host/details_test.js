@@ -126,10 +126,42 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#getDataToSend()', function () {
+    var component = Em.Object.create({
+      componentName: 'comp1',
+      host: {
+        hostName: 'host1'
+      },
+      service: {
+        serviceName: 'serv1'
+      }
+    });
     it('should return correct query info', function () {
-      expect(controller.getDataToSend('STATE1', 'context')).to.eql({
+      controller.set("content.hostName", "host1");
+      expect(controller.getDataToSend('STATE1', 'context', component)).to.deep.eql({
         RequestInfo: {
-          "context": 'context'
+          "context": 'context',
+          "operation_level": {
+            "cluster_name": "tdk",
+            "host_name": "host1",
+            "hostcomponent_name": "comp1",
+            "service_name": "serv1",
+            "level": "HOST_COMPONENT"
+          }
+        },
+        Body: {
+          HostRoles: {
+            state: 'STATE1'
+          }
+        }
+      });
+      expect(controller.getDataToSend('STATE1', 'context', [component])).to.deep.eql({
+        RequestInfo: {
+          "context": 'context',
+          "operation_level": {
+            "cluster_name": "tdk",
+            "host_name": "host1",
+            "level": "HOST"
+          }
         },
         Body: {
           HostRoles: {

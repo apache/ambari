@@ -194,6 +194,7 @@ App.MainHostController = Em.ArrayController.extend({
         query.push(subQuery.fmt(components.join(',')));
       }
     });
+    var hostNames = hosts.mapProperty('hostName').join(",");
     if (query.length) {
       query = query.join('|');
       App.ajax.send({
@@ -202,7 +203,8 @@ App.MainHostController = Em.ArrayController.extend({
         data: {
           query: query,
           state: operationData.action,
-          requestInfo: operationData.message
+          requestInfo: operationData.message,
+          hostName: hostNames
         },
         success: 'bulkOperationForHostComponentsSuccessCallback'
       });
@@ -226,7 +228,7 @@ App.MainHostController = Em.ArrayController.extend({
     hosts.forEach(function(host) {
       hostComponents.pushObjects(host.get('hostComponents').filterProperty('passiveState','OFF').toArray());
     });
-    batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'));
+    batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
   },
 
   /**

@@ -89,7 +89,7 @@ module.exports = {
       if (staleConfigsOnly) {
         hostComponents = hostComponents.filterProperty('staleConfigs', true);
       }
-      this.restartHostComponents(hostComponents, context, query);
+      this.restartHostComponents(hostComponents, context, "SERVICE", query);
     }
   },
 
@@ -97,8 +97,10 @@ module.exports = {
    * Restart list of host components
    * @param {Ember.Enumerable} hostComponentsList list of host components should be restarted
    * @param {String} context message to show in BG popup
+   * @param {String} level - operation level, can be ("CLUSTER", "SERVICE", "HOST", "HOSTCOMPONENT")
+   * @param {String} query
    */
-  restartHostComponents: function(hostComponentsList, context, query) {
+  restartHostComponents: function(hostComponentsList, context, level, query) {
     context = context || Em.I18n.t('rollingrestart.context.default');
     /**
      * Format: {
@@ -108,6 +110,7 @@ module.exports = {
      * }
      */
     var componentToHostsMap = {};
+    var hosts = [];
     var componentServiceMap = App.QuickDataMapper.componentServiceMap();
     hostComponentsList.forEach(function(hc) {
       var componentName = hc.get('componentName');
@@ -115,6 +118,7 @@ module.exports = {
         componentToHostsMap[componentName] = [];
       }
       componentToHostsMap[componentName].push(hc.get('host.hostName'));
+      hosts.push(hc.get('host.hostName'));
     });
     var resource_filters = [];
     for (var componentName in componentToHostsMap) {
@@ -126,6 +130,12 @@ module.exports = {
         });
       }
     }
+      if(hostComponentsList.length > 0) {
+      var operation_level = this.getOperationLevelobject(level, hosts.uniq().join(","),
+          hostComponentsList[0].get("service.serviceName"), hostComponentsList[0].get("componentName"));
+    }
+
+
     if (resource_filters.length) {
       App.ajax.send({
         name: 'restart.hostComponents',
@@ -136,7 +146,8 @@ module.exports = {
         data: {
           context: context,
           resource_filters: resource_filters,
-          query: query
+          query: query,
+          operation_level: operation_level
         },
         success: 'successCallback',
         error: 'errorCallback'
@@ -144,6 +155,30 @@ module.exports = {
     }
   },
 
+  /**
+   * @param {String} level - operation level name, can be ("CLUSTER", "SERVICE", "HOST", "HOSTCOMPONENT")
+   * @param {String} hostName get host name or hostNames as String("host1,host2")
+   * @param {String} serviceName
+   * @param {String} componentName
+   * @returns {Object} {{level: *, cluster_name: *}} - operation level object
+   * @method getOperationLevelobject - create operation level object to be included into ajax query
+   */
+  getOperationLevelobject: function(level, hostName, serviceName, componentName) {
+    var operationLevel = {
+      "level": level,
+      "cluster_name": App.get("clusterName")
+    };
+    if (level === "HOST") {
+      operationLevel["host_name"] = hostName;
+    } else if (level === "SERVICE") {
+      operationLevel["service_name"] = serviceName;
+    } else {
+      operationLevel["host_name"] = hostName;
+      operationLevel["service_name"] = serviceName;
+      operationLevel["hostcomponent_name"] = componentName;
+    }
+    return operationLevel;
+  },
   /**
    * Makes a REST call to the server requesting the rolling restart of the
    * provided host components.

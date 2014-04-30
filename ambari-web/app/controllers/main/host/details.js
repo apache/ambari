@@ -111,7 +111,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method sendStartComponentCommand
    */
   sendStartComponentCommand: function (component, context) {
-    var dataToSend = this.getDataToSend('STARTED', context);
+    var dataToSend = this.getDataToSend('STARTED', context, component);
     var data = {
       hostName: this.get('content.hostName'),
       component: component
@@ -127,14 +127,30 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
   /**
    * construct meta data for query
-   * @param state
-   * @param context
-   * @return {Object}
+   * @param {String} state
+   * @param {String} context
+   * @param {String|Array} component - componentName or Array of components
+   * @return {Object} request info
+   * @method getDataToSend creates request info to start/stop component(s)
    */
-  getDataToSend: function (state, context) {
+  getDataToSend: function (state, context, component) {
+    var operationLevel = {
+      "cluster_name":  App.get('clusterName'),
+      "host_name": this.get("content.hostName")
+    };
+
+    if (Array.isArray(component)) {
+      operationLevel["level"] = "HOST";
+    } else if(component){
+      operationLevel["level"] = "HOST_COMPONENT",
+      operationLevel["hostcomponent_name"] = component.get("componentName"),
+      operationLevel["service_name"] = component.get("service.serviceName")
+    }
+
     return {
       RequestInfo: {
-        "context": context
+        "context": context,
+        "operation_level": operationLevel
       },
       Body: {
         HostRoles: {
@@ -390,7 +406,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method sendStopComponentCommand
    */
   sendStopComponentCommand: function (component, context) {
-    var dataToSend = this.getDataToSend('INSTALLED', context);
+    var dataToSend = this.getDataToSend('INSTALLED', context, component);
     var data = {
       hostName: this.get('content.hostName'),
       component: component
@@ -431,7 +447,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   restartComponent: function (event) {
     var component = event.context;
     return App.showConfirmationPopup(function () {
-      batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')));
+      batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
     });
   },
   /**
@@ -1356,7 +1372,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var componentsLength = Em.isNone(components) ? 0 : components.get('length');
     if (componentsLength > 0) {
       App.showConfirmationPopup(function () {
-        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')));
+        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allOnSelectedHost').format(self.get('content.hostName')), "HOST");
       });
     }
   },
@@ -1566,7 +1582,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     return App.showConfirmationPopup(function () {
       var staleComponents = self.get('content.componentsWithStaleConfigs');
-      batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')));
+      batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
     });
   },
 
@@ -1598,7 +1614,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
     if (components.get('length') > 0) {
       return App.showConfirmationPopup(function () {
-        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')));
+        batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')), "HOST");
       });
     }
   }

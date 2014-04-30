@@ -71,7 +71,12 @@ var urls = {
         type: 'PUT',
         data: JSON.stringify({
           RequestInfo: {
-            "context": data.requestInfo
+            "context": data.requestInfo,
+            "operation_level": {
+              "level": "SERVICE",
+              "cluster_name" : data.clusterName,
+              "service_name" : data.serviceName
+            }
           },
           Body: {
             ServiceInfo: {
@@ -398,25 +403,6 @@ var urls = {
       };
     }
   },
-  'host.host_component.action': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock': '',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": data.context
-          },
-          Body: {
-            "HostRoles": {
-              "state": data.state
-            }
-          }
-        })
-      }
-    }
-  },
 
   'host.host_component.delete': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
@@ -469,18 +455,6 @@ var urls = {
     'format': function(data) {
       return {
         type: 'PUT',
-        data: data.data
-      }
-    }
-  },
-
-  'host.host_components.start': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components',
-    'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function(data) {
-      return {
-        type: 'PUT',
-        async: false,
         data: data.data
       }
     }
@@ -1775,7 +1749,8 @@ var urls = {
         data : JSON.stringify({
           "RequestInfo": {
             "command": "RESTART",
-            "context": data.context
+            "context": data.context,
+            "operation_level": data.operation_level
           },
           "Requests/resource_filters": data.resource_filters
         })
@@ -1964,7 +1939,12 @@ var urls = {
         data: JSON.stringify({
           RequestInfo: {
             context: data.requestInfo,
-            query: data.query
+            query: data.query,
+            operation_level: {
+              level: "HOST",
+              cluster_name: data.clusterName,
+              host_name: data.hostName
+            }
           },
           Body: {
             HostRoles: {
