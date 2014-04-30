@@ -2593,12 +2593,12 @@
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcProcessingTimeNumOps",
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcProcessingTimeAvgTime",
         "pointInTime":true,
         "temporal":false
@@ -3558,12 +3558,12 @@
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcQueueTimeNumOps",
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcQueueTimeAvgTime",
         "pointInTime":true,
         "temporal":false
@@ -4082,42 +4082,42 @@
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcQueueTimeNumOps": {
+      "metrics/rpc/RpcQueueTime_num_ops": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcQueueTimeNumOps",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcQueueTimeAvgTime": {
+      "metrics/rpc/RpcQueueTime_avg_time": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcQueueTimeAvgTime",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcProcessingTimeNumOps": {
+      "metrics/rpc/RpcProcessingTime_num_ops": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcProcessingTimeNumOps",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime": {
+      "metrics/rpc/RpcProcessingTime_avg_time": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcProcessingTimeAvgTime",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthenticationFailures": {
+      "metrics/rpc/rpcAuthenticationFailures": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthenticationFailures",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthenticationSuccesses": {
+      "metrics/rpc/rpcAuthenticationSuccesses": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthenticationSuccesses",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthorizationFailures": {
+      "metrics/rpc/rpcAuthorizationFailures": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthorizationFailures",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthorizationSuccesses": {
+      "metrics/rpc/rpcAuthorizationSuccesses": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthorizationSuccesses",
         "pointInTime": true,
         "temporal": false
@@ -4127,15 +4127,11 @@
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/CallQueueLength": {
+      "metrics/rpc/callQueueLen": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.CallQueueLength",
         "pointInTime": true,
         "temporal": false
       },
-
-
-
-
       "metrics/jvm/MemNonHeapUsedM": {
         "metric": "Hadoop:service=JobHistoryServer,name=JvmMetrics.MemNonHeapUsedM",
         "pointInTime": true,
@@ -7969,12 +7965,12 @@
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcProcessingTimeNumOps",
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcProcessingTimeAvgTime",
         "pointInTime":true,
         "temporal":false
@@ -8934,12 +8930,12 @@
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcQueueTimeNumOps",
         "pointInTime":true,
         "temporal":false
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"hadoop:service=HBase,name=RPCStatistics.RpcQueueTimeAvgTime",
         "pointInTime":true,
         "temporal":false
@@ -9206,42 +9202,42 @@
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcQueueTimeNumOps": {
+      "metrics/rpc/RpcQueueTime_num_ops": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcQueueTimeNumOps",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcQueueTimeAvgTime": {
+      "metrics/rpc/RpcQueueTime_avg_time": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcQueueTimeAvgTime",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcProcessingTimeNumOps": {
+      "metrics/rpc/RpcProcessingTime_num_ops": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcProcessingTimeNumOps",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime": {
+      "metrics/rpc/RpcProcessingTime_avg_time": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcProcessingTimeAvgTime",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthenticationFailures": {
+      "metrics/rpc/rpcAuthenticationFailures": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthenticationFailures",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthenticationSuccesses": {
+      "metrics/rpc/rpcAuthenticationSuccesses": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthenticationSuccesses",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthorizationFailures": {
+      "metrics/rpc/rpcAuthorizationFailures": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthorizationFailures",
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/RpcAuthorizationSuccesses": {
+      "metrics/rpc/rpcAuthorizationSuccesses": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.RpcAuthorizationSuccesses",
         "pointInTime": true,
         "temporal": false
@@ -9251,15 +9247,11 @@
         "pointInTime": true,
         "temporal": false
       },
-      "metrics/rpc/CallQueueLength": {
+      "metrics/rpc/callQueueLen": {
         "metric": "Hadoop:service=JobHistoryServer,name=RpcActivity.CallQueueLength",
         "pointInTime": true,
         "temporal": false
       },
-
-
-
-
       "metrics/jvm/MemNonHeapUsedM": {
         "metric": "Hadoop:service=JobHistoryServer,name=JvmMetrics.MemNonHeapUsedM",
         "pointInTime": true,
