@@ -29,6 +29,28 @@ class TestCommandStatusDict(TestCase):
 
   logger = logging.getLogger()
 
+  def test_put_command_status(self):
+    execution_command = {
+      'commandType': 'EXECUTION_COMMAND',
+      'commandId': '1-1',
+      'clusterName': u'cc',
+      'exitCode': 777,
+      'role': u'DATANODE',
+      'roleCommand': u'INSTALL',
+      'serviceName': u'HDFS',
+      'taskId': 5
+    }
+    status_command = {
+      'componentName': 'DATANODE',
+      'commandType': 'STATUS_COMMAND',
+      }
+    callback_mock = MagicMock()
+    commandStatuses = CommandStatusDict(callback_action = callback_mock)
+    commandStatuses.put_command_status(status_command, None)
+    self.assertEqual(callback_mock.call_count, 0)
+    commandStatuses.put_command_status(execution_command, None)
+    self.assertEqual(callback_mock.call_count, 1)
+
   def test_put_and_generate(self):
     callback_mock = MagicMock()
     commandStatuses = CommandStatusDict(callback_action = callback_mock)
