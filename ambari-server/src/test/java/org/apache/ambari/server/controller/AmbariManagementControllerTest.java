@@ -9803,6 +9803,25 @@ public class AmbariManagementControllerTest {
     config = cluster.getDesiredConfigByType("typeA");
     Assert.assertNotNull(config);
     Assert.assertTrue(config.getProperties().containsKey("c"));
+    
+    // test reset to v2
+    cr.setDesiredConfig(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>()));
+    controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    config = cluster.getDesiredConfigByType("typeA");
+    Assert.assertEquals("v2", config.getVersionTag());
+    Assert.assertNotNull(config);
+    Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(config.getProperties().size()));
+    
+    // test v2, but with properties
+    cr.setDesiredConfig(
+        new ConfigurationRequest(clusterName, "typeA", "v2", new HashMap<String, String>() {{ put("a", "b"); }}));
+    try {
+      controller.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+      Assert.fail("Expect failure when creating a config that exists");
+    } catch (AmbariException e) {
+      // expected
+    }
   }
 }
 

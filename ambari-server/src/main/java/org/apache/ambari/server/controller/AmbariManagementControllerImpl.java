@@ -966,13 +966,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       Config oldConfig = cluster.getDesiredConfigByType(cr.getType());
       
-      if (null != cr.getProperties()) { 
-        LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''",
-            cr.getVersionTag(),
-            request.getClusterName()));
-
-        cr.setClusterName(cluster.getClusterName());
-        createConfiguration(cr);
+      if (null != cr.getProperties()) {
+        // !!! empty property sets are supported, and need to be able to use
+        // previously-defined configs (revert)
+        Map<String, Config> all = cluster.getConfigsByType(cr.getType());
+        if (null == all ||                              // none set
+            !all.containsKey(cr.getVersionTag()) ||     // tag not set
+            cr.getProperties().size() > 0) {            // properties to set
+          
+          LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''",
+              cr.getVersionTag(),
+              request.getClusterName()));
+  
+          cr.setClusterName(cluster.getClusterName());
+          createConfiguration(cr);
+        }
       }
 
       Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
