@@ -1313,7 +1313,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       for (ServiceOsSpecific osSpecific : foundedOSSpecifics) {
         hostOs.addPackages(osSpecific.getPackages());
       }
-      serviceInfo.getOsSpecifics().get(osFamily);
       // Choose repo that is relevant for host
       ServiceOsSpecific.Repo serviceRepo = hostOs.getRepo();
       if (serviceRepo != null) {
