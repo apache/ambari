@@ -120,6 +120,25 @@ public class ClusterDefinitionTest {
   }
 
   @Test
+  public void testGetHostState() throws Exception {
+    TestStateProvider stateProvider = new TestStateProvider();
+    TestClusterDefinitionProvider definitionProvider = new TestClusterDefinitionProvider();
+    TestHostInfoProvider hostInfoProvider = new TestHostInfoProvider();
+
+    ClusterDefinition clusterDefinition = new ClusterDefinition(stateProvider, definitionProvider, hostInfoProvider);
+    Assert.assertEquals("HEALTHY", clusterDefinition.getHostState("NAMENODE_MASTER.acme.com"));
+
+    stateProvider.setState(StateProvider.State.Stopped);
+    Assert.assertEquals("UNHEALTHY", clusterDefinition.getHostState("NAMENODE_MASTER.acme.com"));
+
+    stateProvider.setState(StateProvider.State.Paused);
+    Assert.assertEquals("UNHEALTHY", clusterDefinition.getHostState("NAMENODE_MASTER.acme.com"));
+
+    stateProvider.setState(StateProvider.State.Unknown);
+    Assert.assertEquals("UNHEALTHY", clusterDefinition.getHostState("NAMENODE_MASTER.acme.com"));
+  }
+
+  @Test
   public void testSetServiceState_IfStateAlreadySetToDesired() {
     StateProvider mockStateProvider = createStrictMock(StateProvider.class);
     ClusterDefinitionProvider mockClusterDefinitionProvider = createStrictMock(ClusterDefinitionProvider.class);

@@ -210,11 +210,14 @@ public class ClusterDefinition {
     }
   }
 
-  private void init() {
-    initComponentNameMap();
-    initComponentServiceMap();
-  }
 
+  // ----- ClusterDefinition -------------------------------------------------
+
+  /**
+   * Get the major stack version for this cluster.
+   *
+   * @return the major stack version
+   */
   public Integer getMajorStackVersion() {
     if(StringUtils.isNotEmpty(versionId)) {
       String majorVersion = StringUtils.substring(versionId, 4, 5);
@@ -225,6 +228,11 @@ public class ClusterDefinition {
     return null;
   }
 
+  /**
+   * Get the minor stack version for this cluster.
+   *
+   * @return the minor stack version
+   */
   public Integer getMinorStackVersion() {
     if(StringUtils.isNotEmpty(versionId)) {
       String majorVersion = StringUtils.substring(versionId, 6, 7);
@@ -234,8 +242,6 @@ public class ClusterDefinition {
     }
     return null;
   }
-
-  // ----- ClusterDefinition -------------------------------------------------
 
   /**
    * Get the name of the cluster.
@@ -326,7 +332,7 @@ public class ClusterDefinition {
           Set<String> componentNames = hostEntry.getValue();
           for (String componentName : componentNames) {
             if (isClientOnlyComponent(componentName)) continue;
-            if (stateProvider.getRunningState(hostName, componentName) == StateProvider.State.Unknown) {
+            if (stateProvider.getRunningState(hostName, componentName) != StateProvider.State.Running) {
               return "UNHEALTHY";
             }
           }
@@ -533,6 +539,12 @@ public class ClusterDefinition {
 
 
   // ----- helper methods ----------------------------------------------------
+
+  // initialize
+  private void init() {
+    initComponentNameMap();
+    initComponentServiceMap();
+  }
 
   // record a process and create the corresponding request and task resource
   private synchronized int recordProcess(StateProvider.Process process, int requestId, String context) {
