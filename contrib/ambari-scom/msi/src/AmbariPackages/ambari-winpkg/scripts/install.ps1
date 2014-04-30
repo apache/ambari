@@ -174,11 +174,12 @@ function Main( $scriptDir )
 	Write-log "Start services flag is $START_SERVICES"
     Write-log "Recreate DB flag is $RECREATE_DB"
 	$hosts= @($SQL_SERVER_NAME,$ENV:NAMENODE_HOST,$ENV:SECONDARY_NAMENODE_HOST,$ENV:RESOURCEMANAGER_HOST,$ENV:HIVE_SERVER_HOST,$ENV:OOZIE_SERVER_HOST,
-	$ENV:WEBHCAT_HOST,$ENV:HBASE_MASTER)
+	$ENV:WEBHCAT_HOST,$ENV:HBASE_MASTER,$ENV:NN_HA_STANDBY_NAMENODE_HOST,$ENV:RM_HA_STANDBY_RESOURCEMANAGER_HOST)
 	Split_Hosts $ENV:SLAVE_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:ZOOKEEPER_HOSTS ([REF]$hosts)
 	Split_Hosts $ENV:FLUME_HOSTS ([REF]$hosts)
     Split_Hosts $ENV:CLIENT_HOSTS ([REF]$hosts)
+    Split_Hosts $ENV:NN_HA_JOURNALNODE_HOSTS ([REF]$hosts)
     if (-not (Test-Path ENV:HDP_VERSION))
     {
         Write-log "Detecting HDP version"
@@ -209,6 +210,7 @@ function Main( $scriptDir )
 			}
         }
     }
+    $hdpversion = $ENV:HDP_VERSION
     Write-Log "Hosts list:"
 	Write-log $hosts
 	Write-Log "Intalling data sink on each host"
@@ -220,7 +222,7 @@ function Main( $scriptDir )
 			PushInstall-Files $server $destination $destination
 			Write-Log "Executing data sink installation"
 			$out = Invoke-Command -ComputerName $server -ScriptBlock {
-				param( $server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES,$RECREATE_DB )
+				param( $server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES,$RECREATE_DB,$hdpversion )
 				$log = Join-Path $destination "ambari_install.log"
                  Out-File -FilePath $log -InputObject "Starting installation" -Append -Encoding "UTF8"
 				function Invoke-Cmd ($command)
@@ -285,6 +287,7 @@ function Main( $scriptDir )
 				$hdp_home = [Environment]::GetEnvironmentVariable("HADOOP_HOME","Machine")
 				if ($hdp_home -ne $null)
 				{
+                    Out-File -FilePath $log -InputObject "HDP version is $hdpversion" -Append -Encoding "UTF8"
 					Out-File -FilePath $log -InputObject "Installing data sink on $server" -Append -Encoding "UTF8"
 					Write-Host "Installing data sink on $server"
                     Write-Output "Installing data sink on $server"
@@ -302,7 +305,15 @@ function Main( $scriptDir )
 					Out-File -FilePath $log -InputObject "Modifying CLASSPATH" -Append -Encoding "UTF8"
 					Write-Host "Modifying CLASSPATH"
                     Write-Output "Modifying CLASSPATH"
-					$names = @("namenode","secondarynamenode","datanode","historyserver","resourcemanager","nodemanager")
+					$names = New-Object System.Collections.ArrayList
+                    $nodes = @("namenode","secondarynamenode","datanode","historyserver","resourcemanager","nodemanager")
+                    $names.AddRange($nodes)
+                    $hdpversionint = [int]$hdpversion.Replace(".",$null)
+                    if ($hdpversionint -gt 210)
+                    {
+                        $names.Remove("historyserver")
+                        $names.Add("jobhistoryserver")
+                    }
 					foreach ($name in $names)
 					{
 						modify_xml $name
@@ -328,7 +339,7 @@ function Main( $scriptDir )
 					Copy-Item $log $log_new
 					Remove-Item $Destination -force -Recurse
 				}
-			} -ArgumentList ($server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES,$RECREATE_DB)
+			} -ArgumentList ($server,$SQL_SERVER_NAME,$SQL_SERVER_PORT,$SQL_SERVER_LOGIN,$SQL_SERVER_PASSWORD,$destination,$ambari_metrics,$START_SERVICES,$RECREATE_DB,$hdpversion)
             if ($out -like "*Cannot create database*")
 			{
                 Write-Log "DB creation on $server failed."

@@ -29,7 +29,8 @@ $MANDATORY_LAYOUT_PROPERTIES = @("AMB_DATA_DIR", "SQL_SERVER_PASSWORD",
 $HDP_LAYOUT_PROPERTIES = @( "NAMENODE_HOST", "SECONDARY_NAMENODE_HOST", "JOBTRACKER_HOST",
                              "HIVE_SERVER_HOST", "OOZIE_SERVER_HOST", "WEBHCAT_HOST",
                              "SLAVE_HOSTS","ZOOKEEPER_HOSTS", "HBASE_MASTER",
-                             "FLUME_HOSTS","CLIENT_HOSTS")
+                             "FLUME_HOSTS","CLIENT_HOSTS","NN_HA_JOURNALNODE_HOSTS","NN_HA_STANDBY_NAMENODE_HOST",
+                             "RM_HA_STANDBY_RESOURCEMANAGER_HOST")
 
 
 ### Helper routine that converts a $null object to nothing. Otherwise, iterating over
