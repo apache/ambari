@@ -24,8 +24,10 @@
           <Property ID="ServiceName" Type="string" Key="true" />
         </ClassType>
 
-        <ClassType ID="Ambari.SCOM.ClusterService" Accessibility="Public" Base="Ambari.SCOM.AmbariEntity" Hosted="true" Abstract="true" Singleton="false">
+        <ClassType ID="Ambari.SCOM.ClusterServiceBase" Accessibility="Public" Base="Ambari.SCOM.AmbariEntity" Hosted="true" Abstract="true" Singleton="false">
           <Property ID="ClusterName" Type="string" Comment="Required to show parent cluster name on State Widget" />
+        </ClassType>
+        <ClassType ID="Ambari.SCOM.ClusterService" Accessibility="Public" Base="Ambari.SCOM.ClusterServiceBase" Hosted="true" Abstract="true" Singleton="false">
         </ClassType>
 
         <ClassType ID="Ambari.SCOM.ClusterService.Hdfs" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
@@ -33,8 +35,8 @@
         <ClassType ID="Ambari.SCOM.ClusterService.Hive" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.Templeton" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.Oozie" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
-        <ClassType ID="Ambari.SCOM.ClusterService.Pig" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
-        <ClassType ID="Ambari.SCOM.ClusterService.Sqoop" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Pig" Accessibility="Public" Base="Ambari.SCOM.ClusterServiceBase" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Sqoop" Accessibility="Public" Base="Ambari.SCOM.ClusterServiceBase" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.MapReduce2" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
         <ClassType ID="Ambari.SCOM.ClusterService.Yarn" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
       </ClassTypes>
@@ -43,11 +45,11 @@
         <RelationshipType ID="Ambari.SCOM.PrivateClusterServiceHostsClusterService"
                           Base="System!System.Hosting" Accessibility="Public">
           <Source ID="PrivateService" Type="Ambari.SCOM.ClusterService.Private" />
-          <Target ID="Service" Type="Ambari.SCOM.ClusterService" />
+          <Target ID="Service" Type="Ambari.SCOM.ClusterServiceBase" />
         </RelationshipType>
 
         <RelationshipType ID="Ambari.SCOM.ClusterServiceContainsHostComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
-          <Source ID="Service" Type="Ambari.SCOM.ClusterService" />
+          <Source ID="Service" Type="Ambari.SCOM.ClusterServiceBase" />
           <Target ID="Component" Type="Ambari.SCOM.HostComponent" />
         </RelationshipType>
 
@@ -137,9 +139,13 @@
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.ClusterService">
           <Name>Hadoop Cluster Service</Name>
+          <Description>Base class for all manageble Hadoop Cluster Services.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterServiceBase">
+          <Name>Hadoop Cluster Service</Name>
           <Description>Base class for all Hadoop Cluster Services.</Description>
         </DisplayString>
-        <DisplayString ElementID="Ambari.SCOM.ClusterService" SubElementID="ClusterName">
+        <DisplayString ElementID="Ambari.SCOM.ClusterServiceBase" SubElementID="ClusterName">
           <Name>Cluster Name</Name>
         </DisplayString>
         <DisplayString ElementID="Ambari.SCOM.PrivateClusterServiceHostsClusterService">

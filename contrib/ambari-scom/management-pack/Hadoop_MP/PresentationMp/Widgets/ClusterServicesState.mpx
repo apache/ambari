@@ -37,7 +37,7 @@
               <ComplexValueCollection Type="xsd://Microsoft.SystemCenter.Visualization.Library!Microsoft.SystemCenter.Visualization.OperationalDataTypes/BaseManagementPackType[]">
                 <ComplexValue Type="xsd://Microsoft.SystemCenter.Visualization.Library!Microsoft.SystemCenter.Visualization.OperationalDataTypes/BaseManagementPackType">
                   <Binding PropertyId="FullyQualifiedName">
-                    <SimpleValue Type="xsd://string" Value="Ambari.SCOM.Monitoring!Ambari.SCOM.ClusterService" />
+                    <SimpleValue Type="xsd://string" Value="Ambari.SCOM.Monitoring!Ambari.SCOM.ClusterServiceBase" />
                   </Binding>
                 </ComplexValue>
               </ComplexValueCollection>

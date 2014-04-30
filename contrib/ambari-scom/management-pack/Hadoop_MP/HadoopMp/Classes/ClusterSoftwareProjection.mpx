@@ -32,7 +32,7 @@
         <RelationshipType ID="Ambari.SCOM.ClusterSoftwareProjectionContainsClusterService"
                             Base="System!System.Containment" Abstract="false" Accessibility="Public">
           <Source ID="Projection" Type="Ambari.SCOM.ClusterSoftwareProjection" />
-          <Target ID="Service" Type="Ambari.SCOM.ClusterService" />
+          <Target ID="Service" Type="Ambari.SCOM.ClusterServiceBase" />
         </RelationshipType>
       </RelationshipTypes>
     </EntityTypes>

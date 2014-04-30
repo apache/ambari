@@ -44,7 +44,7 @@ function DiscoverServices($discoveryData, $healthServices) {
         $serviceEntity.AddProperty("$MPElement[Name="Ambari.SCOM.ClusterService.Private"]/TemplateName$", $TemplateName)
         $serviceEntity.AddProperty("$MPElement[Name="Ambari.SCOM.ClusterService.Private"]/ClusterName$", $ClusterName)
         $serviceEntity.AddProperty("$MPElement[Name='Ambari.SCOM.ClusterService.Private']/ServiceName$", $clusterService.ServiceInfo.service_name)
-        $serviceEntity.AddProperty("$MPElement[Name="Ambari.SCOM.ClusterService"]/ClusterName$", $ClusterName)
+        $serviceEntity.AddProperty("$MPElement[Name="Ambari.SCOM.ClusterServiceBase"]/ClusterName$", $ClusterName)
         $serviceEntity.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", $serviceName)
         $discoveryData.AddInstance($serviceEntity)
 

@@ -20,7 +20,7 @@
     <Views>
       <View ID="Ambari.SCOM.View.ClusterServicesPerformance"
             TypeID="SC!Microsoft.SystemCenter.PerformanceViewType"
-            Target="Ambari.SCOM.ClusterService"
+            Target="Ambari.SCOM.ClusterServiceBase"
             Visible="true" Accessibility="Public">
         <Category>Operations</Category>
         <Criteria>

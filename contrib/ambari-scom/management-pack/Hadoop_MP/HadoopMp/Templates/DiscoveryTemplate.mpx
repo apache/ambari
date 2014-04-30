@@ -125,7 +125,7 @@
                        Enabled="true" ConfirmDelivery="false" Remotable="true" Priority="Normal">
               <Category>Discovery</Category>
               <DiscoveryTypes>
-                <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService">
+                <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterServiceBase">
                   <Property TypeID="$Reference/System$System.Entity" PropertyID="DisplayName" />
                 </DiscoveryClass>
                 <DiscoveryClass TypeID="$Reference/Self$Ambari.SCOM.ClusterService.Hdfs" />
