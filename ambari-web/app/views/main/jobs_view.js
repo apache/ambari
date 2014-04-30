@@ -243,18 +243,24 @@ App.MainJobsView = App.TableView.extend({
     href: '#',
     isLink: 'is-not-link',
     isLinkObserver: function () {
+      this.refreshLinks();
+    }.observes('controller.sortingDone'),
+    refreshLinks: function () {
       if (this.get('job.hasTezDag')) {
         this.set('isLink', "");
       }else{
         this.set('isLink', "is-not-link");
       }
-    }.observes('controller.sortingDone'),
+    },
     template: Ember.Handlebars.compile('{{job.name}}'),
     click: function(event) {
       if (this.get('job.hasTezDag')) {
         App.router.transitionTo('main.jobs.jobDetails', this.get('job'));
       };
       return false;
+    },
+    didInsertElement: function () {
+      this.refreshLinks();
     }
   }),
 
