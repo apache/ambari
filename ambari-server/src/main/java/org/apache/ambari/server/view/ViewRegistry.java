@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.view.configuration.EntityConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
+import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
@@ -266,11 +267,11 @@ public class ViewRegistry {
           try {
             ClassLoader cl = URLClassLoader.newInstance(new URL[]{fileEntry.toURI().toURL()});
 
-            InputStream    configStream     = cl.getResourceAsStream(VIEW_XML);
-            JAXBContext    jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
-            Unmarshaller   jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            ViewConfig     viewConfig       = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
-            ViewEntity viewDefinition       = installView(viewConfig, configuration, cl, fileEntry.getAbsolutePath());
+            InputStream  configStream     = cl.getResourceAsStream(VIEW_XML);
+            JAXBContext  jaxbContext      = JAXBContext.newInstance(ViewConfig.class);
+            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+            ViewConfig   viewConfig       = (ViewConfig) jaxbUnmarshaller.unmarshal(configStream);
+            ViewEntity   viewDefinition   = installView(viewConfig, configuration, cl, fileEntry.getAbsolutePath());
 
             for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
               ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
@@ -288,7 +289,6 @@ public class ViewRegistry {
         }
       }
       try {
-
         instanceDefinitions.addAll(persistViews());
       } catch (ClassNotFoundException e) {
         LOG.error("Caught exception persisting views.", e);
@@ -528,20 +528,27 @@ public class ViewRegistry {
 
   // Set the entities defined in the view persistence element for the given view instance
   private static void setPersistenceEntities(ViewInstanceEntity viewInstanceDefinition) {
-    ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
+    ViewEntity        viewDefinition    = viewInstanceDefinition.getViewEntity();
+    ViewConfig        viewConfig        = viewDefinition.getConfiguration();
+
     Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
 
-    ViewConfig viewConfig = viewDefinition.getConfiguration();
-    for (EntityConfig entityConfiguration : viewConfig.getPersistence().getEntities()) {
-      ViewEntityEntity viewEntityEntity = new ViewEntityEntity();
+    if (viewConfig != null) {
+      PersistenceConfig persistenceConfig = viewConfig.getPersistence();
 
-      viewEntityEntity.setViewName(viewDefinition.getName());
-      viewEntityEntity.setViewInstanceName(viewInstanceDefinition.getName());
-      viewEntityEntity.setClassName(entityConfiguration.getClassName());
-      viewEntityEntity.setIdProperty(entityConfiguration.getIdProperty());
-      viewEntityEntity.setViewInstance(viewInstanceDefinition);
+      if (persistenceConfig != null) {
+        for (EntityConfig entityConfiguration : persistenceConfig.getEntities()) {
+          ViewEntityEntity viewEntityEntity = new ViewEntityEntity();
 
-      entities.add(viewEntityEntity);
+          viewEntityEntity.setViewName(viewDefinition.getName());
+          viewEntityEntity.setViewInstanceName(viewInstanceDefinition.getName());
+          viewEntityEntity.setClassName(entityConfiguration.getClassName());
+          viewEntityEntity.setIdProperty(entityConfiguration.getIdProperty());
+          viewEntityEntity.setViewInstance(viewInstanceDefinition);
+
+          entities.add(viewEntityEntity);
+        }
+      }
     }
     viewInstanceDefinition.setEntities(entities);
   }
@@ -580,7 +587,7 @@ public class ViewRegistry {
   private Set<ViewInstanceEntity> persistViews() throws ClassNotFoundException {
 
     Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
-    Set<String> persistedViews = new HashSet<String>();
+    Set<String>             persistedViews      = new HashSet<String>();
 
     for (ViewEntity viewEntity : viewDAO.findAll()) {
       String name = viewEntity.getName();
