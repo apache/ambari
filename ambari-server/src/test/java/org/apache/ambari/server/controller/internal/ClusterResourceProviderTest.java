@@ -488,6 +488,221 @@ public class ClusterResourceProviderTest {
   }
 
   @Test
+  public void testCreateResource_blueprint_hostMappedToMultipleHG() throws Exception {
+    String blueprintName = "test-blueprint";
+    String stackName = "test";
+    String stackVersion = "1.23";
+    String clusterName = "c1";
+
+    BlueprintDAO blueprintDAO = createStrictMock(BlueprintDAO.class);
+    AmbariManagementController managementController = createStrictMock(AmbariManagementController.class);
+    Request request = createNiceMock(Request.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    BlueprintEntity blueprint = createNiceMock(BlueprintEntity.class);
+    StackServiceResponse stackServiceResponse1 = createNiceMock(StackServiceResponse.class);
+    StackServiceResponse stackServiceResponse2 = createNiceMock(StackServiceResponse.class);
+    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
+
+    StackServiceComponentResponse stackServiceComponentResponse1 = createNiceMock(StackServiceComponentResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse2 = createNiceMock(StackServiceComponentResponse.class);
+    StackServiceComponentResponse stackServiceComponentResponse3 = createNiceMock(StackServiceComponentResponse.class);
+    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture1 = new Capture<Set<StackServiceComponentRequest>>();
+    Capture<Set<StackServiceComponentRequest>> serviceComponentRequestCapture2 = new Capture<Set<StackServiceComponentRequest>>();
+
+    StackConfigurationResponse stackConfigurationResponse1 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse2 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse3 = createNiceMock(StackConfigurationResponse.class);
+    StackConfigurationResponse stackConfigurationResponse4 = createNiceMock(StackConfigurationResponse.class);
+    Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture1 = new Capture<Set<StackConfigurationRequest>>();
+    Capture<Set<StackConfigurationRequest>> serviceConfigurationRequestCapture2 = new Capture<Set<StackConfigurationRequest>>();
+
+    BlueprintConfigEntity blueprintConfig = createNiceMock(BlueprintConfigEntity.class);
+
+    HostGroupEntity hostGroup = createNiceMock(HostGroupEntity.class);
+    HostGroupComponentEntity hostGroupComponent1 = createNiceMock(HostGroupComponentEntity.class);
+    HostGroupComponentEntity hostGroupComponent2 = createNiceMock(HostGroupComponentEntity.class);
+    HostGroupComponentEntity hostGroupComponent3 = createNiceMock(HostGroupComponentEntity.class);
+
+    HostGroupConfigEntity hostGroupConfig = createNiceMock(HostGroupConfigEntity.class);
+
+    ServiceResourceProvider serviceResourceProvider = createStrictMock(ServiceResourceProvider.class);
+    ResourceProvider componentResourceProvider = createStrictMock(ResourceProvider.class);
+    ResourceProvider hostResourceProvider = createStrictMock(ResourceProvider.class);
+    ResourceProvider hostComponentResourceProvider = createStrictMock(ResourceProvider.class);
+    ConfigGroupResourceProvider configGroupResourceProvider = createStrictMock(ConfigGroupResourceProvider.class);
+
+    Capture<ClusterRequest> createClusterRequestCapture = new Capture<ClusterRequest>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture2 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture2 = new Capture<Map<String, String>>();
+    Capture<Set<ClusterRequest>> updateClusterRequestCapture3 = new Capture<Set<ClusterRequest>>();
+    Capture<Map<String, String>> updateClusterPropertyMapCapture3 = new Capture<Map<String, String>>();
+
+    Capture<Request> serviceRequestCapture = new Capture<Request>();
+    Capture<Request> componentRequestCapture = new Capture<Request>();
+    Capture<Request> componentRequestCapture2 = new Capture<Request>();
+    Capture<Request> hostRequestCapture = new Capture<Request>();
+    Capture<Request> hostComponentRequestCapture = new Capture<Request>();
+    Capture<Set<ConfigGroupRequest>> configGroupRequestCapture = new Capture<Set<ConfigGroupRequest>>();
+
+    Set<StackServiceResponse> stackServiceResponses = new LinkedHashSet<StackServiceResponse>();
+    stackServiceResponses.add(stackServiceResponse1);
+    stackServiceResponses.add(stackServiceResponse2);
+
+    // service1 has 2 components
+    Set<StackServiceComponentResponse> stackServiceComponentResponses1 = new LinkedHashSet<StackServiceComponentResponse>();
+    stackServiceComponentResponses1.add(stackServiceComponentResponse1);
+    stackServiceComponentResponses1.add(stackServiceComponentResponse2);
+
+    // service2 has 1 components
+    Set<StackServiceComponentResponse> stackServiceComponentResponses2 = new LinkedHashSet<StackServiceComponentResponse>();
+    stackServiceComponentResponses2.add(stackServiceComponentResponse3);
+
+    // service1 has 1 config
+    Set<StackConfigurationResponse> stackConfigurationResponses1 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses1.add(stackConfigurationResponse1);
+
+    // service2 has 3 config
+    Set<StackConfigurationResponse> stackConfigurationResponses2 = new LinkedHashSet<StackConfigurationResponse>();
+    stackConfigurationResponses2.add(stackConfigurationResponse2);
+    stackConfigurationResponses2.add(stackConfigurationResponse3);
+    stackConfigurationResponses2.add(stackConfigurationResponse4);
+
+    Collection<HostGroupComponentEntity> hostGroupComponents = new LinkedHashSet<HostGroupComponentEntity>();
+    hostGroupComponents.add(hostGroupComponent1);
+    hostGroupComponents.add(hostGroupComponent2);
+    hostGroupComponents.add(hostGroupComponent3);
+
+    // request properties
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
+    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    propertySet.add(properties);
+
+    Collection<Map<String, Object>> hostGroups = new ArrayList<Map<String, Object>>();
+    Map<String, Object> hostGroupProperties1 = new HashMap<String, Object>();
+    Map<String, Object> hostGroupProperties2 = new HashMap<String, Object>();
+    hostGroups.add(hostGroupProperties1);
+    hostGroups.add(hostGroupProperties2);
+    hostGroupProperties1.put("name", "group1");
+    hostGroupProperties2.put("name", "group2");
+    Collection<Map<String, String>> hostGroupHosts = new ArrayList<Map<String, String>>();
+    hostGroupProperties1.put("hosts", hostGroupHosts);
+    hostGroupProperties2.put("hosts", hostGroupHosts);
+    Map<String, String> hostGroupHostProperties = new HashMap<String, String>();
+    hostGroupHostProperties.put("fqdn", "host.domain");
+    hostGroupHosts.add(hostGroupHostProperties);
+    properties.put("host_groups", hostGroups);
+
+    Map<String, String> mapGroupConfigProperties = new HashMap<String, String>();
+    mapGroupConfigProperties.put("myGroupProp", "awesomeValue");
+
+    // blueprint cluster configuration properties
+    Map<String, String> blueprintConfigProperties = new HashMap<String, String>();
+    blueprintConfigProperties.put("property1", "value2");
+    blueprintConfigProperties.put("new.property", "new.property.value");
+
+    // expectations
+    expect(request.getProperties()).andReturn(propertySet).anyTimes();
+    expect(blueprintDAO.findByName(blueprintName)).andReturn(blueprint);
+    expect(blueprint.getStackName()).andReturn(stackName);
+    expect(blueprint.getStackVersion()).andReturn(stackVersion);
+    expect(blueprint.getConfigurations()).andReturn(Collections.<BlueprintConfigEntity>singletonList(blueprintConfig));
+
+    expect(managementController.getStackServices(capture(stackServiceRequestCapture))).andReturn(stackServiceResponses);
+    expect(stackServiceResponse1.getServiceName()).andReturn("service1");
+    expect(stackServiceResponse2.getServiceName()).andReturn("service2");
+
+    expect(managementController.getStackComponents(capture(serviceComponentRequestCapture1))).
+        andReturn(stackServiceComponentResponses1);
+    expect(stackServiceComponentResponse1.getComponentName()).andReturn("component1");
+    expect(stackServiceComponentResponse2.getComponentName()).andReturn("component2");
+
+    expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture1))).
+        andReturn(stackConfigurationResponses1);
+    expect(stackConfigurationResponse1.getType()).andReturn("core-site.xml");
+    expect(stackConfigurationResponse1.getPropertyName()).andReturn("property1");
+    expect(stackConfigurationResponse1.getPropertyValue()).andReturn("value1");
+
+    expect(managementController.getStackComponents(capture(serviceComponentRequestCapture2))).
+        andReturn(stackServiceComponentResponses2);
+    expect(stackServiceComponentResponse3.getComponentName()).andReturn("component3");
+
+    expect(managementController.getStackConfigurations(capture(serviceConfigurationRequestCapture2))).
+        andReturn(stackConfigurationResponses2);
+    expect(stackConfigurationResponse2.getType()).andReturn("hdfs-site.xml");
+    expect(stackConfigurationResponse2.getPropertyName()).andReturn("property2");
+    expect(stackConfigurationResponse2.getPropertyValue()).andReturn("value2");
+
+    expect(stackConfigurationResponse3.getType()).andReturn("global.xml");
+    expect(stackConfigurationResponse3.getPropertyName()).andReturn("oozie_user");
+    expect(stackConfigurationResponse3.getPropertyValue()).andReturn("oozie");
+
+    expect(stackConfigurationResponse4.getType()).andReturn("core-site.xml");
+    expect(stackConfigurationResponse4.getPropertyName()).andReturn("property3");
+    expect(stackConfigurationResponse4.getPropertyValue()).andReturn("value3");
+
+    expect(blueprintConfig.getBlueprintName()).andReturn("test-blueprint").anyTimes();
+    expect(blueprintConfig.getType()).andReturn("core-site").anyTimes();
+    expect(blueprintConfig.getConfigData()).andReturn(new Gson().toJson(blueprintConfigProperties));
+
+    expect(blueprint.getHostGroups()).andReturn(Collections.singleton(hostGroup)).anyTimes();
+    expect(hostGroup.getName()).andReturn("group1").anyTimes();
+    expect(hostGroup.getComponents()).andReturn(hostGroupComponents).anyTimes();
+    expect(hostGroupComponent1.getName()).andReturn("component1").anyTimes();
+    expect(hostGroupComponent2.getName()).andReturn("component2").anyTimes();
+    expect(hostGroupComponent3.getName()).andReturn("component3").anyTimes();
+    expect(hostGroup.getConfigurations()).andReturn(
+        Collections.<HostGroupConfigEntity>singleton(hostGroupConfig)).anyTimes();
+
+    expect(hostGroupConfig.getType()).andReturn("core-site").anyTimes();
+    expect(hostGroupConfig.getConfigData()).andReturn(new Gson().toJson(mapGroupConfigProperties)).anyTimes();
+
+    managementController.createCluster(capture(createClusterRequestCapture));
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture),
+        capture(updateClusterPropertyMapCapture))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture2),
+        capture(updateClusterPropertyMapCapture2))).andReturn(null);
+    expect(managementController.updateClusters(capture(updateClusterRequestCapture3),
+        capture(updateClusterPropertyMapCapture3))).andReturn(null);
+
+    expect(serviceResourceProvider.createResources(capture(serviceRequestCapture))).andReturn(null);
+    expect(componentResourceProvider.createResources(capture(componentRequestCapture))).andReturn(null);
+    expect(componentResourceProvider.createResources(capture(componentRequestCapture2))).andReturn(null);
+    expect(hostResourceProvider.createResources(capture(hostRequestCapture))).andReturn(null);
+    expect(hostComponentResourceProvider.createResources(capture(hostComponentRequestCapture))).andReturn(null);
+
+    expect(serviceResourceProvider.installAndStart(clusterName)).andReturn(response);
+
+    expect(configGroupResourceProvider.createResources(
+        capture(configGroupRequestCapture))).andReturn(null);
+
+    replay(blueprintDAO, managementController, request, response, blueprint, stackServiceResponse1, stackServiceResponse2,
+        stackServiceComponentResponse1, stackServiceComponentResponse2, stackServiceComponentResponse3,
+        stackConfigurationResponse1, stackConfigurationResponse2, stackConfigurationResponse3, stackConfigurationResponse4,
+        blueprintConfig, hostGroup, hostGroupComponent1, hostGroupComponent2, hostGroupComponent3, hostGroupConfig,
+        serviceResourceProvider, componentResourceProvider, hostResourceProvider, hostComponentResourceProvider,
+        configGroupResourceProvider);
+
+    // test
+    ClusterResourceProvider.injectBlueprintDAO(blueprintDAO);
+    ResourceProvider provider = new TestClusterResourceProvider(
+        managementController, serviceResourceProvider, componentResourceProvider,
+        hostResourceProvider, hostComponentResourceProvider, configGroupResourceProvider);
+
+    try {
+      provider.createResources(request);
+      fail("Exception excepted");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+  }
+
+
+  @Test
   public void testGetResources() throws Exception{
     Resource.Type type = Resource.Type.Cluster;
 
