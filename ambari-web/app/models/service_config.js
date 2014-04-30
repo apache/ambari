@@ -616,9 +616,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
     } else {
       var mPoint = allMountPoints[0].mountpoint;
       if (mPoint === "/") {
-        mPoint = this.get('defaultDirectory') + "\n";
+        mPoint = this.get('defaultDirectory');
       } else {
-        mPoint = mPoint + this.get('defaultDirectory') + "\n";
+        mPoint = mPoint + this.get('defaultDirectory');
       }
       this.set('value', mPoint);
       this.set('defaultValue', mPoint);
