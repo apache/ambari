@@ -100,6 +100,8 @@ class ActionQueue(threading.Thread):
 
   def put(self, commands):
     for command in commands:
+      if not command.has_key('serviceName'):
+        command['serviceName'] = "null"
       logger.info("Adding " + command['commandType'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")

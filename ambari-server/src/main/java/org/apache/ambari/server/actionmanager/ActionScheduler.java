@@ -383,12 +383,17 @@ class ActionScheduler implements Runnable {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
-        Service svc = cluster.getService(c.getServiceName());
+        Service svc = null;
+        if (c.getServiceName() != null && !c.getServiceName().isEmpty()) {
+          svc = cluster.getService(c.getServiceName());
+        }
         ServiceComponent svcComp = null;
         Map<String, ServiceComponentHost>  scHosts = null;
         try {
-          svcComp = svc.getServiceComponent(roleStr);
-          scHosts = svcComp.getServiceComponentHosts();
+          if (svc != null) {
+            svcComp = svc.getServiceComponent(roleStr);
+            scHosts = svcComp.getServiceComponentHosts();
+          }
         } catch (ServiceComponentNotFoundException scnex) {
           String msg = String.format(
                   "%s is not not a service component, assuming its an action",
@@ -407,8 +412,8 @@ class ActionScheduler implements Runnable {
                           "Execution command details: " +
                           "cluster=%s; host=%s; service=%s; component=%s; " +
                           "cmdId: %s; taskId: %s; roleCommand: %s",
-                  c.getClusterName(), host, svcComp.getServiceName(),
-                  svcComp.getName(),
+                  c.getClusterName(), host, svcComp == null ? "null" : svcComp.getServiceName(),
+                  svcComp == null ? "null" : svcComp.getName(),
                   c.getCommandId(), c.getTaskId(), c.getRoleCommand());
           LOG.warn(message);
           // Abort the command itself

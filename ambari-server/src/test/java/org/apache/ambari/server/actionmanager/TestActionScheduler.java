@@ -1451,4 +1451,68 @@ public class TestActionScheduler {
     scheduler.stop();
   }
 
+
+  @Test
+  public void testServerActionWOService() throws Exception {
+    ActionQueue aq = new ActionQueue();
+    Properties properties = new Properties();
+    Configuration conf = new Configuration(properties);
+    Clusters fsm = mock(Clusters.class);
+    Cluster oneClusterMock = mock(Cluster.class);
+    Service serviceObj = mock(Service.class);
+    ServiceComponent scomp = mock(ServiceComponent.class);
+    ServiceComponentHost sch = mock(ServiceComponentHost.class);
+    UnitOfWork unitOfWork = mock(UnitOfWork.class);
+    when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
+    when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
+    when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
+    when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
+    when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    String hostname = "ahost.ambari.apache.org";
+    HashMap<String, ServiceComponentHost> hosts =
+            new HashMap<String, ServiceComponentHost>();
+    hosts.put(hostname, sch);
+    when(scomp.getServiceComponentHosts()).thenReturn(hosts);
+
+    List<Stage> stages = new ArrayList<Stage>();
+    Map<String, String> payload = new HashMap<String, String>();
+    payload.put(ServerAction.PayloadName.CLUSTER_NAME, "cluster1");
+    payload.put(ServerAction.PayloadName.CURRENT_STACK_VERSION, "HDP-0.2");
+    final Stage s = getStageWithServerAction(1, 977, hostname, payload, "test");
+    s.getExecutionCommands().get("ahost.ambari.apache.org").get(0).getExecutionCommand().setServiceName(null);
+    stages.add(s);
+
+    ActionDBAccessor db = mock(ActionDBAccessor.class);
+    when(db.getStagesInProgress()).thenReturn(stages);
+    doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) throws Throwable {
+        String host = (String) invocation.getArguments()[0];
+        String role = (String) invocation.getArguments()[3];
+        CommandReport commandReport = (CommandReport) invocation.getArguments()[4];
+        HostRoleCommand command = s.getHostRoleCommand(host, role);
+        command.setStatus(HostRoleStatus.valueOf(commandReport.getStatus()));
+        return null;
+      }
+    }).when(db).updateHostRoleState(anyString(), anyLong(), anyLong(), anyString(), any(CommandReport.class));
+
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+            new HostsMap((String) null), new ServerActionManagerImpl(fsm),
+            unitOfWork, conf);
+    scheduler.start();
+
+    while (!stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION")
+            .equals(HostRoleStatus.COMPLETED)) {
+      Thread.sleep(100);
+    }
+
+    scheduler.stop();
+    assertEquals(stages.get(0).getHostRoleStatus(hostname, "AMBARI_SERVER_ACTION"),
+            HostRoleStatus.COMPLETED);
+
+
+  }
+
 }

@@ -39,4 +39,14 @@
     <description>Used to create an alert blackout</description>
     <targetType>ANY</targetType>
   </actionDefinition>
+  <actionDefinition>
+    <actionName>check_umask</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs>threshold</inputs>
+    <targetService></targetService>
+    <targetComponent></targetComponent>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Check umask</description>
+    <targetType>ANY</targetType>
+  </actionDefinition>
 </actionDefinitions>
