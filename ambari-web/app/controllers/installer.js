@@ -40,6 +40,28 @@ App.InstallerController = App.WizardController.extend({
     controllerName: 'installerController'
   }),
 
+  /**
+   * Wizard properties in local storage, which should be cleaned right after wizard has been finished
+   */
+  dbPropertiesToClean: [
+    'service',
+    'hosts',
+    'masterComponentHosts',
+    'slaveComponentHosts',
+    'cluster',
+    'allHostNames',
+    'installOptions',
+    'allHostNamesPattern',
+    'serviceComponents',
+    'advancedServiceConfig',
+    'clientInfo',
+    'selectedServiceNames',
+    'serviceConfigGroups',
+    'serviceConfigProperties',
+    'configsToUpdate',
+    'bootStatus'
+  ],
+
   init: function () {
     this._super();
     this.get('isStepDisabled').setEach('value', true);

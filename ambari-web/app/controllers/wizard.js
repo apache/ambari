@@ -24,6 +24,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
 
   isStepDisabled: null,
 
+  /**
+   * Wizard properties in local storage, which should be cleaned right after wizard has been finished
+   */
+  dbPropertiesToClean: [
+    'service',
+    'hosts',
+    'masterComponentHosts',
+    'slaveComponentHosts',
+    'cluster',
+    'allHostNames',
+    'installOptions',
+    'allHostNamesPattern',
+    'serviceComponents'
+  ],
+
   init: function () {
     this.set('isStepDisabled', []);
     this.clusters = App.Cluster.find();
@@ -403,15 +418,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
   },
 
   clearStorageData: function () {
-    this.setDBProperty('service',undefined); //not to use this data at AddService page
-    this.setDBProperty('hosts', undefined);
-    this.setDBProperty('masterComponentHosts', undefined);
-    this.setDBProperty('slaveComponentHosts', undefined);
-    this.setDBProperty('cluster', undefined);
-    this.setDBProperty('allHostNames', undefined);
-    this.setDBProperty('installOptions', undefined);
-    this.setDBProperty('allHostNamesPattern', undefined);
-    this.setDBProperty('serviceComponents', undefined);
+    this.get('dbPropertiesToClean').forEach(function (key) {
+      this.setDBProperty(key, undefined);
+    }, this);
   },
 
   installOptionsTemplate: {

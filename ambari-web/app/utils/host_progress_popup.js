@@ -68,14 +68,17 @@ App.HostPopup = Em.Object.create({
   /**
    * Entering point of this component
    * @param {String} serviceName
-   * @param {App.Controller} controller
-   * @param {bool} isBackgroundOperations
+   * @param {Object} controller
+   * @param {Boolean} isBackgroundOperations
+   * @param {Integer} requestId
    */
-  initPopup: function (serviceName, controller, isBackgroundOperations) {
+  initPopup: function (serviceName, controller, isBackgroundOperations, requestId) {
     if (!isBackgroundOperations) {
       this.clearHostPopup();
       this.set("popupHeaderName", serviceName);
     }
+
+    this.set('currentServiceId', requestId);
     this.set("serviceName", serviceName);
     this.set("dataSourceController", controller);
     this.set("isBackgroundOperations", isBackgroundOperations);
@@ -697,21 +700,31 @@ App.HostPopup = Em.Object.create({
          * @param levelName
          */
         switchLevel: function (levelName) {
+          var dataSourceController = this.get('controller.dataSourceController');
+          var securityControllers = [
+            'mainAdminSecurityDisableController',
+            'mainAdminSecurityAddStep4Controller'
+          ];
           if (this.get("controller.isBackgroundOperations")) {
-            var BGController = App.router.get('backgroundOperationsController');
-            var levelInfo = BGController.get('levelInfo');
+            var levelInfo = dataSourceController.get('levelInfo');
             levelInfo.set('taskId', this.get('openedTaskId'));
             levelInfo.set('requestId', this.get('controller.currentServiceId'));
             levelInfo.set('name', levelName);
             if (levelName === 'HOSTS_LIST') {
               levelInfo.set('sync', (this.get('controller.hosts').length === 0));
-              BGController.requestMostRecent();
+              dataSourceController.requestMostRecent();
             } else if (levelName === 'TASK_DETAILS') {
               levelInfo.set('sync', true);
-              BGController.requestMostRecent();
+              dataSourceController.requestMostRecent();
             } else if (levelName === 'REQUESTS_LIST') {
               this.get('controller.hosts').clear();
-              BGController.requestMostRecent();
+              dataSourceController.requestMostRecent();
+            }
+          } else if (securityControllers.contains(dataSourceController.get('name'))) {
+            if (levelName === 'TASK_DETAILS') {
+              dataSourceController.startUpdatingTask(this.get('controller.currentServiceId'), this.get('openedTaskId'));
+            } else {
+              dataSourceController.stopUpdatingTask(this.get('controller.currentServiceId'));
             }
           }
         },

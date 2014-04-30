@@ -42,16 +42,15 @@ App.StageLabelView = Em.View.extend({
   command: null,
   click: function () {
     if (this.get('command') && this.get('showLink')) {
-      this.showHostPopup(this.get('command.label'));
+      this.showHostPopup(this.get('command'));
     }
   },
 
-  showHostPopup: function (label) {
-    var serviceName = label;
+  showHostPopup: function (command) {
     var controller = this.get("controller");
     App.router.get('applicationController').dataLoading().done(function (initValue) {
-      var popupView = App.HostPopup.initPopup(serviceName, controller);
-      popupView.set ('isNotShowBgChecked', !initValue);
+      var popupView = App.HostPopup.initPopup(command.get('label'), controller, false, command.get('requestId'));
+      popupView.set('isNotShowBgChecked', !initValue);
     })
   },
 

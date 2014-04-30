@@ -25,7 +25,7 @@ App.Poll = Em.Object.extend({
   isStarted: false,
   isPolling: true,
   clusterName: null,
-  requestId: undefined,
+  requestId: null,
   temp: false,
   progress: 0,
   url: null,
@@ -37,6 +37,7 @@ App.Poll = Em.Object.extend({
   polledData: [],
   numPolls: 0,
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
+  currentTaskId: null,
 
   barWidth: function () {
     return 'width: ' + this.get('progress') + '%;';
@@ -51,7 +52,7 @@ App.Poll = Em.Object.extend({
   }.property('isPolling', 'isStarted'),
 
   start: function () {
-    if (this.get('requestId') === undefined) {
+    if (Em.isNone(this.get('requestId'))) {
       this.setRequestId();
     } else {
       this.startPolling();
@@ -81,10 +82,9 @@ App.Poll = Em.Object.extend({
         console.log("TRACE: Polling -> value of the url is: " + url);
         console.log("TRACE: Polling-> value of the sent data is: " + self.get('data'));
         console.log("TRACE: Polling-> value of the received data is: " + jsonData);
-        if (jsonData === null) {
+        if (Em.isNone(jsonData)) {
           self.set('isSuccess', true);
           self.set('isError', false);
-          self.set('requestId',undefined);
         } else {
           var requestId = jsonData.Requests.id;
           self.set('requestId', requestId);
@@ -103,59 +103,93 @@ App.Poll = Em.Object.extend({
     });
   },
 
+  /**
+   * set current task id and send request
+   * @param taskId
+   */
+  updateTaskLog: function (taskId) {
+    this.set('currentTaskId', taskId);
+    this.pollTaskLog();
+  },
+
   doPolling: function () {
     if (this.get('requestId')) {
       this.startPolling();
     }
   },
 
+  /**
+   * server call to obtain task logs
+   */
+  pollTaskLog: function () {
+    if (this.get('currentTaskId')) {
+      App.ajax.send({
+        name: 'background_operations.get_by_task',
+        sender: this,
+        data: {
+          requestId: this.get('requestId'),
+          taskId: this.get('currentTaskId'),
+          sync: true
+        },
+        success: 'pollTaskLogSuccessCallback'
+      })
+    }
+  },
+
+  /**
+   * update logs of current task
+   * @param data
+   */
+  pollTaskLogSuccessCallback: function (data) {
+    var currentTask = this.get('polledData').findProperty('Tasks.id', data.Tasks.id);
+    currentTask.Tasks.stdout = data.Tasks.stdout;
+    currentTask.Tasks.stderr = data.Tasks.stderr;
+    Em.propertyDidChange(this, 'polledData');
+  },
+
+  /**
+   * start polling operation data
+   * @return {Boolean}
+   */
   startPolling: function () {
-    if (!this.get('requestId')) {
-      return;
-    }
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/' + this.get('requestId') + '?fields=tasks/*';
-    if (App.testMode) {
-      this.set('POLL_INTERVAL', 1);
-      this.numPolls++;
-      url = this.get('mockDataPrefix') + '/poll_' + this.get('numPolls') + '.json';
-    }
+    if (!this.get('requestId')) return false;
 
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: true,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        console.log("TRACE: In success function for the GET logs data");
-        console.log("TRACE: The value is: ", jQuery.parseJSON(data));
-        var result = self.parseInfo(jQuery.parseJSON(data));
-        if (result !== true) {
-          window.setTimeout(function () {
-            self.startPolling();
-          }, self.POLL_INTERVAL);
-        } else {
-          self.set('requestId', undefined);
-        }
+    this.pollTaskLog();
+    App.ajax.send({
+      name: 'background_operations.get_by_request',
+      sender: this,
+      data: {
+        requestId: this.get('requestId'),
+        sync: false
       },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the GET data");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-        if (!self.get('isSuccess')) {
-          self.set('isError', true);
-        }
-      },
-
-      statusCode: require('data/statusCodes')
-    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
-      function () {
+      success: 'startPollingSuccessCallback',
+      error: 'startPollingErrorCallback'
+    })
+      .retry({times: App.maxRetries, timeout: App.timeout})
+      .then(null, function () {
         App.showReloadPopup();
         console.log('Install services all retries failed');
-      }
-    );
+      });
+    return true;
+  },
+
+  startPollingSuccessCallback: function (data) {
+    var self = this;
+    var result = this.parseInfo(data);
+    if (!result) {
+      window.setTimeout(function () {
+        self.startPolling();
+      }, this.POLL_INTERVAL);
+    }
+  },
+
+  startPollingErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: In error function for the GET data");
+    console.log("TRACE: value of the url is: " + url);
+    console.log("TRACE: error code status is: " + request.status);
+    if (!this.get('isSuccess')) {
+      this.set('isError', true);
+    }
   },
 
   stopPolling: function () {
@@ -163,7 +197,13 @@ App.Poll = Em.Object.extend({
   },
 
   replacePolledData: function (polledData) {
-    this.polledData.clear();
+    var currentTaskId = this.get('currentTaskId');
+    if (currentTaskId) {
+      var task = this.get('polledData').findProperty('Tasks.id', currentTaskId);
+      var currentTask = polledData.findProperty('Tasks.id', currentTaskId);
+      currentTask.Tasks.stdout = task.Tasks.stdout;
+      currentTask.Tasks.stderr = task.Tasks.stderr;
+    }
     this.set('polledData', polledData);
   },
 
@@ -208,9 +248,9 @@ App.Poll = Em.Object.extend({
     }
     var requestId = this.get('requestId');
     if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
-      // We dont want to use non-current requestId's tasks data to
+      // We don't want to use non-current requestId's tasks data to
       // determine the current install status.
-      // Also, we dont want to keep polling if it is not the
+      // Also, we don't want to keep polling if it is not the
       // current requestId.
       return false;
     }

@@ -62,10 +62,36 @@ App.MainAdminSecurityProgressController = Em.Controller.extend({
   retry: function () {
     var failedCommand = this.get('commands').findProperty('isError');
     if (failedCommand) {
+      failedCommand.set('requestId', null);
       failedCommand.set('isStarted', false);
       failedCommand.set('isError', false);
       this.startCommand(failedCommand);
     }
+  },
+
+  /**
+   * start updating current task in parallel
+   * @param requestId
+   * @param taskId
+   * @return {Boolean}
+   */
+  startUpdatingTask: function (requestId, taskId) {
+    if (!requestId || !taskId) return false;
+    var command = this.get('commands').findProperty('requestId', requestId);
+    command.updateTaskLog(taskId);
+    return true;
+  },
+
+  /**
+   * stop updating current task
+   * @param requestId
+   * @return {Boolean}
+   */
+  stopUpdatingTask: function (requestId) {
+    if (!requestId) return false;
+    var command = this.get('commands').findProperty('requestId', requestId);
+    command.set('currentTaskId', null);
+    return true;
   },
 
   /**
