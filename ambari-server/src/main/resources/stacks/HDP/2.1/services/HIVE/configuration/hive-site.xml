@@ -459,4 +459,10 @@ limitations under the License.
     <description>Number of aborted transactions involving a particular table or partition before major compaction is initiated.</description>
   </property>
 
+  <property>
+    <name>datanucleus.cache.level2.type</name>
+    <value>none</value>
+    <description>Determines caching mechanism DataNucleus L2 cache will use. It is strongly recommended to use default value of 'none' as other values may cause consistency errors in Hive.</description>
+  </property>
+
 </configuration>
