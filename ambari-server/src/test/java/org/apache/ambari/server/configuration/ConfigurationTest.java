@@ -18,10 +18,22 @@
 
 package org.apache.ambari.server.configuration;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import static org.powermock.api.easymock.PowerMock.verifyAll;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Properties;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.commons.io.FileUtils;
@@ -38,18 +50,9 @@ import org.powermock.api.support.membermodification.MemberMatcher;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Mockito.*;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
-import static org.powermock.api.easymock.PowerMock.replayAll;
-import static org.powermock.api.easymock.PowerMock.verifyAll;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Properties;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 
 @RunWith(PowerMockRunner.class)
@@ -258,4 +261,22 @@ public class ConfigurationTest {
     conf.getLocalDatabaseUrl();
   }
 
+  @Test()
+  public void testServerPoolSizes() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+    
+    Assert.assertEquals(25, conf.getClientThreadPoolSize());
+    Assert.assertEquals(25, conf.getAgentThreadPoolSize());
+    
+    ambariProperties = new Properties();
+    ambariProperties.setProperty("client.threadpool.size.max", "4");
+    ambariProperties.setProperty("agent.threadpool.size.max", "82");
+    conf = new Configuration(ambariProperties);
+    
+    Assert.assertEquals(4, conf.getClientThreadPoolSize());
+    Assert.assertEquals(82, conf.getAgentThreadPoolSize());
+    
+  }  
+  
 }

@@ -17,7 +17,15 @@
  */
 package org.apache.ambari.server.configuration;
 
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -30,14 +38,8 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Map.Entry;
+
+import com.google.inject.Singleton;
 
 
 /**
@@ -274,6 +276,13 @@ public class Configuration {
   private static final String REPO_SUFFIX_UBUNTU = "/dists/HDP/Release.gpg,/dists/HDP/Release";
   
   private static final String PARALLEL_STAGE_EXECUTION_DEFAULT = "true";
+  
+  private static final String CLIENT_THREADPOOL_SIZE_KEY = "client.threadpool.size.max";
+  private static final int CLIENT_THREADPOOL_SIZE_DEFAULT = 25;
+  private static final String AGENT_THREADPOOL_SIZE_KEY = "agent.threadpool.size.max";
+  private static final int AGENT_THREADPOOL_SIZE_DEFAULT = 25;
+  
+  
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
   private Properties properties;
@@ -968,4 +977,20 @@ public class Configuration {
   public String getServerJDBCSchemaName() {
     return properties.getProperty(SERVER_JDBC_SCHEMA_NAME, SERVER_DB_NAME_DEFAULT);
   }
+
+  /**
+   * @return max thread pool size for clients, default 25
+   */
+  public int getClientThreadPoolSize() {
+    return Integer.parseInt(properties.getProperty(
+        CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
+  }
+  
+  /**
+   * @return max thread pool size for agents, default 25
+   */
+  public int getAgentThreadPoolSize() {
+    return Integer.parseInt(properties.getProperty(
+        AGENT_THREADPOOL_SIZE_KEY, String.valueOf(AGENT_THREADPOOL_SIZE_DEFAULT)));
+  }  
 }

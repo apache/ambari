@@ -341,8 +341,10 @@ public class AmbariServer {
       }
 
       //Set jetty thread pool
-      serverForAgent.setThreadPool(new QueuedThreadPool(25));
-      server.setThreadPool(new QueuedThreadPool(25));
+      serverForAgent.setThreadPool(
+          new QueuedThreadPool(configs.getAgentThreadPoolSize()));
+      server.setThreadPool(
+          new QueuedThreadPool(configs.getClientThreadPoolSize()));
 
       /* Configure the API server to use the NIO connectors */
       SelectChannelConnector apiConnector;
