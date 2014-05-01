@@ -22,6 +22,11 @@
 
 <configuration>
   <property>
+    <name>hive_database_type</name>
+    <value>mysql</value>
+    <description>Default HIVE DB type.</description>
+  </property>
+  <property>
     <name>hive_database</name>
     <value>New MySQL Database</value>
     <description>
@@ -43,9 +48,10 @@
     <value>hive</value>
     <description>Database username to use to connect to the database.</description>
   </property>    
-  <property>
+  <property require-input="true">
     <name>hive_metastore_user_passwd</name>
     <value></value>
+    <type>PASSWORD</type>
     <description>Database password to use to connect to the database.</description>
   </property>    
   <property>

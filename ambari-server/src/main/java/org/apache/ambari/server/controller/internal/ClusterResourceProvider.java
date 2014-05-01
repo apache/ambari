@@ -17,14 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -60,6 +52,13 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigImpl;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource provider for cluster resources.
@@ -77,8 +76,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          CLUSTER_ID_PROPERTY_ID}));
+      new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
 
   /**
    * Data access object used to obtain blueprint entities.
@@ -822,6 +820,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     // HIVE_SERVER
     propertyUpdaters.put("hive.metastore.uris", new SingleHostPropertyUpdater("HIVE_SERVER"));
     propertyUpdaters.put("hive_ambari_host", new SingleHostPropertyUpdater("HIVE_SERVER"));
+    propertyUpdaters.put("javax.jdo.option.ConnectionURL", new SingleHostPropertyUpdater("MYSQL_SERVER"));
 
     // OOZIE_SERVER
     propertyUpdaters.put("oozie.base.url", new SingleHostPropertyUpdater("OOZIE_SERVER"));
@@ -1110,14 +1109,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
      * @throws AmbariException an exception occurred getting configurations from the stack definition
      */
     private void parseConfigurations(String service) throws AmbariException {
-      Map<String, Map<String, String>> mapServiceConfig =
-          new HashMap<String, Map<String, String>>();
+      Map<String, Map<String, String>> mapServiceConfig = new HashMap<String, Map<String, String>>();
 
       serviceConfigurations.put(service, mapServiceConfig);
 
-      Set<StackConfigurationResponse> serviceConfigs = getManagementController().getStackConfigurations(
+      Set<StackConfigurationResponse> serviceConfigs =
+        getManagementController().getStackConfigurations(
           Collections.singleton(new StackConfigurationRequest(name, version, service, null)
-          ));
+        ));
 
       for (StackConfigurationResponse config : serviceConfigs) {
         String type = config.getType();
@@ -1130,6 +1129,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
           mapTypeConfig = new HashMap<String, String>();
           mapServiceConfig.put(type, mapTypeConfig);
         }
+
         mapTypeConfig.put(config.getPropertyName(), config.getPropertyValue());
       }
     }

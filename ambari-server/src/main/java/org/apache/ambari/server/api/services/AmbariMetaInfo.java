@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.LatestRepoCallable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
@@ -124,6 +125,9 @@ public class AmbariMetaInfo {
   private File customActionRoot;
   @Inject
   private MetainfoDAO metainfoDAO;
+  // Required properties by stack version
+  private final Map<StackId, Map<String, PropertyInfo>> requiredProperties =
+    new HashMap<StackId, Map<String, PropertyInfo>>();
 
   /**
    * Ambari Meta Info Object
@@ -161,10 +165,10 @@ public class AmbariMetaInfo {
   /**
    * Get component category
    *
-   * @param stackName
-   * @param version
-   * @param serviceName
-   * @param componentName
+   * @param stackName     stack name
+   * @param version       stack version
+   * @param serviceName   service name
+   * @param componentName component name
    * @return component component Info
    * @throws AmbariException
    */
@@ -185,10 +189,10 @@ public class AmbariMetaInfo {
   /**
    * Get components by service
    *
-   * @param stackName
-   * @param version
-   * @param serviceName
-   * @return
+   * @param stackName     stack name
+   * @param version       stack version
+   * @param serviceName   service name
+   * @return List of ComponentInfo objects
    * @throws AmbariException
    */
   public List<ComponentInfo> getComponentsByService(String stackName, String version, String serviceName)
@@ -756,8 +760,7 @@ public class AmbariMetaInfo {
         + " should be a directory with stack"
         + ", stackRoot = " + stackRootAbsPath);
 
-    StackExtensionHelper stackExtensionHelper = new StackExtensionHelper
-      (stackRoot);
+    StackExtensionHelper stackExtensionHelper = new StackExtensionHelper(stackRoot);
     stackExtensionHelper.fillInfo();
 
     List<StackInfo> stacks = stackExtensionHelper.getAllAvailableStacks();
@@ -814,6 +817,10 @@ public class AmbariMetaInfo {
       // Resolve hooks folder
       String stackHooksToUse = stackExtensionHelper.resolveHooksFolder(stack);
       stack.setStackHooksFolder(stackHooksToUse);
+
+      // Set required config properties
+      requiredProperties.put(new StackId(stack.getName(), stack.getVersion()),
+        stackExtensionHelper.getAllRequiredPropertiesForStack(stack));
     }
 
     es.invokeAll(lookupList);
@@ -821,6 +828,15 @@ public class AmbariMetaInfo {
     es.shutdown();
   }
 
+  /**
+   * Get properties with require_input attribute set to true.
+   * @param stackName Name of the stack, e.g.: HDP
+   * @param stackVersion Version of the stack
+   * @return Map of config type to Properties
+   */
+  public Map<String, PropertyInfo> getRequiredPropertiesForStack(String stackName, String stackVersion) {
+    return requiredProperties.get(new StackId(stackName, stackVersion));
+  }
 
   public String getServerVersion() {
     return serverVersion;
@@ -891,8 +907,6 @@ public class AmbariMetaInfo {
 
     return sb.toString();
   }
-
-
 
   /**
    * @param stackName the stack name
