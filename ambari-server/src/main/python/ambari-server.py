@@ -1360,7 +1360,7 @@ def setup_remote_db(args):
 
   print_warning_msg(setup_msg)
 
-  proceed = get_YN_input("Proceed with configuring remote database connection properties [y/n] (n)? ", True)
+  proceed = get_YN_input("Proceed with configuring remote database connection properties [y/n] (y)? ", True)
   retCode = 0 if proceed else -1
 
   return retCode
