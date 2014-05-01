@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -39,6 +40,8 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,6 +95,11 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    */
   private static Gson jsonSerializer;
 
+  /**
+   * Stack information.
+   */
+  private static AmbariMetaInfo stackInfo;
+
 
   // ----- Constructors ----------------------------------------------------
 
@@ -110,11 +118,13 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    *
    * @param blueprintDAO  blueprint data access object
    * @param gson          gson json serializer
+   * @param metaInfo      stack related information
    */
   @Inject
-  public static void init(BlueprintDAO blueprintDAO, Gson gson) {
+  public static void init(BlueprintDAO blueprintDAO, Gson gson, AmbariMetaInfo metaInfo) {
     dao            = blueprintDAO;
     jsonSerializer = gson;
+    stackInfo      = metaInfo;
   }
 
 
@@ -186,8 +196,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       throws SystemException, UnsupportedPropertyException,
              NoSuchResourceException, NoSuchParentResourceException {
 
-    // no-op, blueprints are immutable
-    //todo: meaningful error message
+    // no-op, blueprints are immutable.  Service doesn't support PUT so should never get here.
     return null;
   }
 
@@ -319,7 +328,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    * @return new blueprint entity
    */
   @SuppressWarnings("unchecked")
-  protected BlueprintEntity toEntity(Map<String, Object> properties) {
+  protected BlueprintEntity toBlueprintEntity(Map<String, Object> properties) {
     String name = (String) properties.get(BLUEPRINT_NAME_PROPERTY_ID);
     if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("Blueprint name must be provided");
@@ -330,42 +339,146 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
     blueprint.setStackName((String) properties.get(STACK_NAME_PROPERTY_ID));
     blueprint.setStackVersion((String) properties.get(STACK_VERSION_PROPERTY_ID));
 
-    Collection<HostGroupEntity> blueprintHostGroups = new ArrayList<HostGroupEntity>();
-    blueprint.setHostGroups(blueprintHostGroups);
-
-    HashSet<HashMap<String, Object>> setHostGroups =
-        (HashSet<HashMap<String, Object>>) properties.get(HOST_GROUP_PROPERTY_ID);
-
-    for (HashMap<String, Object> hostGroupProperties : setHostGroups) {
-      HostGroupEntity group = new HostGroupEntity();
-      group.setName((String) hostGroupProperties.get(HOST_GROUP_NAME_PROPERTY_ID));
-      group.setBlueprintEntity(blueprint);
-      group.setBlueprintName(name);
-      group.setCardinality((String) hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
-      createHostGroupConfigEntities((Collection<Map<String,
-          String>>) hostGroupProperties.get(CONFIGURATION_PROPERTY_ID), group);
-
-      Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
-      group.setComponents(components);
-
-      HashSet<HashMap<String, String>> setComponents =
-          (HashSet<HashMap<String, String>>) hostGroupProperties.get(COMPONENT_PROPERTY_ID);
-      for (HashMap<String, String> componentProperties : setComponents) {
-        HostGroupComponentEntity component = new HostGroupComponentEntity();
-        component.setName(componentProperties.get(COMPONENT_NAME_PROPERTY_ID));
-        component.setBlueprintName(name);
-        component.setHostGroupEntity(group);
-        component.setHostGroupName((String) hostGroupProperties.get(HOST_GROUP_NAME_PROPERTY_ID));
-
-        components.add(component);
-      }
-      blueprintHostGroups.add(group);
-    }
+    createHostGroupEntities(blueprint,
+        (HashSet<HashMap<String, Object>>) properties.get(HOST_GROUP_PROPERTY_ID));
 
     createBlueprintConfigEntities((Collection<Map<String,
         String>>) properties.get(CONFIGURATION_PROPERTY_ID), blueprint);
 
     return blueprint;
+  }
+
+  /**
+   * Create host group entities and add to the parent blueprint entity.
+   *
+   * @param blueprint      parent blueprint entity
+   * @param setHostGroups  set of host group property maps
+   */
+  @SuppressWarnings("unchecked")
+  private void createHostGroupEntities(BlueprintEntity blueprint,
+                                       HashSet<HashMap<String, Object>> setHostGroups) {
+
+    if (setHostGroups == null || setHostGroups.isEmpty()) {
+      throw new IllegalArgumentException("At least one host group must be specified in a blueprint");
+    }
+
+    Collection<HostGroupEntity> entities = new ArrayList<HostGroupEntity>();
+    Collection<String> stackComponentNames = getAllStackComponents(
+        blueprint.getStackName(), blueprint.getStackVersion());
+
+    for (HashMap<String, Object> hostGroupProperties : setHostGroups) {
+      HostGroupEntity hostGroup = new HostGroupEntity();
+      entities.add(hostGroup);
+
+      String hostGroupName = (String) hostGroupProperties.get(HOST_GROUP_NAME_PROPERTY_ID);
+      if (hostGroupName == null || hostGroupName.isEmpty()) {
+        throw new IllegalArgumentException("Every host group must include a non-null 'name' property");
+      }
+
+      hostGroup.setName(hostGroupName);
+      hostGroup.setBlueprintEntity(blueprint);
+      hostGroup.setBlueprintName(blueprint.getBlueprintName());
+      hostGroup.setCardinality((String) hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
+
+      createHostGroupConfigEntities((Collection<Map<String,
+          String>>) hostGroupProperties.get(CONFIGURATION_PROPERTY_ID), hostGroup);
+
+      createComponentEntities(hostGroup, (HashSet<HashMap<String, String>>)
+          hostGroupProperties.get(COMPONENT_PROPERTY_ID), stackComponentNames);
+    }
+    blueprint.setHostGroups(entities);
+  }
+
+  /**
+   * Create component entities and add to parent host group.
+   *
+   * @param group           parent host group
+   * @param setComponents   set of component property maps
+   * @param componentNames  set of all component names for the associated stack
+   */
+  @SuppressWarnings("unchecked")
+  private void createComponentEntities(HostGroupEntity group, HashSet<HashMap<String, String>> setComponents,
+                                       Collection<String> componentNames) {
+    
+    Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
+    String groupName = group.getName();
+    group.setComponents(components);
+
+    if (setComponents == null || setComponents.isEmpty()) {
+      throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
+    }
+
+    for (HashMap<String, String> componentProperties : setComponents) {
+      HostGroupComponentEntity component = new HostGroupComponentEntity();
+      components.add(component);
+
+      String componentName = componentProperties.get(COMPONENT_NAME_PROPERTY_ID);
+      if (componentName == null || componentName.isEmpty()) {
+        throw new IllegalArgumentException("Host group '" + groupName +
+            "' contains a component with no 'name' property");
+      }
+
+      if (! componentNames.contains(componentName)) {
+        throw new IllegalArgumentException("The component '" + componentName + "' in host group '" +
+            groupName + "' is not valid for the specified stack");
+      }
+
+      component.setName(componentName);
+      component.setBlueprintName(group.getBlueprintName());
+      component.setHostGroupEntity(group);
+      component.setHostGroupName(group.getName());
+    }
+    group.setComponents(components);
+  }
+
+  /**
+   * Obtain all component names for the specified stack.
+   *
+   * @param stackName     stack name
+   * @param stackVersion  stack version
+   *
+   * @return collection of component names for the specified stack
+   * @throws IllegalArgumentException if the specified stack doesn't exist
+   */
+  private Collection<String> getAllStackComponents(String stackName, String stackVersion) {
+    Collection<String> componentNames = new HashSet<String>();
+    componentNames.add("AMBARI_SERVER");
+    Collection<ComponentInfo> components;
+    try {
+      components = getComponents(stackName, stackVersion);
+    } catch (AmbariException e) {
+      throw new IllegalArgumentException("The specified stack doesn't exist.  Name='" +
+          stackName + "', Version='" + stackVersion + "'");
+    }
+    if (components != null) {
+      for (ComponentInfo component : components) {
+        componentNames.add(component.getName());
+      }
+    }
+    return componentNames;
+  }
+
+  /**
+   * Get all the components for the specified stack.
+   *
+   * @param stackName  stack name
+   * @param version    stack version
+   *
+   * @return all components for the specified stack
+   * @throws AmbariException if the stack doesn't exist
+   */
+  private Collection<ComponentInfo> getComponents(String stackName, String version) throws AmbariException {
+    Collection<ComponentInfo> components = new HashSet<ComponentInfo>();
+    Map<String, ServiceInfo> services = stackInfo.getServices(stackName, version);
+
+    for (ServiceInfo service : services.values()) {
+      List<ComponentInfo> serviceComponents = stackInfo.getComponentsByService(
+          stackName, version, service.getName());
+      for (ComponentInfo component : serviceComponents) {
+        components.add(component);
+      }
+    }
+    return components;
   }
 
   /**
@@ -470,7 +583,7 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        BlueprintEntity blueprint = toEntity(properties);
+        BlueprintEntity blueprint = toBlueprintEntity(properties);
 
         if (LOG.isDebugEnabled()) {
           LOG.debug("Creating Blueprint, name=" + blueprint.getBlueprintName());

@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.gson.Gson;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -36,6 +39,8 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.easymock.Capture;
 
 import static org.junit.Assert.assertFalse;
@@ -71,37 +76,58 @@ import static org.junit.Assert.fail;
 /**
  * BlueprintResourceProvider unit tests.
  */
+@SuppressWarnings("unchecked")
 public class BlueprintResourceProviderTest {
 
   private static String BLUEPRINT_NAME = "test-blueprint";
 
   private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
   private final static Gson gson = new Gson();
+  private final static AmbariMetaInfo metaInfo = createStrictMock(AmbariMetaInfo.class);
 
   @BeforeClass
   public static void initClass() {
-    BlueprintResourceProvider.init(dao, gson);
+    BlueprintResourceProvider.init(dao, gson, metaInfo);
   }
 
   @Before
   public void resetGlobalMocks() {
-    reset(dao);
+    reset(dao, metaInfo);
   }
 
   @Test
-  public void testCreateResources() throws ResourceAlreadyExistsException, SystemException,
-                                           UnsupportedPropertyException, NoSuchParentResourceException {
+  public void testCreateResources() throws AmbariException, ResourceAlreadyExistsException, SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
 
     Set<Map<String, Object>> setProperties = getTestProperties();
-    Request request = createMock(Request.class);
+
+
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
     dao.create(capture(entityCapture));
 
-    replay(dao, request);
+    replay(dao, metaInfo, request);
     // end expectations
 
     ResourceProvider provider = createProvider();
@@ -119,24 +145,41 @@ public class BlueprintResourceProviderTest {
 
     validateEntity(entityCapture.getValue(), false);
 
-    verify(dao, request);
+    verify(dao, metaInfo, request);
   }
 
   @Test
-  public void testCreateResources_withConfiguration() throws ResourceAlreadyExistsException, SystemException,
+  public void testCreateResources_withConfiguration() throws AmbariException, ResourceAlreadyExistsException, SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Set<Map<String, Object>> setProperties = getTestProperties();
     setConfigurationProperties(setProperties);
     Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
     // set expectations
     expect(request.getProperties()).andReturn(setProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
     dao.create(capture(entityCapture));
 
-    replay(dao, request);
+    replay(dao, metaInfo, request);
     // end expectations
 
     ResourceProvider provider = createProvider();
@@ -154,7 +197,7 @@ public class BlueprintResourceProviderTest {
 
     validateEntity(entityCapture.getValue(), true);
 
-    verify(dao, request);
+    verify(dao, metaInfo, request);
   }
 
   @Test
@@ -163,8 +206,7 @@ public class BlueprintResourceProviderTest {
     Request request = createNiceMock(Request.class);
 
     ResourceProvider provider = createProvider();
-    BlueprintEntity entity = ((BlueprintResourceProvider) provider).toEntity(
-        getTestProperties().iterator().next());
+    BlueprintEntity entity = createEntity(getTestProperties().iterator().next());
 
     List<BlueprintEntity> results = new ArrayList<BlueprintEntity>();
     results.add(entity);
@@ -188,8 +230,7 @@ public class BlueprintResourceProviderTest {
     ResourceProvider provider = createProvider();
     Set<Map<String, Object>> testProperties = getTestProperties();
     setConfigurationProperties(testProperties);
-    BlueprintEntity entity = ((BlueprintResourceProvider) provider).toEntity(
-        testProperties.iterator().next());
+    BlueprintEntity entity = createEntity(testProperties.iterator().next());
 
     List<BlueprintEntity> results = new ArrayList<BlueprintEntity>();
     results.add(entity);
@@ -213,8 +254,7 @@ public class BlueprintResourceProviderTest {
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
     ResourceProvider provider = createProvider();
-    BlueprintEntity blueprintEntity = ((BlueprintResourceProvider) provider).toEntity(
-        getTestProperties().iterator().next());
+    BlueprintEntity blueprintEntity = createEntity(getTestProperties().iterator().next());
 
     // set expectations
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(blueprintEntity);
@@ -238,6 +278,256 @@ public class BlueprintResourceProviderTest {
     verify(dao);
 
     validateEntity(entityCapture.getValue(), false);
+  }
+
+  @Test
+  public void testCreateResource_validate__NoHostGroups() throws AmbariException, ResourceAlreadyExistsException, SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    setProperties.iterator().next().remove(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResource_Validate__NoHostGroupName() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    ((HashSet<Map<String, String>>) setProperties.iterator().next().get(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).
+        iterator().next().put("name", "");
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResource_Validate__NoHostGroupComponents() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    ((HashSet<Map<String, String>>) setProperties.iterator().next().get(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).
+        iterator().next().remove("components");
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResource_Validate__NoHostGroupComponentName() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    ((HashSet<Map<String, String>>) ((HashSet<Map<String, Object>>) setProperties.iterator().next().get(
+        BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).iterator().next().get("components")).
+        iterator().next().put("name", "");
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResource_Validate__InvalidComponent() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    // change component1->foo which results in a validation failure for bad component name
+    component1.setName("foo");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+    verify(dao, metaInfo, request);
+  }
+
+  @Test
+  public void testCreateResource_Validate__AmbariServerComponent() throws AmbariException, ResourceAlreadyExistsException,
+      SystemException, UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
+    ServiceInfo service = new ServiceInfo();
+    service.setName("test-service");
+    services.put("test-service", service);
+
+    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
+    ComponentInfo component1 = new ComponentInfo();
+    component1.setName("component1");
+    ComponentInfo component2 = new ComponentInfo();
+    component2.setName("component2");
+    serviceComponents.add(component1);
+    serviceComponents.add(component2);
+
+    Set<Map<String, Object>> setProperties = getTestProperties();
+    ((HashSet<Map<String, String>>) ((HashSet<Map<String, Object>>) setProperties.iterator().next().get(
+        BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID)).iterator().next().get("components")).
+        iterator().next().put("name", "AMBARI_SERVER");
+
+
+    Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
+    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
+        andReturn(serviceComponents).anyTimes();
+    dao.create(capture(entityCapture));
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    ResourceProvider provider = createProvider();
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    verify(dao, metaInfo, request);
   }
 
   private Set<Map<String, Object>> getTestProperties() {
@@ -271,7 +561,6 @@ public class BlueprintResourceProviderTest {
     Map<String, Object> mapProperties = new HashMap<String, Object>();
     mapProperties.put(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
     mapProperties.put(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID, "test-stack-name");
-    mapProperties.put(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID, "test-stack-version");
     mapProperties.put(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID, "test-stack-version");
     mapProperties.put(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID, setHostGroupProperties);
 
@@ -414,6 +703,63 @@ public class BlueprintResourceProviderTest {
     return new BlueprintResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint));
+  }
+
+  private BlueprintEntity createEntity(Map<String, Object> properties) {
+    BlueprintEntity entity = new BlueprintEntity();
+    entity.setBlueprintName((String) properties.get(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID));
+    entity.setStackName((String) properties.get(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID));
+    entity.setStackVersion((String) properties.get(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID));
+
+    Set<Map<String, Object>> hostGroupProperties = (Set<Map<String, Object>>) properties.get(
+        BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
+
+    Collection<HostGroupEntity> hostGroups = new ArrayList<HostGroupEntity>();
+    for (Map<String, Object> groupProperties : hostGroupProperties) {
+      HostGroupEntity hostGroup = new HostGroupEntity();
+      hostGroups.add(hostGroup);
+      hostGroup.setName((String) groupProperties.get(BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID));
+      hostGroup.setCardinality((String) groupProperties.get(BlueprintResourceProvider.HOST_GROUP_CARDINALITY_PROPERTY_ID));
+      hostGroup.setConfigurations(new ArrayList<HostGroupConfigEntity>());
+
+      Set<Map<String, String>> setComponentProperties = (Set<Map<String, String>>) groupProperties.get(
+          BlueprintResourceProvider.COMPONENT_PROPERTY_ID);
+
+      Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
+      for (Map<String, String> compProperties : setComponentProperties) {
+        HostGroupComponentEntity component = new HostGroupComponentEntity();
+        components.add(component);
+        component.setName(compProperties.get(BlueprintResourceProvider.COMPONENT_NAME_PROPERTY_ID));
+      }
+      hostGroup.setComponents(components);
+
+    }
+    entity.setHostGroups(hostGroups);
+
+
+    Collection<Map<String, String>> configProperties = (Collection<Map<String, String>>) properties.get(
+        BlueprintResourceProvider.CONFIGURATION_PROPERTY_ID);
+    Map<String, String> configData = new HashMap<String, String>();
+    Collection<BlueprintConfigEntity> configs = new ArrayList<BlueprintConfigEntity>();
+    if (configProperties != null) {
+      for (Map<String, String> config : configProperties) {
+        BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
+        for (Map.Entry<String, String> entry : config.entrySet()) {
+          String absolutePropName = entry.getKey();
+
+          int idx = absolutePropName.indexOf('/');
+          if (configEntity.getType() == null) {
+            configEntity.setType(absolutePropName.substring(0, idx));
+          }
+          configData.put(absolutePropName.substring(idx + 1), entry.getValue());
+        }
+        configEntity.setConfigData(gson.toJson(configData));
+        configs.add(configEntity);
+      }
+    }
+    entity.setConfigurations(configs);
+
+    return entity;
   }
 }
 
