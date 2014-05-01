@@ -17,28 +17,27 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -163,8 +162,6 @@ public class StackUpgradeUtil {
         !repoUrl.startsWith("http"))
       return;
     
-    String server = repoUrl;
-    
     String[] oses = new String[0]; 
     
     if (null != repoUrlOs) {
@@ -172,18 +169,51 @@ public class StackUpgradeUtil {
     }
     
     AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
+    MetainfoDAO metaDao = injector.getInstance(MetainfoDAO.class);
+    
+    String stackRepoId = stackName + "-" + stackVersion;
     
     if (0 == oses.length) {
       // do them all
       for (OperatingSystemInfo osi : ami.getOperatingSystems(stackName, stackVersion)) {
         ami.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
-            stackName + "-" + stackVersion, server);
+            stackRepoId, repoUrl);
       }
       
     } else {
       for (String os : oses) {
-        ami.updateRepoBaseURL(stackName, stackVersion, os,
-            stackName + "-" + stackVersion, server);
+        
+        OsFamily family = OsFamily.find(os);
+        if (null != family) {
+          String key = ami.generateRepoMetaKey(stackName, stackVersion, os,
+              stackName + "-" + stackVersion, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
+
+          String familyKey = ami.generateRepoMetaKey(stackName, stackVersion,
+              family.name().toLowerCase(), stackRepoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
+          
+          // need to use (for example) redhat6 if the os is centos6
+          MetainfoEntity entity = metaDao.findByKey(key);
+          if (null == entity) {
+            entity = new MetainfoEntity();
+            entity.setMetainfoName(key);
+            entity.setMetainfoValue(repoUrl);
+            metaDao.merge(entity);
+          } else {
+            entity.setMetainfoValue(repoUrl);
+            metaDao.merge(entity);
+          }
+          
+          entity = metaDao.findByKey(familyKey);
+          if (null == entity) {
+            entity = new MetainfoEntity();
+            entity.setMetainfoName(familyKey);
+            entity.setMetainfoValue(repoUrl);
+            metaDao.merge(entity);
+          } else {
+            entity.setMetainfoValue(repoUrl);
+            metaDao.merge(entity);
+          }
+        }        
       }
     }
   }

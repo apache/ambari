@@ -111,7 +111,7 @@ public class AmbariMetaInfo {
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
-  private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
+  public static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
   // all the supported OS'es
   private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
       "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
@@ -895,7 +895,16 @@ public class AmbariMetaInfo {
     return ALL_SUPPORTED_OS.contains(osType);
   }
 
-  private String generateRepoMetaKey(String stackName, String stackVersion,
+  /**
+   * Returns a suitable key for use with stack url overrides.
+   * @param stackName the stack name
+   * @param stackVersion the stack version
+   * @param osType the os
+   * @param repoId the repo id
+   * @param field the field name
+   * @return the key for any repo value override
+   */
+  public String generateRepoMetaKey(String stackName, String stackVersion,
       String osType, String repoId, String field) {
 
     StringBuilder sb = new StringBuilder("repo:/");

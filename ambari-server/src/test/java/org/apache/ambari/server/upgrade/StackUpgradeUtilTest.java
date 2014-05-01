@@ -98,7 +98,8 @@ public class StackUpgradeUtilTest {
 
     entities = dao.findAll();
     for (MetainfoEntity entity : entities) {
-      Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos6"));
+      Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos6") ||
+          entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/redhat6"));
       Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
     }
 
@@ -112,10 +113,31 @@ public class StackUpgradeUtilTest {
     entities = dao.findAll();
     for (MetainfoEntity entity : entities) {
       Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos6") ||
+          entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/redhat6") ||
+          entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/redhat5") ||
           entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos5"));
       Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
     }
     
+    // verify that a change to centos6 also changes redhat6
+    localRepoUrl = "http://newfoo.bar";
+    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6");
+    entities = dao.findAll();
+    boolean foundCentos6 = false;
+    boolean foundRedhat6 = false;
+    for (MetainfoEntity entity : entities) {
+      if (-1 != entity.getMetainfoName().indexOf("centos6")) {
+        foundCentos6 = true;
+        Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
+      } else if (-1 != entity.getMetainfoName().indexOf("redhat6")) {
+        foundRedhat6 = true;
+        Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
+      } else {
+        Assert.assertFalse(localRepoUrl.equals(entity.getMetainfoValue()));
+      }
+    }
+    Assert.assertTrue(foundCentos6);
+    Assert.assertTrue(foundRedhat6);
     
   }
   

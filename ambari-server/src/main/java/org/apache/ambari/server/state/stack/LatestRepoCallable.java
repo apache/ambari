@@ -148,28 +148,5 @@ public class LatestRepoCallable implements Callable<Void> {
     
     return null;
   }
-
-  private enum OsFamily {
-    REDHAT5("centos5", "redhat5", "oraclelinux5"),
-    REDHAT6("centos6", "redhat6", "oraclelinux6"),
-    SUSE11("suse11", "sles11"),
-    UBUNTU12("ubuntu12");
-    
-    private String[] osTypes;
-    private OsFamily(String... oses) {
-      osTypes = oses;
-    }
-    
-    private static String[] findTypes(String os) {
-      for (OsFamily f : values()) {
-        for (String t : f.osTypes) {
-          if (t.equals(os)) {
-            return f.osTypes;
-          }
-        }
-      }
-      return new String[0];
-    }
-  }
   
 }
