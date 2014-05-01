@@ -47,7 +47,7 @@ public class HostGroupEntity {
 
   @Column
   @Basic
-  private String cardinality;
+  private String cardinality = "NOT SPECIFIED";
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "hostGroup")
   private Collection<HostGroupComponentEntity> components;
@@ -165,6 +165,8 @@ public class HostGroupEntity {
    * @param cardinality cardinality value
    */
   public void setCardinality(String cardinality) {
-    this.cardinality = cardinality;
+    if (cardinality != null) {
+      this.cardinality = cardinality;
+    }
   }
 }
