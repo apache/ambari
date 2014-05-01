@@ -59,11 +59,25 @@
                 {{t common.more}}
                 <span class="caret"></span>
               </a>
-              <ul class="dropdown-menu">
-                {{#each view.quickLinks}}
-                  <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
-                {{/each}}
-              </ul>
+                <ul class="dropdown-menu">
+                  {{#if view.quickLinksArray}}
+                     <!--there are multiple masters eg, HBase multiple masters or HDFS HA enabled-->
+                    {{#each quickLinks in view.quickLinksArray}}
+                      <li class="dropdown-submenu">
+                        <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
+                        <ul class="dropdown-menu">
+                          {{#each quickLinks}}
+                            <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                          {{/each}}
+                        </ul>
+                      </li>
+                    {{/each}}
+                  {{else}}
+                    {{#each view.quickLinks}}
+                        <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                    {{/each}}
+                  {{/if}}
+                </ul>
             </div>
           {{/view}}
         {{/if}}

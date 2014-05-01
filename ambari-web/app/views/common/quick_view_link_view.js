@@ -82,20 +82,31 @@ App.QuickViewLinks = Em.View.extend({
     this.loadTags();
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
-    var host;
+    var hosts = [];
     var self = this;
     var version = App.get('currentStackVersionNumber');
     var quickLinks = [];
     switch (serviceName) {
       case "HDFS":
-        if (this.get('content.snameNode')) { // not HA
-          host = this.findComponentHost('NAMENODE');
+        var otherHost;
+        if (this.get('content.snameNode')) {
+          // not HA
+          hosts[0] = this.findComponentHost('NAMENODE');
         } else {
-          // HA
+          // HA enabled, need both two namenodes hosts
+          var nameNodes = components.filterProperty('componentName', 'NAMENODE');
+          nameNodes.forEach(function(item) {
+            hosts.push({'publicHostName': item.get('host.publicHostName')});
+          });
+          // assign each namenode status label
           if (this.get('content.activeNameNode')) {
-            host = this.get('content.activeNameNode.publicHostName');
-          } else {
-            host = 'noActiveNN';
+            hosts.findProperty('publicHostName', this.get('content.activeNameNode.publicHostName')).status = Em.I18n.t('quick.links.label.active');
+          }
+          if (this.get('content.standbyNameNode')) {
+            hosts.findProperty('publicHostName', this.get('content.standbyNameNode.publicHostName')).status = Em.I18n.t('quick.links.label.standby');
+          }
+          if (this.get('content.standbyNameNode2')) {
+            hosts.findProperty('publicHostName', this.get('content.standbyNameNode2.publicHostName')).status = Em.I18n.t('quick.links.label.standby');
           }
         }
         break;
@@ -104,61 +115,98 @@ App.QuickViewLinks = Em.View.extend({
       case "GANGLIA":
       case "NAGIOS":
       case "HUE":
-        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('isMaster', true).get("host").get("publicHostName");
+        hosts[0] = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('isMaster', true).get("host").get("publicHostName");
         break;
       case "HBASE":
-        var component;
+        var masterComponents = components.filterProperty('componentName', 'HBASE_MASTER');
+        var activeMaster, standbyMasters, otherMasters;
         if (App.supports.multipleHBaseMasters) {
-          component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'true');
-        } else {
-          component = components.findProperty('componentName', 'HBASE_MASTER');
+          activeMaster = masterComponents.filterProperty('haStatus', 'true');
+          standbyMasters = masterComponents.filterProperty('haStatus', 'false');
+          otherMasters = masterComponents.filterProperty('haStatus', null);
         }
-        if (component) {
+        if (masterComponents) {
           if (App.singleNodeInstall) {
-            host = App.singleNodeAlias;
+            hosts[0] = App.singleNodeAlias;
+          } else if (masterComponents.length > 1) {
+            // need all hbase_masters hosts in quick links
+            if (activeMaster) {
+              activeMaster.forEach(function(item) {
+                hosts.push({'publicHostName': item.get('host.publicHostName'), 'status': Em.I18n.t('quick.links.label.active')});
+              });
+            }
+            if (standbyMasters) {
+              standbyMasters.forEach(function(item) {
+                hosts.push({'publicHostName': item.get('host.publicHostName'), 'status': Em.I18n.t('quick.links.label.standby')});
+              });
+            }
+            if (otherMasters) {
+              otherMasters.forEach(function(item) {
+                hosts.push({'publicHostName': item.get('host.publicHostName')});
+              });
+            }
           } else {
-            host = component.get('host.publicHostName');
+            hosts[0] = masterComponents[0].get('host.publicHostName');
           }
-        } else {
-          host = 'noActiveHbaseMaster';
         }
         break;
       case "YARN":
-        host = this.findComponentHost('RESOURCEMANAGER');
+        hosts[0] = this.findComponentHost('RESOURCEMANAGER');
         break;
       case "MAPREDUCE2":
-        host = this.findComponentHost('HISTORYSERVER');
+        hosts[0] = this.findComponentHost('HISTORYSERVER');
         break;
       case "FALCON":
-        host = this.findComponentHost('FALCON_SERVER');
+        hosts[0] = this.findComponentHost('FALCON_SERVER');
         break;
       case "STORM":
-        host = this.findComponentHost('NIMBUS');
+        hosts[0] = this.findComponentHost('NIMBUS');
         break;
     }
-    if (!host) {
+    if (!hosts) {
       quickLinks = [
         {
           label: this.t('quick.links.error.label'),
           url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
         }
       ];
-    } else {
+      this.set('quickLinks', quickLinks);
+    } else if (hosts.length == 1) {
+
       quickLinks = this.get('content.quickLinks').map(function (item) {
-        if (host == 'noActiveNN' || host == 'noActiveHbaseMaster') {
-          item.set('disabled', true);
-        } else {
-          item.set('disabled', false);
-          var protocol = self.setProtocol(item.get('service_id'));
-          if (item.get('template')) {
-            var port = item.get('http_config') && self.setPort(item, protocol, version);
-            item.set('url', item.get('template').fmt(protocol, host, port));
-          }
+        var protocol = self.setProtocol(item.get('service_id'));
+        if (item.get('template')) {
+          var port = item.get('http_config') && self.setPort(item, protocol, version);
+          item.set('url', item.get('template').fmt(protocol, hosts[0], port));
         }
         return item;
       });
+      this.set('quickLinks', quickLinks);
+    } else {
+      // multiple hbase masters or HDFS HA enabled
+      var quickLinksArray = [];
+      hosts.forEach(function(host){
+        var quickLinks = [];
+        self.get('content.quickLinks').forEach(function (item) {
+          var newItem = {};
+          var protocol = self.setProtocol(item.get('service_id'));
+          if (item.get('template')) {
+            var port = item.get('http_config') && self.setPort(item, protocol, version);
+            newItem.url = item.get('template').fmt(protocol, host.publicHostName, port);
+            newItem.label =  item.get('label');
+          }
+          quickLinks.push(newItem);
+        });
+        if (host.status) {
+          quickLinks.set('publicHostNameLabel', Em.I18n.t('quick.links.publicHostName').format(host.publicHostName, host.status));
+        } else {
+          quickLinks.set('publicHostNameLabel', host.publicHostName);
+        }
+        quickLinksArray.push(quickLinks);
+      }, this);
+
+      this.set('quickLinksArray', quickLinksArray);
     }
-    this.set('quickLinks', quickLinks);
   }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
 
   setProtocol: function (service_id) {

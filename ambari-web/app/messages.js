@@ -2036,10 +2036,11 @@ Em.I18n.translations = {
 
   'common.combobox.placeholder': 'Filter...',
   'common.combobox.dropdown.1': 'Overridden properties',
-  //'common.combobox.dropdown.2': 'Modified properties',
-  //'common.combobox.dropdown.3': 'Properties needing restart',
 
   'quick.links.error.label': 'Hostname is undefined',
+  'quick.links.publicHostName': '{0} ({1})',
+  'quick.links.label.active': 'Active',
+  'quick.links.label.standby': 'Standby',
 
   'contact.administrator': 'Contact System Administrator for more information!',
 

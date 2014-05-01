@@ -2550,6 +2550,11 @@ width:100%;
       position: absolute;
     }
   }
+  .dropdown-submenu {
+    &> a:after {
+      border-left-color: #333;
+    }
+  }
   .nav li.dropdown.open {
     .dropdown-toggle{
       color: #005580;
@@ -2567,11 +2572,6 @@ width:100%;
       border-top-color: #005580;
       border-bottom-color: #005580;
     }
-  }
-  .disabled-hdfs-quick-link {
-    pointer-events: none;
-    color: #808080;
-    cursor: default;
   }
 }
 
