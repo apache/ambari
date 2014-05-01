@@ -2333,7 +2333,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       result = ambari_server.setup(args)
       self.fail("Should throw exception")
     except NonFatalException as fe:
-      self.assertTrue("cli was not found" in fe.reason)
+      self.assertTrue("Remote database setup aborted." in fe.reason)
 
   @patch.object(ambari_server, 'is_server_runing')
   @patch.object(ambari_server, "get_YN_input")
@@ -2342,10 +2342,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "configure_database_username_password")
   @patch.object(ambari_server, "parse_properties_file")
-  @patch.object(ambari_server, "execute_remote_script")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")
-  def test_reset(self, check_database_name_property_mock, is_root_mock, execute_remote_script_mock,
+  def test_reset(self, check_database_name_property_mock, is_root_mock,
                  parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock, get_YN_inputMock, is_server_running_mock):
@@ -2409,10 +2408,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     #remote db case
     args.persistence_type = "remote"
-    execute_remote_script_mock.return_value = (0, None, None)
     rcode = ambari_server.reset(args)
     self.assertEqual(None, rcode)
-    self.assertTrue(execute_remote_script_mock.called)
 
   @patch.object(ambari_server, "get_YN_input")
   @patch("__builtin__.raw_input")
@@ -3410,7 +3407,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Should throw exception")
     except NonFatalException as fe:
       # Expected
-      self.assertTrue("The cli was not found" in fe.reason)
+      self.assertTrue("Remote database setup aborted." in fe.reason)
 
   @patch.object(ambari_server, 'verify_setup_allowed')
   @patch("sys.exit")
@@ -3478,33 +3475,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertTrue(found)
 
-  @patch.object(ambari_server, "parse_properties_file")
-  @patch.object(ambari_server, "get_db_cli_tool")
-  @patch.object(ambari_server, "print_error_msg")
-  @patch.object(ambari_server, "get_YN_input")
-  @patch.object(ambari_server, "setup_db")
-  @patch.object(ambari_server, "run_os_command")
-  @patch.object(ambari_server, "is_root")
-  @patch.object(ambari_server, "check_database_name_property")
-  @patch.object(ambari_server, 'is_server_runing')
-  def test_reset_remote_db_wo_client(self, is_server_runing_mock, check_database_name_property_mock, is_root_mock, run_os_command_mock,
-                                     setup_db_mock,
-                                     get_YN_inputMock, print_error_msg_mock, get_db_cli_tool_mock,
-                                     parse_properties_file_mock):
-    args = MagicMock()
-    get_YN_inputMock.return_value = True
-    run_os_command_mock.return_value = (0, None, None)
-    args.persistence_type = "remote"
-    get_db_cli_tool_mock.return_value = None
-    is_root_mock.return_value = True
-    is_server_runing_mock.return_value = (False, 0)
-    try:
-      ambari_server.reset(args)
-      self.fail("Should throw exception")
-    except NonFatalException as fe:
-      # Expected
-      self.assertTrue("Client wasn't found" in fe.reason)
-      pass
 
   @patch.object(ambari_server, "find_properties_file")
   def test_get_ambari_properties(self, find_properties_file_mock):
