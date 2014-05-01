@@ -276,9 +276,6 @@ footer {
       .top-nav-dropdown-menu > li{
         position: relative;
       }
-      .top-nav-dropdown-menu > li.active > a{
-        background-color: @top-nav-menu-dropdown-border-color;
-      }
       .top-nav-dropdown-menu > li > a {
         text-decoration: none;
         text-align: left;
@@ -300,7 +297,14 @@ footer {
         background-image: linear-gradient(to bottom, #666666, #555555);
         background-repeat: repeat-x;
       }
-
+      .top-nav-dropdown-menu > li.disabled > a {
+        color: #a9a9a9;
+      }
+      .top-nav-dropdown-menu > li.disabled > a:hover {
+        color: #a9a9a9;
+        background-color: @top-nav-menu-dropdown-bg-color;
+        background-image: none;
+      }
     }
   }
 
