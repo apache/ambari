@@ -1984,6 +1984,7 @@ Em.I18n.translations = {
   'menu.item.jobs':'Jobs',
   'menu.item.admin':'Admin',
   'menu.item.views':'<i class="icon-th"></i>',
+  'menu.item.views.noViews':'No Views',
 
   'jobs.nothingToShow': 'No jobs to display',
   'jobs.loadingTasks': 'Loading...',

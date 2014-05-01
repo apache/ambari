@@ -111,7 +111,6 @@ App.MainMenuView = Em.CollectionView.extend({
       return this.get('content').routing == 'views';
     }.property(''),
     goToCategory: function (event) {
-      //App.router.transitionTo('admin.service.summary', service);
       var itemName = this.get('content').routing;
       // route to correct category of current menu item
       if (itemName == 'admin') {
