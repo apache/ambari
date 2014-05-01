@@ -36,10 +36,9 @@
     <value>nagiosadmin</value>
     <description>Nagios web user.</description>
   </property>
-  <property require-input = "true">
+  <property>
     <name>nagios_web_password</name>
     <value></value>
-    <type>PASSWORD</type>
     <description>Nagios Admin Password.</description>
   </property>
   <property>

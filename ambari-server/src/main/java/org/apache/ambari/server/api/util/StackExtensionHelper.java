@@ -532,12 +532,7 @@ public class StackExtensionHelper {
 
   }
 
-  /**
-   * Get populated stackInfo for the stack definition at the provided path.
-   * @param stackVersionFolder Path to stack definition.
-   * @return StackInfo StackInfo object
-   * @throws JAXBException
-   */
+
   private StackInfo getStackInfo(File stackVersionFolder) throws JAXBException {
     StackInfo stackInfo = new StackInfo();
 
@@ -630,23 +625,6 @@ public class StackExtensionHelper {
         }
       }
     }
-  }
-
-  /**
-   * Get all properties with require-input attribute set to true.
-   * @param stackInfo StackInfo object.
-   */
-  public Map<String, PropertyInfo> getAllRequiredPropertiesForStack(StackInfo stackInfo) {
-    Map<String, PropertyInfo> requiredProperties = new HashMap<String, PropertyInfo>();
-    for (ServiceInfo serviceInfo : stackInfo.getServices()) {
-      List<PropertyInfo> properties = serviceInfo.getProperties();
-      for (PropertyInfo propertyInfo : properties) {
-        if (propertyInfo.isRequireInput()) {
-          requiredProperties.put(propertyInfo.getName(), propertyInfo);
-        }
-      }
-    }
-    return requiredProperties;
   }
 
   

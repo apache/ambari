@@ -18,10 +18,7 @@
 
 package org.apache.ambari.server.state;
 
-
 import org.apache.ambari.server.controller.StackConfigurationResponse;
-
-import javax.xml.bind.annotation.XmlAttribute;
 
 public class PropertyInfo {
   private String name;
@@ -29,8 +26,6 @@ public class PropertyInfo {
   private String description;
   private String filename;
   private boolean deleted;
-  private boolean requireInput;
-  private PropertyType type = PropertyType.DEFAULT;
 
   public String getName() {
     return name;
@@ -65,8 +60,7 @@ public class PropertyInfo {
   }
   
   public StackConfigurationResponse convertToResponse() {
-    return new StackConfigurationResponse(getName(), getValue(),
-      getDescription() , getFilename(), isRequireInput(), getType().name());
+    return new StackConfigurationResponse(getName(), getValue(), getDescription() , getFilename());
   }
 
   public boolean isDeleted() {
@@ -75,23 +69,6 @@ public class PropertyInfo {
 
   public void setDeleted(boolean deleted) {
     this.deleted = deleted;
-  }
-
-  @XmlAttribute(name = "require-input")
-  public boolean isRequireInput() {
-    return requireInput;
-  }
-
-  public void setRequireInput(boolean requireInput) {
-    this.requireInput = requireInput;
-  }
-
-  public PropertyType getType() {
-    return type;
-  }
-
-  public void setType(PropertyType type) {
-    this.type = type;
   }
 
   @Override
@@ -136,10 +113,5 @@ public class PropertyInfo {
     } else if (!value.equals(other.value))
       return false;
     return true;
-  }
-
-  public enum PropertyType {
-    DEFAULT,
-    PASSWORD
   }
 }

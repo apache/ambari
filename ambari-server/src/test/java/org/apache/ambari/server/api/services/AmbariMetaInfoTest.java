@@ -1332,21 +1332,4 @@ public class AmbariMetaInfoTest {
     assertEquals("cluster", dependency.getScope());
   }
 
-  @Test
-  public void testPasswordPropertyAttribute() throws Exception {
-    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "HIVE");
-    List<PropertyInfo> propertyInfoList = service.getProperties();
-    Assert.assertNotNull(propertyInfoList);
-    PropertyInfo passwordProperty = null;
-    for (PropertyInfo propertyInfo : propertyInfoList) {
-      if (propertyInfo.isRequireInput()
-          && propertyInfo.getType().equals(PropertyInfo.PropertyType.PASSWORD)) {
-        passwordProperty = propertyInfo;
-      } else {
-        Assert.assertEquals(PropertyInfo.PropertyType.DEFAULT, propertyInfo.getType());
-      }
-    }
-    Assert.assertNotNull(passwordProperty);
-    Assert.assertEquals("javax.jdo.option.ConnectionPassword", passwordProperty.getName());
-  }
 }

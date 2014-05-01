@@ -27,7 +27,7 @@ limitations under the License.
 
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <value>jdbc</value>
     <description>JDBC connect string for a JDBC metastore</description>
   </property>
 
@@ -43,10 +43,9 @@ limitations under the License.
     <description>username to use against metastore database</description>
   </property>
 
-  <property require-input="true">
+  <property>
     <name>javax.jdo.option.ConnectionPassword</name>
-    <value></value>
-    <type>PASSWORD</type>
+    <value> </value>
     <description>password to use against metastore database</description>
   </property>
 

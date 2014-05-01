@@ -21,38 +21,12 @@ package org.apache.ambari.server.controller;
 
 public class StackConfigurationResponse {
 
-  /**
-   * Stack configuration response.
-   * @param propertyName Property Key
-   * @param propertyValue Property Value
-   * @param propertyDescription Property Description
-   * @param type Configuration type
-   */
+  
   public StackConfigurationResponse(String propertyName, String propertyValue, String propertyDescription, String type) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
     setType(type);
-  }
-
-  /**
-   * Stack configuration response with all properties.
-   * @param propertyName Property Key
-   * @param propertyValue Property Value
-   * @param propertyDescription Property Description
-   * @param type Configuration type
-   * @param isRequired Is required to be set
-   * @param propertyType Property Type
-   */
-  public StackConfigurationResponse(String propertyName, String propertyValue,
-                                    String propertyDescription, String type,
-                                    Boolean isRequired, String propertyType) {
-    setPropertyName(propertyName);
-    setPropertyValue(propertyValue);
-    setPropertyDescription(propertyDescription);
-    setType(type);
-    setRequired(isRequired);
-    setPropertyType(propertyType);
   }
 
   private String stackName;
@@ -62,8 +36,6 @@ public class StackConfigurationResponse {
   private String propertyValue;
   private String propertyDescription;
   private String type;
-  private Boolean isRequired;
-  private String propertyType;
 
   public String getStackName() {
     return stackName;
@@ -113,43 +85,11 @@ public class StackConfigurationResponse {
     this.propertyDescription = propertyDescription;
   }
 
-  /**
-   * Configuration type
-   * @return Configuration type (*-site.xml)
-   */
   public String getType() {
     return type;
   }
   
   public void setType(String type) {
     this.type = type;
-  }
-
-  /**
-   * Is property a isRequired property
-   * @return True/False
-   */
-  public Boolean isRequired() {
-    return isRequired;
-  }
-
-  /**
-   * Set required attribute on this property.
-   * @param required True/False.
-   */
-  public void setRequired(Boolean required) {
-    this.isRequired = required;
-  }
-
-  /**
-   * Get type of property as set in the stack definition.
-   * @return Property type.
-   */
-  public String getPropertyType() {
-    return propertyType;
-  }
-
-  public void setPropertyType(String propertyType) {
-    this.propertyType = propertyType;
   }
 }
