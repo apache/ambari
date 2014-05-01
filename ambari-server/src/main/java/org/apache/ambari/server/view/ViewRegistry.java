@@ -58,6 +58,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -170,7 +171,13 @@ public class ViewRegistry {
    * @return the collection of view instances for the view definition
    */
   public Collection<ViewInstanceEntity> getInstanceDefinitions(ViewEntity definition) {
-    return definition == null ? null : viewInstanceDefinitions.get(definition).values();
+    if (definition != null) {
+      Map<String, ViewInstanceEntity> instanceEntityMap = viewInstanceDefinitions.get(definition);
+      if (instanceEntityMap != null) {
+        return instanceEntityMap.values();
+      }
+    }
+    return Collections.emptyList();
   }
 
   /**
