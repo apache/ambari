@@ -372,6 +372,9 @@ App.MainJobsController = Em.Controller.extend({
     var lastReceivedID = data.entities[0].entity;
     if(this.get('lastJobID') == '') {
       this.set('lastJobID', lastReceivedID);
+      if (this.get('loaded') && App.HiveJob.find().get('length') < 1) {
+        this.set('hasNewJobs', true);
+      }
     } else if (this.get('lastJobID') !== lastReceivedID) {
       this.set('lastJobID', lastReceivedID);
       if(!App.HiveJob.find().findProperty('id', lastReceivedID)) {
