@@ -3048,6 +3048,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     setup_mock.reset_mock()
 
+    # test embedded option
+    failed = False
+    sys.argv = list(base_args)
+    sys.argv.extend(db_args[-10:])
+    sys.argv.extend(["--database", "embedded"])
+
+    try:
+      ambari_server.main()
+    except SystemExit:
+      failed = True
+      pass
+
+    self.assertFalse(failed)
+    self.assertTrue(setup_mock.called)
+
+    setup_mock.reset_mock()
+
     #test full args
     sys.argv = list(base_args)
     sys.argv.extend(db_args)
@@ -3111,8 +3128,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     self.assertTrue(failed)
     self.assertFalse(setup_mock.called)
-
-    setup_mock.reset_mock()
     pass
 
 

@@ -1161,6 +1161,7 @@ def get_pass_file_path(conf_file):
 
 # Set database properties to default values
 def load_default_db_properties(args):
+  args.persistence_type = 'local'
   args.dbms = DATABASE_NAMES[DATABASE_INDEX]
   args.database_host = "localhost"
   args.database_port = DATABASE_PORTS[DATABASE_INDEX]
@@ -2072,12 +2073,8 @@ def find_jdk():
 #
 # Checks if options determine local DB configuration
 #
-def is_local_database(options):
-  if options.dbms == DATABASE_NAMES[0] \
-    and options.database_host == "localhost" \
-    and options.database_port == DATABASE_PORTS[0]:
-    return True
-  return False
+def is_local_database(args):
+  return args.persistence_type == 'local'
 
 
 #Check if required jdbc drivers present
@@ -4054,7 +4051,7 @@ def main():
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
 
-  parser.add_option('--database', default=None, help="Database to use postgres|oracle", dest="dbms")
+  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
   parser.add_option('--databasename', default=None, help="Database/Schema/Service name or ServiceID",
@@ -4101,7 +4098,16 @@ def main():
     parser.error('All database options should be set. Please see help for the options.')
 
   #correct database
-  if options.dbms is not None and options.dbms not in DATABASE_NAMES:
+  if options.dbms == 'embedded':
+    print "WARNING: HostName for postgres server " + options.database_host + \
+          " will be ignored: using localhost."
+    options.database_host = "localhost"
+    options.dbms = 'postgres'
+    options.persistence_type = 'local'
+    options.database_index = 0
+    DATABASE_INDEX = 0
+    pass
+  elif options.dbms is not None and options.dbms not in DATABASE_NAMES:
     parser.print_help()
     parser.error("Unsupported Database " + options.dbms)
   elif options.dbms is not None:
