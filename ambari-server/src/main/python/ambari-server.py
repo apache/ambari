@@ -353,7 +353,7 @@ REGEX_TRUE_FALSE = "^(true|false)?$"
 REGEX_ANYTHING = ".*"
 
 
-POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
+POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='{3}'"
 ORACLE_EXEC_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0}"
 MYSQL_EXEC_ARGS_WITH_USER_VARS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
