@@ -19,6 +19,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -30,6 +35,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
@@ -38,8 +44,13 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.easymock.Capture;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -48,6 +59,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -74,12 +86,11 @@ import static org.junit.Assert.fail;
 public class BlueprintResourceProviderTest {
 
   private static String BLUEPRINT_NAME = "test-blueprint";
-
   private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
   private final static Gson gson = new Gson();
 
   @BeforeClass
-  public static void initClass() {
+  public static void initClass() throws Exception {
     BlueprintResourceProvider.init(dao, gson);
   }
 
@@ -159,7 +170,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testGetResourcesNoPredicate() throws SystemException, UnsupportedPropertyException,
-                                                   NoSuchParentResourceException, NoSuchResourceException {
+        NoSuchParentResourceException, NoSuchResourceException {
     Request request = createNiceMock(Request.class);
 
     ResourceProvider provider = createProvider();
@@ -182,7 +193,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testGetResourcesNoPredicate_withConfiguration() throws SystemException, UnsupportedPropertyException,
-      NoSuchParentResourceException, NoSuchResourceException {
+        NoSuchParentResourceException, NoSuchResourceException {
     Request request = createNiceMock(Request.class);
 
     ResourceProvider provider = createProvider();
@@ -208,7 +219,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testDeleteResources() throws SystemException, UnsupportedPropertyException,
-                                           NoSuchParentResourceException, NoSuchResourceException {
+        NoSuchParentResourceException, NoSuchResourceException {
 
     Capture<BlueprintEntity> entityCapture = new Capture<BlueprintEntity>();
 
@@ -272,12 +283,12 @@ public class BlueprintResourceProviderTest {
     mapProperties.put(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
     mapProperties.put(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID, "test-stack-name");
     mapProperties.put(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID, "test-stack-version");
-    mapProperties.put(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID, "test-stack-version");
     mapProperties.put(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID, setHostGroupProperties);
 
     return Collections.singleton(mapProperties);
   }
 
+  @SuppressWarnings("unchecked")
   private void setConfigurationProperties(Set<Map<String, Object>> properties ) {
     Map<String, String> clusterProperties = new HashMap<String, String>();
     clusterProperties.put("core-site/fs.trash.interval", "480");

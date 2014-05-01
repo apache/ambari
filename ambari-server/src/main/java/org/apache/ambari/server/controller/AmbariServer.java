@@ -509,7 +509,8 @@ public class AmbariServer {
     StackDefinedPropertyProvider.init(injector);
     NagiosPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
-    BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class), injector.getInstance(Gson.class));
+    BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class),
+        injector.getInstance(Gson.class));
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.injectBlueprintDAO(injector.getInstance(BlueprintDAO.class));
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class));
