@@ -20,6 +20,7 @@ var App = require('app');
 
 App.MainServiceController = Em.ArrayController.extend({
   name:'mainServiceController',
+  stackServices: [],
   content: function(){
     if(!App.router.get('clusterController.isLoaded')){
       return [];
@@ -36,15 +37,14 @@ App.MainServiceController = Em.ArrayController.extend({
 
   isAllServicesInstalled: function() {
     if (!this.get('content.content')) return false;
-    var availableServices = App.db.getServices();
-    if (!availableServices) {
+    if (!this.get('stackServices').length) {
       this.loadAvailableServices();
-      availableServices = App.db.getServices();
     }
     if (!App.supports.hue) {
-      availableServices = availableServices.without('HUE');
+      var stackServices = this.get('stackServices').without('HUE');
+      this.set('stackServices',stackServices);
     }
-    return this.get('content.content').length == availableServices.length;
+    return this.get('content.content').length == this.get('stackServices').length;
   }.property('content.content.@each', 'content.content.length'),
 
   loadAvailableServices: function() {
@@ -68,7 +68,7 @@ App.MainServiceController = Em.ArrayController.extend({
         data.push(entry.StackServices.service_name);
       }
     }
-    App.db.setServices(data);
+    this.set('stackServices',data);
   },
 
   isStartAllDisabled: function(){
