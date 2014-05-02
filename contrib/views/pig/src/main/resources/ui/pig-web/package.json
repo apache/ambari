@@ -1,0 +1,22 @@
+{
+  "name": "pig-ui",
+  "version": "0.0.1",
+  "engines": {
+    "node": "~0.6.10 || 0.8 || 0.9"
+  },
+  "scripts": {
+    "start": "brunch watch --server",
+    "preinstall": "chmod +x node/npm/bin/node-gyp-bin/node-gyp",
+    "postinstall" : "bash node/with_new_path.sh node node_modules/.bin/bower --allow-root install"
+  },
+  "dependencies": {
+    "brunch": ">= 1.7.1",
+    "javascript-brunch": ">= 1.0 < 1.8",
+    "css-brunch": ">= 1.0 < 1.8",
+    "uglify-js-brunch": ">= 1.0 < 1.8",
+    "bower": ">= 1.2.0",
+    "ember-precompiler-brunch": ">= 1.5.0",
+    "less-brunch": "~1.7.1",
+    "scaffolt": "^0.4.3"
+  }
+}

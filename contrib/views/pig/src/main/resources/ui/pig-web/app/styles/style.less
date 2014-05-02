@@ -1,0 +1,295 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.wrap {
+	padding: 15px;
+}
+.moz-padding (@selector, @pre: ~'', @padding) {
+  @-moz-document url-prefix() {
+    @{pre}@{selector} {
+      padding: @padding !important;
+    }
+  }
+}
+
+.base-shadow (@shadow) {
+  -webkit-box-shadow: @shadow;
+     -moz-box-shadow: @shadow;
+          box-shadow: @shadow;
+}
+
+.base-transition (@transition) {
+  -webkit-transition: @transition;
+  -moz-transition: @transition;
+  -o-transition: @transition;
+  -ms-transition: @transition;
+  transition: @transition;
+}
+
+.common-shadow {
+  .base-shadow(0 5px 10px rgba(0, 0, 0, 0.2));
+}
+
+.common-shadow-inset {
+  .base-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.05));
+}
+
+// navigation
+.navigation {
+  //position: fixed;
+  a {
+    cursor: pointer;
+  }
+  .pig-nav-item {
+    word-break: break-word;
+    .rm {
+      top:2px;
+      position: absolute;
+      right: 5px;
+      top: 5px;
+    }
+  }
+}
+
+//script list
+.panel-scriptlist {
+  .new-script {
+    position: relative;
+    top:-5px;
+  }
+}
+
+//udfs
+.panel-udfs {
+  .upload-udf {
+    position: relative;
+    top:-5px;
+  }
+}
+
+//edit script
+.edit-script {
+  .panel-editscript {
+    textarea {
+      width: 100%;
+      max-width: 100%;
+      height: 300px;
+    }
+    div > textarea{
+      padding-right: 10px;
+    }
+    .inactive {
+      opacity: 0.2;
+    }
+    .CodeMirror {
+      .common-shadow-inset;
+
+    }
+    .panel-heading{
+      #title {
+        display: inline-block;
+        width: auto;
+      }
+      .nav-results > li > a {
+        padding: 7px 15px;
+      }
+    }
+    .panel-body {
+      padding: 5px; 
+      background-color: #f5f5f5; 
+      border-bottom: 1px solid #dddddd;
+      .argadd {
+        font-size: 13px;
+        width:10%;
+        display: inline-block;
+        height:22px;
+        padding: 0 5px;
+      }
+      .editable{
+        background-color: #428bca !important;
+      }
+      .argument {
+        vertical-align: middle;
+        background-color: #999999;
+        display: inline-block;
+        font-size: 75%;
+        font-weight: bold;
+        line-height: 1;
+        color: #ffffff;
+        text-align: center;
+        white-space: nowrap;
+        border-radius: .3em;
+        height: 22px;
+        .title {
+          float: left;
+          padding: 7px;
+        }
+        .moz-padding(rm-arg, ~'.',0 5px 0 0);
+        .rm-arg {
+          position: relative;
+          padding: 2px 5px 0 0;
+        }
+      }
+    }
+  }
+  .pigParams {
+    padding-bottom: 10px; 
+  }
+}
+
+.job-status-view {
+  .progress {
+    margin-bottom: 0;
+  }
+  .kill-button {
+    float: left; 
+    margin-right: 10px;
+  }
+}
+
+//utils
+#alert-wrap {
+  position: fixed;
+  bottom: 0;
+  width: 16.666666666666664%;
+  padding-right: 30px;
+  font-size: 0.9em;
+  
+  .alert {
+    .common-shadow;
+  }
+}
+
+.spinner (@border, @size) {
+  //display: inline-block;
+  border: @border;
+  font-size: @size;
+  width: 1em;
+  height: 1em;
+  border-radius: .5em;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-animation: spin 1s linear infinite;
+  -moz-animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+  border-top-color: black;
+}
+
+.spinner-sm {
+  .spinner(2px solid #eeeeee, 20px);
+}
+
+.spinner-bg {
+  .spinner(6px solid #eeeeee, 60px);
+}
+
+.editor-container {
+  position: relative;
+}
+
+.edit-confirm-container {
+  display: inline-block;
+  margin-top: 20px;
+}
+
+.edit-confirm {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  z-index: 1000;
+  text-align: center;
+}
+
+
+@-webkit-keyframes spin {
+  to {
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@-moz-keyframes spin {
+  to {
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  to {
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.dropdown-submenu {
+  position:relative;
+}
+.dropdown-submenu > .dropdown-menu {
+  top:0;
+  left:100%;
+  margin-top:-6px;
+  margin-left:-1px;
+  -webkit-border-radius:0 6px 6px 6px;
+  -moz-border-radius:0 6px 6px 6px;
+  border-radius:0 6px 6px 6px;
+}
+.dropdown-submenu:hover > .dropdown-menu {
+  display:block;
+}
+.dropdown-submenu > a:after {
+  display:block;
+  content:" ";
+  float:right;
+  width:0;
+  height:0;
+  border-color:transparent;
+  border-style:solid;
+  border-width:5px 0 5px 5px;
+  border-left-color:#cccccc;
+  margin-top:5px;
+  margin-right:-10px;
+}
+.dropdown-submenu:hover > a:after {
+  border-left-color:#ffffff;
+}
+.dropdown-submenu.pull-left {
+  float:none;
+}
+.dropdown-submenu.pull-left > .dropdown-menu {
+  left:-100%;
+  margin-left:10px;
+  -webkit-border-radius:6px 0 6px 6px;
+  -moz-border-radius:6px 0 6px 6px;
+  border-radius:6px 0 6px 6px;
+}
+
+
+a.list-group-item.active{
+  z-index: 2;
+  color: #ffffff;
+  background-color: #428bca;
+  border-color: #428bca;
+  .base-transition(border-color 200ms linear, background-color 200ms linear;);
+}
+
