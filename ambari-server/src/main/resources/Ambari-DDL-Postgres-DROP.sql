@@ -16,4 +16,22 @@
 -- limitations under the License.
 --
 
-DROP SCHEMA ambari CASCADE;
+CREATE OR REPLACE FUNCTION drop_tables(dbuser text) RETURNS void AS $$
+    DECLARE
+      table_row pg_catalog.pg_tables%rowtype;
+    BEGIN
+      FOR table_row IN SELECT
+                         *
+                       FROM pg_catalog.pg_tables
+                       WHERE tableowner = dbuser
+      LOOP
+        execute 'DROP TABLE IF EXISTS ' || table_row.schemaname || '.' || table_row.tablename || ' CASCADE';
+      END LOOP;
+
+    END
+
+$$ LANGUAGE plpgsql;
+
+\set s_username '\'' :username '\''
+
+select drop_tables(:s_username);
