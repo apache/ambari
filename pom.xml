@@ -163,6 +163,7 @@
         <configuration>
           <excludes>
             <exclude>**/*.json</exclude>
+            <exclude>**/*.svg</exclude>
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
@@ -188,12 +189,15 @@
 
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
-
-				    <!--Jinja2 library (BSD license)-->
-				    <exclude>ambari-common/src/main/python/jinja2/**</exclude>
+            <!--Jinja2 library (BSD license)-->
+            <exclude>ambari-common/src/main/python/jinja2/**</exclude>
 
             <!--Contributions-->
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
+            <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
+            <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/vendor/*</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/bin</exclude>
           </excludes>
         </configuration>
         <executions>
