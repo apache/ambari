@@ -1,0 +1,34 @@
+{
+  "name": "filebrowser-web",
+  "version": "0.0.1",
+  "main": "public/app.js",
+  "dependencies": {
+    "ember": "1.6.0-beta.1",
+    "ember-data": "1.0.0-beta.7",
+    "jquery": "1.9.0",
+    "bootstrap": "3.0.x",
+    "ember-uploader": "~0.2.7",
+    "ladda-bootstrap": "git://github.com/msurguy/ladda-bootstrap.git#~0.1.0",
+    "moment": "~2.5.1",
+    "ember-i18n": "~1.6.0",
+    "bootstrap-contextmenu": "~0.2.0",
+    "font-awesome": "~4.0.3"
+  },
+  "overrides": {
+    "jquery": {
+      "main": "jquery.js"
+    },
+    "ember-uploader": {
+      "main": "dist/ember-uploader.js"
+    },
+    "cldr": {
+      "main": "plurals.js"
+    },
+    "ember-i18n": {
+      "scripts": []
+    },
+    "font-awesome":{
+      "main":"css/font-awesome.css"
+    }
+  }
+}

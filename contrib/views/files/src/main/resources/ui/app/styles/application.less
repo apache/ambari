@@ -1,0 +1,279 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.wrap {
+  padding: 10px;
+}
+
+.panel-files {
+  .panel-heading {
+    height: 41px;
+    padding: 5px 10px;
+
+    .breadcrumb {
+      margin-bottom: 0;
+      padding: 5px 10px;
+      //background-color: #fff;
+
+      .active a {
+        color: #999999 !important;
+      }
+
+      li:first-child + li:before {
+        padding: 0 3px;
+        content: " ";
+      }
+    }
+
+    .upload-area, .mkdir-area{
+      // margin: -4px 5px -4px 5px;
+      width: 350px;
+      margin-right: 5px;
+    }
+    .uploadwrap, .mkdirwrap{
+      margin-right: 5px;
+    }
+    .btn-mkdir-cancel {
+      border-radius: 0 !important;
+      margin-left: -1px;
+    }
+    .mkdir-input{
+      font-size: 14px;
+    }
+    .btn-upload {
+      button {
+        border-radius:0 !important;
+      }
+    }
+  }
+
+  .panel-body {
+    .i-am-in {
+      margin: 0;
+    }
+  }
+
+  .table-files{
+    td {
+      cursor: pointer;
+    }
+    thead {
+      background-color: #f5f5f5;
+    }
+    thead > tr > th {
+      border-bottom: 1px solid #dddddd;
+      border-top: 1px solid #dddddd !important;
+    }
+    thead tr th.icon {
+      width: 2%;
+    }
+    thead tr th.path {
+      cursor: pointer;
+      width: 20%;
+    }
+    thead tr th.owner {
+      cursor: pointer;
+      width: 20%;
+    }
+    thead tr th.grp {
+      cursor: pointer;
+      width: 20%;
+    }
+    thead tr th.perm {
+      cursor: pointer;
+      width: 20%;
+    }
+    thead tr th.download {
+      width: 2%;
+      .btn-group{
+        width: 130px;
+      }
+    }
+    thead tr th.check{
+      width: 2%;
+      .btn-group {
+        width: 50px;
+        .input-group-addon {
+          padding: 2px 17px 1px 5px;
+          position: relative;
+          float: left;
+        }
+        .checkbox {
+          margin: 0;
+          min-height: 17px;
+        }
+      }
+    }
+    tbody {
+      .btn-delete {
+        .popover-content{
+          width: 80px;
+        }
+      }
+      .levelup {
+        text-align: center;
+      }
+      .levelup:hover {
+        background-color: #dddddd;
+      }
+      tr {
+        &.isMoving {
+          opacity: 0.5;
+        }
+        td {
+          vertical-align: middle;
+        }
+        .file-actions{
+          width: 130px;
+          margin-bottom: 0;
+          .delete-forever {
+            display: inline-block;
+            margin: 5px;
+          }
+        }
+        .mod-time{
+          margin: 0;
+        }
+        .file-name {
+          margin-top: -5px;
+          margin-bottom: -5px;
+        }
+        .rename-area {
+          //margin: -4px;
+        }
+        .btn-rename {
+          display: none;
+        }
+        &:hover .btn-rename {
+          display: inline-block;
+        }
+        .btn-rename-cancel {
+          border-radius: 0 !important;
+          margin-left: -1px;
+        }
+        .rename-input{
+          font-size: 14px;
+        }
+      }
+    }
+  } 
+
+}
+
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 999px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+.dropdown-submenu {
+  position:relative;
+  & > a {
+    white-space: normal !important;
+  }
+  & > .dropdown-menu {
+    top:0;
+    left:100%;
+    margin-top:-6px;
+    margin-left:-1px;
+    -webkit-border-radius:0 6px 6px 6px;
+    -moz-border-radius:0 6px 6px 6px;
+    border-radius:0 6px 6px 6px;
+  }
+  &:hover > .dropdown-menu {
+    display:block;
+  }
+  &.pull-left {
+    float:none;
+    & > .dropdown-menu {
+      left:-100%;
+      margin-left:10px;
+    }
+  }
+  & > .left-submenu {
+    -webkit-border-radius:6px 0 6px 6px;
+    -moz-border-radius:6px 0 6px 6px;
+    border-radius:6px 0 6px 6px;
+    float: right;
+    right: 100%;
+    left: inherit;
+  }
+}
+
+
+.fa-right {
+  top: 3px;
+  position: relative;
+  color: #cccccc;
+}
+
+.fa-gr {
+  color: #ccc;
+}
+
+
+.dropdown-context {
+  .nav-header{
+    cursor:default;
+  }
+  .dropdown-submenu:hover {
+    .dropdown-menu {
+      display: none;
+    }
+    & > .dropdown-menu {
+      display: block;
+    }
+  }
+}
+
+.dropdown-context-sub:before, .dropdown-context-sub:after{
+  display:none;
+}
+.compressed-context {
+  a {
+    padding-left: 14px;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: 13px;
+  }
+  .divider {
+    margin: 5px 1px;
+  }
+  .nav-header {
+    padding:1px 13px;
+  }
+}
+
+.dropdown-confirm {
+  margin: -4px 0;
+}
