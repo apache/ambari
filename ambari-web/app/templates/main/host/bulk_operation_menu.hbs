@@ -32,11 +32,9 @@
               <ul class="dropdown-menu">
                 {{#each operation in view.operationsInfo}}
                   {{#if operation.label.length}}
-                      <li>
-                        {{#view view.operationView contentBinding="operation.operationData" selection="s"}}
-                            <a href="javascript:void(null);">{{operation.label}}</a>
-                        {{/view}}
-                      </li>
+                    {{#view view.operationView contentBinding="operation.operationData" selection="s"}}
+                        <a href="javascript:void(null);">{{operation.label}}</a>
+                    {{/view}}
                   {{/if}}
                 {{/each}}
               </ul>
@@ -70,11 +68,9 @@
             <ul class="dropdown-menu">
               {{#each operation in view.operationsInfo}}
                 {{#if operation.label.length}}
-                  <li>
-                    {{#view view.operationView contentBinding="operation.operationData" selection="f"}}
-                      <a href="javascript:void(null);">{{operation.label}}</a>
-                    {{/view}}
-                  </li>
+                  {{#view view.operationView contentBinding="operation.operationData" selection="f"}}
+                    <a href="javascript:void(null);">{{operation.label}}</a>
+                  {{/view}}
                 {{/if}}
               {{/each}}
             </ul>
@@ -108,11 +104,9 @@
               <ul class="dropdown-menu">
                 {{#each operation in view.operationsInfo}}
                   {{#if operation.label.length}}
-                      <li>
-                        {{#view view.operationView contentBinding="operation.operationData" selection="a"}}
-                            <a href="javascript:void(null);">{{operation.label}}</a>
-                        {{/view}}
-                      </li>
+                    {{#view view.operationView contentBinding="operation.operationData" selection="a"}}
+                        <a href="javascript:void(null);">{{operation.label}}</a>
+                    {{/view}}
                   {{/if}}
                 {{/each}}
               </ul>
