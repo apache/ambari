@@ -256,7 +256,7 @@ App.HostComponentStatus = {
       case this.stopping:
         return 'Stopping...';
       case this.unknown:
-        return 'Heartbeat lost...';
+        return 'Heartbeat Lost';
       case this.upgrade_failed:
         return 'Upgrade Failed';
       case this.disabled:
