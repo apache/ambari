@@ -25,20 +25,34 @@ import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class UpgradeCatalogTest {
   private Injector injector;
   private AmbariMetaInfo metaInfo;
+  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\"," +
+    "\"stackVersion\":\"1.2.0\"}";
 
   private static class UpgradeCatalog149 extends AbstractUpgradeCatalog {
 
@@ -88,11 +102,9 @@ public class UpgradeCatalogTest {
     injector.getInstance(PersistService.class).stop();
   }
 
-
   @Test
   public void testUpgradePath() throws Exception {
-    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance
-      (SchemaUpgradeHelper.class);
+    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
     Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
 
@@ -106,5 +118,72 @@ public class UpgradeCatalogTest {
     Assert.assertEquals(2, upgradeCatalogs.size());
     Assert.assertEquals("1.4.9", upgradeCatalogs.get(0).getTargetVersion());
     Assert.assertEquals("1.5.0", upgradeCatalogs.get(1).getTargetVersion());
+  }
+
+  @Test
+  public void testUpdateConfigurationProperties() throws Exception {
+    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    ClusterRequest r = new ClusterRequest(null, "c1", "HDP-0.1", null);
+    controller.createCluster(r);
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getCluster("c1");
+
+    Assert.assertNotNull(cluster);
+
+    Map<String, String> properties = new HashMap<String, String>() {{
+      put("a", "b");
+    }};
+
+    final ClusterRequest cl = new ClusterRequest(
+      cluster.getClusterId(),
+      cluster.getClusterName(),
+      cluster.getDesiredStackVersion().getStackVersion(),
+      null
+    );
+
+    ConfigurationRequest cr = new ConfigurationRequest();
+    cr.setClusterName(cluster.getClusterName());
+    cr.setType("global");
+    cr.setVersionTag("version1");
+    cr.setProperties(properties);
+
+    cl.setDesiredConfig(cr);
+
+    controller.updateClusters(new HashSet<ClusterRequest>() {{ add(cl); }}, null);
+
+    Config config = cluster.getConfig("global", "version1");
+
+    Assert.assertNotNull(config);
+    Assert.assertEquals(properties, config.getProperties());
+
+    // Add new
+    UpgradeCatalog149 testCatalog = injector.getInstance(UpgradeCatalog149.class);
+    testCatalog.updateConfigurationProperties("global",
+      Collections.singletonMap("x", "y"), false);
+    config = cluster.getDesiredConfigByType("global");
+    String version = config.getVersionTag();
+    Assert.assertNotNull(config);
+    Assert.assertNotSame("version1", version);
+    Assert.assertTrue(config.getProperties().containsKey("x"));
+    Assert.assertEquals("y", config.getProperties().get("x"));
+
+    // Override value
+    testCatalog.updateConfigurationProperties("global",
+      Collections.singletonMap("x", "z"), true);
+    config = cluster.getDesiredConfigByType("global");
+    Assert.assertNotNull(config);
+    Assert.assertNotSame(version, config.getVersionTag());
+    Assert.assertTrue(config.getProperties().containsKey("x"));
+    Assert.assertEquals("z", config.getProperties().get("x"));
+    version = config.getVersionTag();
+
+    // Retain original
+    testCatalog.updateConfigurationProperties("global",
+      Collections.singletonMap("x", "y"), false);
+    config = cluster.getDesiredConfigByType("global");
+    Assert.assertNotNull(config);
+    Assert.assertNotSame(version, config.getVersionTag());
+    Assert.assertTrue(config.getProperties().containsKey("x"));
+    Assert.assertEquals("z", config.getProperties().get("x"));
   }
 }

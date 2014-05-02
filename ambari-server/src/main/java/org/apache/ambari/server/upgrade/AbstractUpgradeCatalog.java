@@ -23,18 +23,21 @@ import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -166,6 +169,76 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     dbAccessor.executeQuery(String.format("ALTER SCHEMA %s OWNER TO %s;", dbName, dbUser));
 
     dbAccessor.executeQuery(String.format("ALTER ROLE %s SET search_path to '%s';", dbUser, dbName));
+  }
+
+  /**
+   * Create a new cluster scoped configuration with the new properties added
+   * to the existing set of properties.
+   * @param configType Configuration type. (hdfs-site, etc.)
+   * @param properties Map of key value pairs to add / update.
+   */
+  protected void updateConfigurationProperties(String configType,
+        Map<String, String> properties, boolean updateIfExists) throws
+    AmbariException {
+    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    String newTag = "version" + System.currentTimeMillis();
+
+    Clusters clusters = controller.getClusters();
+    if (clusters == null) {
+      return;
+    }
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (Cluster cluster : clusterMap.values()) {
+        Config oldConfig = cluster.getDesiredConfigByType(configType);
+
+        if (properties != null) {
+          Map<String, Config> all = cluster.getConfigsByType(configType);
+          if (all == null || !all.containsKey(newTag) || properties.size() > 0) {
+
+            Map<String, String> mergedProperties =
+              mergeProperties(oldConfig.getProperties(), properties, updateIfExists);
+
+            LOG.info("Applying configuration with tag ''{0}'' to " +
+              "cluster ''{1}''", newTag, cluster.getClusterName());
+
+            ConfigurationRequest cr = new ConfigurationRequest();
+            cr.setClusterName(cluster.getClusterName());
+            cr.setVersionTag(newTag);
+            cr.setType(configType);
+            cr.setProperties(mergedProperties);
+            controller.createConfiguration(cr);
+
+            Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
+            if (baseConfig != null) {
+              String authName = "ambari-upgrade";
+
+              if (cluster.addDesiredConfig(authName, baseConfig)) {
+                LOG.info("cluster '" + cluster.getClusterName() + "' "
+                  + "changed by: '" + authName + "'; "
+                  + "type='" + baseConfig.getType() + "' "
+                  + "tag='" + baseConfig.getVersionTag() + "'"
+                  + " from='"+ oldConfig.getVersionTag() + "'");
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private Map<String, String> mergeProperties(Map<String, String> originalProperties,
+                               Map<String, String> newProperties,
+                               boolean updateIfExists) {
+
+    Map<String, String> properties = new HashMap<String, String>(originalProperties);
+    for (Map.Entry<String, String> entry : newProperties.entrySet()) {
+      if (!properties.containsKey(entry.getKey()) || updateIfExists) {
+        properties.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return properties;
   }
 
   @Override
