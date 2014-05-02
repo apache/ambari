@@ -23,23 +23,32 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertNull;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceControl;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -79,23 +88,34 @@ public class UpgradeCatalog160Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
-
     Configuration configuration = createNiceMock(Configuration.class);
+    DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+
+    Method m = AbstractUpgradeCatalog.class.getDeclaredMethod
+      ("updateConfigurationProperties", String.class, Map.class, boolean.class);
+
+    UpgradeCatalog160 upgradeCatalog = createMockBuilder(UpgradeCatalog160.class)
+      .addMockedMethod(m).createMock();
+
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
-    final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
-    UpgradeCatalog160 upgradeCatalog = (UpgradeCatalog160) getUpgradeCatalog(dbAccessor);
+    upgradeCatalog.updateConfigurationProperties("global",
+      Collections.singletonMap("jobhistory_heapsize", "900"), false);
+    expectLastCall();
 
-    replay(dbAccessor, configuration);
+    replay(upgradeCatalog, dbAccessor, configuration);
 
     Class<?> c = AbstractUpgradeCatalog.class;
     Field f = c.getDeclaredField("configuration");
     f.setAccessible(true);
     f.set(upgradeCatalog, configuration);
+    f = c.getDeclaredField("dbAccessor");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, dbAccessor);
 
     upgradeCatalog.executeDMLUpdates();
 
-    verify(dbAccessor, configuration);
+    verify(upgradeCatalog, dbAccessor, configuration);
   }
 
   @Test

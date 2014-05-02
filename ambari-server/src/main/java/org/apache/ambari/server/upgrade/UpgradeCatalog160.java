@@ -26,6 +26,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -97,7 +98,7 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     String dbType = getDbType();
 
-    //add new sequences for view entity
+    // Add new sequences for view entity
     String valueColumnName = "\"value\"";
     if (Configuration.ORACLE_DB_NAME.equals(dbType) || Configuration.MYSQL_DB_NAME.equals(dbType)) {
       valueColumnName = "value";
@@ -105,6 +106,9 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, " + valueColumnName + ") " +
         "VALUES('viewentity_id_seq', 0)", true);
+
+    // Add missing property for YARN
+    updateConfigurationProperties("global", Collections.singletonMap("jobhistory_heapsize", "900"), false);
   }
 
   @Override
