@@ -37,9 +37,9 @@ App.QuickLinks.FIXTURES = [
   {
     id:1,
     label:'NameNode UI',
-    url:'%@://%@:%@/dfshealth.jsp',
+    url:'%@://%@:%@',
     service_id: 'HDFS',
-    template:'%@://%@:%@/dfshealth.jsp',
+    template:'%@://%@:%@',
     http_config: 'dfs.namenode.http-address',
     https_config: 'dfs.namenode.https-address',
     site: 'hdfs-site',
