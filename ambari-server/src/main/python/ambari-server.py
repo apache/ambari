@@ -1354,25 +1354,15 @@ def store_remote_properties(args):
 # Initialize remote database schema
 def setup_remote_db(args):
 
-  not_found_msg = "Cannot find {0} {1} client in the path to load the Ambari Server schema.\
- Before starting Ambari Server, you must run the following DDL against the database to create \
-the schema ".format(DATABASE_NAMES[DATABASE_INDEX], str(DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]))
-  client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     BLIND_PASSWORD, args.database_name)
+  setup_msg = "Before starting Ambari Server, you must run the following DDL " \
+              "against the database to create the schema: {0}".format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
 
-  retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
-  if retcode != 0:
-    if retcode == -1:
-      print_warning_msg(not_found_msg + os.linesep + client_usage_cmd)
-      if not SILENT:
-        raw_input(PRESS_ENTER_MSG)
-      return retcode
+  print_warning_msg(setup_msg)
 
-    print err
-    print_error_msg('Database bootstrap failed. Please, provide correct connection properties.')
-    return retcode
+  proceed = get_YN_input("Proceed with configuring remote database connection properties [y/n] (n)? ", True)
+  retCode = 0 if proceed else -1
 
-  return 0
+  return retCode
 
 
 # Get database client executable path
@@ -1386,8 +1376,9 @@ def get_db_cli_tool(args):
   return None
 
 
-#execute SQL script on remote database
+#execute SQL script on remote database: Deprecated
 def execute_remote_script(args, scriptPath):
+  print_warning_msg("Deprecated method called.")
   tool = get_db_cli_tool(args)
   if not tool:
     # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
@@ -2264,7 +2255,7 @@ def setup(args):
     print 'Configuring remote database connection properties...'
     retcode = setup_remote_db(args)
     if retcode == -1:
-      err = "The cli was not found"
+      err = "Remote database setup aborted."
       raise NonFatalException(err)
 
     if not retcode == 0:
@@ -2305,63 +2296,31 @@ def reset(args):
     err = "Ambari Server 'reset' cancelled"
     raise FatalException(1, err)
 
-  okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), SILENT)
-
-  if not okToRun:
-    err = "Ambari Server 'reset' cancelled"
-    raise FatalException(1, err)
-
-  print "Resetting the Server database..."
-
   check_database_name_property()
   parse_properties_file(args)
 
-  # configure_database_username_password(args)
   if args.persistence_type == "remote":
-    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
     client_usage_cmd_drop = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_DROP_SCRIPTS[DATABASE_INDEX], args.database_username,
                                                      BLIND_PASSWORD, args.database_name)
     client_usage_cmd_init = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
                                                      BLIND_PASSWORD, args.database_name)
 
-    if get_db_cli_tool(args) != -1:
-      retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
-      if not retcode == 0:
-        if retcode == -1:
-          print_warning_msg('Cannot find ' + client_desc +
-                            ' client in the path to reset the Ambari Server ' +
-                            'schema. To reset Ambari Server schema ' +
-                            'you must run the following DDL against the database ' +
-                            'to drop the schema:' + os.linesep + client_usage_cmd_drop
-                            + os.linesep + 'Then you must run the following DDL '
-                            + 'against the database to create the schema: ' + os.linesep
-                             + client_usage_cmd_init + os.linesep)
-        raise NonFatalException(err)
-      if err:
-        print_warning_msg(err)
-      retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
-      if not retcode == 0:
-        if retcode == -1:
-          print_warning_msg('Cannot find ' + client_desc + ' client in the path to ' +
-                            'reset the Ambari Server schema. To reset Ambari Server schema ' +
-                            'you must run the following DDL against the database to '
-                            + 'drop the schema:' + os.linesep + client_usage_cmd_drop
-                            + os.linesep + 'Then you must run the following DDL ' +
-                            'against the database to create the schema: ' + os.linesep +
-                            client_usage_cmd_init + os.linesep)
-        raise NonFatalException(err)
-      if err:
-        print_warning_msg(err)
-    else:
-      err = 'Cannot find ' + client_desc + ' client in the path to reset the Ambari ' +\
-      'Server schema. To reset Ambari Server schema ' + \
-      'you must run the following DDL against the database to drop the schema:' + \
-      os.linesep + client_usage_cmd_drop + os.linesep +   \
-      'Then you must run the following DDL against the database to create the ' + \
-      'schema: ' + os.linesep + client_usage_cmd_init + os.linesep
-      raise NonFatalException(err)
-
+    print_warning_msg('To reset Ambari Server schema ' +
+                      'you must run the following DDL against the database to '
+                      + 'drop the schema:' + os.linesep + client_usage_cmd_drop
+                      + os.linesep + 'Then you must run the following DDL ' +
+                      'against the database to create the schema: ' + os.linesep +
+                      client_usage_cmd_init + os.linesep)
   else:
+    # Run automatic reset only for embedded DB
+    okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), SILENT)
+
+    if not okToRun:
+      err = "Ambari Server 'reset' cancelled"
+      raise FatalException(1, err)
+
+    print "Resetting the Server database..."
+
     dbname = args.database_name
     filename = args.drop_script_file
     username = args.database_username
@@ -2384,6 +2343,8 @@ def reset(args):
         raise NonFatalException("Non critical error in DDL, use --verbose for more information")
       else:
         raise NonFatalException("Non critical error in DDL")
+    pass
+  pass
 
 
 #
