@@ -200,8 +200,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             Map<String, String> mergedProperties =
               mergeProperties(oldConfig.getProperties(), properties, updateIfExists);
 
-            LOG.info("Applying configuration with tag ''{0}'' to " +
-              "cluster ''{1}''", newTag, cluster.getClusterName());
+            LOG.info("Applying configuration with tag '%s' to " +
+              "cluster '%s'", newTag, cluster.getClusterName());
 
             ConfigurationRequest cr = new ConfigurationRequest();
             cr.setClusterName(cluster.getClusterName());
