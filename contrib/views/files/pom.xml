@@ -1,0 +1,258 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.apache.ambari.view</groupId>
+    <artifactId>files</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Filebrowser</name>
+    
+    <parent>
+        <groupId>org.apache.ambari.views</groupId>
+        <artifactId>ambari-views-poc</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    
+    <dependencies>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-hdfs</artifactId>
+        <version>${hadoop-version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>${hadoop-version}</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.sun.jersey.contribs</groupId>
+        <artifactId>jersey-multipart</artifactId>
+        <version>1.18</version>
+    </dependency>
+    <dependency>
+        <groupId>com.googlecode.json-simple</groupId>
+        <artifactId>json-simple</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-minicluster</artifactId>
+        <version>${hadoop-version}</version>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.glassfish.jersey.test-framework</groupId>
+        <artifactId>jersey-test-framework-core</artifactId>
+        <version>2.6</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+        <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+        <version>2.6</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>
+        org.glassfish.jersey.test-framework.providers
+        </groupId>
+        <artifactId>
+        jersey-test-framework-provider-bundle
+        </artifactId>
+        <version>2.6</version>
+        <scope>test</scope>
+        <type>pom</type>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.ambari</groupId>
+        <artifactId>ambari-views</artifactId>
+    </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+    <hadoop-version>2.2.0</hadoop-version>
+    <nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
+    <npm.version>1.4.3</npm.version>
+    <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
+    </properties>
+    <build>
+
+    <plugins>
+        <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>0.0.14</version>
+
+        <!-- optional -->
+        <configuration>
+            <workingDirectory>src/main/resources/ui</workingDirectory>
+        </configuration>
+
+        <executions>
+            <execution>
+            <!-- optional: you don't really need execution ids, but it looks nice
+                 in your build log. -->
+            <id>install node and npm</id>
+            <goals>
+                <goal>install-node-and-npm</goal>
+            </goals>
+            <!-- optional: default phase is "generate-resources" -->
+            <phase>generate-resources</phase>
+            <configuration>
+                <nodeVersion>v0.10.26</nodeVersion>
+                <npmVersion>1.4.3</npmVersion>
+            </configuration>
+            </execution>
+            <execution>
+            <id>npm install</id>
+            <goals>
+                <goal>npm</goal>
+            </goals>
+
+            <!-- optional: default phase is "generate-resources" -->
+            <phase>generate-resources</phase>
+
+            <configuration>
+                <!-- optional: The default argument is actually "install", so unless
+                 you need to run some other npm command, you can remove this whole <configuration>
+                 section. -->
+                <arguments>install --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
+            </configuration>
+            </execution>
+        </executions>
+        </plugin>
+        <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <version>1.2.1</version>
+        <executions>
+            <execution>
+            <id>Brunch build</id>
+            <phase>generate-resources</phase>
+            <goals>
+                <goal>exec</goal>
+            </goals>
+            <configuration>
+                <workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
+                <executable>node/node</executable>
+                <arguments>
+                <argument>node_modules/.bin/brunch</argument>
+                <argument>build</argument>
+                                <argument>--production</argument>
+                </arguments>
+            </configuration>
+            </execution>
+        </executions>
+        </plugin>
+    </plugins>
+    <resources>
+        <resource>
+        <directory>src/main/resources/ui/public</directory>
+        <filtering>false</filtering>
+        </resource>
+
+        <resource>
+        <directory>src/main/resources/</directory>
+        <filtering>false</filtering>
+        <includes>
+            <include>view.xml</include>
+        </includes>
+        </resource>
+    </resources>
+    <pluginManagement>
+        <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+            <groupId>org.eclipse.m2e</groupId>
+            <artifactId>lifecycle-mapping</artifactId>
+            <version>1.0.0</version>
+            <configuration>
+            <lifecycleMappingMetadata>
+                <pluginExecutions>
+                <pluginExecution>
+                    <pluginExecutionFilter>
+                    <groupId>
+                        org.codehaus.mojo
+                    </groupId>
+                    <artifactId>
+                        exec-maven-plugin
+                    </artifactId>
+                    <versionRange>
+                        [1.2.1,)
+                    </versionRange>
+                    <goals>
+                        <goal>exec</goal>
+                    </goals>
+                    </pluginExecutionFilter>
+                    <action>
+                    <ignore></ignore>
+                    </action>
+                </pluginExecution>
+                <pluginExecution>
+                    <pluginExecutionFilter>
+                    <groupId>
+                        com.github.eirslett
+                    </groupId>
+                    <artifactId>
+                        frontend-maven-plugin
+                    </artifactId>
+                    <versionRange>
+                        [0.0.14,)
+                    </versionRange>
+                    <goals>
+                        <goal>
+                        install-node-and-npm
+                        </goal>
+                        <goal>npm</goal>
+                    </goals>
+                    </pluginExecutionFilter>
+                    <action>
+                    <ignore></ignore>
+                    </action>
+                </pluginExecution>
+                </pluginExecutions>
+            </lifecycleMappingMetadata>
+            </configuration>
+        </plugin>
+        </plugins>
+    </pluginManagement>
+    </build>
+</project>

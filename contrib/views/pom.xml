@@ -23,9 +23,7 @@
   <version>0.1.0-SNAPSHOT</version>
   <name>Ambari Views Proof of Concept</name>
   <modules>
-    <!--
-            <module>files</module>
-    -->
+    <module>files</module>
     <module>pig</module>
   </modules>
   <build>

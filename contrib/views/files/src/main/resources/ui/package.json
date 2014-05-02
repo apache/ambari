@@ -1,0 +1,38 @@
+{
+  "author": "Your Name",
+  "name": "package-name",
+  "description": "Package description",
+  "version": "0.0.1",
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "engines": {
+    "node": "~0.6.10 || 0.8 || 0.9"
+  },
+  "scripts": {
+    "start": "brunch watch --server",
+    "preinstall": "chmod +x node/npm/bin/node-gyp-bin/node-gyp",
+    "postinstall" : "bash node/with_new_path.sh node node_modules/.bin/bower --allow-root install"
+  },
+  "dependencies": {
+    "javascript-brunch": "^1.7.1",
+    "css-brunch": "^1.7.0",
+    "uglify-js-brunch": "^1.7.7",
+    "clean-css-brunch": "^1.7.1",
+    "bower": "^1.2.8",
+    "brunch": "^1.7.13",
+    "scaffolt": "^0.4.3",
+    "ember-precompiler-brunch": "^1.5.1",
+    "less-brunch": "^1.7.2"
+  },
+  "devDependencies": {},
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

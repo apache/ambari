@@ -1,0 +1,254 @@
+{{!
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+}}
+
+<div class="panel panel-default panel-files">
+  <div class="panel-heading">
+    {{!-- BREADCRUMBS --}}  
+    {{view view.breadcrumbsView}}
+      
+    <div class="um-section">
+    {{!-- UPLOADER --}}  
+    <div {{bind-attr class="isUploading::hide :pull-right" }}>
+      <button {{action 'upload' 'close'}} type="button" class="close" aria-hidden="true">&times;</button>
+      {{file-uploader path=path uploader=uploader class=" upload-area pull-right"}}
+    </div>
+
+    <div {{bind-attr class="isUploading:hide: :pull-right :uploadwrap" }}>
+      <button type="button" {{action 'upload' 'open'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right"}}>
+        <i class="fa fa-upload"></i> Upload
+      </button>
+    </div>
+
+    {{!-- MKDIR --}}  
+    {{#unless isMkdir}} 
+      <button type="button" {{action 'mkdir' 'edit'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right :mkdirwrap"}}>
+        <i class="fa fa-plus"></i> New directory
+      </button>
+    {{else}}
+      <div class="input-group input-group-sm pull-right mkdir-area">
+        {{input class="form-control mkdir-input" valueBinding='newDirName'}}
+        <div class="input-group-btn">
+          <button  type="button" {{action 'mkdir' 'cancel'}} {{bind-attr class=":btn :btn-danger :btn-sm :btn-mkdir-cancel"}} >
+            <i class="fa fa-times"></i> Cancel
+          </button>
+        </div>
+        <div class="input-group-btn">
+          <button  type="button" {{action 'mkdir' 'confirm'}} {{bind-attr class=":btn :btn-success :btn-sm :btn-mkdir"}} >
+            <i class="fa fa-check"></i> Create
+          </button>
+        </div>
+      </div>
+    {{/unless}}
+
+
+    </div>
+  </div>
+
+  <div class="panel-body">
+    <h4 class="i-am-in" > <i class="fa fa-folder fa-lg"></i>  {{currentDir}}</h4>
+  </div>
+
+  <table class="table table-hover table-files">
+    <thead>
+      <tr>
+        <th class="icon"></th>
+        <th class="path" {{action 'sort' 'title'}}> Title {{view view.sortArrow sortProperty='title'}} </th>
+        <th class="owner" {{action 'sort' 'owner'}}>Owner {{view view.sortArrow sortProperty='owner'}}</th>
+        <th class="grp" {{action 'sort' 'group'}} >Group {{view view.sortArrow sortProperty='group'}}</th>
+        <th class="perm" {{action 'sort' 'permission'}} >Permission {{view view.sortArrow sortProperty='permission'}}</th>
+        <th class="download">
+          <div class="btn-group btn-sort" data-toggle="tooltip" data-placement="top" title="Sort by:">
+            <button type="button" class="btn btn-xs btn-default" {{action sort 'toggle'}}>
+            {{#if sortAscending}} Asc {{else}} Desc {{/if}}
+            </button>
+
+            <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
+              <span>
+              {{capitalize sortProperties.firstObject}}
+              </span>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="#" {{action 'sort' 'title'}} >Title</a></li>
+              <li><a href="#" {{action 'sort' 'owner'}} >Owner</a></li>
+              <li><a href="#" {{action 'sort' 'group'}} >Group</a></li>
+              <li><a href="#" {{action 'sort' 'permission'}} >Permission</a></li>
+              <li><a href="#" {{action 'sort' 'date'}} >Date</a></li>
+            </ul>
+          </div>
+        </th>
+        <th class="check"> 
+          <div id="bulkDropdown" class="btn-group">
+              <span class="input-group-addon">
+                <div class="checkbox">
+                    {{view view.checkboxAll contentBinding='fileList'}}
+                </div>
+              </span>
+          <button  type="button" data-toggle="dropdown" {{bind-attr class=":btn :btn-xs :btn-default :dropdown-toggle isSelected::disabled"}} >
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu pull-right" role="menu">
+            <li><a href="#"  {{action 'download' 'zip'}} ><i class="fa fa-archive fa-fw"></i> Download zip</a></li>
+            {{#if canConcat}}
+            <li><a href="#"  {{action 'download' 'concat'}} ><i class="fa fa-th fa-fw"></i> Concat</a></li>
+            {{/if}}
+            <li class="divider"></li>
+            <li class="dropdown-submenu">
+              <a href="#" disabled="disabled">
+                <i class="fa fa-chevron-left fa-gr fa-fw"></i> Delete
+              </a>
+              <ul class="dropdown-menu left-submenu">
+                {{view view.deleteBulkView}}
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </th>
+      </tr>
+    </thead>
+    <tbody>
+    <div>
+      <tr>
+        <td><i class="fa fa-folder"></i></td>
+        <td  {{action 'dirUp'}} colspan="6">
+          <strong> .. </strong>
+        </td>
+      </tr>
+      {{#unless hideMoving}}
+      {{#if movingFile}}
+        <tr class="isMoving">
+          <td>
+            {{#if movingFile.isDirectory}}
+            <i class="fa fa-folder"></i>
+            {{else}}
+            <i class="fa fa-file"></i>
+            {{/if}}
+          </td>
+          <td>
+            <div class="file-name">
+                <span>
+                  <a>
+                  {{movingFile.title}}
+                  </a>
+                </span>
+                <span class="help-block mod-time">
+                  <small>
+                    Updated {{showDateUnix movingFile.modificationTime 'YYYY-MM-DD HH:mm'}}
+                  </small>
+                </span>
+              </div>
+          </td>
+          <td >{{movingFile.owner}}</td>
+          <td>{{movingFile.group}}</td>
+          <td>{{movingFile.permission}}</td>
+          <td >
+            <ul class="list-inline file-actions text-right">
+              <li>
+                <a href="#" {{action 'moveFile' 'move'}} data-toggle="tooltip" data-placement="bottom" title="Paste"><i class="fa fa-clipboard fa-lg"></i></a>  
+              </li>
+            </ul>
+          </td>
+          <td >
+            <a href="#" {{action 'moveFile' 'cancel' }} data-toggle="tooltip" data-placement="bottom" title="Cancel moving"> <i class="fa fa-times fa-lg"></i> </a>
+          </td>
+        </tr>
+      {{/if}}
+      {{/unless}}
+    </div>
+      {{#each fileList itemController="file"}}
+        <tr {{bind-attr class=":file-row isMoving:isMoving"}}>
+          <td>
+            {{#if content.isDirectory}}
+            <i class="fa fa-folder"></i>
+            {{else}}
+            <i class="fa fa-file"></i>
+            {{/if}}
+          </td>
+          <td>
+            {{#unless isRenaming}}
+              <div class="file-name allow-open">
+                <span>
+                  {{#link-to 'files' (query-params path=content.path)}}
+                    <strong>
+                      {{content.title}}
+                    </strong>
+                  {{/link-to}}
+                </span>
+                {{#unless isMoving}}
+                <a {{action 'rename' 'edit'}} {{bind-attr class=":btn-rename "}} data-toggle="tooltip" data-placement="bottom" title="Rename">
+                  <small>
+                    <i class="fa fa-edit fa-lg"></i>
+                  </small>
+                </a>
+                {{/unless }}
+                <span class="help-block mod-time allow-open">
+                  <small class='allow-open'>
+                    Updated {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
+                  </small>
+                </span>
+              </div>
+            {{else}}
+              <div class="input-group input-group-sm rename-area">
+                {{view view.renameInputView class="form-control rename-input" valueBinding='tmpName'}}
+                <div class="input-group-btn">
+                  <button  type="button" {{action 'rename' 'cancel'}} {{bind-attr class=":btn :btn-danger :btn-xs :btn-rename-cancel isRenaming:show"}} >
+                    <i class="fa fa-times"></i> Cancel
+                  </button>
+                </div>
+                <div class="input-group-btn">
+                  <button  type="button" {{action 'rename' 'confirm'}} {{bind-attr class=":btn :btn-success :btn-xs :btn-rename isRenaming:show"}} >
+                    <i class="fa fa-check"></i> Rename
+                  </button>
+                </div>
+              </div>
+            {{/unless}}
+          </td>
+          <td >{{content.owner}}</td>
+          <td>{{content.group}}</td>
+          <td>{{content.permission}}</td>
+          <td>
+            {{#unless isMoving}}
+              <ul class="list-inline file-actions text-right">
+                <li>
+                {{#if content.isDirectory}}
+                  <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>  
+                {{else}}
+                  <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>  
+                {{/if}}
+                </li>
+                <li>{{view view.deleteSingleView}}</li>
+                <li>
+                  <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></span></a>  
+                </li>
+              </ul>
+            {{/unless}}
+            </td>
+          <td>
+          {{#if isMoving}}
+            <a href="#" {{action 'moveFile' 'cancel' target="parentController" }} data-toggle="tooltip" data-placement="bottom" title="Cancel moving"> <i class="fa fa-times fa-lg"></i></a>
+          {{else}}
+            {{input type="checkbox" checkedBinding='content.selected'}}
+          {{/if}}
+          {{view view.togglecontext}}
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{view view.contextMenu }}
+</div>
