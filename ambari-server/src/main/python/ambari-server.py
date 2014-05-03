@@ -2065,7 +2065,7 @@ def find_jdk():
 # Checks if options determine local DB configuration
 #
 def is_local_database(args):
-  return args.persistence_type == 'local'
+  return hasattr(args, 'persistence_type') and args.persistence_type == 'local'
 
 
 #Check if required jdbc drivers present
