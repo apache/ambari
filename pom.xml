@@ -197,7 +197,6 @@
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/vendor/*</exclude>
-            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/bin</exclude>
           </excludes>
         </configuration>
         <executions>
