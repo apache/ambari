@@ -237,7 +237,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         title: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives'),
         message: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.message'),
         type: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.umask'),
-        emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.emptyinstaller.step3.hostWarningsPopup.alternatives.empty'),
+        emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.empty'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
         category: 'alternatives',
         isCollapsed: true
