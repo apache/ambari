@@ -23,7 +23,7 @@ describe('App.MainHiveJobDetailsTezDagView', function() {
   var tezDagView = App.MainHiveJobDetailsTezDagView.create();
 
   describe('#getNodeCalculatedDimensions()', function() {
-    var tests = [
+    var tests = Em.A([
       {
         i: {
           node: {
@@ -33,11 +33,11 @@ describe('App.MainHiveJobDetailsTezDagView', function() {
           minDuration: 1
         },
         e: {
-          width : 1800,
-          height : 400,
+          width : 180,
+          height : 40,
           drawWidth : 180,
           drawHeight : 40,
-          scale : 10
+          scale : 1
         },
         m: 'Node(ops=0,duration=100) minDuration=1'
       },
@@ -50,11 +50,11 @@ describe('App.MainHiveJobDetailsTezDagView', function() {
           minDuration: 1
         },
         e: {
-          width : 360,
-          height : 160,
+          width : 180,
+          height : 80,
           drawWidth : 180,
           drawHeight : 40+40,
-          scale : 2
+          scale : 1
         },
         m: 'Node(ops=5,duration=4) minDuration=1'
       },
@@ -92,13 +92,13 @@ describe('App.MainHiveJobDetailsTezDagView', function() {
         },
         m: 'Node(ops=1,duration=1) minDuration=3'
       }
-    ];
+    ]);
     tests.forEach(function(test) {
       it(test.m, function() {
         var nodeDim = tezDagView.getNodeCalculatedDimensions(test.i.node, test.i.minDuration);
-        for(var key in test.e) {
+        Em.keys(test.e).forEach(function(key) {
           expect(nodeDim[key]).to.equal(test.e[key]);
-        }
+        });
       });
     });
   });
