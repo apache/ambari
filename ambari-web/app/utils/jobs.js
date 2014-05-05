@@ -59,7 +59,7 @@ module.exports = {
     var hiveJobId = hiveJob.get('id');
     // First refresh query
     var hiveQueriesUrl = App.testMode ? "/data/jobs/hive-query-2.json" : "/proxy?url=http://" + historyServerHostName
-        + ":" + ahsWebPort + "/ws/v1/timeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=otherinfo";
+        + ":" + ahsWebPort + "/ws/v1/timeline/HIVE_QUERY_ID/" + hiveJob.get('id') + "?fields=events,otherinfo";
     App.HttpClient.get(hiveQueriesUrl, App.hiveJobMapper, {
       complete : function(jqXHR, textStatus) {
         // Now get the Tez DAG ID from the DAG name
@@ -177,15 +177,27 @@ module.exports = {
     var yarnService = App.YARNService.find().objectAt(0);
     var ahsWebPort = yarnService.get('ahsWebPort');
     var historyServerHostName = yarnService.get('appTimelineServerNode.hostName');
+    var tezDag = App.TezDag.find(tezDagId);
+    var hiveJob = App.HiveJob.find().findProperty('tezDag', tezDag);
+    var hiveJobFailed = hiveJob.get('failed');
+    var hiveJobEndTime = hiveJob.get('endTime');
     var sender = {
       loadTezDagVertexSuccess : function(data) {
         if (data && data.otherinfo) {
           var vertexRecord = App.TezDagVertex.find(tezDagId + "/" + data.otherinfo.vertexName);
           if (vertexRecord != null) {
             vertexRecord.set('startTime', data.otherinfo.startTime);
-            vertexRecord.set('endTime', data.otherinfo.endTime);
+            if (data.otherinfo.endTime == undefined && hiveJobFailed) {
+              vertexRecord.set('endTime', hiveJobEndTime);
+            } else {
+              vertexRecord.set('endTime', data.otherinfo.endTime);
+            };
             vertexRecord.set('tasksCount', data.otherinfo.numTasks);
-            vertexRecord.set('state', data.otherinfo.status);
+            if (data.otherinfo.status == null && hiveJobFailed) {
+              vertexRecord.set('state', Em.I18n.t('jobs.hive.failed'));
+            } else {
+              vertexRecord.set('state', data.otherinfo.status);
+            };
             if (data.otherinfo.counters && data.otherinfo.counters.counterGroups) {
               data.otherinfo.counters.counterGroups.forEach(function(cGroup) {
                 var cNameToPropetyMap = {};

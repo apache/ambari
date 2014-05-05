@@ -47,7 +47,17 @@ App.hiveJobMapper = App.QuickDataMapper.create({
       hiveJob.id = json.entity;
       hiveJob.name = hiveJob.id;
       hiveJob.startTime = json.starttime;
-      hiveJob.endTime = json.endtime;
+      if (json.endtime == undefined) {
+        var i = 0;
+        while (hiveJob.endTime == undefined && json.events[i]) {
+          if (json.events[i].eventtype == 'QUERY_COMPLETED') {
+            hiveJob.endTime = json.events[i].timestamp;
+          };
+          i++;
+        };
+      } else {
+        hiveJob.endTime = json.endtime;
+      };
       json.otherinfo.query = $.parseJSON(json.otherinfo.query);
       if (json.otherinfo.query && json.otherinfo.query.queryText) {
         hiveJob.query_text = json.otherinfo.query.queryText;

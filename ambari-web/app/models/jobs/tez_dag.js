@@ -168,7 +168,8 @@ App.TezDagVertexState = {
   FAILED : "FAILED",
   KILLED : "KILLED",
   ERROR : "ERROR",
-  TERMINATING : "TERMINATING"
+  TERMINATING : "TERMINATING",
+  JOBFAILED: "JOB FAILED"
 };
 
 App.TezDagVertexType = {

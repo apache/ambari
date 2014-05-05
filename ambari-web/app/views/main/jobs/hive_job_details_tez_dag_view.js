@@ -868,8 +868,12 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
       }).attr('class', function(n) {
         var classes = 'vertex-icon-text ';
         if (n.state != null) {
+          if (n.state == App.TezDagVertexState.JOBFAILED) {
+            classes += App.TezDagVertexState.FAILED.toLowerCase();
+          } else {
           classes += n.state.toLowerCase();
-        }
+          };
+        };
         return classes;
       });
     }
@@ -895,6 +899,9 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     case App.TezDagVertexState.INITIALIZING:
     case App.TezDagVertexState.TERMINATING:
       icon = '\uF141'; //icon-ellipsis-horizontal
+      break;
+    case App.TezDagVertexState.JOBFAILED:
+      icon = '\uF05C'; //icon-remove-circle
       break;
     }
     return icon;

@@ -1998,6 +1998,7 @@ Em.I18n.translations = {
   'jobs.customDateFilter.error.date.order':'End Date must be after Start Date',
   'jobs.customDateFilter.startTime':'Start Time',
   'jobs.customDateFilter.endTime':'End Time',
+  'jobs.hive.failed':'JOB FAILED',
   'jobs.hive.more':'show more',
   'jobs.hive.less':'show less',
   'jobs.hive.query':'Hive Query',
