@@ -31,7 +31,7 @@
     <custom.tests>false</custom.tests>
     <hdpUrlForCentos6>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
     <hdpLatestUrl>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
-    <common_functions.install.dir>/usr/lib/python2.6/site-packages/common_functions</common_functions.install.dir>
+    <common_functions.install.dir>/usr/lib/ambari-server/lib/common_functions</common_functions.install.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
   </properties>
   <build>
@@ -293,6 +293,17 @@
               <sources>
                 <source>
                   <location>conf/unix/ambari-env.sh</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/</directory>
+              <filemode>700</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>conf/unix/install-helper.sh</location>
                 </source>
               </sources>
             </mapping>
@@ -560,6 +571,17 @@
            <!-- /q001 -->
           <data>
             <src>conf/unix/ambari-env.sh</src>
+            <type>file</type>
+            <mapper>
+              <type>perm</type>
+              <prefix>/var/lib/ambari-server/</prefix>
+              <user>root</user>
+              <group>root</group>
+              <filemode>700</filemode>
+            </mapper>
+          </data>
+          <data>
+            <src>conf/unix/install-helper.sh</src>
             <type>file</type>
             <mapper>
               <type>perm</type>

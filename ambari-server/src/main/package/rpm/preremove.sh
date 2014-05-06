@@ -17,24 +17,24 @@
 # during package update. See http://www.ibm.com/developerworks/library/l-rpm2/
 # for details
 
-if [ "$1" -eq 0 ]; # Action is uninstall
-then
+if [ "$1" -eq 0 ]; then  # Action is uninstall
     /usr/sbin/ambari-server stop > /dev/null 2>&1
-    if [ -d "/etc/ambari-server/conf.save" ]
-    then
+    if [ -d "/etc/ambari-server/conf.save" ]; then
         mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
     fi
 
-    if [ -e "/etc/init.d/ambari-server" ];
-    then
+    if [ -e "/etc/init.d/ambari-server" ]; then
         # Remove link created during install
         rm /etc/init.d/ambari-server
     fi
 
     mv /etc/ambari-server/conf /etc/ambari-server/conf.save
 
-    chkconfig --del ambari-server
+    if [ -f "/var/lib/ambari-server/install-helper.sh" ]; then
+      /var/lib/ambari-server/install-helper.sh remove
+    fi
 
+    chkconfig --del ambari-server
 fi
 
 exit 0

@@ -17,14 +17,17 @@
 # during package update. See http://www.ibm.com/developerworks/library/l-rpm2/
 # for details
 
-if [ "$1" -eq 0 ]; # Action is uninstall
-then
+
+if [ "$1" -eq 0 ]; then  # Action is uninstall
     /usr/sbin/ambari-agent stop > /dev/null 2>&1
-    if [ -d "/etc/ambari-agent/conf.save" ]
-    then
+    if [ -d "/etc/ambari-agent/conf.save" ]; then
         mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
     fi
     mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save
+
+    if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
+      /var/lib/ambari-agent/install-helper.sh remove
+    fi
 
     chkconfig --del ambari-agent
 fi

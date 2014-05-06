@@ -13,15 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if [ "$1" -eq 1 ]; # Action is install
-then
+
+if [ "$1" -eq 1 ]; then # Action is install
+  if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
+    /var/lib/ambari-agent/install-helper.sh install
+  fi
   chkconfig --add ambari-agent
 fi
 
-if [ "$1" -eq 2 ]; # Action is upgrade
-then
-  if [ -d "/etc/ambari-agent/conf.save" ]
-  then
+if [ "$1" -eq 2 ]; then # Action is upgrade
+  if [ -d "/etc/ambari-agent/conf.save" ]; then
       cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
       mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
   fi
@@ -32,10 +33,11 @@ chmod 755 /usr/lib/ambari-agent/lib/facter-1.6.10/bin/facter /usr/lib/ambari-age
 BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini
 
-if [ -f $BAK ];
-then
+if [ -f $BAK ]; then
   SERV_HOST=`grep -e hostname\s*= $BAK | sed -r -e 's/hostname\s*=//' -e 's/\./\\\./g'`
   sed -i -r -e "s/(hostname\s*=).*/\1$SERV_HOST/" $ORIG
   rm $BAK -f
 fi
+
+
 exit 0

@@ -41,7 +41,7 @@
     <puppet.tar>http://downloads.puppetlabs.com/puppet/puppet-2.7.9.tar.gz</puppet.tar>
     <agent.install.dir>/usr/lib/python2.6/site-packages/ambari_agent</agent.install.dir>
     <resmgmt.install.dir>/usr/lib/python2.6/site-packages/resource_management</resmgmt.install.dir>
-    <common_functions.install.dir>/usr/lib/python2.6/site-packages/common_functions</common_functions.install.dir>
+    <common_functions.install.dir>/usr/lib/ambari-agent/lib/common_functions</common_functions.install.dir>
     <jinja.install.dir>/usr/lib/python2.6/site-packages/jinja2</jinja.install.dir>
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
@@ -323,6 +323,17 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-agent</directory>
+              <filemode>700</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>conf/unix/install-helper.sh</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>${package.pid.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -481,6 +492,17 @@
             </data>
             <data>
               <src>conf/unix/ambari-env.sh</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-agent</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>700</filemode>
+              </mapper>
+            </data>
+            <data>
+              <src>conf/unix/install-helper.sh</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>
