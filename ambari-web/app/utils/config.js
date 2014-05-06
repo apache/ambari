@@ -432,6 +432,7 @@ App.config = Em.Object.create({
           configData.overrides = stored.overrides;
           configData.filename = stored.filename;
           configData.description = stored.description;
+          configData.isVisible = stored.isVisible;
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           configData.showLabel = stored.showLabel !== false;
         } else if (!preDefined && stored) {
@@ -450,6 +451,7 @@ App.config = Em.Object.create({
             isOverridable: true,
             overrides: stored.overrides,
             isRequired: true,
+            isVisible: stored.isVisible,
             showLabel: stored.showLabel !== false
           };
           this.calculateConfigProperties(configData, isAdvanced, advancedConfigs);

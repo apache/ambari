@@ -781,6 +781,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
           description: _configProperties.get('description'),
           serviceName: _configProperties.get('serviceName'),
           domain: _configProperties.get('domain'),
+          isVisible: _configProperties.get('isVisible'),
           filename: _configProperties.get('filename'),
           displayType: _configProperties.get('displayType'),
           isRequiredByAgent: _configProperties.get('isRequiredByAgent'),
