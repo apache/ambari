@@ -17,24 +17,22 @@
 }}
 
 <div id="serviceConfig">
-    <h2>{{t installer.step7.header}}</h2>
+  <h2>{{t installer.step7.header}}</h2>
 
-    <div class="alert alert-info">
-      {{t installer.step7.body}}
-    </div>
+  <div class="alert alert-info">
+    {{t installer.step7.body}}
+  </div>
 
-    {{#if isAdvancedConfigLoaded}}
-      {{view App.ServicesConfigView}}
-    {{else}}
-      <div class="spinner"></div>
-    {{/if}}
+  {{#if isAdvancedConfigLoaded}}
+    {{view App.ServicesConfigView}}
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 
 
-    <div class="btn-area">
-        <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-
-        <a
-                class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-          {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
-    </div>
+  <div class="btn-area">
+    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
+      {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+  </div>
 </div>
