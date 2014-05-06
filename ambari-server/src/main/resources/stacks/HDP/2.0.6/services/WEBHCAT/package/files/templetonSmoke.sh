@@ -33,7 +33,7 @@ else
   kinitcmd=""
 fi
 
-cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>'    $ttonurl/status 2>&1"
+cmd="${kinitcmd}curl --noproxy ${ttonhost} --negotiate -u : -s -w 'http_code <%{http_code}>'    $ttonurl/status 2>&1"
 retVal=`su - ${smoke_test_user} -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
@@ -47,7 +47,7 @@ exit 0
 
 #try hcat ddl command
 echo "user.name=${smoke_test_user}&exec=show databases;" /tmp/show_db.post.txt
-cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  \@${destdir}/show_db.post.txt  $ttonurl/ddl 2>&1"
+cmd="${kinitcmd}curl --noproxy ${ttonhost} --negotiate -u : -s -w 'http_code <%{http_code}>' -d  \@${destdir}/show_db.post.txt  $ttonurl/ddl 2>&1"
 retVal=`su - ${smoke_test_user} -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
@@ -83,7 +83,7 @@ su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal /etc/passwd $ttonTestInput
 echo -n "user.name=${smoke_test_user}&file=/tmp/$ttonTestScript" > /tmp/pig_post.txt
 
 #submit pig query
-cmd="curl -s -w 'http_code <%{http_code}>' -d  \@${destdir}/pig_post.txt  $ttonurl/pig 2>&1"
+cmd="curl --noproxy ${ttonhost} -s -w 'http_code <%{http_code}>' -d  \@${destdir}/pig_post.txt  $ttonurl/pig 2>&1"
 retVal=`su - ${smoke_test_user} -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 if [[ "$httpExitCode" -ne "200" ]] ; then

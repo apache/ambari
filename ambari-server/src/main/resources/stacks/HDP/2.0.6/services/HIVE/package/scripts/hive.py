@@ -67,7 +67,8 @@ def hive(name=None):
             group=params.user_group,
             mode=config_file_mode)
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 "
+  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && "
+               "curl --noproxy {ambari_server_hostname} -kf --retry 5 "
                "{jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
 
   Execute(cmd,
@@ -186,7 +187,8 @@ def jdbc_connector():
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
     cmd = format(
-      "mkdir -p {artifact_dir} ; curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
+      "mkdir -p {artifact_dir} ; curl --noproxy {ambari_server_hostname} "
+      "-kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
       "cp {driver_curl_target} {target}")
 
     Execute(cmd,

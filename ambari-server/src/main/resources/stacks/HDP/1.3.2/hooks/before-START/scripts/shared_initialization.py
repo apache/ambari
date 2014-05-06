@@ -90,10 +90,12 @@ def setup_database():
   db_driver_dload_cmd = ""
   if params.server_db_name == 'oracle' and params.oracle_driver_url != "":
     db_driver_dload_cmd = format(
-      "curl -kf --retry 5 {oracle_driver_url} -o {hadoop_lib_home}/{db_driver_filename}")
+      "curl -kf --noproxy {ambari_server_hostname} --retry 5 {oracle_driver_url}"
+      " -o {hadoop_lib_home}/{db_driver_filename}")
   elif params.server_db_name == 'mysql' and params.mysql_driver_url != "":
     db_driver_dload_cmd = format(
-      "curl -kf --retry 5 {mysql_driver_url} -o {hadoop_lib_home}/{db_driver_filename}")
+      "curl -kf --noproxy {ambari_server_hostname} --retry 5 {mysql_driver_url} "
+      "-o {hadoop_lib_home}/{db_driver_filename}")
 
   if db_driver_dload_cmd:
     Execute(db_driver_dload_cmd,

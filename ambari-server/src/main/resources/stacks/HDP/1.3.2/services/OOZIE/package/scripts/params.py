@@ -24,6 +24,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 oozie_user = config['configurations']['global']['oozie_user']
 smokeuser = config['configurations']['global']['smokeuser']
 conf_dir = "/etc/oozie/conf"

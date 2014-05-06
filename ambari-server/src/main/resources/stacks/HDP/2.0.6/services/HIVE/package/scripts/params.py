@@ -50,6 +50,7 @@ check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar
 hdp_stack_version = config['hostLevelParams']['stack_version']
 hive_metastore_port = config['configurations']['global']['hive_metastore_port']
 hive_var_lib = '/var/lib/hive'
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 hive_bin = '/usr/lib/hive/bin'
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_port = 10000

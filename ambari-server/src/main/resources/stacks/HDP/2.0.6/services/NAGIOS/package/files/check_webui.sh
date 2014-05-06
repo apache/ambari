@@ -19,15 +19,16 @@
 # under the License.
 #
 #
-checkurl () {
-  url=$1
-  curl $url -o /dev/null
-  echo $?
-}
 
 service=$1
 host=$2
 port=$3
+
+checkurl () {
+  url=$1
+  curl $url --noproxy $host -o /dev/null
+  echo $?
+}
 
 if [[ -z "$service" || -z "$host" ]]; then
   echo "UNKNOWN: Invalid arguments; Usage: check_webui.sh service_name host_name";

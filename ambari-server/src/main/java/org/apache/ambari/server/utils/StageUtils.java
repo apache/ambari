@@ -24,6 +24,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -60,9 +61,9 @@ import java.util.TreeSet;
 
 public class StageUtils {
 
-
   public static final Integer DEFAULT_PING_PORT = 8670;
   private static final Log LOG = LogFactory.getLog(StageUtils.class);
+  static final String AMBARI_SERVER_HOST = "ambari_server_host";
   private static final String HOSTS_LIST = "all_hosts";
   private static final String PORTS = "all_ping_ports";
   private static Map<String, String> componentToClusterInfoKeyMap =
@@ -70,6 +71,16 @@ public class StageUtils {
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
       new HashMap<String, String>();
   private volatile static Gson gson;
+
+  private static String server_hostname;
+  static {
+    try {
+      server_hostname = InetAddress.getLocalHost().getCanonicalHostName();
+    } catch (UnknownHostException e) {
+      LOG.warn("Could not find canonical hostname ", e);
+      server_hostname = "localhost";
+    }
+  }
 
   public static Gson getGson() {
     if (gson != null) {
@@ -224,7 +235,14 @@ public class StageUtils {
 
     List<String> hostsList = new ArrayList<String>(hostsSet);
 
-    //Fill host roles
+    //     Fill host roles
+    // Fill server host
+    TreeSet<Integer> serverHost = new TreeSet<Integer>();
+    int hostIndex = hostsList.indexOf(getHostName());
+    serverHost.add(hostIndex);
+    hostRolesInfo.put(AMBARI_SERVER_HOST, serverHost);
+
+    // Fill hosts for services
     for (Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
 
       Service service = serviceEntry.getValue();
@@ -255,7 +273,7 @@ public class StageUtils {
               hostRolesInfo.put(roleName, hostsForComponentsHost);
             }
 
-            int hostIndex = hostsList.indexOf(hostName);
+            hostIndex = hostsList.indexOf(hostName);
             //Add index of host to current host role
             hostsForComponentsHost.add(hostIndex);
           }
@@ -270,7 +288,7 @@ public class StageUtils {
                 hostRolesInfo.put(decomRoleName, hostsForComponentsHost);
               }
 
-              int hostIndex = hostsList.indexOf(hostName);
+              hostIndex = hostsList.indexOf(hostName);
               //Add index of host to current host role
               hostsForComponentsHost.add(hostIndex);
             }
@@ -377,11 +395,6 @@ public class StageUtils {
   }
 
   public static String getHostName() {
-    try {
-      return InetAddress.getLocalHost().getCanonicalHostName();
-    } catch (UnknownHostException e) {
-      LOG.warn("Could not find canonical hostname ", e);
-      return "localhost";
-    }
+    return server_hostname;
   }
 }

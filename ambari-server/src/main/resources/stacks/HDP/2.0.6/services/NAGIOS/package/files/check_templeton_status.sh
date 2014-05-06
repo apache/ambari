@@ -35,7 +35,7 @@ if [[ "$SEC_ENABLED" == "true" ]]; then
   fi
 fi
 regex="^.*\"status\":\"ok\".*<status_code:200>$"
-out=`curl --negotiate -u : -s -w '<status_code:%{http_code}>' http://$HOST:$PORT/templeton/$VERSION/status 2>&1`
+out=`curl --noproxy $HOST --negotiate -u : -s -w '<status_code:%{http_code}>' http://$HOST:$PORT/templeton/$VERSION/status 2>&1`
 if [[ $out =~ $regex ]]; then
   out=`echo "$out" | sed -e 's/{/[/g' | sed -e 's/}/]/g'` 
   echo "OK: WebHCat Server status [$out]";
