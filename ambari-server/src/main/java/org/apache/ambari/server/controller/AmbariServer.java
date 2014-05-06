@@ -514,7 +514,7 @@ public class AmbariServer {
     BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class),
         injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
-    ClusterResourceProvider.injectBlueprintDAO(injector.getInstance(BlueprintDAO.class));
+    ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo);
     ViewRegistry.init(injector.getInstance(ViewDAO.class), injector.getInstance(ViewInstanceDAO.class));
   }
 

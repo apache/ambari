@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -52,11 +53,14 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.PropertyInfo;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -82,6 +86,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * Data access object used to obtain blueprint entities.
    */
   private static BlueprintDAO blueprintDAO;
+
+  /**
+   * Stack related information.
+   */
+  private static AmbariMetaInfo stackInfo;
 
   /**
    * Maps properties to updaters which update the property when provisioning a cluster via a blueprint
@@ -114,12 +123,13 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Inject the blueprint data access object which is used to obtain blueprint entities
+   * Inject the blueprint data access object which is used to obtain blueprint entities.
    *
    * @param dao  blueprint data access object
    */
-  public static void injectBlueprintDAO(BlueprintDAO dao) {
+  public static void init(BlueprintDAO dao, AmbariMetaInfo metaInfo) {
     blueprintDAO = dao;
+    stackInfo    = metaInfo;
   }
 
 
@@ -247,6 +257,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     // extract to own method
     baseUnsupported.remove("blueprint");
     baseUnsupported.remove("host_groups");
+    baseUnsupported.remove("default_password");
+    baseUnsupported.remove("configurations");
 
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
@@ -316,7 +328,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, HostGroup> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
     applyRequestInfoToHostGroups(properties, blueprintHostGroups);
-    processConfigurations(processBlueprintConfigurations(blueprint), stack, blueprintHostGroups);
+    processConfigurations(processBlueprintConfigurations(blueprint, (Collection<Map<String, String>>)
+        properties.get("configurations")), stack, blueprintHostGroups);
+    validatePasswordProperties(blueprint, blueprintHostGroups, (String) properties.get("default_password"));
 
     String clusterName = (String) properties.get(CLUSTER_NAME_PROPERTY_ID);
     createClusterResource(buildClusterResourceProperties(stack, clusterName));
@@ -332,6 +346,131 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     persistInstallStateForUI();
     return ((ServiceResourceProvider) getResourceProvider(Resource.Type.Service)).
         installAndStart(clusterName);
+  }
+
+  /**
+   * Validate that all required password properties have been set or that 'default_password' is specified.
+   *
+   * @param blueprint        associated blueprint entity
+   * @param hostGroups       host groups in blueprint
+   * @param defaultPassword  specified default password, may be null
+   *
+   * @throws IllegalArgumentException if required password properties are missing and no
+   *                                  default is specified via 'default_password'
+   */
+  private void validatePasswordProperties(BlueprintEntity blueprint, Map<String, HostGroup> hostGroups,
+                                          String defaultPassword) {
+
+    Map<String, Map<String, Collection<String>>> missingPasswords = blueprint.validateConfigurations(
+        stackInfo, PropertyInfo.PropertyType.PASSWORD);
+
+    Iterator<Map.Entry<String, Map<String, Collection<String>>>> iter;
+    for(iter = missingPasswords.entrySet().iterator(); iter.hasNext(); ) {
+      Map.Entry<String, Map<String, Collection<String>>> entry = iter.next();
+      Map<String, Collection<String>> missingProps = entry.getValue();
+      Iterator<Map.Entry<String, Collection<String>>> propIter;
+      for (propIter = missingProps.entrySet().iterator(); propIter.hasNext(); ) {
+        Map.Entry<String, Collection<String>> propEntry = propIter.next();
+        String configType = propEntry.getKey();
+        Collection<String> propertySet = propEntry.getValue();
+
+        for (String property : propertySet) {
+          if (setDefaultPassword(defaultPassword, configType, property)) {
+            propIter.remove();
+          } else if (isPropertyInConfiguration(mapClusterConfigurations.get(configType), property)){
+              propIter.remove();
+          } else {
+            HostGroup hostgroup = hostGroups.get(entry.getKey());
+            if (hostgroup != null) {
+              if (isPropertyInConfiguration(hostgroup.getConfigurations().get(configType), property)) {
+                propIter.remove();
+              }
+            }
+          }
+        }
+      }
+      if (entry.getValue().isEmpty()) {
+        iter.remove();
+      }
+    }
+
+    if (! missingPasswords.isEmpty()) {
+      throw new IllegalArgumentException("Missing required password properties.  Specify a value for these " +
+          "properties in the cluster or host group configurations or include 'default_password' field in request. " +
+          missingPasswords);
+    }
+  }
+
+  /**
+   * Attempt to set the default password in cluster configuration for missing password property.
+   *
+   * @param defaultPassword  default password specified in request, may be null
+   * @param configType       configuration type
+   * @param property         password property name
+   *
+   * @return true if password was set, otherwise false.  Currently the password will always be set
+   *         unless it is null
+   */
+  private boolean setDefaultPassword(String defaultPassword, String configType, String property) {
+    boolean setDefaultPassword = false;
+    Map<String, String> typeProps = mapClusterConfigurations.get(configType);
+    if (defaultPassword != null && ! defaultPassword.trim().isEmpty()) {
+      // set default password in cluster config
+      if (typeProps == null) {
+        typeProps = new HashMap<String, String>();
+        mapClusterConfigurations.put(configType, typeProps);
+      }
+      typeProps.put(property, defaultPassword);
+      setDefaultPassword = true;
+    }
+    return setDefaultPassword;
+  }
+
+  /**
+   * Determine if a specific property is in a configuration.
+   *
+   * @param props     property map to check
+   * @param property  property to check for
+   *
+   * @return true if the property is contained in the configuration, otherwise false
+   */
+  private boolean isPropertyInConfiguration(Map<String, String> props, String property) {
+    boolean foundProperty = false;
+    if (props != null) {
+      String val = props.get(property);
+      foundProperty = (val != null && ! val.trim().isEmpty());
+    }
+    return foundProperty;
+  }
+
+  /**
+   * Override existing properties or add new.
+   *
+   * @param existingProperties  property overrides
+   * @param configOverrides     current property values
+   */
+  private void overrideExistingProperties(Map<String, Map<String, String>> existingProperties,
+                                          Collection<Map<String, String>> configOverrides) {
+    if (configOverrides != null) {
+      for (Map<String, String> properties : configOverrides) {
+        String category = null;
+        int propertyOffset = -1;
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
+          String absolutePropName = entry.getKey();
+          if (category == null) {
+            propertyOffset =  absolutePropName.indexOf('/');
+            category = absolutePropName.substring(0, propertyOffset);
+          }
+          Map<String, String> existingCategoryProperties = existingProperties.get(category);
+          if (existingCategoryProperties == null) {
+            existingCategoryProperties = new HashMap<String, String>();
+            existingProperties.put(category, existingCategoryProperties);
+          }
+          //override existing property or add new
+          existingCategoryProperties.put(absolutePropName.substring(propertyOffset + 1), entry.getValue());
+        }
+      }
+    }
   }
 
   /**
@@ -534,8 +673,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    *
    * @throws IllegalArgumentException a host-group in the request doesn't match a host-group in the blueprint
    */
-  private void applyRequestInfoToHostGroups(Map<String, Object> properties, Map<String,
-                                            HostGroup> blueprintHostGroups)
+  private void applyRequestInfoToHostGroups(Map<String, Object> properties,
+                                            Map<String, HostGroup> blueprintHostGroups)
                                             throws IllegalArgumentException {
 
     @SuppressWarnings("unchecked")
@@ -548,7 +687,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       HostGroup hostGroup = blueprintHostGroups.get(name);
 
       if (hostGroup == null) {
-        throw new IllegalArgumentException("Invalid host-group specified: " + name +
+        throw new IllegalArgumentException("Invalid host_group specified: " + name +
           ".  All request host groups must have a corresponding host group in the specified blueprint");
       }
 
@@ -559,6 +698,10 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         //add host information to host group
         hostGroup.addHostInfo(mapHostProperties.get("fqdn"));
       }
+      Map<String, Map<String, String>> existingConfigurations = hostGroup.getConfigurations();
+      overrideExistingProperties(existingConfigurations, (Collection<Map<String, String>>)
+          hostGroupProperties.get("configurations"));
+
     }
     validateHostMappings(blueprintHostGroups);
   }
@@ -648,14 +791,18 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    *
    * @return configuration properties contained within in blueprint
    */
-  private Map<String, Map<String, String>> processBlueprintConfigurations(BlueprintEntity blueprint) {
+  private Map<String, Map<String, String>> processBlueprintConfigurations(BlueprintEntity blueprint,
+                                                                          Collection<Map<String, String>> configOverrides) {
     Map<String, Map<String, String>> mapConfigurations = new HashMap<String, Map<String, String>>();
     Collection<BlueprintConfigEntity> configs = blueprint.getConfigurations();
     Gson jsonSerializer = new Gson();
+
     for (BlueprintConfigEntity config : configs) {
       mapConfigurations.put(config.getType(), jsonSerializer.<Map<String, String>> fromJson(
           config.getConfigData(), Map.class));
     }
+    overrideExistingProperties(mapConfigurations, configOverrides);
+
     return mapConfigurations;
   }
 
