@@ -45,12 +45,16 @@ class Hook(Script):
     Runs custom hook
     """
     args = sys.argv
+    
     #Hook script to run
     args[0] = args[0].replace('before-'+args[1], command)
     args[0] = args[0].replace('after-'+args[1], command)
+    
     #Hook script base directory
     args[3] = args[3].replace('before-'+args[1], command)
     args[3] = args[3].replace('after-'+args[1], command)
+    
+    args[1] = command.split("-")[1]
 
 
     cmd = [sys.executable]
