@@ -23,7 +23,7 @@ limitations under the License. -->
 		<CustomAction Id="SET_AMB_LAYOUT" Property="AMB_LAYOUT" Value="[%APPDATA]\amb_install\ambariproperties.txt" />
         <CustomAction Id="Upgrade" BinaryKey="GUI" ExeCommand="upgrade [OLDERVERSIONBEINGUPGRADED]" />
         <CustomAction Id="GUI" BinaryKey="GUI" ExeCommand="gui [OLDERVERSIONBEINGUPGRADED]" />
-        <CustomAction Id="InstallCommand" Property="InstallDeferred" Value="&quot;cmd.exe&quot; /c &quot;set START_SERVICES=[START_SERVICES] &amp;&amp; set HDP_LAYOUT=[HDP_LAYOUT] &amp;&amp; set AMB_LAYOUT=[AMB_LAYOUT] &amp;&amp; [AMBARI_SETUP_TOOLS]bootstrap_install.cmd [AMBARI_SETUP_TOOLS]&quot;" />
+        <CustomAction Id="InstallCommand" Property="InstallDeferred" Value="&quot;cmd.exe&quot; /c &quot;set RECREATE_DB=[RECREATE_DB] &amp;&amp; set START_SERVICES=[START_SERVICES] &amp;&amp; set HDP_LAYOUT=[HDP_LAYOUT] &amp;&amp; set AMB_LAYOUT=[AMB_LAYOUT] &amp;&amp; [AMBARI_SETUP_TOOLS]bootstrap_install.cmd [AMBARI_SETUP_TOOLS]&quot;" />
         <CustomAction Id="InstallDeferred" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" />
         <CustomAction Id="UninstallCommand" Property="UninstallDeferred" Value="&quot;cmd.exe&quot; /c &quot;[AMBARI_SETUP_TOOLS]bootstrap_uninstall.cmd [AMBARI_SETUP_TOOLS]&quot;" />
         <CustomAction Id="UninstallDeferred" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" />
