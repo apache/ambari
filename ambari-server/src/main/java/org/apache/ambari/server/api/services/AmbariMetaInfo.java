@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -126,8 +127,8 @@ public class AmbariMetaInfo {
   @Inject
   private MetainfoDAO metainfoDAO;
   // Required properties by stack version
-  private final Map<StackId, Map<String, PropertyInfo>> requiredProperties =
-    new HashMap<StackId, Map<String, PropertyInfo>>();
+  private final Map<StackId, Map<String, Map<String, PropertyInfo>>> requiredProperties =
+    new HashMap<StackId, Map<String, Map<String, PropertyInfo>>>();
 
   /**
    * Ambari Meta Info Object
@@ -814,13 +815,16 @@ public class AmbariMetaInfo {
       List<ServiceInfo> services = stackExtensionHelper.getAllApplicableServices(stack);
       stack.setServices(services);
 
+      Map<String, Map<String, PropertyInfo>> stackRequiredProps = new HashMap<String, Map<String, PropertyInfo>>();
+      requiredProperties.put(new StackId(stack.getName(), stack.getVersion()), stackRequiredProps);
+      for (ServiceInfo service : services) {
+        // Set required config properties
+        stackRequiredProps.put(service.getName(), getAllRequiredProperties(service));
+      }
+
       // Resolve hooks folder
       String stackHooksToUse = stackExtensionHelper.resolveHooksFolder(stack);
       stack.setStackHooksFolder(stackHooksToUse);
-
-      // Set required config properties
-      requiredProperties.put(new StackId(stack.getName(), stack.getVersion()),
-        stackExtensionHelper.getAllRequiredPropertiesForStack(stack));
     }
 
     es.invokeAll(lookupList);
@@ -830,12 +834,22 @@ public class AmbariMetaInfo {
 
   /**
    * Get properties with require_input attribute set to true.
-   * @param stackName Name of the stack, e.g.: HDP
-   * @param stackVersion Version of the stack
-   * @return Map of config type to Properties
+   *
+   * @param stackName     name of the stack, e.g.: HDP
+   * @param stackVersion  version of the stack
+   * @return Map of property name to PropertyInfo
    */
-  public Map<String, PropertyInfo> getRequiredPropertiesForStack(String stackName, String stackVersion) {
-    return requiredProperties.get(new StackId(stackName, stackVersion));
+  public Map<String, PropertyInfo> getRequiredProperties(String stackName, String stackVersion, String service) {
+
+    Map<String, Map<String, PropertyInfo>> requiredStackProps =
+        requiredProperties.get(new StackId(stackName, stackVersion));
+
+    if (requiredStackProps != null) {
+      Map<String, PropertyInfo> requiredServiceProperties = requiredStackProps.get(service);
+      return requiredServiceProperties == null ? Collections.<String, PropertyInfo>emptyMap() :
+                                                 requiredServiceProperties;
+    }
+    return Collections.emptyMap();
   }
 
   public String getServerVersion() {
@@ -999,6 +1013,23 @@ public class AmbariMetaInfo {
     }
 
 	  return null;
+  }
+
+  /**
+   * Get all required properties for the given service.
+   *
+   * @param service  associated service
+   * @return map of property name to PropertyInfo containing all required properties for service
+   */
+  private Map<String, PropertyInfo> getAllRequiredProperties(ServiceInfo service) {
+    Map<String, PropertyInfo> requiredProperties = new HashMap<String, PropertyInfo>();
+    List<PropertyInfo> properties = service.getProperties();
+    for (PropertyInfo propertyInfo : properties) {
+      if (propertyInfo.isRequireInput()) {
+        requiredProperties.put(propertyInfo.getName(), propertyInfo);
+      }
+    }
+    return requiredProperties;
   }
 
 }

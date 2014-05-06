@@ -631,24 +631,6 @@ public class StackExtensionHelper {
       }
     }
   }
-
-  /**
-   * Get all properties with require-input attribute set to true.
-   * @param stackInfo StackInfo object.
-   */
-  public Map<String, PropertyInfo> getAllRequiredPropertiesForStack(StackInfo stackInfo) {
-    Map<String, PropertyInfo> requiredProperties = new HashMap<String, PropertyInfo>();
-    for (ServiceInfo serviceInfo : stackInfo.getServices()) {
-      List<PropertyInfo> properties = serviceInfo.getProperties();
-      for (PropertyInfo propertyInfo : properties) {
-        if (propertyInfo.isRequireInput()) {
-          requiredProperties.put(propertyInfo.getName(), propertyInfo);
-        }
-      }
-    }
-    return requiredProperties;
-  }
-
   
   public static <T> T unmarshal(Class<T> clz, File file) throws JAXBException {
     Unmarshaller u = _jaxbContexts.get(clz).createUnmarshaller();

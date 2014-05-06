@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 /**
  * Resource Provider for Blueprint resources.
@@ -342,8 +344,8 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
     createHostGroupEntities(blueprint,
         (HashSet<HashMap<String, Object>>) properties.get(HOST_GROUP_PROPERTY_ID));
 
-    createBlueprintConfigEntities((Collection<Map<String,
-        String>>) properties.get(CONFIGURATION_PROPERTY_ID), blueprint);
+    createBlueprintConfigEntities((Collection<Map<String, String>>)
+        properties.get(CONFIGURATION_PROPERTY_ID), blueprint);
 
     return blueprint;
   }
@@ -554,8 +556,8 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
    * @param configuration  property map
    * @param configEntity   config entity to populate
    */
-  private void  populateConfigurationEntity(String blueprintName, Map<String, String> configuration,
-                                            BlueprintConfiguration configEntity) {
+  private void populateConfigurationEntity(String blueprintName, Map<String, String> configuration,
+                                           BlueprintConfiguration configEntity) {
 
     configEntity.setBlueprintName(blueprintName);
     Map<String, String> configData = new HashMap<String, String>();
@@ -585,14 +587,22 @@ public class BlueprintResourceProvider extends AbstractResourceProvider {
       public Void invoke() throws AmbariException {
         BlueprintEntity blueprint = toBlueprintEntity(properties);
 
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating Blueprint, name=" + blueprint.getBlueprintName());
-        }
-
         if (dao.findByName(blueprint.getBlueprintName()) != null) {
           throw new DuplicateResourceException(
               "Attempted to create a Blueprint which already exists, blueprint_name=" +
               blueprint.getBlueprintName());
+        }
+
+        Map<String, Map<String, Collection<String>>> missingProperties = blueprint.validateConfigurations(
+            stackInfo, PropertyInfo.PropertyType.DEFAULT);
+
+        if (! missingProperties.isEmpty()) {
+          throw new IllegalArgumentException("Required configurations are missing from the specified host groups: " +
+                                             missingProperties);
+        }
+
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Creating Blueprint, name=" + blueprint.getBlueprintName());
         }
         dao.create(blueprint);
         return null;
