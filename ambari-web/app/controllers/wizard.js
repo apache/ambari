@@ -335,34 +335,71 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     this.saveClusterStatus(clusterStatus);
     App.showAlertPopup(Em.I18n.t('common.errorPopup.header'), request.responseText);
   },
-
-  bootstrapRequestId: null,
-
-  /*
-   Bootstrap selected hosts.
+  /**
+   * show popup, that display status of bootstrap launching
+   * @param callback
+   * @return {Object}
    */
-  launchBootstrap: function (bootStrapData) {
+  showLaunchBootstrapPopup: function (callback) {
+    return App.ModalPopup.show({
+      header: Em.I18n.t('installer.step2.bootStrap.header'),
+      isError: false,
+      serverError: null,
+      bodyClass: Em.View.extend({
+        templateName: require('templates/wizard/bootstrap_call_popup')
+      }),
+      showFooter: false,
+      showCloseButton: false,
+      secondary: null,
+      /**
+       * handle requestId when call is completed,
+       * if it's correct call callback and hide popup
+       * otherwise notify error and enable buttons to close popup
+       * @param requestId
+       * @param serverError
+       */
+      finishLoading: function (requestId, serverError) {
+        if (Em.isNone(requestId)) {
+          this.set('isError', true);
+          this.set('showFooter', true);
+          this.set('showCloseButton', true);
+          this.set('serverError', serverError);
+        } else {
+          callback(requestId);
+          this.hide();
+        }
+      }
+    });
+  },
+  /**
+   * Bootstrap selected hosts.
+   * @param bootStrapData
+   * @param callback
+   * @return {Object}
+   */
+  launchBootstrap: function (bootStrapData, callback) {
+    var popup = this.showLaunchBootstrapPopup(callback);
     App.ajax.send({
       name: 'wizard.launch_bootstrap',
       sender: this,
       data: {
-        bootStrapData: bootStrapData
+        bootStrapData: bootStrapData,
+        popup: popup
       },
       success: 'launchBootstrapSuccessCallback',
       error: 'launchBootstrapErrorCallback'
     });
-
-    return this.get('bootstrapRequestId');
+    return popup;
   },
 
-  launchBootstrapSuccessCallback: function (data) {
+  launchBootstrapSuccessCallback: function (data, opt, params) {
     console.log("TRACE: POST bootstrap succeeded");
-    this.set('bootstrapRequestId', data.requestId);
+    params.popup.finishLoading(data.requestId, null);
   },
 
-  launchBootstrapErrorCallback: function () {
+  launchBootstrapErrorCallback: function (request, ajaxOptions, error, opt, params) {
     console.log("ERROR: POST bootstrap failed");
-    alert('Bootstrap call failed. Please try again.');
+    params.popup.finishLoading(null, error);
   },
 
   /**

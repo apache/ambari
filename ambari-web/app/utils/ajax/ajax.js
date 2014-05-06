@@ -1618,9 +1618,9 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
-        async: false,
         contentType: 'application/json',
-        data: data.bootStrapData
+        data: data.bootStrapData,
+        popup: data.popup
       }
     }
   },

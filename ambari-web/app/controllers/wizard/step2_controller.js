@@ -331,22 +331,31 @@ App.WizardStep2Controller = Em.Controller.extend({
       return false;
     }
 
-    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), 'hosts': this.get('hostNameArr'), 'user': this.get('sshUser')});
-
     if (App.get('skipBootstrap')) {
       this.saveHosts();
+      App.router.send('next');
       return true;
     }
-
-    var requestId = App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData);
-    if (requestId == '0') {
-      var controller = App.router.get(App.clusterStatus.wizardControllerName);
-      controller.registerErrPopup(Em.I18n.t('common.information'), Em.I18n.t('installer.step2.evaluateStep.hostRegInProgress'));
-    } else if (requestId) {
-      this.set('content.installOptions.bootRequestId', requestId);
-      this.saveHosts();
-    }
+    this.setupBootStrap();
     return true;
+  },
+
+  /**
+   * setup bootstrap data and completion callback for bootstrap call
+   */
+  setupBootStrap: function () {
+    var self = this;
+    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('sshKey'), 'hosts': this.get('hostNameArr'), 'user': this.get('sshUser')});
+    App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
+      if (requestId == '0') {
+        var controller = App.router.get(App.clusterStatus.wizardControllerName);
+        controller.registerErrPopup(Em.I18n.t('common.information'), Em.I18n.t('installer.step2.evaluateStep.hostRegInProgress'));
+      } else if (requestId) {
+        self.set('content.installOptions.bootRequestId', requestId);
+        self.saveHosts();
+        App.router.send('next');
+      }
+    });
   },
 
   /**
@@ -431,6 +440,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       onPrimary: function () {
         this.hide();
         self.saveHosts();
+        App.router.send('next');
       },
       bodyClass: Em.View.extend({
         templateName: require('templates/wizard/step2ManualInstallPopup')
@@ -492,7 +502,6 @@ App.WizardStep2Controller = Em.Controller.extend({
   saveHosts: function () {
     this.set('content.hosts', this.getHostInfo());
     this.setAmbariJavaHome();
-    App.router.send('next');
   }
 
 });

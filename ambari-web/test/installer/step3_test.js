@@ -415,51 +415,46 @@ describe('App.WizardStep3Controller', function () {
     });
   });
 
-  describe('#retryHosts', function() {
-    it('should set numPolls to 0', function() {
-      var s = sinon.stub(App.router, 'get', function() {
-        return {launchBootstrap: Em.K}
+  describe('#retryHosts', function () {
+    var s;
+    var installer = {launchBootstrap: Em.K};
+
+    beforeEach(function () {
+      sinon.spy(installer, "launchBootstrap");
+      s = sinon.stub(App.router, 'get', function () {
+        return installer;
       });
+      sinon.stub(c, 'doBootstrap', Em.K);
+    });
+
+    afterEach(function () {
+      c.doBootstrap.restore();
+      s.restore();
+      installer.launchBootstrap.restore();
+    });
+
+    it('should set numPolls to 0', function () {
       c.set('content', {installOptions: {}});
-      c.set('doBootstrap', Em.K);
       c.set('numPolls', 123);
       c.retryHosts(Em.A([]));
       expect(c.get('numPolls')).to.equal(0);
-      s.restore();
     });
-    it('should set registrationStartedAt to null', function() {
-      var s = sinon.stub(App.router, 'get', function() {
-        return {launchBootstrap: Em.K}
-      });
+    it('should set registrationStartedAt to null', function () {
       c.set('content', {installOptions: {}});
-      c.set('doBootstrap', Em.K);
       c.retryHosts(Em.A([]));
       expect(c.get('registrationStartedAt')).to.be.null;
-      s.restore();
     });
-    it('should startRegistration if installOptions.manualInstall is true', function() {
-      var s = sinon.stub(App.router, 'get', function() {
-        return {launchBootstrap: Em.K}
-      });
+    it('should startRegistration if installOptions.manualInstall is true', function () {
       sinon.spy(c, 'startRegistration');
       c.set('content', {installOptions: {manualInstall: true}});
-      c.set('doBootstrap', Em.K);
       c.retryHosts(Em.A([]));
       expect(c.startRegistration.calledOnce).to.equal(true);
-      s.restore();
       c.startRegistration.restore();
     });
-    it('should doBootstrap if installOptions.manualInstall is false', function() {
-      var s = sinon.stub(App.router, 'get', function() {
-        return {launchBootstrap: Em.K}
-      });
+    it('should launchBootstrap if installOptions.manualInstall is false', function () {
       c.set('content', {installOptions: {manualInstall: false}});
-      c.set('doBootstrap', Em.K);
-      sinon.spy(c, 'doBootstrap');
       c.retryHosts(Em.A([]));
-      expect(c.doBootstrap.calledOnce).to.equal(true);
-      s.restore();
-      c.doBootstrap.restore();
+      expect(installer.launchBootstrap.calledOnce).to.be.true;
     });
   });
 

@@ -326,11 +326,12 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method retryHosts
    */
   retryHosts: function (hosts) {
+    var self = this;
     var bootStrapData = JSON.stringify({
-      'verbose': true,
-      'sshKey': this.get('content.installOptions.sshKey'),
-      'hosts': hosts.mapProperty('name'),
-      'user': this.get('content.installOptions.sshUser')}
+        'verbose': true,
+        'sshKey': this.get('content.installOptions.sshKey'),
+        'hosts': hosts.mapProperty('name'),
+        'user': this.get('content.installOptions.sshUser')}
     );
     this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
@@ -339,9 +340,10 @@ App.WizardStep3Controller = Em.Controller.extend({
       this.startRegistration();
     }
     else {
-      var requestId = App.router.get('installerController').launchBootstrap(bootStrapData);
-      this.set('content.installOptions.bootRequestId', requestId);
-      this.doBootstrap();
+      App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
+        self.set('content.installOptions.bootRequestId', requestId);
+        self.doBootstrap();
+      });
     }
   },
 
@@ -710,7 +712,9 @@ App.WizardStep3Controller = Em.Controller.extend({
       } else if (host) {
         _host.set('cpu', host.Hosts.cpu_count);
         _host.set('memory', ((parseInt(host.Hosts.total_mem))).toFixed(2));
-        _host.set('disk_info', host.Hosts.disk_info.filter(function(host){ return host.mountpoint!="/boot"}));
+        _host.set('disk_info', host.Hosts.disk_info.filter(function (host) {
+          return host.mountpoint != "/boot"
+        }));
         _host.set('os_type', host.Hosts.os_type);
         _host.set('os_arch', host.Hosts.os_arch);
         _host.set('ip', host.Hosts.ip);
@@ -1026,28 +1030,28 @@ App.WizardStep3Controller = Em.Controller.extend({
       //todo: to be removed after check in new API
       var javaProcs = _host.Hosts.last_agent_env.hostHealth ? _host.Hosts.last_agent_env.hostHealth.activeJavaProcs : _host.Hosts.last_agent_env.javaProcs;
       if (javaProcs) {
-      javaProcs.forEach(function (process) {
-        warning = warningCategories.processesWarnings[process.pid];
-        if (warning) {
-          warning.hosts.push(_host.Hosts.host_name);
-          warning.onSingleHost = false;
-        } else {
-          warningCategories.processesWarnings[process.pid] = warning = {
-            name: (process.command.substr(0, 35) + '...'),
-            hosts: [_host.Hosts.host_name],
-            category: 'processes',
-            user: process.user,
-            pid: process.pid,
-            command: '<table><tr><td style="word-break: break-all;">' +
-              ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
-                '<p style="text-align: center">................</p>' +
-                '...' + process.command.substr(-230)) + '</td></tr></table>',
-            onSingleHost: true
-          };
-        }
-        host.warnings.push(warning);
-      }, this);
-    }
+        javaProcs.forEach(function (process) {
+          warning = warningCategories.processesWarnings[process.pid];
+          if (warning) {
+            warning.hosts.push(_host.Hosts.host_name);
+            warning.onSingleHost = false;
+          } else {
+            warningCategories.processesWarnings[process.pid] = warning = {
+              name: (process.command.substr(0, 35) + '...'),
+              hosts: [_host.Hosts.host_name],
+              category: 'processes',
+              user: process.user,
+              pid: process.pid,
+              command: '<table><tr><td style="word-break: break-all;">' +
+                ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
+                  '<p style="text-align: center">................</p>' +
+                  '...' + process.command.substr(-230)) + '</td></tr></table>',
+              onSingleHost: true
+            };
+          }
+          host.warnings.push(warning);
+        }, this);
+      }
 
       //parse all service warnings for host
 

@@ -88,9 +88,12 @@ describe('App.WizardController', function () {
 
   describe('#launchBootstrapSuccessCallback', function() {
     it('Save bootstrapRequestId', function() {
-      var data = {requestId:123};
-      wizardController.launchBootstrapSuccessCallback(data);
-      expect(wizardController.get('bootstrapRequestId')).to.equal(data.requestId);
+      var data = {requestId: 123};
+      var params = {popup: {finishLoading: function(){}}};
+      sinon.spy(params.popup, "finishLoading");
+      wizardController.launchBootstrapSuccessCallback(data, {}, params);
+      expect(params.popup.finishLoading.calledWith(123)).to.be.true;
+      params.popup.finishLoading.restore();
     });
   });
 
